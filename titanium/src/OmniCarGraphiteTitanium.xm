@@ -9,6 +9,7 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 #import <math.h>
+#import <stdlib.h>
 
 typedef NS_ENUM(NSUInteger, OMTColorRole) {
     OMTColorRoleSurface, OMTColorRoleGradient, OMTColorRoleInk,
@@ -108,13 +109,14 @@ static BOOL OMTThemeLayer(CALayer *layer,NSUInteger depth,NSUInteger *budget){
         changed=OMTThemeLayer(sub,depth+1,budget)||changed;
     return changed;
 }
-static BOOL OMTThemeView(UIView *view,NSUInteger depth,NSUInteger *viewBudget){
+static BOOL OMTThemeView(UIView *view,NSUInteger depth,NSUInteger *viewBudget,BOOL nativeIconTint){
     if(!view||depth>6||!*viewBudget)return NO;
     --*viewBudget;
     // Do not descend into window, scene hosts or web/render surfaces.
     if([view isKindOfClass:[UIWindow class]] ||
        [view isKindOfClass:NSClassFromString(@"WKWebView")] ||
-       [view isKindOfClass:NSClassFromString(@"SBSceneView")])return NO;
+       [view isKindOfClass:NSClassFromString(@"SBSceneView")] ||
+       ([view isKindOfClass:[UIImageView class]] && !nativeIconTint))return NO;
     BOOL changed=NO;
     UIColor *color=OMTTranslate(view.backgroundColor,OMTColorRoleSurface);
     if(color){view.backgroundColor=color;changed=YES;}
@@ -126,7 +128,10 @@ static BOOL OMTThemeView(UIView *view,NSUInteger depth,NSUInteger *viewBudget){
         if(color){label.textColor=color;changed=YES;}
     } else if([view isKindOfClass:[UIButton class]]){
         UIButton *button=(UIButton *)view;
-        for(NSUInteger state=UIControlStateNormal;state<=UIControlStateDisabled;state++){
+        const UIControlState states[]={UIControlStateNormal,UIControlStateHighlighted,
+              UIControlStateDisabled,UIControlStateSelected};
+        for(NSUInteger index=0;index<sizeof(states)/sizeof(states[0]);index++){
+            UIControlState state=states[index];
             color=OMTTranslate([button titleColorForState:state],OMTColorRoleInk);
             if(color){[button setTitleColor:color forState:state];changed=YES;}
         }
@@ -136,8 +141,8 @@ static BOOL OMTThemeView(UIView *view,NSUInteger depth,NSUInteger *viewBudget){
     changed=OMTThemeLayer(view.layer,0,&layerBudget)||changed;
     for(UIView *sub in view.subviews){
         // Preserve native application icon and independently owned app content.
-        if([sub isKindOfClass:[UIImageView class]])continue;
-        changed=OMTThemeView(sub,depth+1,viewBudget)||changed;
+        if([sub isKindOfClass:[UIImageView class]] && !nativeIconTint)continue;
+        changed=OMTThemeView(sub,depth+1,viewBudget,nativeIconTint)||changed;
     }
     return changed;
 }
@@ -148,18 +153,18 @@ static id OMTGet(id obj,SEL selector){
     return obj && [obj respondsToSelector:selector]
         ?((id(*)(id,SEL))objc_msgSend)(obj,selector):nil;
 }
-static NSUInteger OMTColorNativeRoot(id value){
+static NSUInteger OMTColorNativeRoot(id value,BOOL nativeIconTint){
     UIView *root=OMTAsView(value);
     if(!root)return 0;
     NSUInteger budget=150;
-    return OMTThemeView(root,0,&budget)?1:0;
+    return OMTThemeView(root,0,&budget,nativeIconTint)?1:0;
 }
 static void OMTThemePane(id pane){
-    OMTColorNativeRoot(OMTGet(pane,@selector(handle)));
-    OMTColorNativeRoot(OMTGet(pane,@selector(bar)));
+    OMTColorNativeRoot(OMTGet(pane,@selector(handle)),YES);
+    OMTColorNativeRoot(OMTGet(pane,@selector(bar)),YES);
 }
 static void OMTThemeDivider(id divider){
-    OMTColorNativeRoot(OMTGet(divider,@selector(knob)));
+    OMTColorNativeRoot(OMTGet(divider,@selector(knob)),YES);
 }
 @interface SCPCarSplit : NSObject
 - (UIView *)ratioMenu;
@@ -170,12 +175,12 @@ static void OMTThemeDivider(id divider){
 static void OMTThemeSplit(SCPCarSplit *split){
     if(!split)return;
     // Exactly the native menu/pane UI owners confirmed by original method calls.
-    NSUInteger changed=OMTColorNativeRoot([split ratioMenu]);
+    NSUInteger changed=OMTColorNativeRoot([split ratioMenu],YES);
     id dividers=[split dividers];
     if([dividers isKindOfClass:[NSArray class]])
         for(id divider in (NSArray *)dividers)OMTThemeDivider(divider);
     for(int slot=0;slot<3;slot++)OMTThemePane([split paneAtSlot:slot]);
-    OMTColorNativeRoot([split pickerSheet]);
+    OMTColorNativeRoot([split pickerSheet],NO);
     if(changed)NSLog(@"[OmniCarTitanium] colors=original-layers menu=changed");
 }
 %group OMTSplit
@@ -204,7 +209,7 @@ static void OMTThemeSplit(SCPCarSplit *split){
 }
 - (void)refreshPickerSheet{
     %orig;
-    OMTColorNativeRoot([(SCPCarSplit *)self pickerSheet]);
+    OMTColorNativeRoot([(SCPCarSplit *)self pickerSheet],NO);
 }
 - (void)rootDidLayout{
     %orig;
