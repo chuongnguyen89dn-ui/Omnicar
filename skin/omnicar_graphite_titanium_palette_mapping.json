@@ -1,7 +1,7 @@
 {
   "original_package": "com.anlai.omnicar_1.0.3_iphoneos-arm64.deb",
   "original_sha256": "d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd",
-  "status": "SOURCE_EDIT_ONLY__NO_DEB_BUILT__NOT_DEVICE_TESTED",
+  "status": "ALL_FOUR_VISUAL_MODULES_SOURCE_PATCHED_NOT_COMPILED_NOT_RUNTIME_VERIFIED",
   "theme": "Graphite Titanium",
   "targets": {
     "graphite": "#171B22",
@@ -119,10 +119,10 @@
     }
   },
   "module_status": {
-    "OmniCarSplitScreen": "patched-native-color-source-no-build",
-    "OmniCarAppBridge": "palette-identified-unpatched",
-    "OmniCarSpeedBubble": "palette-identified-unpatched",
-    "OmniCarStartupScreen": "palette-identified-unpatched",
+    "OmniCarSplitScreen": "source-patched-native-existing-colors-uncompiled",
+    "OmniCarAppBridge": "source-patched-abhost-and-keyboard-colors-uncompiled",
+    "OmniCarSpeedBubble": "source-patched-sppbubbleview-decorative-colors-uncompiled-preserves-warning-sign",
+    "OmniCarStartupScreen": "source-patched-ssstartupview-native-colors-uncompiled-images-unchanged",
     "OmniCarCore": "nonvisual-excluded",
     "OmniCarCarProbe": "nonvisual-excluded"
   },
@@ -136,5 +136,25 @@
     "no Zoom geometry changes",
     "do not change safety warnings",
     "workflow_dispatch only"
+  ],
+  "sourceFiles": [
+    "titanium/src/OmniCarGraphiteTitanium.xm",
+    "titanium/src/OmniCarGraphiteFeatureColors.xm"
+  ],
+  "original_scan_stats": {
+    "style_selector_calls": 964,
+    "color_constructors": 330,
+    "fully_resolved_color_constructors": 279,
+    "unresolved_color_constructors": 51,
+    "dylibs": 6
+  },
+  "implementationCaveats": [
+    "colors only, no shapes/geometry altered",
+    "existing native layer colors translated, no new gradients",
+    "conditional hooks may not install if class is in a different process",
+    "actual native runtime color output not tested",
+    "startup/speed colors safety and semantic states excluded",
+    "no UI action changes",
+    "NO DEB BUILT OR RELEASED"
   ]
 }
