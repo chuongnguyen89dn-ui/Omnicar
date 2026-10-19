@@ -36,9 +36,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'numberOfTapsRequired=2' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'cancelsTouchesInView=NO' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'newDividerAt:' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'event=native-doubletap' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -q 'addGestureRecognizer:' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'OCDTPerformFullscreenToggle' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'dividerDoubleTapped:' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'OCDTHitKnob' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'appAreaInParent:' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'relayoutAnimated:NO pushScenes:YES' src/OmniCarDoubleTapFullscreen.xm
@@ -61,7 +62,7 @@ jobs:
           printf '\n=== Package metadata ===\n'
           dpkg-deb -f artifacts/*.deb
           test "$(dpkg-deb -f artifacts/*.deb Package)" = 'com.anlai.omnicar.doubletapfullscreen'
-          test "$(dpkg-deb -f artifacts/*.deb Version)" = '0.1.0'
+          test "$(dpkg-deb -f artifacts/*.deb Version)" = '0.2.0'
           dpkg-deb -c artifacts/*.deb | tee artifacts/package-contents.txt
           grep -q 'OmniCarDoubleTapFullscreen.dylib' artifacts/package-contents.txt
           grep -q 'OmniCarDoubleTapFullscreen.plist' artifacts/package-contents.txt
@@ -70,7 +71,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: OmniCar-doubletapfullscreen-0.1.0-candidate
+          name: OmniCar-doubletapfullscreen-0.2.0-candidate
           path: artifacts/
           retention-days: 30
 
@@ -79,11 +80,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist/candidates/doubletapfullscreen-0.1.0
-          cp artifacts/*.deb artifacts/SHA256SUMS.txt artifacts/STATUS.txt artifacts/package-contents.txt dist/candidates/doubletapfullscreen-0.1.0/
+          mkdir -p dist/candidates/doubletapfullscreen-0.2.0
+          test ! -e "dist/candidates/doubletapfullscreen-0.2.0/com.anlai.omnicar.doubletapfullscreen_0.2.0_iphoneos-arm64.deb" || { echo "Cannot overwrite existing candidate" >&2; exit 1; }
+          cp artifacts/*.deb artifacts/SHA256SUMS.txt artifacts/STATUS.txt artifacts/package-contents.txt dist/candidates/doubletapfullscreen-0.2.0/
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/candidates/doubletapfullscreen-0.1.0/
+          git add dist/candidates/doubletapfullscreen-0.2.0/
           git commit -m "artifact: archive OmniCar doubletap fullscreen candidate [skip ci]"
           for attempt in 1 2 3; do
             git fetch origin main
