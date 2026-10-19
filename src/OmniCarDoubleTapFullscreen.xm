@@ -287,22 +287,31 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
     } @catch (NSException *exc) {
         NSLog(@"[OmniCarRescue] native restore failed safely: %@",exc.reason);
     } @finally {
-        // This must happen EVEN when a native transition is not reversible:
-        // do not strand the user without both the three-dot menu and dock.
-        OMCChromeSetHidden(NO);
-        [split refreshHomeButton];
-        [split rootDidLayout];
+        // Restore an escape path EVEN if one native transition failed.
+        @try {
+            OMCChromeSetHidden(NO);
+        } @catch (NSException *ex) {
+            NSLog(@"[OmniCarRescue] chrome restoration exception: %@",ex.reason);
+        }
+        @try {
+            [split refreshHomeButton];
+            [split rootDidLayout];
+        } @catch (NSException *ex) {
+            NSLog(@"[OmniCarRescue] native relayout exception: %@",ex.reason);
+        }
         OMCScheduleRescue(split);
-        NSLog(@"[OmniCarRescue] event=chrome-restored");
+        NSLog(@"[OmniCarRescue] event=emergency-dock-restore-requested");
     }
 }
 @end
 
+@interface OMCNativePane : NSObject
+- (UIView *)handle;
+@end
 static BOOL OMCNativeHandleIsVisible(id pane, UIWindow *window) {
     if (![pane respondsToSelector:@selector(handle)]) return NO;
-    id candidate=[pane performSelector:@selector(handle)];
-    if (![candidate isKindOfClass:UIView.class]) return NO;
-    UIView *v=(UIView *)candidate;
+    UIView *v=[(OMCNativePane *)pane handle];
+    if (![v isKindOfClass:UIView.class]) return NO;
     if (v.hidden || v.alpha<.05 || !v.userInteractionEnabled ||
         !v.window || v.window!=window) return NO;
     CGRect actual=[window convertRect:v.bounds fromView:v];
