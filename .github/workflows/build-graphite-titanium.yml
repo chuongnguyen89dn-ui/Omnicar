@@ -1,0 +1,77 @@
+name: OmniCar Graphite Titanium REAL Native Skin DEB
+on:
+  push:
+    branches: [main]
+    paths:
+      - "titanium/**"
+      - "scripts/test_titanium_native_skin.py"
+      - ".github/workflows/build-graphite-titanium.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  native-skin:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate native hooks and exact graphite colors
+        run: |
+          set -euo pipefail
+          python3 scripts/test_titanium_native_skin.py
+          plutil -lint titanium/OmniCarGraphiteTitanium.plist
+
+      - name: Install Theos rootless build toolchain
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+
+      - name: Build actual arm64 native UI skin tweak DEB
+        run: |
+          set -euo pipefail
+          make -C titanium clean package FINALPACKAGE=1
+          mkdir -p titanium-artifacts
+          DEB="$(find titanium/packages -maxdepth 1 -type f -name '*.deb' | head -n1)"
+          test -s "$DEB"
+          cp "$DEB" titanium-artifacts/
+          LIB="$(find titanium/.theos -type f -name OmniCarGraphiteTitanium.dylib | head -n1)"
+          lipo "$LIB" -verify_arch arm64
+          dpkg-deb -f titanium-artifacts/*.deb | tee titanium-artifacts/CONTROL.txt
+          dpkg-deb -c titanium-artifacts/*.deb | tee titanium-artifacts/FILES.txt
+          test "$(dpkg-deb -f titanium-artifacts/*.deb Package)" = "com.anlai.omnicar.graphitetitanium"
+          test "$(dpkg-deb -f titanium-artifacts/*.deb Version)" = "0.1.0"
+          grep -q OmniCarGraphiteTitanium.dylib titanium-artifacts/FILES.txt
+          grep -q OmniCarGraphiteTitanium.plist titanium-artifacts/FILES.txt
+          (cd titanium-artifacts && shasum -a 256 *.deb | tee SHA256SUMS.txt)
+          echo "CI_BUILD_PASS__DEVICE_TEST_PENDING" > titanium-artifacts/STATUS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-Graphite-Titanium-0.1.0-native-DEB
+          path: titanium-artifacts/
+          retention-days: 30
+
+      - name: Archive candidate DEB to repo (not Sileo)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          mkdir -p dist/candidates/graphite-titanium-0.1.0
+          test ! -e dist/candidates/graphite-titanium-0.1.0/STATUS.txt
+          cp titanium-artifacts/* dist/candidates/graphite-titanium-0.1.0/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/candidates/graphite-titanium-0.1.0/
+          git commit -m "artifact: archive real OmniCar Titanium DEB [skip ci]"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
