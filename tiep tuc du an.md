@@ -94,3 +94,12 @@ Repo tham chiếu: https://github.com/chuongnguyen89dn-ui/Duoface
 - **TRẠNG THÁI THỰC TẾ:** COMPILE/PACKAGE/REPOSITORY PASS; **ON-DEVICE TEST CHƯA CÓ**. Không tuyên bố fullscreen đã thực sự lấy toàn bộ CarPlay chrome/dock hoặc rằng nút tròn chắc chắn tiếp nhận double-tap cho đến khi user test trên xe. Native engine có thể bố trí lại chỉ trong viewport, không che dock. Nếu không phóng, dùng log \`[OmniCarDT]\` và ảnh để tìm đúng host owner; không thay code khác.
 - **TEST CẦN USER:** giữ OmniCar gốc 1.0.3, cài addon DEB 0.1.0 (không cần thêm nguồn Sileo), respring khi cần, kết nối xe lúc **đỗ**; kiểm tra một lần chọn ô, kéo ratio, double lần 1 phóng full cả giao diện, double lần 2 trả đúng split, hai app không reload; ghi ảnh/log nếu có lỗi. Gỡ **chỉ addon** nếu gặp xung đột/khởi động lại; không gỡ OmniCar gốc.
 - **Không có yêu cầu phát hành Sileo:** tuyệt đối không làm tiếp bước deploy khi chưa có lệnh.
+
+
+## CHECKPOINT 2026-10-19 — YÊU CẦU UI MỚI THAY CHO NHẤN ĐÚP (CHƯA DUYỆT DEMO)
+
+- Người dùng chỉ rõ nút tròn trắng tại vạch chia: **nhấn một lần mở thanh 3 ô chọn bố cục ở phía trên**, ảnh CarPlay đã gửi. Người dùng nghi ngờ có thao tác đổi ô qua lại; cần giữ nguyên callback gốc, không áp lệnh mới vào double-tap khi chưa xác minh.
+- **Yêu cầu UI mới ưu tiên:** giữ nguyên 3 ô chọn bố cục ở hàng trên; **thêm đúng 1 ô/nút Zoom ở hàng phía dưới**, dùng kiểu nút, kích thước, màu, hình dạng đồng bộ với thanh lựa chọn gốc. Kích hoạt cùng menu bởi chạm một lần vào nút tròn; bấm Zoom lần 1 fullscreen toàn host, lần 2 restore split. Không sửa tính năng cũ (chọn bố cục, chạm nút tròn, kéo divider, swap, HUD, app).
+- Người dùng yêu cầu **demo hình để duyệt TRƯỚC KHI viết/sửa code/DEB**. Đã tạo demo so sánh trái/phải trong cuộc trò chuyện từ ảnh người dùng; đây là **mockup ảnh, không phải giao diện runtime hoặc DEB đã sửa**. Hình minh họa bên phải có 3 ô gốc + nút fullscreen ở hàng dưới và nút tròn ngay bên dưới. Chưa được người dùng chấp thuận.
+- **Lưu ý phần đã thay đổi trước yêu cầu mới:** source `src/OmniCarDoubleTapFullscreen.xm` commit `d4f2cbe19096e9328e31e71f3cf50a576c42e1d7` đã điều chỉnh callback native doubletap, nhưng **chưa có DEB build được xác minh cho commit đó**; không sử dụng nó làm bản final mới, và không tự kích hoạt release/Sileo. DEB addon 0.1.0 trước đó build PASS nhưng user thử không phản hồi.
+- **Bước tiếp theo:** chờ người dùng duyệt/chỉnh mockup; sau đó khảo sát kỹ nút/menu native (không phỏng đoán lớp), đưa nút Zoom vào menu ở đúng vị trí, giữ nguyên callback gốc, build và kiểm chứng. Không đụng Sileo.
