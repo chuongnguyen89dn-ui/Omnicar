@@ -1,5 +1,6 @@
 // Real native controls from OmniCar 1.0.3. Independent Graphite Titanium addon.
-// Change appearance only: never touch scene frames, callbacks, dock or app content.
+// Change only the ratio/pane control appearance. The original home/launcher/logo
+// button is STRICTLY EXCLUDED. Never touch dock, frames, or app content.
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import <QuartzCore/QuartzCore.h>
@@ -78,7 +79,6 @@ static void OMTPane(id pane){
 - (UIView *)ratioMenu;
 - (id)ratioKnob;
 - (id)dividers;
-- (id)homeButton;
 - (id)pickerSheet;
 - (id)paneAtSlot:(int)slot;
 @end
@@ -89,7 +89,6 @@ static void OMTUpdate(SCPCarSplit *s){
  id ds=[s dividers];
  if([ds isKindOfClass:NSArray.class])for(id d in (NSArray*)ds)OMTDivider(d);
  for(int slot=0;slot<3;slot++)OMTPane([s paneAtSlot:slot]);
- OMTSurface(OMTView([s homeButton]),YES);
  OMTSurface(OMTView([s pickerSheet]),NO);
 }
 %group OMTSplit
@@ -116,10 +115,6 @@ static void OMTUpdate(SCPCarSplit *s){
 - (void)setBarVisible:(BOOL)visible forPane:(id)pane {
  %orig;
  if(visible) OMTPane(pane);
-}
-- (void)refreshHomeButton {
- %orig;
- OMTSurface(OMTView([(SCPCarSplit *)self homeButton]),YES);
 }
 - (void)refreshPickerSheet {
  %orig;

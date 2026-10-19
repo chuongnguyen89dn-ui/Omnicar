@@ -9,7 +9,7 @@ for required in ["%hook SCPCarSplit","showRatioMenuForDivider:","newDividerAt:",
     assert required in s, required
 for channels in ["23,27,34","53,61,70","181,189,197","120,185,200","243,245,245"]:
     assert channels in s,channels
-for forbidden in ["%hook UIView","%hook UIColor","%hook UIWindow","DBStatusBarWindow","CARStatusBarWindow","SBSceneView","appBridgeZoom","OMCRescueAction"]:
+for forbidden in ["homeButton", "refreshHomeButton", "OMTGet(s,@selector(homeButton))","%hook UIView","%hook UIColor","%hook UIWindow","DBStatusBarWindow","CARStatusBarWindow","SBSceneView","appBridgeZoom","OMCRescueAction"]:
     assert forbidden not in s, forbidden
 assert "OmniCarGraphiteTitanium_FILES :=" in m
 assert "com.apple.UIKit" not in p
