@@ -163,15 +163,24 @@ static CGRect OCDTFullArea(UIView *parent) {
 
 %end
 
+static BOOL OCDTInstalled=NO;
+static void OCDTTryInstall(NSUInteger retry) {
+    if (OCDTInstalled) return;
+    if (!NSClassFromString(@"SCPCarSplit") || !NSClassFromString(@"SCPCarDividerView")) {
+        if (retry<20) dispatch_after(dispatch_time(DISPATCH_TIME_NOW,500*NSEC_PER_MSEC),
+                                     dispatch_get_main_queue(),^{ OCDTTryInstall(retry+1); });
+        else NSLog(@"[OmniCarDT] hooks not installed: OmniCar classes unavailable");
+        return;
+    }
+    %init;
+    OCDTInstalled=YES;
+    NSLog(@"[OmniCarDT] hooks installed after class load (retry=%lu)",(unsigned long)retry);
+}
 %ctor {
     @autoreleasepool {
         NSString *bundle=NSBundle.mainBundle.bundleIdentifier.lowercaseString ?: @"";
         BOOL allowed=[bundle isEqualToString:@"com.apple.carplayapp"] ||
                      [bundle isEqualToString:@"com.apple.springboard"];
-        if (allowed && NSClassFromString(@"SCPCarSplit") &&
-            NSClassFromString(@"SCPCarDividerView")) {
-            %init;
-            NSLog(@"[OmniCarDT] loaded in %@, geometry candidate v0.1",bundle);
-        }
+        if (allowed) dispatch_async(dispatch_get_main_queue(),^{ OCDTTryInstall(0); });
     }
 }
