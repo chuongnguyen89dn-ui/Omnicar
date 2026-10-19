@@ -10,7 +10,6 @@
 - (BOOL)active;
 - (UIView *)container;
 - (UIView *)ratioMenu;
-- (UIView *)ratioKnob;
 - (CGRect)appAreaInParent:(UIView *)parent;
 - (void)relayoutAnimated:(BOOL)animated pushScenes:(BOOL)pushScenes;
 - (void)rootDidLayout;
@@ -133,29 +132,44 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
         return;
     }
     OMCZoomState *state=OMCState(split);
-    UIView *knob=[split ratioKnob];
-    if (![knob isKindOfClass:UIView.class] || !knob.window) {
-        if ([divider isKindOfClass:UIView.class] &&
-            [divider respondsToSelector:@selector(knob)]) {
-            knob=[divider performSelector:@selector(knob)];
+    UIView *parent=menu.superview;
+    CGRect menuRect=[parent convertRect:menu.bounds fromView:menu];
+    if (CGRectIsEmpty(menuRect)) return;
+
+    // 0.3 REGRESSION: SCPCarSplit.ratioKnob was NOT the blue/white circle
+    // below the native three-choice selector. It returned a different
+    // handle over the map, moving the Zoom button far from its approved spot.
+    // The native selector panel center is the reliable anchor.
+    CGFloat nativeHeight=CGRectGetHeight(menuRect);
+    CGFloat diameter=MAX(46.0,MIN(62.0,nativeHeight*0.70));
+    CGFloat centerX=CGRectGetMidX(menuRect);
+
+    // Prefer the original SCPCarDividerView's circle only if it lies on
+    // the axis of the actual selector panel and immediately below it.
+    CGRect nativeCircle=CGRectNull;
+    if ([divider isKindOfClass:UIView.class] &&
+        [divider respondsToSelector:@selector(knob)]) {
+        UIView *candidate=[(id)divider knob];
+        if ([candidate isKindOfClass:UIView.class] && candidate.window) {
+            CGRect rect=[parent convertRect:candidate.bounds fromView:candidate];
+            if (fabs(CGRectGetMidX(rect)-centerX)<MIN(36.0,nativeHeight*.5) &&
+                CGRectGetMinY(rect)>=CGRectGetMaxY(menuRect)-nativeHeight*.3 &&
+                CGRectGetMinY(rect)<CGRectGetMaxY(menuRect)+nativeHeight) {
+                nativeCircle=rect;
+            }
         }
     }
-    if (![knob isKindOfClass:UIView.class] || !knob.window) {
-        NSLog(@"[OmniCarZoom] event=knob-unavailable");
-        return;
-    }
-    UIView *parent=menu.superview;
-    CGRect knobBounds=[parent convertRect:knob.bounds fromView:knob];
-    if (CGRectIsEmpty(knobBounds)) return;
-
-    // Base control height on the REAL ratio menu rather than arbitrary pixels.
-    CGFloat nativeHeight=CGRectGetHeight(menu.bounds);
-    CGFloat diameter=MAX(42.0,MIN(62.0,nativeHeight-4.0));
-    if (!isfinite(diameter)) return;
-    CGRect frame=CGRectMake(CGRectGetMidX(knobBounds)-diameter/2.0,
-                            CGRectGetMaxY(knobBounds)+10.0,
-                            diameter,diameter);
-    if (!OMCAreaValid(CGRectInset(menu.bounds,-80.0,-80.0))) return;
+    // The ratio selector panel and its circular trigger have a fixed
+    // visible ordering: panel ABOVE trigger ABOVE our NEW Zoom control.
+    CGFloat circleBottom=CGRectIsNull(nativeCircle)
+        ?CGRectGetMaxY(menuRect)+12.0+MIN(52.0,nativeHeight*.55)
+        :CGRectGetMaxY(nativeCircle);
+    CGRect frame=CGRectMake(centerX-diameter/2.0,
+                            circleBottom+12.0,diameter,diameter);
+    NSLog(@"[OmniCarZoom] event=anchor-check menu=%@ circle=%@ proposed=%@",
+          NSStringFromCGRect(menuRect),NSStringFromCGRect(nativeCircle),
+          NSStringFromCGRect(frame));
+    if (!OMCAreaValid(menuRect)) return;
     if (CGRectGetMaxY(frame)>CGRectGetHeight(parent.bounds)-2.0) {
         NSLog(@"[OmniCarZoom] event=not-enough-space frame=%@ parent=%@",
               NSStringFromCGRect(frame),NSStringFromCGRect(parent.bounds));
@@ -173,11 +187,24 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
     UIButton *button=state.button;
     button.frame=frame;
     button.layer.cornerRadius=diameter/2.0;
-    button.layer.borderWidth=menu.layer.borderWidth>0 ? menu.layer.borderWidth : 1.0;
-    button.layer.borderColor=menu.layer.borderColor ?: UIColor.whiteColor.CGColor;
-    button.backgroundColor=(menu.backgroundColor && CGColorGetAlpha(menu.backgroundColor.CGColor)>0.1) ?
-        menu.backgroundColor : [UIColor colorWithRed:0.78 green:0.91 blue:1.0 alpha:0.88];
-    button.tintColor=[UIColor colorWithRed:0.05 green:0.35 blue:0.84 alpha:1.0];
+    // Match the original selector's pale lavender-to-cyan material instead
+    // of the 0.3 blue solid-circle regression. No changes to native panel.
+    button.layer.borderWidth=1.5;
+    button.layer.borderColor=[UIColor colorWithWhite:1 alpha:.9].CGColor;
+    button.backgroundColor=[UIColor colorWithRed:.86 green:.89 blue:1 alpha:.88];
+    CAGradientLayer *fill=objc_getAssociatedObject(button,@selector(OMCRefreshButton:));
+    if (!fill) {
+        fill=[CAGradientLayer layer];
+        fill.colors=@[(__bridge id)[UIColor colorWithRed:.96 green:.89 blue:1 alpha:.95].CGColor,
+                      (__bridge id)[UIColor colorWithRed:.67 green:.92 blue:1 alpha:.95].CGColor];
+        fill.startPoint=CGPointMake(0,0);
+        fill.endPoint=CGPointMake(1,1);
+        [button.layer insertSublayer:fill atIndex:0];
+        objc_setAssociatedObject(button,@selector(OMCRefreshButton:),fill,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    fill.frame=button.bounds;
+    fill.cornerRadius=diameter/2.0;
+    button.tintColor=[UIColor colorWithRed:.10 green:.32 blue:.80 alpha:1];
     OMCRefreshButton(state);
     if (button.superview!=parent) {
         [button removeFromSuperview];
@@ -185,9 +212,9 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
     }
     [parent bringSubviewToFront:button];
     state.menu=menu;
-    state.knob=knob;
-    NSLog(@"[OmniCarZoom] event=button-installed frame=%@ menu=%@ knob=%@",
-          NSStringFromCGRect(frame),NSStringFromCGRect(menu.frame),NSStringFromCGRect(knobBounds));
+    state.knob=nil;
+    NSLog(@"[OmniCarZoom] event=button-installed frame=%@ menu=%@ nativeCircle=%@",
+          NSStringFromCGRect(frame),NSStringFromCGRect(menuRect),NSStringFromCGRect(nativeCircle));
 }
 
 %hook SCPCarSplit
