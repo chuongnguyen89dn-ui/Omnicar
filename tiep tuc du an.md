@@ -213,3 +213,12 @@ Repo tham chiếu: https://github.com/chuongnguyen89dn-ui/Duoface
 - Package candidate **0.7.0**, higher than installed 0.6 to permit direct upgrade; still `com.anlai.omnicar.doubletapfullscreen`, original OmniCar base untouched. Updated `control`, CI, `scripts/test_zoom_style.py`, README. No Sileo.
 - Known consequence: the reported missing native three-dot menu / fullscreen lock-out can recur because the user explicitly declined separate rescue UI. Do not say issue fixed by this style release.
 - Next: GitHub Actions actual build and SHA, archive standalone candidate; verify source has no `OMCRescueAction`; hand off DEB for parked-device visual confirmation.
+
+
+### 2026-10-19 — 0.7.0 RESTORE-0.5 BASE / ZOOM STYLE DEB BUILD VERIFIED
+
+- Source commit `8b047d25a55877b7e75a4bb6e2e21736f729ad26` restores `src/OmniCarDoubleTapFullscreen.xm` from 0.5 source `9d7be0b` and applies **only** compact native-like Zoom styling. **No 0.6 rescue button or rescue hooks**, verified readback. Package ID preserved to upgrade directly over 0.6, number 0.7.0 only to permit package-manager upgrade.
+- GitHub Actions [run #39247315596](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/39247315596) SUCCESS all steps: static style/no-rescue gate; Theos, SDK, ARM64 compile, signing, DEB packaging, artifact and repo archival.
+- Artifact ID `12183937471`; `dist/candidates/menuzoom-0.7.0/com.anlai.omnicar.doubletapfullscreen_0.7.0_iphoneos-arm64.deb` size **12320 bytes**, SHA256 **`352687f66d18685e4defb06564b37831f0c18e3734fd0365577c0a7cbf1c47a6`**. GitHub Action ZIP downloaded and verified `zipfile.testzip()==None`, SHA256 matched, `dpkg-deb -f` Package/Version/Depends rootless verified; contains only tweak dylib 89488 bytes + matching 118-byte injection plist. Local verified `/mnt/data/com.anlai.omnicar.doubletapfullscreen_0.7.0_iphoneos-arm64.deb`.
+- Status: build/package/GitHub persistence **PASS**; 0.7 zoom visuals **DEVICE NOT TESTED**. User should check compact 29–36pt button, pale lavender/cyan fill, crisp arrow and unchanged click functionality + original 3 selection buttons. **No Sileo changes**, no original OmniCar DEB alterations, no idle auto-hide.
+- Risk explicitly accepted by user: removed 0.6 emergency rescue, so previously reported native missing-three-dot fullscreen lock-out can still occur after native pane Zoom/float transitions. Do not describe that issue as solved. Follow-up if required is separate from this visual polish.
