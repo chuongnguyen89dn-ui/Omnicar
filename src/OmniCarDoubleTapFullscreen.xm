@@ -176,7 +176,12 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
     NSLog(@"[OmniCarZoom] event=anchor-check menu=%@ circle=%@ proposed=%@",
           NSStringFromCGRect(menuRect),NSStringFromCGRect(nativeCircle),
           NSStringFromCGRect(frame));
-    if (!OMCAreaValid(menuRect)) {
+    // Ratio control is a COMPACT control and can be shorter than 50 pt.
+    // OMCAreaValid is for app host geometry, never for native menu controls.
+    if (CGRectIsEmpty(menuRect) || !isfinite(menuRect.origin.x) ||
+        !isfinite(menuRect.origin.y) || !isfinite(menuRect.size.width) ||
+        !isfinite(menuRect.size.height) ||
+        menuRect.size.width<=0.0 || menuRect.size.height<=0.0) {
         NSLog(@"[OmniCarZoom] event=invalid-menu-geometry frame=%@",
               NSStringFromCGRect(menuRect));
         return;
