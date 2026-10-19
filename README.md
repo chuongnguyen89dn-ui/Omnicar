@@ -1,15 +1,14 @@
-# OmniCar — Circular-knob double-tap fullscreen candidate
+# OmniCar — Zoom icon below circular divider knob
 
-**Independent repo / no Sileo publishing.** Source baseline: user-provided \`com.anlai.omnicar_1.0.3_iphoneos-arm64.deb\`. Original OmniCar is **not repacked or modified** by this candidate; the generated DEB is an **optional addon** depending on \`com.anlai.omnicar >= 1.0.3\`.
+**Approved UI on 2026-10-19.** A single tap on the divider's circular knob still opens the original three-choice ratio/layout menu **above** the circle. The new feature adds exactly one circular Zoom icon **beneath** that circle, centered on the same divider line. Its light blue/white styling should match the original menu; no original buttons/actions are replaced.
 
-Goal: single tap on the circular divider knob still selects a pane; drag still adjusts the split ratio; first double-tap enlarges the whole split host area (both panes), second double-tap restores the original split. This **does not use OmniCar's per-pane zoom function**, nor the floating-window mode.
+## Candidate 0.3.0
+The addon package `com.anlai.omnicar.doubletapfullscreen` retains its ID solely to upgrade prior test versions 0.1 and 0.2. It hooks the existing `SCPCarSplit.showRatioMenuForDivider:` **after** the native method, creating a sibling Zoom control aligned from the live `ratioKnob`; `hideRatioMenu` removes this one extra control. **No double-tap gesture is installed or overridden.**
 
-Current implementation: Logos hook into \`SCPCarSplit.newDividerAt:\` installs an opt-in 2-tap recognizer scoped to the native knob bounds; associated state selects the enlarged app region from its live host window, and invokes the native relayout to propagate sizes to scenes. \`appAreaInParent:\` is temporarily overridden only on the active split owner. Other native divider gestures are not changed; original divider-swap callback is suppressed on circular knob only.
+Zoom toggles a host geometry request using the `appAreaInParent:` hook and native relayout. This is *not yet proven* to hide Apple CarPlay chrome or work perfectly on the vehicle; static compilation alone is not a device test. Debug labels: `[OmniCarZoom] event=hook-installed|menu-unavailable|knob-unavailable|button-installed|zoom-button-pressed|expand-request|restore-request`.
 
-**Important limitation:** This is an experimental geometry hook. A larger app region does **not** prove Apple CarPlay dock/status chrome is hidden. It is not yet proven that OmniCar calls \`appAreaInParent:\` in every host layout path, nor that the second double-tap remains accessible when fullscreen. Passing CI means *compile + package only*, **never device functionality PASS**. Test on a separate candidate setup, not while driving.
+Build workflow `.github/workflows/build-candidate.yml` runs macos-15 / Theos SDK / ldid; DEB and SHA256 are kept under `dist/candidates/menuzoom-0.3.0/` in this repository only. **Never publish to Sileo.**
 
-Build: GitHub Actions \`.github/workflows/build-candidate.yml\` on push (macos-15, Theos, arm64, rootless). The CI saves \`dist/candidates/\` only in this repo and uploads an Actions artifact. It never uploads a Sileo apt index or changes the original package.
+Test on parked vehicle: original three choices; knob single tap; drag ratio; added icon below knob; fullscreen toggle and reverse; active apps remain running. If it fails, uninstall only addon `com.anlai.omnicar.doubletapfullscreen` and keep OmniCar base package installed.
 
-Rollback: uninstall \`com.anlai.omnicar.doubletapfullscreen\` via a package manager or \`dpkg -r com.anlai.omnicar.doubletapfullscreen\`, then respring. Original \`com.anlai.omnicar\` should remain installed. For safety, confirm the \`apt\` removal plan before approving any uninstall.
-
-Evidence and continuation: [tiep tuc du an.md](tiep%20tuc%20du%20an.md), [static audit](audit/OmniCar_1.0.3_doubletap_fullscreen_20261019.md). Any change must be confined to this repo and reviewed against the single-tap/pan regression checklist.
+See [handoff](tiep%20tuc%20du%20an.md) and [audit](audit/OmniCar_1.0.3_doubletap_fullscreen_20261019.md).
