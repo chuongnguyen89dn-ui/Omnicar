@@ -95,7 +95,9 @@ static void OMTUpdate(SCPCarSplit *s){
 %group OMTSplit
 %hook SCPCarSplit
 - (id)newDividerAt:(int)index {
- id d=%orig;OMTDivider(d);return d;
+ id d=%orig;
+ OMTDivider(d);
+ return d;
 }
 - (void)showRatioMenuForDivider:(id)divider {
  %orig;
@@ -103,19 +105,29 @@ static void OMTUpdate(SCPCarSplit *s){
  OMTDivider(divider);
  NSLog(@"[OmniCarTitanium] native-ratio-menu-styled");
 }
-- (void)setupBarForPane:(id)pane { %orig;OMTPane(pane); }
-- (void)layoutBarForPane:(id)pane { %orig;OMTPane(pane); }
+- (void)setupBarForPane:(id)pane {
+ %orig;
+ OMTPane(pane);
+}
+- (void)layoutBarForPane:(id)pane {
+ %orig;
+ OMTPane(pane);
+}
 - (void)setBarVisible:(BOOL)visible forPane:(id)pane {
- %orig;if(visible)OMTPane(pane);
+ %orig;
+ if(visible) OMTPane(pane);
 }
 - (void)refreshHomeButton {
- %orig;OMTSurface(OMTView([(SCPCarSplit *)self homeButton]),YES);
+ %orig;
+ OMTSurface(OMTView([(SCPCarSplit *)self homeButton]),YES);
 }
 - (void)refreshPickerSheet {
- %orig;OMTSurface(OMTView([(SCPCarSplit *)self pickerSheet]),NO);
+ %orig;
+ OMTSurface(OMTView([(SCPCarSplit *)self pickerSheet]),NO);
 }
 - (void)rootDidLayout {
- %orig;OMTUpdate((SCPCarSplit *)self);
+ %orig;
+ OMTUpdate((SCPCarSplit *)self);
 }
 %end
 %end
