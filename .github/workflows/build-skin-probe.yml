@@ -1,0 +1,69 @@
+name: OmniCar Native Skin READ-ONLY Measurement DEB
+on:
+  push:
+    branches: [main]
+    paths:
+      - "probe/**"
+      - "scripts/test_skin_probe_readonly.py"
+      - ".github/workflows/build-skin-probe.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  native-skin-inspector:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard against changes to UI
+        run: |
+          set -euo pipefail
+          python3 scripts/test_skin_probe_readonly.py
+          plutil -lint probe/OmniCarSkinProbe.plist
+      - name: Setup Theos
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+      - name: Build real read-only ARM64 DEB
+        run: |
+          set -euo pipefail
+          make -C probe clean package FINALPACKAGE=1
+          mkdir -p probe-artifacts
+          FILE="$(find probe/packages -maxdepth 1 -type f -name '*.deb' | head -n1)"
+          test -s "$FILE"
+          cp "$FILE" probe-artifacts/
+          LIB="$(find probe/.theos -type f -name OmniCarSkinProbe.dylib | head -n1)"
+          lipo "$LIB" -verify_arch arm64
+          test "$(dpkg-deb -f probe-artifacts/*.deb Package)" = "com.anlai.omnicar.skinprobe"
+          test "$(dpkg-deb -f probe-artifacts/*.deb Version)" = "0.1.0"
+          dpkg-deb -c probe-artifacts/*.deb | tee probe-artifacts/FILES.txt
+          grep -q OmniCarSkinProbe.dylib probe-artifacts/FILES.txt
+          (cd probe-artifacts && shasum -a 256 *.deb | tee SHA256SUMS.txt)
+          echo "CI_BUILD_PASS_DEVICE_PROBE_PENDING" > probe-artifacts/STATUS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-Native-Skin-Probe-0.1.0
+          path: probe-artifacts/
+          retention-days: 30
+      - name: Archive candidate without Sileo
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          mkdir -p dist/candidates/skinprobe-0.1.0
+          test ! -e dist/candidates/skinprobe-0.1.0/STATUS.txt
+          cp probe-artifacts/* dist/candidates/skinprobe-0.1.0/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/candidates/skinprobe-0.1.0/
+          git commit -m "artifact: store read-only native skin probe [skip ci]"
+          for try in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
