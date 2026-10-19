@@ -31,3 +31,10 @@ User reported a **lock-out**: enlarge one native pane, open its native control m
 **No automatic timer or YouTube/AppBridge change in this version.** The native small three-dot handle auto-hide requested earlier is a separate feature not yet implemented. All existing controls and successful menu Zoom 0.5.0 behavior remain untouched except for safety. Logs: \`[OmniCarRescue] event=available\`, \`event=pressed\`, \`event=emergency-dock-restore-requested\`, and native exceptions.
 
 Unit/static gate: \`python3 scripts/test_fullscreen_escape_safety.py\`. CI is package validation only; reproduce using the exact four-image sequence at parked vehicle; ensure app not stranded and dock can always reappear. Remove addon \`com.anlai.omnicar.doubletapfullscreen\` if any stability issue.
+
+
+## 0.7.0 — User-requested return to 0.5.0, visual polish only
+
+The user explicitly canceled the 0.6.0 rescue button. Version 0.7.0 reuses the working **0.5.0 source from commit `9d7be0b`**, not the 0.6.0 source, and adds only smaller native-like Zoom styling. The 0.6.0 emergency recovery hooks/button are absent. New visible circle 29–36pt (previously 46–62pt), with 44pt transparent hit target, light-lilac/cyan gradient, thin white rim, dark-blue crisp custom vector in/out arrows. Original Zoom action and location retained. No idle timer, no YouTube changes, no Sileo.
+
+**Known trade-off:** returning to 0.5 baseline removes the 0.6 recovery control; the separate native missing-three-dots full-screen issue may remain. Test only while parked. CI success does not prove device appearance.

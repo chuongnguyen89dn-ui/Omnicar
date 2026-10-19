@@ -26,7 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/test_menuzoom_geometry.py
-          python3 scripts/test_fullscreen_escape_safety.py
+          python3 scripts/test_zoom_style.py
 
       - name: Install Theos SDK and rootless packaging tools
         shell: bash
@@ -53,11 +53,13 @@ jobs:
           ! grep -q 'event=not-enough-space' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'zoom-button-pressed' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'appAreaInParent:' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'OMCRescueAction' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'OMCZoomGlyph' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'CGFloat diameter=44.0' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -q 'OMCRescueAction' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -q 'OMCScheduleRescue' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -q 'setZoomedSlot:' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -q 'closeFloat:' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'OMCChromeSetHidden(NO)' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'endHostedSolo' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'closeFloat:NO' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'rootDidLayout' src/OmniCarDoubleTapFullscreen.xm
           ! grep -q 'numberOfTapsRequired' src/OmniCarDoubleTapFullscreen.xm
           ! grep -q 'dividerDoubleTapped:' src/OmniCarDoubleTapFullscreen.xm
           ! grep -Eq '(CBBridgeManager|CBWindow|terminateApplicationWithBundleID)' src/OmniCarDoubleTapFullscreen.xm
@@ -83,7 +85,7 @@ jobs:
           printf '\n=== Package metadata ===\n'
           dpkg-deb -f artifacts/*.deb
           test "$(dpkg-deb -f artifacts/*.deb Package)" = 'com.anlai.omnicar.doubletapfullscreen'
-          test "$(dpkg-deb -f artifacts/*.deb Version)" = '0.6.0'
+          test "$(dpkg-deb -f artifacts/*.deb Version)" = '0.7.0'
           dpkg-deb -c artifacts/*.deb | tee artifacts/package-contents.txt
           grep -q 'OmniCarDoubleTapFullscreen.dylib' artifacts/package-contents.txt
           grep -q 'OmniCarDoubleTapFullscreen.plist' artifacts/package-contents.txt
@@ -92,7 +94,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: OmniCar-menuzoom-0.6.0-candidate
+          name: OmniCar-menuzoom-0.7.0-candidate
           path: artifacts/
           retention-days: 30
 
@@ -101,12 +103,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist/candidates/menuzoom-0.6.0
-          test ! -e "dist/candidates/menuzoom-0.6.0/com.anlai.omnicar.doubletapfullscreen_0.6.0_iphoneos-arm64.deb" || { echo "Cannot overwrite existing candidate" >&2; exit 1; }
-          cp artifacts/*.deb artifacts/SHA256SUMS.txt artifacts/STATUS.txt artifacts/package-contents.txt dist/candidates/menuzoom-0.6.0/
+          mkdir -p dist/candidates/menuzoom-0.7.0
+          test ! -e "dist/candidates/menuzoom-0.7.0/com.anlai.omnicar.doubletapfullscreen_0.7.0_iphoneos-arm64.deb" || { echo "Cannot overwrite existing candidate" >&2; exit 1; }
+          cp artifacts/*.deb artifacts/SHA256SUMS.txt artifacts/STATUS.txt artifacts/package-contents.txt dist/candidates/menuzoom-0.7.0/
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/candidates/menuzoom-0.6.0/
+          git add dist/candidates/menuzoom-0.7.0/
           git commit -m "artifact: archive OmniCar doubletap fullscreen candidate [skip ci]"
           for attempt in 1 2 3; do
             git fetch origin main
