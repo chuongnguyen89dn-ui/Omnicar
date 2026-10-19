@@ -167,7 +167,6 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
         action.split=split;
         objc_setAssociatedObject(b,@selector(pressed:),action,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [b addTarget:action action:@selector(pressed:) forControlEvents:UIControlEventTouchUpInside];
-        b.adjustsImageWhenHighlighted=YES;
         b.clipsToBounds=YES;
         state.button=b;
     }
