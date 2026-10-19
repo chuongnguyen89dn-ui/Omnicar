@@ -28,3 +28,20 @@ for forbidden in [
 ]: assert forbidden not in s,forbidden
 assert s.count("%orig") == 7
 print("PASS: exact original RGB translations; no geometry/layout or new layers; no automatic DEB build")
+
+
+feature=Path("titanium/src/OmniCarGraphiteFeatureColors.xm").read_text()
+make=Path("titanium/Makefile").read_text()
+for selector in ["%hook ABHost","%hook ABKeyboard","%hook SPPBubbleView",
+  "%hook SSStartupView","buildBarForPane:","layoutBarForPane:","buildPanel",
+  "buildStyle:","renderStyle","ss_buildScene","layoutSubviews",
+  "OMTFeatureAppBridge","OMTFeatureSpeedBubble","OMTFeatureStartup",
+  "SPPSignView","CAGradientLayer","grad.colors=colors"]:
+ assert selector in feature,selector
+for forbidden in ["%hook UIColor","%hook UIView","%hook UIWindow",
+ "homeButton","refreshHomeButton","insertSublayer","addSublayer",
+ "cornerRadius=","borderWidth=",".frame=","setFrame:","setImage:",
+ "OMCRescueAction","DBStatusBarWindow","CARStatusBarWindow"]:
+ assert forbidden not in feature,forbidden
+assert "src/OmniCarGraphiteFeatureColors.xm" in make
+print("PASS: scoped AppBridge, SpeedBubble and Startup color-source hooks; no auto-build")
