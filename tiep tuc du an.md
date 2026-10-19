@@ -76,5 +76,5 @@ Repo tham chiếu: https://github.com/chuongnguyen89dn-ui/Duoface
 ## 7. Kỹ năng & bảo quản chứng cứ
 
 - Repo quy tắc: `chuongnguyen89dn-ui/Gpt-training-`; ZIP liên quan đã xác định ở `skills/01-github-continuity.zip`, `skills/02-ios-deb-ipa-carplay.zip`, `skills/05-research-debug-testing.zip`. Các bản Markdown `PROJECT_INSTRUCTIONS.md`, `AGENTS.md`, `SKILL_INDEX.md`, `DEB_IPA_SKILL.md` đã được đọc. **ZIP chưa được giải nén/đọc đầy đủ ở lần bàn giao này**, không tuyên bố đã đọc nếu chưa thực hiện.
-- File phân tích tại môi trường phiên ChatGPT: `OmniCar_1.0.3_doubletap_fullscreen_AUDIT.md`; bản tại workspace chỉ có giá trị tham khảo đến khi thực sự commit/đọc lại ở repo.
+- Hồ sơ audit đã lưu và đọc lại tại repo này: `audit/OmniCar_1.0.3_doubletap_fullscreen_20261019.md` (commit `f3278ca9fdca8b9f75df3f70cddee51dc4175daa`). Bản audit ChatGPT ban đầu có một giả định chưa xác nhận về nhấn đúp vào nút tròn; **dùng bản audit đã đính chính trong repo**.
 - Cập nhật **chính file này**, không tạo nhiều hồ sơ bàn giao trùng, sau mỗi thay đổi đã xác minh về yêu cầu, mã/commit, blocker, workflow, DEB, thiết bị.
