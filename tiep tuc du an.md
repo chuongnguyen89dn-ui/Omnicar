@@ -240,3 +240,12 @@ Repo tham chiếu: https://github.com/chuongnguyen89dn-ui/Duoface
 - Hồ sơ MỚI không trùng file bàn giao: audit/OMNICAR_SKIN_MASTER_INDEX.md (27 khu vực và loại thay đổi/owner/rủi ro); audit/skin_surface_matrix.csv (máy đọc); audit/skin_scan_summary.json; scripts/audit_skin_surfaces.py (chạy lại), skin/theme_tokens.template.json (CHƯA có bảng màu chọn). Kết hợp audit/OmniCar_1.0.3_skin_asset_inventory.md và audit/omnicar_1.0.3_assets.csv (15 tài nguyên PNG).
 - Kết luận: có thể đổi màu nền/button/icon/text/gradient/border/blur/shadow bằng các hook có phạm vi từng class/view do OmniCar tạo; KHÔNG có file skin PNG chung. Các vùng ứng dụng YouTube/Maps, CarPlay Dock và geometry/gesture không thuộc skin OmniCar.
 - Giữ nguyên addon v0.7.0 (Zoom nền 0.5 đã bỏ nút cứu), DEB gốc, mọi GitHub workflow và Sileo; **không sửa source thực thi hoặc build** ở lượt này. Nếu làm skin sau này: người dùng phải chọn phạm vi và mẫu palette, ưu tiên SplitScreen, test từng UI trước khi kết hợp AppBridge/HUD/Splash/Settings.
+
+
+## CHECKPOINT 2026-10-19 — CHỐT RANH GIỚI SKIN OMNICAR-ONLY
+
+- User explicitly: **Tôi chỉ làm những thứ omni vẽ ko đụng hệ thống**. Áp dụng bắt buộc cho tất cả công việc skin OmniCar sau này.
+- Được sửa: giao diện do OmniCarSplitScreen, OmniCarAppBridge, OmniCarSpeedBubble, OmniCarStartupScreen, OmniCarPrefs, OmniCar.app và nút Zoom OmniCar addon tự tạo. Chỉ màu sắc/kính mờ/gradient/viền/icon/font/trang trí được duyệt.
+- Không sửa: Apple CarPlay dock, status, biểu tượng hệ thống, DBStatusBarWindow/CARStatusBarWindow, YouTube/Maps/GOFA/Waze scene/UI, UIKit/UIColor/CALayer swizzle toàn hệ thống; không đổi frame/scene/touch/gesture/timer/app data hoặc chức năng. Không tái tạo nút cứu hộ 0.6.0, không Sileo.
+- Tổng hợp độc lập từ 176 file gốc, 15 PNG, 6 dylib, 2 executable; chi tiết tại audit/OMNICAR_SKIN_MASTER_INDEX.md và audit/OMNICAR_SKIN_SURFACE_MATRIX.csv (22 hạng mục), token mẫu skin/omnicar_tokens_template.json. Chủ lớp/selector tìm bằng binary strings; binding thuộc tính thực tế cho từng view cần runtime kiểm tra.
+- Đây là **tài liệu và ràng buộc phạm vi**, KHÔNG có source patch, build, DEB mới, kiểm thử thiết bị hoặc phát hành. Mốc addon mới nhất vẫn 0.7.0; không thay đổi.
