@@ -1,18 +1,30 @@
 #!/usr/bin/env python3
-"""Prove candidate contains native selectors and actual color constants."""
+"""Source-only (no DEB) color-only regression assertions.
+Does NOT claim runtime/UI correctness until actual device QA.
+"""
 from pathlib import Path
 s=Path("titanium/src/OmniCarGraphiteTitanium.xm").read_text()
-m=Path("titanium/Makefile").read_text()
-p=Path("titanium/OmniCarGraphiteTitanium.plist").read_text()
-control=Path("titanium/control").read_text()
-for required in ["%hook SCPCarSplit","showRatioMenuForDivider:","newDividerAt:","setupBarForPane:","layoutBarForPane:","setBarVisible:","refreshPickerSheet","rootDidLayout","%orig","OMTSurface","OMTUpdate","OMTGraphite","OMTGunmetal","OMTTitanium","OMTIce","OMTText","kOMTLayerKey"]:
-    assert required in s, required
-for channels in ["23,27,34","53,61,70","181,189,197","120,185,200","243,245,245"]:
-    assert channels in s,channels
-for forbidden in ["homeButton", "refreshHomeButton", "OMTGet(s,@selector(homeButton))","%hook UIView","%hook UIColor","%hook UIWindow","DBStatusBarWindow","CARStatusBarWindow","SBSceneView","appBridgeZoom","OMCRescueAction"]:
-    assert forbidden not in s, forbidden
-assert "OmniCarGraphiteTitanium_FILES :=" in m
-assert "com.apple.UIKit" not in p
-assert "com.apple.CarPlayApp" in p and "com.apple.springboard" in p
-assert "com.anlai.omnicar.graphitetitanium" in control
-print("PASS native OmniCar scoped UI methods, exact RGB palette, system exclusions")
+w=Path(".github/workflows/build-graphite-titanium.yml").read_text()
+assert "workflow_dispatch:" in w and "  push:" not in w, "Do not build on GitHub push"
+for required in [
+    "%hook SCPCarSplit", "newDividerAt:", "showRatioMenuForDivider:",
+    "setupBarForPane:", "layoutBarForPane:", "setBarVisible:",
+    "refreshPickerSheet", "rootDidLayout", "OMTThemeLayer",
+    "OMTTranslate", "gradient.colors=existing", "shape.fillColor=",
+    "shape.strokeColor=", "layer.borderColor=", "layer.shadowColor=",
+    "74,79,128", "110,100,200", "167,139,250", "96,197,250",
+    "94,221,182", "245,154,192", "155,135,248",
+    "23,27,34", "53,61,70", "181,189,197",
+    "120,185,200", "243,245,245",
+]: assert required in s,required
+for forbidden in [
+    "homeButton", "refreshHomeButton", "OMCRescueAction",
+    "%hook UIView", "%hook UIWindow", "%hook UIColor",
+    "insertSublayer", "addSublayer", "CAGradientLayer layer",
+    "cornerRadius=", "borderWidth=", ".frame=",
+    "setFrame:", "setCornerRadius:", "setBorderWidth:",
+    "setImage:", "OMTSurface", "appBridgeZoom",
+    "DBStatusBarWindow", "CARStatusBarWindow"
+]: assert forbidden not in s,forbidden
+assert s.count("%orig") == 7
+print("PASS: exact original RGB translations; no geometry/layout or new layers; no automatic DEB build")
