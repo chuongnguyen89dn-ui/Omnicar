@@ -1,4 +1,4 @@
-name: OmniCar double-tap fullscreen candidate DEB
+name: OmniCar beneath-knob ratio-menu Zoom candidate DEB
 
 on:
   push:
@@ -32,19 +32,19 @@ jobs:
           command -v ldid
           command -v dpkg-deb
 
-      - name: Static guards (only knob double-tap changed)
+      - name: Static guards (original ratio menu and button only)
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'event=native-doubletap' src/OmniCarDoubleTapFullscreen.xm
-          ! grep -q 'addGestureRecognizer:' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'OCDTPerformFullscreenToggle' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'dividerDoubleTapped:' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'OCDTHitKnob' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'showRatioMenuForDivider:' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'hideRatioMenu' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'ratioMenu' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'ratioKnob' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'zoom-button-pressed' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'appAreaInParent:' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'relayoutAnimated:NO pushScenes:YES' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'originalClips' src/OmniCarDoubleTapFullscreen.xm
-          ! grep -Eq '(CBBridgeManager|CBWindow|terminateApplicationWithBundleID|Sileo)' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -q 'numberOfTapsRequired' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -q 'dividerDoubleTapped:' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -Eq '(CBBridgeManager|CBWindow|terminateApplicationWithBundleID)' src/OmniCarDoubleTapFullscreen.xm
           plutil -lint OmniCarDoubleTapFullscreen.plist
 
       - name: Compile and package independent ARM64 rootless tweak
@@ -62,7 +62,7 @@ jobs:
           printf '\n=== Package metadata ===\n'
           dpkg-deb -f artifacts/*.deb
           test "$(dpkg-deb -f artifacts/*.deb Package)" = 'com.anlai.omnicar.doubletapfullscreen'
-          test "$(dpkg-deb -f artifacts/*.deb Version)" = '0.2.0'
+          test "$(dpkg-deb -f artifacts/*.deb Version)" = '0.3.0'
           dpkg-deb -c artifacts/*.deb | tee artifacts/package-contents.txt
           grep -q 'OmniCarDoubleTapFullscreen.dylib' artifacts/package-contents.txt
           grep -q 'OmniCarDoubleTapFullscreen.plist' artifacts/package-contents.txt
@@ -71,7 +71,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: OmniCar-doubletapfullscreen-0.2.0-candidate
+          name: OmniCar-menuzoom-0.3.0-candidate
           path: artifacts/
           retention-days: 30
 
@@ -80,12 +80,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist/candidates/doubletapfullscreen-0.2.0
-          test ! -e "dist/candidates/doubletapfullscreen-0.2.0/com.anlai.omnicar.doubletapfullscreen_0.2.0_iphoneos-arm64.deb" || { echo "Cannot overwrite existing candidate" >&2; exit 1; }
-          cp artifacts/*.deb artifacts/SHA256SUMS.txt artifacts/STATUS.txt artifacts/package-contents.txt dist/candidates/doubletapfullscreen-0.2.0/
+          mkdir -p dist/candidates/menuzoom-0.3.0
+          test ! -e "dist/candidates/menuzoom-0.3.0/com.anlai.omnicar.doubletapfullscreen_0.3.0_iphoneos-arm64.deb" || { echo "Cannot overwrite existing candidate" >&2; exit 1; }
+          cp artifacts/*.deb artifacts/SHA256SUMS.txt artifacts/STATUS.txt artifacts/package-contents.txt dist/candidates/menuzoom-0.3.0/
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/candidates/doubletapfullscreen-0.2.0/
+          git add dist/candidates/menuzoom-0.3.0/
           git commit -m "artifact: archive OmniCar doubletap fullscreen candidate [skip ci]"
           for attempt in 1 2 3; do
             git fetch origin main
