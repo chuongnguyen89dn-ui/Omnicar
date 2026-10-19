@@ -249,3 +249,12 @@ Repo tham chiếu: https://github.com/chuongnguyen89dn-ui/Duoface
 - Không sửa: Apple CarPlay dock, status, biểu tượng hệ thống, DBStatusBarWindow/CARStatusBarWindow, YouTube/Maps/GOFA/Waze scene/UI, UIKit/UIColor/CALayer swizzle toàn hệ thống; không đổi frame/scene/touch/gesture/timer/app data hoặc chức năng. Không tái tạo nút cứu hộ 0.6.0, không Sileo.
 - Tổng hợp độc lập từ 176 file gốc, 15 PNG, 6 dylib, 2 executable; chi tiết tại audit/OMNICAR_SKIN_MASTER_INDEX.md và audit/OMNICAR_SKIN_SURFACE_MATRIX.csv (22 hạng mục), token mẫu skin/omnicar_tokens_template.json. Chủ lớp/selector tìm bằng binary strings; binding thuộc tính thực tế cho từng view cần runtime kiểm tra.
 - Đây là **tài liệu và ràng buộc phạm vi**, KHÔNG có source patch, build, DEB mới, kiểm thử thiết bị hoặc phát hành. Mốc addon mới nhất vẫn 0.7.0; không thay đổi.
+
+
+
+## 2026-10-19 — User requests direct annotated screenshot visual explanation (not only GitHub tables)
+
+- User: "Ko tập trung chi tiết các hình ảnh tại đây đc sao? Tôi ko hình dung đc nó là ntn". Delivered **real user-photo annotated references within the chat** (not invented app artwork): overview with eight labels and 22-group ownership context, 8 magnified native control crops, floating toolbar screenshot highlighting target and dock exclusions, plus previously extracted 15-PNG original contact sheet.
+- Exact generated and verified PNGs: `/mnt/data/omnicar_skin_visual_guide/01_tong_quan_omnicar_anh_that.png`, `02_chi_tiet_cac_nut_omnicar.png`, `03_menu_noi_va_phan_khong_duoc_sua.png`, `/mnt/data/omnicar_skin_audit/skin_original_assets_contact_sheet.png`; source: `omnicar_current_landscape.png` and user picture `IMG_AA07BECB-075D-4FC3-BA67-D30775394A46.jpeg` rotated. All files verified with PIL. They are **temporary chat artifacts**, not claimed durable in GitHub and intentionally not uploaded to public repo because the screen photos show personal app/map context.
+- Persistent legend and screenshot reproduction/documentation: `audit/OMNICAR_SKIN_VISUAL_REFERENCE.md` in OmniCar repo. OmniCar UI: ratio panel, native split knob, native dot buttons, split border, floating toolbar/window, custom Zoom addon; explicitly mark **Apple dock and YouTube/Maps native contents EXCLUDED**.
+- Important limitation: cropped source screenshot of Zoom is from earlier v0.5-looking appearance, not verified v0.7 artwork. No color changes, CI, build, DEB or Sileo deployment in this turn. Further real-view photos needed for SpeedBubble/Startup; don't fabricate UI screenshot details.
