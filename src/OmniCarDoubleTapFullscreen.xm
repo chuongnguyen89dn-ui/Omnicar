@@ -5,6 +5,8 @@
 #import <Foundation/Foundation.h>
 #import <objc/runtime.h>
 #import <math.h>
+#import <QuartzCore/QuartzCore.h>
+extern void OMCChromeSetHidden(BOOL hidden);
 
 @interface SCPCarSplit : NSObject
 - (BOOL)active;
@@ -87,6 +89,7 @@ static void OMCToggleHost(SCPCarSplit *split) {
         parent.clipsToBounds=NO;
         [split relayoutAnimated:NO pushScenes:YES];
         [split rootDidLayout];
+        OMCChromeSetHidden(YES);
         NSLog(@"[OmniCarZoom] event=expand-request original=%@ full=%@ result=%@",
               NSStringFromCGRect(original),NSStringFromCGRect(target),
               NSStringFromCGRect(container.frame));
@@ -97,6 +100,7 @@ static void OMCToggleHost(SCPCarSplit *split) {
         state.layoutParent=nil;
         [split relayoutAnimated:NO pushScenes:YES];
         [split rootDidLayout];
+        OMCChromeSetHidden(NO);
         NSLog(@"[OmniCarZoom] event=restore-request baseline=%@ result=%@",
               NSStringFromCGRect(state.originalArea),NSStringFromCGRect(container.frame));
     }
@@ -226,6 +230,20 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
     OMCHideButton((SCPCarSplit *)self);
     %orig;
 }
+- (void)setActive:(BOOL)active {
+    if (!active) {
+        OMCZoomState *state=objc_getAssociatedObject(self,&kOMCStateKey);
+        if (state && state.expanded) {
+            state.expanded=NO;
+            if (state.layoutParent)
+                state.layoutParent.clipsToBounds=state.previousClipsToBounds;
+            state.layoutParent=nil;
+            OMCChromeSetHidden(NO);
+            NSLog(@"[OmniCarZoom] event=split-deactivate-chrome-restored");
+        }
+    }
+    %orig;
+}
 - (CGRect)appAreaInParent:(UIView *)parent {
     CGRect native=%orig;
     OMCZoomState *state=objc_getAssociatedObject(self,&kOMCStateKey);
@@ -247,7 +265,7 @@ static void OMCTryInstall(NSUInteger retry) {
     }
     %init;
     OMCInstalled=YES;
-    NSLog(@"[OmniCarZoom] event=hook-installed version=0.3.0");
+    NSLog(@"[OmniCarZoom] event=hook-installed version=0.4.0");
 }
 %ctor {
     @autoreleasepool {
