@@ -1,0 +1,97 @@
+name: OmniCar double-tap fullscreen candidate DEB
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/OmniCarDoubleTapFullscreen.xm"
+      - "Makefile"
+      - "control"
+      - "OmniCarDoubleTapFullscreen.plist"
+      - ".github/workflows/build-candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-candidate:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Theos SDK and rootless packaging tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          command -v ldid
+          command -v dpkg-deb
+
+      - name: Static guards (only knob double-tap changed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'numberOfTapsRequired=2' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'cancelsTouchesInView=NO' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'newDividerAt:' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'OCDTHitKnob' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'appAreaInParent:' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'relayoutAnimated:NO pushScenes:YES' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'originalClips' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -Eq '(CBBridgeManager|CBWindow|terminateApplicationWithBundleID|Sileo)' src/OmniCarDoubleTapFullscreen.xm
+          plutil -lint OmniCarDoubleTapFullscreen.plist
+
+      - name: Compile and package independent ARM64 rootless tweak
+        shell: bash
+        run: |
+          set -euo pipefail
+          make clean package FINALPACKAGE=1
+          mkdir -p artifacts
+          CANDIDATE="$(find packages -maxdepth 1 -name '*.deb' -type f | head -n 1)"
+          test -s "$CANDIDATE"
+          cp "$CANDIDATE" artifacts/
+          DYLIB="$(find .theos -type f -name OmniCarDoubleTapFullscreen.dylib | head -n 1)"
+          test -s "$DYLIB"
+          lipo -verify_arch arm64 "$DYLIB"
+          printf '\n=== Package metadata ===\n'
+          dpkg-deb -f artifacts/*.deb
+          test "$(dpkg-deb -f artifacts/*.deb Package)" = 'com.anlai.omnicar.doubletapfullscreen'
+          test "$(dpkg-deb -f artifacts/*.deb Version)" = '0.1.0'
+          dpkg-deb -c artifacts/*.deb | tee artifacts/package-contents.txt
+          grep -q 'OmniCarDoubleTapFullscreen.dylib' artifacts/package-contents.txt
+          grep -q 'OmniCarDoubleTapFullscreen.plist' artifacts/package-contents.txt
+          shasum -a 256 artifacts/*.deb | tee artifacts/SHA256SUMS.txt
+          printf 'BUILD_SUCCESS_NOT_DEVICE_PASS\n' > artifacts/STATUS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-doubletapfullscreen-0.1.0-candidate
+          path: artifacts/
+          retention-days: 30
+
+      - name: Persist candidate DEB to OmniCar repo only, not Sileo
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/candidates/doubletapfullscreen-0.1.0
+          cp artifacts/*.deb artifacts/SHA256SUMS.txt artifacts/STATUS.txt artifacts/package-contents.txt dist/candidates/doubletapfullscreen-0.1.0/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/candidates/doubletapfullscreen-0.1.0/
+          git commit -m "artifact: archive OmniCar doubletap fullscreen candidate [skip ci]"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Candidate DEB compiled, but GitHub artifact persistence FAILED" >&2
+          exit 1
