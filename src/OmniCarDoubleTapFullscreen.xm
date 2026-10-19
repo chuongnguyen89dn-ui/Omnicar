@@ -136,7 +136,10 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
         return;
     }
     OMCZoomState *state=OMCState(split);
-    UIView *parent=menu.superview;
+    // Native selector's superview only covers the split pane. 0.4.0
+    // silently discarded Zoom when its frame crossed that parent's bounds.
+    // Use the *actual UIWindow* coordinates for both anchor and hit testing.
+    UIWindow *parent=menu.window;
     CGRect menuRect=[parent convertRect:menu.bounds fromView:menu];
     if (CGRectIsEmpty(menuRect)) return;
 
@@ -173,10 +176,22 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
     NSLog(@"[OmniCarZoom] event=anchor-check menu=%@ circle=%@ proposed=%@",
           NSStringFromCGRect(menuRect),NSStringFromCGRect(nativeCircle),
           NSStringFromCGRect(frame));
-    if (!OMCAreaValid(menuRect)) return;
-    if (CGRectGetMaxY(frame)>CGRectGetHeight(parent.bounds)-2.0) {
-        NSLog(@"[OmniCarZoom] event=not-enough-space frame=%@ parent=%@",
-              NSStringFromCGRect(frame),NSStringFromCGRect(parent.bounds));
+    if (!OMCAreaValid(menuRect)) {
+        NSLog(@"[OmniCarZoom] event=invalid-menu-geometry frame=%@",
+              NSStringFromCGRect(menuRect));
+        return;
+    }
+    // Do not reject the button for exceeding the *split pane's* bounds:
+    // window coordinates allow it to sit below the circular handle.
+    CGRect visible=parent.bounds;
+    if (CGRectGetMaxY(frame)>CGRectGetMaxY(visible) ||
+        CGRectGetMinX(frame)<CGRectGetMinX(visible) ||
+        CGRectGetMaxX(frame)>CGRectGetMaxX(visible)) {
+        NSLog(@"[OmniCarZoom] event=outside-window menu=%@ proposed=%@ window=%@",
+              NSStringFromCGRect(menuRect),NSStringFromCGRect(frame),
+              NSStringFromCGRect(visible));
+        // Always keep the requested BELOW position; never move the icon
+        // above the selector or into the map to force visibility.
         return;
     }
     if (!state.button) {
@@ -215,6 +230,8 @@ static void OMCShowButton(SCPCarSplit *split, id divider) {
         [parent addSubview:button];
     }
     [parent bringSubviewToFront:button];
+    // The original ratio menu remains the native touch owner.
+    // No new recognizers on the selector, knob or divider.
     state.menu=menu;
     state.knob=nil;
     NSLog(@"[OmniCarZoom] event=button-installed frame=%@ menu=%@ nativeCircle=%@",
@@ -265,7 +282,7 @@ static void OMCTryInstall(NSUInteger retry) {
     }
     %init;
     OMCInstalled=YES;
-    NSLog(@"[OmniCarZoom] event=hook-installed version=0.4.0");
+    NSLog(@"[OmniCarZoom] event=hook-installed version=0.5.0");
 }
 %ctor {
     @autoreleasepool {
