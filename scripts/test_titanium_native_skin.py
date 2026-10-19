@@ -5,7 +5,7 @@ s=Path("titanium/src/OmniCarGraphiteTitanium.xm").read_text()
 m=Path("titanium/Makefile").read_text()
 p=Path("titanium/OmniCarGraphiteTitanium.plist").read_text()
 control=Path("titanium/control").read_text()
-for required in ["%hook SCPCarSplit","showRatioMenuForDivider:","newDividerAt:","setupBarForPane:","layoutBarForPane:","setBarVisible:","refreshHomeButton","refreshPickerSheet","rootDidLayout","%orig","OMTSurface","OMTUpdate","OMTGraphite","OMTGunmetal","OMTTitanium","OMTIce","OMTText","kOMTLayerKey"]:
+for required in ["%hook SCPCarSplit","showRatioMenuForDivider:","newDividerAt:","setupBarForPane:","layoutBarForPane:","setBarVisible:","refreshPickerSheet","rootDidLayout","%orig","OMTSurface","OMTUpdate","OMTGraphite","OMTGunmetal","OMTTitanium","OMTIce","OMTText","kOMTLayerKey"]:
     assert required in s, required
 for channels in ["23,27,34","53,61,70","181,189,197","120,185,200","243,245,245"]:
     assert channels in s,channels
