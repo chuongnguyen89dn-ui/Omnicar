@@ -21,6 +21,12 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Test window-coordinate Zoom positioning regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/test_menuzoom_geometry.py
+
       - name: Install Theos SDK and rootless packaging tools
         shell: bash
         run: |
@@ -40,7 +46,10 @@ jobs:
           grep -q 'showRatioMenuForDivider:' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'hideRatioMenu' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'ratioMenu' src/OmniCarDoubleTapFullscreen.xm
-          grep -q 'ratioKnob' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'UIWindow \*parent=menu.window' src/OmniCarDoubleTapFullscreen.xm
+          grep -q 'CGRectGetMidX(menuRect)' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -q 'OMCAreaValid(menuRect)' src/OmniCarDoubleTapFullscreen.xm
+          ! grep -q 'event=not-enough-space' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'zoom-button-pressed' src/OmniCarDoubleTapFullscreen.xm
           grep -q 'appAreaInParent:' src/OmniCarDoubleTapFullscreen.xm
           ! grep -q 'numberOfTapsRequired' src/OmniCarDoubleTapFullscreen.xm
@@ -68,7 +77,7 @@ jobs:
           printf '\n=== Package metadata ===\n'
           dpkg-deb -f artifacts/*.deb
           test "$(dpkg-deb -f artifacts/*.deb Package)" = 'com.anlai.omnicar.doubletapfullscreen'
-          test "$(dpkg-deb -f artifacts/*.deb Version)" = '0.4.0'
+          test "$(dpkg-deb -f artifacts/*.deb Version)" = '0.5.0'
           dpkg-deb -c artifacts/*.deb | tee artifacts/package-contents.txt
           grep -q 'OmniCarDoubleTapFullscreen.dylib' artifacts/package-contents.txt
           grep -q 'OmniCarDoubleTapFullscreen.plist' artifacts/package-contents.txt
@@ -77,7 +86,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: OmniCar-menuzoom-0.4.0-candidate
+          name: OmniCar-menuzoom-0.5.0-candidate
           path: artifacts/
           retention-days: 30
 
@@ -86,12 +95,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist/candidates/menuzoom-0.4.0
-          test ! -e "dist/candidates/menuzoom-0.4.0/com.anlai.omnicar.doubletapfullscreen_0.4.0_iphoneos-arm64.deb" || { echo "Cannot overwrite existing candidate" >&2; exit 1; }
-          cp artifacts/*.deb artifacts/SHA256SUMS.txt artifacts/STATUS.txt artifacts/package-contents.txt dist/candidates/menuzoom-0.4.0/
+          mkdir -p dist/candidates/menuzoom-0.5.0
+          test ! -e "dist/candidates/menuzoom-0.5.0/com.anlai.omnicar.doubletapfullscreen_0.5.0_iphoneos-arm64.deb" || { echo "Cannot overwrite existing candidate" >&2; exit 1; }
+          cp artifacts/*.deb artifacts/SHA256SUMS.txt artifacts/STATUS.txt artifacts/package-contents.txt dist/candidates/menuzoom-0.5.0/
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/candidates/menuzoom-0.4.0/
+          git add dist/candidates/menuzoom-0.5.0/
           git commit -m "artifact: archive OmniCar doubletap fullscreen candidate [skip ci]"
           for attempt in 1 2 3; do
             git fetch origin main
