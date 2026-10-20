@@ -37,14 +37,13 @@ jobs:
           python3 scripts/test_titanium_native_skin.py
           python3 -m py_compile scripts/assemble_unified_omnicar.py scripts/test_unified_assembler.py
           python3 scripts/test_unified_assembler.py
-          # Pin exact source blobs of QA2, the last actual device-test baseline
-          # for Zoom/Swap and split. Avoid reintroducing QA4 UIWindow overlay.
+          # Pin exact source blobs: QA5 user-confirmed stable host/Zoom,
+          # only Idle handle coverage changes in QA6. Never reintroduce QA4 UIWindow overlay.
           python3 - <<'PY'
           import pathlib,subprocess
-          qa2="2b9ef2cc36d4915d0bc0ab96481f1e26c7ed9635"
           compare={
             "solo/src/OmniCarSoloThreeDots.xm":"9873b516c8c047fd03e0ea5c406375bfcc100f03",
-            "idle/src/OmniCarIdleControls.xm":"20f8bd5aa99d72453ec5f0c0839c8e0410ef3827",
+            "idle/src/OmniCarIdleControls.xm":"ed20b1c7d7ac251f4b59e2eec1244df6b4cb8468",
             "src/OmniCarDoubleTapFullscreen.xm":"93d8fa2e912029e33391e9834f07463bef39d037",
             "src/OmniCarChrome.xm":"a4b94c7c9c91475eb5879efee2ed13a7f8463dc6",
             "titanium/src/OmniCarGraphiteTitanium.xm":"eee57c369ee95ba31c83f4f046c10042067d4179",
@@ -52,7 +51,7 @@ jobs:
           for name,hash in compare.items():
               value=subprocess.check_output(["git","hash-object",name],text=True).strip()
               assert value==hash,(name,value,hash)
-              print("QA2_EXACT_DEVICE_BASELINE_SOURCE_OK",name)
+              print("QA6_SCOPE_LOCKED_SOURCE_OK",name)
           PY
           plutil -lint OmniCarDoubleTapFullscreen.plist
           plutil -lint idle/OmniCarIdleControls.plist
@@ -96,7 +95,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p unified-artifacts
-          OUTPUT="unified-artifacts/com.anlai.omnicar_1.0.3-omnicar5_iphoneos-arm64.deb"
+          OUTPUT="unified-artifacts/com.anlai.omnicar_1.0.3-omnicar6_iphoneos-arm64.deb"
           python3 scripts/assemble_unified_omnicar.py \
             --original com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
             --build-root . \
@@ -105,7 +104,7 @@ jobs:
           dpkg-deb -f "$OUTPUT" | tee unified-artifacts/CONTROL.txt
           dpkg-deb -c "$OUTPUT" | tee unified-artifacts/FILES.txt
           test "$(dpkg-deb -f "$OUTPUT" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$OUTPUT" Version)" = "1.0.3-omnicar5"
+          test "$(dpkg-deb -f "$OUTPUT" Version)" = "1.0.3-omnicar6"
           test "$(dpkg-deb -f "$OUTPUT" Architecture)" = "iphoneos-arm64"
           for module in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
             grep -q "$module.dylib" unified-artifacts/FILES.txt
@@ -116,21 +115,21 @@ jobs:
           import hashlib,json,pathlib
           root=pathlib.Path('unified-artifacts')
           manifest=json.loads((root/'BUILD-MANIFEST.json').read_text())
-          path=root/'com.anlai.omnicar_1.0.3-omnicar5_iphoneos-arm64.deb'
+          path=root/'com.anlai.omnicar_1.0.3-omnicar6_iphoneos-arm64.deb'
           real=hashlib.sha256(path.read_bytes()).hexdigest()
           assert manifest['output_sha256']==real
-          assert manifest['version']=='1.0.3-omnicar5'
+          assert manifest['version']=='1.0.3-omnicar6'
           assert manifest['retained_original_files']==176
           assert len(manifest['added_native_files'])==8
           assert manifest['tested_on_carplay'] is False
-          print('QA5_QA2_RUNTIME_AND_176_ORIGINAL_FILES_VERIFIED')
+          print('QA6_IDLE_ONLY_AND_176_ORIGINAL_FILES_VERIFIED')
           PY
-          printf '%s\n' 'QA5_ROLLBACK_TO_DEVICE_TESTED_QA2_RUNTIME_COMPILED_AND_PACKAGED__NO_DEVICE_TEST__SILEO_PENDING' > unified-artifacts/STATUS.txt
+          printf '%s\n' 'QA6_HOSTED_HANDLE_AND_OMNICAR_HOME_BUTTON_VISUAL_FADE__NO_DEVICE_TEST__SILEO_PENDING' > unified-artifacts/STATUS.txt
           echo "UNIFIED_ORIGINAL_DEB_PACKAGE_VERIFIED"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: OmniCar-Original-1.0.3-QA5-Emergency-QA2-Rollback-ZoomSwap-Titanium-DEB
+          name: OmniCar-Original-1.0.3-QA6-IdleHostHandle-And-HomeButton-Only-DEB
           path: unified-artifacts/
           retention-days: 90
 
@@ -139,7 +138,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar5"
+          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar6"
           test ! -e "$DEST/STATUS.txt" || { echo 'Refuse candidate overwrite' >&2; exit 1; }
           mkdir -p "$DEST"
           cp unified-artifacts/* "$DEST/"
