@@ -1,4 +1,14 @@
-# OmniCar — Zoom icon below circular divider knob
+# OmniCar — active 2026-10-20: one native menu with Zoom + Swap
+
+**Latest user-approved behavior (overrides all older candidate notes below):** preserve the original OmniCar 1.0.3 ratio menu capsule, same overall frame and total touch area. Hide/disable the original 3 ratio-layout choices within it. Replace them with **two equal-width buttons on one row:** LEFT Zoom in/out of the OmniCar host, which requests CarPlay dock hide/restore; RIGHT left/right app swap, drawn as two horizontal opposing arrows and bound to the original internal split swap owner. The standalone Zoom circle previously below the divider knob is retired. The original divider pan remains adjustable and the native circular knob still opens the menu.
+
+**Source and verification:** `src/OmniCarDoubleTapFullscreen.xm`, `src/OmniCarChrome.xm`, `scripts/test_two_action_menu_source.py`; compiled ARM64 run 39365837739. Four modules including Idle4s/SOLO/Titanium ARM64 compile-only run 39365987258 SUCCESS. Device-specific native swap behavior, touch hierarchy and fullscreen dock outcome still UNVERIFIED.
+
+**One-package constraint:** target is ONE upgraded `com.anlai.omnicar` DEB, never install four addon DEBs. SHA-pinned original package assembler is `scripts/assemble_unified_omnicar.py`. This project repository does **NOT contain the original 1.0.3 base DEB**, SHA256 `d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd`; no unified package can be safely built without that exact original. No Sileo publication, no on-device verification.
+
+---
+
+## Historical standalone Zoom candidates (superseded; for audit only)
 
 **Approved UI on 2026-10-19.** A single tap on the divider's circular knob still opens the original three-choice ratio/layout menu **above** the circle. The new feature adds exactly one circular Zoom icon **beneath** that circle, centered on the same divider line. Its light blue/white styling should match the original menu; no original buttons/actions are replaced.
 
