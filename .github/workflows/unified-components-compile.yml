@@ -69,6 +69,7 @@ jobs:
           set -euo pipefail
           test -s idle/experimental-duoface/Makefile
           test -s idle/experimental-duoface/src/OmniCarDuoActivityIdle.xm
+          python3 scripts/test_duoface_idle_wiring_source.py
           python3 - <<'PY'
           from pathlib import Path
           candidate = Path("idle/experimental-duoface/src/OmniCarDuoActivityIdle.xm").read_text()
