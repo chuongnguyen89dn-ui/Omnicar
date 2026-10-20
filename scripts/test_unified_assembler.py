@@ -41,4 +41,22 @@ with TemporaryDirectory() as d:
     else:
         raise AssertionError("fake original package was accepted")
     assert not (d/"output.deb").exists()
+    # Theos output includes two real dylibs + a dSYM DWARF mirror.
+    # Only the post-link/sign at obj/debug/<name>.dylib is eligible.
+    root=d/"build"
+    name="OmniCarDoubleTapFullscreen"
+    signed=root/".theos"/"obj"/"debug"/(name+".dylib")
+    intermediate=root/".theos"/"obj"/"debug"/"arm64"/(name+".dylib")
+    dwarf=root/".theos"/"obj"/"debug"/"arm64"/(name+".dylib.dSYM")/"Contents"/"Resources"/"DWARF"/(name+".dylib")
+    for candidate in (signed,intermediate,dwarf):
+        candidate.parent.mkdir(parents=True,exist_ok=True)
+        candidate.write_bytes(b"synthetic-native-dylib" * 300)
+    assert m.choose_signed_dylib(root,Path("."),name)==signed
+    signed.unlink()
+    try:
+        m.choose_signed_dylib(root,Path("."),name)
+    except ValueError as err:
+        assert "ONE final signed" in str(err)
+    else:
+        raise AssertionError("selected intermediate or dSYM without final signed dylib")
 print("UNIFIED_ASSEMBLER_STATIC_PASS__WRONG_ORIGINAL_REJECTED__NO_DEB_BUILT")
