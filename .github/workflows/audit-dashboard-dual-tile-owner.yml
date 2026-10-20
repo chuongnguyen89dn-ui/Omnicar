@@ -1,0 +1,58 @@
+name: Forensic original OmniCar dashboard dual-tile owner (READ ONLY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/audit_dashboard_dual_tile_owner.py"
+      - ".github/workflows/audit-dashboard-dual-tile-owner.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  inspect-original:
+    runs-on: macos-15
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install DEB tools (no tweaks installed)
+        run: |
+          brew install dpkg || true
+          which llvm-objdump
+          which dpkg-deb
+      - name: Audit native original owner and layout selectors
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/audit_dashboard_dual_tile_owner.py
+          mkdir -p audit
+          python3 scripts/audit_dashboard_dual_tile_owner.py com.anlai.omnicar_1.0.3_iphoneos-arm64.deb > audit/OmniCar_dashboard_dual_tile_owner_20261020.json
+          python3 - <<'PY'
+          import json
+          p='audit/OmniCar_dashboard_dual_tile_owner_20261020.json'
+          d=json.load(open(p))
+          assert d['status'].startswith('ORIGINAL_DEB_READONLY')
+          print('STATIC_DASHBOARD_OWNER_METHODS',len(d['matching_objc_methods']))
+          for x in d['matching_objc_methods']:
+              if 'home' in x['selector'].lower() or 'dock' in x['selector'].lower() or 'dashboard' in x['selector'].lower():
+                  print('NATIVE_OWNER_SELECTOR',x)
+          print('OWNER_AUDIT_COMPLETE__NO_DEB__NO_DEVICE_TEST')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-Original-Dashboard-Owner-Audit
+          path: audit/OmniCar_dashboard_dual_tile_owner_20261020.json
+          retention-days: 90
+      - name: Persist small forensic report in OmniCar repo
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audit/OmniCar_dashboard_dual_tile_owner_20261020.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "audit: save exact original Home/dock selector evidence [skip ci]"
+          for i in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main && exit 0
+            sleep 2
+          done
+          exit 1
