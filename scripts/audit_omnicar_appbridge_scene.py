@@ -62,6 +62,36 @@ def parse_disassembly(text):
   if m:d[int(m.group(1),16)]=m.group(2).strip()
  return d
 
+def decode_objc_stub(arm, address):
+ """Resolve original arm64 __objc_stubs ADRP x1 + LDR x1 selref, read-only.
+
+  Every resolved string is a selector from immutable original bytes;
+  unsupported stubs remain 'unresolved', never a guessed symbol.
+ """
+ if address<0 or address+20>=len(arm):
+  return {"stub_pc":hex(address),"status":"out-of-range"}
+ def word(pc):return struct.unpack_from("<I",arm,pc)[0]
+ for at in range(address,address+16,4):
+  ins=word(at)
+  if ins&0x9f00001f!=0x90000001:continue # adrp x1, page
+  imm=((ins>>5)&0x7ffff)<<2|((ins>>29)&3)
+  if imm&(1<<20):imm-=1<<21
+  page=(at&~4095)+(imm<<12)
+  for pc in range(at+4,min(at+16,address+24),4):
+   load=word(pc)
+   if load&0xffc003ff!=0xf9400021:continue # ldr x1,[x1,#offset]
+   selref=page+(((load>>10)&0xfff)*8)
+   if not 0<=selref<=len(arm)-8:continue
+   ptr=struct.unpack_from("<Q",arm,selref)[0]&((1<<48)-1)
+   if not 0<=ptr<len(arm):continue
+   end=arm.find(b"\0",ptr,min(len(arm),ptr+256))
+   if end<0:continue
+   name=arm[ptr:end].decode("ascii","replace")
+   if not name or not all(32<=ord(c)<127 for c in name):continue
+   return {"stub_pc":hex(address),"status":"selector-mapped",
+           "selref_pc":hex(selref),"selector_pc":hex(ptr),"selector":name}
+ return {"stub_pc":hex(address),"status":"not-decoded-do-not-assume-selector"}
+
 def audit(deb):
  if sha256(deb)!=DEB_SHA:raise ValueError("Unverified original DEB")
  with tempfile.TemporaryDirectory(prefix="omnicar-scene-readonly-") as td:
@@ -85,6 +115,7 @@ def audit(deb):
     windows[name]={"start":hex(start),"end_exclusive":hex(end),
                    "instruction_count":len(lines),"calls":callsites,
                    "layout_symbol_matches":matches,"full_disassembly":lines}
+   stub=decode_objc_stub(arm,0x28260) if filename=="OmniCarAppBridge.dylib" else None
    strings=re.findall(rb"[\x20-\x7e]{5,}",arm)
    signals=sorted({s.decode("ascii","replace") for s in strings if
                 any(k.lower().encode("ascii") in s.lower() for k in
@@ -94,6 +125,7 @@ def audit(deb):
    libraries[filename]={"fat_sha256":hashlib.sha256(data).hexdigest(),
                         "arm64_size":len(arm),
                         "selected_strings":signals,
+                        "objc_stub_zoom_dataflow_candidate":stub,
                         "methods":windows}
   a=libraries["OmniCarAppBridge.dylib"]["methods"]
   b=libraries["OmniCarSplitScreen.dylib"]["methods"]
@@ -113,6 +145,12 @@ def selftest():
  got=parse_disassembly(demo)
  assert 0xec80 in got and "MakeScale" in got[0xec80]
  assert not parse_disassembly("unrelated")
+ test=bytearray(0x6000)
+ struct.pack_into("<I",test,0x2000,0xb0000001) # adrp x1 -> page 0x3000
+ struct.pack_into("<I",test,0x2004,0xf9400000|(0x20<<10)|(1<<5)|1) # ldr x1,[x1,#0x100]
+ struct.pack_into("<Q",test,0x3100,0x4000)
+ test[0x4000:0x4005]=b"zoom\0"
+ assert decode_objc_stub(test,0x2000).get("selector")=="zoom"
  print("APPBRIDGE_SCENE_AUDIT_SELFTEST_PASS")
 
 if __name__=="__main__":
@@ -129,6 +167,8 @@ if __name__=="__main__":
   x.output.write_text(json.dumps(info,ensure_ascii=False,indent=2),encoding="utf8")
   for lib,item in info["libraries"].items():
    print("MACHO_FILE",lib,item["fat_sha256"])
+   if item.get("objc_stub_zoom_dataflow_candidate"):
+    print("SCENE_SCALE_INPUT_OBJC_STUB",json.dumps(item["objc_stub_zoom_dataflow_candidate"]))
    for name,method in item["methods"].items():
     print("SCENE_OWNER",name,"calls",len(method["calls"]),
           "matches",len(method["layout_symbol_matches"]))
