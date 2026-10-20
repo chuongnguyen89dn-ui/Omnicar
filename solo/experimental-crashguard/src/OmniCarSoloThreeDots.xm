@@ -296,11 +296,21 @@ static void OMCSoloMount(OMCSoloState *s,int attempt){
         UIView *returnedView=[(UIViewController *)returned viewIfLoaded];
         if(returnedView.window)parent=returnedView;
     }
-    if(![parent isKindOfClass:UIView.class] || !parent.window) {
-        id cover=[split soloCover];
-        if([cover isKindOfClass:UIView.class] && [(UIView *)cover window])
-            parent=(UIView *)cover;
-    }
+    // A hosted external app may have a dedicated live soloCover even when
+    // tabParent is still in a window but no longer owns the hosted scene.
+    // Never choose an inactive/hidden cover or an Apple/global UIWindow.
+    id candidateCover=[split soloCover];
+    BOOL coverUsable=[candidateCover isKindOfClass:UIView.class] &&
+         ![candidateCover isKindOfClass:UIWindow.class] &&
+         [(UIView *)candidateCover window]!=nil &&
+         ![(UIView *)candidateCover isHidden] &&
+         [(UIView *)candidateCover alpha]>0.01 &&
+         !CGRectIsEmpty([(UIView *)candidateCover bounds]);
+    if(coverUsable && [solo isKindOfClass:NSString.class] &&
+       [s.apps containsObject:solo])
+        parent=(UIView *)candidateCover;
+    else if((![parent isKindOfClass:UIView.class] || !parent.window) && coverUsable)
+        parent=(UIView *)candidateCover;
     if(attempt==0 || attempt==20)
         NSLog(@"[OmniCarSoloDots] solo-owner-probe app-hosted=%d returnedVC=%d cover=%d parent=%@ window=%d edge=%d",
               [solo isKindOfClass:NSString.class]&&solo.length>0,
