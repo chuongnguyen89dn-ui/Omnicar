@@ -1,6 +1,7 @@
-// OmniCar 1.0.3: approved native ratio-menu Zoom BELOW the circular knob.
-// Independent addon; no existing gesture, divider, layout preset or app picker is replaced.
-// Candidate requires testing on the user's real CarPlay head unit.
+// OmniCar native ratio MENU REPLACEMENT — source-only candidate for ONE upgraded base DEB.
+// Preserve the original capsule and touch region. Replace 3 presets with Zoom + Swap.
+// Former under-knob Zoom is retired. Original divider pan and pane/host owners retained.
+// Not packaged or tested on a real CarPlay scene.
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import <objc/runtime.h>
@@ -17,6 +18,7 @@ extern void OMCChromeSetHidden(BOOL hidden);
 - (void)rootDidLayout;
 - (void)showRatioMenuForDivider:(id)divider;
 - (void)hideRatioMenu;
+- (void)dividerDoubleTapped:(id)recognizer;
 @end
 
 @interface OMCZoomState : NSObject
@@ -26,7 +28,11 @@ extern void OMCChromeSetHidden(BOOL hidden);
 @property(nonatomic) CGRect originalArea;
 @property(nonatomic, strong) UIButton *button;
 @property(nonatomic, weak) UIView *menu;
-@property(nonatomic, weak) UIView *knob;
+@property(nonatomic, strong) UIButton *swapButton;
+@property(nonatomic, strong) UIView *menuCover;
+@property(nonatomic, weak) id nativeDivider;
+@property(nonatomic, strong) NSMapTable<UIView *,NSNumber *> *oldSubviewHidden;
+@property(nonatomic, strong) NSMapTable<UIGestureRecognizer *,NSNumber *> *oldMenuGestures;
 @end
 @implementation OMCZoomState @end
 static char kOMCStateKey;
@@ -126,6 +132,7 @@ static void OMCToggleHost(SCPCarSplit *split) {
     OMCRefreshButton(state);
 }
 
+
 @interface OMCZoomAction : NSObject
 @property(nonatomic, weak) SCPCarSplit *split;
 - (void)pressed:(UIButton *)sender;
@@ -133,151 +140,203 @@ static void OMCToggleHost(SCPCarSplit *split) {
 @implementation OMCZoomAction
 - (void)pressed:(UIButton *)sender {
     (void)sender;
-    NSLog(@"[OmniCarZoom] event=zoom-button-pressed");
+    NSLog(@"[OmniCarMenu2] event=zoom-pressed");
     OMCToggleHost(self.split);
 }
 @end
 
-static void OMCHideButton(SCPCarSplit *split) {
-    OMCZoomState *state=objc_getAssociatedObject(split,&kOMCStateKey);
-    [state.button removeFromSuperview];
-    state.button=nil;
-    state.menu=nil;
-    state.knob=nil;
+// Only the original double-tap callback is retired. Its implementation is
+// kept available for a guarded invocation from the new Swap icon.
+static BOOL OMCButtonOriginatedSwap=NO;
+
+static UITapGestureRecognizer *OMCOriginalDoubleTap(id divider) {
+    if (![divider isKindOfClass:UIView.class]) return nil;
+    UIView *view=(UIView *)divider;
+    NSMutableArray<UIView *> *targets=[NSMutableArray arrayWithObject:view];
+    if ([divider respondsToSelector:@selector(knob)]) {
+        id knob=[divider performSelector:@selector(knob)];
+        if ([knob isKindOfClass:UIView.class]) [targets addObject:knob];
+    }
+    for (UIView *v in targets) {
+        for (UIGestureRecognizer *candidate in v.gestureRecognizers) {
+            if ([candidate isKindOfClass:UITapGestureRecognizer.class] &&
+                ((UITapGestureRecognizer *)candidate).numberOfTapsRequired==2)
+                return (UITapGestureRecognizer *)candidate;
+        }
+    }
+    return nil;
+}
+static BOOL OMCSwapUsingNativeCallback(SCPCarSplit *split,id divider) {
+    // The original ABI for dividerDoubleTapped: is the *gesture callback*,
+    // NOT the unverified dividerDoubleTapOn: internal helper signature.
+    SEL selector=@selector(dividerDoubleTapped:);
+    NSMethodSignature *sig=[split methodSignatureForSelector:selector];
+    if (!sig || sig.numberOfArguments!=3 || sig.methodReturnType[0]!='v' ||
+        [sig getArgumentTypeAtIndex:2][0]!='@') {
+        NSLog(@"[OmniCarMenu2] event=swap-blocked reason=unverified-abi");
+        return NO;
+    }
+    UITapGestureRecognizer *native=OMCOriginalDoubleTap(divider);
+    if (!native) {
+        NSLog(@"[OmniCarMenu2] event=swap-blocked reason=native-doubletap-missing");
+        return NO;
+    }
+    OMCButtonOriginatedSwap=YES;
+    @try {
+        [split dividerDoubleTapped:native];
+    } @finally {
+        OMCButtonOriginatedSwap=NO;
+    }
+    NSLog(@"[OmniCarMenu2] event=native-swap-dispatched device-outcome-unverified");
+    return YES;
+}
+@interface OMCSwapAction : NSObject
+@property(nonatomic, weak) SCPCarSplit *split;
+@property(nonatomic, weak) id divider;
+- (void)pressed:(UIButton *)sender;
+@end
+@implementation OMCSwapAction
+- (void)pressed:(UIButton *)sender {
+    (void)sender;
+    (void)OMCSwapUsingNativeCallback(self.split,self.divider);
+}
+@end
+
+static UIImage *OMCSwapGlyph(void) {
+    // Two counter-directional arrows, not another ratio/split pictogram.
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(24,24),NO,0.0);
+    CGContextRef c=UIGraphicsGetCurrentContext();
+    CGContextSetStrokeColorWithColor(c,[UIColor colorWithRed:.73 green:.90 blue:.96 alpha:1].CGColor);
+    CGContextSetLineWidth(c,2.0);
+    CGContextSetLineCap(c,kCGLineCapRound);
+    CGContextSetLineJoin(c,kCGLineJoinRound);
+    CGContextMoveToPoint(c,4,8); CGContextAddLineToPoint(c,20,8);
+    CGContextMoveToPoint(c,15,4); CGContextAddLineToPoint(c,20,8); CGContextAddLineToPoint(c,15,12);
+    CGContextMoveToPoint(c,20,16); CGContextAddLineToPoint(c,4,16);
+    CGContextMoveToPoint(c,9,12); CGContextAddLineToPoint(c,4,16); CGContextAddLineToPoint(c,9,20);
+    CGContextStrokePath(c);
+    UIImage *img=UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return [img imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
 }
 
-// Do not alter the original menu's frame, three tabs, selection logic or callbacks.
-// The new button is a separate sibling of the original panel, BELOW the circular knob.
-static void OMCShowButton(SCPCarSplit *split, id divider) {
+static void OMCHideMenuControls(SCPCarSplit *split) {
+    OMCZoomState *state=objc_getAssociatedObject(split,&kOMCStateKey);
+    if (!state) return;
+    // Restore exactly what the native menu already owned before a later show.
+    for (UIView *view in state.oldSubviewHidden.keyEnumerator) {
+        NSNumber *before=[state.oldSubviewHidden objectForKey:view];
+        if (before) view.hidden=before.boolValue;
+    }
+    for (UIGestureRecognizer *gesture in state.oldMenuGestures.keyEnumerator) {
+        NSNumber *before=[state.oldMenuGestures objectForKey:gesture];
+        if (before) gesture.enabled=before.boolValue;
+    }
+    [state.menuCover removeFromSuperview];
+    state.menuCover=nil;
+    state.button=nil;
+    state.swapButton=nil;
+    state.oldSubviewHidden=nil;
+    state.oldMenuGestures=nil;
+    state.menu=nil;
+    state.nativeDivider=nil;
+}
+
+static void OMCInstallTwoActionMenu(SCPCarSplit *split,id divider) {
+    // Native method creates original outer capsule. Never recreate its frame.
     UIView *menu=[split ratioMenu];
-    if (![menu isKindOfClass:UIView.class] || !menu.superview || !menu.window) {
-        NSLog(@"[OmniCarZoom] event=menu-unavailable menu=%@",menu);
+    if (![menu isKindOfClass:UIView.class] || !menu.window ||
+        CGRectIsEmpty(menu.bounds)) {
+        NSLog(@"[OmniCarMenu2] event=menu-unavailable");
         return;
     }
     OMCZoomState *state=OMCState(split);
-    // Native selector's superview only covers the split pane. 0.4.0
-    // silently discarded Zoom when its frame crossed that parent's bounds.
-    // Use the *actual UIWindow* coordinates for both anchor and hit testing.
-    UIWindow *parent=menu.window;
-    CGRect menuRect=[parent convertRect:menu.bounds fromView:menu];
-    if (CGRectIsEmpty(menuRect)) return;
-
-    // 0.3 REGRESSION: SCPCarSplit.ratioKnob was NOT the blue/white circle
-    // below the native three-choice selector. It returned a different
-    // handle over the map, moving the Zoom button far from its approved spot.
-    // The native selector panel center is the reliable anchor.
-    CGFloat nativeHeight=CGRectGetHeight(menuRect);
-    // The visual circle is native-sized; its hit target remains 44pt.
-    CGFloat diameter=44.0;
-    CGFloat circleDiameter=MAX(29.0,MIN(36.0,nativeHeight*0.43));
-    CGFloat centerX=CGRectGetMidX(menuRect);
-
-    // Prefer the original SCPCarDividerView's circle only if it lies on
-    // the axis of the actual selector panel and immediately below it.
-    CGRect nativeCircle=CGRectNull;
-    if ([divider isKindOfClass:UIView.class] &&
-        [divider respondsToSelector:@selector(knob)]) {
-        UIView *candidate=[(id)divider knob];
-        if ([candidate isKindOfClass:UIView.class] && candidate.window) {
-            CGRect rect=[parent convertRect:candidate.bounds fromView:candidate];
-            if (fabs(CGRectGetMidX(rect)-centerX)<MIN(36.0,nativeHeight*.5) &&
-                CGRectGetMinY(rect)>=CGRectGetMaxY(menuRect)-nativeHeight*.3 &&
-                CGRectGetMinY(rect)<CGRectGetMaxY(menuRect)+nativeHeight) {
-                nativeCircle=rect;
-            }
-        }
-    }
-    // The ratio selector panel and its circular trigger have a fixed
-    // visible ordering: panel ABOVE trigger ABOVE our NEW Zoom control.
-    CGFloat circleBottom=CGRectIsNull(nativeCircle)
-        ?CGRectGetMaxY(menuRect)+12.0+MIN(52.0,nativeHeight*.55)
-        :CGRectGetMaxY(nativeCircle);
-    CGRect frame=CGRectMake(centerX-diameter/2.0,
-                            circleBottom+8.0,diameter,diameter);
-    NSLog(@"[OmniCarZoom] event=anchor-check menu=%@ circle=%@ proposed=%@",
-          NSStringFromCGRect(menuRect),NSStringFromCGRect(nativeCircle),
-          NSStringFromCGRect(frame));
-    // Ratio control is a COMPACT control and can be shorter than 50 pt.
-    // OMCAreaValid is for app host geometry, never for native menu controls.
-    if (CGRectIsEmpty(menuRect) || !isfinite(menuRect.origin.x) ||
-        !isfinite(menuRect.origin.y) || !isfinite(menuRect.size.width) ||
-        !isfinite(menuRect.size.height) ||
-        menuRect.size.width<=0.0 || menuRect.size.height<=0.0) {
-        NSLog(@"[OmniCarZoom] event=invalid-menu-geometry frame=%@",
-              NSStringFromCGRect(menuRect));
-        return;
-    }
-    // Do not reject the button for exceeding the *split pane's* bounds:
-    // window coordinates allow it to sit below the circular handle.
-    CGRect visible=parent.bounds;
-    if (CGRectGetMaxY(frame)>CGRectGetMaxY(visible) ||
-        CGRectGetMinX(frame)<CGRectGetMinX(visible) ||
-        CGRectGetMaxX(frame)>CGRectGetMaxX(visible)) {
-        NSLog(@"[OmniCarZoom] event=outside-window menu=%@ proposed=%@ window=%@",
-              NSStringFromCGRect(menuRect),NSStringFromCGRect(frame),
-              NSStringFromCGRect(visible));
-        // Always keep the requested BELOW position; never move the icon
-        // above the selector or into the map to force visibility.
-        return;
-    }
-    if (!state.button) {
-        UIButton *b=[UIButton buttonWithType:UIButtonTypeCustom];
-        OMCZoomAction *action=[OMCZoomAction new];
-        action.split=split;
-        objc_setAssociatedObject(b,@selector(pressed:),action,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        [b addTarget:action action:@selector(pressed:) forControlEvents:UIControlEventTouchUpInside];
-        b.clipsToBounds=YES;
-        state.button=b;
-    }
-    UIButton *button=state.button;
-    button.frame=frame;
-    // A 44pt transparent hit area retains CarPlay usability.
-    // Only the visible circle is 29–36pt, close to the original knob size.
-    button.layer.cornerRadius=0.0;
-    button.layer.borderWidth=0.0;
-    button.backgroundColor=UIColor.clearColor;
-    CAGradientLayer *fill=objc_getAssociatedObject(button,@selector(OMCRefreshButton:));
-    if (!fill) {
-        fill=[CAGradientLayer layer];
-        fill.colors=@[
-            (__bridge id)[UIColor colorWithRed:.96 green:.90 blue:1.0 alpha:.96].CGColor,
-            (__bridge id)[UIColor colorWithRed:.72 green:.92 blue:1.0 alpha:.96].CGColor
-        ];
-        fill.startPoint=CGPointMake(0,0);
-        fill.endPoint=CGPointMake(1,1);
-        fill.borderWidth=1.2;
-        fill.borderColor=[UIColor colorWithWhite:1 alpha:.92].CGColor;
-        [button.layer insertSublayer:fill atIndex:0];
-        objc_setAssociatedObject(button,@selector(OMCRefreshButton:),
-                                 fill,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    }
-    fill.frame=CGRectMake((diameter-circleDiameter)/2.0,
-                          (diameter-circleDiameter)/2.0,
-                          circleDiameter,circleDiameter);
-    fill.cornerRadius=circleDiameter/2.0;
-    button.tintColor=[UIColor colorWithRed:.09 green:.32 blue:.76 alpha:1.0];
-    button.imageView.contentMode=UIViewContentModeScaleAspectFit;
-    OMCRefreshButton(state);
-    if (button.superview!=parent) {
-        [button removeFromSuperview];
-        [parent addSubview:button];
-    }
-    [parent bringSubviewToFront:button];
-    // The original ratio menu remains the native touch owner.
-    // No new recognizers on the selector, knob or divider.
+    OMCHideMenuControls(split); // old panel may have been replaced by native
     state.menu=menu;
-    state.knob=nil;
-    NSLog(@"[OmniCarZoom] event=button-installed frame=%@ menu=%@ nativeCircle=%@",
-          NSStringFromCGRect(frame),NSStringFromCGRect(menuRect),NSStringFromCGRect(nativeCircle));
+    state.nativeDivider=divider;
+    // Three native preset icons/targets are suppressed only inside menu.
+    // Do NOT alter divider gesture/pan recognizers or host-app touches.
+    state.oldSubviewHidden=[NSMapTable weakToStrongObjectsMapTable];
+    for (UIView *sub in [menu.subviews copy]) {
+        [state.oldSubviewHidden setObject:@(sub.hidden) forKey:sub];
+        sub.hidden=YES;
+    }
+    state.oldMenuGestures=[NSMapTable weakToStrongObjectsMapTable];
+    for (UIGestureRecognizer *recognizer in [menu.gestureRecognizers copy]) {
+        [state.oldMenuGestures setObject:@(recognizer.enabled) forKey:recognizer];
+        recognizer.enabled=NO; // prevent the three original preset hit actions
+    }
+
+    // One original capsule, two *equal halves* occupying the SAME hit region.
+    // Graphite Titanium inner surface; the original exterior border stays put.
+    UIView *cover=[[UIView alloc] initWithFrame:menu.bounds];
+    cover.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    cover.backgroundColor=[UIColor colorWithRed:53./255 green:61./255 blue:70./255 alpha:.98];
+    cover.layer.cornerRadius=menu.layer.cornerRadius>0
+        ?menu.layer.cornerRadius : CGRectGetHeight(menu.bounds)*.5;
+    cover.clipsToBounds=YES;
+    cover.accessibilityIdentifier=@"OmniCar.menu.two-actions";
+    [menu addSubview:cover];
+    state.menuCover=cover;
+    CGFloat width=CGRectGetWidth(cover.bounds);
+    CGFloat height=CGRectGetHeight(cover.bounds);
+    if (width<=0 || height<=0) return;
+
+    UIButton *zoom=[UIButton buttonWithType:UIButtonTypeCustom];
+    zoom.frame=CGRectMake(0,0,width*.5,height);
+    zoom.accessibilityIdentifier=@"OmniCar.menu.zoom";
+    zoom.tintColor=[UIColor colorWithRed:.73 green:.90 blue:.96 alpha:1];
+    zoom.imageView.contentMode=UIViewContentModeScaleAspectFit;
+    zoom.backgroundColor=UIColor.clearColor;
+    OMCZoomAction *zoomTarget=[OMCZoomAction new];
+    zoomTarget.split=split;
+    objc_setAssociatedObject(zoom,@selector(pressed:),zoomTarget,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [zoom addTarget:zoomTarget action:@selector(pressed:) forControlEvents:UIControlEventTouchUpInside];
+    [cover addSubview:zoom];
+    state.button=zoom;
+    OMCRefreshButton(state);
+
+    UIButton *swap=[UIButton buttonWithType:UIButtonTypeCustom];
+    swap.frame=CGRectMake(width*.5,0,width-width*.5,height);
+    swap.accessibilityLabel=@"Đổi trái phải";
+    swap.accessibilityHint=@"Hoán đổi hai ứng dụng trái và phải";
+    swap.accessibilityIdentifier=@"OmniCar.menu.swap";
+    swap.backgroundColor=UIColor.clearColor;
+    swap.imageView.contentMode=UIViewContentModeScaleAspectFit;
+    [swap setImage:OMCSwapGlyph() forState:UIControlStateNormal];
+    OMCSwapAction *swapTarget=[OMCSwapAction new];
+    swapTarget.split=split;
+    swapTarget.divider=divider;
+    objc_setAssociatedObject(swap,@selector(pressed:),swapTarget,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [swap addTarget:swapTarget action:@selector(pressed:) forControlEvents:UIControlEventTouchUpInside];
+    [cover addSubview:swap];
+    state.swapButton=swap;
+
+    CALayer *separator=[CALayer layer];
+    separator.frame=CGRectMake(width*.5-.5,height*.23,1,height*.54);
+    separator.backgroundColor=[UIColor colorWithRed:.71 green:.74 blue:.77 alpha:.65].CGColor;
+    [cover.layer addSublayer:separator];
+    NSLog(@"[OmniCarMenu2] event=two-actions-installed bounds=%@ zoom=%@ swap=%@",
+          NSStringFromCGRect(menu.bounds),NSStringFromCGRect(zoom.frame),NSStringFromCGRect(swap.frame));
 }
 
 %hook SCPCarSplit
 - (void)showRatioMenuForDivider:(id)divider {
+    OMCHideMenuControls((SCPCarSplit *)self);
     %orig;
-    OMCShowButton((SCPCarSplit *)self,divider);
+    OMCInstallTwoActionMenu((SCPCarSplit *)self,divider);
 }
 - (void)hideRatioMenu {
-    OMCHideButton((SCPCarSplit *)self);
+    OMCHideMenuControls((SCPCarSplit *)self);
+    %orig;
+}
+// Retire the OLD double-tap gesture path; use its original IMP only when
+// the new native-menu Swap icon dispatches with a native recognizer.
+- (void)dividerDoubleTapped:(id)recognizer {
+    if (!OMCButtonOriginatedSwap) {
+        NSLog(@"[OmniCarMenu2] event=legacy-doubletap-swapping-blocked");
+        return;
+    }
     %orig;
 }
 - (void)setActive:(BOOL)active {
@@ -315,7 +374,7 @@ static void OMCTryInstall(NSUInteger retry) {
     }
     %init;
     OMCInstalled=YES;
-    NSLog(@"[OmniCarZoom] event=hook-installed version=0.7.0");
+    NSLog(@"[OmniCarZoom] event=hook-installed candidate=two-action-menu-source-only");
 }
 %ctor {
     @autoreleasepool {
