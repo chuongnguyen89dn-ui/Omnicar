@@ -19,6 +19,7 @@ extern void OMCChromeSetHidden(BOOL hidden);
 - (void)showRatioMenuForDivider:(id)divider;
 - (void)hideRatioMenu;
 - (void)dividerDoubleTapped:(id)recognizer;
+- (void)dividerDoubleTapOn:(id)divider;
 @end
 
 @interface OMCZoomState : NSObject
