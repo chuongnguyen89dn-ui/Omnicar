@@ -82,3 +82,24 @@ Precise confidence: code proves the conditional branches and cleanup/callbacks. 
 Static investigation used the actual original ARM64 slice `/mnt/data/omnicar_drag_audit/SplitScreen-arm64.dylib`, disassembly `/mnt/data/omnicar_drag_audit/split-arm64.asm`, exact original selector map `/mnt/data/omnicar_forensic/original_objc_selector_calls.csv`, **20 instruction assertions and 12 selector-owner callsites PASS** (executed locally 2026-10-20; no device log). Original package SHA256 `d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd`. No source or binary change, no DEB, no Sileo.
 
 Next only if user asks to change behavior: decide whether edge gesture should continue destroying a pane, or should preserve two-pane state and provide reversible resize/zoom. **Do not code a new restore button merely because the handle disappeared; restoring old `pane.handle` on a deallocated/inactive split will not work.**
+
+
+## 2026-10-20 — Recommendation after comparison of two recovery approaches (NOT IMPLEMENTED)
+
+**Current USER question:** "Vậy hướng giảo quyết là j? Nối lại nút 3 chấm hay tìm cách hoàn tác nó bằng cách kéo 1 vùng ảo để trở lại giao diện chia như cũ?"
+
+**RECOMMENDATION, NOT YET USER-APPROVED CHANGE:** Choose **reversible drag-to-edge with a split-owned narrow invisible reverse-swipe/edge grab zone**, not reconnecting a native three-dot menu after destructive pane deletion.
+
+### Why option A (reconnect three dots in SOLO) is weaker
+- Native `soloBundle:` clears `pane.vc`, `pane.bundleID`, and `closeGoingHome:` removes `container`, `slots`, `dividers`. Native `layoutBarForPane:` explicitly hides `pane.handle` when `vc==nil` (0x23c68). A revived graphic has no stable original pane controller/menu to operate.
+- Any working three-dot in SOLO would require implementing a new solo-owned toolbar and recreating/rehydrating the split scenes; cannot simply unhide existing view. Adds UI clutter and duplicate lifecycle coupling.
+
+### Preferred reversible design (source-only PLAN)
+1. **Before** native drag completion calls `closeSlot:background:` at 0x2d6b4/0x2e08c, distinguish the edge-close gesture from explicit Close actions; do not globally hook/disable `closeSlot:` because the user may still need explicit close. Record current layout, pane count, bundle IDs, orientation, selected pane and exact original fractions, with weak/owned validity checks.
+2. For drag-to-full only, transition to native `zoomedSlot` / `toggleZoomForPane:` style reversible presentation, retaining ALL SCPCarPane objects, scene host ownership and ratio data. Needs exact signature/branch validation in original ARM64 before actual code; do not assume toggleZoom naturally supports every edge/multislot case.
+3. During full presentation, maintain an **OmniCar-owned narrow, transparent grab zone on the CONTENT-SIDE edge of the old divider**. No system dock/Home changes, no visible rescue button. The zone must not span or intercept the Apple CarPlay dock; it is only active while the reversible drag-zoom state is active and should use a genuine pan recognizer with thresholds and cancellation so ordinary hosted-app gestures continue working. Precise zone width **TBD by native code and QA**, do not invent pixel/point numbers.
+4. Reverse swipe from the stored divider edge -> restore saved native split (same pane objects/apps, fractions, orientation), reattach existing divider and original 3-dot controls, and allow the already approved 4-second idle-hide behavior to apply. No app relaunch unless required by independently observed scene failure. Touch-to-reveal 4s chrome must not automatically open native ratio menu.
+5. Keep explicit original Close action as the intentional way to destroy a pane; keep existing separate Zoom 0.7 behavior and fullscreen restore from colliding with native `zoomedSlot` (choose single coordinator on future implementation).
+6. Verify horizontal/vertical splits, 2 or 3 panes, crossing either edge, drag while app is interactive, tap/wake idle chrome, long-press swap, existing Zoom expand/restore, Home/Apple system dock, scene lifecycle and drive-safe CarPlay. If original callback cannot be intercepted without native close having already occurred, do not force a fake restore; reconsider scoped entry hook.
+
+**Crucial constraint:** This recommendation **intentionally changes gesture semantics**: drag-to-edge becomes reversible fullscreen rather than closing the losing pane. It is not approved as a code change by a question asking to choose a direction. DO NOT patch the DEB/Zoom/idle code or build/package/deploy until the user confirms desired behavior. Existing read-only original ARM64 audit supports the design but runtime safety is untested.
