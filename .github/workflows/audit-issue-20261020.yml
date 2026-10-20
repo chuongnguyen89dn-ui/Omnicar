@@ -1,0 +1,59 @@
+name: OmniCar Regression Native ABI Owner Audit (NO DEB)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/audit_issue_20261020.py"
+      - ".github/workflows/audit-issue-20261020.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  original-abi:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install read-only tools
+        run: |
+          set -euo pipefail
+          brew install dpkg llvm
+          echo "/opt/homebrew/opt/llvm/bin" >> "$GITHUB_PATH"
+          test -x /opt/homebrew/opt/llvm/bin/llvm-objdump
+          command -v dpkg-deb
+      - name: Trace original menu, split, solo paths
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/audit_issue_20261020.py
+          mkdir -p audit
+          python3 scripts/audit_issue_20261020.py com.anlai.omnicar_1.0.3_iphoneos-arm64.deb > audit/OmniCar_live_regressions_native_abi_20261020.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open('audit/OmniCar_live_regressions_native_abi_20261020.json'))
+          assert x['status']=='ORIGINAL_STATIC_READ_ONLY_NO_DEVICE_CLAIM'
+          for selector in ('slots','allPanes','paneAtSlot:','closeSlot:background:','dividerDoubleTapOn:','showRatioMenuForDivider:'):
+              assert x['methods'][selector]['available'],selector
+          for selector in ('ratioMenu','soloHostedBundle','soloReturnedVC','tabParent'):
+              print('ABI',selector,x['methods'][selector]['pc'])
+          print('OMNICAR_ORIGINAL_ABI_FORENSIC_PASS__NO_DEB')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-live-regressions-original-ABI
+          path: audit/OmniCar_live_regressions_native_abi_20261020.json
+          retention-days: 90
+      - name: Commit source-of-truth original ABI report
+        run: |
+          set -euo pipefail
+          git config user.name github-actions\\[bot\\]
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add audit/OmniCar_live_regressions_native_abi_20261020.json
+          git diff --cached --quiet && exit 0
+          git commit -m "audit: preserve native layout, ratio menu and SOLO paths [skip ci]"
+          for i in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main && exit 0
+            sleep 2
+          done
+          exit 1
