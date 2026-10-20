@@ -149,6 +149,7 @@ static void OMCToggleHost(SCPCarSplit *split) {
 // Only the original double-tap callback is retired. Its implementation is
 // kept available for a guarded invocation from the new Swap icon.
 static BOOL OMCButtonOriginatedSwap=NO;
+static BOOL OMCInNativeSwap=NO;
 
 static UITapGestureRecognizer *OMCOriginalDoubleTap(id divider) {
     if (![divider isKindOfClass:UIView.class]) return nil;
@@ -182,8 +183,42 @@ static BOOL OMCSwapUsingNativeCallback(SCPCarSplit *split,id divider) {
         internal && internal.numberOfArguments==3 &&
         internal.methodReturnType[0]=='v' &&
         [internal getArgumentTypeAtIndex:2][0]=='@') {
-        [split dividerDoubleTapOn:divider];
-        NSLog(@"[OmniCarMenu2] event=internal-native-swap-requested");
+        OMCZoomState *zoom=OMCState(split);
+        BOOL wasExpanded=zoom.expanded;
+        OMCInNativeSwap=YES;
+        @try {
+            // Run ORIGINAL rearrangement against ORIGINAL, non-fullscreen
+            // geometry: appAreaInParent: returns native layout during swap.
+            [split dividerDoubleTapOn:divider];
+        } @finally {
+            OMCInNativeSwap=NO;
+        }
+        if(wasExpanded) {
+            if([split active]) {
+                zoom.expanded=YES;
+                [split relayoutAnimated:NO pushScenes:YES];
+                [split rootDidLayout];
+                OMCChromeSetHidden(YES);
+                // Original swap may enqueue its own deferred layout pass.
+                __weak SCPCarSplit *weakSplit=split;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,200*NSEC_PER_MSEC),
+                               dispatch_get_main_queue(), ^{
+                    SCPCarSplit *strongSplit=weakSplit;
+                    if(strongSplit && [strongSplit active] &&
+                       OMCState(strongSplit).expanded) {
+                        [strongSplit relayoutAnimated:NO pushScenes:YES];
+                        [strongSplit rootDidLayout];
+                        OMCChromeSetHidden(YES);
+                    }
+                });
+            } else {
+                zoom.expanded=NO;
+                OMCChromeSetHidden(NO);
+                NSLog(@"[OmniCarMenu2] event=swap-ended-inactive cannot-keep-fullscreen");
+            }
+        }
+        NSLog(@"[OmniCarMenu2] event=internal-native-swap-requested wasFullscreen=%d remainsFullscreen=%d",
+              wasExpanded,zoom.expanded);
         return YES;
     }
     NSLog(@"[OmniCarMenu2] event=internal-swap-unavailable; fallback-to-original-recognizer");
@@ -308,6 +343,7 @@ static void OMCInstallTwoActionMenu(SCPCarSplit *split,id divider) {
     zoom.tintColor=[UIColor colorWithRed:.73 green:.90 blue:.96 alpha:1];
     zoom.imageView.contentMode=UIViewContentModeScaleAspectFit;
     zoom.backgroundColor=UIColor.clearColor;
+    zoom.exclusiveTouch=YES;
     OMCZoomAction *zoomTarget=[OMCZoomAction new];
     zoomTarget.split=split;
     objc_setAssociatedObject(zoom,@selector(pressed:),zoomTarget,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -322,6 +358,7 @@ static void OMCInstallTwoActionMenu(SCPCarSplit *split,id divider) {
     swap.accessibilityHint=@"Hoán đổi hai ứng dụng trái và phải";
     swap.accessibilityIdentifier=@"OmniCar.menu.swap";
     swap.backgroundColor=UIColor.clearColor;
+    swap.exclusiveTouch=YES;
     swap.imageView.contentMode=UIViewContentModeScaleAspectFit;
     [swap setImage:OMCSwapGlyph() forState:UIControlStateNormal];
     OMCSwapAction *swapTarget=[OMCSwapAction new];
@@ -350,6 +387,18 @@ static void OMCInstallTwoActionMenu(SCPCarSplit *split,id divider) {
     OMCHideMenuControls((SCPCarSplit *)self);
     %orig;
 }
+// Original THREE native ratio preset callbacks must not execute beneath
+// the replacement controls, even if a gesture is mounted on an ancestor
+// rather than menu.gestureRecognizers. Leave original callback unchanged
+// when custom menu was not successfully mounted.
+- (void)ratioPresetTapped:(id)sender {
+    OMCZoomState *state=objc_getAssociatedObject(self,&kOMCStateKey);
+    if(state.menuCover && state.menuCover.superview==state.menu) {
+        NSLog(@"[OmniCarMenu2] event=blocked-original-three-ratio-preset");
+        return;
+    }
+    %orig;
+}
 // Retire the OLD double-tap gesture path; use its original IMP only when
 // the new native-menu Swap icon dispatches with a native recognizer.
 - (void)dividerDoubleTapped:(id)recognizer {
@@ -360,7 +409,7 @@ static void OMCInstallTwoActionMenu(SCPCarSplit *split,id divider) {
     %orig;
 }
 - (void)setActive:(BOOL)active {
-    if (!active) {
+    if (!active && !OMCInNativeSwap) {
         OMCZoomState *state=objc_getAssociatedObject(self,&kOMCStateKey);
         if (state && state.expanded) {
             state.expanded=NO;
@@ -376,7 +425,7 @@ static void OMCInstallTwoActionMenu(SCPCarSplit *split,id divider) {
 - (CGRect)appAreaInParent:(UIView *)parent {
     CGRect native=%orig;
     OMCZoomState *state=objc_getAssociatedObject(self,&kOMCStateKey);
-    if (!state || !state.expanded || !parent ||
+    if (OMCInNativeSwap || !state || !state.expanded || !parent ||
         parent!=state.layoutParent || ![self active]) return native;
     CGRect target=OMCWindowBoundsInParent(parent);
     return OMCAreaValid(target)?target:native;
