@@ -6,6 +6,8 @@ on:
       - ".github/workflows/unified-components-compile.yml"
       - "idle/**"
       - "titanium/src/**"
+      - "scripts/assemble_unified_omnicar.py"
+      - "scripts/test_unified_assembler.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,6 +24,8 @@ jobs:
           python3 scripts/test_idle_controls_source.py
           python3 scripts/test_solo_three_dots_source.py
           python3 scripts/test_titanium_native_skin.py
+          python3 -m py_compile scripts/assemble_unified_omnicar.py scripts/test_unified_assembler.py
+          python3 scripts/test_unified_assembler.py
           plutil -lint OmniCarDoubleTapFullscreen.plist
           plutil -lint idle/OmniCarIdleControls.plist
           plutil -lint solo/OmniCarSoloThreeDots.plist
