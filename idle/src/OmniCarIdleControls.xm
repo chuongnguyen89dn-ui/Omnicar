@@ -18,8 +18,6 @@ static char kOMCSavedOpacityKey;
 - (UIView *)container;
 - (id)dividers;
 - (id)allPanes;
-- (id)hostedPanes;
-- (id)homeButton;
 - (UIView *)tabParent;
 - (id)paneAtSlot:(int)slot;
 - (UIView *)ratioMenu;
@@ -98,15 +96,6 @@ static void OMCIdlePaintControl(id object,BOOL visible) {
         view.layer.opacity=0.0f;
     }
 }
-// Both native split handles and app-bridge-hosted handles are original
-// SCPCarPane controls (ABI: handle @0xf990, hostHandle @0xfb68).
-// Only paint CALayer opacity; never modify native frames or touch routing.
-static void OMCIdlePaintPaneHandles(id pane,BOOL visible) {
-    id native=OMCIdleGet(pane,@selector(handle));
-    id hosted=OMCIdleGet(pane,@selector(hostHandle));
-    OMCIdlePaintControl(native,visible);
-    if(hosted!=native)OMCIdlePaintControl(hosted,visible);
-}
 static void OMCIdleApply(SCPCarSplit *split) {
     OMCIdleState *s=OMCIdleStateFor(split,NO);
     if(!s)return;
@@ -125,30 +114,14 @@ static void OMCIdleApply(SCPCarSplit *split) {
         for(id pane in (NSArray *)all) {
             if(![pane respondsToSelector:@selector(handle)])continue;
             [seen addObject:pane];
-            OMCIdlePaintPaneHandles(pane,visible);
+            OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle)),visible);
         }
-    }
-    // Original SCPCarSplit hosts unsupported apps in independent panes.
-    // They may NOT be present in the split's visual allPanes/slots array.
-    id hostedPanes=[split hostedPanes];
-    NSArray *hostItems=[hostedPanes isKindOfClass:NSArray.class]?(NSArray *)hostedPanes:
-      ([hostedPanes isKindOfClass:NSDictionary.class]?
-       [(NSDictionary *)hostedPanes allValues]:nil);
-    for(id pane in hostItems) {
-        if(![pane respondsToSelector:@selector(hostHandle)] ||
-           [seen containsObject:pane])continue;
-        [seen addObject:pane];
-        OMCIdlePaintPaneHandles(pane,visible);
     }
     for(int slot=0;slot<3;slot++) {
         id pane=[split paneAtSlot:slot];
         if(pane && ![seen containsObject:pane])
-            OMCIdlePaintPaneHandles(pane,visible);
+            OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle)),visible);
     }
-    // The two-tile CIRCULAR launcher is original SCPCarSplit.homeButton,
-    // not a pane.handle nor the Apple system Home/dock button. Include ONLY
-    // its original UIView without touching the dock window or its layout.
-    OMCIdlePaintControl(OMCIdleGet(split,@selector(homeButton)),visible);
     if(!visible)NSLog(@"[OmniCarIdle] event=all-panes-painted count=%lu dividerCount=%lu",
        (unsigned long)seen.allObjects.count,
        (unsigned long)([dividers isKindOfClass:NSArray.class]?[(NSArray *)dividers count]:0));
@@ -283,9 +256,10 @@ static void OMCIdleStop(SCPCarSplit *split){
 }
 - (void)layoutBarForPane:(id)pane {
     %orig;
-    OMCIdleState *state=OMCIdleStateFor((SCPCarSplit *)self,NO);
-    OMCIdlePaintPaneHandles(pane,!state || state.visible ||
-                                   state.activeDividerTouches>0);
+    OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle)),
+        !OMCIdleStateFor((SCPCarSplit *)self,NO) ||
+        OMCIdleStateFor((SCPCarSplit *)self,NO).visible ||
+        OMCIdleStateFor((SCPCarSplit *)self,NO).activeDividerTouches>0);
 }
 - (void)showRatioMenuForDivider:(id)divider {
     %orig;

@@ -15,19 +15,9 @@ for required in [
     "gesture.delaysTouchesEnded=NO", "UIGestureRecognizerStateFailed",
     "activeDividerTouches", "OMCIdleApply", "allPanes", "tabParent", 
     "tabWakeGesture", "tabGestureOwner", "all-panes-painted",
-    "Native setBarVisible:YES can be emitted repeatedly",
-    "OMCIdlePaintPaneHandles", "hostedPanes", "hostHandle",
-    "OMCIdleGet(split,@selector(homeButton))",
-    "OMCIdlePaintPaneHandles(pane", "OMCIdleGet(pane,@selector(hostHandle))"
+    "Native setBarVisible:YES can be emitted repeatedly"
 ]: assert required in source, required
 assert source.count("%orig;")==10, "unexpected native orig call count"
-assert source.count("OMCIdlePaintControl(OMCIdleGet(split,@selector(homeButton)),visible);")==1
-assert source.count("OMCIdlePaintPaneHandles(pane,visible);")>=2
-# Round button and app host handles fade by original native UI layer ONLY.
-for forbidden_selector in ["%hook SCPCarPane", "%hook CBWindow",
-                           "addSubview:", "addGestureRecognizer:touchOwner",
-                           "hostWindow", "activeCarPlayWindow"]:
-    assert forbidden_selector not in source,forbidden_selector
 for forbidden in [
     "%hook UIView", "%hook UIWindow", "%hook UIColor",
     "setHidden:", "setAlpha:", "userInteractionEnabled=", "setUserInteractionEnabled:",
