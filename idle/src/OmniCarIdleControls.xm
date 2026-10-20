@@ -17,6 +17,8 @@ static char kOMCSavedOpacityKey;
 - (BOOL)active;
 - (UIView *)container;
 - (id)dividers;
+- (id)allPanes;
+- (UIView *)tabParent;
 - (id)paneAtSlot:(int)slot;
 - (UIView *)ratioMenu;
 @end
@@ -53,6 +55,8 @@ static void OMCIdleApply(SCPCarSplit *split);
 @property(nonatomic,strong) NSTimer *idleTimer;
 @property(nonatomic,strong) OMCIdleWakeGesture *wakeGesture;
 @property(nonatomic,weak) UIView *gestureOwner;
+@property(nonatomic,strong) OMCIdleWakeGesture *tabWakeGesture;
+@property(nonatomic,weak) UIView *tabGestureOwner;
 @property(nonatomic) BOOL visible;
 @property(nonatomic) BOOL started;
 @property(nonatomic) NSUInteger activeDividerTouches;
@@ -101,10 +105,26 @@ static void OMCIdleApply(SCPCarSplit *split) {
         for(id divider in (NSArray *)dividers)
             OMCIdlePaintControl(OMCIdleGet(divider,@selector(knob)),visible);
     }
+    // The original ABI has a distinct allPanes owner. Some native
+    // two-pane layouts use non-contiguous slot IDs (including AUTO=9),
+    // so paneAtSlot:0..2 alone is not a complete enumeration.
+    NSHashTable *seen=[NSHashTable weakObjectsHashTable];
+    id all=[split allPanes];
+    if([all isKindOfClass:NSArray.class]) {
+        for(id pane in (NSArray *)all) {
+            if(![pane respondsToSelector:@selector(handle)])continue;
+            [seen addObject:pane];
+            OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle)),visible);
+        }
+    }
     for(int slot=0;slot<3;slot++) {
         id pane=[split paneAtSlot:slot];
-        OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle)),visible);
+        if(pane && ![seen containsObject:pane])
+            OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle)),visible);
     }
+    if(!visible)NSLog(@"[OmniCarIdle] event=all-panes-painted count=%lu dividerCount=%lu",
+       (unsigned long)seen.allObjects.count,
+       (unsigned long)([dividers isKindOfClass:NSArray.class]?[(NSArray *)dividers count]:0));
     // NEVER touch split.ratioKnob; it is a DIFFERENT item within the native
     // three-choice popup. Original hideRatioMenu owns that object/lifecycle.
 }
@@ -173,6 +193,28 @@ static void OMCIdleAttach(SCPCarSplit *split){
             s.gestureOwner=root;
         }
     }
+    // Host app views may be siblings of the split container. Observe
+    // OmniCar's native tabParent only when it shares the original window;
+    // recognizer FAILS immediately and never steals app/pan gestures.
+    UIView *tab=[split tabParent];
+    if([tab isKindOfClass:UIView.class] && ![tab isKindOfClass:UIWindow.class] &&
+       tab!=root && tab.window && (!root.window || tab.window==root.window)) {
+        if(!s.tabWakeGesture){
+            s.tabWakeGesture=[[OMCIdleWakeGesture alloc]initWithTarget:nil action:NULL];
+            s.tabWakeGesture.split=split;
+            s.tabWakeGesture.cancelsTouchesInView=NO;
+            s.tabWakeGesture.delaysTouchesBegan=NO;
+            s.tabWakeGesture.delaysTouchesEnded=NO;
+        }
+        if(s.tabGestureOwner!=tab) {
+            if(s.tabGestureOwner)[s.tabGestureOwner removeGestureRecognizer:s.tabWakeGesture];
+            [tab addGestureRecognizer:s.tabWakeGesture];
+            s.tabGestureOwner=tab;
+        }
+    } else if(s.tabGestureOwner && s.tabWakeGesture) {
+        [s.tabGestureOwner removeGestureRecognizer:s.tabWakeGesture];
+        s.tabGestureOwner=nil;
+    }
     if(!s.started){
         s.started=YES;
         OMCIdleWake(split); // initial native split: controls vanish after 4s
@@ -191,6 +233,10 @@ static void OMCIdleStop(SCPCarSplit *split){
     if(s.gestureOwner && s.wakeGesture)
         [s.gestureOwner removeGestureRecognizer:s.wakeGesture];
     s.gestureOwner=nil;
+    if(s.tabGestureOwner && s.tabWakeGesture)
+        [s.tabGestureOwner removeGestureRecognizer:s.tabWakeGesture];
+    s.tabGestureOwner=nil;
+    s.tabWakeGesture=nil;
     s.started=NO;
 }
 // SCPCarSplit owns the original 4s ratio selector timer and pane handles.
@@ -226,8 +272,14 @@ static void OMCIdleStop(SCPCarSplit *split){
 - (void)setBarVisible:(BOOL)visible forPane:(id)pane {
     %orig;
     (void)pane;
-    if(visible)OMCIdleWake((SCPCarSplit *)self);
-    else OMCIdleApply((SCPCarSplit *)self); // native 4s bar timer remains owner
+    // Native setBarVisible:YES can be emitted repeatedly during
+    // streaming-app relayout. It is NOT necessarily a user touch;
+    // rearming the timer here kept the YouTube handle permanently visible.
+    // A real touch, native knob/menu event or first split activation owns
+    // wake/rearm, and bar redraw must only repaint current idle state.
+    OMCIdleState *idle=OMCIdleStateFor((SCPCarSplit *)self,NO);
+    if(visible && (!idle || !idle.started))OMCIdleWake((SCPCarSplit *)self);
+    else OMCIdleApply((SCPCarSplit *)self);
 }
 - (void)setActive:(BOOL)active {
     if(!active)OMCIdleStop((SCPCarSplit *)self);
