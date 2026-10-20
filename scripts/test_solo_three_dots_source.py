@@ -14,5 +14,7 @@ for x in ["%hook UIWindow","%hook UIView","%hook UIApplication",
 "OMCRescueAction","CARStatusBarWindow","DBStatusBarWindow"]:
  assert x not in s,x
 assert s.count("%orig;")==3
+for x in ["pendingEdgeClose", "OMCClearVisual(s);s.apps=nil;", "restore layout unconfirmed"]:
+ assert x in s,x
 assert Path("solo/README.md").is_file()
 print("PASS static SOLO 3dots original reopen source, not compiled")

@@ -57,6 +57,7 @@ static void OMCSoloMount(OMCSoloState *s,int attempt);
 @property(nonatomic,weak) UIView *ownerView;
 @property(nonatomic) BOOL visible;
 @property(nonatomic) BOOL busy;
+@property(nonatomic) BOOL pendingEdgeClose;
 @end
 @implementation OMCSoloState @end
 static OMCSoloState *OMCState(SCPCarSplit *split,BOOL create) {
@@ -129,7 +130,7 @@ static void OMCSnapshotBeforeClose(SCPCarSplit *split,int slot) {
         s.relativePosition=CGPointMake((CGRectGetMidX(box)-CGRectGetMinX(area))/CGRectGetWidth(area),
                                         (CGRectGetMidY(box)-CGRectGetMinY(area))/CGRectGetHeight(area));
     }else s.relativePosition=CGPointMake(.88,.12);
-    s.busy=NO;
+    s.busy=NO;s.pendingEdgeClose=YES;
     NSLog(@"[OmniCarSoloDots] saved exact native 3dots and %lu apps",(unsigned long)s.apps.count);
 }
 static void OMCRestoreFractions(OMCSoloState *s,int attempt){
@@ -139,7 +140,13 @@ static void OMCRestoreFractions(OMCSoloState *s,int attempt){
             __weak OMCSoloState *weak=s;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW,300*NSEC_PER_MSEC),
                            dispatch_get_main_queue(),^{if(weak)OMCRestoreFractions(weak,attempt+1);});
-        }else{s.busy=NO;NSLog(@"[OmniCarSoloDots] restore layout unconfirmed");}
+        }else{
+            s.busy=NO;
+            NSLog(@"[OmniCarSoloDots] restore layout unconfirmed");
+            // The original open call may fail to reactivate; only remount
+            // if the native SOLO owner still exists, never on system UI.
+            if(s.apps.count==2)OMCSoloMount(s,0);
+        }
         return;
     }
     NSArray *saved=s.fractions,*cur=[split fractions];
@@ -249,16 +256,25 @@ static void OMCScheduleMount(OMCSoloState *s){
     OMCSnapshotBeforeClose((SCPCarSplit *)self,slot);
     %orig;
     OMCSoloState *s=OMCState((SCPCarSplit *)self,NO);
-    if(s && ![(SCPCarSplit *)self active])OMCScheduleMount(s);
+    if(s){
+        BOOL prepared=s.pendingEdgeClose;
+        s.pendingEdgeClose=NO;
+        if(prepared && ![(SCPCarSplit *)self active])OMCScheduleMount(s);
+    }
 }
 - (void)closeGoingHome:(BOOL)background {
     %orig;
     OMCSoloState *s=OMCState((SCPCarSplit *)self,NO);
-    if(s && s.apps.count==2 && !s.busy)OMCScheduleMount(s);
+    if(s && s.pendingEdgeClose && s.apps.count==2 && !s.busy)
+        OMCScheduleMount(s);
+    else if(s && !s.pendingEdgeClose){
+        // Explicit Home/disconnect after SOLO must not leave a floating 3dot.
+        OMCClearVisual(s);s.apps=nil;s.fractions=nil;s.nativeDots=nil;
+    }
 }
 - (void)openSetupLayout:(int)layout apps:(NSArray *)apps {
     OMCSoloState *s=OMCState((SCPCarSplit *)self,NO);
-    if(s)OMCClearVisual(s);
+    if(s){OMCClearVisual(s);s.pendingEdgeClose=NO;}
     %orig;
 }
 %end
