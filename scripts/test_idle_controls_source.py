@@ -13,7 +13,8 @@ for required in [
     "kOMCSavedOpacityKey", "removeGestureRecognizer:",
     "gesture.cancelsTouchesInView=NO", "gesture.delaysTouchesBegan=NO",
     "gesture.delaysTouchesEnded=NO", "UIGestureRecognizerStateFailed",
-    "activeDividerTouches", "OMCIdleApply", "allPanes", "tabParent", 
+    "activeDividerTouches", "OMCIdleApply", "allPanes", "hostedPanes",
+    "hostHandle", "OMCIdlePaintPaneHandles", "tabParent", 
     "tabWakeGesture", "tabGestureOwner", "all-panes-painted",
     "Native setBarVisible:YES can be emitted repeatedly"
 ]: assert required in source, required
