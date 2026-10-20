@@ -33,3 +33,20 @@ Ngày 2026-10-20, chỉ điều tra/read-only. **KHÔNG sửa bản QA7 đang ch
 Nguồn đối chiếu UIKit Scene: https://developer.apple.com/documentation/uikit/transitioning-to-the-uikit-scene-based-life-cycle ; CarPlay Scene: https://developer.apple.com/documentation/carplay/displaying-content-in-carplay . Đây là cơ sở kiến trúc tổng quát, không phải bằng chứng triển khai riêng của OmniCar.
 
 **TRẠNG THÁI**: verified source/doc evidence; no new patch/build/workflow/run/device instrumentation/Sileo deploy. Phải phân biệt dự đoán về nút YouTube với thực nghiệm UI trên xe.
+
+## 2026-10-20 — Audit zoom 0,6–1,0 theo loại ứng dụng
+
+Evidence: read-only workflow 39398158085 job 118545931967 SUCCESS; script scripts/audit_appbridge_zoom_comparison.py; immutable original DEB SHA256 d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd. The persisted machine report is audit/OmniCar_AppBridge_global_zoom_compare_20261020.json (artifact commit cfd3885e7086f84eedbc6eb06e346eae4b54319b).
+
+Verified ABI: ABHost.zoom (ARM64 0xae20–0xae90) calls _OMCPrefsSync at 0xae30, then _OMCPref at 0xae44; divides by numeric 100.0 at 0xae58–0xae60; clamps lower bound 0.6 at 0xae70–0xae74 and upper bound 1.0 at 0xae78–0xae80. One shared appBridgeZoom accessor has NO bundle argument. Actual value on user's iPhone is not available.
+
+| Case | AppBridge.zoom applies? | Why UI may differ |
+|---|---|---|
+| YouTube hosted as iPhone app | Same shared 0.6–1.0 clamp | Own responsive scene + host frame/size/orientation |
+| TikTok / other iPhone app via AppBridge | Same global clamp when routed through same ABHost | Different app-specific layout and orientation |
+| Google/Apple Maps running native CarPlay scene | Not this AppBridge zoom | Native CarPlay UI sizing |
+| Map app forced via OmniCar iPhone AppBridge | Same global clamp | Host framing still differs from native CarPlay |
+
+Original preference plist scan returned no appBridgeZoom/appBridgeOrientation per-app entries. AppBridge arm64 strings include appBridgeZoom, appBridgeOrientation and splitScreenPaneOrientation; they do NOT contain direct strings com.google.ios.youtube, com.google.Maps, com.apple.Maps, com.zhiliaoapp.musically. These absences are LIMITED static evidence, not proof of no dynamic bundle-based exceptions or external installed tweaks. Frame/orientation methods ABHost.layoutPane: and ABHost.effectiveOrientation: do exist. No measured YouTube-specific 0.6 or 1.0 is warranted.
+
+Practical conclusion: shared numeric zoom is unlikely to explain why ONLY YouTube three-dot remains visible. The visual difference may come from its AppBridge scene or ABPane.handle / SCPCarPane.hostHandle ownership, which was not proven at runtime. Preserve QA7. No runtime hooks, DEB, device test or Sileo change in this analysis.
