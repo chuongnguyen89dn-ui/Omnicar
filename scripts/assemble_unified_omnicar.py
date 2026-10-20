@@ -146,7 +146,7 @@ def assemble(original, build_root, output):
                 shutil.copy2(source, destination)
                 injected.append(destination.relative_to(staging).as_posix())
         output.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["dpkg-deb", "--root-owner-group", "-b", str(staging), str(output)], check=True)
+        subprocess.run(["dpkg-deb", "--root-owner-group", "-b", str(staging), str(output)], check=True, stdout=sys.stderr)
         if command("dpkg-deb", "-f", str(output), "Package") != PACKAGE:
             raise ValueError("Wrong output Package")
         if command("dpkg-deb", "-f", str(output), "Version") != VERSION:
