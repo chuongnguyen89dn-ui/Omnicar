@@ -79,7 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p unified-artifacts
-          OUTPUT="unified-artifacts/com.anlai.omnicar_1.0.3-omnicar2_iphoneos-arm64.deb"
+          OUTPUT="unified-artifacts/com.anlai.omnicar_1.0.3-omnicar3_iphoneos-arm64.deb"
           python3 scripts/assemble_unified_omnicar.py \
             --original com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
             --build-root . \
@@ -88,7 +88,7 @@ jobs:
           dpkg-deb -f "$OUTPUT" | tee unified-artifacts/CONTROL.txt
           dpkg-deb -c "$OUTPUT" | tee unified-artifacts/FILES.txt
           test "$(dpkg-deb -f "$OUTPUT" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$OUTPUT" Version)" = "1.0.3-omnicar2"
+          test "$(dpkg-deb -f "$OUTPUT" Version)" = "1.0.3-omnicar3"
           test "$(dpkg-deb -f "$OUTPUT" Architecture)" = "iphoneos-arm64"
           for module in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
             grep -q "$module.dylib" unified-artifacts/FILES.txt
@@ -99,21 +99,21 @@ jobs:
           import hashlib,json,pathlib
           root=pathlib.Path('unified-artifacts')
           manifest=json.loads((root/'BUILD-MANIFEST.json').read_text())
-          path=root/'com.anlai.omnicar_1.0.3-omnicar2_iphoneos-arm64.deb'
+          path=root/'com.anlai.omnicar_1.0.3-omnicar3_iphoneos-arm64.deb'
           real=hashlib.sha256(path.read_bytes()).hexdigest()
           assert manifest['output_sha256']==real
-          assert manifest['version']=='1.0.3-omnicar2'
+          assert manifest['version']=='1.0.3-omnicar3'
           assert manifest['retained_original_files']==176
           assert len(manifest['added_native_files'])==8
           assert manifest['tested_on_carplay'] is False
           print('QA2_EXACT_ORIGINAL_176_FILES_AND_FOUR_MODULES_VERIFIED')
           PY
-          printf '%s\n' 'QA2_REPAIRED_CANDIDATE_COMPILED_AND_PACKAGED__NO_DEVICE_TEST__SILEO_PENDING' > unified-artifacts/STATUS.txt
+          printf '%s\n' 'QA3_HOSTED_IDLE_CANDIDATE_COMPILED_AND_PACKAGED__NO_DEVICE_TEST__SILEO_PENDING' > unified-artifacts/STATUS.txt
           echo "UNIFIED_ORIGINAL_DEB_PACKAGE_VERIFIED"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: OmniCar-Original-1.0.3-QA2-Repair-ZoomSwap-Idle-SOLO-Titanium-DEB
+          name: OmniCar-Original-1.0.3-QA3-HostedIdle-Repair-SOLO-ZoomSwap-Titanium-DEB
           path: unified-artifacts/
           retention-days: 90
 
@@ -122,7 +122,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar2"
+          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar3"
           test ! -e "$DEST/STATUS.txt" || { echo 'Refuse candidate overwrite' >&2; exit 1; }
           mkdir -p "$DEST"
           cp unified-artifacts/* "$DEST/"
