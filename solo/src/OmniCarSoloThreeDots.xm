@@ -12,6 +12,9 @@
 - (int)paneCount;
 - (int)layoutID;
 - (NSArray *)slots;
+- (NSArray *)allPanes;
+- (NSArray *)panesInReadingOrder;
+- (id)paneAtSlot:(int)slot;
 - (NSArray *)fractions;
 - (void)setFractions:(NSArray *)fractions;
 - (void)relayoutAnimated:(BOOL)animated pushScenes:(BOOL)pushScenes;
@@ -58,6 +61,7 @@ static void OMCSoloMount(OMCSoloState *s,int attempt);
 @property(nonatomic) BOOL visible;
 @property(nonatomic) BOOL busy;
 @property(nonatomic) BOOL pendingEdgeClose;
+@property(nonatomic) BOOL confirmedEdgeSolo;
 @end
 @implementation OMCSoloState @end
 static OMCSoloState *OMCState(SCPCarSplit *split,BOOL create) {
@@ -109,8 +113,35 @@ static UIImage *OMCNativeHandleBitmap(UIView *handle){
 }
 static void OMCSnapshotBeforeClose(SCPCarSplit *split,int slot) {
     if([split paneCount]!=2 || slot<0 || slot>1)return;
-    NSArray *all=[split slots];
-    if(![all isKindOfClass:NSArray.class] || all.count!=2)return;
+    // Native slots may include AUTO/noncontiguous indices. Reconstruct
+    // the two actual panes in visual reading order; never interpret an
+    // NSArray of slot identifiers as SCPCarPane objects.
+    NSArray *all=[split panesInReadingOrder];
+    if(![all isKindOfClass:NSArray.class] || all.count!=2 ||
+       ![all[0] respondsToSelector:@selector(bundleID)] ||
+       ![all[1] respondsToSelector:@selector(bundleID)]) {
+        all=[split allPanes];
+    }
+    if(![all isKindOfClass:NSArray.class] || all.count!=2 ||
+       ![all[0] respondsToSelector:@selector(bundleID)] ||
+       ![all[1] respondsToSelector:@selector(bundleID)]) {
+        all=[split slots];
+    }
+    if(![all isKindOfClass:NSArray.class] || all.count!=2 ||
+       ![all[0] respondsToSelector:@selector(bundleID)] ||
+       ![all[1] respondsToSelector:@selector(bundleID)]) {
+        id leftCandidate=[split paneAtSlot:0],rightCandidate=[split paneAtSlot:1];
+        if(leftCandidate && rightCandidate &&
+           [leftCandidate respondsToSelector:@selector(bundleID)] &&
+           [rightCandidate respondsToSelector:@selector(bundleID)])
+            all=@[leftCandidate,rightCandidate];
+    }
+    if(![all isKindOfClass:NSArray.class] || all.count!=2 ||
+       ![all[0] respondsToSelector:@selector(bundleID)] ||
+       ![all[1] respondsToSelector:@selector(bundleID)]) {
+        NSLog(@"[OmniCarSoloDots] capture-blocked: could-not-resolve-two-real-panes");
+        return;
+    }
     SCPCarPane *left=all[0], *right=all[1];
     NSString *a=[left bundleID],*b=[right bundleID];
     if(![a isKindOfClass:NSString.class]||a.length==0||
@@ -118,19 +149,44 @@ static void OMCSnapshotBeforeClose(SCPCarSplit *split,int slot) {
     SCPCarPane *survivor=slot==0?right:left;
     UIView *handle=[survivor handle],*root=[split tabParent];
     UIImage *native=OMCNativeHandleBitmap(handle);
-    if(!native || ![root isKindOfClass:UIView.class])return;
+    CGSize handleSize=handle.bounds.size;
+    if(!native) {
+        // Original handle may be visually hidden by Idle4s or destroyed
+        // before bitmap capture; keep an accessible 3-dot restore affordance.
+        handleSize=CGSizeMake(48,26);
+        UIGraphicsBeginImageContextWithOptions(handleSize,NO,0);
+        CGContextRef context=UIGraphicsGetCurrentContext();
+        if(context){
+            UIBezierPath *pill=[UIBezierPath bezierPathWithRoundedRect:
+                CGRectMake(1,1,46,24) cornerRadius:12];
+            [[UIColor colorWithWhite:.15 alpha:.9] setFill];[pill fill];
+            [[UIColor colorWithWhite:.78 alpha:.88] setStroke];
+            pill.lineWidth=1.2;[pill stroke];
+            [[UIColor colorWithWhite:.88 alpha:1] setFill];
+            for(int dot=0;dot<3;dot++){
+                UIBezierPath *circle=[UIBezierPath bezierPathWithOvalInRect:
+                    CGRectMake(17+dot*7,11,3.1,3.1)];
+                [circle fill];
+            }
+            native=UIGraphicsGetImageFromCurrentImageContext();
+        }
+        UIGraphicsEndImageContext();
+        NSLog(@"[OmniCarSoloDots] capture-fallback: original-handle-unavailable");
+    }
+    if(!native)return;
     OMCSoloState *s=OMCState(split,YES);OMCClearVisual(s);
     s.apps=@[[a copy],[b copy]];
     s.layout=[split layoutID];
     s.fractions=[[split fractions] copy];
-    s.nativeDots=native;s.nativeSize=handle.bounds.size;
+    s.nativeDots=native;s.nativeSize=handleSize;
     CGRect area=[split appAreaInParent:root];
-    if(handle.window && root.window==handle.window && !CGRectIsEmpty(area)){
+    if([root isKindOfClass:UIView.class] && handle.window &&
+       root.window==handle.window && !CGRectIsEmpty(area)){
         CGRect box=[handle convertRect:handle.bounds toView:root];
         s.relativePosition=CGPointMake((CGRectGetMidX(box)-CGRectGetMinX(area))/CGRectGetWidth(area),
                                         (CGRectGetMidY(box)-CGRectGetMinY(area))/CGRectGetHeight(area));
     }else s.relativePosition=CGPointMake(.88,.12);
-    s.busy=NO;s.pendingEdgeClose=YES;
+    s.busy=NO;s.pendingEdgeClose=YES;s.confirmedEdgeSolo=NO;
     NSLog(@"[OmniCarSoloDots] saved exact native 3dots and %lu apps",(unsigned long)s.apps.count);
 }
 static void OMCRestoreFractions(OMCSoloState *s,int attempt){
@@ -210,15 +266,23 @@ static void OMCSoloMount(OMCSoloState *s,int attempt){
     if(!split||s.busy||s.apps.count!=2||[split active])return;
     UIView *parent=[split tabParent];
     NSString *solo=[split soloHostedBundle];
+    id returned=[split soloReturnedVC];
+    if((![parent isKindOfClass:UIView.class] || !parent.window) &&
+       [returned isKindOfClass:UIViewController.class]) {
+        UIView *returnedView=[(UIViewController *)returned viewIfLoaded];
+        if(returnedView.window)parent=returnedView;
+    }
     // Some native solo transitions detach the original VC instead of hostSolo.
     BOOL hasSolo=([solo isKindOfClass:NSString.class] && [s.apps containsObject:solo])
-              || [split soloReturnedVC]!=nil;
+              || returned!=nil || s.confirmedEdgeSolo;
     if(![parent isKindOfClass:UIView.class] || !parent.window || !hasSolo){
         if(attempt<20){
             __weak OMCSoloState *weak=s;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW,200*NSEC_PER_MSEC),
               dispatch_get_main_queue(),^{if(weak)OMCSoloMount(weak,attempt+1);});
-        }else NSLog(@"[OmniCarSoloDots] unable to attach: no native solo parent");
+        }else NSLog(@"[OmniCarSoloDots] unable to attach: parent=%d mounted=%d solo=%d returned=%d confirmedEdge=%d",
+                       [parent isKindOfClass:UIView.class],parent.window!=nil,
+                       solo.length>0,returned!=nil,s.confirmedEdgeSolo);
         return;
     }
     if(s.dots && s.ownerView==parent)return;
@@ -259,7 +323,10 @@ static void OMCScheduleMount(OMCSoloState *s){
     if(s){
         BOOL prepared=s.pendingEdgeClose;
         s.pendingEdgeClose=NO;
-        if(prepared && ![(SCPCarSplit *)self active])OMCScheduleMount(s);
+        if(prepared && ![(SCPCarSplit *)self active]){
+            s.confirmedEdgeSolo=YES;
+            OMCScheduleMount(s);
+        }
     }
 }
 - (void)closeGoingHome:(BOOL)background {
@@ -270,11 +337,12 @@ static void OMCScheduleMount(OMCSoloState *s){
     else if(s && !s.pendingEdgeClose){
         // Explicit Home/disconnect after SOLO must not leave a floating 3dot.
         OMCClearVisual(s);s.apps=nil;s.fractions=nil;s.nativeDots=nil;
+        s.confirmedEdgeSolo=NO;
     }
 }
 - (void)openSetupLayout:(int)layout apps:(NSArray *)apps {
     OMCSoloState *s=OMCState((SCPCarSplit *)self,NO);
-    if(s){OMCClearVisual(s);s.pendingEdgeClose=NO;}
+    if(s){OMCClearVisual(s);s.pendingEdgeClose=NO;s.confirmedEdgeSolo=NO;}
     %orig;
 }
 %end
