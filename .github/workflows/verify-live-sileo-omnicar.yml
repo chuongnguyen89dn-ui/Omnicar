@@ -1,0 +1,75 @@
+name: Verify live OmniCar Sileo APT and downloaded DEB (NO BUILD)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-live-sileo-omnicar.yml"
+permissions:
+  contents: read
+jobs:
+  public-byte-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Verify exact user-facing Sileo index, package and downloaded bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          SITE='https://chuongnguyen89dn-ui.github.io/carplaydsp'
+          PKG='com.anlai.omnicar'
+          VER='1.0.3-omnicar1'
+          FILE='com.anlai.omnicar_1.0.3-omnicar1_iphoneos-arm64.deb'
+          SHA='8a84b3d6a4d44ecdf2f7185ef6d79139eba85d4dd0b5769044daf8f61b7a8757'
+          PACKAGES="$RUNNER_TEMP/OmniCarPackages"
+          for attempt in $(seq 1 48); do
+            curl -fsSL --retry 2 --max-time 20 "$SITE/Packages" -o "$PACKAGES" || true
+            if grep -Fqx "SHA256: $SHA" "$PACKAGES" 2>/dev/null &&
+               grep -Fqx "Package: $PKG" "$PACKAGES" 2>/dev/null &&
+               grep -Fqx "Version: $VER" "$PACKAGES" 2>/dev/null; then
+              break
+            fi
+            echo "Sileo Pages not updated: wait $attempt/48"
+            sleep 15
+          done
+          export OMNI_PACKAGES="$PACKAGES" OMNI_PACKAGE="$PKG" OMNI_VERSION="$VER" OMNI_FILE="$FILE" OMNI_SHA="$SHA"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          stanzas=[]
+          for b in Path(os.environ['OMNI_PACKAGES']).read_text().split('\n\n'):
+              d={}
+              for line in b.splitlines():
+                  if ': ' in line and not line.startswith(' '):
+                      k,v=line.split(': ',1)
+                      d[k]=v
+              if d.get('Package'): stanzas.append(d)
+          x=[x for x in stanzas if x['Package']==os.environ['OMNI_PACKAGE']]
+          assert len(x)==1,x
+          pkg=x[0]
+          for a,b in [('Version',os.environ['OMNI_VERSION']),
+                      ('Architecture','iphoneos-arm64'),
+                      ('Filename','debs/'+os.environ['OMNI_FILE']),
+                      ('SHA256',os.environ['OMNI_SHA'])]:
+              assert pkg[a]==b,(a,pkg.get(a),b)
+          assert len([x for x in stanzas if x['Package']=='com.duonavi.app'])==1
+          assert len([x for x in stanzas if x['Package']=='com.duoface.independent'])==1
+          print('OMNICAR_SINGLE_LIVE_SILEO_APT_ENTRY_AND_DUOFACE_PRESERVATION_PASS')
+          PY
+          curl -fsSL --retry 4 "$SITE/Release" -o "$RUNNER_TEMP/OmniRelease"
+          grep -Fq 'SHA256:' "$RUNNER_TEMP/OmniRelease"
+          grep -Fq 'SHA512:' "$RUNNER_TEMP/OmniRelease"
+          curl -fsSL --retry 4 "$SITE/Packages.gz" -o "$RUNNER_TEMP/OmniPackages.gz"
+          gzip -dc "$RUNNER_TEMP/OmniPackages.gz" | cmp - "$PACKAGES"
+          curl -fsSL --retry 4 "$SITE/debs/$FILE" -o "$RUNNER_TEMP/$FILE"
+          printf '%s  %s\n' "$SHA" "$RUNNER_TEMP/$FILE" | sha256sum -c -
+          test "$(dpkg-deb -f "$RUNNER_TEMP/$FILE" Package)" = "$PKG"
+          test "$(dpkg-deb -f "$RUNNER_TEMP/$FILE" Version)" = "$VER"
+          test "$(dpkg-deb -f "$RUNNER_TEMP/$FILE" Architecture)" = 'iphoneos-arm64'
+          dpkg-deb -c "$RUNNER_TEMP/$FILE" > "$RUNNER_TEMP/OmniContents"
+          grep -Fq 'OmniCarSplitScreen.dylib' "$RUNNER_TEMP/OmniContents"
+          for dylib in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
+            grep -Fq "$dylib.dylib" "$RUNNER_TEMP/OmniContents"
+            grep -Fq "$dylib.plist" "$RUNNER_TEMP/OmniContents"
+          done
+          echo 'OMNICAR_LIVE_PUBLIC_SILEO_EXACT_DEB_SHA256_AND_PAYLOAD_PASS__DEVICE_UNTESTED'
