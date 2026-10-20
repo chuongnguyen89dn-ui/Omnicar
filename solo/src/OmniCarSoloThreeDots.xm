@@ -333,7 +333,7 @@ static BOOL OMCSoloCorrectWindow(UIWindow *window) {
            window.bounds.size.height>140 && window.windowScene!=nil;
 }
 static UIView *OMCNativeSoloOwner(OMCSoloState *s,SCPCarSplit *split,
-                                  NSString *solo,id returned,NSString **route){
+                                  id returned,NSString **route){
     if([returned isKindOfClass:UIViewController.class]) {
         UIView *v=[(UIViewController *)returned viewIfLoaded];
         if(OMCSoloCorrectWindow(v.window)){
@@ -391,7 +391,7 @@ static void OMCSoloMount(OMCSoloState *s,int attempt){
        [s.apps containsObject:solo];
     BOOL hasSolo=nativeHosted || returned!=nil || s.confirmedEdgeSolo;
     NSString *route=@"none";
-    UIView *parent=hasSolo?OMCNativeSoloOwner(s,split,solo,returned,&route):nil;
+    UIView *parent=hasSolo?OMCNativeSoloOwner(s,split,returned,&route):nil;
     if(![parent isKindOfClass:UIView.class] || !parent.window) {
         if(attempt<50) {
             __weak OMCSoloState *weak=s;
