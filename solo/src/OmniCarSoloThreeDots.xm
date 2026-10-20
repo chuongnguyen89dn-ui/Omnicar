@@ -27,6 +27,9 @@
 - (id)soloCover;
 - (id)launcherHost;
 - (void)openSetupLayout:(int)layout apps:(NSArray *)apps;
+- (void)endHostedSolo;
+- (void)homeButtonTapped;
+- (UIView *)container;
 @end
 @interface SCPCarPane : NSObject
 - (NSString *)bundleID;
@@ -37,6 +40,7 @@ static const NSTimeInterval OMCSoloDelay=4.0;
 @class OMCSoloState;
 static void OMCSoloWake(OMCSoloState *s);
 static void OMCSoloMount(OMCSoloState *s,int attempt);
+static CGRect OMCVisibleSoloAppRect(OMCSoloState *s,UIView *parent);
 @interface OMCSoloWakeGesture : UIGestureRecognizer
 @property(nonatomic,weak) OMCSoloState *owner;
 @end
@@ -297,7 +301,8 @@ static void OMCRestoreSplit(OMCSoloState *s){
     }
     UIView *parent=s.ownerView;
     if(!parent || !parent.window)return;
-    CGRect area=[s.split appAreaInParent:parent],dot=s.dots.frame;
+    CGRect area=[parent convertRect:OMCVisibleSoloAppRect(s,parent.superview)
+                              fromView:parent.superview],dot=s.dots.frame;
     CGFloat width=MIN(216,CGRectGetWidth(area)-16);
     if(width<140)return;
     CGFloat x=MIN(MAX(CGRectGetMidX(dot)-width/2,CGRectGetMinX(area)+8),
@@ -402,6 +407,7 @@ static void OMCSoloMount(OMCSoloState *s,int attempt){
         return;
     }
     if(s.dots && s.hitPassOverlay.superview==parent &&
+       s.hitPassOverlay.window &&
        !CGRectIsEmpty(s.dots.frame))return;
     OMCClearVisual(s);
     CGRect rect=OMCVisibleSoloAppRect(s,parent);
@@ -450,8 +456,22 @@ static void OMCSoloMount(OMCSoloState *s,int attempt){
 
 static void OMCScheduleMount(OMCSoloState *s){
     __weak OMCSoloState *weak=s;
+    NSInteger sequence=s.mountSequence;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW,200*NSEC_PER_MSEC),
-      dispatch_get_main_queue(),^{if(weak)OMCSoloMount(weak,0);});
+      dispatch_get_main_queue(),^{
+        if(weak && weak.mountSequence==sequence)
+            OMCSoloMount(weak,0);
+      });
+    // Some native host scene transitions finish AFTER closeSlot returns.
+    // Re-evaluate parent ownership once after the native scene settles.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,1200*NSEC_PER_MSEC),
+      dispatch_get_main_queue(),^{
+        OMCSoloState *state=weak;
+        if(!state || state.mountSequence!=sequence || state.busy ||
+           [state.split active] || state.apps.count!=2)return;
+        if(!state.hitPassOverlay.window)
+            OMCSoloMount(state,0);
+      });
 }
 %group OMCSoloNative
 %hook SCPCarSplit
@@ -471,17 +491,41 @@ static void OMCScheduleMount(OMCSoloState *s){
 - (void)closeGoingHome:(BOOL)background {
     %orig;
     OMCSoloState *s=OMCState((SCPCarSplit *)self,NO);
-    if(s && s.pendingEdgeClose && s.apps.count==2 && !s.busy)
+    if(s && s.apps.count==2 && !s.busy &&
+       (s.pendingEdgeClose || s.confirmedEdgeSolo)){
+        // Destructive edge SOLO may call closeGoingHome while transitioning.
+        // Do not clear its UI state before hostSolo attaches a native scene.
+        s.confirmedEdgeSolo=YES;
         OMCScheduleMount(s);
-    else if(s && !s.pendingEdgeClose){
-        // Explicit Home/disconnect after SOLO must not leave a floating 3dot.
+    }else if(s && !s.pendingEdgeClose){
         OMCClearVisual(s);s.apps=nil;s.fractions=nil;s.nativeDots=nil;
-        s.confirmedEdgeSolo=NO;
+        s.confirmedEdgeSolo=NO;s.mountSequence++;
     }
 }
 - (void)openSetupLayout:(int)layout apps:(NSArray *)apps {
     OMCSoloState *s=OMCState((SCPCarSplit *)self,NO);
-    if(s){OMCClearVisual(s);s.pendingEdgeClose=NO;s.confirmedEdgeSolo=NO;}
+    if(s){
+        OMCClearVisual(s);
+        s.pendingEdgeClose=NO;s.confirmedEdgeSolo=NO;s.mountSequence++;
+    }
+    %orig;
+}
+- (void)homeButtonTapped {
+    OMCSoloState *s=OMCState((SCPCarSplit *)self,NO);
+    if(s){
+        OMCClearVisual(s);s.apps=nil;s.fractions=nil;s.nativeDots=nil;
+        s.pendingEdgeClose=NO;s.confirmedEdgeSolo=NO;s.mountSequence++;
+        NSLog(@"[OmniCarSoloDots] event=clear-on-home");
+    }
+    %orig;
+}
+- (void)endHostedSolo {
+    OMCSoloState *s=OMCState((SCPCarSplit *)self,NO);
+    if(s){
+        OMCClearVisual(s);s.apps=nil;s.fractions=nil;s.nativeDots=nil;
+        s.pendingEdgeClose=NO;s.confirmedEdgeSolo=NO;s.mountSequence++;
+        NSLog(@"[OmniCarSoloDots] event=clear-on-native-solo-end");
+    }
     %orig;
 }
 %end
