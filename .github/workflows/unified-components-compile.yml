@@ -1,0 +1,56 @@
+name: OmniCar Unified Components ARM64 Compile Only (NO DEB)
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/unified-components-compile.yml"
+      - "idle/**"
+      - "titanium/src/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile-all:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard current approved component sources
+        run: |
+          set -euo pipefail
+          python3 scripts/test_two_action_menu_source.py
+          python3 scripts/test_idle_controls_source.py
+          python3 scripts/test_solo_three_dots_source.py
+          python3 scripts/test_titanium_native_skin.py
+          plutil -lint OmniCarDoubleTapFullscreen.plist
+          plutil -lint idle/OmniCarIdleControls.plist
+          plutil -lint solo/OmniCarSoloThreeDots.plist
+          plutil -lint titanium/OmniCarGraphiteTitanium.plist
+          python3 - <<'PY'
+          from pathlib import Path
+          for p in ['.github/workflows/build-candidate.yml','.github/workflows/build-graphite-titanium.yml']:
+              s=Path(p).read_text()
+              assert 'workflow_dispatch:' in s and '  push:' not in s, p
+          PY
+      - name: Install native toolchain
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+      - name: Compile all FOUR separately linked tweak dylibs, never package
+        run: |
+          set -euo pipefail
+          make clean all
+          make -C idle clean all
+          make -C solo clean all
+          make -C titanium clean all
+          for lib in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
+              p="$(find . -path '*/.theos/*' -name "$lib.dylib" -type f | head -n1)"
+              test -s "$p"
+              lipo "$p" -verify_arch arm64
+              echo "ARM64_COMPONENT_OK=$lib"
+          done
+          echo "UNIFIED_FOUR_COMPONENTS_COMPILE_PASS__NO_DEB__NO_DEVICE_TEST"
