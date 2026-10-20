@@ -18,6 +18,7 @@ static char kOMCSavedOpacityKey;
 - (UIView *)container;
 - (id)dividers;
 - (id)allPanes;
+- (id)hostedPanes;
 - (UIView *)tabParent;
 - (id)paneAtSlot:(int)slot;
 - (UIView *)ratioMenu;
@@ -122,6 +123,17 @@ static void OMCIdleApply(SCPCarSplit *split) {
             [seen addObject:pane];
             OMCIdlePaintPaneHandles(pane,visible);
         }
+    }
+    // Some app scenes expose their three-dot as hostHandle on an
+    // OmniCar-hosted pane outside the visual slots collection.
+    id hosted=[split hostedPanes];
+    NSArray *hostItems=[hosted isKindOfClass:NSArray.class]?(NSArray *)hosted:
+      ([hosted isKindOfClass:NSDictionary.class]?[(NSDictionary *)hosted allValues]:nil);
+    for(id pane in hostItems) {
+        if(![pane respondsToSelector:@selector(hostHandle)] ||
+           [seen containsObject:pane])continue;
+        [seen addObject:pane];
+        OMCIdlePaintPaneHandles(pane,visible);
     }
     for(int slot=0;slot<3;slot++) {
         id pane=[split paneAtSlot:slot];
