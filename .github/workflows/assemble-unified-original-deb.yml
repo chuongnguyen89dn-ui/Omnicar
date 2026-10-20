@@ -1,6 +1,10 @@
 name: OmniCar 1.0.3 Unified Native Candidate DEB (NO SILEO)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/assemble-unified-original-deb.yml"
   workflow_dispatch:
 
 permissions:
@@ -75,7 +79,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p unified-artifacts
-          OUTPUT="unified-artifacts/com.anlai.omnicar_1.0.3-omnicar1_iphoneos-arm64.deb"
+          OUTPUT="unified-artifacts/com.anlai.omnicar_1.0.3-omnicar2_iphoneos-arm64.deb"
           python3 scripts/assemble_unified_omnicar.py \
             --original com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
             --build-root . \
@@ -84,19 +88,19 @@ jobs:
           dpkg-deb -f "$OUTPUT" | tee unified-artifacts/CONTROL.txt
           dpkg-deb -c "$OUTPUT" | tee unified-artifacts/FILES.txt
           test "$(dpkg-deb -f "$OUTPUT" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$OUTPUT" Version)" = "1.0.3-omnicar1"
+          test "$(dpkg-deb -f "$OUTPUT" Version)" = "1.0.3-omnicar2"
           test "$(dpkg-deb -f "$OUTPUT" Architecture)" = "iphoneos-arm64"
           for module in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
             grep -q "$module.dylib" unified-artifacts/FILES.txt
             grep -q "$module.plist" unified-artifacts/FILES.txt
           done
           (cd unified-artifacts && shasum -a 256 *.deb | tee SHA256SUMS.txt)
-          printf '%s\n' 'CANDIDATE_COMPILED_AND_PACKAGED__NO_DEVICE_TEST__NO_SILEO' > unified-artifacts/STATUS.txt
+          printf '%s\n' 'QA2_REPAIRED_CANDIDATE_COMPILED_AND_PACKAGED__NO_DEVICE_TEST__SILEO_PENDING' > unified-artifacts/STATUS.txt
           echo "UNIFIED_ORIGINAL_DEB_PACKAGE_VERIFIED"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: OmniCar-Original-1.0.3-Unified-ZoomSwap-Idle-SOLO-Titanium-DEB
+          name: OmniCar-Original-1.0.3-QA2-Repair-ZoomSwap-Idle-SOLO-Titanium-DEB
           path: unified-artifacts/
           retention-days: 90
 
@@ -105,7 +109,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar1"
+          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar2"
           test ! -e "$DEST/STATUS.txt" || { echo 'Refuse candidate overwrite' >&2; exit 1; }
           mkdir -p "$DEST"
           cp unified-artifacts/* "$DEST/"
