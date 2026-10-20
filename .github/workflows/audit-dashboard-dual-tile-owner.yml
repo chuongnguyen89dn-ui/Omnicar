@@ -16,8 +16,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install DEB tools (no tweaks installed)
         run: |
-          brew install dpkg || true
-          which llvm-objdump
+          brew install dpkg llvm
+          echo "/opt/homebrew/opt/llvm/bin" >> "$GITHUB_PATH"
+          test -x /opt/homebrew/opt/llvm/bin/llvm-objdump
           which dpkg-deb
       - name: Audit native original owner and layout selectors
         run: |
