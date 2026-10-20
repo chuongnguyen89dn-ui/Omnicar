@@ -1,0 +1,92 @@
+name: OmniCar QA10 Emergency Recovery from user-tested QA7 bytes (NO SILEO)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/recover-qa7-as-qa10-sileo-candidate.yml"
+      - "scripts/repack_verified_qa7_as_recovery.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify-repack-archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original QA7 artifact and monotonic version
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE="dist/candidates/omnicar-unified-1.0.3-omnicar7/com.anlai.omnicar_1.0.3-omnicar7_iphoneos-arm64.deb"
+          test -s "$SOURCE"
+          echo 'fad7e4923f576d248c16ac2b6153b14680ac60116d3316642043edacb8cbdfee  dist/candidates/omnicar-unified-1.0.3-omnicar7/com.anlai.omnicar_1.0.3-omnicar7_iphoneos-arm64.deb' | sha256sum --check
+          dpkg --compare-versions '1.0.3-omnicar10-recovery' gt '1.0.3-omnicar9-gestureqa'
+          test "$(dpkg-deb -f "$SOURCE" Package)" = 'com.anlai.omnicar'
+          test "$(dpkg-deb -f "$SOURCE" Version)" = '1.0.3-omnicar7'
+          test "$(dpkg-deb -f "$SOURCE" Architecture)" = 'iphoneos-arm64'
+          python3 -m py_compile scripts/repack_verified_qa7_as_recovery.py
+          echo QA7_ORIGINAL_ARTIFACT_AND_QA10_HIGHER_DPKG_VERSION_PASS
+      - name: Repack QA7 WITHOUT modifying binary payload or maintainer scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p recovery-artifacts
+          SOURCE="dist/candidates/omnicar-unified-1.0.3-omnicar7/com.anlai.omnicar_1.0.3-omnicar7_iphoneos-arm64.deb"
+          OUT="recovery-artifacts/com.anlai.omnicar_1.0.3-omnicar10-recovery_iphoneos-arm64.deb"
+          python3 scripts/repack_verified_qa7_as_recovery.py \
+            --original "$SOURCE" \
+            --output "$OUT" \
+            --manifest recovery-artifacts/BUILD-MANIFEST.json
+          test -s "$OUT"
+          dpkg-deb -c "$OUT" > recovery-artifacts/FILES.txt
+          dpkg-deb -I "$OUT" > recovery-artifacts/CONTROL-INFO.txt
+          (cd recovery-artifacts && sha256sum *.deb > SHA256SUMS.txt)
+          python3 - <<'PY'
+          import json,hashlib,pathlib
+          p=pathlib.Path("recovery-artifacts")
+          m=json.loads((p/"BUILD-MANIFEST.json").read_text())
+          data=(p/m["output_filename"]).read_bytes()
+          assert hashlib.sha256(data).hexdigest()==m["output_sha256"]
+          assert m["payload_file_count"]==184
+          assert m["changed_control_field_only"]=="Version"
+          assert m["recovery_tested_on_carplay"] is False
+          ls=(p/"FILES.txt").read_text()
+          for module in ("OmniCarDoubleTapFullscreen","OmniCarIdleControls","OmniCarSoloThreeDots","OmniCarGraphiteTitanium"):
+              assert ls.count("/"+module+".dylib")==1,module
+              assert ls.count("/"+module+".plist")==1,module
+          assert "OmniCarDuoActivityIdle" not in ls
+          print("QA10_RECOVERY_QA7_BINARY_IDENTICAL_AND_SINGLE_IDLE_SOLO_PASS")
+          PY
+          printf '%s\n' 'QA10_RECOVERY_QA7_BYTES_IDENTICAL_EXCEPT_DEBIAN_VERSION__NOT_DEVICE_TESTED__NOT_SILEO' > recovery-artifacts/STATUS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-QA10-QA7-Byte-Identical-Emergency-Recovery-DEB
+          path: recovery-artifacts/
+          retention-days: 90
+      - name: Commit only verified recovery artifact to Omnicar
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar10-recovery"
+          test ! -e "$DEST/BUILD-MANIFEST.json" || { echo 'Refusing overwrite of recovery artifact' >&2; exit 1; }
+          mkdir -p "$DEST"
+          cp recovery-artifacts/* "$DEST/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DEST"
+          git commit -m 'artifact: SHA-verified QA7 byte-identical QA10 recovery [skip ci]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo QA10_RECOVERY_ARTIFACT_ARCHIVED_ON_GITHUB_PASS
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
