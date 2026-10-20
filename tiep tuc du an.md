@@ -481,3 +481,9 @@ Repo tham chiếu: https://github.com/chuongnguyen89dn-ui/Duoface
 
 - Source-only follow-up on solo/src/OmniCarSoloThreeDots.xm: added state.pendingEdgeClose to distinguish an original 2-pane closeSlot-initiated solo teardown from later explicit Home/disconnect. closeGoingHome hook schedules solo control ONLY while pendingEdgeClose; later unrelated Home clears cloned 3dots, snapshot and timer instead of leaving button on CarPlay. closeSlot clears pendingEdgeClose after original; openSetupLayout also clears pending. If native restore does not reactivate split after bounded retries, it logs failure and only tries to remount in verified native tabParent SOLO owner, NOT a system overlay.
 - Strengthened scripts/test_solo_three_dots_source.py assertions. Scope remains original closeSlot unmodified, original native 3dot snapshot reused, SOLO restore via original openSetupLayout:apps:, 4s idle. No packaging/CI/Sileo. These code paths are NOT proven device working; Theos compile and two solo branches must be checked when approved.
+
+
+### 2026-10-20 — SOLO THREE-DOTS COMPILE-ONLY GATE ADDED, NO DEB ALLOWED
+
+- To validate the already saved staged solo/src/OmniCarSoloThreeDots.xm without violating 'chưa đóng deb', added solo/Makefile and solo/OmniCarSoloThreeDots.plist with original CarPlayApp/SpringBoard substrate injection scope, plus .github/workflows/solo-three-dots-compile.yml. This GitHub Actions ONLY runs Python source static gate and 'make -C solo clean all' (Theos dylib compile/link); it NEVER invokes make package, writes an .deb, ships Sileo or touches base original package.
+- Workflow push paths limited to solo/** and its test/workflow. Source still staged and not included in unified original OmniCar package. Run result needs verification before claiming compile PASS. The original native edge-close behavior is unchanged.

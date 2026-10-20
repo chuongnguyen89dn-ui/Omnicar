@@ -1,0 +1,39 @@
+name: OmniCar SOLO Three Dots Compile Only (NO DEB)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "solo/**"
+      - "scripts/test_solo_three_dots_source.py"
+      - ".github/workflows/solo-three-dots-compile.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  objc-logos-native-compile:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source-only safety conditions
+        run: |
+          set -euo pipefail
+          python3 scripts/test_solo_three_dots_source.py
+          plutil -lint solo/OmniCarSoloThreeDots.plist
+          ! grep -q 'make -C solo.*package' .github/workflows/solo-three-dots-compile.yml
+      - name: Prepare Theos toolchain
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+      - name: Compile ONLY native ARM64 dylib (no DEB packaging)
+        run: |
+          set -euo pipefail
+          make -C solo clean all
+          LIB="$(find solo/.theos -type f -name 'OmniCarSoloThreeDots.dylib' | head -n1)"
+          test -s "$LIB"
+          lipo "$LIB" -verify_arch arm64
+          echo "COMPILE_ONLY_PASS__NOT_PACKAGED__NOT_DEVICE_TESTED"
