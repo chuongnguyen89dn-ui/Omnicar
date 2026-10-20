@@ -26,7 +26,7 @@ from pathlib import Path
 
 EXPECTED_ORIGINAL_SHA256 = "d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd"
 PACKAGE = "com.anlai.omnicar"
-VERSION = "1.0.3-omnicar2"
+VERSION = "1.0.3-omnicar3"
 ROOTLESS_LIB = Path("var/jb/Library/MobileSubstrate/DynamicLibraries")
 MODULES = (
     ("OmniCarDoubleTapFullscreen", ".", "OmniCarDoubleTapFullscreen.plist"),
