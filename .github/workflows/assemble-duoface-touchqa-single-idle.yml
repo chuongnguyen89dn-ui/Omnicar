@@ -175,6 +175,10 @@ jobs:
           test ! -e "$DEST/STATUS.txt" || { echo 'Refuse candidate overwrite' >&2; exit 1; }
           mkdir -p "$DEST"
           cp unified-artifacts/* "$DEST/"
+          # Revert only temporary source/Version substitutions in this runner;
+          # the QA8 DEB remains archived and repo QA7 rollback remains identical.
+          git restore -- idle/src/OmniCarIdleControls.xm scripts/assemble_unified_omnicar.py
+          test "$(git hash-object idle/src/OmniCarIdleControls.xm)" = "20f8bd5aa99d72453ec5f0c0839c8e0410ef3827"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$DEST"
