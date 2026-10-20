@@ -49,7 +49,12 @@ def inspect(src):
                   re.search(r"ratio|menu|handle|pane|solo|gesture|divider",sel,re.I)],
                  key=lambda item:(item["class"],item["selector"]))
   return {"original_sha256":SHA,"status":"ORIGINAL_STATIC_READ_ONLY_NO_DEVICE_CLAIM",
-          "methods":report,"related_selectors":related}
+          "methods":report,"related_selectors":related,
+          "divider_view_methods":sorted([
+              {"class":cl,"selector":sel,"imp":hex(pc)}
+              for (cl,sel),pc in methods.items()
+              if cl in ("SCPCarDividerView","SCPCarPane","SCPCarSplitView")
+          ],key=lambda x:(x["class"],x["selector"]))}
 if __name__=="__main__":
  if len(sys.argv)!=2:raise SystemExit("usage: python3 scripts/audit_issue_20261020.py exact_original_1.0.3.deb")
  print(json.dumps(inspect(sys.argv[1]),ensure_ascii=False,indent=2))
