@@ -1,0 +1,127 @@
+name: OmniCar 1.0.3 Unified Native Candidate DEB (NO SILEO)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/assemble-unified-original-deb.yml"
+      - "com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify-build-archive:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact uploaded original SHA256 BEFORE any compilation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORIGINAL="com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"
+          test -s "$ORIGINAL"
+          echo "ORIGINAL_SIZE_BYTES=$(stat -f%z "$ORIGINAL")"
+          shasum -a 256 "$ORIGINAL"
+          echo "d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  $ORIGINAL" | shasum -a 256 --check
+          echo "ORIGINAL_SHA256_VERIFIED"
+
+      - name: Validate source and original-lock assembler fail-closed tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/test_two_action_menu_source.py
+          python3 scripts/test_idle_controls_source.py
+          python3 scripts/test_solo_three_dots_source.py
+          python3 scripts/test_titanium_native_skin.py
+          python3 -m py_compile scripts/assemble_unified_omnicar.py scripts/test_unified_assembler.py
+          python3 scripts/test_unified_assembler.py
+          plutil -lint OmniCarDoubleTapFullscreen.plist
+          plutil -lint idle/OmniCarIdleControls.plist
+          plutil -lint solo/OmniCarSoloThreeDots.plist
+          plutil -lint titanium/OmniCarGraphiteTitanium.plist
+
+      - name: Prepare Theos and DEB inspection tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          command -v dpkg-deb
+          ORIGINAL="com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"
+          dpkg-deb -f "$ORIGINAL" | tee "$RUNNER_TEMP/original-control.txt"
+          test "$(dpkg-deb -f "$ORIGINAL" Package)" = "com.anlai.omnicar"
+          test "$(dpkg-deb -f "$ORIGINAL" Version)" = "1.0.3"
+          test "$(dpkg-deb -f "$ORIGINAL" Architecture)" = "iphoneos-arm64"
+          echo "ORIGINAL_DEB_METADATA_VERIFIED"
+
+      - name: Compile and sign all four approved arm64 modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          make clean all
+          make -C idle clean all
+          make -C solo clean all
+          make -C titanium clean all
+          for lib in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
+            LIB="$(find . -path '*/.theos/*' -name "$lib.dylib" -type f | head -n1)"
+            test -s "$LIB"
+            lipo "$LIB" -verify_arch arm64
+            echo "ARM64_COMPONENT_OK=$lib"
+          done
+
+      - name: Assemble from EXACT untouched original files, inspect and hash DEB
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p unified-artifacts
+          OUTPUT="unified-artifacts/com.anlai.omnicar_1.0.3-omnicar1_iphoneos-arm64.deb"
+          python3 scripts/assemble_unified_omnicar.py \
+            --original com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            --build-root . \
+            --output "$OUTPUT" | tee unified-artifacts/BUILD-MANIFEST.json
+          test -s "$OUTPUT"
+          dpkg-deb -f "$OUTPUT" | tee unified-artifacts/CONTROL.txt
+          dpkg-deb -c "$OUTPUT" | tee unified-artifacts/FILES.txt
+          test "$(dpkg-deb -f "$OUTPUT" Package)" = "com.anlai.omnicar"
+          test "$(dpkg-deb -f "$OUTPUT" Version)" = "1.0.3-omnicar1"
+          test "$(dpkg-deb -f "$OUTPUT" Architecture)" = "iphoneos-arm64"
+          for module in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
+            grep -q "$module.dylib" unified-artifacts/FILES.txt
+            grep -q "$module.plist" unified-artifacts/FILES.txt
+          done
+          (cd unified-artifacts && shasum -a 256 *.deb | tee SHA256SUMS.txt)
+          printf '%s\n' 'CANDIDATE_COMPILED_AND_PACKAGED__NO_DEVICE_TEST__NO_SILEO' > unified-artifacts/STATUS.txt
+          echo "UNIFIED_ORIGINAL_DEB_PACKAGE_VERIFIED"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-Original-1.0.3-Unified-ZoomSwap-Idle-SOLO-Titanium-DEB
+          path: unified-artifacts/
+          retention-days: 90
+
+      - name: Archive reproducible QA candidate to project repo ONLY (not Sileo)
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar1"
+          test ! -e "$DEST/STATUS.txt" || { echo 'Refuse candidate overwrite' >&2; exit 1; }
+          mkdir -p "$DEST"
+          cp unified-artifacts/* "$DEST/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -m "artifact: archive SHA-verified original OmniCar unified DEB candidate [skip ci]"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
