@@ -1,0 +1,90 @@
+name: Readonly DuoFace idle controls vs original OmniCar hosted-panes (NO DEB)
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/audit-duoface-idle-and-omnicar-handles.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  native-methods:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install read-only extraction and disassembly toolchain
+        run: |
+          set -euo pipefail
+          brew install dpkg llvm
+          echo "/opt/homebrew/opt/llvm/bin" >> "$GITHUB_PATH"
+          python3 -m pip install --break-system-packages 'capstone==5.0.7'
+      - name: Extract immutable v12 DuoFace dashboard for idle control owner
+        run: |
+          set -euo pipefail
+          mkdir -p audit/duoface-idle-controls
+          ROOT='https://raw.githubusercontent.com/chuongnguyen89dn-ui/Duoface/8ac3d5080b067a7462a106d4410fe5547f9bbc8c'
+          curl -fLsS --retry 4 "$ROOT/dist/visual-1.0.3-12/com.duoface.app_1.0.3-12_visualtest_iphoneos-arm64.deb" -o "$RUNNER_TEMP/duoface-v12.deb"
+          mkdir -p "$RUNNER_TEMP/duoface-native"
+          dpkg-deb -x "$RUNNER_TEMP/duoface-v12.deb" "$RUNNER_TEMP/duoface-native"
+          DASH="$(find "$RUNNER_TEMP/duoface-native" -name 'DuoFaceDashboard.dylib' -type f | head -n 1)"
+          test -s "$DASH"
+          echo 'bc1df854ec7a2ddfeec4cb81b080ead34b54df80143d4a8f6254bb8b618003ce' " $DASH" | shasum -a 256 --check
+          curl -fLsS --retry 4 "$ROOT/scripts/v12_host_recovery.py" -o "$RUNNER_TEMP/v12_host_recovery.py"
+          # All ranges are in immutable ARM64 ORIGINAL code and are READ ONLY.
+          # Split app activity+timer, window pill and split-pane pill state/controls.
+          python3 "$RUNNER_TEMP/v12_host_recovery.py" "$DASH" --picker \
+              0x10c378:0x10c464 0x10c464:0x10d400 0x11f558:0x11f668 \
+              0xaca6c:0xacb38 0x1025e4:0x103060 0x1044f8:0x105088 \
+              > audit/duoface-idle-controls/DuoFace_v12_native_idle_and_control_owner.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path('audit/duoface-idle-controls/DuoFace_v12_native_idle_and_control_owner.txt').read_text()
+          for s in ('CBBridgedSplitApp noteUserActivity','CBBridgedSplitApp startBlinkingSession',
+                    'CBBridgedSplitApp stopBlinkingSession','IVAR CBBridgedSplitApp._blinkingIdleTimer',
+                    'CBBridgedSplitApp slotPills','CBWindow multitaskingPill',
+                    'CBBridgedUIAppView touchesBegan'):
+              assert s in src,s
+          for s in ('DISASSEMBLY 0x10c378-0x10c464',
+                    'DISASSEMBLY 0x10c464-0x10d400'):
+              assert s in src,s
+          print('DUOFACE_V12_IDLE_AND_PILL_ORIGINAL_METHODS_HASH_PINNED_PASS')
+          PY
+      - name: Audit original OmniCar controls (no change to runtime)
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('audit/OmniCar_live_regressions_native_abi_20261020.json').read_text())
+          x={t['class']+'.'+t['selector']:t['pc'] for t in d['related_selectors']}
+          for name in ['SCPCarPane.handle','SCPCarPane.hostHandle','SCPCarSplit.hostedPanes',
+                       'SCPCarSplit.allPanes','SCPCarSplit.setBarVisible:forPane:']:
+              assert name in x,name
+              print('ORIGINAL_OMNICAR_OWNER',name,x[name])
+          src=Path('idle/src/OmniCarIdleControls.xm').read_text()
+          assert 'OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle))' in src
+          assert 'OMCIdleGet(pane,@selector(hostHandle))' not in src
+          assert 'OMCIdleGet(split,@selector(homeButton))' not in src
+          print('QA5_OMNICAR_IDLE_MISSING_HOST_HANDLE_AND_HOME_BUTTON_CONFIRMED')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DuoFace-v12-idle-and-OmniCar-control-ownership-readonly
+          path: audit/duoface-idle-controls/
+          retention-days: 90
+      - name: Persist forensic evidence only to Omnicar audit, not DuoFace
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add audit/duoface-idle-controls/DuoFace_v12_native_idle_and_control_owner.txt
+          git diff --cached --quiet && exit 0
+          git commit -m 'audit: preserve pinned DuoFace split pill and idle owners [skip ci]'
+          for n in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
