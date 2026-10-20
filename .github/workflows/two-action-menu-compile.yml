@@ -1,0 +1,45 @@
+name: OmniCar Two-Action Native Menu Compile Only (NO DEB)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/OmniCarDoubleTapFullscreen.xm"
+      - "src/OmniCarChrome.xm"
+      - "scripts/test_two_action_menu_source.py"
+      - ".github/workflows/two-action-menu-compile.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile-two-action-menu:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static source guards and verify old automatic DEB workflow disabled
+        run: |
+          set -euo pipefail
+          python3 scripts/test_two_action_menu_source.py
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path(".github/workflows/build-candidate.yml").read_text()
+          assert "workflow_dispatch:" in s
+          assert "  push:" not in s, "Auto-package must stay disabled"
+          PY
+          plutil -lint OmniCarDoubleTapFullscreen.plist
+      - name: Prepare Theos
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+      - name: Compile arm64 only, no packaging or Sileo
+        run: |
+          set -euo pipefail
+          make clean all
+          LIB="$(find .theos -type f -name 'OmniCarDoubleTapFullscreen.dylib' | head -n1)"
+          test -s "$LIB"
+          lipo "$LIB" -verify_arch arm64
+          echo "TWO_ACTION_MENU_COMPILE_PASS__NOT_PACKAGED__NOT_DEVICE_TESTED"
