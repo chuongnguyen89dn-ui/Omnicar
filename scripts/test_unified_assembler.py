@@ -14,13 +14,13 @@ original = ("Package: com.anlai.omnicar\n"
     "Depends: mobilesubstrate\nDescription: original payload preserved\n")
 adjusted=m.update_control(original)
 assert "Package: com.anlai.omnicar" in adjusted
-assert "Version: 1.0.3-omnicar5" in adjusted
+assert "Version: 1.0.3-omnicar6" in adjusted
 assert "Depends: mobilesubstrate" in adjusted
 assert "Description: original payload preserved" in adjusted
 assert "Conflicts: " in adjusted
 for obsolete in m.OBSOLETE_ADDONS:
     assert obsolete in adjusted,obsolete
-assert m.VERSION=="1.0.3-omnicar5"
+assert m.VERSION=="1.0.3-omnicar6"
 assert len(m.MODULES)==4
 assert {t[0] for t in m.MODULES}=={
 "OmniCarDoubleTapFullscreen","OmniCarIdleControls","OmniCarSoloThreeDots","OmniCarGraphiteTitanium"}
