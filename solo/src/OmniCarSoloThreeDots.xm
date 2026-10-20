@@ -1,7 +1,9 @@
 // OmniCar native edge-close remains UNCHANGED. SOLO three-dots source-only stage.
 // Native SCPCarPane.handle cannot be revived once closeGoingHome clears its VC.
-// Capture native handle artwork + paired bundle IDs BEFORE closeSlot, then add
-// a SOLO-owned re-entry using original openSetupLayout:apps: when available.
+// Capture native handle artwork, paired bundle IDs, retained CarPlay host
+// window and app-content rect BEFORE closeSlot destroys split-owned views.
+// Mount a pass-through menu on the VERIFIED native solo presentation owner,
+// falling back only to the EXACT CarPlay host window captured from OmniCar.
 // Do not hook UIWindow/UIKit globally. Do not touch CarPlay dock/Home or Zoom.
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
@@ -22,6 +24,8 @@
 - (CGRect)appAreaInParent:(UIView *)parent;
 - (NSString *)soloHostedBundle;
 - (id)soloReturnedVC;
+- (id)soloCover;
+- (id)launcherHost;
 - (void)openSetupLayout:(int)layout apps:(NSArray *)apps;
 @end
 @interface SCPCarPane : NSObject
@@ -58,6 +62,12 @@ static void OMCSoloMount(OMCSoloState *s,int attempt);
 @property(nonatomic,strong) NSTimer *timer;
 @property(nonatomic,strong) OMCSoloWakeGesture *gesture;
 @property(nonatomic,weak) UIView *ownerView;
+@property(nonatomic,weak) UIWindow *capturedCarPlayWindow;
+@property(nonatomic,weak) UIView *capturedContentRoot;
+@property(nonatomic) CGRect capturedAppRectInWindow;
+@property(nonatomic,strong) UIView *hitPassOverlay;
+@property(nonatomic) NSInteger mountedGeneration;
+@property(nonatomic) NSInteger mountSequence;
 @property(nonatomic) BOOL visible;
 @property(nonatomic) BOOL busy;
 @property(nonatomic) BOOL pendingEdgeClose;
@@ -77,7 +87,8 @@ static void OMCClearVisual(OMCSoloState *s){
     [s.timer invalidate];s.timer=nil;
     if(s.gesture && s.ownerView)[s.ownerView removeGestureRecognizer:s.gesture];
     [s.restore removeFromSuperview];[s.dots removeFromSuperview];
-    s.restore=nil;s.dots=nil;s.gesture=nil;s.ownerView=nil;
+    [s.hitPassOverlay removeFromSuperview];
+    s.restore=nil;s.dots=nil;s.gesture=nil;s.ownerView=nil;s.hitPassOverlay=nil;
 }
 static void OMCTimeout(OMCSoloState *s){
     [s.timer invalidate];s.timer=nil;
@@ -112,7 +123,10 @@ static UIImage *OMCNativeHandleBitmap(UIView *handle){
     return result;
 }
 static void OMCSnapshotBeforeClose(SCPCarSplit *split,int slot) {
-    if([split paneCount]!=2 || slot<0 || slot>1)return;
+    // Native AUTO slot 9 is special-cased in original closeSlot:background:
+    // ARM64 @0x1d9d8. NEVER reject a valid destructive edge-close solely
+    // because its input is not 0/1. Only the split being a pair matters.
+    if([split paneCount]!=2)return;
     // Native slots may include AUTO/noncontiguous indices. Reconstruct
     // the two actual panes in visual reading order; never interpret an
     // NSArray of slot identifiers as SCPCarPane objects.
@@ -146,8 +160,12 @@ static void OMCSnapshotBeforeClose(SCPCarSplit *split,int slot) {
     NSString *a=[left bundleID],*b=[right bundleID];
     if(![a isKindOfClass:NSString.class]||a.length==0||
        ![b isKindOfClass:NSString.class]||b.length==0)return;
-    SCPCarPane *survivor=slot==0?right:left;
+    SCPCarPane *survivor=slot==0?right:(slot==1?left:right);
     UIView *handle=[survivor handle],*root=[split tabParent];
+    if(![root isKindOfClass:UIView.class] || !root.window) {
+        root=[split respondsToSelector:@selector(launcherHost)]
+            ?[split launcherHost]:nil;
+    }
     UIImage *native=OMCNativeHandleBitmap(handle);
     CGSize handleSize=handle.bounds.size;
     if(!native) {
@@ -176,6 +194,20 @@ static void OMCSnapshotBeforeClose(SCPCarSplit *split,int slot) {
     if(!native)return;
     OMCSoloState *s=OMCState(split,YES);OMCClearVisual(s);
     s.apps=@[[a copy],[b copy]];
+    // Existing native order is authoritative, even with AUTO slot=9.
+    s.mountSequence++;s.mountedGeneration=0;
+    s.capturedContentRoot=[root isKindOfClass:UIView.class]?root:nil;
+    UIWindow *originalWindow=[root isKindOfClass:UIView.class]?root.window:nil;
+    s.capturedCarPlayWindow=originalWindow;
+    CGRect originalArea=CGRectZero;
+    if(originalWindow && [root isKindOfClass:UIView.class]) {
+        CGRect r=[split appAreaInParent:root];
+        if(!CGRectIsEmpty(r) && CGRectIsFinite(r.origin.x) &&
+           CGRectIsFinite(r.origin.y) && CGRectIsFinite(r.size.width) &&
+           CGRectIsFinite(r.size.height))
+            originalArea=[root convertRect:r toView:originalWindow];
+    }
+    s.capturedAppRectInWindow=originalArea;
     s.layout=[split layoutID];
     s.fractions=[[split fractions] copy];
     s.nativeDots=native;s.nativeSize=handleSize;
@@ -187,7 +219,9 @@ static void OMCSnapshotBeforeClose(SCPCarSplit *split,int slot) {
                                         (CGRectGetMidY(box)-CGRectGetMinY(area))/CGRectGetHeight(area));
     }else s.relativePosition=CGPointMake(.88,.12);
     s.busy=NO;s.pendingEdgeClose=YES;s.confirmedEdgeSolo=NO;
-    NSLog(@"[OmniCarSoloDots] saved exact native 3dots and %lu apps",(unsigned long)s.apps.count);
+    NSLog(@"[OmniCarSoloDots] event=captured slot=%d apps=%lu preWindow=%d appRect=%@",
+          slot,(unsigned long)s.apps.count,originalWindow!=nil,
+          NSStringFromCGRect(s.capturedAppRectInWindow));
 }
 static void OMCRestoreFractions(OMCSoloState *s,int attempt){
     SCPCarSplit *split=s.split;
