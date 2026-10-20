@@ -6,7 +6,9 @@ for x in ["%hook SCPCarSplit","closeSlot:(int)slot background:(BOOL)background",
 "OMCSnapshotBeforeClose","OMCSoloMount","OMCRestoreSplit",
 "nativeDots","renderInContext:","layoutID","fractions",
 "soloHostedBundle","soloReturnedVC","tabParent","appAreaInParent:",
-"OMCSoloDelay=4.0","UIGestureRecognizerStateFailed","cancelsTouchesInView=NO",
+"OMCSoloDelay=4.0","UIGestureRecognizerStateFailed",
+"panesInReadingOrder","allPanes","paneAtSlot:",
+"capture-fallback: original-handle-unavailable","confirmedEdgeSolo","cancelsTouchesInView=NO",
 "Khôi phục chia màn hình"]:
  assert x in s,x
 for x in ["%hook UIWindow","%hook UIView","%hook UIApplication",
