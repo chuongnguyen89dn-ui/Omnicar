@@ -160,19 +160,19 @@ static void OMCIdleNoteUserActivity(SCPCarSplit *split) {
     if(!split || ![split active])return;
     OMCIdleState *s=OMCIdleStateFor(split,YES);
     CFTimeInterval now=CACurrentMediaTime();
-    if(!s.visible || !s.lastActivity || now-s.lastActivity>=0.25) {
+    BOOL wasHidden=!s.visible;
+    if(wasHidden || !s.lastActivity || now-s.lastActivity>=0.25) {
         s.lastActivity=now;
         OMCIdleWake(split);
+        if(wasHidden)NSLog(@"[OmniCarDuoActivity] event=app-touch-controls-restored");
     }
 }
 static void OMCIdleHideWithNativeMenu(SCPCarSplit *split) {
-    OMCIdleState *s=OMCIdleStateFor(split,NO);
-    if(!s || ![split active])return;
-    [s.idleTimer invalidate];
-    s.idleTimer=nil;
-    s.visible=NO;
-    OMCIdleApply(split);
-    NSLog(@"[OmniCarIdle] event=auto-hide source=native-hideRatioMenu");
+    // DuoFace-like behavior: menu close is still user activity.
+    // Allow the original controls to stay reachable until normal idle timeout;
+    // never immediately turn a just-touched button invisible.
+    OMCIdleNoteUserActivity(split);
+    NSLog(@"[OmniCarDuoActivity] event=menu-closed-grace-time");
 }
 static void OMCIdleLinkDividers(SCPCarSplit *split){
     id dividers=[split dividers];
@@ -191,19 +191,28 @@ static void OMCIdleLinkDividers(SCPCarSplit *split){
 // UIWindow or Apple's dock. Like DuoFace CBBridgedUIAppView.touchesBegan,
 // this reports activity without stealing the original application touch.
 static void OMCIdleAttachPaneActivity(SCPCarSplit *split,OMCIdleState *s,UIView *root) {
+    // SCPCarPane's ORIGINAL verified getter is 'view', not just 'vc'.
+    // Many native/hosted panes have a content view without a UIViewController.
+    // Require an existing local UIKit view in the split's own window;
+    // never attach to remote/UIWindow content or global CarPlay dock.
     if(!root.window)return;
     if(!s.paneWakeGestures)
         s.paneWakeGestures=[NSMapTable weakToStrongObjectsMapTable];
-    NSHashTable *current=[NSHashTable weakObjectsHashTable];
+    NSHashTable<UIView *> *current=[NSHashTable weakObjectsHashTable];
     id panes=[split allPanes];
     if(![panes isKindOfClass:NSArray.class])return;
     for(id pane in (NSArray *)panes) {
-        id vc=OMCIdleGet(pane,@selector(vc));
-        if(![vc isKindOfClass:UIViewController.class] ||
-           ![(UIViewController *)vc isViewLoaded])continue;
-        UIView *content=[(UIViewController *)vc view];
-        if(!content || content==root || [content isKindOfClass:UIWindow.class] ||
-           content.window!=root.window)continue;
+        id native=OMCIdleGet(pane,@selector(view));
+        UIView *content=[native isKindOfClass:UIView.class]?(UIView *)native:nil;
+        if(!content || !content.window || content.window!=root.window ||
+           content==root || [content isKindOfClass:UIWindow.class]) {
+            id vc=OMCIdleGet(pane,@selector(vc));
+            content=[vc isKindOfClass:UIViewController.class] &&
+                    [(UIViewController *)vc isViewLoaded] ?
+                    [(UIViewController *)vc view] : nil;
+        }
+        if(!content || !content.window || content.window!=root.window ||
+           content==root || [content isKindOfClass:UIWindow.class])continue;
         [current addObject:content];
         if([s.paneWakeGestures objectForKey:content])continue;
         OMCIdleWakeGesture *observer=[[OMCIdleWakeGesture alloc]initWithTarget:nil action:NULL];
@@ -213,10 +222,15 @@ static void OMCIdleAttachPaneActivity(SCPCarSplit *split,OMCIdleState *s,UIView 
         observer.delaysTouchesEnded=NO;
         [content addGestureRecognizer:observer];
         [s.paneWakeGestures setObject:observer forKey:content];
+        NSLog(@"[OmniCarDuoActivity] event=pane-activity-owner-attached type=%@ bounds=%@",
+              NSStringFromClass([content class]),NSStringFromCGRect(content.bounds));
     }
-    for(UIView *view in s.paneWakeGestures.keyEnumerator) {
+    // Snapshot keys first: removing while enumerating NSMapTable is unsafe.
+    NSArray<UIView *> *prior=[[[s.paneWakeGestures keyEnumerator] allObjects] copy];
+    for(UIView *view in prior) {
         if(![current containsObject:view]) {
-            [view removeGestureRecognizer:[s.paneWakeGestures objectForKey:view]];
+            OMCIdleWakeGesture *gesture=[s.paneWakeGestures objectForKey:view];
+            if(gesture)[view removeGestureRecognizer:gesture];
             [s.paneWakeGestures removeObjectForKey:view];
         }
     }
@@ -287,8 +301,11 @@ static void OMCIdleStop(SCPCarSplit *split){
         [s.tabGestureOwner removeGestureRecognizer:s.tabWakeGesture];
     s.tabGestureOwner=nil;
     s.tabWakeGesture=nil;
-    for(UIView *view in s.paneWakeGestures.keyEnumerator)
-        [view removeGestureRecognizer:[s.paneWakeGestures objectForKey:view]];
+    NSArray<UIView *> *owners=[[[s.paneWakeGestures keyEnumerator] allObjects] copy];
+    for(UIView *view in owners) {
+        OMCIdleWakeGesture *gesture=[s.paneWakeGestures objectForKey:view];
+        if(gesture)[view removeGestureRecognizer:gesture];
+    }
     s.paneWakeGestures=nil;
     s.lastActivity=0;
     s.started=NO;
