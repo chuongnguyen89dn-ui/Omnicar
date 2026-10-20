@@ -1,0 +1,80 @@
+name: Audit original OmniCar AppBridge scene and frame ABI (NO SILEO)
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/audit-omnicar-appbridge-scene.yml"
+      - "scripts/audit_omnicar_appbridge_scene.py"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  audit-static-original:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify central skill archive and inspect instructions
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT='https://raw.githubusercontent.com/chuongnguyen89dn-ui/Gpt-training-/main/skills'
+          for name in 01-github-continuity 02-ios-deb-ipa-carplay 05-research-debug-testing; do
+            curl -fLsS --retry 3 "$ROOT/$name.zip" -o "$RUNNER_TEMP/$name.zip"
+            unzip -t "$RUNNER_TEMP/$name.zip" >/dev/null
+            echo "VERIFIED_SKILL_ARCHIVE=$name"
+            unzip -Z -1 "$RUNNER_TEMP/$name.zip" | head -n 40
+            unzip -p "$RUNNER_TEMP/$name.zip" '*SKILL.md' | head -n 100 || true
+          done
+      - name: Set up dpkg and llvm binary inspection
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew install dpkg llvm
+          echo "/opt/homebrew/opt/llvm/bin" >> "$GITHUB_PATH"
+      - name: Check script syntax/selftest and immutable source hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/audit_omnicar_appbridge_scene.py
+          python3 scripts/audit_omnicar_appbridge_scene.py --selftest
+          shasum -a 256 com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
+          echo 'd9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  com.anlai.omnicar_1.0.3_iphoneos-arm64.deb' | shasum -a 256 --check
+      - name: Follow exact host frame, layoutPane, scene transforms in ARM64 original
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_omnicar_appbridge_scene.py \
+            com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            --output audit/OmniCar_AppBridge_scene_path_original_20261020.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data=json.loads(Path('audit/OmniCar_AppBridge_scene_path_original_20261020.json').read_text())
+          assert data['status']=='ORIGINAL_MACHINE_CODE_READ_ONLY_NOT_LIVE_SCENE_MEASUREMENT'
+          a=data['libraries']['OmniCarAppBridge.dylib']['methods']
+          assert 'ABHost.layoutPane:' in a and 'ABHost.effectiveOrientation:' in a
+          print('ABI_FRAME_AND_SCENE_STATIC_ORIGINAL_PASS')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-original-AppBridge-scene-disassembly-readonly
+          path: audit/OmniCar_AppBridge_scene_path_original_20261020.json
+          retention-days: 90
+      - name: Archive forensic evidence only in Omnicar main, not code/tweak
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add audit/OmniCar_AppBridge_scene_path_original_20261020.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'audit: save original AppBridge frame and scene ARM64 evidence [skip ci]'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
