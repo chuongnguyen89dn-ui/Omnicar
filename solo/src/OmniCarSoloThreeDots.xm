@@ -40,6 +40,25 @@ static void OMCSoloMount(OMCSoloState *s,int attempt);
 @interface OMCSoloWakeGesture : UIGestureRecognizer
 @property(nonatomic,weak) OMCSoloState *owner;
 @end
+// Native host window continues presenting the external CarPlay app after
+// SCPCarSplit.container and pane views are destroyed. This overlay accepts
+// ONLY its two controls and lets every other touch pass to that host.
+@interface OMCSoloPassthroughView : UIView @end
+@implementation OMCSoloPassthroughView
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    if(self.hidden || !self.userInteractionEnabled)return nil;
+    for(UIView *child in [self.subviews reverseObjectEnumerator]){
+        if(child.hidden || !child.userInteractionEnabled)continue;
+        CGPoint p=[self convertPoint:point toView:child];
+        if([child pointInside:p withEvent:event]) {
+            UIView *hit=[child hitTest:p withEvent:event];
+            if(hit)return hit;
+        }
+    }
+    return nil;
+}
+@end
+
 @implementation OMCSoloWakeGesture
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     [super touchesBegan:touches withEvent:event];
@@ -61,6 +80,7 @@ static void OMCSoloMount(OMCSoloState *s,int attempt);
 @property(nonatomic,strong) UIButton *restore;
 @property(nonatomic,strong) NSTimer *timer;
 @property(nonatomic,strong) OMCSoloWakeGesture *gesture;
+@property(nonatomic,weak) UIView *gestureOwner;
 @property(nonatomic,weak) UIView *ownerView;
 @property(nonatomic,weak) UIWindow *capturedCarPlayWindow;
 @property(nonatomic,weak) UIView *capturedContentRoot;
@@ -85,10 +105,11 @@ static OMCSoloState *OMCState(SCPCarSplit *split,BOOL create) {
 }
 static void OMCClearVisual(OMCSoloState *s){
     [s.timer invalidate];s.timer=nil;
-    if(s.gesture && s.ownerView)[s.ownerView removeGestureRecognizer:s.gesture];
+    if(s.gesture && s.gestureOwner)[s.gestureOwner removeGestureRecognizer:s.gesture];
     [s.restore removeFromSuperview];[s.dots removeFromSuperview];
     [s.hitPassOverlay removeFromSuperview];
-    s.restore=nil;s.dots=nil;s.gesture=nil;s.ownerView=nil;s.hitPassOverlay=nil;
+    s.restore=nil;s.dots=nil;s.gesture=nil;s.gestureOwner=nil;
+    s.ownerView=nil;s.hitPassOverlay=nil;
 }
 static void OMCTimeout(OMCSoloState *s){
     [s.timer invalidate];s.timer=nil;
@@ -163,8 +184,10 @@ static void OMCSnapshotBeforeClose(SCPCarSplit *split,int slot) {
     SCPCarPane *survivor=slot==0?right:(slot==1?left:right);
     UIView *handle=[survivor handle],*root=[split tabParent];
     if(![root isKindOfClass:UIView.class] || !root.window) {
-        root=[split respondsToSelector:@selector(launcherHost)]
-            ?[split launcherHost]:nil;
+        // Only cache OmniCar's active content hierarchy; launcherHost may
+        // be hosted by the SYSTEM dock and must NOT be used for this overlay.
+        root=[split respondsToSelector:@selector(container)]
+            ?[split performSelector:@selector(container)]:nil;
     }
     UIImage *native=OMCNativeHandleBitmap(handle);
     CGSize handleSize=handle.bounds.size;
@@ -202,9 +225,9 @@ static void OMCSnapshotBeforeClose(SCPCarSplit *split,int slot) {
     CGRect originalArea=CGRectZero;
     if(originalWindow && [root isKindOfClass:UIView.class]) {
         CGRect r=[split appAreaInParent:root];
-        if(!CGRectIsEmpty(r) && CGRectIsFinite(r.origin.x) &&
-           CGRectIsFinite(r.origin.y) && CGRectIsFinite(r.size.width) &&
-           CGRectIsFinite(r.size.height))
+        if(!CGRectIsEmpty(r) && isfinite(r.origin.x) &&
+           isfinite(r.origin.y) && isfinite(r.size.width) &&
+           isfinite(r.size.height))
             originalArea=[root convertRect:r toView:originalWindow];
     }
     s.capturedAppRectInWindow=originalArea;
@@ -295,54 +318,136 @@ static void OMCRestoreSplit(OMCSoloState *s){
 }
 - (void)restore:(UIButton *)sender{(void)sender;OMCRestoreSplit(self.owner);}
 @end
+
+static BOOL OMCSoloCorrectWindow(UIWindow *window) {
+    // The candidate window must have been derived from an ORIGINAL
+    // OmniCar native parent or from the live SOLO controller, never
+    // enumeration of global UIWindow/UIApplication/windows.
+    return [window isKindOfClass:UIWindow.class] && !window.hidden &&
+           window.alpha>.05 && window.bounds.size.width>240 &&
+           window.bounds.size.height>140 && window.windowScene!=nil;
+}
+static UIView *OMCNativeSoloOwner(OMCSoloState *s,SCPCarSplit *split,
+                                  NSString *solo,id returned,NSString **route){
+    if([returned isKindOfClass:UIViewController.class]) {
+        UIView *v=[(UIViewController *)returned viewIfLoaded];
+        if(OMCSoloCorrectWindow(v.window)){
+            if(route)*route=@"returned-vc";
+            return v;
+        }
+    }
+    id cover=[split respondsToSelector:@selector(soloCover)]?[split soloCover]:nil;
+    if([cover isKindOfClass:UIView.class] &&
+       OMCSoloCorrectWindow(((UIView *)cover).window)) {
+        if(route)*route=@"native-solo-cover";
+        return cover;
+    }
+    // Original tabParent occasionally remains mounted in the native
+    // CarPlay window. Never attach to launcherHost: that may be the
+    // system-owned dock, not the hosted-app scene.
+    UIView *tab=[split tabParent];
+    if([tab isKindOfClass:UIView.class] &&
+       OMCSoloCorrectWindow(tab.window) &&
+       tab.window==s.capturedCarPlayWindow){
+        if(route)*route=@"retained-native-tabParent";
+        return tab;
+    }
+    // DuoFace CBWindow has _rootWindow separate from split slot views.
+    // OmniCar lacks that durable CBWindow object, so use only the exact
+    // CarPlay window captured from OmniCar's live content *before*
+    // closeSlot. Never create a new UIWindow or enumerate foreign screens.
+    if(s.confirmedEdgeSolo &&
+       OMCSoloCorrectWindow(s.capturedCarPlayWindow)) {
+        if(route)*route=@"captured-native-host-window";
+        return s.capturedCarPlayWindow;
+    }
+    return nil;
+}
+static CGRect OMCVisibleSoloAppRect(OMCSoloState *s,UIView *parent){
+    CGRect candidate=CGRectZero;
+    if(parent==s.capturedCarPlayWindow)
+        candidate=s.capturedAppRectInWindow;
+    else if(parent.window && s.capturedCarPlayWindow==parent.window &&
+            !CGRectIsEmpty(s.capturedAppRectInWindow))
+        candidate=[parent convertRect:s.capturedAppRectInWindow
+                             fromView:parent.window];
+    if(CGRectIsEmpty(candidate) || !isfinite(candidate.size.width) ||
+       !isfinite(candidate.size.height) ||
+       !CGRectIntersectsRect(parent.bounds,candidate))
+        candidate=CGRectInset(parent.bounds,10,8);
+    return CGRectIntersection(candidate,parent.bounds);
+}
 static void OMCSoloMount(OMCSoloState *s,int attempt){
     SCPCarSplit *split=s.split;
     if(!split||s.busy||s.apps.count!=2||[split active])return;
-    UIView *parent=[split tabParent];
     NSString *solo=[split soloHostedBundle];
     id returned=[split soloReturnedVC];
-    if((![parent isKindOfClass:UIView.class] || !parent.window) &&
-       [returned isKindOfClass:UIViewController.class]) {
-        UIView *returnedView=[(UIViewController *)returned viewIfLoaded];
-        if(returnedView.window)parent=returnedView;
-    }
-    // Some native solo transitions detach the original VC instead of hostSolo.
-    BOOL hasSolo=([solo isKindOfClass:NSString.class] && [s.apps containsObject:solo])
-              || returned!=nil || s.confirmedEdgeSolo;
-    if(![parent isKindOfClass:UIView.class] || !parent.window || !hasSolo){
-        if(attempt<20){
+    BOOL nativeHosted=[solo isKindOfClass:NSString.class] &&
+       [s.apps containsObject:solo];
+    BOOL hasSolo=nativeHosted || returned!=nil || s.confirmedEdgeSolo;
+    NSString *route=@"none";
+    UIView *parent=hasSolo?OMCNativeSoloOwner(s,split,solo,returned,&route):nil;
+    if(![parent isKindOfClass:UIView.class] || !parent.window) {
+        if(attempt<50) {
             __weak OMCSoloState *weak=s;
+            NSInteger sequence=s.mountSequence;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW,200*NSEC_PER_MSEC),
-              dispatch_get_main_queue(),^{if(weak)OMCSoloMount(weak,attempt+1);});
-        }else NSLog(@"[OmniCarSoloDots] unable to attach: parent=%d mounted=%d solo=%d returned=%d confirmedEdge=%d",
-                       [parent isKindOfClass:UIView.class],parent.window!=nil,
-                       solo.length>0,returned!=nil,s.confirmedEdgeSolo);
+              dispatch_get_main_queue(),^{
+                if(weak && weak.mountSequence==sequence)
+                    OMCSoloMount(weak,attempt+1);
+              });
+        } else NSLog(@"[OmniCarSoloDots] event=owner-unavailable attempt=%d edge=%d nativeHosted=%d returned=%d cachedWindow=%d",
+                       attempt,s.confirmedEdgeSolo,nativeHosted,returned!=nil,
+                       OMCSoloCorrectWindow(s.capturedCarPlayWindow));
         return;
     }
-    if(s.dots && s.ownerView==parent)return;
+    if(s.dots && s.hitPassOverlay.superview==parent &&
+       !CGRectIsEmpty(s.dots.frame))return;
     OMCClearVisual(s);
-    CGRect rect=[split appAreaInParent:parent];
-    CGSize z=s.nativeSize;
-    if(!s.nativeDots || CGRectGetWidth(rect)<z.width+16 ||
-                         CGRectGetHeight(rect)<z.height+16)return;
-    CGFloat cx=CGRectGetMinX(rect)+MAX(0,MIN(1,s.relativePosition.x))*CGRectGetWidth(rect);
-    CGFloat cy=CGRectGetMinY(rect)+MAX(0,MIN(1,s.relativePosition.y))*CGRectGetHeight(rect);
-    CGFloat x=MAX(CGRectGetMinX(rect)+4,MIN(cx-z.width/2,CGRectGetMaxX(rect)-z.width-4));
-    CGFloat y=MAX(CGRectGetMinY(rect)+4,MIN(cy-z.height/2,CGRectGetMaxY(rect)-z.height-4));
+    CGRect rect=OMCVisibleSoloAppRect(s,parent);
+    CGSize size=s.nativeSize;
+    if(!s.nativeDots || CGRectGetWidth(rect)<size.width+16 ||
+       CGRectGetHeight(rect)<size.height+16) {
+        NSLog(@"[OmniCarSoloDots] event=bad-app-area route=%@ area=%@",route,NSStringFromCGRect(rect));
+        return;
+    }
+    OMCSoloPassthroughView *overlay=[[OMCSoloPassthroughView alloc]
+                                       initWithFrame:parent.bounds];
+    overlay.backgroundColor=UIColor.clearColor;
+    overlay.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    overlay.userInteractionEnabled=YES;
+    overlay.accessibilityIdentifier=@"OmniCar.externalSOLO.menuOwner";
+    // Keep the glyph strictly inside the native app content region.
+    CGFloat cx=CGRectGetMinX(rect)+MAX(.03,MIN(.97,s.relativePosition.x))*CGRectGetWidth(rect);
+    CGFloat cy=CGRectGetMinY(rect)+MAX(.03,MIN(.97,s.relativePosition.y))*CGRectGetHeight(rect);
+    CGFloat x=MAX(CGRectGetMinX(rect)+4,MIN(cx-size.width/2,
+                                              CGRectGetMaxX(rect)-size.width-4));
+    CGFloat y=MAX(CGRectGetMinY(rect)+4,MIN(cy-size.height/2,
+                                              CGRectGetMaxY(rect)-size.height-4));
     UIButton *button=[UIButton buttonWithType:UIButtonTypeCustom];
-    button.frame=CGRectMake(x,y,z.width,z.height);
+    button.frame=CGRectMake(x,y,size.width,size.height);
     [button setBackgroundImage:s.nativeDots forState:UIControlStateNormal];
+    button.accessibilityIdentifier=@"OmniCar.externalSOLO.threeDots";
     button.accessibilityLabel=@"Menu OmniCar khi chỉ còn một ứng dụng";
-    OMCSoloDotAction *a=[OMCSoloDotAction new];a.owner=s;
-    objc_setAssociatedObject(button,@selector(openMenu:),a,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    [button addTarget:a action:@selector(openMenu:) forControlEvents:UIControlEventTouchUpInside];
-    [parent addSubview:button];s.dots=button;s.ownerView=parent;
+    OMCSoloDotAction *action=[OMCSoloDotAction new];action.owner=s;
+    objc_setAssociatedObject(button,@selector(openMenu:),action,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [button addTarget:action action:@selector(openMenu:) forControlEvents:UIControlEventTouchUpInside];
+    [overlay addSubview:button];
+    [parent addSubview:overlay];
+    s.ownerView=overlay;s.hitPassOverlay=overlay;s.dots=button;
+    // Observe touches only on this EXISTING OmniCar-derived native window,
+    // never by a global UIKit hook. Passive recognizer immediately FAILS.
+    UIView *touchOwner=parent.window;
     OMCSoloWakeGesture *g=[[OMCSoloWakeGesture alloc]initWithTarget:nil action:NULL];
-    g.owner=s;g.cancelsTouchesInView=NO;g.delaysTouchesBegan=NO;g.delaysTouchesEnded=NO;
-    [parent addGestureRecognizer:g];s.gesture=g;s.visible=YES;
+    g.owner=s;g.cancelsTouchesInView=NO;
+    g.delaysTouchesBegan=NO;g.delaysTouchesEnded=NO;
+    [touchOwner addGestureRecognizer:g];s.gesture=g;s.gestureOwner=touchOwner;
+    s.visible=YES;s.mountedGeneration=s.mountSequence;
     OMCTimeout(s);
-    NSLog(@"[OmniCarSoloDots] mounted native 3dots clone in OmniCar tabParent only");
+    NSLog(@"[OmniCarSoloDots] event=host-window-mounted route=%@ window=%p owner=%p apps=%lu frame=%@",
+          route,parent.window,parent,(unsigned long)s.apps.count,NSStringFromCGRect(button.frame));
 }
+
 static void OMCScheduleMount(OMCSoloState *s){
     __weak OMCSoloState *weak=s;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW,200*NSEC_PER_MSEC),
