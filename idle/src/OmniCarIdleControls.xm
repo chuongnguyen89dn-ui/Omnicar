@@ -96,6 +96,12 @@ static void OMCIdlePaintControl(id object,BOOL visible) {
         view.layer.opacity=0.0f;
     }
 }
+static void OMCIdlePaintPaneHandles(id pane,BOOL visible) {
+    UIView *native=OMCIdleGet(pane,@selector(handle));
+    UIView *hosted=OMCIdleGet(pane,@selector(hostHandle));
+    OMCIdlePaintControl(native,visible);
+    if(hosted!=native)OMCIdlePaintControl(hosted,visible);
+}
 static void OMCIdleApply(SCPCarSplit *split) {
     OMCIdleState *s=OMCIdleStateFor(split,NO);
     if(!s)return;
@@ -114,13 +120,13 @@ static void OMCIdleApply(SCPCarSplit *split) {
         for(id pane in (NSArray *)all) {
             if(![pane respondsToSelector:@selector(handle)])continue;
             [seen addObject:pane];
-            OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle)),visible);
+            OMCIdlePaintPaneHandles(pane,visible);
         }
     }
     for(int slot=0;slot<3;slot++) {
         id pane=[split paneAtSlot:slot];
         if(pane && ![seen containsObject:pane])
-            OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle)),visible);
+            OMCIdlePaintPaneHandles(pane,visible);
     }
     if(!visible)NSLog(@"[OmniCarIdle] event=all-panes-painted count=%lu dividerCount=%lu",
        (unsigned long)seen.allObjects.count,
@@ -256,10 +262,9 @@ static void OMCIdleStop(SCPCarSplit *split){
 }
 - (void)layoutBarForPane:(id)pane {
     %orig;
-    OMCIdlePaintControl(OMCIdleGet(pane,@selector(handle)),
-        !OMCIdleStateFor((SCPCarSplit *)self,NO) ||
-        OMCIdleStateFor((SCPCarSplit *)self,NO).visible ||
-        OMCIdleStateFor((SCPCarSplit *)self,NO).activeDividerTouches>0);
+    OMCIdleState *state=OMCIdleStateFor((SCPCarSplit *)self,NO);
+    OMCIdlePaintPaneHandles(pane,!state || state.visible ||
+                                   state.activeDividerTouches>0);
 }
 - (void)showRatioMenuForDivider:(id)divider {
     %orig;
