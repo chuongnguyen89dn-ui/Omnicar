@@ -1,0 +1,270 @@
+name: OmniCar DuoFace-style Touch QA8 Single Idle Replacement (NO SILEO)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/assemble-duoface-touchqa-single-idle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify-build-archive:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact uploaded original SHA256 BEFORE any compilation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORIGINAL="com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"
+          test -s "$ORIGINAL"
+          echo "ORIGINAL_SIZE_BYTES=$(stat -f%z "$ORIGINAL")"
+          shasum -a 256 "$ORIGINAL"
+          echo "d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  $ORIGINAL" | shasum -a 256 --check
+          echo "ORIGINAL_SHA256_VERIFIED"
+
+      - name: Validate QA7 rollback, original locks and isolated DuoFace candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/test_two_action_menu_source.py
+          python3 scripts/test_idle_controls_source.py
+          python3 scripts/test_duoface_idle_wiring_source.py
+          python3 scripts/test_solo_three_dots_source.py
+          python3 scripts/test_titanium_native_skin.py
+          python3 -m py_compile scripts/assemble_unified_omnicar.py scripts/test_unified_assembler.py
+          python3 scripts/test_unified_assembler.py
+          # Verify unmodified QA7 rollback is still exactly committed in GitHub;
+          # candidate Idle substitution happens only in ephemeral runner afterwards.
+          python3 - <<'PY'
+          import pathlib,subprocess
+          compare={
+            "solo/src/OmniCarSoloThreeDots.xm":"9873b516c8c047fd03e0ea5c406375bfcc100f03",
+            "idle/src/OmniCarIdleControls.xm":"20f8bd5aa99d72453ec5f0c0839c8e0410ef3827",
+            "src/OmniCarDoubleTapFullscreen.xm":"93d8fa2e912029e33391e9834f07463bef39d037",
+            "src/OmniCarChrome.xm":"a4b94c7c9c91475eb5879efee2ed13a7f8463dc6",
+            "titanium/src/OmniCarGraphiteTitanium.xm":"eee57c369ee95ba31c83f4f046c10042067d4179",
+          }
+          for name,hash in compare.items():
+              value=subprocess.check_output(["git","hash-object",name],text=True).strip()
+              assert value==hash,(name,value,hash)
+              print("QA7_SCOPE_LOCKED_SOURCE_OK",name)
+          PY
+          plutil -lint OmniCarDoubleTapFullscreen.plist
+          plutil -lint idle/OmniCarIdleControls.plist
+          plutil -lint solo/OmniCarSoloThreeDots.plist
+          plutil -lint titanium/OmniCarGraphiteTitanium.plist
+
+      - name: Prepare Theos and DEB inspection tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          command -v dpkg-deb
+          ORIGINAL="com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"
+          dpkg-deb -f "$ORIGINAL" | tee "$RUNNER_TEMP/original-control.txt"
+          test "$(dpkg-deb -f "$ORIGINAL" Package)" = "com.anlai.omnicar"
+          test "$(dpkg-deb -f "$ORIGINAL" Version)" = "1.0.3"
+          test "$(dpkg-deb -f "$ORIGINAL" Architecture)" = "iphoneos-arm64"
+          echo "ORIGINAL_DEB_METADATA_VERIFIED"
+
+      - name: Replace old Idle SOURCE for this ephemeral candidate build ONLY
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Keep immutable GitHub QA7 sources intact. No second hook dylib.
+          CANDIDATE="idle/experimental-duoface/src/OmniCarDuoActivityIdle.xm"
+          TARGET="idle/src/OmniCarIdleControls.xm"
+          BEFORE="$(git hash-object "$TARGET")"
+          test "$BEFORE" = "20f8bd5aa99d72453ec5f0c0839c8e0410ef3827"
+          test "$(git hash-object "$CANDIDATE")" = "741cf1c3cecb93d42f9c75ce3da6e642c14ecfd9"
+          cp "$CANDIDATE" "$TARGET"
+          test "$(git hash-object "$TARGET")" = "741cf1c3cecb93d42f9c75ce3da6e642c14ecfd9"
+          grep -q "OMCIdleAttachPaneActivity" "$TARGET"
+          grep -q "event=menu-closed-grace-time" "$TARGET"
+          ! grep -q "event=auto-hide source=native-hideRatioMenu" "$TARGET"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("scripts/assemble_unified_omnicar.py")
+          old='VERSION = "1.0.3-omnicar8-touchqa"'
+          assert p.read_text().count(old)==1
+          p.write_text(p.read_text().replace(old,'VERSION = "1.0.3-omnicar8-touchqa"'))
+          assert 'VERSION = "1.0.3-omnicar8-touchqa"' in p.read_text()
+          print("SINGLE_IDLE_QA8_SOURCE_REPLACEMENT_VERIFIED__NOT_REPO_COMMIT")
+          PY
+          # This candidate's only native Idle binary is OmniCarIdleControls.dylib,
+          # linked from the replacement source with the original filter plist.
+          test "$(grep -c '^TWEAK_NAME := OmniCarIdleControls
+        shell: bash
+        run: |
+          set -euo pipefail
+          make clean all
+          make -C idle clean all
+          make -C solo clean all
+          make -C titanium clean all
+          for lib in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
+            LIB="$(find . -path '*/.theos/*' -name "$lib.dylib" -type f | head -n1)"
+            test -s "$LIB"
+            lipo "$LIB" -verify_arch arm64
+            echo "ARM64_COMPONENT_OK=$lib"
+          done
+
+      - name: Assemble from EXACT untouched original files, inspect and hash DEB
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p unified-artifacts
+          OUTPUT="unified-artifacts/com.anlai.omnicar_1.0.3-omnicar8-touchqa_iphoneos-arm64.deb"
+          python3 scripts/assemble_unified_omnicar.py \
+            --original com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            --build-root . \
+            --output "$OUTPUT" | tee unified-artifacts/BUILD-MANIFEST.json
+          test -s "$OUTPUT"
+          dpkg-deb -f "$OUTPUT" | tee unified-artifacts/CONTROL.txt
+          dpkg-deb -c "$OUTPUT" | tee unified-artifacts/FILES.txt
+          test "$(dpkg-deb -f "$OUTPUT" Package)" = "com.anlai.omnicar"
+          test "$(dpkg-deb -f "$OUTPUT" Version)" = "1.0.3-omnicar8-touchqa"
+          test "$(dpkg-deb -f "$OUTPUT" Architecture)" = "iphoneos-arm64"
+          for module in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
+            grep -q "$module.dylib" unified-artifacts/FILES.txt
+            grep -q "$module.plist" unified-artifacts/FILES.txt
+          done
+          # Explicitly require exactly one Idle dylib + plist in payload,
+          # never two competing classes hooking SCPCarSplit.
+          test "$(grep -c '/OmniCarIdleControls.dylib' unified-artifacts/FILES.txt)" -eq 1
+          test "$(grep -c '/OmniCarIdleControls.plist' unified-artifacts/FILES.txt)" -eq 1
+          ! grep -q 'OmniCarDuoActivityIdle' unified-artifacts/FILES.txt
+          echo "QA8_ONE_IDLE_DYLIB_NO_OLD_AND_NEW_STACK_PASS"
+          (cd unified-artifacts && shasum -a 256 *.deb | tee SHA256SUMS.txt)
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('unified-artifacts')
+          manifest=json.loads((root/'BUILD-MANIFEST.json').read_text())
+          path=root/'com.anlai.omnicar_1.0.3-omnicar8-touchqa_iphoneos-arm64.deb'
+          real=hashlib.sha256(path.read_bytes()).hexdigest()
+          assert manifest['output_sha256']==real
+          assert manifest['version']=='1.0.3-omnicar8-touchqa'
+          assert manifest['retained_original_files']==176
+          assert len(manifest['added_native_files'])==8
+          assert manifest['tested_on_carplay'] is False
+          print('QA8_SINGLE_DUOFACE_ACTIVITY_IDLE_AND_176_ORIGINAL_FILES_VERIFIED')
+          PY
+          printf '%s\n' 'QA8_DUOFACE_ACTIVITY_SINGLE_IDLE_REPLACEMENT__NO_DEVICE_TEST__NOT_SILEO' > unified-artifacts/STATUS.txt
+          echo "UNIFIED_ORIGINAL_DEB_PACKAGE_VERIFIED"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-Original-1.0.3-QA8-DuoFace-Activity-Single-Idle-Candidate-DEB
+          path: unified-artifacts/
+          retention-days: 90
+
+      - name: Archive reproducible QA8 candidate to project repo ONLY (not Sileo)
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar8-touchqa"
+          test ! -e "$DEST/STATUS.txt" || { echo 'Refuse candidate overwrite' >&2; exit 1; }
+          mkdir -p "$DEST"
+          cp unified-artifacts/* "$DEST/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -m "artifact: archive SHA-verified original OmniCar unified DEB candidate [skip ci]"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+ idle/Makefile)" -eq 1
+          test ! -e idle/experimental-duoface/.theos
+          echo "QA8_OLD_IDLE_IMPLEMENTATION_EXCLUDED__ONE_IDLE_MODULE_ONLY"
+
+      - name: Compile and sign four native modules with ONLY replacement Idle implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          make clean all
+          make -C idle clean all
+          make -C solo clean all
+          make -C titanium clean all
+          for lib in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
+            LIB="$(find . -path '*/.theos/*' -name "$lib.dylib" -type f | head -n1)"
+            test -s "$LIB"
+            lipo "$LIB" -verify_arch arm64
+            echo "ARM64_COMPONENT_OK=$lib"
+          done
+
+      - name: Assemble from EXACT untouched original files, inspect and hash DEB
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p unified-artifacts
+          OUTPUT="unified-artifacts/com.anlai.omnicar_1.0.3-omnicar8-touchqa_iphoneos-arm64.deb"
+          python3 scripts/assemble_unified_omnicar.py \
+            --original com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            --build-root . \
+            --output "$OUTPUT" | tee unified-artifacts/BUILD-MANIFEST.json
+          test -s "$OUTPUT"
+          dpkg-deb -f "$OUTPUT" | tee unified-artifacts/CONTROL.txt
+          dpkg-deb -c "$OUTPUT" | tee unified-artifacts/FILES.txt
+          test "$(dpkg-deb -f "$OUTPUT" Package)" = "com.anlai.omnicar"
+          test "$(dpkg-deb -f "$OUTPUT" Version)" = "1.0.3-omnicar8-touchqa"
+          test "$(dpkg-deb -f "$OUTPUT" Architecture)" = "iphoneos-arm64"
+          for module in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium; do
+            grep -q "$module.dylib" unified-artifacts/FILES.txt
+            grep -q "$module.plist" unified-artifacts/FILES.txt
+          done
+          (cd unified-artifacts && shasum -a 256 *.deb | tee SHA256SUMS.txt)
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('unified-artifacts')
+          manifest=json.loads((root/'BUILD-MANIFEST.json').read_text())
+          path=root/'com.anlai.omnicar_1.0.3-omnicar8-touchqa_iphoneos-arm64.deb'
+          real=hashlib.sha256(path.read_bytes()).hexdigest()
+          assert manifest['output_sha256']==real
+          assert manifest['version']=='1.0.3-omnicar8-touchqa'
+          assert manifest['retained_original_files']==176
+          assert len(manifest['added_native_files'])==8
+          assert manifest['tested_on_carplay'] is False
+          print('QA7_EXACT_QA5_SOURCE_AND_176_ORIGINAL_FILES_VERIFIED')
+          PY
+          printf '%s\n' 'QA7_QA5_EXACT_SOURCE_EMERGENCY_RESTORE__NO_DEVICE_TEST__SILEO_PENDING' > unified-artifacts/STATUS.txt
+          echo "UNIFIED_ORIGINAL_DEB_PACKAGE_VERIFIED"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-Original-1.0.3-QA7-QA5-RealDevice-Split-Rollback-DEB
+          path: unified-artifacts/
+          retention-days: 90
+
+      - name: Archive reproducible QA candidate to project repo ONLY (not Sileo)
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="dist/candidates/omnicar-unified-1.0.3-omnicar8-touchqa"
+          test ! -e "$DEST/STATUS.txt" || { echo 'Refuse candidate overwrite' >&2; exit 1; }
+          mkdir -p "$DEST"
+          cp unified-artifacts/* "$DEST/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -m "artifact: archive SHA-verified original OmniCar unified DEB candidate [skip ci]"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
