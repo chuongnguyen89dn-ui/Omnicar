@@ -13,7 +13,9 @@ for required in [
     "kOMCSavedOpacityKey", "removeGestureRecognizer:",
     "gesture.cancelsTouchesInView=NO", "gesture.delaysTouchesBegan=NO",
     "gesture.delaysTouchesEnded=NO", "UIGestureRecognizerStateFailed",
-    "activeDividerTouches", "OMCIdleApply"
+    "activeDividerTouches", "OMCIdleApply", "allPanes", "tabParent", 
+    "tabWakeGesture", "tabGestureOwner", "all-panes-painted",
+    "Native setBarVisible:YES can be emitted repeatedly"
 ]: assert required in source, required
 assert source.count("%orig;")==10, "unexpected native orig call count"
 for forbidden in [
