@@ -46,7 +46,8 @@ def inspect(src):
    report[n]={"available":True,"pc":hex(pc),"instructions":instr}
   related=sorted([{"class":cl,"selector":sel,"pc":hex(addr)}
                   for (cl,sel),addr in methods.items() if
-                  re.search(r"ratio|menu|handle|pane|solo|gesture|divider",sel,re.I)])
+                  re.search(r"ratio|menu|handle|pane|solo|gesture|divider",sel,re.I)],
+                 key=lambda item:(item["class"],item["selector"]))
   return {"original_sha256":SHA,"status":"ORIGINAL_STATIC_READ_ONLY_NO_DEVICE_CLAIM",
           "methods":report,"related_selectors":related}
 if __name__=="__main__":
