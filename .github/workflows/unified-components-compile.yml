@@ -64,3 +64,25 @@ jobs:
               echo "ARM64_COMPONENT_OK=$lib"
           done
           echo "UNIFIED_FOUR_COMPONENTS_COMPILE_PASS__NO_DEB__NO_DEVICE_TEST"
+      - name: Compile isolated DuoFace-style touch wake prototype (no DEB)
+        run: |
+          set -euo pipefail
+          test -s idle/experimental-duoface/Makefile
+          test -s idle/experimental-duoface/src/OmniCarDuoActivityIdle.xm
+          python3 - <<'PY'
+          from pathlib import Path
+          candidate = Path("idle/experimental-duoface/src/OmniCarDuoActivityIdle.xm").read_text()
+          stable = Path("idle/src/OmniCarIdleControls.xm").read_text()
+          assert "OMCIdleNoteUserActivity" in candidate
+          assert "OMCIdleAttachPaneActivity" in candidate
+          assert "cancelsTouchesInView=NO" in candidate
+          assert "hostedPanes" not in candidate and "@selector(hostHandle)" not in candidate
+          assert "%hook UIWindow" not in candidate and "%hook UIView" not in candidate
+          assert "OMCIdleNoteUserActivity" not in stable
+          print("DUOFACE_STYLE_IDLE_PROTOTYPE_STATIC_ISOLATION_PASS")
+          PY
+          make -C idle/experimental-duoface clean all
+          p="$(find idle/experimental-duoface/.theos -name 'OmniCarDuoActivityIdle.dylib' -type f | head -n 1)"
+          test -s "$p"
+          lipo "$p" -verify_arch arm64
+          echo "DUOFACE_STYLE_IDLE_PROTOTYPE_ARM64_COMPILE_PASS__NO_DEB__NO_SILEO__NO_DEVICE_TEST"
