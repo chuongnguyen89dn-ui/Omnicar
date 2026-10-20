@@ -83,12 +83,24 @@ def choose_signed_dylib(root, project, name):
     search_root = root / project / ".theos"
     if not search_root.is_dir():
         raise FileNotFoundError(f"Compile missing: {search_root}")
-    candidates = [p for p in search_root.rglob(name + ".dylib") if p.is_file()]
-    if len(candidates) != 1:
-        raise ValueError(f"Expected exactly ONE compiled {name}.dylib in {search_root}: {candidates}")
-    if candidates[0].stat().st_size < 4096:
-        raise ValueError("Native dylib suspiciously short: " + str(candidates[0]))
-    return candidates[0]
+    # Theos keeps intermediate per-arch .dylib copies and DWARF .dSYM
+    # mirrors. The top-level obj/debug or obj/release dylib is the
+    # final merged/signed output. Never fail because intermediates exist
+    # and never pick an unverified .dSYM mirror.
+    final_outputs = [
+        search_root / "obj" / mode / (name + ".dylib")
+        for mode in ("release", "debug")
+        if (search_root / "obj" / mode / (name + ".dylib")).is_file()
+    ]
+    if len(final_outputs) != 1:
+        raise ValueError(
+            f"Expected ONE final signed Theos dylib for {name}, "
+            f"found {final_outputs}; do not use per-arch or dSYM intermediates"
+        )
+    result = final_outputs[0]
+    if result.stat().st_size < 4096:
+        raise ValueError("Native dylib suspiciously short: " + str(result))
+    return result
 
 
 def list_files(root):
