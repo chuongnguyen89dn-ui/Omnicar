@@ -168,6 +168,25 @@ static UITapGestureRecognizer *OMCOriginalDoubleTap(id divider) {
     return nil;
 }
 static BOOL OMCSwapUsingNativeCallback(SCPCarSplit *split,id divider) {
+    if (!split || !divider || ![split active]) {
+        NSLog(@"[OmniCarMenu2] event=swap-blocked reason=inactive-or-no-divider");
+        return NO;
+    }
+    // The original internal swap implementation is
+    // SCPCarSplit -dividerDoubleTapOn: (ARM64 IMP 0x2e73c).
+    // Only call when this OS build exposes one object argument and the
+    // candidate is a verified native divider. No guessed primitive ABI.
+    Class cls=NSClassFromString(@"SCPCarDividerView");
+    NSMethodSignature *internal=[split methodSignatureForSelector:@selector(dividerDoubleTapOn:)];
+    if (cls && [divider isKindOfClass:cls] &&
+        internal && internal.numberOfArguments==3 &&
+        internal.methodReturnType[0]=='v' &&
+        [internal getArgumentTypeAtIndex:2][0]=='@') {
+        [split dividerDoubleTapOn:divider];
+        NSLog(@"[OmniCarMenu2] event=internal-native-swap-requested");
+        return YES;
+    }
+    NSLog(@"[OmniCarMenu2] event=internal-swap-unavailable; fallback-to-original-recognizer");
     // The original ABI for dividerDoubleTapped: is the *gesture callback*,
     // NOT the unverified dividerDoubleTapOn: internal helper signature.
     SEL selector=@selector(dividerDoubleTapped:);
