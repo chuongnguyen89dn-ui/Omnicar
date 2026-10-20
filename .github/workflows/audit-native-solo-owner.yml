@@ -1,0 +1,57 @@
+name: OmniCar original SOLO owner vs DuoFace native pill (READ ONLY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/audit-native-solo-owner.yml"
+      - "scripts/audit_native_solo_menu_owner.py"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  original-abi:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install read-only Mach-O tools
+        run: |
+          set -euo pipefail
+          brew install dpkg llvm
+          echo "/opt/homebrew/opt/llvm/bin" >> "$GITHUB_PATH"
+      - name: Inspect exact SHA-pinned original SOLO button and menu owners
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/audit_native_solo_menu_owner.py
+          python3 scripts/audit_native_solo_menu_owner.py com.anlai.omnicar_1.0.3_iphoneos-arm64.deb > audit/OmniCar_original_solo_persistent_control_20261020.json
+          python3 - <<'PY'
+          import json
+          z=json.load(open('audit/OmniCar_original_solo_persistent_control_20261020.json'))
+          assert z['status']=='READ_ONLY_ORIGINAL_SOLO_OWNERS_NOT_DEVICE_VERIFIED'
+          for cl,name in [('SCPCarSplit','soloBundle:'),('SCPCarSplit','closeGoingHome:'),
+                          ('SCPCarPane','soloButton'),('SCPCarSplit','launcherHost')]:
+              x=z['owners'][cl][name]
+              assert x['exists'],(cl,name)
+              print('SOLO_OWNER',cl,name,x['imp'],len(x['instructions']))
+          print('ORIGINAL_SOLO_OWNER_ABI_PASS__NO_DEB__NO_DEVICE_TEST')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: original-OmniCar-SOLO-owner-static-analysis
+          path: audit/OmniCar_original_solo_persistent_control_20261020.json
+          retention-days: 90
+      - name: Save forensic evidence in OmniCar project
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add audit/OmniCar_original_solo_persistent_control_20261020.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'audit: preserve original split/solo control ownership static evidence [skip ci]'
+          for i in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
