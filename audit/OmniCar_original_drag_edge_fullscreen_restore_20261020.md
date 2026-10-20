@@ -54,3 +54,31 @@ Original strings reinforce intentional design:
 Alternative: retain original destructive close semantics and provide a **separate** restore-last-split route using `openRememberedPair` — potentially relaunches/recreates scenes, less reliable and not equivalent to resizing back.
 
 **No code changes were made to the original package or custom Zoom/idle/Titanium. No DEB, no Sileo, no test on a real CarPlay screen in this inspection.**
+
+
+## BỔ SUNG 2026-10-20 — TRUY ĐÚNG NÚT BA CHẤM CỦA **Ô CÒN LẠI** (SURVIVING PANE)
+
+**User clarified**: the pane that fills the screen after dragging to close its neighbor is the pane that loses its OWN three-dot toolbar trigger; question is exactly why that happens, NOT why the deleted pane's controls are removed. Earlier explanation emphasizing the deleted pane/divider was incomplete.
+
+### 1. Original setter responsible for the SURVIVING pane handle being hidden
+
+ARM64 SCPCarSplit `layoutBarForPane:` IMP `0x23b9c`: 0x23c3c `pane.vc`; 0x23c50 `pane.handle`; **0x23c60 `cmp x21,#0`, 0x23c64 `cset w2,eq`, 0x23c68 sends `setHidden:` on the handle**. This is a direct, unconditional *setHidden = (pane.vc == nil)* assignment within the layout method. It does not test timer expiry or menu visibility. Therefore a pane with cleared `vc` MUST have its dots hidden on this layout path.
+
+### 2. How the SURVIVING pane ends up with no native split handle
+
+- `afterPaneRemoved:` `0x1db48`, checks `paneCount` at **0x1db8c**, compares against 1 at **0x1db90**. There are separate branches depending on float pane / remaining pane VC, so do not claim every branch always follows exactly the same cleanup.
+- Branch for retaining 1 pane can dispatch **`soloBundle:` at `0x1de90`** with surviving slot's `bundleID` obtained at 0x1de40→0x1de64; separate float-pane branch can also dispatch at 0x1dc0c. This is transfer to solo, not reversible split zoom.
+- In `soloBundle:` IMP `0x1e33c`, confirmed path from 0x1e4c8 onward enumerates original panes, matches surviving bundleID at 0x1e4f4; at **0x1e5e0** sets x2=0 then **`setVc:nil` at 0x1e5e4**, at **0x1e5ec** sets x2=0 then **`setBundleID:nil` at 0x1e5f0**; **`detachVC:background:` at 0x1e600** transfers the retained app controller out of the SCPCarPane; calls **`closeGoingHome:` at 0x1e60c** in this return-VC path. This is a conditional code path; an alternative uses `hostSolo:` at 0x1e3e4, then `closeGoingHome:` at 0x1e3fc, with hosted app displayed outside native split controls.
+- `closeGoingHome:` IMP `0x21618` is **NOT only closing the deleted pane**. Original callsite mapping proves it loops through *allPanes* and at 0x21784/0x21790 clears each `vc` and `bundleID`, at **0x217f8 `setActive:`**, then at **0x21900 `setContainer:`**, **0x2190c `setSlots:`**, **0x21924 `setDividers:`** tears down split's container, slots and divider list. The surviving app continues in SOLO or hosted scene, but native split toolbar owner has been torn down. The dots are not just sitting there behind the fullscreen app.
+
+### 3. EXACT cause and correction to the prior explanation
+
+The missing three dots belong to the **surviving app's former SCPCarPane**. After the edge-close route, native code transfers that app into a **different solo presentation lifecycle** and intentionally terminates/clears its split pane/controller. `layoutBarForPane` hides its handle when `vc==nil`, and `closeGoingHome` may remove the entire split container/slots. This is **not** caused by the 4s hide timer, Zoom addon, Titanium colors, or simply losing the deleted neighbor's divider. An independent reversible route exists (`toggleZoomForPane:`/`zoomedSlot`) but is NOT what the edge gesture invokes.
+
+Precise confidence: code proves the conditional branches and cleanup/callbacks. Which specific solo branch runs for a particular CarPlay session depends on live float pane / VC availability and is NOT established by static analysis alone. But both representative solo paths abandon the native split toolbar owner, explaining the user's observation.
+
+### 4. Verification of original DEB, 2026-10-20
+
+Static investigation used the actual original ARM64 slice `/mnt/data/omnicar_drag_audit/SplitScreen-arm64.dylib`, disassembly `/mnt/data/omnicar_drag_audit/split-arm64.asm`, exact original selector map `/mnt/data/omnicar_forensic/original_objc_selector_calls.csv`, **20 instruction assertions and 12 selector-owner callsites PASS** (executed locally 2026-10-20; no device log). Original package SHA256 `d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd`. No source or binary change, no DEB, no Sileo.
+
+Next only if user asks to change behavior: decide whether edge gesture should continue destroying a pane, or should preserve two-pane state and provide reversible resize/zoom. **Do not code a new restore button merely because the handle disappeared; restoring old `pane.handle` on a deallocated/inactive split will not work.**
