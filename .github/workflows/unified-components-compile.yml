@@ -87,3 +87,19 @@ jobs:
           test -s "$p"
           lipo "$p" -verify_arch arm64
           echo "DUOFACE_STYLE_IDLE_PROTOTYPE_ARM64_COMPILE_PASS__NO_DEB__NO_SILEO__NO_DEVICE_TEST"
+      - name: Validate and compile isolated Solo QA9 UIKit owner-selector crash fix
+        run: |
+          set -euo pipefail
+          python3 scripts/test_solo_gesture_owner_qa9.py
+          BEFORE="$(git hash-object solo/src/OmniCarSoloThreeDots.xm)"
+          test "$BEFORE" = "9873b516c8c047fd03e0ea5c406375bfcc100f03"
+          CANDIDATE="solo/experimental-qa9/src/OmniCarSoloThreeDots.xm"
+          test "$(git hash-object "$CANDIDATE")" = "c1612d1586ba286feaf5d39940d18f09b0894157"
+          cp "$CANDIDATE" solo/src/OmniCarSoloThreeDots.xm
+          make -C solo clean all
+          dylib="$(find solo/.theos -type f -name OmniCarSoloThreeDots.dylib | head -n1)"
+          test -s "$dylib"
+          lipo "$dylib" -verify_arch arm64
+          git restore -- solo/src/OmniCarSoloThreeDots.xm
+          test "$(git hash-object solo/src/OmniCarSoloThreeDots.xm)" = "$BEFORE"
+          echo SOLO_QA9_OWNER_COLLISION_ARM64_COMPILE_PASS__NO_DEB__NO_SILEO__NO_DEVICE_TEST
