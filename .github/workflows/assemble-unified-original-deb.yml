@@ -95,6 +95,19 @@ jobs:
             grep -q "$module.plist" unified-artifacts/FILES.txt
           done
           (cd unified-artifacts && shasum -a 256 *.deb | tee SHA256SUMS.txt)
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('unified-artifacts')
+          manifest=json.loads((root/'BUILD-MANIFEST.json').read_text())
+          path=root/'com.anlai.omnicar_1.0.3-omnicar2_iphoneos-arm64.deb'
+          real=hashlib.sha256(path.read_bytes()).hexdigest()
+          assert manifest['output_sha256']==real
+          assert manifest['version']=='1.0.3-omnicar2'
+          assert manifest['retained_original_files']==176
+          assert len(manifest['added_native_files'])==8
+          assert manifest['tested_on_carplay'] is False
+          print('QA2_EXACT_ORIGINAL_176_FILES_AND_FOUR_MODULES_VERIFIED')
+          PY
           printf '%s\n' 'QA2_REPAIRED_CANDIDATE_COMPILED_AND_PACKAGED__NO_DEVICE_TEST__SILEO_PENDING' > unified-artifacts/STATUS.txt
           echo "UNIFIED_ORIGINAL_DEB_PACKAGE_VERIFIED"
 
