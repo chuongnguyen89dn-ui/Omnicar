@@ -1,0 +1,127 @@
+name: OmniCar QA12 Corrected Original Solo + Timer + Zoom Swap (NO SILEO)
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-qa12-original-solo-timer-zoom-swap.yml"
+      - "scripts/assemble_original_solo_timer_zoom_swap_qa12.py"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  restore-zoom-and-swap:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact original and preserved Zoom Swap and timer sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORIG="com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"
+          echo "d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  $ORIG" | shasum -a 256 --check
+          python3 -m py_compile scripts/assemble_original_solo_timer_zoom_swap_qa12.py
+          python3 scripts/test_native_solo_timer_source.py
+          python3 scripts/test_two_action_menu_source.py
+          test "$(git hash-object src/OmniCarDoubleTapFullscreen.xm)" = "93d8fa2e912029e33391e9834f07463bef39d037"
+          test "$(git hash-object src/OmniCarChrome.xm)" = "a4b94c7c9c91475eb5879efee2ed13a7f8463dc6"
+          grep -Fq 'zoom.frame=CGRectMake(0,0,width*.5,height)' src/OmniCarDoubleTapFullscreen.xm
+          grep -Fq 'swap.frame=CGRectMake(width*.5,0,width-width*.5,height)' src/OmniCarDoubleTapFullscreen.xm
+          grep -Fq 'OMCSwapUsingNativeCallback' src/OmniCarDoubleTapFullscreen.xm
+          grep -Fq 'OMCInstallTwoActionMenu' src/OmniCarDoubleTapFullscreen.xm
+          echo QA12_ZOOM_SWAP_TWO_BUTTONS_AND_NATIVE_SOLO_SCOPE_VERIFIED
+      - name: Set up Theos, SDK and Debian inspection tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          dpkg --compare-versions "1.0.3-omnicar12-timer-zoom-swap" gt "1.0.3-omnicar11-native-solo-timer"
+          test "$(dpkg-deb -f com.anlai.omnicar_1.0.3_iphoneos-arm64.deb Package)" = "com.anlai.omnicar"
+          test "$(dpkg-deb -f com.anlai.omnicar_1.0.3_iphoneos-arm64.deb Version)" = "1.0.3"
+          echo QA12_DPKG_UPGRADE_VALID_PASS
+      - name: Build and sign ONLY Zoom Swap and cosmetic timer, original Solo untouched
+        shell: bash
+        run: |
+          set -euo pipefail
+          make clean all
+          make -C native-solo-timer clean all
+          ZOOM="$(find .theos/obj -maxdepth 2 -name OmniCarDoubleTapFullscreen.dylib -type f | head -n 1)"
+          TIMER="$(find native-solo-timer/.theos/obj -maxdepth 2 -name OmniCarNativeSoloTimer.dylib -type f | head -n 1)"
+          test -s "$ZOOM"
+          test -s "$TIMER"
+          lipo "$ZOOM" -verify_arch arm64
+          lipo "$TIMER" -verify_arch arm64
+          test -z "$(find . -path '*/.theos/obj/*' -name OmniCarSoloThreeDots.dylib -print -quit)"
+          test -z "$(find . -path '*/.theos/obj/*' -name OmniCarIdleControls.dylib -print -quit)"
+          test -z "$(find . -path '*/.theos/obj/*' -name OmniCarGraphiteTitanium.dylib -print -quit)"
+          echo QA12_ZOOM_SWAP_AND_TIMER_ONLY_ARM64_LINK_SIGN_PASS
+      - name: Assemble from immutable 1.0.3, verify 176 preserved + four additions
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p qa12-artifacts
+          ZOOM="$(find .theos/obj -maxdepth 2 -name OmniCarDoubleTapFullscreen.dylib -type f | head -n 1)"
+          TIMER="$(find native-solo-timer/.theos/obj -maxdepth 2 -name OmniCarNativeSoloTimer.dylib -type f | head -n 1)"
+          OUT="qa12-artifacts/com.anlai.omnicar_1.0.3-omnicar12-timer-zoom-swap_iphoneos-arm64.deb"
+          python3 scripts/assemble_original_solo_timer_zoom_swap_qa12.py \
+            --original com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            --timer "$TIMER" --plist native-solo-timer/OmniCarNativeSoloTimer.plist \
+            --zoom "$ZOOM" --zoom-plist OmniCarDoubleTapFullscreen.plist \
+            --output "$OUT" --manifest qa12-artifacts/BUILD-MANIFEST.json
+          dpkg-deb -c "$OUT" > qa12-artifacts/FILES.txt
+          dpkg-deb -I "$OUT" > qa12-artifacts/CONTROL-INFO.txt
+          (cd qa12-artifacts && shasum -a 256 *.deb > SHA256SUMS.txt)
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          p=Path("qa12-artifacts")
+          m=json.loads((p/"BUILD-MANIFEST.json").read_text())
+          assert m["status"]=="ORIGINAL_SOLO_UNTOUCHED_176_ORIGINAL_FILES_PLUS_TIMER_ZOOM_SWAP"
+          assert m["original_solo_untouched"] and m["zoom_swap_actions_restored"]
+          assert m["original_payload_file_count"]==176
+          assert m["final_payload_file_count"]==180 and len(m["added_native_files"])==4
+          assert m["changed_original_control_only"]=="Version"
+          d=p/m["output_filename"]
+          assert hashlib.sha256(d.read_bytes()).hexdigest()==m["output_sha256"]
+          files=(p/"FILES.txt").read_text()
+          for name in ("OmniCarDoubleTapFullscreen","OmniCarNativeSoloTimer"):
+              assert files.count("/"+name+".dylib")==1,name
+              assert files.count("/"+name+".plist")==1,name
+          for name in ("OmniCarSoloThreeDots","OmniCarIdleControls","OmniCarDuoActivityIdle","OmniCarGraphiteTitanium"):
+              assert "/"+name+"." not in files,name
+          assert not m["sileo_published"] and not m["carplay_device_tested"]
+          print("QA12_ORIGINAL_SOLO_AND_ZOOM_SWAP_PRESERVED_PLUS_ONLY_TIMER_PASS")
+          PY
+          echo 'QA12_ORIGINAL_SOLO_AND_ZOOM_SWAP_RESTORED_WITH_NATIVE_TIMER__DEVICE_UNTESTED__NOT_SILEO' > qa12-artifacts/STATUS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-QA12-OriginalSolo-ZoomSwap-NativeTimer-DEB
+          path: qa12-artifacts/
+          retention-days: 90
+      - name: Save verified QA12 candidate to Omnicar only
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="dist/candidates/omnicar-original-1.0.3-omnicar12-timer-zoom-swap"
+          test ! -e "$DEST/BUILD-MANIFEST.json" || { echo 'Refuse overwrite'; exit 1; }
+          mkdir -p "$DEST"
+          cp qa12-artifacts/* "$DEST/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -m 'artifact: restore Zoom Swap with original Solo and native timer, QA12 [skip ci]'
+          for n in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo QA12_ARTIFACT_ARCHIVED_ON_GITHUB_PASS
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
