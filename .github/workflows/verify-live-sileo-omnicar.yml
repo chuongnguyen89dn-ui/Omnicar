@@ -18,9 +18,9 @@ jobs:
           set -euo pipefail
           SITE='https://chuongnguyen89dn-ui.github.io/carplaydsp'
           PKG='com.anlai.omnicar'
-          VER='1.0.3-omnicar11-native-solo-timer'
-          FILE='com.anlai.omnicar_1.0.3-omnicar11-native-solo-timer_iphoneos-arm64.deb'
-          SHA='44c5133cfd687ce437bde4ca503c897796e0bee72f1dbc607adf8a51706d0ed7'
+          VER='1.0.3-omnicar12-timer-zoom-swap'
+          FILE='com.anlai.omnicar_1.0.3-omnicar12-timer-zoom-swap_iphoneos-arm64.deb'
+          SHA='f07c293a52882ab420aca49e4fe9e30d141d2cba412185938bf09ec9154685ba'
           PACKAGES="$RUNNER_TEMP/OmniCarPackages"
           for attempt in $(seq 1 48); do
             curl -fsSL --retry 2 --max-time 20 "$SITE/Packages" -o "$PACKAGES" || true
@@ -70,10 +70,12 @@ jobs:
           grep -Fq 'OmniCarSplitScreen.dylib' "$RUNNER_TEMP/OmniContents"
           test "$(grep -Fc '/OmniCarNativeSoloTimer.dylib' "$RUNNER_TEMP/OmniContents")" -eq 1
           test "$(grep -Fc '/OmniCarNativeSoloTimer.plist' "$RUNNER_TEMP/OmniContents")" -eq 1
-          for banned in OmniCarDoubleTapFullscreen OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium OmniCarDuoActivityIdle; do
+          test "$(grep -Fc '/OmniCarDoubleTapFullscreen.dylib' "$RUNNER_TEMP/OmniContents")" -eq 1
+          test "$(grep -Fc '/OmniCarDoubleTapFullscreen.plist' "$RUNNER_TEMP/OmniContents")" -eq 1
+          for banned in OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium OmniCarDuoActivityIdle; do
             if grep -Fq "/$banned." "$RUNNER_TEMP/OmniContents"; then
-              echo "Old experimental module survived in public QA11: $banned" >&2
+              echo "Unexpected experimental Solo/Idle module in QA12: $banned" >&2
               exit 1
             fi
           done
-          echo 'OMNICAR_LIVE_PUBLIC_SILEO_ORIGINAL_SOLO_ONLY_TIMER_SHA256_PASS__DEVICE_UNTESTED'
+          echo 'OMNICAR_LIVE_PUBLIC_SILEO_ORIGINAL_SOLO_ZOOM_SWAP_TIMER_SHA256_PASS__DEVICE_UNTESTED'
