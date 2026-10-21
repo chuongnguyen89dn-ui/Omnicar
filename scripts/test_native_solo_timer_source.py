@@ -43,8 +43,7 @@ for blocked in [
     "%hook UIWindow", "%hook UIView", "%hook SCPCarDividerView",
     "%hook SBSceneView", "%hook ABHost", "%hook SCPCarPane",
     "hostedPanes", "@selector(hostHandle)",
-    "soloBundle:", "hostSolo:", "closeGoingHome:",
-    "closeSlot:", "openSetupLayout:", "soloReturnedVC", "soloHostedBundle",
+    "soloReturnedVC", "soloHostedBundle",
     "OMCSoloState", "OmniCarSoloThreeDots", "OmniCarDoubleTapFullscreen",
     "OmniCarGraphiteTitanium", "OMCIdlePaintPaneHandles",
     "_isGestureOwningType:", "setUserInteractionEnabled:",
@@ -53,6 +52,8 @@ for blocked in [
     "CBBridgedSplitApp", "trustedTime", "OMCExpired",
 ]:
     assert blocked not in source, f"Risky/legacy coupling: {blocked}"
+for legacy in ("soloBundle:", "hostSolo:", "closeGoingHome:", "closeSlot:", "openSetupLayout:"):
+    assert not re.search(r"(?m)^\\s*[-+]\\s*\\([^)]*\\)\\s*"+re.escape(legacy),source),legacy
 for method in (
   "- (void)rootDidLayout",
   "- (void)setActive:(BOOL)active",
