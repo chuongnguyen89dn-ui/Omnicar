@@ -1,0 +1,129 @@
+name: OmniCar Original Solo + Only Two-Menu/Divider 4s Timer Candidate (NO SILEO)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-original-solo-only-timer.yml"
+      - "native-solo-timer/**"
+      - "scripts/test_native_solo_timer_source.py"
+      - "scripts/assemble_original_native_solo_timer.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore-original-native-solo:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original 1.0.3 DEB and source-only scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORIG="com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"
+          test -s "$ORIG"
+          echo "d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  $ORIG" | shasum -a 256 --check
+          python3 -m py_compile scripts/test_native_solo_timer_source.py scripts/assemble_original_native_solo_timer.py
+          python3 scripts/test_native_solo_timer_source.py
+          test -s native-solo-timer/OmniCarNativeSoloTimer.plist
+          echo ORIGINAL_SOLO_BASE_SHA_AND_NO_LEGACY_RUNTIME_SOURCE_HOOK_PASS
+      - name: Install Theos, SDK and DEB tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          command -v dpkg-deb
+          ORIGINAL="com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"
+          test "$(dpkg-deb -f "$ORIGINAL" Package)" = "com.anlai.omnicar"
+          test "$(dpkg-deb -f "$ORIGINAL" Version)" = "1.0.3"
+          test "$(dpkg-deb -f "$ORIGINAL" Architecture)" = "iphoneos-arm64"
+          dpkg --compare-versions "1.0.3-omnicar11-native-solo-timer" gt "1.0.3-omnicar10-recovery"
+          echo ORIGINAL_SOLO_SILEO_VERSION_ORDER_PASS
+      - name: Build and sign ONLY NativeSoloTimer arm64
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C native-solo-timer clean all
+          LIB="$(find native-solo-timer/.theos/obj -maxdepth 2 -name OmniCarNativeSoloTimer.dylib -type f | head -n 1)"
+          test -s "$LIB"
+          lipo "$LIB" -verify_arch arm64
+          test -z "$(find . -path '*/.theos/obj/*' -name OmniCarSoloThreeDots.dylib -print -quit)"
+          test -z "$(find . -path '*/.theos/obj/*' -name OmniCarIdleControls.dylib -print -quit)"
+          test -z "$(find . -path '*/.theos/obj/*' -name OmniCarDoubleTapFullscreen.dylib -print -quit)"
+          test -z "$(find . -path '*/.theos/obj/*' -name OmniCarGraphiteTitanium.dylib -print -quit)"
+          echo ONLY_NATIVE_SOLO_VISUAL_TIMER_ARM64_LINK_SIGN_PASS
+      - name: Repack original DEB and verify every original file and sole timer
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p native-solo-artifacts
+          LIB="$(find native-solo-timer/.theos/obj -maxdepth 2 -name OmniCarNativeSoloTimer.dylib -type f | head -n 1)"
+          OUTPUT="native-solo-artifacts/com.anlai.omnicar_1.0.3-omnicar11-native-solo-timer_iphoneos-arm64.deb"
+          python3 scripts/assemble_original_native_solo_timer.py \
+            --original com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            --timer "$LIB" \
+            --plist native-solo-timer/OmniCarNativeSoloTimer.plist \
+            --output "$OUTPUT" \
+            --manifest native-solo-artifacts/BUILD-MANIFEST.json
+          dpkg-deb -c "$OUTPUT" > native-solo-artifacts/FILES.txt
+          dpkg-deb -I "$OUTPUT" > native-solo-artifacts/CONTROL-INFO.txt
+          (cd native-solo-artifacts && shasum -a 256 *.deb > SHA256SUMS.txt)
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root=Path("native-solo-artifacts")
+          m=json.loads((root/"BUILD-MANIFEST.json").read_text())
+          assert m["status"]=="ORIGINAL_SOLO_UNTOUCHED_176_ORIGINAL_FILES_PLUS_ONE_TIMER"
+          assert m["original_solo_untouched"] and m["legacy_qa7_qa8_qa9_addons_excluded"]
+          assert m["original_payload_file_count"]==176 and m["final_payload_file_count"]==178
+          assert len(m["added_native_files"])==2
+          assert m["changed_original_control_only"]=="Version"
+          assert m["sileo_published"] is False and m["carplay_device_tested"] is False
+          deb=root/m["output_filename"]
+          assert hashlib.sha256(deb.read_bytes()).hexdigest()==m["output_sha256"]
+          contents=(root/"FILES.txt").read_text()
+          assert contents.count("/OmniCarNativeSoloTimer.dylib")==1
+          assert contents.count("/OmniCarNativeSoloTimer.plist")==1
+          for forbidden in ("OmniCarSoloThreeDots.","OmniCarIdleControls.",
+                            "OmniCarDuoActivityIdle.","OmniCarDoubleTapFullscreen.",
+                            "OmniCarGraphiteTitanium."):
+              assert forbidden not in contents,forbidden
+          print("ORIGINAL_SOLO_176_PLUS_TIMER_2_ONLY_STRICT_DEB_CONTENTS_PASS")
+          PY
+          echo 'ORIGINAL_SOLO_RESTORED_TIMER_ONLY__NOT_DEVICE_TESTED__NOT_SILEO' > native-solo-artifacts/STATUS.txt
+          echo ORIGINAL_SOLO_TIMER_CANDIDATE_DEB_SHA256_VERIFIED_PASS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-Original-Solo-Only-4s-Timer-QA11-DEB
+          path: native-solo-artifacts/
+          retention-days: 90
+      - name: Archive only immutable verified candidate to Omnicar main
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="dist/candidates/omnicar-original-1.0.3-omnicar11-native-solo-timer"
+          test ! -e "$DEST/STATUS.txt" || { echo 'Refuse existing candidate overwrite'; exit 1; }
+          mkdir -p "$DEST"
+          cp native-solo-artifacts/* "$DEST/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -m 'artifact: original Solo unmodified plus sole 4s two-menu/divider timer [skip ci]'
+          for i in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo ORIGINAL_SOLO_TIMER_ARTIFACT_GITHUB_ARCHIVED_PASS
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
