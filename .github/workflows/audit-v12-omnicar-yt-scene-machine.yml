@@ -6,6 +6,7 @@ on:
       - scripts/audit_v12_omnicar_geometry_machine.py
       - scripts/audit_v12_omnicar_scene_calls.py
       - scripts/audit_omnicar_sbscene_reference_hook.py
+      - scripts/audit_omnicar_layout_geometry_policy.py
       - .github/workflows/audit-v12-omnicar-yt-scene-machine.yml
   workflow_dispatch:
 permissions:
@@ -38,7 +39,7 @@ jobs:
           echo '8b7dedf77b9ec05465b83fdb6e2d7127800eac232a34ecf12f2c08b3983a481a  duoface-reference/dist/visual-1.0.3-12/com.duoface.app_1.0.3-12_visualtest_iphoneos-arm64.deb' | sha256sum -c -
           python3 -m venv "$RUNNER_TEMP/v12-geometry-venv"
           "$RUNNER_TEMP/v12-geometry-venv/bin/python" -m pip install capstone==5.0.7
-          "$RUNNER_TEMP/v12-geometry-venv/bin/python" -m py_compile scripts/audit_v12_omnicar_geometry_machine.py scripts/audit_v12_omnicar_scene_calls.py scripts/audit_omnicar_sbscene_reference_hook.py
+          "$RUNNER_TEMP/v12-geometry-venv/bin/python" -m py_compile scripts/audit_v12_omnicar_geometry_machine.py scripts/audit_v12_omnicar_scene_calls.py scripts/audit_omnicar_sbscene_reference_hook.py scripts/audit_omnicar_layout_geometry_policy.py
       - name: Disassemble original per-app native/referenceSize flows without modifying either package
         shell: bash
         run: |
@@ -93,13 +94,31 @@ jobs:
           assert isinstance(d['class_or_selector_address_references'],list)
           print('OMNICAR_SBSCENE_XREF_REPORT_INTEGRITY_PASS')
           PY
+      - name: Verify exact bounds vs logical frame vs sceneBox Native12 comparison
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/v12-geometry-venv/bin/python" scripts/audit_omnicar_layout_geometry_policy.py \
+            --duoface duoface-reference/dist/visual-1.0.3-12/com.duoface.app_1.0.3-12_visualtest_iphoneos-arm64.deb \
+            --omnicar com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            --output audit/omnicar_native12_verified_layout_policy_20261023.json | tee "$RUNNER_TEMP/layout-policy-evidence.log"
+          grep -q 'OMNICAR_NATIVE12_SHA_PINNED_GEOMETRY_INVARIANTS_PASS__DEVICE_UNTESTED' "$RUNNER_TEMP/layout-policy-evidence.log"
+          python3 - <<'PY'
+          import json
+          d=json.load(open('audit/omnicar_native12_verified_layout_policy_20261023.json'))
+          assert 'DEVICE_UNTESTED' in d['status']
+          assert len(d['omnicar'])==3 and len(d['duoface'])==4
+          assert all(v['anchor_count']==len(v['verified_anchors'])
+                     for side in ('duoface','omnicar') for v in d[side].values())
+          print('OMNICAR_NATIVE12_LAYOUT_POLICY_JSON_INTEGRITY_PASS')
+          PY
       - name: Archive verified disassembly under OmniCar audit (never modify DuoFace or QA12)
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- audit/native12_vs_omnicar_yt_scene_arm64_20261023.json audit/native12_vs_omnicar_scene_selector_calls_20261023.json audit/omnicar_original_sbscene_reference_hook_20261023.json
+          git add -- audit/native12_vs_omnicar_yt_scene_arm64_20261023.json audit/native12_vs_omnicar_scene_selector_calls_20261023.json audit/omnicar_original_sbscene_reference_hook_20261023.json audit/omnicar_native12_verified_layout_policy_20261023.json
           if git diff --cached --quiet; then
             echo 'READONLY_AUDIT_REPORT_ALREADY_ARCHIVED'
           else
@@ -116,4 +135,5 @@ jobs:
             audit/native12_vs_omnicar_yt_scene_arm64_20261023.json
             audit/native12_vs_omnicar_scene_selector_calls_20261023.json
             audit/omnicar_original_sbscene_reference_hook_20261023.json
+            audit/omnicar_native12_verified_layout_policy_20261023.json
           if-no-files-found: warn
