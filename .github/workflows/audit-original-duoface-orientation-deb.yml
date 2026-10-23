@@ -1,0 +1,79 @@
+name: Original DuoFace Native12 versus OmniCar scene rotation selector map (NO DEB)
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/audit_original_duoface_orientation_policy.py
+      - .github/workflows/audit-original-duoface-orientation-deb.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: omnicar-original-orientation-evidence
+  cancel-in-progress: false
+jobs:
+  compare-originals:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout actual OmniCar repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Checkout original pinned DuoFace Native12 read-only reference
+        uses: actions/checkout@v4
+        with:
+          repository: chuongnguyen89dn-ui/Duoface
+          ref: 6193b9e77337fd1e9d586da5e5bf39742d041d2d
+          path: duoface-reference
+          persist-credentials: false
+      - name: Verify both original DEBs, install ARM64 decoder
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'd9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  com.anlai.omnicar_1.0.3_iphoneos-arm64.deb' | sha256sum -c -
+          echo '8b7dedf77b9ec05465b83fdb6e2d7127800eac232a34ecf12f2c08b3983a481a  duoface-reference/dist/visual-1.0.3-12/com.duoface.app_1.0.3-12_visualtest_iphoneos-arm64.deb' | sha256sum -c -
+          python3 -m venv "$RUNNER_TEMP/original-duo-orient-env"
+          "$RUNNER_TEMP/original-duo-orient-env/bin/python" -m pip install capstone==5.0.7
+          "$RUNNER_TEMP/original-duo-orient-env/bin/python" -m py_compile             scripts/audit_v12_omnicar_geometry_machine.py             scripts/audit_v12_omnicar_scene_calls.py             scripts/audit_original_duoface_orientation_policy.py
+      - name: Recover exact original DuoFace and OmniCar scene/rotation selector references
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/original-duo-orient-env/bin/python" scripts/audit_original_duoface_orientation_policy.py             --duoface duoface-reference/dist/visual-1.0.3-12/com.duoface.app_1.0.3-12_visualtest_iphoneos-arm64.deb             --omnicar com.anlai.omnicar_1.0.3_iphoneos-arm64.deb             --output audit/omnicar_vs_duoface_native12_orientation_selector_evidence_20261023.json             | tee "$RUNNER_TEMP/original-duo-orient.log"
+          grep -q 'ORIGINAL_DUOFACE_OMNICAR_ORIENTATION_SELECTOR_PROVENANCE_PASS__DEVICE_UNTESTED'             "$RUNNER_TEMP/original-duo-orient.log"
+          python3 - <<'PY'
+          import json
+          p='audit/omnicar_vs_duoface_native12_orientation_selector_evidence_20261023.json'
+          d=json.load(open(p))
+          assert d['sources']['duoface_deb_sha256']=='8b7dedf77b9ec05465b83fdb6e2d7127800eac232a34ecf12f2c08b3983a481a'
+          assert d['sources']['omnicar_deb_sha256']=='d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd'
+          assert len(d['duoface']['methods'])==6 and len(d['omnicar']['methods'])==3
+          assert d['duoface']['__objc_selrefs'] and d['omnicar']['__objc_selrefs']
+          assert all(m['instructions']>0 for side in ('duoface','omnicar') for m in d[side]['methods'].values())
+          assert d['status'].endswith('DEVICE_UNTESTED')
+          print('BOTH_ORIGINAL_DEBS_SELECTOR_EVIDENCE_FILE_INTEGRITY_PASS')
+          PY
+      - name: Archive read-only evidence in OmniCar, never overwrite published QA12/13/14
+        shell: bash
+        run: |
+          set -euo pipefail
+          P="audit/omnicar_vs_duoface_native12_orientation_selector_evidence_20261023.json"
+          git add "$P"
+          if git diff --cached --quiet; then
+            echo ORIGINAL_DEB_ORIENTATION_REPORT_ALREADY_ARCHIVED
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m 'audit: archive decoded original DuoFace and OmniCar scene selectors [skip ci]'
+          for i in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo ORIGINAL_DEB_ORIENTATION_REPORT_ARCHIVED_GITHUB_PASS
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
