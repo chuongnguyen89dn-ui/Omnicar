@@ -7,6 +7,7 @@ on:
       - scripts/audit_v12_omnicar_scene_calls.py
       - scripts/audit_omnicar_sbscene_reference_hook.py
       - scripts/audit_omnicar_layout_geometry_policy.py
+      - scripts/audit_omnicar_scene_private_selectors.py
       - .github/workflows/audit-v12-omnicar-yt-scene-machine.yml
   workflow_dispatch:
 permissions:
@@ -39,7 +40,7 @@ jobs:
           echo '8b7dedf77b9ec05465b83fdb6e2d7127800eac232a34ecf12f2c08b3983a481a  duoface-reference/dist/visual-1.0.3-12/com.duoface.app_1.0.3-12_visualtest_iphoneos-arm64.deb' | sha256sum -c -
           python3 -m venv "$RUNNER_TEMP/v12-geometry-venv"
           "$RUNNER_TEMP/v12-geometry-venv/bin/python" -m pip install capstone==5.0.7
-          "$RUNNER_TEMP/v12-geometry-venv/bin/python" -m py_compile scripts/audit_v12_omnicar_geometry_machine.py scripts/audit_v12_omnicar_scene_calls.py scripts/audit_omnicar_sbscene_reference_hook.py scripts/audit_omnicar_layout_geometry_policy.py
+          "$RUNNER_TEMP/v12-geometry-venv/bin/python" -m py_compile scripts/audit_v12_omnicar_geometry_machine.py scripts/audit_v12_omnicar_scene_calls.py scripts/audit_omnicar_sbscene_reference_hook.py scripts/audit_omnicar_layout_geometry_policy.py scripts/audit_omnicar_scene_private_selectors.py
       - name: Disassemble original per-app native/referenceSize flows without modifying either package
         shell: bash
         run: |
@@ -112,13 +113,29 @@ jobs:
                      for side in ('duoface','omnicar') for v in d[side].values())
           print('OMNICAR_NATIVE12_LAYOUT_POLICY_JSON_INTEGRITY_PASS')
           PY
+      - name: Decode exact private scene selector CFStrings used by ABHost layout (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/v12-geometry-venv/bin/python" scripts/audit_omnicar_scene_private_selectors.py \
+            --omnicar com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            --output audit/omnicar_original_private_scene_selectors_20261023.json | tee "$RUNNER_TEMP/private-scene-selectors.log"
+          grep -q 'OMNICAR_SHA_PINNED_PRIVATE_SCENE_SELECTOR_MAP_PASS__DEVICE_UNTESTED' "$RUNNER_TEMP/private-scene-selectors.log"
+          python3 - <<'PY'
+          import json
+          d=json.load(open('audit/omnicar_original_private_scene_selectors_20261023.json'))
+          assert len(d['original_cfstrings_and_dynamic_selectors'])==3
+          assert len(d['all_NSSelectorFromString_calls'])==3
+          assert all(x['decoded_exact_selector'] for x in d['original_cfstrings_and_dynamic_selectors'])
+          print('OMNICAR_PRIVATE_SCENE_SELECTOR_JSON_INTEGRITY_PASS')
+          PY
       - name: Archive verified disassembly under OmniCar audit (never modify DuoFace or QA12)
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- audit/native12_vs_omnicar_yt_scene_arm64_20261023.json audit/native12_vs_omnicar_scene_selector_calls_20261023.json audit/omnicar_original_sbscene_reference_hook_20261023.json audit/omnicar_native12_verified_layout_policy_20261023.json
+          git add -- audit/native12_vs_omnicar_yt_scene_arm64_20261023.json audit/native12_vs_omnicar_scene_selector_calls_20261023.json audit/omnicar_original_sbscene_reference_hook_20261023.json audit/omnicar_native12_verified_layout_policy_20261023.json audit/omnicar_original_private_scene_selectors_20261023.json
           if git diff --cached --quiet; then
             echo 'READONLY_AUDIT_REPORT_ALREADY_ARCHIVED'
           else
@@ -136,4 +153,5 @@ jobs:
             audit/native12_vs_omnicar_scene_selector_calls_20261023.json
             audit/omnicar_original_sbscene_reference_hook_20261023.json
             audit/omnicar_native12_verified_layout_policy_20261023.json
+            audit/omnicar_original_private_scene_selectors_20261023.json
           if-no-files-found: warn
