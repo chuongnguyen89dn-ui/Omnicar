@@ -8,7 +8,7 @@ import re
 
 root=Path(__file__).resolve().parents[1]
 source=(root/"youtube-scene-qa14/src/OmniCarYouTubeScene.xm").read_text()
-pack=(root/"scripts/assemble_qa14_youtube_scene_candidate.py").read_text()
+pack=(root/"scripts/assemble_qa14_youtube_orientation_candidate.py").read_text()
 plist=(root/"youtube-scene-qa14/OmniCarYouTubeScene.plist").read_text()
 two=(root/"src/OmniCarDoubleTapFullscreen.xm").read_bytes()
 timer=(root/"native-solo-timer/src/OmniCarNativeSoloTimer.xm").read_bytes()
