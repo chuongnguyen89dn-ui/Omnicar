@@ -19,6 +19,7 @@ from audit_v12_omnicar_geometry_machine import (
     OMNI_DEB_SHA,OMNI_DYLIB_SHA,DUO,OMNI)
 from audit_v12_omnicar_scene_calls import (
     sections_and_stubs,selector_pointer,section_for)
+from audit_omnicar_scene_private_selectors import cf_string
 
 DUO_METHODS=[
  "CBBridgedUIAppView.updateSceneSettingsFrame",
@@ -150,11 +151,64 @@ def report(duo:Path,omni:Path):
         for name in focus:
             out[side]["methods"][name]=method_report(arm,sec,imports,name,*methods[name])
         if side=="duoface":
+
+            # Original Native12 calls BOTH reference-size setters with exact
+            # integer orientation value 1 in updateSceneSettingsFrame and updateLayout.
+            def check_pcs(method, anchors):
+                st,en=methods[method]
+                cs=Cs(CS_ARCH_ARM64,CS_MODE_ARM)
+                ins={x.address:x.mnemonic+" "+x.op_str for x in cs.disasm(arm[st:en],st)}
+                for pc,want in anchors.items():
+                    if ins.get(pc)!=want:
+                        raise AssertionError("NATIVE12_ORIGINAL_ANCHOR_CHANGED "+hex(pc)+" "+str(ins.get(pc)))
+                return [{"pc":hex(pc),"asm":want} for pc,want in anchors.items()]
+            settings={
+                0xad66c:"ldr x21, [x8, #0x308]",
+                0xad694:"mov x1, x21",
+                0xad6a0:"mov w2, #1",
+                0xad6a4:"bl #0x2ecd00",
+                0xad6ac:"ldr x23, [x8, #0x310]",
+                0xad6c8:"mov x1, x23",
+                0xad6d4:"mov w2, #1",
+                0xad6d8:"mov w3, #1",
+                0xad6dc:"bl #0x2ecd00"}
+            layout={
+                0xacf9c:"ldr x24, [x8, #0x308]",
+                0xacfbc:"mov x1, x24",
+                0xacfc8:"mov w2, #1",
+                0xacfcc:"bl #0x2ecd00",
+                0xacfd4:"ldr x24, [x8, #0x310]",
+                0xacff0:"mov x1, x24",
+                0xacffc:"mov w2, #1",
+                0xad000:"mov w3, #1",
+                0xad004:"bl #0x2ecd00"}
+            sel1="setContentReferenceSize:withInterfaceOrientation:"
+            sel2="setContentReferenceSize:withContentOrientation:andContainerOrientation:"
+            for method in ("CBBridgedUIAppView.updateSceneSettingsFrame",
+                           "CBBridgedUIAppView.updateLayout"):
+                refs=out[side]["methods"][method]["all_resolved_selector_loads"]
+                assert all(any(x["selector"]==want for x in refs) for want in (sel1,sel2))
+            try:
+                key=cf_string(arm,sec,0x370c28)
+            except (ValueError,UnicodeDecodeError) as err:
+                key={"cfstring_candidate":"0x370c28","decode_error":str(err)}
+            out[side]["verified_scene_reference_policy"]={
+                "valueForKey_cfstring":key,
+                "updateSceneSettingsFrame":check_pcs("CBBridgedUIAppView.updateSceneSettingsFrame",settings),
+                "updateLayout":check_pcs("CBBridgedUIAppView.updateLayout",layout),
+                "method_with_interface_orientation":sel1,
+                "method_with_content_and_container_orientation":sel2,
+                "content_and_container_orientation_numeric_1_in_both_paths":True,
+                "limits":"Static original disassembly, does not prove actual YouTube runtime path."}
             # Immutable original explicitly calls these at verified offsets.
             root=out[side]["methods"]["CBBridgedUIAppView.refreshSceneLayout"]
             root["known_hardcoded_arm64_sequence"]=[
                 "0xade74 objc_msgSend updateLayout",
                 "0xade84 objc_msgSend updateSceneSettingsFrame"]
+    out["omnicar"]["duoface_scene_reference_setters_in_omnicar_appbridge"]= {
+        "has_selector_interface":b"setContentReferenceSize:withInterfaceOrientation:" in arm,
+        "has_selector_container":b"setContentReferenceSize:withContentOrientation:andContainerOrientation:" in arm,
+        "caution":"checked OmniCarAppBridge dylib only; absence does not imply other dylibs lack it."}
     return out
 
 def main():
