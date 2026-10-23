@@ -13,7 +13,7 @@ plist=(root/"youtube-scene/OmniCarYouTubeScene.plist").read_text()
 two=(root/"src/OmniCarDoubleTapFullscreen.xm").read_bytes()
 timer=(root/"native-solo-timer/src/OmniCarNativeSoloTimer.xm").read_bytes()
 
-assert hashlib.sha1(b"blob "+str(len(two)).encode()+b"\\0"+two).hexdigest()=="93d8fa2e912029e33391e9834f07463bef39d037"
+assert hashlib.sha1(b"blob "+str(len(two)).encode()+b"\0"+two).hexdigest()=="93d8fa2e912029e33391e9834f07463bef39d037"
 assert b"static const NSTimeInterval kOMCNativeIdleSeconds=4.0" in timer
 assert "com.apple.UIKit" in plist and "Filter" in plist
 assert '@"com.google.ios.youtube"' in source
