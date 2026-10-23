@@ -18,9 +18,9 @@ jobs:
           set -euo pipefail
           SITE='https://chuongnguyen89dn-ui.github.io/carplaydsp'
           PKG='com.anlai.omnicar'
-          VER='1.0.3-omnicar14-youtube-orientation'
-          FILE='com.anlai.omnicar_1.0.3-omnicar14-youtube-orientation_iphoneos-arm64.deb'
-          SHA='b29108a568b96ed7447a2000bc26d451d3399c16175a966a08d3b8d09fb808ac'
+          VER='1.0.3-omnicar15-native-reference'
+          FILE='com.anlai.omnicar_1.0.3-omnicar15-native-reference_iphoneos-arm64.deb'
+          SHA='8ced924b6a5a5930977e15f67e47867547b300f84c1c56ebbc8a7bde4835e0c7'
           PACKAGES="$RUNNER_TEMP/OmniCarPackages"
           for attempt in $(seq 1 48); do
             curl -fsSL --retry 2 --max-time 20 "$SITE/Packages" -o "$PACKAGES" || true
@@ -76,8 +76,8 @@ jobs:
           test "$(grep -Fc '/OmniCarYouTubeScene.plist' "$RUNNER_TEMP/OmniContents")" -eq 1
           for banned in OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium OmniCarDuoActivityIdle; do
             if grep -Fq "/$banned." "$RUNNER_TEMP/OmniContents"; then
-              echo "Unexpected experimental Solo/Idle module in QA12: $banned" >&2
+              echo "Unexpected experimental Solo/Idle module in QA15: $banned" >&2
               exit 1
             fi
           done
-          echo 'OMNICAR_QA14_LIVE_SILEO_YOUTUBE_ORIENTATION_EXACT_SHA256_PASS__DEVICE_UNTESTED'
+          echo 'OMNICAR_QA15_LIVE_SILEO_NATIVE_REFERENCE_EXACT_SHA256_PASS__DEVICE_UNTESTED'
