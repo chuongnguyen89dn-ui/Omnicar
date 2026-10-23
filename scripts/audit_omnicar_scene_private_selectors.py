@@ -41,6 +41,7 @@ def cf_string(arm:bytes,sections:dict,pc:int) -> dict:
     flags=struct.unpack_from("<Q",arm,pc+8)[0]
     offset=struct.unpack_from("<Q",arm,pc+16)[0]
     length=struct.unpack_from("<Q",arm,pc+24)[0]
+    if offset>=len(arm): offset &= (1<<48)-1
     if offset>=len(arm) or length>512:
         raise ValueError(f"BAD_CFSTRING_BOUNDARY {pc:#x} data_offset={offset:#x} length={length}")
     if flags&0x10:
