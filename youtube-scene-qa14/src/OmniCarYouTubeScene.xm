@@ -1,0 +1,225 @@
+// QA14 YouTube stable landscape scene orientation + QA13 verified layout candidate.
+// Owner: ABHost, not SCPCarSplit. Preserve native split, Solo, Zoom/Swap,
+// 4-second timer, Chrome/Dock, gestures and non-YouTube AppBridge panes.
+// The 0.50 scale is derived from DuoFace Native12 verified 2x native size.
+// It is an unconfirmed device hypothesis, not a proven pixel-perfect fix.
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+#import <objc/runtime.h>
+#import <objc/message.h>
+#import <math.h>
+#import <string.h>
+
+@interface ABHost : NSObject
+- (double)zoom;
+- (void)layoutPane:(id)pane;
+- (NSInteger)effectiveOrientation:(id)pane;
+@end
+
+static NSString * const kOMCYTID=@"com.google.ios.youtube";
+static __thread BOOL gOMCInYoutubeLayout=NO;
+static __thread NSUInteger gOMCLayoutNesting=0;
+static BOOL gOMCHooksInstalled=NO;
+static const double kOMCYTNative12CandidateScale=0.50;
+static char kOMCYTOrientationStateKey;
+static const CGFloat kOMCMinPaneDimension=2.0;
+
+// Avoid sending a guessed object-return message to a method whose return type
+// is BOOL/CGRect/CGSize/void, which can corrupt arm64 registers or crash.
+static id OMCReadObjectGetter(id object,NSString *name) {
+    if(!object || ![object isKindOfClass:NSObject.class] || name.length==0)return nil;
+    SEL sel=NSSelectorFromString(name);
+    NSMethodSignature *sig=[object methodSignatureForSelector:sel];
+    if(!sig || sig.numberOfArguments!=2 || !sig.methodReturnType ||
+       sig.methodReturnType[0]!='@' || ![object respondsToSelector:sel])return nil;
+    return ((id(*)(id,SEL))objc_msgSend)(object,sel);
+}
+static NSString *OMCYTFindBundle(id object,NSUInteger depth) {
+    if(!object || depth>2)return nil;
+    if([object isKindOfClass:NSString.class]) {
+        NSString *s=(NSString *)object;
+        return [s isEqualToString:kOMCYTID]?s:nil;
+    }
+    if(![object isKindOfClass:NSObject.class])return nil;
+    // Only inspect explicitly named, object-returning properties.
+    NSArray<NSString *> *properties=@[
+        @"bundleIdentifier", @"bundleID", @"bundleId",
+        @"appBundleIdentifier", @"appID", @"app",
+        @"application", @"bundle", @"identifier"
+    ];
+    for(NSString *key in properties) {
+        id value=OMCReadObjectGetter(object,key);
+        if(value && value!=object) {
+            NSString *found=OMCYTFindBundle(value,depth+1);
+            if(found)return found;
+        }
+    }
+    // Original ABPane may store its app as an object ivar, not a property.
+    // Inspect only object-type ivars whose NAME denotes app/bundle; no KVC.
+    unsigned int count=0;
+    Ivar *fields=class_copyIvarList(object_getClass(object),&count);
+    if(fields) {
+        for(unsigned int i=0;i<count;i++) {
+            const char *name=ivar_getName(fields[i]);
+            const char *type=ivar_getTypeEncoding(fields[i]);
+            if(!name || !type || type[0]!='@')continue;
+            NSString *key=[[NSString stringWithUTF8String:name] lowercaseString];
+            if(![key containsString:@"app"] && ![key containsString:@"bundle"])continue;
+            id value=object_getIvar(object,fields[i]);
+            if(value && value!=object) {
+                NSString *found=OMCYTFindBundle(value,depth+1);
+                if(found) {
+                    free(fields);
+                    return found;
+                }
+            }
+        }
+        free(fields);
+    }
+    return nil;
+}
+
+static BOOL OMCReadCGSize(id obj,SEL selector,CGSize *out) {
+    if(!obj || !out || ![obj respondsToSelector:selector])return NO;
+    NSMethodSignature *sig=[obj methodSignatureForSelector:selector];
+    if(!sig || sig.numberOfArguments!=2 ||
+       sig.methodReturnLength!=sizeof(CGSize) ||
+       strncmp(sig.methodReturnType,"{CGSize=",8)!=0)return NO;
+    CGSize value=((CGSize(*)(id,SEL))objc_msgSend)(obj,selector);
+    if(!isfinite(value.width) || !isfinite(value.height))return NO;
+    *out=value;
+    return YES;
+}
+static BOOL OMCPaneSize(id pane,CGSize *size) {
+    id controller=OMCReadObjectGetter(pane,@"appViewController");
+    id view=OMCReadObjectGetter(controller,@"view");
+    if(![view isKindOfClass:UIView.class]) {
+        view=OMCReadObjectGetter(pane,@"view");
+    }
+    if(![view isKindOfClass:UIView.class])return NO;
+    CGSize bounds=((UIView *)view).bounds.size;
+    if(!isfinite(bounds.width)||!isfinite(bounds.height))return NO;
+    *size=bounds;
+    return YES;
+}
+static NSString *OMCSizeString(CGSize v,BOOL valid) {
+    return valid?[NSString stringWithFormat:@"%.1fx%.1f",v.width,v.height]:@"unknown";
+}
+// The original ABHost.effectiveOrientation: first uses ABPane.requestedOrientation
+// (original ARM64 0xf380, 0xf390), then ABPane.orientation when <1 (0xf39c).
+// YouTube fullscreen can request the OPPOSITE landscape orientation, rotating
+// only YouTube 180 degrees while native CarPlay maps and Dock remain upright.
+// Pin whichever landscape orientation the original first selects for this pane.
+@interface OMCYTOrientationState : NSObject
+@property(nonatomic) BOOL locked;
+@property(nonatomic) NSInteger orientation;
+@end
+@implementation OMCYTOrientationState @end
+
+static OMCYTOrientationState *OMCYTOrientationStateForPane(id pane) {
+    OMCYTOrientationState *state=objc_getAssociatedObject(pane,&kOMCYTOrientationStateKey);
+    if(!state) {
+        state=[OMCYTOrientationState new];
+        objc_setAssociatedObject(pane,&kOMCYTOrientationStateKey,state,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    return state;
+}
+%hook ABHost
+- (NSInteger)effectiveOrientation:(id)pane {
+    NSInteger observed=%orig;
+    if(!pane || ![pane isKindOfClass:NSObject.class])return observed;
+    if(!OMCYTFindBundle(pane,0)) {
+        // Avoid retaining a YouTube-specific choice if the original ABPane
+        // instance is recycled to Maps or a different external application.
+        objc_setAssociatedObject(pane,&kOMCYTOrientationStateKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return observed;
+    }
+    if(observed!=UIInterfaceOrientationLandscapeLeft &&
+       observed!=UIInterfaceOrientationLandscapeRight) {
+        OMCYTOrientationState *present=objc_getAssociatedObject(pane,&kOMCYTOrientationStateKey);
+        if(present.locked) {
+            NSLog(@"[OmniCarYTSceneQA14] event=orientation-locked original=%ld selected=%ld nonlandscape-rejected=1",
+                  (long)observed,(long)present.orientation);
+            return present.orientation;
+        }
+        NSLog(@"[OmniCarYTSceneQA14] event=orientation-await-landscape original=%ld",
+              (long)observed);
+        return observed;
+    }
+    OMCYTOrientationState *state=OMCYTOrientationStateForPane(pane);
+    if(!state.locked){
+        state.orientation=observed;
+        state.locked=YES;
+        NSLog(@"[OmniCarYTSceneQA14] event=orientation-first-landscape-pinned selected=%ld",
+              (long)state.orientation);
+    }else if(observed!=state.orientation) {
+        NSLog(@"[OmniCarYTSceneQA14] event=orientation-flip-rejected original=%ld selected=%ld",
+              (long)observed,(long)state.orientation);
+    }
+    return state.orientation;
+}
+
+- (double)zoom {
+    double original=%orig;
+    if(!gOMCInYoutubeLayout || gOMCLayoutNesting==0)return original;
+    if(!isfinite(original)||original<=0)return original;
+    // ABHost.layoutPane computes logical UIView frame=bounds/zoom AND applies
+    // matching transform; it also sends UIKit scene setFrame/orientation.
+    // Calling its ORIGINAL implementation keeps all three paths coherent.
+    return kOMCYTNative12CandidateScale;
+}
+- (void)layoutPane:(id)pane {
+    // Fail closed: unknown owner or app remains byte-identical original path.
+    BOOL isYoutube=(OMCYTFindBundle(pane,0)!=nil);
+    CGSize physical=CGSizeZero, sceneBefore=CGSizeZero,sceneAfter=CGSizeZero;
+    BOOL measured=NO, beforeValid=NO, afterValid=NO;
+    if(!isYoutube && pane && [pane isKindOfClass:NSObject.class])
+        objc_setAssociatedObject(pane,&kOMCYTOrientationStateKey,nil,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if(isYoutube){
+        measured=OMCPaneSize(pane,&physical);
+        beforeValid=OMCReadCGSize(pane,@selector(sceneBox),&sceneBefore);
+        // Never apply an unmeasured transform. A foreign UIView owner or
+        // a zero-sized pane must execute the original AppBridge path.
+        if(!measured || physical.width<kOMCMinPaneDimension ||
+           physical.height<kOMCMinPaneDimension)isYoutube=NO;
+    }
+    BOOL prior=gOMCInYoutubeLayout;
+    NSUInteger priorDepth=gOMCLayoutNesting;
+    gOMCInYoutubeLayout=isYoutube;
+    gOMCLayoutNesting=priorDepth+1;
+    @try {
+        %orig;
+    } @finally {
+        gOMCInYoutubeLayout=prior;
+        gOMCLayoutNesting=priorDepth;
+    }
+    if(isYoutube) {
+        afterValid=OMCReadCGSize(pane,@selector(sceneBox),&sceneAfter);
+        // Numbers only: never log YouTube account, video title, URL or media.
+        NSLog(@"[OmniCarYTSceneQA14] event=scene-layout app=youtube policy=native12-2x-candidate physical=%@ sceneBefore=%@ sceneAfter=%@ scale=0.50",
+              OMCSizeString(physical,measured),
+              OMCSizeString(sceneBefore,beforeValid),
+              OMCSizeString(sceneAfter,afterValid));
+    }
+}
+%end
+
+static void OMCYTTryInstall(NSUInteger retries){
+    if(gOMCHooksInstalled)return;
+    if(!NSClassFromString(@"ABHost")){
+        if(retries<25)dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.4*NSEC_PER_SEC)),
+            dispatch_get_main_queue(),^{ OMCYTTryInstall(retries+1); });
+        return;
+    }
+    %init;
+    gOMCHooksInstalled=YES;
+    NSLog(@"[OmniCarYTSceneQA14] event=hook-ready exact-youtube-only orientation-guard=first-landscape nativeSplit=untouched");
+}
+%ctor {
+    @autoreleasepool {
+        NSString *bundle=NSBundle.mainBundle.bundleIdentifier.lowercaseString?:@"";
+        if([bundle isEqualToString:@"com.apple.carplayapp"] ||
+           [bundle isEqualToString:@"com.apple.springboard"])
+            dispatch_async(dispatch_get_main_queue(),^{ OMCYTTryInstall(0); });
+    }
+}
