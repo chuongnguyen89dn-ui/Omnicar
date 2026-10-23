@@ -121,8 +121,10 @@ static NSString *OMCSizeString(CGSize v,BOOL valid) {
     if(isYoutube){
         measured=OMCPaneSize(pane,&physical);
         beforeValid=OMCReadCGSize(pane,@selector(sceneBox),&sceneBefore);
-        if(measured && (physical.width<kOMCMinPaneDimension ||
-                        physical.height<kOMCMinPaneDimension))isYoutube=NO;
+        // Never apply an unmeasured transform. A foreign UIView owner or
+        // a zero-sized pane must execute the original AppBridge path.
+        if(!measured || physical.width<kOMCMinPaneDimension ||
+           physical.height<kOMCMinPaneDimension)isYoutube=NO;
     }
     BOOL prior=gOMCInYoutubeLayout;
     NSUInteger priorDepth=gOMCLayoutNesting;
