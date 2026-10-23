@@ -105,7 +105,7 @@ static NSString *OMCSizeString(CGSize v,BOOL valid) {
     return valid?[NSString stringWithFormat:@"%.1fx%.1f",v.width,v.height]:@"unknown";
 }
 // QA15: DuoFace original controls native content reference size and BOTH
-// content/container orientation domains. QA15 pin-native-reference was wrong;
+// content/container orientation domains. QA14 first-landscape pin was wrong;
 // preserve OmniCar's native effectiveOrientation instead of arbitrary pinning.
 static BOOL OMCYTSendReference(id receiver,CGSize nativeSize) {
     if(!receiver || ![receiver isKindOfClass:NSObject.class])return NO;
@@ -155,7 +155,7 @@ static id OMCYTPrivateDeviceController(id appController) {
 }
 %hook ABHost
 - (NSInteger)effectiveOrientation:(id)pane {
-    // QA15 pinned the first arbitrary landscape and could lock the WRONG
+    // QA14 pinned the first arbitrary landscape and could lock the WRONG
     // 180-degree direction. Do NOT override original orientation any more.
     return %orig;
 }
