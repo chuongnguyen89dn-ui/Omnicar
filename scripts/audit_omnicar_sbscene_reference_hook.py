@@ -196,7 +196,13 @@ def analyze(original:Path):
                           "saved_original_imp_slot":hex(orig_slot),
                           "proof":"static x0 class,x1 SEL,x2 replacement,x3 original-slot setup"})
         hook_d=Cs(CS_ARCH_ARM64,CS_MODE_ARM); hook_d.detail=True
-        span=list(hook_d.disasm(arm[hook_fn:min(len(arm),hook_fn+0x900)],hook_fn))
+        inspected=list(hook_d.disasm(arm[hook_fn:min(len(arm),hook_fn+0x900)],hook_fn))
+        # The very first unconditional terminal instruction bounds THIS tiny
+        # trampoline; disassembly beyond it would conflate unrelated methods.
+        tail_index=next((j for j,x in enumerate(inspected)
+                         if x.mnemonic in ("ret","br")),None)
+        if tail_index is None:raise ValueError("UNBOUNDED_REFERENCE_HOOK")
+        span=inspected[:tail_index+1]
         calls_in_hook=[]
         for t,ins in enumerate(span):
             if ins.mnemonic not in ("bl","blr"): continue
@@ -214,10 +220,20 @@ def analyze(original:Path):
                     stub_sel,_=nearby_selref(arm,sections,stub_ins,ix)
             calls_in_hook.append({"pc":hex(ins.address),"target":hex(target) if target is not None else None,
                                   "import":direct_import,"selector":stub_sel or inline_sel})
-        hook_bodies.append({"entry":hex(hook_fn),"end_exclusive":hex(hook_fn+0x900),
-                            "boundary_note":"bounded inspection window, not verified method length",
+        exclusive=span[-1].address+4
+        hook_bodies.append({"entry":hex(hook_fn),"end_exclusive":hex(exclusive),
+                            "boundary_note":"first terminal ret/br, verifies handler only; later functions excluded",
                             "instruction_count":len(span),
                             "ret_pcs":[hex(x.address) for x in span if x.mnemonic=="ret"],
+                            "terminal_instruction":span[-1].mnemonic+" "+span[-1].op_str,
+                            "branch_register_x3_original_slot_matches":(
+                                len(span)>=2 and span[1].mnemonic=="ldr" and
+                                "#0xa08" in span[1].op_str and
+                                orig_slot==0x3ea08 and span[-1].mnemonic=="br" and
+                                span[-1].op_str=="x3"),
+                            "x2_value_policy_asm_only":[
+                                {"pc":hex(x.address),"asm":x.mnemonic+" "+x.op_str}
+                                for x in span if x.mnemonic in ("cmp","mov","csel")],
                             "callers":calls_in_hook,
                             "instructions":[{"pc":hex(x.address),"asm":x.mnemonic+" "+x.op_str}
                                             for x in span]})
