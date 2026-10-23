@@ -50,6 +50,7 @@ def audit(arm:bytes)->dict:
     if not sec_text["start"]<=BLOCK_PC<sec_text["end"]:raise ValueError("BLOCK_POINTER_OUTSIDE_TEXT")
     allins=list(d.disasm(arm[BLOCK_PC:INSPECTION_END],BLOCK_PC))
     if len(allins)!=(INSPECTION_END-BLOCK_PC)//4:raise ValueError("BLOCK_INSPECTION_INCOMPLETE")
+    settings_selectors=[cf_string(arm,sec,pc) for pc in (0x36190,0x361b0,0x361d0,0x361f0)]
     calls=[]
     for i,op in enumerate(allins):
         if op.mnemonic not in ("bl","blr"):continue
