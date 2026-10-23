@@ -22,7 +22,7 @@ from capstone.arm64 import ARM64_OP_IMM, ARM64_OP_MEM, ARM64_OP_REG
 from audit_v12_omnicar_geometry_machine import (
     checked_payload, arm64_slice, OMNI_DEB_SHA, OMNI_DYLIB_SHA,
 )
-from audit_v12_omnicar_scene_calls import sections_and_stubs
+from audit_v12_omnicar_scene_calls import sections_and_stubs, nearby_selref
 
 SELECTORS = (
     "_updateReferenceSize:andOrientation:", "setSceneBox:", "sceneBox",
@@ -86,6 +86,25 @@ def refs_from_arm(arm: bytes, sections:dict, target_set:set[int]):
                 break
     return ins,references
 
+def adrp_add_value(instructions: list, call_index: int, register: str) -> int | None:
+    """Recover immediate pointer constructed immediately before a hook register call."""
+    for j in range(call_index-1,max(-1,call_index-10),-1):
+        at=instructions[j]
+        if (at.mnemonic!="add" or len(at.operands)!=3 or
+                at.operands[0].type!=ARM64_OP_REG or
+                at.reg_name(at.operands[0].reg)!=register or
+                at.operands[1].type!=ARM64_OP_REG or
+                at.reg_name(at.operands[1].reg)!=register or
+                at.operands[2].type!=ARM64_OP_IMM):
+            continue
+        for k in range(j-1,max(-1,j-5),-1):
+            prev=instructions[k]
+            if (prev.mnemonic=="adrp" and prev.operands[0].type==ARM64_OP_REG and
+                    prev.reg_name(prev.operands[0].reg)==register and
+                    prev.operands[1].type==ARM64_OP_IMM):
+                return prev.operands[1].imm+at.operands[2].imm
+    return None
+
 def analyze(original:Path):
     raw=checked_payload(original,OMNI_DEB_SHA,"/OmniCarAppBridge.dylib",OMNI_DYLIB_SHA)
     arm=arm64_slice(raw)
@@ -139,6 +158,69 @@ def analyze(original:Path):
                       "target":hex(destination),
                       "nearby":[{"pc":hex(x.address),"asm":x.mnemonic+" "+x.op_str}
                                 for x in instructions[max(0,k-10):min(len(instructions),k+4)]]})
+    # Recover the precise SBSceneView selector installation site, hook entry and
+    # saved original IMP pointer. Matching includes objc_getClass + selector
+    # reference + imported MSHookMessageEx; never infer from a log string alone.
+    sel_uses={int(r["use_pc"],16) for r in refs
+              if r["literal"]=="selref:_updateReferenceSize:andOrientation:"}
+    cls_uses={int(r["use_pc"],16) for r in refs
+              if r["literal"]=="string:SBSceneView"}
+    hook_regs=[]; hook_bodies=[]
+    for i,op in enumerate(instructions):
+        if (op.mnemonic!="bl" or not op.operands or
+                op.operands[0].type!=ARM64_OP_IMM or
+                imports.get(op.operands[0].imm)!="_MSHookMessageEx"):
+            continue
+        pc=op.address
+        matching_sel=[v for v in sel_uses if 0<pc-v<=0x28]
+        matching_cls=[v for v in cls_uses if 0<pc-v<=0x40]
+        if not matching_sel or not matching_cls: continue
+        c=matching_cls[-1] if len(matching_cls)==1 else max(matching_cls)
+        # One objc_getClass call between literal class reference and hook call.
+        classcalls=[x.address for x in instructions[max(0,i-16):i]
+                    if x.mnemonic=="bl" and x.operands and
+                    x.operands[0].type==ARM64_OP_IMM and
+                    imports.get(x.operands[0].imm)=="_objc_getClass" and
+                    c<x.address<min(matching_sel)]
+        if not classcalls:continue
+        hook_fn=adrp_add_value(instructions,i,"x2")
+        orig_slot=adrp_add_value(instructions,i,"x3")
+        if hook_fn is None or orig_slot is None:continue
+        if not sections["__text"]["start"]<=hook_fn<sections["__text"]["end"]:
+            raise ValueError("HOOK_REPLACEMENT_NOT_IN_TEXT")
+        hook_regs.append({"class":"SBSceneView","selector":"_updateReferenceSize:andOrientation:",
+                          "class_string_pc":hex(c),"class_lookup_pc":hex(classcalls[-1]),
+                          "selector_load_pc":hex(max(matching_sel)),"register_call_pc":hex(pc),
+                          "register_import":"_MSHookMessageEx",
+                          "replacement_function_pc":hex(hook_fn),
+                          "saved_original_imp_slot":hex(orig_slot),
+                          "proof":"static x0 class,x1 SEL,x2 replacement,x3 original-slot setup"})
+        hook_d=Cs(CS_ARCH_ARM64,CS_MODE_ARM); hook_d.detail=True
+        span=list(hook_d.disasm(arm[hook_fn:min(len(arm),hook_fn+0x900)],hook_fn))
+        calls_in_hook=[]
+        for t,ins in enumerate(span):
+            if ins.mnemonic not in ("bl","blr"): continue
+            target=ins.operands[0].imm if ins.operands and ins.operands[0].type==ARM64_OP_IMM else None
+            direct_import=imports.get(target) if target is not None else None
+            inline_sel,_=nearby_selref(arm,sections,span,t)
+            stub_sel=None
+            if target is not None:
+                secname=next((n for n,r in sections.items()
+                              if r["start"]<=target<r["end"]),"")
+                if secname=="__objc_stubs":
+                    stub_ins=list(hook_d.disasm(arm[target:target+28],target))
+                    ix=next((j for j,z in enumerate(stub_ins) if z.mnemonic in
+                             ("br","ret","b","blr")),len(stub_ins))
+                    stub_sel,_=nearby_selref(arm,sections,stub_ins,ix)
+            calls_in_hook.append({"pc":hex(ins.address),"target":hex(target) if target is not None else None,
+                                  "import":direct_import,"selector":stub_sel or inline_sel})
+        hook_bodies.append({"entry":hex(hook_fn),"end_exclusive":hex(hook_fn+0x900),
+                            "boundary_note":"bounded inspection window, not verified method length",
+                            "instruction_count":len(span),
+                            "ret_pcs":[hex(x.address) for x in span if x.mnemonic=="ret"],
+                            "callers":calls_in_hook,
+                            "instructions":[{"pc":hex(x.address),"asm":x.mnemonic+" "+x.op_str}
+                                            for x in span]})
     return {
         "status":"ORIGINAL_OMNICAR_SBSCENEVIEW_STATIC_REFERENCE_AUDIT_DEVICE_UNTESTED",
         "original_deb_sha256":OMNI_DEB_SHA,
@@ -150,6 +232,8 @@ def analyze(original:Path):
         "class_or_selector_address_references":refs,
         "interesting_import_stubs":identified_imports,
         "interesting_import_calls":calls[:120],
+        "hook_registration":hook_regs,
+        "hook_function_windows":hook_bodies,
         "limitations":[
             "Reference strings and static instruction xrefs are not runtime observations.",
             "No assertion that private hook ran for YouTube; unknown dynamic selectors remain unresolved.",
@@ -169,6 +253,13 @@ def main():
     print("SBSCENE_SELREF_COUNT",result["reference_size_selector_selref_count"])
     print("SBSCENE_STATIC_XREF_COUNT",len(result["class_or_selector_address_references"]))
     print("SBSCENE_IMPORT_CALL_COUNT",len(result["interesting_import_calls"]))
+    print("SBSCENE_VERIFIED_REGISTRATION_COUNT",len(result["hook_registration"]))
+    for reg in result["hook_registration"]:
+        print("SBSCENE_REGISTER",reg["register_call_pc"],reg["replacement_function_pc"],reg["saved_original_imp_slot"])
+    for body in result["hook_function_windows"]:
+        print("SBSCENE_HANDLER",body["entry"],"ret",body["ret_pcs"][:8])
+        for call in body["callers"][:32]:
+            print("SBSCENE_HANDLER_CALL",call["pc"],call["selector"],call["import"])
     for ref in result["class_or_selector_address_references"][:16]:
         print("SBSCENE_XREF",ref["literal"],ref["begin_pc"],ref["use_pc"])
     for call in result["interesting_import_calls"][:16]:
