@@ -12,7 +12,7 @@ from capstone import Cs,CS_ARCH_ARM64,CS_MODE_ARM
 from capstone.arm64 import ARM64_OP_IMM
 from audit_v12_omnicar_geometry_machine import checked_payload,arm64_slice,OMNI_DEB_SHA,OMNI_DYLIB_SHA
 from audit_v12_omnicar_scene_calls import sections_and_stubs,nearby_selref
-from audit_omnicar_scene_private_selectors import check_selectors
+from audit_omnicar_scene_private_selectors import check_selectors,cf_string
 
 BLOCK_PC=0xf210
 CAPTURE_START=0xf004
