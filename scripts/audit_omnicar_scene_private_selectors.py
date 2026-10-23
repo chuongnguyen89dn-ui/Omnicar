@@ -42,7 +42,7 @@ def cf_string(arm:bytes,sections:dict,pc:int) -> dict:
     offset=struct.unpack_from("<Q",arm,pc+16)[0]
     length=struct.unpack_from("<Q",arm,pc+24)[0]
     if offset>=len(arm) or length>512:
-        raise ValueError("BAD_CFSTRING_BOUNDARY "+hex(pc))
+        raise ValueError(f"BAD_CFSTRING_BOUNDARY {pc:#x} data_offset={offset:#x} length={length}")
     if flags&0x10:
         if offset+length*2>len(arm):raise ValueError("BAD_UTF16_CFSTRING")
         value=arm[offset:offset+length*2].decode("utf-16le")
