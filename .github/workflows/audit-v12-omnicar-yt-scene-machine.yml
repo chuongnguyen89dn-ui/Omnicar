@@ -143,6 +143,8 @@ jobs:
           d=json.load(open('audit/omnicar_original_scene_settings_block_20261023.json'))
           assert d['receiver_private_selector']=='updateSettingsWithBlock:'
           assert d['invoke_function_pc']=='0xf210'
+          assert [x['decoded_exact_selector'] for x in d['exact_private_settings_selectors']] == [
+            'setFrame:', 'setInterfaceOrientation:', 'setBackgrounded:', 'setForeground:']
           assert len(d['bounded_block_instructions'])>0
           print('OMNICAR_SCENE_SETTINGS_BLOCK_INTEGRITY_PASS')
           PY
