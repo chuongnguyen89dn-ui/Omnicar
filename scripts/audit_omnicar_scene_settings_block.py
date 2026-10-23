@@ -79,6 +79,7 @@ def audit(arm:bytes)->dict:
       "bounded_block_instructions":[{"pc":hex(i.address),"asm":i.mnemonic+" "+i.op_str} for i in allins],
       "candidate_ret_pcs":[hex(i.address) for i in allins if i.mnemonic=="ret"],
       "block_region_calls":calls,
+      "exact_private_settings_selectors":settings_selectors,
       "limits":["Bounded window is not proof of single block function length.",
                 "Captured values are static registers not YouTube device measurements.",
                 "Private selector path may be skipped if receiver does not respond.",
