@@ -1,0 +1,122 @@
+name: Build isolated OmniCar QA13 YouTube scene candidate (NO SILEO)
+on:
+  push:
+    branches: [main]
+    paths:
+      - youtube-scene/**
+      - scripts/assemble_qa13_youtube_scene_candidate.py
+      - scripts/test_qa13_youtube_scene_source.py
+      - .github/workflows/build-qa13-youtube-scene-candidate.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: omnicar-qa13-isolated-youtube-scene-build
+  cancel-in-progress: false
+jobs:
+  qa13-youtube:
+    runs-on: macos-15
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact published QA12 base, scoped source and rollback package
+        shell: bash
+        run: |
+          set -euo pipefail
+          QA12="dist/candidates/omnicar-original-1.0.3-omnicar12-timer-zoom-swap/com.anlai.omnicar_1.0.3-omnicar12-timer-zoom-swap_iphoneos-arm64.deb"
+          test -s "$QA12"
+          echo "f07c293a52882ab420aca49e4fe9e30d141d2cba412185938bf09ec9154685ba  $QA12" | shasum -a 256 --check
+          python3 -m py_compile scripts/assemble_qa13_youtube_scene_candidate.py scripts/test_qa13_youtube_scene_source.py
+          python3 scripts/test_qa13_youtube_scene_source.py
+          test "$(git hash-object src/OmniCarDoubleTapFullscreen.xm)" = "93d8fa2e912029e33391e9834f07463bef39d037"
+          test "$(git hash-object src/OmniCarChrome.xm)" = "a4b94c7c9c91475eb5879efee2ed13a7f8463dc6"
+          echo QA13_NO_BASE_UI_TWEAK_MUTATION_SOURCE_GATE_PASS
+      - name: Set up same macOS Theos SDK and dpkg as proven QA12
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          dpkg --compare-versions "1.0.3-omnicar13-youtube-scene" gt "1.0.3-omnicar12-timer-zoom-swap"
+          echo QA13_TOOLCHAIN_AND_VERSION_GATE_PASS
+      - name: Compile and sign isolated arm64 rootless AppBridge module only
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C youtube-scene clean all
+          SCENE="$(find youtube-scene/.theos/obj -maxdepth 2 -type f -name OmniCarYouTubeScene.dylib | head -n 1)"
+          test -s "$SCENE"
+          lipo "$SCENE" -verify_arch arm64
+          file "$SCENE"
+          echo "$SCENE" > "$RUNNER_TEMP/qa13-dylib-path.txt"
+          echo QA13_YOUTUBE_ONLY_THEOS_ARM64_COMPILE_SIGN_PASS
+      - name: Assemble from SHA-locked QA12 and verify no existing payload changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p qa13-artifacts
+          QA12="dist/candidates/omnicar-original-1.0.3-omnicar12-timer-zoom-swap/com.anlai.omnicar_1.0.3-omnicar12-timer-zoom-swap_iphoneos-arm64.deb"
+          OUT="qa13-artifacts/com.anlai.omnicar_1.0.3-omnicar13-youtube-scene_iphoneos-arm64.deb"
+          SCENE="$(cat "$RUNNER_TEMP/qa13-dylib-path.txt")"
+          python3 scripts/assemble_qa13_youtube_scene_candidate.py \
+            --qa12 "$QA12" --dylib "$SCENE" \
+            --plist youtube-scene/OmniCarYouTubeScene.plist \
+            --output "$OUT" --manifest qa13-artifacts/BUILD-MANIFEST.json
+          dpkg-deb -c "$OUT" > qa13-artifacts/FILES.txt
+          dpkg-deb -I "$OUT" > qa13-artifacts/CONTROL-INFO.txt
+          (cd qa13-artifacts && shasum -a 256 *.deb > SHA256SUMS.txt)
+          python3 - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          d=Path('qa13-artifacts')
+          m=json.loads((d/'BUILD-MANIFEST.json').read_text())
+          assert m['status']=='QA13_YOUTUBE_SCENE_DIAGNOSTIC_CANDIDATE__NOT_DEVICE_TESTED'
+          assert m['qa12_payload_entries']==180 and m['qa13_payload_entries']==182
+          assert len(m['added_files'])==2 and m['original_solo_zoom_swap_timer_preserved']
+          assert m['changed_original_control_only']=='Version'
+          assert m['youtube_only'] and m['native12_2x_hypothesis_enabled']
+          assert not m['sileo_published'] and not m['carplay_device_tested']
+          p=d/m['output_filename']
+          assert hashlib.sha256(p.read_bytes()).hexdigest()==m['output_sha256']
+          inventory=(d/'FILES.txt').read_text()
+          assert inventory.count('/OmniCarYouTubeScene.dylib')==1
+          assert inventory.count('/OmniCarYouTubeScene.plist')==1
+          for name in ['OmniCarAppBridge','OmniCarSplitScreen','OmniCarNativeSoloTimer','OmniCarDoubleTapFullscreen']:
+            assert inventory.count('/'+name+'.dylib')==1
+          print('QA13_IMMUTABLE_QA12_PLUS_TWO_YOUTUBE_ONLY_FILES_DEB_VERIFIED')
+          PY
+          echo 'QA13_BUILD_OK__UNTESTED_ON_DEVICE__NO_SILEO_PUBLICATION' > qa13-artifacts/STATUS.txt
+      - name: Upload independent installable candidate and rollback manifest
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: OmniCar-QA13-YouTubeScene-PRIVATE-Test-DEB
+          path: qa13-artifacts/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Archive only new private QA13 DEB into OmniCar repository
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="dist/candidates/omnicar-qa13-youtube-scene"
+          test ! -e "$DEST/BUILD-MANIFEST.json" || { echo 'Candidate already archived; refuse overwrite'; exit 1; }
+          mkdir -p "$DEST"
+          cp qa13-artifacts/* "$DEST/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -m 'artifact(qa13): SHA-locked Youtube-only scene candidate, NOT Sileo [skip ci]'
+          for n in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo QA13_PRIVATE_CANDIDATE_ARCHIVED_GITHUB_PASS__NO_SILEO
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
