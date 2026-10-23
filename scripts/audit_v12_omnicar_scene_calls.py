@@ -151,7 +151,11 @@ def audit_binary(arm:bytes,methods:dict) -> dict:
             stub_selector=None
             if target is not None and target_section=="__objc_stubs":
                 small=list(dis.disasm(arm[target:min(target+32,len(arm))],target))
-                stub_selector,_=nearby_selref(arm,sec,small,len(small))
+                # A terminal 'br' in an ObjC stub is NOT part of selector loading.
+                # Stop *before* it: scanning across it wrongly clears the x1 trail.
+                first_branch=next((n for n,x in enumerate(small)
+                                   if x.mnemonic in ("b","br","ret","blr")),len(small))
+                stub_selector,_=nearby_selref(arm,sec,small,first_branch)
             selector=stub_selector or inline_selector
             kind=("objc_stub_selector" if stub_selector else
                   "inline_x1_selector_candidate" if inline_selector else
