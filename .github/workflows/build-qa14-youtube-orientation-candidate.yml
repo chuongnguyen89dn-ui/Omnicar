@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          make -C youtube-scene clean all
+          make -C youtube-scene-qa14 clean all
           SCENE="$(find youtube-scene-qa14/.theos/obj -maxdepth 2 -type f -name OmniCarYouTubeScene.dylib | head -n 1)"
           test -s "$SCENE"
           lipo "$SCENE" -verify_arch arm64
