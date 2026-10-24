@@ -19,14 +19,14 @@ ORIGINAL_SHA = "d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd
 BASE = Path("var/jb/Library/MobileSubstrate/DynamicLibraries")
 OWNERS = {
     "OmniCarAppBridge": {
-        "ABHost": ("setupHandleForPane:", "layoutBarForPane:", "buildBarForPane:", "layoutPane:"),
+        "ABHost": ("setupHandleForPane:", "layoutBarForPane:", "buildBarForPane:",\n                   "setHandleVisible:forPane:", "setFrame:forApp:live:handle:passInsets:",\n                   "layoutPane:"),
         "ABPane": ("handle", "bar", "setHandle:", "setBar:"),
     },
     "OmniCarSplitScreen": {
         "SCPCarPane": ("handle", "hostHandle", "setHandle:", "setHostHandle:"),
         "SCPCarSplit": ("setupBarForPane:", "layoutBarForPane:", "handleTapped:",
                         "handleDoubleTapped:", "bridgeHandleTapped:", "hostBarInfoForPane:",
-                        "hostFrameInfo:pane:live:handle:", "allPanes", "hostedPanes"),
+                        "hostFrameInfo:pane:live:handle:", "sendHostFrameForPane:live:",\n                        "allPanes", "hostedPanes"),
     },
 }
 MASK = (1 << 48) - 1
@@ -143,8 +143,8 @@ def examine_original(deb):
                     chosen[sel]={"imp":method["imp"],"type":method["types"],
                                  "call_count":len(calls),
                                  "selector_calls":[c for c in calls if "selector" in c],
-                                 "other_calls":[c for c in calls if "symbol" in c][:18]}
-                classinfo[cls]=chosen
+                                 "other_calls":[c for c in calls if "symbol" in c][:18],\n                                 "first_disassembly":[{"pc":hex(at),"asm":ins[at]}\n                                      for at in range(pc,min(pc+0x140,end),4) if at in ins]}
+                classinfo[cls]=chosen\n                classinfo[cls+"_ALL_SELECTOR_NAMES"]=sorted(discovered.keys())
             pl=Path(td)/BASE/(lib+".plist")
             result["modules"][lib]={"fat_sha256":hashlib.sha256(fp.read_bytes()).hexdigest(),
                                     "injection_filter":plistlib.loads(pl.read_bytes()),
