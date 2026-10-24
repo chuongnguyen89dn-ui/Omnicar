@@ -41,6 +41,7 @@ jobs:
           echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
           brew install ldid dpkg
           dpkg --compare-versions "1.0.3-omnicar17-window-touch-wake" gt "1.0.3-omnicar12-timer-zoom-swap"
+          dpkg --compare-versions "1.0.3-omnicar17-window-touch-wake" gt "1.0.3-omnicar16-youtube-handle-idle"
           echo QA17_TOOLCHAIN_AND_VERSION_GATE_PASS
       - name: Compile and sign isolated arm64 rootless AppBridge module only
         shell: bash
