@@ -1,0 +1,83 @@
+name: Original OmniCar YouTube 3-dot owner ABI and QA12 timer (NO DEB)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/audit_original_youtube_handle_owner_20261024.py"
+      - ".github/workflows/audit-original-youtube-handle-owner.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  original-owner-readonly:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify central source-skills ZIPs (GitHub, iOS, test)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT='https://raw.githubusercontent.com/chuongnguyen89dn-ui/Gpt-training-/main/skills'
+          for name in 01-github-continuity 02-ios-deb-ipa-carplay 05-research-debug-testing; do
+            curl -fLsS --retry 3 "$ROOT/$name.zip" -o "$RUNNER_TEMP/$name.zip"
+            unzip -t "$RUNNER_TEMP/$name.zip" > /dev/null
+            echo "SKILL_ZIP_VERIFIED=$name"
+            unzip -p "$RUNNER_TEMP/$name.zip" '*SKILL.md' | head -n 100 || true
+          done
+      - name: Install package and original ARM64 inspection tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew install dpkg llvm
+          echo "/opt/homebrew/opt/llvm/bin" >> "$GITHUB_PATH"
+      - name: Validate exact SHA-pinned original and compiled source logic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/audit_original_youtube_handle_owner_20261024.py
+          python3 scripts/audit_original_youtube_handle_owner_20261024.py --selftest
+          echo 'd9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  com.anlai.omnicar_1.0.3_iphoneos-arm64.deb' | shasum -a 256 --check
+      - name: Decode original ABHost/ABPane and SCPCarSplit/SCPCarPane selectors/calls
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_original_youtube_handle_owner_20261024.py \
+            com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            --output audit/OmniCar_original_YouTube_handle_owner_static_20261024.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path("audit/OmniCar_original_YouTube_handle_owner_static_20261024.json").read_text())
+          assert a["status"]=="ORIGINAL_MACHO_OWNER_CALLS_STATIC_ONLY"
+          bridge=a["modules"]["OmniCarAppBridge"]["class_methods"]
+          split=a["modules"]["OmniCarSplitScreen"]["class_methods"]
+          assert "setupHandleForPane:" in bridge["ABHost"]
+          assert "handle" in bridge["ABPane"]
+          assert "hostHandle" in split["SCPCarPane"]
+          assert "handleTapped:" in split["SCPCarSplit"]
+          assert a["QA12_QA15_original_timer"]["no_YouTube_special_handling_in_timer"]
+          print("TWO_DISTINCT_ORIGINAL_HANDLE_OWNERS_AND_INSTALLED_TIMER_GAP_VERIFIED")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OmniCar-20261024-original-3dot-owners-readonly
+          path: audit/OmniCar_original_YouTube_handle_owner_static_20261024.json
+          retention-days: 90
+      - name: Archive evidence on Omnicar main without modifying binaries or release
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add audit/OmniCar_original_YouTube_handle_owner_static_20261024.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'audit: archive original dual 3dot owners and QA12 idle gap [skip ci]'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
