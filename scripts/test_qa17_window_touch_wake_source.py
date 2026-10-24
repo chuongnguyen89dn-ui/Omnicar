@@ -46,7 +46,7 @@ assert "scheduledTimerWithTimeInterval:kOMCYTIdleSeconds" in source
 assert "kOMCYTIdleSeconds=4.0" in source
 assert "else OMCYTApply(pane); // native relayout must NOT reset" in source
 assert "OMCYTIsSmallControl" in source and "OMCYTRestoreAll(state)" in source
-assert "OMCYTNativeVisibility(pane,visible)" in source
+assert "OMCYTNativeVisibility(self,pane,visible)" in source
 for forbidden in (
     "%hook SCPCarSplit","%hook SCPCarPane","%hook UIView","%hook UIWindow",
     "hostedPanes","setContentReferenceSize","effectiveOrientation",
