@@ -59,9 +59,9 @@ def inspect(dylib,targets,label):
                 line=instructions.get(addr)
                 if not line:continue
                 if re.search(r"\b(?:bl|b|br|blr)\b",line):
-                    m=re.search(r"\bbl\s+(?:0x)?([0-9a-f]+)\b",line)
-                    if m:
-                        tar=int(m.group(1),16)
+                    callmatch=re.search(r"\bbl\s+(?:0x)?([0-9a-f]+)\b",line)
+                    if callmatch:
+                        tar=int(callmatch.group(1),16)
                         resolved=decode_objc_stub(arm,tar)
                         if resolved.get("status")=="selector-mapped":
                             selcalls.append({"pc":hex(addr),"selector":resolved["selector"]})
