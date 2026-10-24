@@ -9,6 +9,7 @@
 #import <objc/message.h>
 #import <CoreFoundation/CoreFoundation.h>
 
+@class SCPCarSplit;
 static const NSTimeInterval kOMCNativeIdleSeconds=4.0;
 static char kOMCNativeTimerKey;
 static char kOMCNativeSavedOpacityKey;
@@ -17,7 +18,6 @@ static NSHashTable<SCPCarSplit *> *gOMCNativeSplits=nil;
 static CFTimeInterval gOMCLastGlobalTap=0.0;
 static void OMCNativeSharedActivity(BOOL publish,const char *reason);
 
-@class SCPCarSplit;
 @interface SCPCarSplitView : UIView
 @end
 
