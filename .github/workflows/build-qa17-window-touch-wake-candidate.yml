@@ -1,0 +1,124 @@
+name: Build OmniCar QA17 owner-window first-tap reveal and original YT idle
+on:
+  push:
+    branches: [main]
+    paths:
+      - youtube-handle-qa17/**
+      - scripts/assemble_qa17_window_touch_wake_candidate.py
+      - scripts/test_qa17_window_touch_wake_source.py
+      - .github/workflows/build-qa17-window-touch-wake-candidate.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: omnicar-qa17-first-touch-wake-build
+  cancel-in-progress: false
+jobs:
+  qa17-youtube:
+    runs-on: macos-15
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact published QA12 base, scoped source and rollback package
+        shell: bash
+        run: |
+          set -euo pipefail
+          QA12="dist/candidates/omnicar-original-1.0.3-omnicar12-timer-zoom-swap/com.anlai.omnicar_1.0.3-omnicar12-timer-zoom-swap_iphoneos-arm64.deb"
+          test -s "$QA12"
+          echo "f07c293a52882ab420aca49e4fe9e30d141d2cba412185938bf09ec9154685ba  $QA12" | shasum -a 256 --check
+          python3 -m py_compile scripts/assemble_qa17_window_touch_wake_candidate.py scripts/test_qa17_window_touch_wake_source.py
+          python3 scripts/test_qa17_window_touch_wake_source.py
+          test "$(git hash-object src/OmniCarDoubleTapFullscreen.xm)" = "93d8fa2e912029e33391e9834f07463bef39d037"
+          test "$(git hash-object src/OmniCarChrome.xm)" = "a4b94c7c9c91475eb5879efee2ed13a7f8463dc6"
+          echo QA17_NO_BASE_UI_TWEAK_MUTATION_SOURCE_GATE_PASS
+      - name: Set up same macOS Theos SDK and dpkg as proven QA12
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          dpkg --compare-versions "1.0.3-omnicar17-window-touch-wake" gt "1.0.3-omnicar12-timer-zoom-swap"
+          echo QA17_TOOLCHAIN_AND_VERSION_GATE_PASS
+      - name: Compile and sign isolated arm64 rootless AppBridge module only
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C youtube-handle-qa17 clean all
+          SCENE="$(find youtube-handle-qa17/.theos/obj -maxdepth 2 -type f -name OmniCarYouTubeHandleIdle.dylib | head -n 1)"
+          test -s "$SCENE"
+          lipo "$SCENE" -verify_arch arm64
+          file "$SCENE"
+          echo "$SCENE" > "$RUNNER_TEMP/qa17-dylib-path.txt"
+          echo QA17_YOUTUBE_ONLY_THEOS_ARM64_COMPILE_SIGN_PASS
+      - name: Assemble from SHA-locked QA12 and verify no existing payload changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p qa17-artifacts
+          QA12="dist/candidates/omnicar-original-1.0.3-omnicar12-timer-zoom-swap/com.anlai.omnicar_1.0.3-omnicar12-timer-zoom-swap_iphoneos-arm64.deb"
+          OUT="qa17-artifacts/com.anlai.omnicar_1.0.3-omnicar17-window-touch-wake_iphoneos-arm64.deb"
+          SCENE="$(cat "$RUNNER_TEMP/qa17-dylib-path.txt")"
+          python3 scripts/assemble_qa17_window_touch_wake_candidate.py \
+            --qa12 "$QA12" --dylib "$SCENE" \
+            --plist youtube-handle-qa17/OmniCarYouTubeHandleIdle.plist \
+            --output "$OUT" --manifest qa17-artifacts/BUILD-MANIFEST.json
+          dpkg-deb -c "$OUT" > qa17-artifacts/FILES.txt
+          dpkg-deb -I "$OUT" > qa17-artifacts/CONTROL-INFO.txt
+          (cd qa17-artifacts && shasum -a 256 *.deb > SHA256SUMS.txt)
+          python3 - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          d=Path('qa17-artifacts')
+          m=json.loads((d/'BUILD-MANIFEST.json').read_text())
+          assert m['status']=='QA17_YOUTUBE_WINDOW_TOUCH_IDLE_CANDIDATE__NOT_DEVICE_TESTED'
+          assert m['qa12_payload_entries']==180 and m['qa17_payload_entries']==182
+          assert len(m['added_files'])==2 and m['original_solo_zoom_swap_timer_preserved']
+          assert m['changed_original_control_only']=='Version'
+          assert m['youtube_only'] and m['original_youtube_player_restored'] and m['appbridge_native_handle_abi_verified'] and m['no_qa13_qa15_youtube_scene_module'] and m['duoface_style_owner_window_touch_reveal_candidate']
+          assert not m['sileo_published'] and not m['carplay_device_tested']
+          p=d/m['output_filename']
+          assert hashlib.sha256(p.read_bytes()).hexdigest()==m['output_sha256']
+          inventory=(d/'FILES.txt').read_text()
+          assert inventory.count('/OmniCarYouTubeHandleIdle.dylib')==1
+          assert inventory.count('/OmniCarYouTubeHandleIdle.plist')==1
+          assert inventory.count('/OmniCarYouTubeScene.dylib')==0
+          assert inventory.count('/OmniCarYouTubeScene.plist')==0
+          for name in ['OmniCarAppBridge','OmniCarSplitScreen','OmniCarNativeSoloTimer','OmniCarDoubleTapFullscreen']:
+            assert inventory.count('/'+name+'.dylib')==1
+          print('QA17_IMMUTABLE_QA12_PLUS_TWO_YOUTUBE_ONLY_FILES_DEB_VERIFIED')
+          PY
+          echo 'QA17_BUILD_OK__UNTESTED_ON_DEVICE__NO_SILEO_PUBLICATION' > qa17-artifacts/STATUS.txt
+      - name: Upload independent installable candidate and rollback manifest
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: OmniCar-QA17-OwnerWindowTouch-Test-DEB
+          path: qa17-artifacts/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Archive only new private QA17 DEB into OmniCar repository
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="dist/candidates/omnicar-qa17-window-touch-wake"
+          test ! -e "$DEST/BUILD-MANIFEST.json" || { echo 'Candidate already archived; refuse overwrite'; exit 1; }
+          mkdir -p "$DEST"
+          cp qa17-artifacts/* "$DEST/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -m 'artifact(qa17): QA12 original player and host-window 1-tap wake, NOT Sileo [skip ci]'
+          for n in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo QA17_CANDIDATE_ARCHIVED_GITHUB_PASS__NO_SILEO
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
