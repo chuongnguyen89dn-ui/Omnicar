@@ -10,7 +10,7 @@
 
 static const NSTimeInterval kOMCYTIdleSeconds=4.0;
 static NSString * const kOMCYTBundle=@"com.google.ios.youtube";
-static char kOMCYTHandleStateKey, kOMCYTOriginalOpacityKey;
+static char kOMCYTHandleStateKey;
 static BOOL gOMCYTInstalled=NO;
 
 @interface ABHost : NSObject
