@@ -12,14 +12,19 @@ LIBS={
     "ABHost":("outsideTouched","handleTapped:","setupHandleForPane:","setupLiveAppViewForPane:",
               "ensureWindow","window","carWindow","setFrame:forApp:live:handle:passInsets:",
               "revealPane:","layoutPane:","setHandleVisible:forPane:","init"),
-    "ABPane":("box","handle","handleHit","appViewController","bundleID")
+    "ABPane":("box","handle","handleHit","appViewController","bundleID"),
+    "ABShieldView":("touchesBegan:withEvent:",),
+    "ABKnobView":("touchesBegan:withEvent:",)
   },
   "OmniCarSplitScreen":{
     "SCPCarSplit":("bridgeOutsideTouched","bridgeHandleTapped:","handleTapped:",
                   "sendHostFrameForPane:live:","hostPost:info:","rootDidLayout",
                   "hideBarsForTouchOn:","setBarVisible:forPane:","setActive:",
                   "container","tabParent","allPanes","hostedPanes"),
-    "SCPCarPane":("view","handle","hostHandle","bundleID")
+    "SCPCarPane":("view","handle","hostHandle","bundleID"),
+    "SCPCarSplitView":("hitTest:withEvent:",),
+    "SCPCTouchWatch":("hitTest:withEvent:",),
+    "SCPCarDividerView":("touchesBegan:withEvent:",)
   }
 }
 
@@ -52,6 +57,7 @@ def trace(arm,methods,ins,selectors):
                        "instruction_count":len(trace),
                        "instructions":trace if selector in (
                            "outsideTouched","bridgeOutsideTouched",
+                           "hitTest:withEvent:","touchesBegan:withEvent:",
                            "bridgeHandleTapped:","handleTapped:",
                            "setupLiveAppViewForPane:","ensureWindow",
                            "setBarVisible:forPane:") else trace[:50]}
