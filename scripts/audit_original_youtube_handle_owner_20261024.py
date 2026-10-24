@@ -88,7 +88,7 @@ def read_objc_classes(arm):
                 for i in range(count):
                     pos=ml+8+entry*i
                     if entry==12:
-                        sel=cstr(pos+s32(pos))
+                        sel=cstr(u64(pos+s32(pos))&MASK)
                         types=cstr(pos+4+s32(pos+4))
                         imp=pos+8+s32(pos+8)
                     else:
@@ -153,7 +153,6 @@ def examine_original(deb):
 
 def check_installed_timer():
     text=Path("native-solo-timer/src/OmniCarNativeSoloTimer.xm").read_text()
-    import ast
     manifest=json.loads(Path("dist/candidates/omnicar-original-1.0.3-omnicar12-timer-zoom-swap/BUILD-MANIFEST.json").read_text())
     assert manifest["original_payload_file_count"]==176
     assert manifest["final_payload_file_count"]==180
