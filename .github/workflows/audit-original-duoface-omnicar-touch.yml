@@ -1,0 +1,92 @@
+name: Forensic original DuoFace Native12 vs OmniCar AppBridge touch owner (READ ONLY)
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/audit_original_duoface_omnicar_touch_20261024.py
+      - .github/workflows/audit-original-duoface-omnicar-touch.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  duo-omni-original-touch:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify central iOS and forensics source skills
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT='https://raw.githubusercontent.com/chuongnguyen89dn-ui/Gpt-training-/main/skills'
+          for name in 01-github-continuity 02-ios-deb-ipa-carplay 05-research-debug-testing; do
+            curl -fLsS --retry 3 "$ROOT/$name.zip" -o "$RUNNER_TEMP/$name.zip"
+            unzip -t "$RUNNER_TEMP/$name.zip" >/dev/null
+            echo "ORIGINAL_FORENSIC_SKILL_VERIFIED=$name"
+            unzip -p "$RUNNER_TEMP/$name.zip" '*SKILL.md' | head -n 130 || true
+          done
+      - name: Install read-only ARM64 analysis dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew install dpkg llvm
+          echo '/opt/homebrew/opt/llvm/bin' >> "$GITHUB_PATH"
+      - name: Download exact original DuoFace Native12 reference and SHA-verify both binary owners
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'd9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  com.anlai.omnicar_1.0.3_iphoneos-arm64.deb' | shasum -a 256 --check
+          DUO_DEB="$RUNNER_TEMP/native12-original.deb"
+          curl -fLsS --retry 4 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/chuongnguyen89dn-ui/Duoface/8ac3d5080b067a7462a106d4410fe5547f9bbc8c/dist/visual-1.0.3-12/com.duoface.app_1.0.3-12_visualtest_iphoneos-arm64.deb" \
+            -o "$DUO_DEB"
+          mkdir -p "$RUNNER_TEMP/duoface-native12-original"
+          dpkg-deb -x "$DUO_DEB" "$RUNNER_TEMP/duoface-native12-original"
+          DUO="$(find "$RUNNER_TEMP/duoface-native12-original" -type f -name DuoFaceDashboard.dylib -print -quit)"
+          test -n "$DUO"
+          echo "bc1df854ec7a2ddfeec4cb81b080ead34b54df80143d4a8f6254bb8b618003ce  $DUO" | shasum -a 256 --check
+          echo "$DUO" > "$RUNNER_TEMP/original-duo-dylib-path.txt"
+          echo DUOFACE_ORIGINAL_NATIVE12_PINNED_BINARY_PASS
+      - name: Read exact Native12 and OmniCar ARM64 touch, hitTest and window-owner routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/audit_original_duoface_omnicar_touch_20261024.py
+          python3 scripts/audit_original_duoface_omnicar_touch_20261024.py \
+            com.anlai.omnicar_1.0.3_iphoneos-arm64.deb \
+            "$(cat "$RUNNER_TEMP/original-duo-dylib-path.txt")" \
+            --output audit/OmniCar_DuoFace_original_touch_routing_20261024.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("audit/OmniCar_DuoFace_original_touch_routing_20261024.json")
+          d=json.loads(p.read_text())
+          assert d["status"].startswith("DUOFACE_NATIVE12_VS_OMNICAR_ORIGINAL_TOUCH_ROUTING")
+          assert d["duoface"]["owner_methods"]["CBBridgedUIAppView"]["touchesBegan:withEvent:"]["imp"]=="0xaca6c"
+          assert d["omnicar"]["owner_methods"]["ABHost"]["setHandleVisible:forPane:"]["imp"]=="0x137cc"
+          print("DUOFACE_NATIVE12_VS_OMNIBRIDGE_TOUCHES_AND_HITTEST_FORENSIC_PASS__NO_PATCH")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Original-DuoFace-v12-vs-OmniCar-3Dot-touch-owners
+          path: audit/OmniCar_DuoFace_original_touch_routing_20261024.json
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Archive read-only findings to original OmniCar handoff repository
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s audit/OmniCar_DuoFace_original_touch_routing_20261024.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add audit/OmniCar_DuoFace_original_touch_routing_20261024.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'audit: original Native12 vs AppBridge touch and hit-test forensic [skip ci]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 2
+          done
+          exit 1
