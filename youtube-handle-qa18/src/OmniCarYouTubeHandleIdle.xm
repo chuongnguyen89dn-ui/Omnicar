@@ -237,6 +237,9 @@ static void OMCYTNativeVisibility(id pane,BOOL nativeVisible) {
         return;
     }
     OMCYTHandleState *state=OMCYTState(pane,YES);
+    // A pane may be reused after the original setHandleVisible:NO teardown.
+    if(!gOMCYTTrackedPanes)gOMCYTTrackedPanes=[NSHashTable weakObjectsHashTable];
+    [gOMCYTTrackedPanes addObject:pane];
     state.nativeVisible=YES;
     OMCYTAttach(pane,state);
     if(!state.started) {
