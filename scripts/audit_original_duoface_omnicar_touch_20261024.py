@@ -35,7 +35,7 @@ def inspect(dylib,targets,label):
     arm=fat_arm64(fat)
     catalog=read_objc_classes(arm)
     dis=subprocess.check_output(["llvm-objdump","--macho","--arch=arm64",
-                                 "--disassemble",str(dylib)],text=True)
+                                 "--disassemble",str(dylib)],text=True,errors="replace")
     instructions=parse_disassembly(dis)
     owners={}
     for cls,names in targets.items():
