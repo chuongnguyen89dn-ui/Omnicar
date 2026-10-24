@@ -18,9 +18,9 @@ jobs:
           set -euo pipefail
           SITE='https://chuongnguyen89dn-ui.github.io/carplaydsp'
           PKG='com.anlai.omnicar'
-          VER='1.0.3-omnicar16-youtube-handle-idle'
-          FILE='com.anlai.omnicar_1.0.3-omnicar16-youtube-handle-idle_iphoneos-arm64.deb'
-          SHA='1500f43c7a9ee6fe0f513569c804abdec8e6647321ddaf89e655ed9787fe9145'
+          VER='1.0.3-omnicar17-window-touch-wake'
+          FILE='com.anlai.omnicar_1.0.3-omnicar17-window-touch-wake_iphoneos-arm64.deb'
+          SHA='9d0edc8942e93e282d5130927697fb0b84a7ddcb993b616359fdd455eb0967b0'
           PACKAGES="$RUNNER_TEMP/OmniCarPackages"
           for attempt in $(seq 1 48); do
             curl -fsSL --retry 2 --max-time 20 "$SITE/Packages" -o "$PACKAGES" || true
@@ -76,8 +76,8 @@ jobs:
           test "$(grep -Fc '/OmniCarYouTubeHandleIdle.plist' "$RUNNER_TEMP/OmniContents")" -eq 1
           for banned in OmniCarIdleControls OmniCarSoloThreeDots OmniCarGraphiteTitanium OmniCarDuoActivityIdle OmniCarYouTubeScene; do
             if grep -Fq "/$banned." "$RUNNER_TEMP/OmniContents"; then
-              echo "Unexpected experimental Solo/Idle/old scene module in QA16: $banned" >&2
+              echo "Unexpected experimental Solo/Idle/old scene module in QA17: $banned" >&2
               exit 1
             fi
           done
-          echo 'OMNICAR_QA16_LIVE_SILEO_ORIGINAL_PLAYER_HANDLE_IDLE_EXACT_SHA256_PASS__DEVICE_UNTESTED'
+          echo 'OMNICAR_QA17_LIVE_SILEO_ORIGINAL_PLAYER_FIRST_TOUCH_WAKE_EXACT_SHA256_PASS__DEVICE_UNTESTED'
