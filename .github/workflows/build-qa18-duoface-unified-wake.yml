@@ -102,7 +102,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: OmniCar-QA18-DuoFaceUnified-OneTap-ROOTLESS-Test-DEB
+          name: OmniCar-QA18-DuoFaceUnified-OneTap-ROOTLESS-R2-Test-DEB
           path: qa18-artifacts/
           if-no-files-found: warn
           retention-days: 90
@@ -111,7 +111,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          DEST='dist/candidates/omnicar-qa18-duoface-unified-wake'
+          DEST='dist/candidates/omnicar-qa18-duoface-unified-wake-r2'
           test ! -e "$DEST/BUILD-MANIFEST.json" || { echo 'Refuse overwrite existing tested archive'; exit 1; }
           mkdir -p "$DEST"
           cp qa18-artifacts/* "$DEST/"
@@ -123,7 +123,7 @@ jobs:
             git fetch origin main
             git rebase origin/main
             if git push origin HEAD:main; then
-              echo QA18_CANDIDATE_ARCHIVED_EXACT_SHA_GITHUB_PASS_NOT_SILEO
+              echo QA18_R2_CANDIDATE_ARCHIVED_EXACT_SHA_GITHUB_PASS_NOT_SILEO
               exit 0
             fi
             sleep 2
