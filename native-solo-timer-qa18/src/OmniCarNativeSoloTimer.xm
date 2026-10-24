@@ -183,6 +183,9 @@ static void OMCNativeAttachTouch(OMCNativeTimerState *s,SCPCarSplit *split,
 static void OMCNativeAttach(SCPCarSplit *split) {
     if(!split || ![split active])return;
     OMCNativeTimerState *s=OMCNativeState(split,YES);
+    // Re-activation reuses associated state; ensure its weak-table presence.
+    if(!gOMCNativeSplits)gOMCNativeSplits=[NSHashTable weakObjectsHashTable];
+    [gOMCNativeSplits addObject:split];
     UIView *root=[split container];
     Class splitView=NSClassFromString(@"SCPCarSplitView");
     if(splitView && [root isKindOfClass:splitView]) {
