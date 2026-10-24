@@ -1,0 +1,131 @@
+name: Build OmniCar QA18 DuoFace-style ONE TAP reveals ALL native + YouTube controls
+on:
+  push:
+    branches: [main]
+    paths:
+      - native-solo-timer-qa18/**
+      - youtube-handle-qa18/**
+      - scripts/assemble_qa18_duoface_global_wake_candidate.py
+      - scripts/test_qa18_unified_duoface_wake_source.py
+      - .github/workflows/build-qa18-duoface-unified-wake.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: omnicar-qa18-unified-first-touch-all-buttons
+  cancel-in-progress: false
+jobs:
+  build-unified-wake:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original immutable QA17 Sileo bytes and DuoFace-native hitTest activity path
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORIGINAL='dist/candidates/omnicar-qa17-window-touch-wake/com.anlai.omnicar_1.0.3-omnicar17-window-touch-wake_iphoneos-arm64.deb'
+          test -s "$ORIGINAL"
+          echo "9d0edc8942e93e282d5130927697fb0b84a7ddcb993b616359fdd455eb0967b0  $ORIGINAL" | shasum -a 256 --check
+          python3 -m py_compile scripts/assemble_qa18_duoface_global_wake_candidate.py scripts/test_qa18_unified_duoface_wake_source.py
+          python3 scripts/test_qa18_unified_duoface_wake_source.py
+          test "$(git hash-object src/OmniCarDoubleTapFullscreen.xm)" = "93d8fa2e912029e33391e9834f07463bef39d037"
+          test "$(git hash-object src/OmniCarChrome.xm)" = "a4b94c7c9c91475eb5879efee2ed13a7f8463dc6"
+          echo QA18_SOURCE_AND_ORIGINAL_QA17_PACKAGE_HASH_GUARDS_PASS
+      - name: Set up pinned rootless Theos arm64 toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          dpkg --compare-versions '1.0.3-omnicar18-duoface-unified-wake' gt '1.0.3-omnicar17-window-touch-wake'
+          echo QA18_TOOLCHAIN_VERSION_UPGRADE_GUARD_PASS
+      - name: Compile BOTH scoped host and native participants for original iOS16 rootless
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C native-solo-timer-qa18 clean all
+          make -C youtube-handle-qa18 clean all
+          NATIVE="$(find native-solo-timer-qa18/.theos/obj -maxdepth 2 -type f -name OmniCarNativeSoloTimer.dylib | head -n 1)"
+          HOST="$(find youtube-handle-qa18/.theos/obj -maxdepth 2 -type f -name OmniCarYouTubeHandleIdle.dylib | head -n 1)"
+          test -s "$NATIVE"
+          test -s "$HOST"
+          lipo "$NATIVE" -verify_arch arm64
+          lipo "$HOST" -verify_arch arm64
+          file "$NATIVE"
+          file "$HOST"
+          echo "$NATIVE" > "$RUNNER_TEMP/qa18-native.txt"
+          echo "$HOST" > "$RUNNER_TEMP/qa18-host.txt"
+          echo QA18_TWO_INDEPENDENT_ACTIVITY_MODULES_ARM64_BUILD_SIGN_PASS
+      - name: Repack only two activity dylibs; compare other 180 QA17 payload files byte-for-byte
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p qa18-artifacts
+          ORIGINAL='dist/candidates/omnicar-qa17-window-touch-wake/com.anlai.omnicar_1.0.3-omnicar17-window-touch-wake_iphoneos-arm64.deb'
+          OUT='qa18-artifacts/com.anlai.omnicar_1.0.3-omnicar18-duoface-unified-wake_iphoneos-arm64.deb'
+          python3 scripts/assemble_qa18_duoface_global_wake_candidate.py \
+            --qa17 "$ORIGINAL" \
+            --native-dylib "$(cat "$RUNNER_TEMP/qa18-native.txt")" \
+            --host-dylib "$(cat "$RUNNER_TEMP/qa18-host.txt")" \
+            --output "$OUT" --manifest qa18-artifacts/BUILD-MANIFEST.json
+          dpkg-deb -c "$OUT" > qa18-artifacts/FILES.txt
+          dpkg-deb -I "$OUT" > qa18-artifacts/CONTROL-INFO.txt
+          (cd qa18-artifacts && shasum -a 256 *.deb > SHA256SUMS.txt)
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          d=Path('qa18-artifacts')
+          m=json.loads((d/'BUILD-MANIFEST.json').read_text())
+          assert m["status"]=="QA18_DUOFACE_GLOBAL_ONE_TAP_ALL_CONTROLS_CANDIDATE_NOT_DEVICE_TESTED"
+          assert m["original_payload_entries"]==182 and m["output_payload_entries"]==182
+          assert m["other_payload_identical"] and len(m["exactly_replaced_modules"])==2
+          assert m["qa16_user_confirmed_four_second_youtube_hide_preserved"]
+          assert m["qa17_failed_window_gesture_retired"]
+          assert m["duoface_verified_hit_test_activity_model"]
+          assert m["original_youtube_player_unchanged"] and m["zoom_swap_solo_native_handlers_unchanged"]
+          assert not m["sileo_published"] and not m["carplay_device_tested"]
+          deb=d/m["output_filename"]
+          assert deb.is_file() and hashlib.sha256(deb.read_bytes()).hexdigest()==m["output_sha256"]
+          inv=(d/'FILES.txt').read_text()
+          for name in ('OmniCarAppBridge','OmniCarSplitScreen','OmniCarNativeSoloTimer',
+                       'OmniCarDoubleTapFullscreen','OmniCarYouTubeHandleIdle'):
+              assert inv.count('/'+name+'.dylib')==1,name
+          for banned in ('OmniCarYouTubeScene','OmniCarIdleControls','OmniCarSoloThreeDots'):
+              assert '/'+banned+'.dylib' not in inv,banned
+          print('QA18_ONLY_TWO_REPLACED_DYLIB_AND_ORIGINAL_SPLIT_PLAYER_SCOPE_PASS')
+          PY
+          echo 'QA18_BUILD_PASS_NOT_DEVICE_TESTED_NOT_SILEO' > qa18-artifacts/STATUS.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: OmniCar-QA18-DuoFaceUnified-OneTap-ROOTLESS-Test-DEB
+          path: qa18-artifacts/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Archive SHA-locked QA18 candidate only in OmniCar repo (Sileo release separate)
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST='dist/candidates/omnicar-qa18-duoface-unified-wake'
+          test ! -e "$DEST/BUILD-MANIFEST.json" || { echo 'Refuse overwrite existing tested archive'; exit 1; }
+          mkdir -p "$DEST"
+          cp qa18-artifacts/* "$DEST/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DEST"
+          git commit -m 'artifact(qa18): immutable QA17 + only native/YouTube coordinated activity dylibs [skip ci]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo QA18_CANDIDATE_ARCHIVED_EXACT_SHA_GITHUB_PASS_NOT_SILEO
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
