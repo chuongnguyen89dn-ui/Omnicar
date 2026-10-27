@@ -1,0 +1,107 @@
+name: Build OmniCar QA19 passive app input wake for all split controls
+on:
+  push:
+    branches: [main]
+    paths:
+      - native-solo-timer-qa19/**
+      - youtube-handle-qa19/**
+      - scripts/assemble_qa19_passive_app_input_wake.py
+      - scripts/test_qa19_passive_wake_source.py
+      - .github/workflows/build-qa19-passive-app-input-wake.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: omnicar-qa19-passive-app-input-wake
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Source and pinned QA18 input checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORIGINAL='dist/candidates/omnicar-qa18-duoface-unified-wake-r2/com.anlai.omnicar_1.0.3-omnicar18-duoface-unified-wake_iphoneos-arm64.deb'
+          test -s "$ORIGINAL"
+          echo "06c7ae70ebc518e2a6f9dbd3ff181ecb1461329005d74b6ff78b27dbcb4135cf  $ORIGINAL" | shasum -a 256 --check
+          python3 -m py_compile scripts/assemble_qa19_passive_app_input_wake.py scripts/test_qa19_passive_wake_source.py
+          python3 scripts/test_qa19_passive_wake_source.py
+      - name: Theos rootless ARM64 toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          dpkg --compare-versions '1.0.3-omnicar19-app-process-wake' gt '1.0.3-omnicar18-duoface-unified-wake'
+      - name: Build two rootless modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C native-solo-timer-qa19 clean all
+          make -C youtube-handle-qa19 clean all
+          NATIVE="$(find native-solo-timer-qa19/.theos/obj -maxdepth 2 -type f -name OmniCarNativeSoloTimer.dylib | head -n 1)"
+          HOST="$(find youtube-handle-qa19/.theos/obj -maxdepth 2 -type f -name OmniCarYouTubeHandleIdle.dylib | head -n 1)"
+          test -s "$NATIVE" && test -s "$HOST"
+          lipo "$NATIVE" -verify_arch arm64
+          lipo "$HOST" -verify_arch arm64
+          echo "$NATIVE" > "$RUNNER_TEMP/qa19-native"
+          echo "$HOST" > "$RUNNER_TEMP/qa19-host"
+      - name: Build SHA-locked package and preserve other 180 entries
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p qa19-artifacts
+          ORIGINAL='dist/candidates/omnicar-qa18-duoface-unified-wake-r2/com.anlai.omnicar_1.0.3-omnicar18-duoface-unified-wake_iphoneos-arm64.deb'
+          OUT='qa19-artifacts/com.anlai.omnicar_1.0.3-omnicar19-app-process-wake_iphoneos-arm64.deb'
+          python3 scripts/assemble_qa19_passive_app_input_wake.py --qa18 "$ORIGINAL" --native-dylib "$(cat "$RUNNER_TEMP/qa19-native")" --host-dylib "$(cat "$RUNNER_TEMP/qa19-host")" --output "$OUT" --manifest qa19-artifacts/BUILD-MANIFEST.json
+          dpkg-deb -c "$OUT" > qa19-artifacts/FILES.txt
+          dpkg-deb -I "$OUT" > qa19-artifacts/CONTROL-INFO.txt
+          (cd qa19-artifacts && shasum -a 256 *.deb > SHA256SUMS.txt)
+          python3 - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          p=Path('qa19-artifacts')
+          m=json.loads((p/'BUILD-MANIFEST.json').read_text())
+          assert m["original_payload_entries"]==182 and m["output_payload_entries"]==182
+          assert m["other_payload_identical"] and len(m["exactly_replaced_modules"])==2
+          assert m["original_youtube_player_unchanged"] and m["zoom_swap_solo_native_handlers_unchanged"]
+          assert not m["sileo_published"] and not m["carplay_device_tested"]
+          assert hashlib.sha256((p/m["output_filename"]).read_bytes()).hexdigest()==m["output_sha256"]
+          print("QA19_SHA_LOCKED_QA18_180_OTHER_MODULES_IDENTICAL_PASS")
+          PY
+          echo 'QA19_COMPILED_NOT_DEVICE_TESTED_NOT_PUBLISHED' > qa19-artifacts/STATUS.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: OmniCar-QA19-PassiveAppTouch-ROOTLESS
+          path: qa19-artifacts/
+          if-no-files-found: warn
+      - name: Archive candidate to OmniCar; no Sileo publish in this workflow
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST='dist/candidates/omnicar-qa19-app-process-touch-relay'
+          test ! -e "$DEST/BUILD-MANIFEST.json" || { echo 'Refuse overwrite immutable archive'; exit 1; }
+          mkdir -p "$DEST"
+          cp qa19-artifacts/* "$DEST/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DEST"
+          git commit -m 'artifact(qa19): passive app touch relay SHA archive [skip ci]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo QA19_CANDIDATE_ARCHIVED_TO_GITHUB_NOT_SILEO_DEVICE_UNTESTED
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
