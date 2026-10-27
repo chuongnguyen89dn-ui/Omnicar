@@ -1,0 +1,104 @@
+name: Build OmniCar QA20 center divider knob four-second idle (preserve QA19 wake)
+on:
+  push:
+    branches: [main]
+    paths:
+      - native-solo-timer-qa20/**
+      - scripts/assemble_qa20_divider_knob_idle.py
+      - scripts/test_qa20_divider_knob_idle_source.py
+      - .github/workflows/build-qa20-divider-knob-idle.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: omnicar-qa20-knob-idle
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source-only ONE knob fix and immutable QA19 base
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='dist/candidates/omnicar-qa19-app-process-touch-relay/com.anlai.omnicar_1.0.3-omnicar19-app-process-wake_iphoneos-arm64.deb'
+          test -s "$BASE"
+          echo "af6585d750504c1194a756f6b7b3ea8244d53271d115a046380f63c607bde16b  $BASE" | shasum -a 256 --check
+          python3 -m py_compile scripts/assemble_qa20_divider_knob_idle.py scripts/test_qa20_divider_knob_idle_source.py
+          python3 scripts/test_qa20_divider_knob_idle_source.py
+      - name: Setup original Theos rootless ARM64
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$RUNNER_TEMP/theos"
+          rm -rf "$RUNNER_TEMP/theos/sdks"
+          git clone --depth 1 https://github.com/theos/sdks.git "$RUNNER_TEMP/theos/sdks"
+          echo "THEOS=$RUNNER_TEMP/theos" >> "$GITHUB_ENV"
+          brew install ldid dpkg
+          dpkg --compare-versions '1.0.3-omnicar20-divider-knob-idle' gt '1.0.3-omnicar19-app-process-wake'
+      - name: Build ONLY changed native timer module
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C native-solo-timer-qa20 clean all
+          NATIVE="$(find native-solo-timer-qa20/.theos/obj -maxdepth 2 -type f -name OmniCarNativeSoloTimer.dylib | head -n 1)"
+          test -s "$NATIVE"
+          lipo "$NATIVE" -verify_arch arm64
+          echo "$NATIVE" > "$RUNNER_TEMP/qa20-native"
+      - name: Repack ONE dylib, byte-compare all other 181 payload items
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p qa20-artifacts
+          BASE='dist/candidates/omnicar-qa19-app-process-touch-relay/com.anlai.omnicar_1.0.3-omnicar19-app-process-wake_iphoneos-arm64.deb'
+          OUT='qa20-artifacts/com.anlai.omnicar_1.0.3-omnicar20-divider-knob-idle_iphoneos-arm64.deb'
+          python3 scripts/assemble_qa20_divider_knob_idle.py --qa19 "$BASE" --native-dylib "$(cat "$RUNNER_TEMP/qa20-native")" --output "$OUT" --manifest qa20-artifacts/BUILD-MANIFEST.json
+          dpkg-deb -c "$OUT" > qa20-artifacts/FILES.txt
+          dpkg-deb -I "$OUT" > qa20-artifacts/CONTROL-INFO.txt
+          (cd qa20-artifacts && shasum -a 256 *.deb > SHA256SUMS.txt)
+          python3 - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          p=Path('qa20-artifacts')
+          m=json.loads((p/'BUILD-MANIFEST.json').read_text())
+          assert m['original_payload_entries']==182 and m['output_payload_entries']==182
+          assert m['other_payload_identical'] and len(m['exactly_replaced_modules'])==1
+          assert m['exactly_replaced_modules'][0].endswith('/OmniCarNativeSoloTimer.dylib')
+          assert m['native_host_broadcast_notification']=='com.anlai.omnicar.qa19.controls.activity'
+          assert m['original_youtube_player_unchanged'] and m['zoom_swap_solo_native_handlers_unchanged']
+          assert not m['sileo_published'] and not m['carplay_device_tested']
+          assert hashlib.sha256((p/m['output_filename']).read_bytes()).hexdigest()==m['output_sha256']
+          print('QA20_EXACT_QA19_181_OTHER_FILES_UNCHANGED_INCLUDING_HOST_YOUTUBE_PASS')
+          PY
+          echo 'QA20_BUILT_NOT_PUBLISHED_NOT_DEVICE_TESTED' > qa20-artifacts/STATUS.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: OmniCar-QA20-OriginalDividerKnob-ARM64
+          path: qa20-artifacts/
+          if-no-files-found: warn
+      - name: Archive immutable QA20 candidate in Omnicar; do not publish in build step
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST='dist/candidates/omnicar-qa20-divider-knob-idle'
+          test ! -e "$DEST/BUILD-MANIFEST.json" || { echo 'Refusing to overwrite archived QA20'; exit 1; }
+          mkdir -p "$DEST"
+          cp qa20-artifacts/* "$DEST/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DEST"
+          git commit -m 'artifact(omnicar qa20): native divider knob timer candidate checksum [skip ci]'
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              echo QA20_ARCHIVED_TO_GITHUB_NOT_YET_ON_SILEO_DEVICE_UNTESTED
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
