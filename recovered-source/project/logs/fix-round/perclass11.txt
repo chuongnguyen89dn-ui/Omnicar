@@ -1,0 +1,70 @@
+Per-class selector parity — prefsround (combined gatefix+launchfix+liquidfix+bubblefix+prefsbubble+prefs), 2026-11-08
+Method: metadata/tools/macho_objc.py (wave-1 parser) over both slices
+of the original and the arm64 candidate payload; category methods
+merged into their target class (target/instance_methods fields).
+Candidate SHA-256 2e89d0a5d18d25d8a638fa9ceb356a46084df069d7e16570f296a1b1b063d650.
+
+OmniCar                      classes   1  exact   1  methods orig 6 built 6
+OmniCarCore.dylib            classes   0  exact   0  methods orig 0 built 0
+OmniCarAppBridge.dylib       classes   8  exact   8  methods orig 193 built 193
+OmniCarCarProbe.dylib        classes   0  exact   0  methods orig 0 built 0
+OmniCarSpeedBubble.dylib     classes   9  exact   8  methods orig 277 built 278
+OmniCarSplitScreen.dylib     classes  11  exact  11  methods orig 480 built 480
+OmniCarStartupScreen.dylib   classes   8  exact   7  methods orig 173 built 175
+OmniCarPrefs                 classes  29  exact  26  methods orig 743 built 746
+
+TOTAL: 61/66 classes exact
+EXCEPTIONS: 5
+[
+ {
+  "binary": "OmniCarSpeedBubble.dylib",
+  "class": "SPPBubble",
+  "orig_count": 103,
+  "built_count": 104,
+  "only_orig": [],
+  "only_built": [
+   "-hideIfShownWithReason:now:state:"
+  ]
+ },
+ {
+  "binary": "OmniCarStartupScreen.dylib",
+  "class": "SSStartupView",
+  "orig_count": 71,
+  "built_count": 73,
+  "only_orig": [],
+  "only_built": [
+   "-ss_festiveIcon:",
+   "-ss_festiveLabelsWithTitle:subtitle:titleColor:subtitleColor:titleY:titleSize:subtitleY:subtitleSize:"
+  ]
+ },
+ {
+  "binary": "OmniCarPrefs",
+  "class": "OMCSplitScreenController",
+  "orig_count": 37,
+  "built_count": 38,
+  "only_orig": [],
+  "only_built": [
+   "-gestureSwitchChanged:"
+  ]
+ },
+ {
+  "binary": "OmniCarPrefs",
+  "class": "OMCStartupScreenController",
+  "orig_count": 83,
+  "built_count": 84,
+  "only_orig": [],
+  "only_built": [
+   "+load"
+  ]
+ },
+ {
+  "binary": "OmniCarPrefs",
+  "class": "SSStartupView",
+  "orig_count": 71,
+  "built_count": 72,
+  "only_orig": [],
+  "only_built": [
+   "-gradientLayer"
+  ]
+ }
+]

@@ -146,8 +146,8 @@
                 NSArray *names = [rescuePart componentsSeparatedByString:@","];
                 NSMutableArray *display = [NSMutableArray array];
                 for (NSString *name in names) [display addObject:OMCFeatureDisplayName(name)];
-                [spec setProperty:[NSString stringWithFormat:@"%@: %@",
-                                   L(@"RESCUE_FOOTER"), [display componentsJoinedByString:@", "]]
+                [spec setProperty:[NSString stringWithFormat:L(@"RESCUE_FOOTER"),
+                                   [display componentsJoinedByString:@", "]]
                            forKey:@"footerText"];
             }
         } else if ([group isEqualToString:@"conflicts"]) {

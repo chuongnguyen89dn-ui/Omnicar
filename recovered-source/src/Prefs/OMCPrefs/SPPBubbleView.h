@@ -46,7 +46,7 @@
 - (void)applyColor:(int)state;
 - (void)setOverLimitWarning:(BOOL)warn;
 - (UIView *)bit:(NSString *)key;
-- (void)addBit:(NSString *)key to:(UIView *)container;
+- (UIView *)addBit:(NSString *)key to:(UIView *)container;
 - (CAShapeLayer *)shapePart:(NSString *)key in:(UIView *)container
                      stroke:(UIColor *)color width:(double)width;
 - (void)stackNumberAt:(double)x top:(double)top width:(double)width;

@@ -19,6 +19,11 @@
 
 static NSString * const kOMCDomain = @"com.anlai.omnicar";
 
+// Shared id->name map (global at 0x90018 in the original): written by
+// -loadState below from the homeScreenCarApps entries, read by the
+// sub_1c620 name lookup in OMCHSPreview.m. Defined in OMCHSPreview.m.
+extern NSMutableDictionary *OMCHSNameMap;
+
 // ---- per-TU static preference helpers (the binary carries several identical
 // ---- copies of these in different translation units) -----------------------
 static id OMCPrefRead(NSString *key) {           // sub_1cd84
@@ -221,9 +226,11 @@ static char kOMCSliderAssocKey;   // global at 0x90020 in the original
         if (e[@"name"]) names[bid] = e[@"name"];
         if ([e[@"off"] boolValue]) [off addObject:bid];
     }
+    // The id->name map is kept in the shared global at 0x90018 in the
+    // original (stored @0x1d454, right after the entries enumeration).
+    OMCHSNameMap = names;
     if (included.count == 0)
         included = [OMCPrefArray(@"splitScreenCarPlayApps") mutableCopy];
-    // (the id->name map is kept in a file-static in the original)
     self.included = included;
     self.iosOff = off;
 
@@ -485,9 +492,9 @@ static char kOMCSliderAssocKey;   // global at 0x90020 in the original
 
 - (CGFloat)tableView:(UITableView *)tv heightForRowAtIndexPath:(NSIndexPath *)ip {
     CGFloat w = tv.bounds.size.width;
-    if (ip.section == 0) return floor((w - 60) * 300.0 / 200.0) + 20;
-    if (ip.section == 2 && ip.row == 0) return 44;
-    if (ip.section == 4 && ip.row == 1) return [self layoutTilesIn:nil width:w - 24];
+    if (ip.section == 0) return floor((w - 60) * 300.0 / 800.0) + 20;
+    if (ip.section == 2 && ip.row == 0) return 50;
+    if (ip.section == 4 && ip.row == 1) return [self layoutTilesIn:nil width:w - 40];
     if (ip.section == 4 && ip.row == 2) return 58;
     return 52;
 }
@@ -624,7 +631,7 @@ static NSArray *OMCGridEntries(void) {
         if (!self.preview) self.preview = [OMCHSPreview new];
         UIView *box = [self boxInCell:cell];
         CGFloat w = tv.bounds.size.width;
-        self.preview.frame = CGRectMake(10, 10, w - 20, floor((w - 60) * 300.0 / 200.0));
+        self.preview.frame = CGRectMake(10, 10, w - 60, floor((w - 60) * 300.0 / 800.0));
         [box addSubview:self.preview];
         [self updatePreview];
         return cell;
@@ -681,7 +688,7 @@ static NSArray *OMCGridEntries(void) {
     if (row == 1) {
         UITableViewCell *cell = [self cellWithId:@"tiles" inTable:tv];
         UIView *box = [self boxInCell:cell];
-        [self layoutTilesIn:box width:tv.bounds.size.width - 24];
+        [self layoutTilesIn:box width:tv.bounds.size.width - 40];
         return cell;
     }
     if (row == 2) {

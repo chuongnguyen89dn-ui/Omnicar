@@ -16,6 +16,13 @@
 // INFERRED / STUB-UNRECOVERED. See REPORT_A.md, "Style-geometry
 // closure addendum", for the per-style status table and the list of
 // contradictions with agent A's original scaffolds.
+//
+// BUBBLEFIX (2026-11-08, GPT-ordered re-audit of buildStyle +
+// renderStyle against the full annotated dumps): the wave-3
+// "CLOSED" label above did NOT hold in detail — 23 divergences
+// were found and fixed (17 in renderStyle, 6 in buildStyle),
+// each pinned to a dump offset and marked "bubblefix" inline.
+// Full table: work/fix-round2/bubblefix-notes.md.
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -401,8 +408,11 @@ static void SPPApplyLabelShadow(UIView *view, UIColor *color, double radius) {
 //      glass.hidden = (style == 5 || style == 8) in both branches.
 //   3. per-style parts (below).
 //   4. shared tail: speed label = SPPMakeLabel(SPPHeavyFont(speedSize),
-//      indigo), unit label = SPPMakeLabel(SPPRoundedFont(unitSize),
-//      indigo @ 0.55). Font sizes (speed/unit) per style:
+//      speedColor), unit label = SPPMakeLabel(SPPRoundedFont(unitSize),
+//      unitColor) — colours are per-style (bubblefix): indigo /
+//      indigo @ 0.55 generically, style 5's unit = full indigo,
+//      styles 6/8 = white / white @ 0.6. Font sizes (speed/unit)
+//      per style:
 //      0: 34/10, 1: 32/10, 2: 30/10, 3: 33/10, 4: 40/10, 5: 48/12,
 //      6: 30/10, 7: 30/10, 8: 24/9. Style 5 adds a white label shadow
 //      (radius 4) to both labels; styles 6 and 8 add a light-blue
@@ -657,13 +667,17 @@ static void SPPApplyLabelShadow(UIView *view, UIColor *color, double radius) {
             _parts[@"ring"] = ring;
             [self shapePart:@"inner" in:deco.layer
                      stroke:[UIColor colorWithWhite:1 alpha:0.08] width:1.0];
+            // Zone/limTick red (bubblefix audit @0x1077c/@0x10824):
+            // the binary reuses the prologue's hoisted pair
+            // (0.35294, 0.37255) — the over-limit red (255,90,95) —
+            // NOT (0.21176, 0.45) as the earlier draft had it.
             CAShapeLayer *zone = [self shapePart:@"zone" in:deco.layer
-                stroke:[UIColor colorWithRed:1 green:0.21176470588235294
-                                         blue:0.45 alpha:0.9] width:3.5];
+                stroke:[UIColor colorWithRed:1 green:0.35294117647058826
+                                         blue:0.37254901960784315 alpha:0.9] width:3.5];
             zone.lineCap = kCALineCapButt;
             CAShapeLayer *limTick = [self shapePart:@"limTick" in:deco.layer
-                stroke:[UIColor colorWithRed:1 green:0.21176470588235294
-                                         blue:0.45 alpha:1] width:2.5];
+                stroke:[UIColor colorWithRed:1 green:0.35294117647058826
+                                         blue:0.37254901960784315 alpha:1] width:2.5];
             limTick.lineCap = kCALineCapRound;
             CAShapeLayer *minor = [self shapePart:@"minor" in:deco.layer
                 stroke:[UIColor colorWithWhite:1 alpha:0.45] width:1.2];
@@ -687,10 +701,13 @@ static void SPPApplyLabelShadow(UIView *view, UIColor *color, double radius) {
             _parts[@"prog"] = prog;
             CAShapeLayer *needle = [self shapePart:@"needle" in:deco.layer
                                             stroke:nil width:0];
+            // Needle red (bubblefix audit @0x10b50/@0x10b94):
+            // (1, 0.35294, 0.21176) — green is the hoisted 0.35294,
+            // blue the fresh 0.21176 const @0x328f0.
             needle.fillColor = [UIColor colorWithRed:1
-                green:0.21176470588235294 blue:0.45 alpha:1].CGColor;
+                green:0.35294117647058826 blue:0.21176470588235294 alpha:1].CGColor;
             needle.shadowColor = [UIColor colorWithRed:1
-                green:0.21176470588235294 blue:0.45 alpha:1].CGColor;
+                green:0.35294117647058826 blue:0.21176470588235294 alpha:1].CGColor;
             needle.shadowRadius = 3;
             needle.shadowOpacity = 0.8;
             needle.shadowOffset = CGSizeZero;
@@ -706,9 +723,20 @@ static void SPPApplyLabelShadow(UIView *view, UIColor *color, double radius) {
             break;
     }
 
-    _speedLabel = SPPMakeLabel(SPPHeavyFont(speedSize), indigo);
-    _unitLabel = SPPMakeLabel(SPPRoundedFont(unitSize),
-                              [indigo colorWithAlphaComponent:0.55]);
+    // Label base colours (bubblefix audit): generic = indigo /
+    // indigo @ 0.55; style 5's unit label is FULL indigo (@0x10d44);
+    // the dark styles 6 and 8 build white labels, unit @ 0.6
+    // (@0xfa74 regs, @0x1041c slots).
+    UIColor *speedColor = indigo;
+    UIColor *unitColor = [indigo colorWithAlphaComponent:0.55];
+    if (style == 5) {
+        unitColor = indigo;
+    } else if (style == 6 || style == 8) {
+        speedColor = [UIColor whiteColor];
+        unitColor = [UIColor colorWithWhite:1 alpha:0.6];
+    }
+    _speedLabel = SPPMakeLabel(SPPHeavyFont(speedSize), speedColor);
+    _unitLabel = SPPMakeLabel(SPPRoundedFont(unitSize), unitColor);
     if (style == 5) {
         SPPApplyLabelShadow(_speedLabel, [UIColor whiteColor], 4);
         SPPApplyLabelShadow(_unitLabel, [UIColor whiteColor], 4);
@@ -791,7 +819,7 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
         case 0: {
             // Round glass bubble, conic ring + shine wedge.
             _glass.frame = CGRectMake(4, 16, 100, 100);
-            [_glass setCorner:34];
+            [_glass setCorner:50];   // bubblefix @0x13690 (was 34)
             CAGradientLayer *ring = (CAGradientLayer *)_parts[@"ring"];
             UIBezierPath *oval = [UIBezierPath
                 bezierPathWithOvalInRect:CGRectMake(1.5, 1.5, 97, 97)];
@@ -804,7 +832,7 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
             shine.cornerRadius = 13;
             [self stackNumberAt:52 top:68 - [self stackHeight] / 2 width:84];
             SPPPlaceSquare(_iconView, 11, 107, 22);
-            SPPPlaceSquare(_sign, 95, 25, 34);
+            SPPPlaceSquare(_sign, 95, 25, 50);   // bubblefix @0x1467c (was 34)
             content = CGSizeMake(120, 118);
             flashRef = _glass;
             break;
@@ -813,13 +841,20 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
             // Horizontal strip: [icon|dot] number | bar | sign.
             UIView *dot = [self bit:@"dot"];
             dot.hidden = _showIcon;
-            /* INFERRED: the dot's frame was not isolated in the dump;
-               it is centred on the icon's spot (21,30) at 8x8 (build
-               sets cornerRadius 4). */
-            dot.frame = CGRectMake(17, 26, 8, 8);
-            if (state != 0) dot.backgroundColor = sColor;
+            // bubblefix @0x139c8/@0x12e84: the dot takes the state
+            // colour when state != 0 and the gradient teal
+            // (0.3686, 0.8667, 0.7137) at state 0; its frame is set
+            // only on the no-icon path: (10, 26, 8, 8) @0x13a14.
+            dot.backgroundColor = (state != 0) ? sColor
+                : [UIColor colorWithRed:0.3686274509803922
+                                  green:0.8666666666666667
+                                   blue:0.7137254901960784 alpha:1];
             double leftPad = _showIcon ? 41 : 24;
-            if (_showIcon) SPPPlaceSquare(_iconView, 21, 30, 22);
+            if (_showIcon) {
+                SPPPlaceSquare(_iconView, 21, 30, 22);
+            } else {
+                dot.frame = CGRectMake(10, 26, 8, 8);
+            }
             double fitW = MAX(ceil([_speedLabel
                 sizeThatFits:CGSizeMake(200, 40)].width), 52);
             [self stackNumberAt:leftPad + fitW / 2
@@ -832,7 +867,7 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
             double contentW = rightEdge + 44 + 8;
             _glass.frame = CGRectMake(0, 0, contentW, 60);
             [_glass setCorner:30];
-            content = CGSizeMake(contentW, 60);   // height INFERRED
+            content = CGSizeMake(contentW, 60);   // VERIFIED @0x13b48
             break;
         }
         case 2: {
@@ -909,15 +944,15 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
                         green:0.7019607843137254 blue:0.25098039215686274
                         alpha:1]];
             } else if (state == 2) {
-                // PARTIAL: the state-2 top colour (1, 0.5412, 0.5529)
-                // is pinned; that it pairs with the state-0 bottom at
-                // the 0x14964 join is INFERRED from the branch layout.
+                // bubblefix @0x127d0 + join @0x14964: the bottom is
+                // built at the join from the components carried in
+                // (1, 0.30980, 0.33333) — NOT the state-0 bottom.
                 [_glass setTop:[UIColor colorWithRed:1
                         green:0.5411764705882353 blue:0.5529411764705883
                         alpha:1]
-                      bottom:[UIColor colorWithRed:0.6274509803921569
-                        green:0.9450980392156862 blue:0.8509803921568627
-                        alpha:0.97]];
+                      bottom:[UIColor colorWithRed:1
+                        green:0.30980392156862746 blue:0.3333333333333333
+                        alpha:1]];
             } else {
                 [_glass setTop:[UIColor colorWithRed:0.788235294117647
                         green:0.7294117647058823 blue:0.9882352941176471
@@ -933,18 +968,20 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
                 ? [UIColor whiteColor]
                 : [indigo colorWithAlphaComponent:0.55];
             double fitW = ceil([_speedLabel
-                sizeThatFits:CGSizeMake(200, 34)].width);
+                sizeThatFits:CGSizeMake(200, 50)].width);   // bubblefix @0x14adc (was 34)
             _speedLabel.frame = CGRectMake(12, 59, fitW, 48);
             SPPPlaceUnitRightOf(_unitLabel, _speedLabel);
             UIView *track = [self bit:@"track"];
             track.frame = CGRectMake(12, 106, 100, 6);
             CAGradientLayer *fillGrad = (CAGradientLayer *)_parts[@"fillGrad"];
             fillGrad.frame = CGRectMake(0, 0, 100, 6);
-            // PARTIAL: hidden flag consumed at 0x14c60; (state == 0)
-            // matches the fill background logic right below.
-            fillGrad.hidden = (state == 0);
+            // bubblefix @0x14a90/@0x14c60 + @0x14c7c: both
+            // polarities were inverted in the earlier draft — the
+            // gradient shows at state 0, the white fill takes over
+            // when near/over the limit.
+            fillGrad.hidden = (state != 0);
             UIView *fill = [self bit:@"fill"];
-            fill.backgroundColor = (state == 0)
+            fill.backgroundColor = (state != 0)
                 ? [UIColor whiteColor] : [UIColor clearColor];
             [CATransaction setDisableActions:NO];
             SPPAnimateViewWidth(fill, ratio * track.bounds.size.width, 0.6);
@@ -974,15 +1011,20 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
             SPPAnimateViewWidth([self bit:@"fill"], ratio * 92, 0.6);
             [CATransaction setDisableActions:YES];
             SPPPlaceSquare(_sign, contentW + 28, trackY - 23, 40);
-            // PARTIAL: width VERIFIED (contentW + 40); the height
-            // (d8 carried through the branch) was not isolated.
-            content = CGSizeMake(contentW + 40, trackY + 5);
+            // bubblefix @0x13c04/@0x13c44: content width =
+            // (contentW + 8) + 40 (the sign's size) = contentW + 48;
+            // height = trackY + 5 VERIFIED.
+            content = CGSizeMake(contentW + 48, trackY + 5);
+            // bubblefix @0x13c58: style 5's flash anchor is the
+            // SPEED LABEL (fetched into the shared slot at the end
+            // of the branch) — inset family, see the epilogue.
+            flashRef = _speedLabel;
             break;
         }
         case 6: {
             // Tall dark pill: sign on top, number, optional icon.
-            SPPPlaceSquare(_sign, 35, 33, 34);
-            [self stackNumberAt:35 top:66 width:70];
+            SPPPlaceSquare(_sign, 35, 33, 50);   // bubblefix @0x12524 (was 34)
+            [self stackNumberAt:35 top:66 width:62];   // bubblefix @0x12544 (was 70)
             double contentH = 66 + [self stackHeight];
             if (_showIcon) {
                 SPPPlaceSquare(_iconView, 35, contentH + 17, 18);
@@ -1010,10 +1052,9 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
                 : sColor;
             glow.strokeColor = glowColor.CGColor;
             glow.shadowColor = glowColor.CGColor;
-            _speedLabel.layer.shadowColor = [UIColor
-                colorWithRed:0.5490196078431373 green:0.7450980392156863
-                        blue:1 alpha:0.7].CGColor;
-            content = CGSizeMake(70, contentH);   // INFERRED from glass
+            // (speed-label shadow colour is state-dependent and set
+            // in the shared block after the switch — bubblefix.)
+            content = CGSizeMake(70, contentH);   // VERIFIED @0x125cc
             break;
         }
         case 7: {
@@ -1054,13 +1095,13 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
             [CATransaction setDisableActions:NO];
             SPPAnimateViewWidth([self bit:@"fill"], ratio * 61, 0.9);
             [CATransaction setDisableActions:YES];
-            SPPPlaceSquare(_sign, contentW + 69 + 25, 29, 34);
-            // PARTIAL: total width follows the dump's add chain
-            // (contentW + 69, then + 34 + 4 at 0x14844..0x148c..).
-            double totalW = contentW + 69 + 34 + 4;
+            SPPPlaceSquare(_sign, contentW + 69 + 25, 29, 50);   // bubblefix @0x14868 (was 34)
+            // bubblefix @0x14884: total width = contentW + 69 +
+            // sign size 50 + 4.
+            double totalW = contentW + 69 + 50 + 4;
             _glass.frame = CGRectMake(0, 0, totalW, 59);
             [_glass setCorner:29];
-            content = CGSizeMake(totalW, 59);   // INFERRED from glass
+            content = CGSizeMake(totalW, 59);   // VERIFIED @0x148a4
             break;
         }
         case 8: {
@@ -1149,28 +1190,43 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
                 startAngle:0 endAngle:2 * M_PI clockwise:YES].CGPath;
             [CATransaction setDisableActions:NO];
             [CATransaction setAnimationDuration:0.6];
+            // bubblefix @0x13f5c: the gauge value is the ABSOLUTE
+            // speed (bic w21, w0, w0, asr #31); it feeds both the
+            // progress strokeEnd (@0x1412c) and the needle rotation.
+            double gaugeSpeed = fabs((double)_speed);
             ((CAShapeLayer *)prog.mask).strokeEnd =
-                fmin((SPPGaugeAngle(_speed) - 150) / 240, 1);
+                fmin((SPPGaugeAngle(gaugeSpeed) - 150) / 240, 1);
             needle.transform = CATransform3DMakeRotation(
-                SPPGaugeAngle(_speed) * M_PI / 180, 0, 0, 1);
+                SPPGaugeAngle(gaugeSpeed) * M_PI / 180, 0, 0, 1);
             [CATransaction setDisableActions:YES];
             _speedLabel.frame = CGRectMake(30, 86, 80, 28);
             _unitLabel.frame = CGRectMake(40, 112, 60, 11);
-            // PARTIAL: the light-blue speed-label shadow colour is
-            // re-applied here (blocks 0x14df0/0x14e20); its alpha is
-            // carried in a register (v8) whose per-state value was
-            // not isolated — buildStyle used 0.7.
-            _speedLabel.layer.shadowColor = [UIColor
-                colorWithRed:0.5490196078431373 green:0.7450980392156863
-                        blue:1 alpha:0.7].CGColor;
+            // (speed-label shadow colour is state-dependent and set
+            // in the shared block after the switch — bubblefix
+            // @0x14df0/@0x14e20.)
             SPPPlaceSquare(_iconView, 14, 14, 24);
             SPPPlaceSquare(_sign, 131, 125, 66);
-            content = CGSizeMake(164, 158);
+            content = CGSizeMake(164, 158);   // VERIFIED @0x14f68
             flashRef = _deco;
             break;
         }
         default:
             break;
+    }
+
+    // Bubblefix: styles 6 and 8 re-apply the speed label's shadow
+    // colour on EVERY render, and it is state-dependent (binary
+    // merges @0x14d14/@0x14d48 for style 6, @0x14df0/@0x14e20 for
+    // style 8): state 0 -> light blue (0.549, 0.745, 1) at alpha
+    // 0.7 (style 6) / 0.6 (style 8); states 1/2 -> the state
+    // colour at alpha 1.
+    if (_builtStyle == 6 || _builtStyle == 8) {
+        double shadowAlpha = (_builtStyle == 6) ? 0.7 : 0.6;
+        _speedLabel.layer.shadowColor = (state == 0)
+            ? [UIColor colorWithRed:0.5490196078431373
+                              green:0.7450980392156863
+                               blue:1 alpha:shadowAlpha].CGColor
+            : sColor.CGColor;
     }
 
     // Epilogue (0x14de0 / 0x14f7c -> 0x15048..0x15210). NOTE: the
@@ -1179,15 +1235,19 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
     // (x2 = saved state). See the closure addendum.
     [self applyColor:state];
     if (flashRef) {
-        // Inset family (styles 0, 2, 3, 8): the flash view spills
-        // 6 pt past the plate on every side.
+        // Inset family (styles 0, 2, 3, 5, 8 — style 5's ref is
+        // the speed label): the flash view spills 6 pt past the
+        // ref's frame on every side. Corner (bubblefix @0x14fa0,
+        // compare @0x15004/@0x14ff4): 16 when the ref is the speed
+        // label (style 5), else half the SMALLER SIDE OF THE REF
+        // FRAME — not of the content size.
         _flashView.frame = CGRectInset(flashRef.frame, -6, -6);
         _flashView.layer.cornerRadius =
-            MIN(content.width, content.height) / 2;
+            (flashRef == _speedLabel) ? 16
+                : MIN(flashRef.frame.size.width,
+                      flashRef.frame.size.height) / 2;
     } else {
-        // Glass-bounds family (styles 1, 4, 5, 6, 7). For style 5
-        // the glass is hidden and unframed, so this frame is
-        // degenerate in the binary as well (PARTIAL).
+        // Glass-bounds family (styles 1, 4, 6, 7).
         _flashView.frame = _glass.bounds;
         _flashView.layer.cornerRadius = _glass.corner;
     }
@@ -1202,7 +1262,7 @@ static CGPoint SPPGaugePoint(double r, double angleDeg) {
         _outlineCorner = _glass.corner;
     }
     [CATransaction commit];
-    _contentSize = content;
+    self.contentSize = content;   // setter, as in the binary @0x15200
     [self setOverLimitWarning:(state == 2)];
 }
 

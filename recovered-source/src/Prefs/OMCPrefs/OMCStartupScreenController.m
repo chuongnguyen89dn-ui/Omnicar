@@ -62,6 +62,40 @@ static NSString *SSDiagCarName(void) {                   // sub_3dd30
     }
     return nil;
 }
+// ---- [W1] diagnostic instrumentation (W1 startup-ejection audit;
+// candidate-only, NOT a restored behaviour) ---------------------------
+// All [W1] lines go through OMCLogWriteSync (OMCCommon) so each line is
+// appended on the calling thread and survives an abort on the next step.
+static NSString *OMCW1ClassName(id v) {
+    return v ? NSStringFromClass([v class]) : @"(nil)";
+}
+// [W1] YES until the first -viewDidAppear of this controller finishes:
+// bounds the decorateCell logs to the first pass, per the W1 plan.
+static BOOL sW1DecorateFirstPass = YES;
+static NSUncaughtExceptionHandler *sW1PreviousHandler = NULL;
+static BOOL sW1HandlerInstalled = NO;
+static void OMCW1UncaughtExceptionHandler(NSException *exception) {
+    // Synchronous log of name + reason + stack symbols, then PROPAGATE:
+    // chain to the previous handler when there was one, otherwise
+    // re-raise. This handler never returns normally on the no-previous
+    // path and never swallows the exception.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] uncaught exception name=%@ reason=%@ stack=%@",
+        exception.name, exception.reason,
+        [exception.callStackSymbols componentsJoinedByString:@" | "]]);
+    if (sW1PreviousHandler) {
+        sW1PreviousHandler(exception);
+    } else {
+        [exception raise];
+    }
+}
+static void OMCW1InstallExceptionHandler(void) {
+    if (sW1HandlerInstalled) return;
+    sW1HandlerInstalled = YES;
+    sW1PreviousHandler = NSGetUncaughtExceptionHandler();
+    NSSetUncaughtExceptionHandler(&OMCW1UncaughtExceptionHandler);
+}
+
 // Localization key for a style index (clamped: out-of-range -> 0).
 NSString *SSStyleNameKey(NSInteger style) {       // sub_3c7f0 — shared symbol:
                                                   // also called from OMCSSStyleTileCell
@@ -124,6 +158,15 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
 
 @implementation OMCStartupScreenController
 
+// [W1] Install the uncaught-exception handler as early as this TU can:
+// the report specifies -viewDidLoad (before super), or +load of this TU
+// if earlier is needed — +load is used, and -viewDidLoad re-calls the
+// (idempotent) installer before [super viewDidLoad] as the report's
+// named point.
++ (void)load {
+    OMCW1InstallExceptionHandler();
+}
+
 // ------------------------------------------------------------- pref reads
 - (NSInteger)currentStyle {
     id v = SSRawPref(@"startupScreenStyle");
@@ -137,15 +180,23 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     NSString *dir = SSReal([kSSDir stringByAppendingPathComponent:@"Sounds"]);
     if (!dir) return nil;
     NSString *path = [dir stringByAppendingPathComponent:name];
-    return [[NSFileManager defaultManager] fileExistsAtPath:path] ? path : nil;
+    // [W1 fix] Original returns the BARE file name when the file
+    // exists (csel x19 at 0x3d0c0, currentSound 0x3cff4-0x3d120);
+    // ours returned the full path and compensated with
+    // lastPathComponent at the specifiers call site.
+    return [[NSFileManager defaultManager] fileExistsAtPath:path] ? name : nil;
 }
 
 - (NSArray *)randomSet {
+    // [W1 fix] Element range test is UNSIGNED in the original
+    // (cmp #9 + b.hi at 0x3d27c-0x3d280): negative values are rejected
+    // too. Ours previously used a signed <= 9 and admitted negatives.
     NSMutableArray *out = [NSMutableArray array];
     id v = SSRawPref(@"startupScreenRandomSet");
     if ([v isKindOfClass:[NSArray class]])
         for (id e in (NSArray *)v)
-            if ([e isKindOfClass:[NSNumber class]] && [e integerValue] <= 9 &&
+            if ([e isKindOfClass:[NSNumber class]] &&
+                (NSUInteger)[e integerValue] <= 9 &&
                 ![out containsObject:@([e integerValue])])
                 [out addObject:@([e integerValue])];
     if (out.count == 0)
@@ -183,7 +234,38 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
 // -------------------------------------------------------------- specifiers
 - (NSArray *)specifiers {
     if (!_specifiers) {
+        // [W1] Bracket enter + background dump (W1 plan: logged ONCE at
+        // the head of -specifiers): the current startup style, then for
+        // EACH pref key read on page entry its runtime class, plus its
+        // value only for NSString/NSNumber values.
+        OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+            @"[W1] OMCStartupScreenController specifiers enter currentStyle=%ld",
+            (long)[self currentStyle]]);
+        for (NSString *w1Key in @[@"startupScreenStyle",
+                                  @"startupScreenVideoName",
+                                  @"startupScreenSoundFile",
+                                  @"startupScreenRandomSet",
+                                  @"startupScreenBirthday",
+                                  @"startupScreenDuration",
+                                  @"startupScreenTempo",
+                                  @"startupScreenLogoEffect",
+                                  @"startupScreenScaleMode",
+                                  @"startupScreenGreetingName",
+                                  @"startupScreenCarName"]) {
+            id w1Value = SSRawPref(w1Key);
+            NSString *w1Shown = ([w1Value isKindOfClass:[NSString class]] ||
+                                 [w1Value isKindOfClass:[NSNumber class]])
+                                ? [w1Value description]
+                                : @"(value not logged: not NSString/NSNumber)";
+            OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+                @"[W1] pref key=%@ class=%@ value=%@",
+                w1Key, OMCW1ClassName(w1Value), w1Shown]);
+        }
         NSMutableArray *specs = [[super specifiers] mutableCopy];
+        // [W1] Bracket: after super.
+        OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+            @"[W1] OMCStartupScreenController specifiers after super count=%lu",
+            (unsigned long)specs.count]);
         NSInteger style = [self currentStyle];
         for (PSSpecifier *sp in [specs copy]) {
             id styles = [sp propertyForKey:@"ssStyles"];
@@ -200,7 +282,7 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
                 NSString *sound = [self currentSound];
                 NSString *current = sound
                     ? [NSString stringWithFormat:L(@"STARTUPSCREEN_SOUND_CURRENT"),
-                       [sound lastPathComponent]]
+                       sound]
                     : L(@"STARTUPSCREEN_SOUND_NONE");
                 [sp setProperty:[NSString stringWithFormat:@"%@\n%@\n%@: %@",
                         L(@"STARTUPSCREEN_STARTUP_SOUND_FOOTER"),
@@ -216,11 +298,24 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
             } else if ([ident isEqualToString:@"occasionPreview"]) {
                 sp.name = [self occasionPreviewTitle];
             }
-            if ([[sp propertyForKey:@"key"] isEqualToString:@"carName"])
-                [sp setProperty:SSDiagCarName() ?: @"OmniCar" forKey:@"footerText"];
+            // [W1 fix] Original compares the specifier IDENTIFIER to
+            // @"carName" and writes the @"placeholder" property
+            // (0x3dc3c-0x3dc78). Ours compared property @"key" (never
+            // true: the plist key is startupScreenCarName) and wrote
+            // @"footerText".
+            if ([sp.identifier isEqualToString:@"carName"])
+                [sp setProperty:SSDiagCarName() ?: @"OmniCar" forKey:@"placeholder"];
         }
+        // [W1] Bracket: after the ssStyles filter loop (remaining count).
+        OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+            @"[W1] OMCStartupScreenController specifiers after filter count=%lu",
+            (unsigned long)specs.count]);
         _specifiers = specs;
         [self refreshVideoList];
+        // [W1] Bracket exit.
+        OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+            @"[W1] OMCStartupScreenController specifiers exit count=%lu",
+            (unsigned long)_specifiers.count]);
     }
     return _specifiers;
 }
@@ -244,8 +339,31 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
 
 - (UITableViewCell *)tableView:(UITableView *)table
          cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [super tableView:table cellForRowAtIndexPath:indexPath];
-    [self decorateCell:cell];
+    UITableViewCell *cell = nil;
+    @try {
+        cell = [super tableView:table cellForRowAtIndexPath:indexPath];
+        [self decorateCell:cell];
+    } @catch (NSException *exception) {
+        // [W1] Log-then-rethrow, exactly the GPT-F pattern in
+        // OMCRootListController.m (synchronous [W1] variant): log
+        // section/row + specifier identifier + exception
+        // name/reason/callStackSymbols, then @throw; — the exception
+        // is NEVER swallowed or continued past.
+        NSString *specifierID = nil;
+        @try {
+            PSSpecifier *spec = [self specifierAtIndexPath:indexPath];
+            specifierID = [spec identifier] ?: [spec propertyForKey:@"plist"];
+        } @catch (NSException *lookupException) {
+            (void)lookupException;
+            specifierID = nil;
+        }
+        OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+            @"[W1] cellForRow exception: controller=%@ section=%ld row=%ld specifier=%@ name=%@ reason=%@ stack=%@",
+            NSStringFromClass([self class]), (long)indexPath.section,
+            (long)indexPath.row, specifierID, exception.name, exception.reason,
+            [exception.callStackSymbols componentsJoinedByString:@" | "]]);
+        @throw;
+    }
     return cell;
 }
 
@@ -258,6 +376,13 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     PSSpecifier *sp = nil;
     if ([cell isKindOfClass:[PSTableCell class]]) sp = [(PSTableCell *)cell specifier];
     NSString *ident = sp.identifier;
+    // [W1] First pass only: identifier + class of the ssRandomStyle
+    // property for each cell.
+    if (sW1DecorateFirstPass) {
+        OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+            @"[W1] decorateCell identifier=%@ ssRandomStyleClass=%@",
+            ident, OMCW1ClassName([sp propertyForKey:@"ssRandomStyle"])]);
+    }
     if ([ident isEqualToString:@"birthday"]) {
         UIView *acc = [self birthdayAccessory];
         if (cell.accessoryView != acc) cell.accessoryView = acc;
@@ -285,8 +410,17 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
 
 // ------------------------------------------------------------------- views
 - (void)viewDidLoad {
+    // [W1] Report's named install point: the uncaught-exception handler
+    // is installed BEFORE [super viewDidLoad] (idempotent; +load of
+    // this TU already installed it even earlier).
+    OMCW1InstallExceptionHandler();
+    // [W1] Bracket enter.
+    OMCLogWriteSync(@"Prefs", @"[W1] OMCStartupScreenController viewDidLoad enter");
     [super viewDidLoad];
-    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 280, 320)];
+    // [W1 fix] Header frame restored to the original 320x280
+    // (W1 audit row 6: d8=320.0 at 0x3e6f4, 280.0 const 0x65e90);
+    // ours had the two dimensions flipped (280x320).
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 280)];
     self.previewHeader = header;
     UIView *shadow = [UIView new];
     shadow.layer.shadowColor = [UIColor blackColor].CGColor;
@@ -295,7 +429,9 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     shadow.layer.shadowOffset = CGSizeMake(0, 6);
     self.previewShadow = shadow;
     [header addSubview:shadow];
-    SSStartupView *preview = [[SSStartupView alloc] initWithFrame:CGRectMake(0, 0, 280, 120)];
+    // [W1 fix] Preview width restored to the original 320 (W1 audit
+    // row 6); ours had 280.
+    SSStartupView *preview = [[SSStartupView alloc] initWithFrame:CGRectMake(0, 0, 320, 120)];
     preview.layer.cornerRadius = 20;
     preview.layer.cornerCurve = kCACornerCurveContinuous;
     preview.layer.borderWidth = 0.5;
@@ -321,7 +457,9 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     [header addSubview:hint];
     UICollectionViewFlowLayout *flow = [UICollectionViewFlowLayout new];
     flow.scrollDirection = UICollectionViewScrollDirectionHorizontal;
-    flow.itemSize = CGSizeMake(110, 78);
+    // [W1 fix] itemSize restored to the original 78x108; ours had it
+    // flipped (110x78).
+    flow.itemSize = CGSizeMake(78, 108);
     flow.minimumLineSpacing = 4;
     flow.minimumInteritemSpacing = 0;
     flow.sectionInset = UIEdgeInsetsMake(0, 14, 0, 14);
@@ -337,14 +475,20 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
         forCellWithReuseIdentifier:@"tile"];
     self.gallery = gallery;
     [header addSubview:gallery];
+    // [W1] Bracket exit.
+    OMCLogWriteSync(@"Prefs", @"[W1] OMCStartupScreenController viewDidLoad exit");
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    // [W1] Bracket enter.
+    OMCLogWriteSync(@"Prefs", @"[W1] OMCStartupScreenController viewWillAppear enter");
     [super viewWillAppear:animated];
     self.galleryTitle.text = L(@"STARTUPSCREEN_STYLE_GROUP");
     self.galleryHint.text = L(@"STARTUPSCREEN_REPLAY_HINT");
     [self.gallery reloadData];
     [self updatePreview];
+    // [W1] Bracket exit.
+    OMCLogWriteSync(@"Prefs", @"[W1] OMCStartupScreenController viewWillAppear exit");
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -354,9 +498,21 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
 }
 
 - (void)viewDidLayoutSubviews {
+    // [W1] Bracket ONLY on the first call (static flag, per W1 plan).
+    static BOOL sW1LayoutLogged = NO;
+    BOOL w1LogLayout = !sW1LayoutLogged;
+    if (w1LogLayout) {
+        sW1LayoutLogged = YES;
+        OMCLogWriteSync(@"Prefs", @"[W1] OMCStartupScreenController viewDidLayoutSubviews enter (first)");
+    }
     [super viewDidLayoutSubviews];
     CGFloat W = self.table.bounds.size.width;
-    if (W <= 0 || fabs(W - self.previewWidth) < 0.5) return;
+    if (W <= 0 || fabs(W - self.previewWidth) < 0.5) {
+        // [W1] Bracket exit (first call, early-return path).
+        if (w1LogLayout)
+            OMCLogWriteSync(@"Prefs", @"[W1] OMCStartupScreenController viewDidLayoutSubviews exit (first, early return)");
+        return;
+    }
     self.previewWidth = W;
     CGFloat contentW = MIN(W - 32, 560);
     CGFloat previewH = round(contentW * 0.375);
@@ -375,6 +531,9 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     self.previewHeader.frame = CGRectMake(0, 0, W, CGRectGetMaxY(self.gallery.frame) + 2);
     self.table.tableHeaderView = self.previewHeader;
     [self scrollGalleryToStyle:[self currentStyle] animated:NO];
+    // [W1] Bracket exit (first call only).
+    if (w1LogLayout)
+        OMCLogWriteSync(@"Prefs", @"[W1] OMCStartupScreenController viewDidLayoutSubviews exit (first)");
 }
 
 - (void)scrollGalleryToStyle:(NSInteger)style animated:(BOOL)animated {
@@ -454,13 +613,30 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
 
 // ---------------------------------------------------------------- preview
 - (void)updatePreview {
+    // [W1] Bracket enter (style in).
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] updatePreview enter currentStyle=%ld", (long)[self currentStyle]]);
     [self showPreviewStyle:[self currentStyle] occasion:0];
+    // [W1] Bracket exit.
+    OMCLogWriteSync(@"Prefs", @"[W1] updatePreview exit");
 }
 
 - (void)showPreviewStyle:(NSInteger)style occasion:(NSInteger)occasion {
+    // [W1] Bracket enter: style in + occasion.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] showPreviewStyle enter styleIn=%ld occasion=%ld",
+        (long)style, (long)occasion]);
     SSStartupView *p = self.preview;
-    if (!p) return;
+    if (!p) {
+        // [W1] Bracket exit (no preview view).
+        OMCLogWriteSync(@"Prefs", @"[W1] showPreviewStyle exit (no preview)");
+        return;
+    }
     if (style == 10) style = [self randomPreviewStyle];
+    // [W1] Style after random-resolve + occasion.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] showPreviewStyle after random-resolve style=%ld occasion=%ld",
+        (long)style, (long)occasion]);
     p.image = nil;
     p.weather = nil;
     p.hud = nil;
@@ -468,6 +644,11 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     p.style = style;
     p.occasion = occasion;
     SSApplySampleData(p);
+    // [W1] After SSApplySampleData: classes of weather/hud/nextEvent.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] showPreviewStyle after SSApplySampleData weatherClass=%@ hudClass=%@ nextEventClass=%@",
+        OMCW1ClassName(p.weather), OMCW1ClassName(p.hud),
+        OMCW1ClassName(p.nextEvent)]);
     p.occasion = occasion;
     p.name = SSStringPref(@"startupScreenGreetingName");
     NSString *car = SSStringPref(@"startupScreenCarName");
@@ -505,15 +686,29 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     if (style == 0)
         p.imageFits = ([SSRawPref(@"startupScreenScaleMode") integerValue] == 1);
     [p reload];
+    // [W1] After [preview reload].
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] showPreviewStyle after preview reload style=%ld", (long)style]);
     [p playIntro];
+    // [W1] After [preview playIntro] / bracket exit.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] showPreviewStyle after preview playIntro style=%ld exit", (long)style]);
 }
 
 // --------------------------------------------------------------- birthday
 - (UIView *)birthdayAccessory {
-    if (self.birthdayView) return self.birthdayView;
+    // [W1] Separate bracket around -birthdayAccessory (W1 plan).
+    OMCLogWriteSync(@"Prefs", @"[W1] birthdayAccessory enter");
+    if (self.birthdayView) {
+        // [W1] Bracket exit (cached view).
+        OMCLogWriteSync(@"Prefs", @"[W1] birthdayAccessory exit (cached)");
+        return self.birthdayView;
+    }
     UIDatePicker *picker = [UIDatePicker new];
     picker.datePickerMode = UIDatePickerModeDate;
-    picker.preferredDatePickerStyle = UIDatePickerStyleInline;
+    // [W1 fix] Picker style restored to Compact (original style arg
+    // w2=#2 at 0x400e4-0x400e8); ours used Inline (=3).
+    picker.preferredDatePickerStyle = UIDatePickerStyleCompact;
     picker.locale = [NSLocale localeWithLocaleIdentifier:OMCLanguage()];
     picker.tintColor = [UIColor labelColor];
     [picker addTarget:self action:@selector(birthdayChanged:)
@@ -533,6 +728,8 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     self.birthdayClear = clear;
     self.birthdayView = stack;
     [self updateBirthdayAccessory];
+    // [W1] Bracket exit.
+    OMCLogWriteSync(@"Prefs", @"[W1] birthdayAccessory exit");
     return self.birthdayView;
 }
 
@@ -583,11 +780,23 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
 
 // ------------------------------------------------------------------ videos
 - (void)viewDidAppear:(BOOL)animated {
+    // [W1] Bracket enter.
+    OMCLogWriteSync(@"Prefs", @"[W1] OMCStartupScreenController viewDidAppear enter");
     [super viewDidAppear:animated];
+    NSArray *w1Files = [self videoFiles];
     NSMutableArray *missing = [NSMutableArray array];
-    for (NSString *name in [self videoFiles])
+    for (NSString *name in w1Files)
         if (![self hasFramesForVideo:name]) [missing addObject:name];
+    // [W1] videoFiles list + missing-frames list, BEFORE
+    // extractFramesForVideos: (W1 plan point).
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] viewDidAppear videoFiles=%@ missingFrames=%@",
+        [w1Files componentsJoinedByString:@", "],
+        [missing componentsJoinedByString:@", "]]);
     [self extractFramesForVideos:missing completion:nil];
+    // [W1] Bracket exit; the decorateCell first pass ends here.
+    OMCLogWriteSync(@"Prefs", @"[W1] OMCStartupScreenController viewDidAppear exit (after extractFramesForVideos call)");
+    sW1DecorateFirstPass = NO;
 }
 
 - (NSArray *)videoFiles {
@@ -595,25 +804,50 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     NSString *dir = SSReal([kSSDir stringByAppendingPathComponent:@"Videos"]);
     [fm createDirectoryAtPath:[kSSDir stringByAppendingPathComponent:@"Videos"]
         withIntermediateDirectories:YES attributes:nil error:nil];
+    NSArray *contents = [fm contentsOfDirectoryAtPath:dir error:nil];
+    // [W1] SSReal result (nil?) + contents count (W1 plan point).
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] videoFiles realDir=%@ realIsNil=%d contentsCount=%lu",
+        dir, dir == nil, (unsigned long)contents.count]);
     NSMutableArray *out = [NSMutableArray array];
-    for (NSString *name in [fm contentsOfDirectoryAtPath:dir error:nil])
+    for (NSString *name in contents)
         if (![name hasPrefix:@"."]) [out addObject:name];
-    return [out sortedArrayUsingSelector:@selector(localizedStandardCompare:)];
+    NSArray *result = [out sortedArrayUsingSelector:@selector(localizedStandardCompare:)];
+    // [W1] Result list.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] videoFiles result=%@", [result componentsJoinedByString:@", "]]);
+    return result;
 }
 
 - (void)refreshVideoList {
     PSSpecifier *target = nil;
     for (PSSpecifier *sp in _specifiers)
         if ([sp.identifier isEqualToString:@"videoName"]) { target = sp; break; }
-    if (!target) return;
+    if (!target) {
+        // [W1] No videoName specifier found (W1 plan point).
+        OMCLogWriteSync(@"Prefs", @"[W1] refreshVideoList targetFound=NO");
+        return;
+    }
     NSArray *files = [self videoFiles];
+    // [W1] Target found + videoFiles array + branch (filled in below).
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] refreshVideoList targetFound=YES videoFiles=%@",
+        [files componentsJoinedByString:@", "]]);
     if (files.count == 0) {
+        // [W1] Branch: empty.
+        OMCLogWriteSync(@"Prefs", @"[W1] refreshVideoList branch=empty");
         [target setValues:@[@""] titles:@[L(@"STARTUPSCREEN_NO_VIDEO")]];
         return;
     }
+    // [W1] Branch: has videos.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] refreshVideoList branch=hasVideos count=%lu", (unsigned long)files.count]);
     NSMutableArray *titles = [NSMutableArray array];
     for (NSString *f in files) [titles addObject:[f stringByDeletingPathExtension]];
-    [target setValues:titles titles:titles];
+    // [W1 fix / audit section 3a] Original passes values = FULL file
+    // names and titles = extension-stripped names (0x40fa0-0x40fac,
+    // titles built 0x40f44-0x40f64). Ours passed titles for BOTH.
+    [target setValues:files titles:titles];
 }
 
 - (NSString *)selectedVideo {
@@ -1042,18 +1276,24 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
 }
 
 - (void)previewSound {
-    NSString *path = [self currentSound];
-    if (!path) { [self showMessage:L(@"STARTUPSCREEN_SOUND_NONE")]; return; }
+    NSString *name = [self currentSound];
+    if (!name) { [self showMessage:L(@"STARTUPSCREEN_SOUND_NONE")]; return; }
     [self.soundPlayer stop];
     AVAudioSession *session = [AVAudioSession sharedInstance];
     [session setCategory:AVAudioSessionCategoryPlayback error:nil];
     [session setActive:YES error:nil];
     NSError *err = nil;
+    // [W1 fix] currentSound returns the BARE file name in the
+    // original; previewSound builds the full path itself from the
+    // realpath-resolved Sounds dir (0x44ab0-0x44b0c), and its
+    // failure message falls back to the bare name (csel at 0x44bfc).
+    NSString *path = [SSReal([kSSDir stringByAppendingPathComponent:@"Sounds"])
+        stringByAppendingPathComponent:name];
     self.soundPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:
         [NSURL fileURLWithPath:path] error:&err];
     if (!self.soundPlayer) {
         [self showMessage:[NSString stringWithFormat:L(@"STARTUPSCREEN_SOUND_FAILED"),
-            err.localizedDescription ?: path.lastPathComponent]];
+            err.localizedDescription ?: name]];
         return;
     }
     id vol = SSRawPref(@"startupScreenSoundVolume");
@@ -1063,10 +1303,23 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
 }
 
 - (void)deleteSound {
-    NSString *path = [self currentSound];
-    if (!path) { [self showMessage:L(@"STARTUPSCREEN_SOUND_NONE")]; return; }
+    // DELIBERATE DEVIATION from the original (GPT ruling 2026-11-08,
+    // accepted as an acceptance gate): the original deleteSound
+    // (0x44cf8) uses currentSound ONLY as a nil-gate (cbz x20 at
+    // 0x44d34; the value is never messaged) and passes the
+    // realpath-resolved Sounds DIRECTORY itself to
+    // removeItemAtPath:error: (0x44e0c-0x44e18) — no
+    // stringByAppendingPathComponent: anywhere in the method, i.e.
+    // stock "delete sound" wipes every file in the Sounds folder.
+    // To avoid data loss in the test release we delete ONLY the
+    // currently selected sound file and clear its preference;
+    // every other file in the directory is left untouched.
+    NSString *name = [self currentSound];
+    if (!name) { [self showMessage:L(@"STARTUPSCREEN_SOUND_NONE")]; return; }
     [self.soundPlayer stop];
     self.soundPlayer = nil;
+    NSString *path = [SSReal([kSSDir stringByAppendingPathComponent:@"Sounds"])
+        stringByAppendingPathComponent:name];
     [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
     SSWritePref(@"startupScreenSoundFile", nil);
     _specifiers = nil;

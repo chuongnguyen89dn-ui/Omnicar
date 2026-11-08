@@ -303,7 +303,7 @@ UIColor *OMCSwitchColor(void) { return [UIColor systemGreenColor]; }
 // _OMCRescueFeatures 0x78e8 [VERIFIED]
 NSArray<NSString *> *OMCRescueFeatures(void) {
     id raw = OMCPrefValue(@"rescueFeatures");
-    if (![raw isKindOfClass:[NSArray class]]) return nil;
+    if (![raw isKindOfClass:[NSArray class]]) return @[];
     NSMutableArray *result = [NSMutableArray array];
     for (id item in (NSArray *)raw) {
         if (![item isKindOfClass:[NSString class]]) continue;
@@ -838,6 +838,28 @@ void OMCLogWrite(NSString *tag, NSString *msg) {
     });
 }
 
+// [W1] Synchronous variant (see the OMCCommon.h note): identical line
+// format, but formatted and appended on the calling thread — no
+// dispatch_async — so the line survives an abort on the next step.
+void OMCLogWriteSync(NSString *tag, NSString *msg) {
+    NSLog(@"[OmniCar/%@] %@", tag, msg);
+    dispatch_once(&sPrefsLogFormatterOnce, ^{
+        sPrefsLogFormatter = [[NSDateFormatter alloc] init];
+        sPrefsLogFormatter.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
+    });
+    NSString *line = [NSString stringWithFormat:@"%@ [%@:%d] %@: %@\n",
+                      [sPrefsLogFormatter stringFromDate:[NSDate date]],
+                      [[NSProcessInfo processInfo] processName],
+                      getpid(), tag, msg];
+    if (OMCPrefsLogIsSpringBoard()) OMCPrefsLogRotateIfNeeded();
+    if (OMCPrefsLogAppendLine(line)) return;
+    if (OMCPrefsLogIsSpringBoard()) return; // SpringBoard gives up silently
+    id center = [NSClassFromString(@"NSDistributedNotificationCenter") defaultCenter];
+    [center postNotificationName:@"com.anlai.omnicar/log"
+                          object:nil
+                        userInfo:@{@"line": line}];
+}
+
 #pragma mark - Share report
 
 // sub_10bf4 [VERIFIED (CLOSURE-2; census item C8; dumps
@@ -1286,19 +1308,37 @@ extern NSArray *SSSampleHudItems(NSString *carName);
 @property (nonatomic, copy) NSArray *hud;
 @end
 
+// [W1] Class-name helper for the SSApplySampleData bracket logs.
+static NSString *OMCW1ClassName(id v) {
+    return v ? NSStringFromClass([v class]) : @"(nil)";
+}
+
 void SSApplySampleData(SSStartupView *view) {
-    if (!view.weather) {
-        view.weather = @{@"temp": @27, @"code": @0, @"isDay": @1,
-                         @"high": @31, @"low": @24, @"rain": @10, @"date": [NSDate date]};
-    }
+    // [W1] Bracket (W1 plan, SSApplySampleData point): synchronous logs.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] SSApplySampleData enter weatherClass=%@ hudClass=%@ nextEventClass=%@",
+        OMCW1ClassName(view.weather), OMCW1ClassName(view.hud),
+        OMCW1ClassName(view.nextEvent)]);
+    // Field order restored to the original (W1 audit row 11): hud FIRST
+    // (0x545e4-0x54628), then nextEvent (0x54640-0x546e0), then
+    // battery<0->82 (0x54700-0x54710), weather LAST (0x54718-0x547fc).
+    // Binary (0x545e4-0x54628): hud is an NSArray (SSStartupView ivar
+    // _hud, T@"NSArray",C,N,V_hud), filled only when nil, with
+    // SSSampleHudItems(view.carName) via setHud:. A's earlier
+    // "view.hud = YES" (BOOL) was a misreading — see PrefsB_REPORT note.
+    if (!view.hud) view.hud = SSSampleHudItems(view.carName);
     if (!view.nextEvent) {
         view.nextEvent = @{@"title": OMCTr(@"Họp nhóm", @"Team meeting"),
                            @"date": [NSDate dateWithTimeIntervalSinceNow:3600]};
     }
     if (view.batteryPercent < 0) view.batteryPercent = 82;
-    // Binary (0x545e4-0x54628): hud is an NSArray (SSStartupView ivar
-    // _hud, T@"NSArray",C,N,V_hud) and is filled FIRST, only when nil,
-    // with SSSampleHudItems(view.carName) via setHud:. A's earlier
-    // "view.hud = YES" (BOOL) was a misreading — see PrefsB_REPORT note.
-    if (!view.hud) view.hud = SSSampleHudItems(view.carName);
+    if (!view.weather) {
+        view.weather = @{@"temp": @27, @"code": @0, @"isDay": @1,
+                         @"high": @31, @"low": @24, @"rain": @10, @"date": [NSDate date]};
+    }
+    // [W1] Bracket exit.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] SSApplySampleData exit weatherClass=%@ hudClass=%@ nextEventClass=%@",
+        OMCW1ClassName(view.weather), OMCW1ClassName(view.hud),
+        OMCW1ClassName(view.nextEvent)]);
 }

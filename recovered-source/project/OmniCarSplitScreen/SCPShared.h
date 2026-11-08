@@ -57,7 +57,7 @@ BOOL OMCCrashGuard(NSString *feature);                      // 0x50e24 (NO -> ab
 void OMCLogWrite(NSString *tag, NSString *message);         // 0x4fbf4
 void OMCCheckHooks(NSString *tag, NSArray<NSString *> *names); // 0x50444
 NSString *OMCTr(NSString *key, NSString *fallback);         // 0x558fc localisation
-id _Nullable OMCCarLaunchInfo(NSString *bundleID);          // 0x50d14
+id _Nullable OMCCarLaunchInfo(id _Nullable appInfo);       // 0x50d14 (application-info OBJECT from SCPApplicationInfoForBundle — NOT a bundle ID string)
 void SCPMissingSelector(id obj, NSString *selectorName);    // 0x4f330 logs a missing private selector (2nd arg is the selector NAME: call sites load the cfstring into x1, e.g. 0x4e6c)
 // [phase2 closure; backported to src in phase 3] helpers A/C declared as
 // "extern placeholders for the coordinator to reconcile"

@@ -159,6 +159,16 @@ void OMCShareReport(UIViewController *presenter);
 /// omitted: this binary has no crash-guard state to stamp.
 void OMCLogWrite(NSString *tag, NSString *msg);
 
+/// [W1] Candidate-only synchronous variant of OMCLogWrite (W1 startup-
+/// ejection audit, work/prefs-audit/W1-startup-ejection.md): same line
+/// format and same log file, but the append happens on the CALLING
+/// thread before returning (direct append, the report's stated
+/// alternative to dispatch_sync onto the logger's serial queue), so a
+/// [W1] bracket line is already on disk if the process aborts on the
+/// very next step. Direct append also cannot deadlock when called
+/// from the uncaught-exception handler. NOT a restored behaviour.
+void OMCLogWriteSync(NSString *tag, NSString *msg);
+
 // ---------------------------------------------------------------------------
 // Speed Bubble voice helpers (C functions used by SPPBubbleView)
 // ---------------------------------------------------------------------------

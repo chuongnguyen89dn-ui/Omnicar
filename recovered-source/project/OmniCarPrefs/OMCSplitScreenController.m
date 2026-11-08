@@ -173,7 +173,7 @@ static NSString *SSAppName(NSString *bundleID) {
 
 - (double)tableView:(UITableView *)tv heightForRowAtIndexPath:(NSIndexPath *)ip {
     double width = tv.bounds.size.width - 30;
-    if (ip.section == 0) return MAX(round(width * 0.375), 100);
+    if (ip.section == 0) return MAX(round((tv.bounds.size.width - 40) * 0.36), 118);
     if (ip.section == 1 || ip.section == 2) return 60;
     if (ip.section == 3) {
         NSInteger fav, part;
@@ -208,12 +208,16 @@ static NSString *SSAppName(NSString *bundleID) {
     UITableViewCell *cell = nil;
     if (ip.section == 0) {
         cell = [self cellWithId:@"preview"];
-        UIView *box = [self boxInCell:cell];
+        // Original @0x392b0-0x39334: the preview is added DIRECTLY to
+        // cell.contentView (no box) and its frame is recomputed from
+        // the live section-0 row height on every cell pass:
+        // (8, 8, tvW-56, rowH-16).
         if (!self.preview) self.preview = [[OMCSplitPreview alloc] initWithFrame:CGRectZero];
-        if (self.preview.superview != box) {
-            [box addSubview:self.preview];
+        if (self.preview.superview != cell.contentView) {
+            [cell.contentView addSubview:self.preview];
         }
-        self.preview.frame = box.bounds;
+        self.preview.frame = CGRectMake(8, 8, tv.bounds.size.width - 56,
+            [self tableView:tv heightForRowAtIndexPath:ip] - 16);
         self.preview.on = on;
         self.preview.offText = L(@"SPLITSCREEN_OFF");
         self.preview.left = [self stringForKey:@"splitScreenLastLeft"]
@@ -251,7 +255,7 @@ static NSString *SSAppName(NSString *bundleID) {
             NSString *apps = names.count ? [names componentsJoinedByString:@", "]
                                          : L(@"SPLITSCREEN_APP_NOT_SET");
             cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %@",
-                [NSString stringWithFormat:L(@"SPLITSCREEN_LAYOUT_%ld"), (long)[self layoutOf:fav]],
+                L([NSString stringWithFormat:@"SPLITSCREEN_LAYOUT_%ld", (long)[self layoutOf:fav]]),
                 apps];
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         }
@@ -381,8 +385,17 @@ static NSString *SSAppName(NSString *bundleID) {
         NSInteger current = [self layoutOf:fav];
         double x = 16;
         for (NSNumber *code in @[@2, @3, @13, @31]) {
-            NSString *title = [NSString stringWithFormat:L(@"SPLITSCREEN_LAYOUT_%ld"),
-                               (long)code.integerValue];
+            // Original @0x3ad4c-0x3ada4: no format pattern at all — the
+            // picker passes each LITERAL full key straight to L(),
+            // selected by layout code (only 2/3/13/31 exist).
+            NSString *title;
+            switch (code.integerValue) {
+                case 3:  title = L(@"SPLITSCREEN_LAYOUT_3"); break;
+                case 13: title = L(@"SPLITSCREEN_LAYOUT_13"); break;
+                case 31: title = L(@"SPLITSCREEN_LAYOUT_31"); break;
+                case 2:
+                default: title = L(@"SPLITSCREEN_LAYOUT_2"); break;
+            }
             UIButton *chip = [self chip:title key:code.integerValue == current ? SSFavKey(fav, @"Layout") : nil];
             chip.tag = code.integerValue;
             [chip addTarget:self action:@selector(layoutPicked:) forControlEvents:UIControlEventTouchUpInside];

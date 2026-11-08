@@ -327,12 +327,11 @@ static void SPPSetRing(UIView *view, BOOL on) {
 
 - (NSString *)tableView:(UITableView *)tv titleForHeaderInSection:(NSInteger)section {
     (void)tv;
-    // Jump table of localization keys for sections 2..5. [VERIFIED structure;
-    // exact keys live in the table at 0x74ba0 — section 5's is the warn group.
-    // INFERRED key names for 2..4]
+    // Jump table of localization keys for sections 2..5. [VERIFIED from the
+    // pointer table at 0x74ba0 in the original binary]
     switch (section) {
-        case 2: return L(@"SPEEDBUBBLE_STYLE");
-        case 3: return L(@"SPEEDBUBBLE_SIZE");
+        case 2: return L(@"SPEEDBUBBLE_APPEARANCE");
+        case 3: return L(@"SPEEDBUBBLE_SIZE_GROUP");
         case 4: return L(@"SPEEDBUBBLE_SOURCE");
         case 5: return L(@"SPEEDBUBBLE_WARN");
         default: return nil;
