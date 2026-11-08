@@ -555,7 +555,17 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     if (!(wasActive || valid)) [self showPickersForEmptySlots];
     [self relayoutAnimated:YES];
 
-    id launchInfo = OMCCarLaunchInfo(bundleID);
+    // The launch-info factory takes the application-info OBJECT, never
+    // the bundle ID string: the original fetches it fresh here
+    // (sub_e324 @0x169b4) and passes it to _OMCCarLaunchInfo (@0x169c4).
+    // Passing the string put an NSString inside DBApplicationLaunchInfo
+    // and crashed the dashboard (-[__NSCFString carPlayDeclaration]).
+    id appInfo = SCPApplicationInfoForBundle(bundleID);
+    if (!appInfo || !SCPAppHasCarPlayUI(appInfo)) {
+        [self launchFailed:bundleID slot:slot];
+        return;
+    }
+    id launchInfo = OMCCarLaunchInfo(appInfo);
     // Launch throttle (VERIFIED arithmetic): launches are spaced by a
     // per-launch interval kept in nextLaunchAt (constant at 0x6f0a0 in
     // __const = 1.2 s — remediation: read in the openApp: dump at 0x169f8
@@ -2029,8 +2039,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         return;
     }
     // No live pane holds the app: rebuild a launch info and relaunch.
-    // (OMCCarLaunchInfo takes the application-info OBJECT here, despite
-    // the loose NSString* spelling in SCPShared.h.)
+    // (OMCCarLaunchInfo takes the application-info OBJECT here.)
     id info = SCPApplicationInfoForBundle(bundleID);
     id launchInfo = OMCCarLaunchInfo(info);
     if (launchInfo) [self showSoloCoverForBundle:bundleID];

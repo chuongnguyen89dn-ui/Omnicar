@@ -1383,3 +1383,93 @@ app and a chosen iPhone app passing the gate into AppBridge
 (MILESTONE lines), divider totals of 1.00, and aligned panel
 tiles; the §14 disconnect-while-splash run is still owed, and the
 AppIcons unlock step follows installation.
+
+## §16 — Combined prefsround (2026-11-08): gatefix + launchfix + liquidfix + bubblefix + prefsbubble + Prefs round in one candidate
+
+**What this build carries.** Everything in §15, plus:
+the launch-info type fix that closes the 22:55 crash
+(openApp: now feeds OMCCarLaunchInfo a fresh
+application-info OBJECT, never the bundleID string —
+GPT's conviction, dump-verified at 0x169b0/0x169c4);
+the StartupScreen scene-geometry restoration
+(_k/_ox/_oy were never assigned in our tree; restored
+at ss_buildScene with the original formula — the
+Liquid splash that photographed as a cropped title on
+white should now lay out on its 1600×600 canvas);
+layoutSubviews/applyUnit:/reload poster-logo structure
+restored from the dumps; the car-side SPPBubbleView
+re-audit (23 divergences across buildStyle/renderStyle,
+all nine styles); the Settings-preview SPPBubbleView
+rewrite (its renderStyle previously had NO geometry at
+all); and the full Prefs round — Subtitle card cells
+with the 10-step reuse reset, segment feedback routed
+to a fresh generator before storeValue, the
+SPLITSCREEN_LAYOUT_* compose-then-localize order fix,
+SPEEDBUBBLE_APPEARANCE / SPEEDBUBBLE_SIZE_GROUP keys,
+Home preview geometry (/800 and three more constants,
+icon name map actually stored), HSPreview and
+SplitPreview redrawn from the original algorithms,
+the two-part rescue-footer fix (@[] + the localized
+string as its own format), the Startup settings
+cluster (video values, carName branch, birthday
+picker, sample-data order, bare-name currentSound),
+and [W1] instrumentation on the Startup settings page
+(synchronous step brackets + log-then-rethrow
+exception handler — the static audit could NOT convict
+the 22:31 ejection; if it recurs, that session's log
+names the step). One deliberate deviation from the
+original, on GPT's ruling: deleteSound deletes ONLY
+the selected sound file — the original deletes the
+whole Sounds directory (disasm-proven) and that
+behaviour is recorded in PATCH_NOTES §16F but does
+not ship.
+
+**Candidate.** com.anlai.omnicar_1.0.3-rebuilt-prefsround_
+iphoneos-arm64.deb in project/packages/, 967,924 B,
+SHA-256 2e89d0a5d18d25d8a638fa9ceb356a46084df069d7e16570f296a1b1b063d650.
+Version 1.0.3-rebuilt-prefsround is set in both
+control files, kept after the build, and confirmed in
+the DEB's control. Built per-module (clean + direct
+builds, all exit 0; aggregate make used only to
+package) with freshness proven by staged-binary
+timestamps. UUIDs: SplitScreen
+4C4C4434-5555-3144-A12D-FE9691749170, Prefs
+4C4C4447-5555-3144-A1FE-0EBD27D16A3C, StartupScreen
+4C4C44B4-5555-3144-A162-0E8998F52385, SpeedBubble
+4C4C4485-5555-3144-A14F-AEDFFDE46718 (full table in
+PATCH_NOTES §16G).
+
+**Verification.** Per-class parity 61/66 exact with
+ZERO selectors missing (perclass11.txt); the single
+step down from §15's 62/66 is the [W1]
+instrumentation's additive +load on
+OMCStartupScreenController (Prefs 743→746) — additive-
+only, intended, and reported rather than hidden.
+All step-5 regressions PASS in the re-extracted DEB:
+OMCPref arity 32/32 with x1 written; exactly 3
+association sites, all policy 1, at the §14 addresses;
+gatefix discriminators (sharedApplicationLibrary,
+displayNameFor: clean of defaultWorkspace with the
+LSApplicationProxy guarded path, fsub + 0.2/0.8 in
+both setters, panel 84.0 immediate present / 88.0
+absent); the openApp launch chain in order with one
+launch-info call; [GPT-F] and 8 MILESTONE strings
+present; rescue strings byte-exact in Core; the
+ss_buildScene FP signature (fdiv ×3, fmadd ×2,
+{100, 260, 6, 1600, 600}); and the deleteSound
+selector order proving file-append before remove
+(discriminator validated against the original, which
+has no append at all). Mirror sweep: 151 pairs, all
+round-touched files identical; two pre-existing
+drifts in untouched files recorded in PATCH_NOTES
+§16G.
+
+**Status.** DEVICE_TEST = PENDING. Acceptance script:
+handover/ACCEPTANCE_PREFSROUND.md (GPT's combined
+list). The build must not be called "hoàn thiện"
+until that script passes on the car — in particular
+the Startup settings page opening repeatedly, the
+Liquid splash laying out correctly, both bubble
+previews (car + Settings), Music and GOFA reaching
+the panes without the carPlayDeclaration exception,
+and the still-owed disconnect-while-splash run.

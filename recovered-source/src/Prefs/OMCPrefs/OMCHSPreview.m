@@ -1,10 +1,14 @@
 // OMCHSPreview.m — OmniCarPrefs reconstruction (Prefs-B)
 // init VERIFIED (0x1b588); drawIcon:in: VERIFIED (0x1b670) including the
-// OMCIconSized fallback rules; drawRect: VERIFIED in structure (0x1bc48,
-// 2,876 B): the context is scaled so the logical height is 800 pt, the
-// wallpaper is drawn aspect-fill with blur/dim washes, a "9:41" status
-// bar and the icon grid follow. Grid spacing constants are taken from
-// the dump; minor glyph details are INFERRED where noted.
+// OMCIconSized fallback rules; drawRect: VERIFIED (0x1bc48, 2,876 B):
+// the context is scaled by previewWidth/800 so the logical canvas is
+// 800 pt wide (logical height = height/scale), the wallpaper is drawn
+// aspect-FILL with blur/dim washes, a dark 64-wide left strip, a "9:41"
+// status label, strip icons, bottom-left bars, the icon grid (cell
+// 712/cols x (H-30)/rows, icon round(64*size/100), labels via the
+// sub_1c620 localized-name lookup) and multi-page pills follow.
+// Geometry restored per work/prefs-audit/W2-preview-geometry.md (b);
+// only the left-strip collection payload (@0x7f948) is UNRECOVERED.
 #import "OMCHSPreview.h"
 #import "OMCCommon.h"
 #import <objc/message.h>
@@ -100,6 +104,45 @@ UIImage *OMCThumb(UIImage *image, double width, double height, double scale) {  
     }];
 }
 
+// Shared id->name map (global at 0x90018 in the original), written by
+// OMCAppBridgeAppsController -loadState from the homeScreenCarApps
+// entries (store @0x1d454) and read by the name lookup below.
+NSMutableDictionary *OMCHSNameMap = nil;
+
+// Localized display name for a bundle id (sub_1c620 @0x1c620): the
+// shared id->name map wins when it holds a name different from the id;
+// otherwise the LSApplicationProxy localizedName; otherwise the id.
+static NSString *OMCHSNameForBundleID(NSString *bundleID) {
+    NSString *mapped = OMCHSNameMap[bundleID];
+    if (mapped.length == 0 || [mapped isEqualToString:bundleID]) {
+        NSString *localized = nil;
+        Class proxyClass = NSClassFromString(@"LSApplicationProxy");
+        SEL proxySel = NSSelectorFromString(@"applicationProxyForIdentifier:");
+        SEL nameSel = NSSelectorFromString(@"localizedName");
+        id proxy = nil;
+        if ([proxyClass respondsToSelector:proxySel])
+            proxy = ((id (*)(id, SEL, id))objc_msgSend)(proxyClass, proxySel, bundleID);
+        if ([proxy respondsToSelector:nameSel])
+            localized = ((id (*)(id, SEL))objc_msgSend)(proxy, nameSel);
+        if ([localized isKindOfClass:[NSString class]] && [(NSString *)localized length] > 0)
+            return localized;
+        return bundleID;
+    }
+    return mapped;
+}
+
+// [UNRECOVERED payload] The left-strip icon list is a compile-time
+// constant collection at 0x7f948 in the original (fast-enumerated
+// @0x1c0ac); its elements are 24-byte constant objects whose string
+// payloads could not be decoded (W2 audit item b, step 4). The drawing
+// behaviour is proven — one drawIcon:in: per element at
+// CGRectMake(11, 34 + 50*k, 42, 42) — and is implemented verbatim in
+// drawRect: below; the list itself stays empty until the payload is
+// recovered, so no invented icons are drawn.
+static NSArray *OMCHSStripItems(void) {
+    return @[];
+}
+
 @implementation OMCHSPreview
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -131,71 +174,124 @@ UIImage *OMCThumb(UIImage *image, double width, double height, double scale) {  
 
 - (void)drawRect:(CGRect)rect {
     CGRect b = self.bounds;
-    // Logical space: height = 800 units, context scaled uniformly.
-    double scale = b.size.height / 800.0;
+    // Logical space @0x1bc94-0x1bcb4: scale = previewWidth/800, so the
+    // logical width is exactly 800 and the logical height follows.
+    double scale = b.size.width / 800.0;
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     CGContextScaleCTM(ctx, (CGFloat)scale, (CGFloat)scale);
-    double W = b.size.width / scale;
-    const double H = 800;
+    const double W = 800.0;
+    const double H = b.size.height / scale;   // Hlog
 
     if (self.wallpaper) {
+        // Aspect-FILL @0x1bd10-0x1bd24: s = MAX(736/imgW, Hlog/imgH),
+        // drawn centred at (432, Hlog/2) — the midpoint of the rect
+        // (64, 0, 736, Hlog) — clipped to (0, 0, 800, Hlog).
         CGSize img = self.wallpaper.size;
-        double s = MIN(720.0 / img.width, W / img.height);
+        double s = MAX(736.0 / img.width, H / img.height);
         double dw = img.width * s, dh = img.height * s;
         CGContextSaveGState(ctx);
         CGContextClipToRect(ctx, CGRectMake(0, 0, W, H));
-        [self.wallpaper drawInRect:CGRectMake((W - dw) / 2, (H - dh) / 2, dw, dh)];
+        [self.wallpaper drawInRect:CGRectMake(432 - dw / 2, H / 2 - dh / 2, dw, dh)];
         if (self.blur >= 1 && !self.video) {
-            double a = MIN((double)self.blur / 64.0, 0.25);
+            // Blur wash @0x1bdf0-0x1be04: white, MIN(blur/120, 0.25).
+            double a = MIN((double)self.blur / 120.0, 0.25);
             [[UIColor colorWithWhite:1 alpha:(CGFloat)a] setFill];
             UIRectFillUsingBlendMode(CGRectMake(0, 0, W, H), kCGBlendModeNormal);
         }
+        // Dim wash @0x1be54: black, dim/100.
         [[UIColor colorWithWhite:0 alpha:(CGFloat)((double)self.dim / 100.0)] setFill];
         UIRectFillUsingBlendMode(CGRectMake(0, 0, W, H), kCGBlendModeNormal);
         CGContextRestoreGState(ctx);
         if (self.video) {
+            // Video tag @0x1bf40-0x1bf58: (730, Hlog-20), 12 semibold.
             NSDictionary *attrs = @{
                 NSFontAttributeName: [UIFont systemFontOfSize:12 weight:UIFontWeightSemibold],
                 NSForegroundColorAttributeName: [UIColor colorWithWhite:1 alpha:0.85],
             };
-            [@"▶︎ video" drawAtPoint:CGPointMake(17, H - 20) withAttributes:attrs];
+            [@"▶︎ video" drawAtPoint:CGPointMake(730, H - 20) withAttributes:attrs];
         }
     } else {
-        // Default gradient backdrop (two stacked fills in the binary).
-        [[UIColor colorWithRed:0.16 green:0.18 blue:0.30 alpha:1] setFill];   // [INFERRED triple]
-        UIRectFill(CGRectMake(0, 0, W, 64));
-        [[UIColor colorWithRed:0.07 green:0.08 blue:0.14 alpha:1] setFill];   // [INFERRED triple]
-        UIRectFill(CGRectMake(0, 0, W, H));
+        // No wallpaper @0x1bf6c-0x1bfc0: main area (64, 0, 736, Hlog)
+        // filled with RGB (0.10, 0.11, 0.14).
+        [[UIColor colorWithRed:0.10 green:0.11 blue:0.14 alpha:1] setFill];
+        UIRectFill(CGRectMake(64, 0, 736, H));
     }
+    // Left strip backdrop @0x1bfd0-0x1c020 (runs on both paths in the
+    // original): rect (0, 0, 64, Hlog), RGB (0.06, 0.07, 0.08).
+    [[UIColor colorWithRed:0.06 green:0.07 blue:0.08 alpha:1] setFill];
+    UIRectFill(CGRectMake(0, 0, 64, H));
 
-    // Status bar clock.
+    // Status bar clock @0x1c028-0x1c0a8: "9:41" at (17, 8), bold 12.
     NSDictionary *clockAttrs = @{
         NSFontAttributeName: [UIFont boldSystemFontOfSize:12],
         NSForegroundColorAttributeName: [UIColor whiteColor],
     };
     [@"9:41" drawAtPoint:CGPointMake(17, 8) withAttributes:clockAttrs];
 
-    // Icon grid.
+    // Left strip icons @0x1c0ac-0x1c168: one drawIcon:in: per element
+    // of the constant collection at (11, 34 + 50*k, 42, 42). The
+    // collection payload is UNRECOVERED — see OMCHSStripItems above.
+    double stripY = 34;
+    for (NSString *bid in OMCHSStripItems()) {
+        [self drawIcon:bid in:CGRectMake(11, stripY, 42, 42)];
+        stripY += 50;
+    }
+
+    // Bottom-left bars @0x1c168-0x1c1e4: 6 rects, white alpha 0.8;
+    // rect i: x = 18 + (i mod 3)*10, y = (Hlog-30) + (i > 2 ? 9 : 0),
+    // size 7x6.
+    [[UIColor colorWithWhite:1 alpha:0.8] setFill];
+    for (NSInteger i = 0; i < 6; i++) {
+        double x = 18 + (i % 3) * 10;
+        double y = (H - 30) + (i > 2 ? 9 : 0);
+        UIRectFill(CGRectMake(x, y, 7, 6));
+    }
+
+    // Icon grid @0x1c1e8-0x1c4dc.
     NSInteger cols = self.cols > 0 ? self.cols : 5;
     NSInteger rows = self.rows >= 1 ? self.rows : 2;
     NSInteger capacity = rows * cols;
     NSInteger count = MIN((NSInteger)self.items.count, capacity);
-    double iconPt = 11 + (double)self.size;   // [INFERRED size mapping]
-    double gapX = 50, gapY = 42;              // [INFERRED from dump constants]
-    double x0 = 34, y0 = 120;                 // [INFERRED origin]
+    NSInteger pages = MAX(1, ((NSInteger)self.items.count + capacity - 1) / capacity);
+    double cellW = 712.0 / cols;
+    double cellH = (H - 30) / rows;
+    double icon = round(64.0 * (double)self.size / 100.0);
     NSDictionary *nameAttrs = @{
-        NSFontAttributeName: [UIFont systemFontOfSize:11],
+        NSFontAttributeName: [UIFont systemFontOfSize:12 weight:UIFontWeightMedium],
         NSForegroundColorAttributeName: [UIColor whiteColor],
     };
     for (NSInteger i = 0; i < count; i++) {
-        double x = x0 + (i % cols) * gapX;
-        double y = y0 + (i / cols) * (iconPt + gapY);
+        double cx = 76 + (i % cols) * cellW + cellW / 2;   // 64 + 12 + ...
+        double cy = 6 + (i / cols) * cellH + cellH / 2 - (self.names ? 10 : 0);
         NSString *bid = self.items[i];
-        [self drawIcon:bid in:CGRectMake(x, y, iconPt, iconPt)];
+        [self drawIcon:bid in:CGRectMake(cx - icon / 2, cy - icon / 2, icon, icon)];
         if (self.names) {
-            // The binary draws the app name under the icon (name lookup
-            // is the same id->name map the page builds). [INFERRED source]
-            [bid drawAtPoint:CGPointMake(x, y + iconPt + 2) withAttributes:nameAttrs];
+            // Label @0x1c43c-0x1c494: localized name via sub_1c620,
+            // font 12 Medium, width MIN(textWidth, cellW-6), height 16,
+            // drawn with drawWithRect:options:0x20.
+            NSString *text = OMCHSNameForBundleID(bid);
+            double w = MIN([text sizeWithAttributes:nameAttrs].width, cellW - 6);
+            [text drawWithRect:CGRectMake(cx - w / 2, cy + icon / 2 + 4, w, 16)
+                       options:(NSStringDrawingOptions)0x20
+                    attributes:nameAttrs
+                       context:nil];
+        }
+    }
+
+    // Page pills @0x1c4e0-0x1c5c0 (only when pages > 1): total width
+    // pages*12+4 centred on x=432, y = Hlog-12; pill i is 16 wide for
+    // i == 0 else 6, height 6, corner radius 3, white alpha 1.0 / 0.4;
+    // advance x += width + 6.
+    if (pages > 1) {
+        double total = pages * 12 + 4;
+        double px = 432 - total / 2;
+        double py = H - 12;
+        for (NSInteger i = 0; i < pages; i++) {
+            double pw = (i == 0) ? 16 : 6;
+            [[UIColor colorWithWhite:1 alpha:(i == 0) ? 1.0 : 0.4] setFill];
+            [[UIBezierPath bezierPathWithRoundedRect:CGRectMake(px, py, pw, 6)
+                                        cornerRadius:3] fill];
+            px += pw + 6;
         }
     }
 }

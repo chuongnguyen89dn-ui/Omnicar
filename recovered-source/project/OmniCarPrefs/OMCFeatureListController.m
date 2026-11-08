@@ -11,12 +11,24 @@
 @implementation OMCFeatureListController
 
 - (NSArray *)specifiers {
+    // [W1] Bracket (W1 plan, OMCFeatureListController point 2):
+    // synchronous [W1] logs with the plist name + resulting count.
+    NSString *w1Plist = [self.specifier propertyForKey:@"plist"];
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] OMCFeatureListController specifiers enter controller=%@ plist=%@",
+        NSStringFromClass([self class]), w1Plist]);
     if (!_specifiers) {
         OMCLoadStrings();
         NSString *plist = [self.specifier propertyForKey:@"plist"];
         _specifiers = [self loadSpecifiersFromPlistName:plist target:self];
         OMCLocalizeSpecifiers(_specifiers);
+        OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+            @"[W1] OMCFeatureListController specifiers after load plist=%@ count=%lu",
+            plist, (unsigned long)_specifiers.count]);
     }
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] OMCFeatureListController specifiers exit plist=%@ count=%lu",
+        w1Plist, (unsigned long)_specifiers.count]);
     return _specifiers;
 }
 
@@ -32,14 +44,41 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     CFPreferencesAppSynchronize(OMC_PREFS_DOMAIN);
-    OMCStyleTable(self.table);
-    if (self.specifier.name.length) self.title = self.specifier.name;
+    // Order restored to the original (W1 audit row 7; Feature
+    // 0x10f84-0x1107c): reloadSpecifiers FIRST (0x10fc8), then the
+    // title, then OMCStyleTable (0x11060). Ours previously ran
+    // StyleTable -> title -> reloadSpecifiers LAST.
     [self reloadSpecifiers];
+    if (self.specifier.name.length) self.title = self.specifier.name;
+    OMCStyleTable(self.table);
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [super tableView:tableView cellForRowAtIndexPath:indexPath];
-    OMCStyleCell(cell);
+    UITableViewCell *cell = nil;
+    @try {
+        cell = [super tableView:tableView cellForRowAtIndexPath:indexPath];
+        OMCStyleCell(cell);
+    } @catch (NSException *exception) {
+        // [W1] Log-then-rethrow, exactly the GPT-F pattern in
+        // OMCRootListController.m (this is the layer where the 18:12
+        // exception surfaced in PSListController): log coordinates +
+        // specifier identifier + exception, then @throw; — the
+        // exception is NEVER swallowed.
+        NSString *specifierID = nil;
+        @try {
+            PSSpecifier *spec = [self specifierAtIndexPath:indexPath];
+            specifierID = [spec identifier] ?: [spec propertyForKey:@"plist"];
+        } @catch (NSException *lookupException) {
+            (void)lookupException;
+            specifierID = nil;
+        }
+        OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+            @"[W1] cellForRow exception: controller=%@ section=%ld row=%ld specifier=%@ name=%@ reason=%@ stack=%@",
+            NSStringFromClass([self class]), (long)indexPath.section,
+            (long)indexPath.row, specifierID, exception.name, exception.reason,
+            [exception.callStackSymbols componentsJoinedByString:@" | "]]);
+        @throw;
+    }
     return cell;
 }
 

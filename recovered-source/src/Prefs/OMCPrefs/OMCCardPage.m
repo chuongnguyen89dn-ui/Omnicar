@@ -79,10 +79,20 @@ static const void *kOMCControlKeyAssoc = &kOMCControlKeyAssoc;
 - (UITableViewCell *)cellWithId:(NSString *)identifier {
     UITableViewCell *cell = [self.table dequeueReusableCellWithIdentifier:identifier];
     if (!cell) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
                                       reuseIdentifier:identifier];
     }
     OMCStyleCell(cell);
+    cell.accessoryView = nil;
+    cell.accessoryType = UITableViewCellAccessoryNone;
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    cell.imageView.image = nil;
+    cell.textLabel.text = nil;
+    cell.detailTextLabel.text = nil;
+    cell.textLabel.textColor = [UIColor labelColor];
+    cell.textLabel.alpha = 1.0;
+    cell.detailTextLabel.textColor = [UIColor secondaryLabelColor];
+    cell.detailTextLabel.numberOfLines = 2;
     return cell;
 }
 
@@ -126,9 +136,10 @@ static const void *kOMCControlKeyAssoc = &kOMCControlKeyAssoc;
 
 - (void)omcSegmentChanged:(UISegmentedControl *)sender {
     NSString *key = objc_getAssociatedObject(sender, kOMCControlKeyAssoc);
+    UISelectionFeedbackGenerator *gen = [UISelectionFeedbackGenerator new];
+    [gen selectionChanged];
     [self storeValue:@(sender.selectedSegmentIndex) forKey:key];
     [self prefChanged:key];
-    [(id)sender selectionChanged]; // [VERIFIED call in handler] — // [integration phase 1; backported to src in phase 3] cast to id: UISegmentedControl declares no such selector; the message send itself is unchanged
 }
 
 // Slider row: a container view holding the UISlider and a monospaced value

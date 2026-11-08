@@ -172,27 +172,37 @@ static UIFont *SSFont(double size, UIFontWeight weight) {
     gradient.endPoint = CGPointMake(0.5, 1.0);
     gradient.colors = [self ss_sceneColors];
 
+    // The original ALWAYS creates two distinct image views (dump 0xc9f4):
+    // _posterView (full-frame backdrop, clipsToBounds) and _logoView (the
+    // logo itself, AspectFit; layoutSubviews sizes it as a centred square).
+    // Our previous version aliased both ivars to a single view.
+    UIImageView *poster = [[UIImageView alloc] initWithFrame:self.bounds];
+    poster.clipsToBounds = YES;   // 0xcd54
+    _posterView = poster;
+    [self addSubview:poster];
+    UIImageView *logo = [UIImageView new];
+    logo.contentMode = UIViewContentModeScaleAspectFit;   // 0xcfe4
+    _logoView = logo;
     if (self.image) {
-        UIImageView *poster = [[UIImageView alloc] initWithFrame:self.bounds];
-        poster.clipsToBounds = YES;
-        poster.image = self.image;
-        poster.contentMode = self.imageFits ? UIViewContentModeScaleAspectFit
+        poster.image = self.image;   // 0xcd94
+        poster.contentMode = self.imageFits ? UIViewContentModeScaleAspectFit   // 0xcdac
                                             : UIViewContentModeScaleAspectFill;
-        [self addSubview:poster];
-        _posterView = poster;
-        _logoView = poster;
+        logo.image = self.image;   // 0xd008
+        logo.tintColor = UIColor.whiteColor;   // shared tail at 0xd278
     } else {
-        // No logo file: an SF Symbol glyph stands in for it. The video style
-        // uses "play.rectangle.fill", the others "car.fill". [VERIFIED names]
-        UIImageView *glyph = [UIImageView new];
-        glyph.image = [UIImage systemImageNamed:self.style == 0 ? @"play.rectangle.fill"
-                                                                : @"car.fill"];
-        glyph.tintColor = self.style == 0 ? [UIColor colorWithWhite:1.0 alpha:0.85]
-                                          : UIColor.whiteColor;
-        glyph.contentMode = UIViewContentModeScaleAspectFit;
-        [self addSubview:glyph];
-        _logoView = glyph;
+        // No logo image: the poster shows the "play.rectangle.fill" symbol
+        // with contentMode Center (layoutSubviews re-renders it at 28*s
+        // points), tinted white at alpha 0.35 (constant read from the
+        // original binary at 0x28de8); the logo view falls back to the
+        // "car.fill" glyph. Both are unconditional on the style in the
+        // original — our previous style-dependent glyph choice was wrong.
+        poster.image = [UIImage systemImageNamed:@"play.rectangle.fill"];   // 0xd1bc
+        poster.tintColor = [UIColor colorWithWhite:1.0 alpha:0.35];   // 0xd1e4
+        poster.contentMode = UIViewContentModeCenter;   // 0xd214
+        logo.image = [UIImage systemImageNamed:@"car.fill"];   // 0xd240
+        logo.tintColor = UIColor.whiteColor;
     }
+    [self addSubview:logo];
 
     if (self.weather) [self buildWeatherWithPeriod:period];
     else [self buildGreetingWithDate:date period:period];
@@ -262,28 +272,84 @@ static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {
 // Layout / scale unit
 // ---------------------------------------------------------------------------
 
-- (void)layoutSubviews {   // 0xeefc [VERIFIED]
+- (void)layoutSubviews {   // 0xeefc [VERIFIED from the dump — liquidfix round]
     [super layoutSubviews];
-    CGSize size = self.bounds.size;
-    if (size.width <= 0 || size.height <= 0) return;
-    if (!CGSizeEqualToSize(size, _sceneSize)) [self ss_buildScene];
-    _posterView.frame = self.bounds;
-    if (_logoView) {
-        _logoView.bounds = CGRectMake(0, 0, size.width, size.height);
-        _logoView.center = CGPointMake(size.width / 2, size.height / 2);
-        _logoView.layer.shadowRadius = 24;   // [INFERRED value]
+    CGRect b = self.bounds;
+    // Same scale as ss_buildScene: s = min(H/100, W/260) (0xef74-0xef88;
+    // 260.0 read from the original binary at 0x28e90).
+    double s = MIN(b.size.height / 100.0, b.size.width / 260.0);
+    if (s <= 0) return;   // 0xef8c
+    if (_sceneStyle >= 0 && !CGSizeEqualToSize(b.size, _sceneSize))
+        [self ss_buildScene];   // 0xefa8 (original re-checks the style sign)
+    _posterView.frame = b;   // 0xefc4
+    if (_posterView.contentMode == UIViewContentModeCenter) {
+        // Poster carries an SF Symbol (no logo image): re-render it at a
+        // point size of 28*s (0xeff0-0xf030).
+        UIImageSymbolConfiguration *cfg =
+            [UIImageSymbolConfiguration configurationWithPointSize:28.0 * s];
+        _posterView.image = [_posterView.image imageWithConfiguration:cfg];
     }
-    [self applyUnit:MIN(size.width, size.height) / 400.0];   // [INFERRED unit formula]
+    if (_logoView) {
+        // The logo is a CENTRED SQUARE, side = min(W*0.5, H*0.62)
+        // (0xf058-0xf0b4; 0.62 read from the original binary at 0x28e98) —
+        // NOT the full bounds our previous version forced.
+        double side = MIN(b.size.width * 0.5, b.size.height * 0.62);
+        _logoView.bounds = CGRectMake(0, 0, side, side);
+        _logoView.center = CGPointMake(b.size.width * 0.5, b.size.height * 0.5);
+        _logoView.layer.shadowRadius = 7.0 * s;
+    }
+    // Unit update is epsilon-guarded in the original (0xf0c0-0xf0ec):
+    // only when |s - _unit| >= 0.01 (constant at 0x28ea0) does it store
+    // _unit and re-apply.
+    if (fabs(s - _unit) >= 0.01) {
+        _unit = s;
+        [self applyUnit:s];
+    }
 }
 
-- (void)applyUnit:(double)unit {   // 0xf110 [VERIFIED purpose: re-scale fonts,
-                                   // shadows and constraint constants to the unit]
+- (void)applyUnit:(double)unit {   // 0xf110 [VERIFIED from the dump — liquidfix
+                                   // round; ivar identities anchored via the
+                                   // builder dumps — see liquidfix-notes]
     _unit = unit;
-    _timeLabel.font = SSFont(64 * unit, UIFontWeightLight);
-    _titleLabel.font = SSFont(28 * unit, UIFontWeightSemibold);
-    _dateLabel.font = SSFont(17 * unit, UIFontWeightMedium);
-    _tempLabel.font = SSFont(64 * unit, UIFontWeightLight);
-    for (NSLayoutConstraint *c in _cardInsets ?: @[]) c.constant *= 1.0;   // constants rescaled in the original
+    // Shadow pass over all eight labels (0xf188-0xf2a4): shadowRadius
+    // 1.5*unit, shadowOffset (0, 0.5*unit), each label only if non-nil.
+    UILabel *labels[] = { _timeLabel, _titleLabel, _dateLabel, _tempLabel,
+                          _condLabel, _rangeLabel, _rainLabel, _updatedLabel };
+    for (int i = 0; i < 8; i++) {
+        UILabel *l = labels[i];
+        if (!l) continue;
+        l.layer.shadowRadius = 1.5 * unit;
+        l.layer.shadowOffset = CGSizeMake(0, 0.5 * unit);
+    }
+    // [NOT restored: at 0xf2a8 the original next sets a stack max-width
+    //  constraint (ivar-table slot 0xcf4, created in reload when pinning
+    //  _stack) to -12*unit. That constraint ivar and reload's _stack
+    //  pinning block are absent from this tree — see liquidfix-notes.]
+    if (_timeLabel) {
+        // Greeting branch (0xf2c4): time/title/date only, then the tail.
+        _timeLabel.font = SSFont(30 * unit, UIFontWeightLight);
+        _titleLabel.font = SSFont(10 * unit, UIFontWeightSemibold);
+        _dateLabel.font = SSFont(6 * unit, UIFontWeightMedium);
+    } else if (_tempLabel) {
+        // Weather branch (0xf374): fonts, icon size, stack metrics, card.
+        _titleLabel.font = SSFont(7 * unit, UIFontWeightSemibold);
+        _tempLabel.font = SSFont(30 * unit, UIFontWeightMedium);
+        _condLabel.font = SSFont(7.5 * unit, UIFontWeightSemibold);
+        _rangeLabel.font = SSFont(6 * unit, UIFontWeightMedium);
+        _rainLabel.font = SSFont(5.5 * unit, UIFontWeightMedium);
+        _updatedLabel.font = SSFont(4.2 * unit, UIFontWeightRegular);   // 4.2 at 0x28ea8
+        _iconH.constant = 32 * unit;   // ivar-table 0xcf8
+        _iconW.constant = 32 * unit;   // ivar-table 0xcfc
+        _row.spacing = 4 * unit;   // ivar-table 0xcbc
+        [_row setCustomSpacing:6 * unit afterView:_tempLabel];
+        _cardStack.spacing = 1.2 * unit;   // ivar-table 0xcb8; 1.2 at 0x28eb0
+        _card.layer.cornerRadius = 5 * unit;   // ivar-table 0xcf0
+        if (_stackMaxWidth.count > 0) ((NSLayoutConstraint *)_stackMaxWidth[0]).constant = 5 * unit;
+        if (_stackMaxWidth.count > 1) ((NSLayoutConstraint *)_stackMaxWidth[1]).constant = 5 * unit;
+        if (_stackMaxWidth.count > 2) ((NSLayoutConstraint *)_stackMaxWidth[2]).constant = 3.5 * unit;
+        if (_stackMaxWidth.count > 3) ((NSLayoutConstraint *)_stackMaxWidth[3]).constant = 3.5 * unit;
+    }
+    _stack.spacing = 3 * unit;   // common tail at 0xf638 (ivar-table 0xcc0)
 }
 
 // ---------------------------------------------------------------------------
@@ -397,17 +463,33 @@ static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {
     _sceneBuilt = NO;
 }
 
-- (void)ss_buildScene {   // 0x10570 [VERIFIED dispatch; sceneStyle numbers INFERRED]
+- (void)ss_buildScene {   // 0x10570 [VERIFIED dispatch; head geometry restored
+                          // from the dump at 0x10570-0x1063c — liquidfix round]
     [self ss_clearScene];
-    CGSize size = self.bounds.size;
-    if (size.width <= 0 || size.height <= 0) return;
-    _sceneSize = size;
-    UIView *scene = [[UIView alloc] initWithFrame:self.bounds];
+    CGRect b = self.bounds;
+    _sceneSize = b.size;   // stored BEFORE the guards in the original (0x10598)
+    // Scene scale s = min(H/100, W/260) (100.0 at 0x105ac; 260.0 read from the
+    // original binary at 0x28e90). Guards (0x105d8/0x105dc): a negative scene
+    // style or s <= 0 returns with the scene left cleared.
+    double s = MIN(b.size.height / 100.0, b.size.width / 260.0);
+    if (_sceneStyle < 0 || s <= 0) return;
+    // Design canvas 1600x600, cover-fitted: _k = s/6 (store at 0x105f4),
+    // _ox = (W - 1600*_k)/2 (0x10614), _oy = (H - 600*_k)/2 (0x10634;
+    // -600.0 read from the binary at 0x28ee0). These are the ONLY stores to
+    // _k/_ox/_oy in the whole original binary — every scene builder reads
+    // them, and our tree previously never assigned them (all zero), which
+    // collapsed every builder's geometry to the top-left corner at scale 0.
+    _k = s / 6.0;
+    _ox = (b.size.width - 1600.0 * _k) * 0.5;
+    _oy = (b.size.height - 600.0 * _k) * 0.5;
+    UIView *scene = [[UIView alloc] initWithFrame:b];
     scene.userInteractionEnabled = NO;
     [self insertSubview:scene atIndex:0];
     _scene = scene;
-    switch (_sceneStyle) {   // cmp chain at 0x10690-0x10740 covers values 3-9;
-                             // style names VERIFIED from Settings, mapping INFERRED
+    switch (_sceneStyle) {   // cmp chain at 0x10690-0x10740 covers values 3-9, 11;
+                             // style names VERIFIED from Settings, mapping INFERRED.
+                             // The original's default case builds NOTHING (falls
+                             // through to 0x10744) — no Sky fallback.
         case 3: [self ss_buildSky]; break;         // Weather backdrop
         case 4: [self ss_buildEngine]; break;      // Engine
         case 5: [self ss_buildWelcome]; break;     // Welcome
@@ -416,7 +498,7 @@ static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {
         case 8: [self ss_buildBriefing]; break;    // Briefing
         case 9: [self ss_buildLiquid]; break;      // Liquid
         case 11: [self ss_buildFestive]; break;    // Occasion
-        default: [self ss_buildSky]; break;
+        default: break;
     }
     _sceneBuilt = YES;
     [self ss_applyTime:[self ss_now]];

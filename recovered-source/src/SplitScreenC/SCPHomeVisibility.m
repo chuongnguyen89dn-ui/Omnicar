@@ -144,7 +144,7 @@ BOOL SCPIconForcedOnCar(id icon) {
     NSString *bid = SCPIconBundleID(icon);
     if (!bid || ![shown containsObject:bid]) return NO;
     if ([SCPHomeHiddenApps() containsObject:bid]) return NO;
-    SCPHomeLogOnce(@"hien lai tren man chinh (isIconVisible: YES):", bid);
+    SCPHomeLogOnce(@"hien lai (iOS da bo trong Tuy chinh, isIconVisible: YES):", bid);
     return YES;
 }
 

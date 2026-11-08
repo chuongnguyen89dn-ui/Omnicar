@@ -1082,3 +1082,295 @@ divider totals must read 1.00; panel tiles must sit inside their
 outlines. Still owed from §14: the disconnect-while-splash run.
 After installing this build, the AppIcons unlock step (item 11(i))
 can be performed on device.
+
+## §16 — Combined round (2026-11-08): prefsround candidate (gatefix + launchfix + liquidfix + bubblefix + prefsbubble + Prefs round)
+
+One candidate carrying every landed fix since §15. Sub-round
+records: `work/fix-round2/launchfix-notes.md`,
+`work/fix-round2/liquidfix-notes.md`,
+`work/fix-round2/bubblefix-notes.md`,
+`work/fix-round2/prefsbubble-notes.md`,
+`work/prefs-audit/W1–W4`. DEVICE_TEST = PENDING (see Status).
+
+### A. Launchfix — the 22:55 CarPlay killer (SCPCarSplit.m:558)
+
+GPT's conviction, verified against log + dump: openApp:'s fresh-
+launch path passed the bundleID **NSString** to OMCCarLaunchInfo;
+the dashboard machinery then sent `carPlayDeclaration` to the
+string → NSInvalidArgumentException ×2 processes → rescue killed
+splitScreen (log 22:55:29/22:55:35). The original at 0x169b0
+fetches a FRESH appInfo via sub_e324 and passes that object at
+0x169c4. Shipped fix mirrors it, plus GPT's guard (a safe
+superset — it fires only when the fresh fetch returns nil, where
+the original also lands in launchFailed): fetch appInfo;
+`!appInfo || !SCPAppHasCarPlayUI(appInfo)` → launchFailed;
+else OMCCarLaunchInfo(appInfo). SCPShared.h:60 was the tree's
+ONLY wrong declaration (NSString*) → now
+`id _Nullable OMCCarLaunchInfo(id _Nullable appInfo)`.
+Call-site sweep: 558 was the only bad site (1350, ~2043,
+SPPDisplayBoot:184 already correct). Also landed: the
+SCPHomeVisibility.m:147 log-once string restored byte-exact
+from the original (@0x7a740).
+
+### B. Liquidfix — StartupScreen scene geometry was never initialised
+
+The Liquid splash rendered as a near-white page with the title
+huge and cropped at the top-left (photos 22:56). Cause, dump-
+proven: SSStartupView's `_k/_ox/_oy` were READ by every scene
+builder but NEVER assigned anywhere in our tree (grep: zero
+stores); the original stores them ONLY in ss_buildScene
+(0x10570). Restored at the original's exact point and formula:
+`s = min(H/100.0, W/260.0)` (260.0 from binary VA 0x28e90);
+guard `_sceneStyle < 0 || s <= 0` → return; `_k = s/6.0`
+(0x105f4); `_ox = (W − 1600.0·_k)·0.5` (0x10614);
+`_oy = (H − 600.0·_k)·0.5` (0x10634, −600.0 at VA 0x28ee0) —
+design canvas 1600×600. Also restored: the switch default
+builds NOTHING (ours wrongly fell back to ss_buildSky);
+layoutSubviews rewritten from dump 0xeefc (logo bounds =
+square of side min(W·0.5, H·0.62), shadowRadius 7·s, unit
+update only when |s − _unit| ≥ 0.01, poster Center-symbol
+re-render at 28·s); applyUnit: rewritten from 0xf110 (both
+label branches, all constants); reload's poster/logo split
+restored (poster always created; no-image path = symbol
+play.rectangle.fill @ alpha 0.35, contentMode Center; logo =
+car.fill). RECORDED DEBT, not restored: the ivar-table
+0xcf4 constraint (−12·unit on _stack.widthAnchor, created by
+reload's pinning block at 0xd3b4) — our tree has neither the
+ivar nor reload's _stack pinning block; restoring it is a
+separate reload-structure job, out of this round's scope.
+
+### C. Bubblefix — car-side SPPBubbleView re-audit (23 divergences)
+
+GPT's charge (renderStyle lacks layout/contentSize) was
+substantively confirmed for the car file: renderStyle DID
+contain layout and one contentSize publish, but the geometry
+was wrong in 17 places, plus 6 in buildStyle (R1–R18, B1–B6
+in the notes; every point dump-cited). User-visible worst:
+style 5's flash assigned to the wrong family (R10), two
+inverted state branches in style 4 (R7/R8), state-dependent
+label shadow missing for styles 6/8 (R15), gauge fed the
+SIGNED speed instead of |speed| (R16), and sign sizes of 34
+where the original uses 50 in styles 0/6/7 — the earlier
+closure had systematically misread the immediate
+0x4049000000000000 (50.0). Original sign sizes across styles
+0–8: 50, 44, 72, 46, 48, 40, 50, 50, 66. Nothing in
+buildStyle/renderStyle remains UNRECOVERED.
+
+### D. Prefsbubble — Settings-preview SPPBubbleView rewritten
+
+The Prefs copy (a different, smaller class) had the same
+disease, worse: renderStyle contained NO geometry at all
+(render always returned CGSizeZero) and buildStyle: never
+created the labels/sign/icon. Both functions plus
+numberColor/applyColor: were rewritten from the Prefs dumps
+(full per-style geometry in the notes); the two constant
+arrays that looked undecodable were recovered from chained
+fixups — no UNRECOVERED items remain in the file. One
+INFERRED point kept: the speed-font feature-settings ids,
+taken for consistency with SPPSignView.m's reading of the
+same original factory sub_2d6bc.
+
+### E. Prefs round — dispositions (12 files, all in src/Prefs)
+
+- **W1, Startup-page ejection (Settings → Màn hình khởi
+  động threw the user to the home screen): static audit
+  could NOT convict.** The whole entry chain matches the
+  original step for step (push path, real Class cellClass
+  0x1608c–0x16184, plist byte-identical, specifiers/
+  viewDidLoad/viewWillAppear/updatePreview 0x3fa5c–0x3ff0c,
+  all cells stock PS*, every pref read guarded as tightly
+  as the original). The §3b style-filter "inconsistency"
+  at [9] is the ORIGINAL's own internal inconsistency
+  (binary 9=Liquid/10=Random at 0x3faac; shipped plist maps
+  random into ssStyles=[9]) — reproduced faithfully, NOT a
+  divergence. Remaining unknowns are device-side data: the
+  current startupScreenStyle value (selects 1 of 8 scene
+  builders — the most-INFERRED part) and that session's
+  exception identity. Shipped instead of a guess:
+  instrumentation — OMCLogWriteSync (synchronous writer;
+  neither async loss nor dispatch_sync deadlock) bracketing
+  every audited step in 4 files (logs currentStyle + the
+  class of each pref read), and an uncaught-exception
+  handler installed at +load and viewDidLoad (idempotent)
+  that logs name/reason/stack then CHAINS to the previous
+  handler or re-raises — log-then-rethrow, nothing is
+  swallowed anywhere; the two cellForRow sites use the
+  synchronous [GPT-F] log-then-rethrow form. If the page
+  still ejects, that session's own [W1] log names the step.
+- **W2, previews.** Home preview: scale divisor /200 →
+  /800 (@0x201d0) plus three more constants (preview width
+  w−60 @0x20b38, §2 row 50 @0x20214, tiles w−40 @0x20188/
+  @0x20770); the icon name map is now actually ASSIGNED to
+  OMCHSNameMap at the original's store point (@0x1d454)
+  instead of being built and dropped. OMCHSPreview drawRect
+  rewritten from the original algorithm (scale = width/800
+  @0x1bc9c; icon size round(64·size/100) @0x1c348 — ours
+  drew 111 pt icons on a 50 pt pitch, so the stacked-icons/
+  garbled-label photo was inevitable; labels now via the
+  sub_1c620 name lookup, not raw bundle ids).
+  **UNRECOVERED, recorded honestly:** the left-strip icon-
+  list payload @0x7f948 (relative-pointer metadata, not
+  cfstrings) could not be decoded; the strip's drawing loop
+  is restored but its list ships empty with an UNRECOVERED
+  comment — no bundle ids were invented. OMCSplitPreview:
+  host fixed (row height MAX(round((tvW−40)·0.36),118)
+  @0x38a6c, frame @0x39324; ours snapshotted box.bounds
+  once) and inner view fixed (header is a LEFT strip, not
+  a top bar; ratio 0.46 @0x37c38, not 0.375).
+- **W3, cells and keys — all four GPT claims confirmed.**
+  OMCCardPage cellWithId: → Subtitle style (mov w2,#3
+  @0x48c4) + the original's 10-step reuse reset (@0x48d8);
+  omcSegmentChanged: → feedback goes to a FRESH
+  UISelectionFeedbackGenerator (@0x4e20/@0x4e28) BEFORE
+  storeValue (ours sent it to the control itself, last).
+  SPLITSCREEN_LAYOUT_* raw keys were a pure ORDER bug:
+  the original composes the full key first (@0x39800) and
+  localizes second (@0x39810); the picker uses 4 literal
+  keys _2/_3/_13/_31 (@0x3ad4c). The shipped strings
+  tables were already correct (14/14 languages) — no
+  bundle change. SpeedBubble section titles: section 2 →
+  SPEEDBUBBLE_APPEARANCE, section 3 → SPEEDBUBBLE_SIZE_GROUP
+  (pointer table 0x74ba0: 0x7a328 / 0x7a388; our old SIZE
+  key hit no table at all).
+- **W4, rescue footer "(null)" — two divergences, both
+  Prefs-local.** _OMCRescueFeatures returned nil on the
+  non-array branch; the original returns @[] (@0x7a24).
+  And the footer wrapped the text as "%@: %@"; the
+  original uses the localized string itself as the format:
+  stringWithFormat:L(@"RESCUE_FOOTER"), joined (@0x15b40).
+  The store is identical on both sides (CFPreferences
+  com.anlai.omnicar / rescueFeatures, written by the
+  shared-core CrashGuard) — no key/domain/type error.
+- **Startup cluster (same round).** refreshVideoList now
+  passes full filenames as values (titles remain
+  extension-stripped) @0x40fa0 — ours passed titles for
+  both, so a wrong video could be saved; carName branch
+  compares identifier==@"carName" and sets @"placeholder"
+  @0x3dc3c; birthday picker → Compact @0x400e4;
+  reloadSpecifiers moved to the head of viewWillAppear
+  @0x10fc8; SSApplySampleData order hud→nextEvent→
+  battery→weather @0x545e4; randomSet compares unsigned
+  @0x3d27c; header 320×280, itemSize 78×108; currentSound
+  returns the BARE name (csel @0x3d0c0) and both consumers
+  adjusted (specifiers drop lastPathComponent @0x3d9f4;
+  previewSound builds the path itself @0x449c0).
+- **Splash "dismissing after 0 frames" (22:55:42) —
+  checked, closed.** For a static no-video splash the
+  frame counter belongs to the JPEG-video path; ending at
+  0 frames is the original's normal behaviour (and for
+  Liquid style the counter is not evidence the animation
+  did not run).
+
+### F. deleteSound — DELIBERATE DEVIATION (GPT ruling)
+
+Disassembly proves the original's "delete sound" deletes
+the ENTIRE realpath-resolved Sounds directory:
+currentSound is used only as a nil-gate (cbz x20 @0x44d34,
+value never messaged) and removeItemAtPath:error:
+(@0x44e0c–0x44e18) receives the directory itself — no
+stringByAppendingPathComponent: anywhere in the method.
+The Prefs round first restored that behaviour faithfully;
+GPT then ruled it must NOT ship in a test release. As
+shipped here, deleteSound deletes ONLY the currently
+selected sound file (SSReal(Sounds) + bare name), clears
+startupScreenSoundFile, and leaves every other file in
+the directory untouched. This is an intentional,
+documented difference from the original, kept to prevent
+data loss; it is acceptance-gated (see regression (vi)).
+
+### G. Integration, candidate, parity, regressions
+
+Build method: Version set to 1.0.3-rebuilt-prefsround in
+BOTH control files (control/control and project/control)
+and KEPT after the build (the DEB's control confirms it).
+Each of the 8 subprojects was cleaned and built DIRECTLY
+(all exit 0); the aggregate make was used only for
+packaging — the liquidfix round caught the aggregate
+reporting "Nothing to be done" over stale objects, so
+freshness here is proven by timestamps (staged binaries
+16:57–16:58 UTC against a 16:56:56 build start), not by
+exit codes alone.
+
+- **Candidate:**
+  `com.anlai.omnicar_1.0.3-rebuilt-prefsround_iphoneos-arm64.deb`
+  in project/packages/ — 967,924 B, SHA-256
+  `2e89d0a5d18d25d8a638fa9ceb356a46084df069d7e16570f296a1b1b063d650`;
+  members debian-binary + control.tar.gz + data.tar.lzma.
+- **UUIDs (arm64):** OmniCar 4C4C4450-5555-3144-A1A3-58843B0F2EA6;
+  Core 4C4C4462-5555-3144-A1FD-68112DE02120; AppBridge
+  4C4C44C5-5555-3144-A125-1D7128382BDF; CarProbe
+  4C4C44CF-5555-3144-A10B-60B43FDF44ED; SpeedBubble
+  4C4C4485-5555-3144-A14F-AEDFFDE46718; SplitScreen
+  4C4C4434-5555-3144-A12D-FE9691749170 (same as the
+  launchfix candidate — SplitScreen sources unchanged
+  since; the FILE is not bit-identical, link layout
+  shifted, so all SplitScreen checks below were re-run
+  on THIS binary); StartupScreen
+  4C4C44B4-5555-3144-A162-0E8998F52385; Prefs
+  4C4C4447-5555-3144-A1FE-0EBD27D16A3C.
+- **Parity (perclass11.txt): 61/66 classes exact, ZERO
+  selectors missing anywhere.** Per binary: App 6=6,
+  AppBridge 193=193, SplitScreen 480=480, SpeedBubble
+  277→278, StartupScreen 173→175, Prefs 743→746, Core
+  0=0, CarProbe 0=0. The one-step move from the §15
+  baseline (62/66, Prefs 743→745) is fully accounted:
+  the fifth additive-only exception is
+  OMCStartupScreenController **+load** — the [W1]
+  instrumentation's exception-handler install, an
+  intended addition of this round, not a parity loss
+  (every exception remains additive-only with
+  only_orig empty).
+- **Regressions in the re-extracted DEB — ALL PASS.**
+  (i) Arity: all 32 _OMCPref callers in SplitScreen
+  write x1 explicitly (32/32); the binary contains
+  EXACTLY 3 objc_setAssociatedObject call sites, at
+  0x75f0/0x76c8/0x857c (the §14 addresses), each with
+  `mov w3, #1` immediately before. (ii) Gatefix:
+  sharedApplicationLibrary referenced ×2;
+  -[SCPCarSplit displayNameFor:] references
+  applicationProxyForIdentifier: (guarded-send cfstring
+  form) + LSApplicationProxy and NO defaultWorkspace in
+  any ref kind; both setters contain fsub and load the
+  0.2/0.8 constants; panel method contains the 84.0
+  immediate bit pattern (0x4055000000000000) and no 88.0
+  (§15 method-scoped form). (iii) Launchfix: openApp:'s
+  chain disassembles as SCPApplicationInfoForBundle →
+  cbz → SCPAppHasCarPlayUI → tbz → OMCCarLaunchInfo,
+  exactly one launch-info call in the method. (iv)
+  [GPT-F] present in SplitScreen; 8 MILESTONE strings
+  in AppBridge; the rescue title/body/feature strings
+  are byte-exact — verified in OmniCarCore, where they
+  live (extracted from the original Core and matched
+  byte-for-byte in the new Core, title anchored:
+  "OmniCar: chế độ cứu"). (v) Liquidfix: ss_buildScene
+  contains fdiv ×3, fmadd ×2, str d ×3 and loads the
+  constant set {100.0, 260.0, 6.0, 1600.0, 600.0}.
+  (vi) Sounds: the shipped deleteSound's selector order
+  is currentSound → … → stringByAppendingPathComponent:
+  → removeItemAtPath:error: (the file-append precedes
+  the remove); the discriminator itself was validated
+  against the original binary, whose deleteSound has
+  NO stringByAppendingPathComponent: at all.
+  Method note: our lld builds use classic dyld binds,
+  so the wave-1 Annotator cannot name stubs/selrefs in
+  them (it resolves only chained-fixup images like the
+  originals) — checks (i-b)/(ii-b)/(vi) were therefore
+  read from llvm-objdump's own stub/selector annotations
+  inside IMP-derived ranges; the two extraction methods
+  agree everywhere they overlap.
+- **Mirror sweep:** 151 src↔project pairs compared; every
+  file touched this round is cmp-identical. Two
+  PRE-EXISTING drifts in files this round did not touch:
+  SplitScreenC/SCPHomeApply.m differs by one comment/
+  import-path line (flat project layout, self-documented
+  "[phase3 sync]"), and SplitScreenB/SCPCarSplit.h is an
+  alternate longer variant (the project copy matches
+  SplitScreenA's). Structural asymmetries, also
+  pre-existing: project-only glue (OmniCarStartupScreen.m
+  scaffold anchor, PrefsIntegrationShims.h) and src-only
+  OMCCommon/OmniCarCore.c.
+
+**DEVICE_TEST = PENDING.** Acceptance script:
+`handover/ACCEPTANCE_PREFSROUND.md`. Nothing in this
+section may be read as "hoàn thiện" until that script
+passes on device.

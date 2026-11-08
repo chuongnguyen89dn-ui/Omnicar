@@ -43,6 +43,13 @@ static NSArray *SSColors(uint32_t a, uint32_t b) {
     return @[(id)ca.CGColor, (id)cb.CGColor];
 }
 
+// [W1] Class-name helper for the diagnostic bracket logs below
+// (candidate-only instrumentation, W1 startup-ejection audit; all
+// [W1] lines go through the synchronous OMCLogWriteSync).
+static NSString *SSW1ClassName(id v) {
+    return v ? NSStringFromClass([v class]) : @"(nil)";
+}
+
 // WMO weather code + isDay → sky scene category. [VERIFIED: sub_4712c]
 // 2 clear day, 3 clear night, 4 overcast, 5 fog, 6 drizzle/rain,
 // 7 snow (bitmask table), 8 thunderstorm; 0 = no scene (greeting fallback).
@@ -294,7 +301,16 @@ NSArray *SSSampleHudItems(NSString *carName) {
 }
 
 - (void)reload {
+    // [W1] Bracket enter: style/occasion/tempo/duration + classes of
+    // weather/hud/nextEvent/carName (W1 plan point).
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] SSStartupView reload enter style=%ld occasion=%ld tempo=%ld duration=%g weatherClass=%@ hudClass=%@ nextEventClass=%@ carNameClass=%@",
+        (long)self.style, (long)self.occasion, (long)self.tempo, self.duration,
+        SSW1ClassName(self.weather), SSW1ClassName(self.hud),
+        SSW1ClassName(self.nextEvent), SSW1ClassName(self.carName)]);
     [self clearContent];
+    // [W1] Bracket: after clearContent.
+    OMCLogWriteSync(@"Prefs", @"[W1] SSStartupView reload after clearContent");
     NSDate *date = self.date ?: [NSDate date];
     NSInteger period = SSPeriodForDate(date);
     CAGradientLayer *layer = self.gradientLayer;
@@ -340,6 +356,8 @@ NSArray *SSSampleHudItems(NSString *carName) {
             _posterView.contentMode = UIViewContentModeCenter;
         }
         [self addSubview:_posterView];
+        // [W1] Bracket exit (eff style 0 branch).
+        OMCLogWriteSync(@"Prefs", @"[W1] SSStartupView reload exit eff=0");
         return;
     }
     if (eff == 1) {
@@ -355,6 +373,8 @@ NSArray *SSSampleHudItems(NSString *carName) {
             _logoView.tintColor = [UIColor whiteColor];
         }
         [self addSubview:_logoView];
+        // [W1] Bracket exit (eff style 1 branch).
+        OMCLogWriteSync(@"Prefs", @"[W1] SSStartupView reload exit eff=1");
         return;
     }
 
@@ -396,6 +416,11 @@ NSArray *SSSampleHudItems(NSString *carName) {
         layer.colors = [self ss_sceneColors];
     }
 
+    // [W1] Bracket: after the scene branch (effective style recorded).
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] SSStartupView reload after scene branch eff=%ld sceneStyle=%ld",
+        (long)eff, (long)_sceneStyle]);
+
     if (_stack) {
         _stack.translatesAutoresizingMaskIntoConstraints = NO;
         [self addSubview:_stack];
@@ -407,6 +432,9 @@ NSArray *SSSampleHudItems(NSString *carName) {
         ]];
     }
     [self setNeedsLayout];
+    // [W1] Bracket exit.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] SSStartupView reload exit eff=%ld", (long)eff]);
 }
 
 #pragma mark - Greeting scene (style 2, and weather fallback)
@@ -522,7 +550,21 @@ NSArray *SSSampleHudItems(NSString *carName) {
     _unit = unit;
     if (_sceneStyle >= 0 && !CGSizeEqualToSize(b.size, _sceneSize)) {
         _sceneSize = b.size;
+        // [W1] Bracket ONLY the first ss_buildScene call from
+        // layoutSubviews (static flag; records _sceneStyle).
+        static BOOL sW1BuildSceneLogged = NO;
+        BOOL w1LogBuild = !sW1BuildSceneLogged;
+        if (w1LogBuild) {
+            sW1BuildSceneLogged = YES;
+            OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+                @"[W1] SSStartupView layoutSubviews first ss_buildScene enter sceneStyle=%ld",
+                (long)_sceneStyle]);
+        }
         [self ss_buildScene];
+        if (w1LogBuild)
+            OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+                @"[W1] SSStartupView layoutSubviews first ss_buildScene exit sceneStyle=%ld",
+                (long)_sceneStyle]);
     }
     if (_posterView) {
         _posterView.frame = b;
@@ -586,6 +628,10 @@ NSArray *SSSampleHudItems(NSString *carName) {
 #pragma mark - Intro animation
 
 - (void)playIntro {
+    // [W1] Bracket enter.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] SSStartupView playIntro enter sceneStyle=%ld logoEffect=%ld",
+        (long)_sceneStyle, (long)self.logoEffect]);
     [self layoutIfNeeded];
     if (_logoView) {
         _logoView.layer.removeAllAnimations;
@@ -631,6 +677,8 @@ NSArray *SSSampleHudItems(NSString *carName) {
     _t0 = [self ss_now];
     [self ss_applyTime:0];
     [self ss_startLink];
+    // [W1] Bracket exit.
+    OMCLogWriteSync(@"Prefs", @"[W1] SSStartupView playIntro exit");
 }
 
 #pragma mark - Display link engine
@@ -698,6 +746,9 @@ NSArray *SSSampleHudItems(NSString *carName) {
 }
 
 - (void)ss_buildScene {
+    // [W1] Bracket enter.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] SSStartupView ss_buildScene enter sceneStyle=%ld", (long)_sceneStyle]);
     [self ss_clearScene];
     CGRect b = self.bounds;
     _ox = b.size.width / 2; _oy = b.size.height / 2;      // centered origin [INFERRED exact]
@@ -718,6 +769,9 @@ NSArray *SSSampleHudItems(NSString *carName) {
     _sceneBuilt = YES;
     [self ss_applyTime:[self ss_now] - _t0];
     [self ss_startLink];
+    // [W1] Bracket exit.
+    OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
+        @"[W1] SSStartupView ss_buildScene exit sceneStyle=%ld", (long)_sceneStyle]);
 }
 
 - (UIView *)ss_host {
