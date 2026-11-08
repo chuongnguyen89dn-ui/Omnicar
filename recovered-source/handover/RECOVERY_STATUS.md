@@ -1310,3 +1310,76 @@ d5be6b4d22b91ac3c195fadd083fdf2fc0d42daa4fe052d515c66001e3574dae  project/OmniCa
 **Status.** DEVICE_TEST = PENDING. The two defects are
 fixed and built where §3 verified them; no device run has
 been made on this candidate and nothing stronger is claimed.
+
+---
+
+## §15 — Gatefix round (2026-11-08): gate restored, fractions and panel geometry restored
+
+**Device state that opened the round.** The §14 arityfix build ran
+a full session (21:56–21:59) with NO crash, but its
+`isCarPlayApp:` gate rejected every app — including the native
+CarPlay app com.apple.Music — because app info came back nil for
+every bundle. Root cause chain, all dump-verified (full citations
+in PATCH_NOTES §15): the reconstruction's app-info helper sent
+`defaultWorkspace` to LSApplicationWorkspace, whose instance has no
+`applicationInfoForBundleIdentifier:` (device log 21:56:41.302);
+the original (sub_4672c) reads the FBSApplicationLibrary via
+`[UIApplication sharedApplication] sharedApplicationLibrary`, and
+that library DOES answer the selector (the session's own DIAG
+method list proves it). A second, reconstruction-only nil-info gate
+inside SCPIsHostedApp (absent in sub_101bc) simultaneously killed
+the hosted/AppBridge branch. A third wrong receiver (a fresh
+LSApplicationWorkspace instance asked for the class method
+`defaultWorkspace`) produced the session's second THIEU METHOD line
+from displayNameFor:'s fallback; the original sends
+`applicationProxyForIdentifier:` straight to the LSApplicationProxy
+class.
+
+**Fixed and built this round** (source + project mirrors, 4 files):
+the app-info helper transcribed from sub_4672c; SCPIsHostedApp
+restored to sub_101bc (nil gate removed, real-CarPlay → NO branch
+restored); displayNameFor: fallback transcribed from IMP 0x1029c;
+fractions seeded as [ratio, 1.0 − ratio] (fsub in both original
+setters) with the original branch structure of openPairLeft:right:
+and openSetupLayout:apps: restored (activation-failure stops,
+ratio gated to layout 2 / NSString pair / [0.2, 0.8]); layout-panel
+choice buttons restored to the original 84×56 frame on an 84
+stride with glyph centre (42, 28) — the scrambled transcription
+(56×41 on 88) was the whole "stacked tiles" defect in the 21:56
+video. Investigated and deliberately NOT changed: pending/loader
+sequencing matches the original exactly (cleanup is the original's
+20 s watchdog; the stuck cards were a symptom of the dead gate),
+and the post-close "ghost smudge" remains NOT ENOUGH EVIDENCE
+(possible camera glare; needs a device-side screenshot).
+
+**AppIcons lock — understood, not bypassed.** Its lock is a
+separate SCPAppIcons state machine keyed on
+`splitScreenIconsCrashed` == the hardcoded literal @"1.0.3" in the
+com.anlai.omnicar prefs — a package-Version change alone does not
+unlock it, and the Settings rescue button does not touch it. The
+on-device unlock (change the chosen-apps list under Settings →
+OmniCar → "App trên màn xe", which triggers SCPAppIconsRetry and
+clears the key) is a controlled step after this build is installed.
+
+**Candidate.** `com.anlai.omnicar_1.0.3-rebuilt-gatefix_iphoneos-arm64.deb`,
+951,940 B, SHA-256
+b53845bc903d5720258bfd494003f15cece5dfebcb2104d96fc9b4a61acc3c2f,
+sole file in project/packages/. Verification: clean build (0
+errors); tar audit 202/202 (0 diffs); payload 176 = 176 files,
+168/168 non-Mach-O byte-identical; per-class parity 62/66 with 0
+selectors missing (unchanged from §14); all §3 regressions PASS
+(OMCPref arity 32/32, StartupScreen association policy 3/3 at the
+build9 addresses, Prefs diagnostic NSStringFromClass = 3,
+[GPT-F]/MILESTONE strings present); all gatefix discriminators
+PASS in the re-extracted binary (sharedApplicationLibrary receiver,
+LSApplicationProxy fallback with no defaultWorkspace, fsub +
+[0.2, 0.8] in both setters, 84.0 stride present / 88.0 absent in
+the panel). SplitScreen UUID is now
+4C4C44A8-5555-3144-A121-282872938F02; the other seven binaries are
+bit-identical to build9.
+
+**Status.** DEVICE_TEST = PENDING. Next session must show a native
+app and a chosen iPhone app passing the gate into AppBridge
+(MILESTONE lines), divider totals of 1.00, and aligned panel
+tiles; the §14 disconnect-while-splash run is still owed, and the
+AppIcons unlock step follows installation.

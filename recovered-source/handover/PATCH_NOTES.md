@@ -845,3 +845,240 @@ d5be6b4d22b91ac3c195fadd083fdf2fc0d42daa4fe052d515c66001e3574dae  project/OmniCa
 **DEVICE_TEST = PENDING.** No build9 candidate has run on a
 device; the two defects are fixed and built where §3
 verified them, and nothing stronger is claimed.
+
+---
+
+## §15 — Gatefix round (2026-11-08): the isCarPlayApp: gate was dead on device
+
+Trigger: the arityfix candidate (§14) ran on device (session
+21:56–21:59, log `work/device-log-20261108-2156-full.log`). No crash —
+CarPlay pid 29320 survived the whole session, 0 signal/CrashGuard
+lines (§14's two defects stay fixed). But EVERY app open was rejected
+at the gate: 10× `CarSplit: <bundle> khong co giao dien CarPlay ->
+bo qua` including com.apple.Music, a real CarPlay app; 0 MILESTONE
+lines (AppBridge was never reached). Two THIEU METHOD lines frame
+the cause: 21:56:41.302 `LSApplicationWorkspace khong co
+applicationInfoForBundleIdentifier:` and 21:56:52.469
+`LSApplicationWorkspace khong co defaultWorkspace`. Divider drags
+in the same session logged fraction totals 0.33/1.33 and 0.50/1.17.
+GPT's convictions and the team's independent dump investigation
+agree on every point below; each fix cites the original dump.
+
+### Convictions and fixes
+
+1. **(a) The app-info receiver was fabricated — ROOT CAUSE.**
+   `SCPShared.m`'s `SCPDefaultWorkspace()` (self-labelled INFERRED)
+   sent `defaultWorkspace` to LSApplicationWorkspace and delivered
+   its instance to `applicationInfoForBundleIdentifier:`. The
+   original `sub_4672c` (dump `src/SplitScreenC/disasm/sub_4672c.txt`;
+   the VA was also re-disassembled from the payload dylib, 58/58
+   lines identical) never touches LSApplicationWorkspace:
+   `0x4673c` loads class UIApplication, `0x46740` sends
+   `sharedApplication`, `0x46754` builds
+   `NSSelectorFromString(@"sharedApplicationLibrary")`, and the
+   returned **FBSApplicationLibrary** is the object `sub_e324`
+   (`disasm/sub_e324.txt`, selector cfstring @0x7a5e0) sends
+   `applicationInfoForBundleIdentifier:` to. Device corroboration:
+   the session's own DIAG lines list FBSApplicationLibrary's methods
+   including `applicationInfoForBundleIdentifier:` (21:56:43.5xx),
+   and GPT's log cross-check found the same. FIXED: `SCPDefaultWorkspace`
+   is gone; a new `SCPAppLibrary()` in SCPShared.m transcribes
+   sub_4672c including its double `respondsToSelector:` test (first
+   failure returns nil silently, second logs via SCPMissingSelector
+   — the sub_17d84 pattern), and `SCPApplicationInfoForBundle` calls
+   it. Header comment at SCPShared.h corrected (it had even promoted
+   the fabrication to "VERIFIED").
+
+2. **(d) SCPIsHostedApp had an added nil-info gate and a missing
+   branch.** Dump `disasm/sub_101bc.txt`: `0x101e0` feature gate,
+   `0x101f0` injected → YES, `0x10204–0x10218` sub_e324 + sub_ffb4,
+   `0x10228` ffb4 YES → return NO (@0x1022c); ffb4 NO → `0x1024c`
+   sub_48864 + `containsObject:`. The reconstruction had inserted
+   `if (!SCPApplicationInfoForBundle(bundleID)) return NO;` — with
+   defect 1 making info always nil, the hosted branch was dead too
+   (chosen iPhone apps were rejected despite the AppBridge list).
+   FIXED: the nil gate is removed and the ffb4→NO branch restored.
+   The sub_48864 comment was also corrected: the set is chosen ∩
+   installed (LSApplicationWorkspace `allInstalledApplications`,
+   ~60 s cache), which `SCPBridgedChosenApps()` in SCPCarApps.m
+   already implements.
+
+3. **(e) displayNameFor:'s fallback used the wrong receiver.**
+   `SCPCarSplit.m` sent `defaultWorkspace` to a fresh
+   `LSApplicationWorkspace` *instance* (`[... new]`), which can
+   never answer a class method — the source of the 21:56:52.469
+   THIEU METHOD line (traced through the loader path:
+   openAppsInOrder → showLoaderInPane: → displayNameFor:). Original
+   `-displayNameFor:` (IMP 0x1029c, dump
+   `disasm/-SCPCarSplit_displayNameFor_.txt`): fallback @0x10354 is
+   `objc_getClass("LSApplicationProxy")` and the guarded CLASS
+   method `applicationProxyForIdentifier:` sent straight on the
+   Class (@0x10380–0x1039c), then guarded `localizedName`. FIXED by
+   transcription; no workspace, no `new`.
+
+4. **Not defects (verified, left alone):** the sub_ffb4 predicate
+   `SCPAppHasCarPlayUI` matches the original instruction-for-
+   instruction (re-disassembled 0xffb4–0x101bc: 4 bundle exclusions,
+   injected check, silent carPlayDeclaration gate, isHidden,
+   !presentsFullScreen) — it was simply starved of input by defect
+   1. The SCPGuardedSend guard pattern is sound on Class receivers.
+   Only the misleading comment above `isCarPlayApp:` ("INFERRED:
+   checks scene/role keys") was corrected.
+
+5. **Fractions were seeded as [ratio, 1.0] in two places.** Original
+   openPairLeft:right: (IMP 0x183a8) computes `fsub 1.0 − ratio`
+   @0x184c4; openSetupLayout:apps: (IMP 0x3ab7c) the same @0x3ad2c.
+   FIXED at SCPCarSplit.m (both trees): `@[@(ratio), @(1.0 - ratio)]`.
+
+6. **openPairLeft:right: branch structure restored** (IMP 0x183a8):
+   already active → `setPaneCount:2` only (@0x18440); not active →
+   `activateWithCount:2` and STOP when it returns NO (@0x18450,
+   cbz @0x18454). The pair ratio is computed only when both bundles
+   are non-nil (@0x18458/0x1845c) and assigned only inside
+   [0.2, 0.8] (fcmp against __const 0x6f078/0x6f080, read directly
+   from the binary). The reconstruction had called setPaneCount AND
+   activate unconditionally in the inactive branch, ignored the
+   activation result, and assigned the ratio unconditionally.
+
+7. **openSetupLayout:apps: branch structure restored** (IMP
+   0x3ab7c): not-active path returns WITHOUT opening apps when
+   `activateWithLayout:` returns NO (@0x3abf0). The pair ratio now
+   applies only when layout == 2 (@0x3abf4), apps.count >= 2, both
+   first elements are NSString (@0x3ac38/0x3ac80), and the ratio is
+   in [0.2, 0.8] (@0x3ace8/0x3acf8).
+
+8. **Layout-panel choice-button geometry was transcribed scrambled**
+   (the "two stacked tile layers" in the 21:56 video). The visible
+   surface is the layout PANEL, not the app picker (no picker-sheet
+   line exists in the session log). Original dump
+   `rem2_showLayoutPanelForApp.txt`: button frame
+   `(42 + j*84, runningY, 84, 56)` (sp+0x178=42 @0x386bc,
+   sp+0x120=84 @0x386c0, setFrame: @0x389a0, height 56.0 @0x38994);
+   glyph centre (42, 28) @0x38fc4; stride 84 also in frameW
+   (@0x38344: 104 + 84·n after MIN) and contentSize (width taken
+   from [sp+0x28] @0x394f0 = the same 104 + 84·n — an investigator's
+   tentative "70 + 84·n" reading of sp+0x60 was re-checked against
+   the dump and NOT used; that slot feeds another element); innerW
+   = 42 + 84·n + 2 @0x386c4. The reconstruction had
+   `CGRectMake(41 + j*88, Y, 56, 41)` — the original's height (56)
+   used as width and its x-offset (≈42) as height — so the 73×40
+   glyph overflowed its 56×41 button outline by (+13, +7.5) from
+   centre, exactly the offset double-image on video. FIXED at five
+   points in SCPCarSplit+Panel.m (frame, glyph centre, frameW,
+   innerW, contentSize). The close path (closePopups →
+   collapseAppTray/hideRatioMenu/removePickerSheet/hideBarsForTouchOn:)
+   matches the original call-for-call and was NOT touched.
+
+9. **Pending/loader leftovers (GPT priority 3): investigated — NO
+   divergence, deliberately NOT changed.** The original
+   openAppsInOrder (IMP 0x1869c) also seeds pending + loader BEFORE
+   the deferred openApp: call, its block also only removes the
+   pending entry, and the original rejection branch also only logs
+   + toasts. Cleanup in the original is the 20 s watchdog inside
+   showLoaderInPane: (`fmov d0, #20.0` @0x2afd0 in the B dump; the
+   "the dang mo %@ con sot -> bo" string is in the original binary),
+   and the session measures match it (+20.03 s / +20.05 s). The
+   stuck cards were a symptom of defects 1+2 rejecting 100% of
+   apps, not of a sequencing difference. Adding rejection-branch
+   cleanup would be a deliberate deviation from the original; it is
+   recorded here as an available option for GPT to order separately,
+   not folded in silently.
+
+10. **Panel "ghost smudge" after close (video frame f_39.5):
+    NOT ENOUGH EVIDENCE — unresolved, no code change.** The mark's
+    shape matches no view in the close path, similar smears appear
+    on dark areas of other frames (camera glare not excluded), its
+    on-screen clock (21:57) does not match the 21:58:40 closePopups
+    line, and no post-close hierarchy dump exists. Needed: a
+    device-side screenshot (not a camera photo) right after closing
+    the panel, or a subview listing after closePopups.
+
+11. **AppIcons lock (investigation only — no code this round).**
+    AppIcons has its OWN state machine in SCPAppIcons.m, separate
+    from OMCCrashGuard: keys `splitScreenIconsPending` (BOOL) and
+    `splitScreenIconsCrashed` (NSString) in domain
+    com.anlai.omnicar; `SCPAppIconsBeginInjection` (@0xc37c) locks
+    when the stored value equals the HARDCODED literal @"1.0.3".
+    Consequences, all code-evidenced: changing only the package
+    Version does NOT unlock (the binary literal stays "1.0.3");
+    there is no time expiry; the Settings rescue "Bật lại" button
+    does NOT affect AppIcons (it restores OMCCrashGuard features
+    only). Unlock paths: (i) change the chosen-apps list in
+    Settings → OmniCar → "App trên màn xe" — the prefs-changed
+    notification reaches `SCPAppIconsRetry` (@0xb044), which clears
+    `splitScreenIconsCrashed` and logs "danh sach app doi -> cho
+    phep chen icon lai"; (ii) delete the `splitScreenIconsCrashed`
+    key from the com.anlai.omnicar prefs directly. The device-side
+    unlock is a controlled step AFTER this build is installed, per
+    GPT's order; nothing in this round bypasses the lock in code.
+
+### Build and verification (build10)
+
+- Clean local build: `make clean` + `make package FINALPACKAGE=1`,
+  exit 0, 0 errors (log `project/logs/fix-round/build10.log`).
+  Restaged per BUILD_GUIDE §5 (xz). One packing note: `dpkg-deb -b`
+  normalised the control member's owner to 0:0, so control.tar.xz
+  was packed with tar to preserve the original's 501:20 on
+  DEBIAN/control; the numeric tar audit then reads **202/202
+  entries, 0 differences** in mode/uid/gid/type.
+- diff_payload: files 176 = 176; non-Mach-O 168/168 byte-identical;
+  0 original defined symbols missing; control diff = Installed-Size
+  (computed) + Version (candidate name) only.
+- Per-class parity (same harness as §14): **62/66 exact, 0
+  selectors missing**, the same 4 additive-only exceptions as
+  build9 (Prefs 743→745, StartupScreen 173→175, SpeedBubble
+  277→278). Log `project/logs/fix-round/perclass10.txt`.
+- §3 regressions — ALL PASS (log
+  `project/logs/fix-round/g8-build10.txt`): SplitScreen _OMCPref
+  32 call sites, every one preceded by an explicit x1 write;
+  StartupScreen exactly 3 _objc_setAssociatedObject sites, each
+  with `mov w3, #1` immediately before, at the same addresses as
+  build9 (call sites 0x75f0/0x76c8/0x857c via stub 0x2479c);
+  Prefs _NSStringFromClass = 3 (diagnostic-only) sites;
+  `[GPT-F] Dock gate` string present; 8 AppBridge MILESTONE
+  strings present.
+- Gatefix discriminators in the re-extracted candidate — ALL PASS:
+  SCPApplicationInfoForBundle references cfstrings
+  `sharedApplicationLibrary` AND `applicationInfoForBundleIdentifier:`
+  (the static helper is inlined; selrefs include `sharedApplication`
+  + `respondsToSelector:`); -displayNameFor: references
+  `applicationProxyForIdentifier:` + cstring `LSApplicationProxy`
+  and does NOT reference `defaultWorkspace`; both pair/layout
+  setters contain `fsub` and load the 0.2/0.8 range constants;
+  showLayoutPanelForApp: contains the 84.0 immediate bit pattern
+  (0x4055000000000000) and no 88.0 (0x4056000000000000) anywhere.
+
+### Candidate
+
+- Sole file in `project/packages/`:
+  `com.anlai.omnicar_1.0.3-rebuilt-gatefix_iphoneos-arm64.deb`
+- **951,940 B, SHA-256
+  b53845bc903d5720258bfd494003f15cece5dfebcb2104d96fc9b4a61acc3c2f**
+- `ar t`: debian-binary, control.tar.xz, data.tar.xz.
+- UUIDs: SplitScreen CHANGED 4C4C44A8-5555-3144-A121-282872938F02
+  (537,664 B, size unchanged); all other binaries identical to build9
+  (deterministic build, sources untouched): OmniCar 4C4C4450…2EA6,
+  Core 4C4C4462…2120, AppBridge 4C4C44C5…82DF, CarProbe
+  4C4C44CF…44ED, SpeedBubble 4C4C4432…8F71, StartupScreen
+  4C4C449A…1500, Prefs 4C4C4451…79C6.
+
+### Tree-state (changed files, src = project mirror, cmp IDENTICAL)
+
+```
+69f5687492a275adf1f144660a5fc02dc88493a341efff36b7bef8b31d5e78bb  src/SplitScreenA/SCPShared.m
+69f5687492a275adf1f144660a5fc02dc88493a341efff36b7bef8b31d5e78bb  project/OmniCarSplitScreen/SCPShared.m
+5bdc4b2bf96b9a4f475bb737146dc6f725f09fccc614d208c545ba1f8644f38f  src/SplitScreenA/SCPShared.h
+5bdc4b2bf96b9a4f475bb737146dc6f725f09fccc614d208c545ba1f8644f38f  project/OmniCarSplitScreen/SCPShared.h
+84978e3eb812be7dc4022b1d75f75d9cbeef874a46bbffe6691059378c797ee1  src/SplitScreenA/SCPCarSplit.m
+84978e3eb812be7dc4022b1d75f75d9cbeef874a46bbffe6691059378c797ee1  project/OmniCarSplitScreen/SCPCarSplit.m
+edc61dc7c2dc0ccc635c5ab02dc1154b583d412768bad366a6a4c06d2cabe1bb  src/SplitScreenB/SCPCarSplit+Panel.m
+edc61dc7c2dc0ccc635c5ab02dc1154b583d412768bad366a6a4c06d2cabe1bb  project/OmniCarSplitScreen/SCPCarSplit+Panel.m
+```
+
+**DEVICE_TEST = PENDING.** Acceptance focus for the next session:
+a native CarPlay app (Music) and a chosen iPhone app (Waze/GOFA)
+must both pass the gate and reach AppBridge (MILESTONE lines);
+divider totals must read 1.00; panel tiles must sit inside their
+outlines. Still owed from §14: the disconnect-while-splash run.
+After installing this build, the AppIcons unlock step (item 11(i))
+can be performed on device.
