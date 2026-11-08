@@ -1,0 +1,27 @@
+; sub_5280
+0x005280  stp      x22, x21, [sp, #-0x30]!
+0x005284  stp      x20, x19, [sp, #0x10]
+0x005288  stp      x29, x30, [sp, #0x20]
+0x00528c  add      x29, sp, #0x20
+0x005290  mov      x21, x2
+0x005294  mov      x19, x1
+0x005298  mov      x20, x0
+0x00529c  bl       #0x490e0 ; -> _SCPHomeShowNames
+0x0052a0  eor      w8, w0, #1
+0x0052a4  adrp     x9, #0x88000
+0x0052a8  ldr      x3, [x9, #0x18]
+0x0052ac  orr      w8, w21, w8
+0x0052b0  and      w2, w8, #1
+0x0052b4  mov      x0, x20
+0x0052b8  mov      x1, x19
+0x0052bc  ldp      x29, x30, [sp, #0x20]
+0x0052c0  ldp      x20, x19, [sp, #0x10]
+0x0052c4  ldp      x22, x21, [sp], #0x30
+0x0052c8  br       x3
+0x0052cc  cmp      w1, #1
+0x0052d0  b.ne     #0x52e4
+0x0052d4  bl       #0x566ec ; call _objc_begin_catch
+0x0052d8  bl       #0x56710 ; call _objc_end_catch
+0x0052dc  mov      w8, #0
+0x0052e0  b        #0x52a4
+0x0052e4  bl       #0x563e0 ; call __Unwind_Resume

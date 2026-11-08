@@ -1,0 +1,63 @@
+; sub_5f1c
+; VA 0x5f1c  size 240
+
+0x00005f1c:  ldp      x26, x25, [sp, #0x90]
+0x00005f20:  ldp      x28, x27, [sp, #0x80]
+0x00005f24:  ldp      d9, d8, [sp, #0x70]
+0x00005f28:  add      sp, sp, #0xe0
+0x00005f2c:  ret      
+0x00005f30:  sub      sp, sp, #0x40
+0x00005f34:  stp      x22, x21, [sp, #0x10]
+0x00005f38:  stp      x20, x19, [sp, #0x20]
+0x00005f3c:  stp      x29, x30, [sp, #0x30]
+0x00005f40:  add      x29, sp, #0x30
+0x00005f44:  mov      x19, x0
+0x00005f48:  add      x0, x0, #0x20
+0x00005f4c:  bl       #0x220c0    ; -> _objc_loadWeakRetained
+0x00005f50:  cbz      x0, #0x5f80
+0x00005f54:  mov      x20, x0
+0x00005f58:  add      x0, x19, #0x20
+0x00005f5c:  bl       #0x220c0    ; -> _objc_loadWeakRetained
+0x00005f60:  mov      x21, x0
+0x00005f64:  bl       #0x25560    ; -> _objc_msgSend(shownFrames)
+0x00005f68:  mov      x22, x0
+0x00005f6c:  mov      x0, x21
+0x00005f70:  bl       #0x22120    ; -> _objc_release
+0x00005f74:  mov      x0, x20
+0x00005f78:  bl       #0x22120    ; -> _objc_release
+0x00005f7c:  cbz      x22, #0x5f94
+0x00005f80:  ldp      x29, x30, [sp, #0x30]
+0x00005f84:  ldp      x20, x19, [sp, #0x20]
+0x00005f88:  ldp      x22, x21, [sp, #0x10]
+0x00005f8c:  add      sp, sp, #0x40
+0x00005f90:  ret      
+0x00005f94:  adrp     x8, #0x3a000
+0x00005f98:  ldr      x20, [x8, #0x9c0]    ; class(NSString)
+0x00005f9c:  add      x0, x19, #0x20
+0x00005fa0:  bl       #0x220c0    ; -> _objc_loadWeakRetained
+0x00005fa4:  mov      x21, x0
+0x00005fa8:  bl       #0x232a0    ; -> _objc_msgSend(failedFrames)
+0x00005fac:  str      x0, [sp]
+0x00005fb0:  adrp     x2, #0x31000
+0x00005fb4:  add      x2, x2, #0x88    ; @"no frame shown after 10s (failed=%lu), giving up"
+0x00005fb8:  mov      x0, x20
+0x00005fbc:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00005fc0:  mov      x29, x29
+0x00005fc4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005fc8:  mov      x20, x0
+0x00005fcc:  adrp     x0, #0x30000
+0x00005fd0:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00005fd4:  mov      x1, x20
+0x00005fd8:  bl       #0x1b620    ; -> OMCLogWrite
+0x00005fdc:  mov      x0, x20
+0x00005fe0:  bl       #0x22120    ; -> _objc_release
+0x00005fe4:  mov      x0, x21
+0x00005fe8:  bl       #0x22120    ; -> _objc_release
+0x00005fec:  add      x0, x19, #0x20
+0x00005ff0:  bl       #0x220c0    ; -> _objc_loadWeakRetained
+0x00005ff4:  mov      x19, x0
+0x00005ff8:  adrp     x2, #0x31000
+0x00005ffc:  add      x2, x2, #0xa8    ; @"no frame after 10s"
+0x00006000:  bl       #0x23120    ; -> _objc_msgSend(dismissBecause:)
+0x00006004:  mov      x0, x19
+0x00006008:  ldp      x29, x30, [sp, #0x30]

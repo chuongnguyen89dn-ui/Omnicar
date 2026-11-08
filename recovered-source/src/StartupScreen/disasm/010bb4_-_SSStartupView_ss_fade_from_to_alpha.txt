@@ -1,0 +1,46 @@
+; -[SSStartupView ss_fade:from:to:alpha:]
+; VA 0x10bb4  size 172
+
+0x00010bb4:  stp      d11, d10, [sp, #-0x50]!
+0x00010bb8:  stp      d9, d8, [sp, #0x10]
+0x00010bbc:  stp      x22, x21, [sp, #0x20]
+0x00010bc0:  stp      x20, x19, [sp, #0x30]
+0x00010bc4:  stp      x29, x30, [sp, #0x40]
+0x00010bc8:  add      x29, sp, #0x40
+0x00010bcc:  mov      v8.16b, v2.16b
+0x00010bd0:  mov      v9.16b, v1.16b
+0x00010bd4:  mov      v10.16b, v0.16b
+0x00010bd8:  mov      x19, x2
+0x00010bdc:  mov      x20, x0
+0x00010be0:  adrp     x8, #0x3a000
+0x00010be4:  ldr      x21, [x8, #0xb68]    ; class(SSFade)
+0x00010be8:  mov      x0, x2
+0x00010bec:  bl       #0x2212c    ; -> _objc_retain
+0x00010bf0:  mov      x0, x21
+0x00010bf4:  bl       #0x220fc    ; -> _objc_opt_new
+0x00010bf8:  mov      x21, x0
+0x00010bfc:  mov      x2, x19
+0x00010c00:  bl       #0x25420    ; -> _objc_msgSend(setView:)
+0x00010c04:  mov      x0, x19
+0x00010c08:  bl       #0x22120    ; -> _objc_release
+0x00010c0c:  mov      x0, x21
+0x00010c10:  mov      v0.16b, v10.16b
+0x00010c14:  bl       #0x24a80    ; -> _objc_msgSend(setInA:)
+0x00010c18:  mov      x0, x21
+0x00010c1c:  mov      v0.16b, v9.16b
+0x00010c20:  bl       #0x24aa0    ; -> _objc_msgSend(setInB:)
+0x00010c24:  mov      x0, x21
+0x00010c28:  mov      v0.16b, v8.16b
+0x00010c2c:  bl       #0x24420    ; -> _objc_msgSend(setAlpha:)
+0x00010c30:  adrp     x8, #0x3a000
+0x00010c34:  ldrsw    x8, [x8, #0xd28]
+0x00010c38:  ldr      x0, [x20, x8]
+0x00010c3c:  mov      x2, x21
+0x00010c40:  bl       #0x22480    ; -> _objc_msgSend(addObject:)
+0x00010c44:  mov      x0, x21
+0x00010c48:  ldp      x29, x30, [sp, #0x40]
+0x00010c4c:  ldp      x20, x19, [sp, #0x30]
+0x00010c50:  ldp      x22, x21, [sp, #0x20]
+0x00010c54:  ldp      d9, d8, [sp, #0x10]
+0x00010c58:  ldp      d11, d10, [sp], #0x50
+0x00010c5c:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

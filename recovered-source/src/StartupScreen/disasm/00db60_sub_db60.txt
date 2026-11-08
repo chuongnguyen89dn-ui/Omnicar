@@ -1,0 +1,49 @@
+; sub_db60
+; VA 0xdb60  size 184
+
+0x0000db60:  sub      sp, sp, #0x40
+0x0000db64:  stp      x22, x21, [sp, #0x10]
+0x0000db68:  stp      x20, x19, [sp, #0x20]
+0x0000db6c:  stp      x29, x30, [sp, #0x30]
+0x0000db70:  add      x29, sp, #0x30
+0x0000db74:  mov      x19, x1
+0x0000db78:  mov      x21, x0
+0x0000db7c:  bl       #0x2212c    ; -> _objc_retain
+0x0000db80:  mov      x0, x19
+0x0000db84:  bl       #0x155c8    ; -> sub_155c8
+0x0000db88:  mov      x29, x29
+0x0000db8c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000db90:  mov      x19, x0
+0x0000db94:  mov      x0, x21
+0x0000db98:  bl       #0x13e24    ; -> sub_13e24
+0x0000db9c:  mov      x29, x29
+0x0000dba0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000dba4:  mov      x20, x0
+0x0000dba8:  mov      x0, x21
+0x0000dbac:  bl       #0x22120    ; -> _objc_release
+0x0000dbb0:  mov      x0, x20
+0x0000dbb4:  bl       #0x23a40    ; -> _objc_msgSend(length)
+0x0000dbb8:  cbz      x0, #0xdbe4
+0x0000dbbc:  adrp     x8, #0x3a000
+0x0000dbc0:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x0000dbc4:  stp      x19, x20, [sp]
+0x0000dbc8:  adrp     x2, #0x33000
+0x0000dbcc:  add      x2, x2, #0x3a8    ; @"%@, %@"
+0x0000dbd0:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x0000dbd4:  mov      x29, x29
+0x0000dbd8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000dbdc:  mov      x21, x0
+0x0000dbe0:  b        #0xdbf0    ; -> sub_dbf0
+0x0000dbe4:  mov      x0, x19
+0x0000dbe8:  bl       #0x2212c    ; -> _objc_retain
+0x0000dbec:  mov      x21, x19
+0x0000dbf0:  mov      x0, x20
+0x0000dbf4:  bl       #0x22120    ; -> _objc_release
+0x0000dbf8:  mov      x0, x19
+0x0000dbfc:  bl       #0x22120    ; -> _objc_release
+0x0000dc00:  mov      x0, x21
+0x0000dc04:  ldp      x29, x30, [sp, #0x30]
+0x0000dc08:  ldp      x20, x19, [sp, #0x20]
+0x0000dc0c:  ldp      x22, x21, [sp, #0x10]
+0x0000dc10:  add      sp, sp, #0x40
+0x0000dc14:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

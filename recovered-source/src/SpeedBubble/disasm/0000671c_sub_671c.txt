@@ -1,0 +1,52 @@
+# sub_671c
+# addr 0x671c .. 0x67e0  (196 bytes)
+
+0000671c  stp      x24, x23, [sp, #-0x40]!                     
+00006720  stp      x22, x21, [sp, #0x10]                       
+00006724  stp      x20, x19, [sp, #0x20]                       
+00006728  stp      x29, x30, [sp, #0x30]                       
+0000672c  add      x29, sp, #0x30                              
+00006730  mov      x22, x3                                     
+00006734  mov      x20, x2                                     
+00006738  mov      x21, x1                                     
+0000673c  mov      x19, x0                                     
+00006740  bl       #0x28004                                    ; _objc_retain
+00006744  mov      x0, x20                                     
+00006748  bl       #0x28004                                    ; _objc_retain
+0000674c  adrp     x8, #0x43000                                
+00006750  ldr      x23, [x8, #0x850]                           ; [0x43850] __DATA,__bss+0xb0
+00006754  mov      x0, x20                                     
+00006758  mov      x1, x22                                     
+0000675c  bl       #0x67e0                                     ; sub_67e0
+00006760  mov      x29, x29                                    
+00006764  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00006768  mov      x22, x0                                     
+0000676c  mov      x0, x19                                     
+00006770  mov      x1, x21                                     
+00006774  mov      x2, x20                                     
+00006778  mov      x3, x22                                     
+0000677c  blr      x23                                         
+00006780  mov      x21, x0                                     
+00006784  mov      x0, x22                                     
+00006788  bl       #0x27ff8                                    ; _objc_release
+0000678c  mov      x0, x20                                     
+00006790  bl       #0x27ff8                                    ; _objc_release
+00006794  mov      x0, x19                                     
+00006798  bl       #0x27ff8                                    ; _objc_release
+0000679c  mov      x0, x21                                     
+000067a0  ldp      x29, x30, [sp, #0x30]                       
+000067a4  ldp      x20, x19, [sp, #0x20]                       
+000067a8  ldp      x22, x21, [sp, #0x10]                       
+000067ac  ldp      x24, x23, [sp], #0x40                       
+000067b0  ret                                                  
+000067b4  mov      x21, x0                                     
+000067b8  mov      x0, x22                                     
+000067bc  bl       #0x27ff8                                    ; _objc_release
+000067c0  b        #0x67c8                                     ; sub_67c8
+000067c4  mov      x21, x0                                     
+000067c8  mov      x0, x20                                     
+000067cc  bl       #0x27ff8                                    ; _objc_release
+000067d0  mov      x0, x19                                     
+000067d4  bl       #0x27ff8                                    ; _objc_release
+000067d8  mov      x0, x21                                     
+000067dc  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,47 @@
+# -[SPPBubbleView stackHeight]
+# addr 0x12018 .. 0x120c8  (176 bytes)
+
+00012018  stp      d9, d8, [sp, #-0x40]!                       
+0001201c  stp      x22, x21, [sp, #0x10]                       
+00012020  stp      x20, x19, [sp, #0x20]                       
+00012024  stp      x29, x30, [sp, #0x30]                       
+00012028  add      x29, sp, #0x30                              
+0001202c  mov      x19, x0                                     
+00012030  bl       #0x2c000                                    ; objc_msgSend$speedLabel
+00012034  mov      x29, x29                                    
+00012038  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001203c  mov      x20, x0                                     
+00012040  bl       #0x294a0                                    ; objc_msgSend$font
+00012044  mov      x29, x29                                    
+00012048  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001204c  mov      x21, x0                                     
+00012050  bl       #0x29c00                                    ; objc_msgSend$lineHeight
+00012054  frintp   d0, d0                                      
+00012058  fmov     d1, #-3.00000000                            
+0001205c  fadd     d8, d0, d1                                  
+00012060  mov      x0, x19                                     
+00012064  bl       #0x2c680                                    ; objc_msgSend$unitLabel
+00012068  mov      x29, x29                                    
+0001206c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00012070  mov      x19, x0                                     
+00012074  bl       #0x294a0                                    ; objc_msgSend$font
+00012078  mov      x29, x29                                    
+0001207c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00012080  mov      x22, x0                                     
+00012084  bl       #0x29c00                                    ; objc_msgSend$lineHeight
+00012088  frintp   d0, d0                                      
+0001208c  fadd     d8, d8, d0                                  
+00012090  mov      x0, x22                                     
+00012094  bl       #0x27ff8                                    ; _objc_release
+00012098  mov      x0, x19                                     
+0001209c  bl       #0x27ff8                                    ; _objc_release
+000120a0  mov      x0, x21                                     
+000120a4  bl       #0x27ff8                                    ; _objc_release
+000120a8  mov      x0, x20                                     
+000120ac  bl       #0x27ff8                                    ; _objc_release
+000120b0  mov      v0.16b, v8.16b                              
+000120b4  ldp      x29, x30, [sp, #0x30]                       
+000120b8  ldp      x20, x19, [sp, #0x20]                       
+000120bc  ldp      x22, x21, [sp, #0x10]                       
+000120c0  ldp      d9, d8, [sp], #0x40                         
+000120c4  ret                                                  

@@ -1,0 +1,39 @@
+; sub_d4f0
+; VA 0xd4f0  size 144
+
+0x0000d4f0:  cbz      x0, #0xd50c
+0x0000d4f4:  cmp      x0, #2
+0x0000d4f8:  b.gt     #0xd514
+0x0000d4fc:  cmp      w1, #0
+0x0000d500:  mov      w8, #2
+0x0000d504:  cinc     x8, x8, eq
+0x0000d508:  b        #0xd578    ; -> sub_d578
+0x0000d50c:  eor      w8, w1, #1
+0x0000d510:  b        #0xd578    ; -> sub_d578
+0x0000d514:  mov      w8, #5
+0x0000d518:  cmp      x0, #0x2d
+0x0000d51c:  b.eq     #0xd578
+0x0000d520:  cmp      x0, #0x30
+0x0000d524:  b.eq     #0xd578
+0x0000d528:  sub      x8, x0, #0x33
+0x0000d52c:  cmp      x8, #7
+0x0000d530:  b.hs     #0xd53c
+0x0000d534:  mov      w8, #6
+0x0000d538:  b        #0xd578    ; -> sub_d578
+0x0000d53c:  sub      x8, x0, #0x3d
+0x0000d540:  cmp      x8, #0x19
+0x0000d544:  b.hi     #0xd568
+0x0000d548:  mov      w9, #0xfc7f
+0x0000d54c:  movk     w9, #0x339, lsl #16
+0x0000d550:  lsr      w9, w9, w8
+0x0000d554:  tbz      w9, #0, #0xd568
+0x0000d558:  adrp     x9, #0x29000
+0x0000d55c:  add      x9, x9, #0x5f0
+0x0000d560:  ldr      x8, [x9, x8, lsl #3]
+0x0000d564:  b        #0xd578    ; -> sub_d578
+0x0000d568:  cmp      x0, #0x5e
+0x0000d56c:  mov      w8, #4
+0x0000d570:  mov      w9, #8
+0x0000d574:  csel     x8, x9, x8, hi
+0x0000d578:  mov      x0, x8
+0x0000d57c:  ret      

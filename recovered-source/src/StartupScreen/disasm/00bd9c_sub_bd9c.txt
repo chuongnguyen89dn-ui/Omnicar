@@ -1,0 +1,22 @@
+; sub_bd9c
+; VA 0xbd9c  size 76
+
+0x0000bd9c:  stp      x20, x19, [sp, #-0x20]!
+0x0000bda0:  stp      x29, x30, [sp, #0x10]
+0x0000bda4:  add      x29, sp, #0x10
+0x0000bda8:  bl       #0x21d78    ; -> _NSTemporaryDirectory
+0x0000bdac:  mov      x29, x29
+0x0000bdb0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bdb4:  mov      x19, x0
+0x0000bdb8:  adrp     x2, #0x33000
+0x0000bdbc:  add      x2, x2, #0x388    ; @"OmniCarStartupWeather.plist"
+0x0000bdc0:  bl       #0x25b20    ; -> _objc_msgSend(stringByAppendingPathComponent:)
+0x0000bdc4:  mov      x29, x29
+0x0000bdc8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bdcc:  mov      x20, x0
+0x0000bdd0:  mov      x0, x19
+0x0000bdd4:  bl       #0x22120    ; -> _objc_release
+0x0000bdd8:  mov      x0, x20
+0x0000bddc:  ldp      x29, x30, [sp, #0x10]
+0x0000bde0:  ldp      x20, x19, [sp], #0x20
+0x0000bde4:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

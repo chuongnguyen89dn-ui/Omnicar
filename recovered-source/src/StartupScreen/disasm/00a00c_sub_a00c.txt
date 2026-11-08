@@ -1,0 +1,50 @@
+; sub_a00c
+; VA 0xa00c  size 188
+
+0x0000a00c:  stp      x22, x21, [sp, #-0x30]!
+0x0000a010:  stp      x20, x19, [sp, #0x10]
+0x0000a014:  stp      x29, x30, [sp, #0x20]
+0x0000a018:  add      x29, sp, #0x20
+0x0000a01c:  add      x0, x0, #0x20
+0x0000a020:  bl       #0x220c0    ; -> _objc_loadWeakRetained
+0x0000a024:  mov      x19, x0
+0x0000a028:  cbz      x0, #0xa0b4
+0x0000a02c:  adrp     x8, #0x3b000
+0x0000a030:  ldr      x8, [x8, #0x190]
+0x0000a034:  cmp      x8, x19
+0x0000a038:  b.ne     #0xa0b4
+0x0000a03c:  adrp     x8, #0x3a000
+0x0000a040:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x0000a044:  adrp     x2, #0x31000
+0x0000a048:  add      x2, x2, #0xe28    ; @"weather: no fresh fix in 6s, using the last one"
+0x0000a04c:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x0000a050:  mov      x29, x29
+0x0000a054:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000a058:  mov      x20, x0
+0x0000a05c:  adrp     x0, #0x30000
+0x0000a060:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x0000a064:  mov      x1, x20
+0x0000a068:  bl       #0x1b620    ; -> OMCLogWrite
+0x0000a06c:  mov      x0, x20
+0x0000a070:  bl       #0x22120    ; -> _objc_release
+0x0000a074:  mov      x0, x19
+0x0000a078:  bl       #0x23bc0    ; -> _objc_msgSend(manager)
+0x0000a07c:  mov      x29, x29
+0x0000a080:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000a084:  mov      x20, x0
+0x0000a088:  bl       #0x23ac0    ; -> _objc_msgSend(location)
+0x0000a08c:  mov      x29, x29
+0x0000a090:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000a094:  mov      x21, x0
+0x0000a098:  mov      x0, x19
+0x0000a09c:  mov      x2, x21
+0x0000a0a0:  bl       #0x23380    ; -> _objc_msgSend(finish:)
+0x0000a0a4:  mov      x0, x21
+0x0000a0a8:  bl       #0x22120    ; -> _objc_release
+0x0000a0ac:  mov      x0, x20
+0x0000a0b0:  bl       #0x22120    ; -> _objc_release
+0x0000a0b4:  mov      x0, x19
+0x0000a0b8:  ldp      x29, x30, [sp, #0x20]
+0x0000a0bc:  ldp      x20, x19, [sp, #0x10]
+0x0000a0c0:  ldp      x22, x21, [sp], #0x30
+0x0000a0c4:  b        #0x22120    ; -> _objc_release

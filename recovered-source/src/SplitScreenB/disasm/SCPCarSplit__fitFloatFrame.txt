@@ -1,0 +1,82 @@
+; ==== SCPCarSplit__fitFloatFrame  @0x1f9d8..0x1fb1c (324 bytes) ====
+0001f9d8  stp      d13, d12, [sp, #-0x60]!                      
+0001f9dc  stp      d11, d10, [sp, #0x10]                        
+0001f9e0  stp      d9, d8, [sp, #0x20]                          
+0001f9e4  stp      x22, x21, [sp, #0x30]                        
+0001f9e8  stp      x20, x19, [sp, #0x40]                        
+0001f9ec  stp      x29, x30, [sp, #0x50]                        
+0001f9f0  add      x29, sp, #0x50                               
+0001f9f4  mov      x20, x0                                      
+0001f9f8  bl       #0x58200                                     ; msgSend "floatPane"
+0001f9fc  mov      x29, x29                                     
+0001fa00  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001fa04  mov      x19, x0                                      
+0001fa08  cbz      x0, #0x1fad0                                 
+0001fa0c  mov      x0, x20                                      
+0001fa10  bl       #0x57800                                     ; msgSend "container"
+0001fa14  mov      x29, x29                                     
+0001fa18  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001fa1c  mov      x21, x0                                      
+0001fa20  bl       #0x567b8                                     ; call _objc_release
+0001fa24  cbz      x21, #0x1fad0                                
+0001fa28  mov      x0, x20                                      
+0001fa2c  bl       #0x57800                                     ; msgSend "container"
+0001fa30  mov      x29, x29                                     
+0001fa34  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001fa38  mov      x21, x0                                      
+0001fa3c  bl       #0x57320                                     ; msgSend "bounds"
+0001fa40  mov      v8.16b, v2.16b                               
+0001fa44  mov      v9.16b, v3.16b                               
+0001fa48  mov      x0, x21                                      
+0001fa4c  bl       #0x567b8                                     ; call _objc_release
+0001fa50  mov      x0, x20                                      
+0001fa54  bl       #0x581a0                                     ; msgSend "floatFrame"
+0001fa58  mov      v11.16b, v0.16b                              
+0001fa5c  mov      v13.16b, v1.16b                              
+0001fa60  mov      v10.16b, v2.16b                              
+0001fa64  mov      v12.16b, v3.16b                              
+0001fa68  mov      x0, x20                                      
+0001fa6c  mov      w2, #0                                       
+0001fa70  bl       #0x5ace0                                     ; msgSend "setFloatClosing:"
+0001fa74  fmov     d0, #8.00000000                              
+0001fa78  fcmp     d13, d0                                      
+0001fa7c  fcsel    d1, d0, d13, mi                              
+0001fa80  fmov     d2, #-16.00000000                            
+0001fa84  fadd     d3, d9, d2                                   
+0001fa88  fcmp     d12, d3                                      
+0001fa8c  fcsel    d3, d12, d3, mi                              
+0001fa90  fsub     d4, d9, d3                                   
+0001fa94  fmov     d5, #-8.00000000                             
+0001fa98  fadd     d4, d4, d5                                   
+0001fa9c  fcmp     d1, d4                                       
+0001faa0  fcsel    d1, d1, d4, mi                               
+0001faa4  fcmp     d11, d0                                      
+0001faa8  fcsel    d0, d0, d11, mi                              
+0001faac  fadd     d2, d8, d2                                   
+0001fab0  fcmp     d10, d2                                      
+0001fab4  fcsel    d2, d10, d2, mi                              
+0001fab8  fsub     d4, d8, d2                                   
+0001fabc  fadd     d4, d4, d5                                   
+0001fac0  fcmp     d0, d4                                       
+0001fac4  fcsel    d0, d0, d4, mi                               
+0001fac8  mov      x0, x20                                      
+0001facc  bl       #0x5ad00                                     ; msgSend "setFloatFrame:"
+0001fad0  mov      x0, x19                                      
+0001fad4  ldp      x29, x30, [sp, #0x50]                        
+0001fad8  ldp      x20, x19, [sp, #0x40]                        
+0001fadc  ldp      x22, x21, [sp, #0x30]                        
+0001fae0  ldp      d9, d8, [sp, #0x20]                          
+0001fae4  ldp      d11, d10, [sp, #0x10]                        
+0001fae8  ldp      d13, d12, [sp], #0x60                        
+0001faec  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+0001faf0  mov      x20, x0                                      
+0001faf4  mov      x0, x21                                      
+0001faf8  bl       #0x567b8                                     ; call _objc_release
+0001fafc  b        #0x1fb0c                                     
+0001fb00  b        #0x1fb08                                     
+0001fb04  b        #0x1fb08                                     
+0001fb08  mov      x20, x0                                      
+0001fb0c  mov      x0, x19                                      
+0001fb10  bl       #0x567b8                                     ; call _objc_release
+0001fb14  mov      x0, x20                                      
+0001fb18  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,142 @@
+# sub_23f50
+# addr 0x23f50 .. 0x24174  (548 bytes)
+
+00023f50  stp      x28, x27, [sp, #-0x60]!                     
+00023f54  stp      x26, x25, [sp, #0x10]                       
+00023f58  stp      x24, x23, [sp, #0x20]                       
+00023f5c  stp      x22, x21, [sp, #0x30]                       
+00023f60  stp      x20, x19, [sp, #0x40]                       
+00023f64  stp      x29, x30, [sp, #0x50]                       
+00023f68  add      x29, sp, #0x50                              
+00023f6c  sub      sp, sp, #0x270                              
+00023f70  mov      x22, x1                                     
+00023f74  mov      x23, x0                                     
+00023f78  adrp     x8, #0x38000                                
+00023f7c  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00023f80  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00023f84  stur     x8, [x29, #-0x60]                           
+00023f88  adrp     x8, #0x43000                                
+00023f8c  ldr      x0, [x8, #0xab0]                            ; [0x43ab0] __DATA,__bss+0x310
+00023f90  mov      w8, #0x1a4                                  
+00023f94  str      x8, [sp]                                    
+00023f98  mov      w1, #0x209                                  
+00023f9c  bl       #0x28094                                    ; _open
+00023fa0  tbnz     w0, #0x1f, #0x24124                         
+00023fa4  mov      x20, x0                                     
+00023fa8  add      x0, sp, #0x60                               
+00023fac  mov      w1, #0x40                                   
+00023fb0  bl       #0x27cec                                    ; _backtrace
+00023fb4  mov      x21, x0                                     
+00023fb8  mov      x8, x23                                     
+00023fbc  str      x8, [sp]                                    
+00023fc0  adrp     x2, #0x2f000                                
+00023fc4  add      x2, x2, #0x6e3                              ; "signal-%d"
+00023fc8  add      x0, sp, #0x30                               
+00023fcc  mov      w1, #0x30                                   
+00023fd0  bl       #0x28118                                    ; _snprintf
+00023fd4  add      x1, sp, #0x30                               
+00023fd8  add      x2, sp, #0x60                               
+00023fdc  mov      x0, x20                                     
+00023fe0  mov      x3, x21                                     
+00023fe4  bl       #0x243e8                                    ; sub_243e8
+00023fe8  cbz      x22, #0x23ff8                               
+00023fec  ldr      w19, [x22, #8]                              
+00023ff0  ldr      x22, [x22, #0x18]                           
+00023ff4  b        #0x23ffc                                    ; sub_23ffc
+00023ff8  mov      w19, #0                                     
+00023ffc  bl       #0x27e3c                                    ; _getpid
+00024000  stp      x22, x0, [sp, #0x10]                        
+00024004  stp      x23, x19, [sp]                              
+00024008  str      x23, [sp, #0x20]                            
+0002400c  adrp     x1, #0x2f000                                
+00024010  add      x1, x1, #0x6ed                              ; "signal %d (code %d) addr %p pid %d
+"
+00024014  mov      x0, x20                                     
+00024018  bl       #0x27df4                                    ; _dprintf
+0002401c  add      x0, sp, #0x60                               
+00024020  mov      x1, x21                                     
+00024024  mov      x2, x20                                     
+00024028  bl       #0x27cf8                                    ; _backtrace_symbols_fd
+0002402c  bl       #0x27cd4                                    ; __dyld_image_count
+00024030  cbz      w0, #0x24118                                
+00024034  mov      w21, #0                                     
+00024038  adrp     x22, #0x2f000                               
+0002403c  add      x22, x22, #0x711                            ; "__DATA"
+00024040  adrp     x23, #0x2f000                               
+00024044  add      x23, x23, #0x718                            ; "__crash_info"
+00024048  adrp     x27, #0x2d000                               
+0002404c  add      x27, x27, #0xde0                            ; "?"
+00024050  adrp     x25, #0x2f000                               
+00024054  add      x25, x25, #0x732                            ; "crash_info [%s]: %s
+"
+00024058  mov      x0, x21                                     
+0002405c  bl       #0x27cbc                                    ; __dyld_get_image_header
+00024060  cbz      x0, #0x24108                                
+00024064  mov      x26, x0                                     
+00024068  str      xzr, [sp, #0x28]                            
+0002406c  add      x3, sp, #0x28                               
+00024070  mov      x1, x22                                     
+00024074  mov      x2, x23                                     
+00024078  bl       #0x27e48                                    ; _getsectiondata
+0002407c  cbnz     x0, #0x24098                                
+00024080  add      x3, sp, #0x28                               
+00024084  mov      x0, x26                                     
+00024088  adrp     x1, #0x2f000                                
+0002408c  add      x1, x1, #0x725                              ; "__DATA_DIRTY"
+00024090  mov      x2, x23                                     
+00024094  bl       #0x27e48                                    ; _getsectiondata
+00024098  cbz      x0, #0x24108                                
+0002409c  ldr      x8, [sp, #0x28]                             
+000240a0  cmp      x8, #0x28                                   
+000240a4  b.lo     #0x24108                                    
+000240a8  ldr      x28, [x0, #8]                               
+000240ac  ldr      x24, [x0, #0x20]                            
+000240b0  mov      w8, #1                                      
+000240b4  mov      x19, x8                                     
+000240b8  cbz      x28, #0x240fc                               
+000240bc  ldrb     w8, [x28]                                   
+000240c0  cbz      w8, #0x240fc                                
+000240c4  mov      x0, x21                                     
+000240c8  bl       #0x27cc8                                    ; __dyld_get_image_name
+000240cc  cbz      x0, #0x240e0                                
+000240d0  mov      x26, x0                                     
+000240d4  mov      w1, #0x2f                                   
+000240d8  bl       #0x28160                                    ; _strrchr
+000240dc  b        #0x240e4                                    ; sub_240e4
+000240e0  mov      x26, x27                                    
+000240e4  cmp      x0, #0                                      
+000240e8  csinc    x8, x26, x0, eq                             
+000240ec  stp      x8, x28, [sp]                               
+000240f0  mov      x0, x20                                     
+000240f4  mov      x1, x25                                     
+000240f8  bl       #0x27df4                                    ; _dprintf
+000240fc  mov      w8, #0                                      
+00024100  mov      x28, x24                                    
+00024104  tbnz     w19, #0, #0x240b4                           
+00024108  add      w21, w21, #1                                
+0002410c  bl       #0x27cd4                                    ; __dyld_image_count
+00024110  cmp      w21, w0                                     
+00024114  b.lo     #0x24058                                    
+00024118  mov      x0, x20                                     
+0002411c  bl       #0x27d4c                                    ; _close
+00024120  ldr      x23, [sp, #0x20]                            
+00024124  mov      x0, x23                                     
+00024128  mov      x1, #0                                      
+0002412c  bl       #0x28100                                    ; _signal
+00024130  mov      x0, x23                                     
+00024134  bl       #0x280d0                                    ; _raise
+00024138  ldur     x8, [x29, #-0x60]                           
+0002413c  adrp     x9, #0x38000                                
+00024140  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00024144  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00024148  cmp      x9, x8                                      
+0002414c  b.ne     #0x24170                                    
+00024150  add      sp, sp, #0x270                              
+00024154  ldp      x29, x30, [sp, #0x50]                       
+00024158  ldp      x20, x19, [sp, #0x40]                       
+0002415c  ldp      x22, x21, [sp, #0x30]                       
+00024160  ldp      x24, x23, [sp, #0x20]                       
+00024164  ldp      x26, x25, [sp, #0x10]                       
+00024168  ldp      x28, x27, [sp], #0x60                       
+0002416c  ret                                                  
+00024170  bl       #0x27ca4                                    ; ___stack_chk_fail

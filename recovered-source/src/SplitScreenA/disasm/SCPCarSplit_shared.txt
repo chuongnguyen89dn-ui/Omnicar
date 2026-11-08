@@ -1,0 +1,18 @@
+; +[SCPCarSplit shared]
+0x00fdf4  stp      x20, x19, [sp, #-0x20]!
+0x00fdf8  stp      x29, x30, [sp, #0x10]
+0x00fdfc  add      x29, sp, #0x10
+0x00fe00  adrp     x8, #0x88000
+0x00fe04  ldr      x8, [x8, #0x130]
+0x00fe08  cmn      x8, #1
+0x00fe0c  b.ne     #0xfe30
+0x00fe10  adrp     x8, #0x88000
+0x00fe14  ldr      x19, [x8, #0x128]
+0x00fe18  mov      x0, x19
+0x00fe1c  bl       #0x567c4 ; call _objc_retain
+0x00fe20  mov      x0, x19
+0x00fe24  ldp      x29, x30, [sp, #0x10]
+0x00fe28  ldp      x20, x19, [sp], #0x20
+0x00fe2c  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x00fe30  bl       #0x56090 ; -> sub_56090
+0x00fe34  b        #0xfe10

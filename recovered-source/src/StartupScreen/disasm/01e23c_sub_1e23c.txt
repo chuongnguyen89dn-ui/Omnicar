@@ -1,0 +1,15 @@
+; sub_1e23c
+; VA 0x1e23c  size 48
+
+0x0001e23c:  stp      x29, x30, [sp, #-0x10]!
+0x0001e240:  mov      x29, sp
+0x0001e244:  mov      x0, #0
+0x0001e248:  mov      w1, #0x2800
+0x0001e24c:  movk     w1, #0xee6b, lsl #16
+0x0001e250:  bl       #0x21ef8    ; -> _dispatch_time
+0x0001e254:  adrp     x1, #0x30000
+0x0001e258:  ldr      x1, [x1, #0x388]    ; got(__dispatch_main_q)
+0x0001e25c:  adrp     x2, #0x30000
+0x0001e260:  add      x2, x2, #0xde8    ; block_lit(invoke=0x1e618 sub_1e618, sig=v8@?0)
+0x0001e264:  ldp      x29, x30, [sp], #0x10
+0x0001e268:  b        #0x21e8c    ; -> _dispatch_after

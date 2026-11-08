@@ -1,0 +1,281 @@
+; sub_93b8
+; VA 0x93b8  size 1112
+
+0x000093b8:  sub      sp, sp, #0x80
+0x000093bc:  stp      x26, x25, [sp, #0x30]
+0x000093c0:  stp      x24, x23, [sp, #0x40]
+0x000093c4:  stp      x22, x21, [sp, #0x50]
+0x000093c8:  stp      x20, x19, [sp, #0x60]
+0x000093cc:  stp      x29, x30, [sp, #0x70]
+0x000093d0:  add      x29, sp, #0x70
+0x000093d4:  adrp     x24, #0x14000
+0x000093d8:  ldr      x8, [x24, #0x4a8]
+0x000093dc:  cbz      x8, #0x97f4
+0x000093e0:  ldp      d3, d2, [x0, #0x20]
+0x000093e4:  ldp      d1, d0, [x0, #0x30]
+0x000093e8:  adrp     x23, #0x14000
+0x000093ec:  ldr      x8, [x23, #0x5a0]
+0x000093f0:  add      x8, x8, #1
+0x000093f4:  str      x8, [x23, #0x5a0]
+0x000093f8:  fcmp     d3, #0.0
+0x000093fc:  b.lt     #0x9424
+0x00009400:  adrp     x8, #0x14000
+0x00009404:  ldr      d4, [x8, #0x588]
+0x00009408:  fadd     d4, d3, d4
+0x0000940c:  str      d4, [x8, #0x588]
+0x00009410:  adrp     x8, #0x14000
+0x00009414:  ldr      d4, [x8, #0x580]
+0x00009418:  fcmp     d4, d3
+0x0000941c:  fcsel    d3, d3, d4, mi
+0x00009420:  str      d3, [x8, #0x580]
+0x00009424:  fcmp     d2, #0.0
+0x00009428:  b.lt     #0x9448
+0x0000942c:  adrp     x8, #0x14000
+0x00009430:  str      d2, [x8, #0x578]
+0x00009434:  adrp     x8, #0x14000
+0x00009438:  ldr      d3, [x8, #0x570]
+0x0000943c:  fcmp     d3, d2
+0x00009440:  fcsel    d2, d2, d3, mi
+0x00009444:  str      d2, [x8, #0x570]
+0x00009448:  fcmp     d1, #0.0
+0x0000944c:  b.le     #0x9464
+0x00009450:  adrp     x8, #0x14000
+0x00009454:  ldr      d2, [x8, #0x598]
+0x00009458:  fcmp     d2, d1
+0x0000945c:  fcsel    d1, d2, d1, mi
+0x00009460:  str      d1, [x8, #0x598]
+0x00009464:  fcmp     d0, #0.0
+0x00009468:  b.lt     #0x9480
+0x0000946c:  adrp     x8, #0x14000
+0x00009470:  ldr      d1, [x8, #0x590]
+0x00009474:  fcmp     d1, d0
+0x00009478:  fcsel    d0, d1, d0, mi
+0x0000947c:  str      d0, [x8, #0x590]
+0x00009480:  adrp     x8, #0x14000
+0x00009484:  ldr      x0, [x8, #0x368]    ; class(NSProcessInfo)
+0x00009488:  bl       #0xbee0    ; -> _objc_msgSend(processInfo)
+0x0000948c:  mov      x29, x29
+0x00009490:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00009494:  mov      x19, x0
+0x00009498:  adrp     x20, #0x14000
+0x0000949c:  ldr      x21, [x20, #0x5a8]
+0x000094a0:  bl       #0xc220    ; -> _objc_msgSend(thermalState)
+0x000094a4:  cmp      x21, x0
+0x000094a8:  csel     x8, x21, x0, gt
+0x000094ac:  str      x8, [x20, #0x5a8]
+0x000094b0:  mov      x0, x19
+0x000094b4:  bl       #0xbb60    ; -> _objc_msgSend(isLowPowerModeEnabled)
+0x000094b8:  cbz      w0, #0x94c8
+0x000094bc:  adrp     x8, #0x14000
+0x000094c0:  mov      w9, #1
+0x000094c4:  strb     w9, [x8, #0x5b0]
+0x000094c8:  ldrb     w8, [x23, #0x5a0]
+0x000094cc:  tbnz     w8, #0, #0x94dc
+0x000094d0:  adrp     x0, #0x10000
+0x000094d4:  add      x0, x0, #0x6d8    ; @"com.anlai.omnicar"
+0x000094d8:  bl       #0xb068    ; -> _CFPreferencesAppSynchronize
+0x000094dc:  mov      x0, x19
+0x000094e0:  bl       #0xc220    ; -> _objc_msgSend(thermalState)
+0x000094e4:  mov      x20, x0
+0x000094e8:  bl       #0x451c    ; -> OMCEnabled
+0x000094ec:  cbz      w0, #0x95d8
+0x000094f0:  adrp     x0, #0x10000
+0x000094f4:  add      x0, x0, #0x738    ; @"liteMode"
+0x000094f8:  adrp     x1, #0x11000
+0x000094fc:  add      x1, x1, #0xea0
+0x00009500:  bl       #0x44b4    ; -> OMCPref
+0x00009504:  mov      x29, x29
+0x00009508:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x0000950c:  mov      x21, x0
+0x00009510:  bl       #0xbae0    ; -> _objc_msgSend(integerValue)
+0x00009514:  mov      x22, x0
+0x00009518:  mov      x0, x21
+0x0000951c:  bl       #0xb410    ; -> _objc_release
+0x00009520:  cmp      x22, #2
+0x00009524:  b.ne     #0x95d8
+0x00009528:  bl       #0x9190    ; -> sub_9190
+0x0000952c:  cmp      x20, #1
+0x00009530:  b.le     #0x9540
+0x00009534:  adrp     x1, #0x11000
+0x00009538:  add      x1, x1, #0x258    ; @"heat"
+0x0000953c:  b        #0x95ec    ; -> sub_95ec
+0x00009540:  adrp     x8, #0x14000
+0x00009544:  ldr      d1, [x8, #0x5d0]
+0x00009548:  fcmp     d1, #0.0
+0x0000954c:  b.le     #0x9570
+0x00009550:  fsub     d1, d0, d1
+0x00009554:  mov      x8, #0x405e000000000000
+0x00009558:  fmov     d2, x8
+0x0000955c:  fcmp     d1, d2
+0x00009560:  b.pl     #0x9570
+0x00009564:  adrp     x1, #0x11000
+0x00009568:  add      x1, x1, #0x278    ; @"hangs"
+0x0000956c:  b        #0x95ec    ; -> sub_95ec
+0x00009570:  adrp     x8, #0x14000
+0x00009574:  ldr      d1, [x8, #0x5c8]
+0x00009578:  fmov     d2, #15.00000000
+0x0000957c:  fcmp     d1, d2
+0x00009580:  b.ge     #0x95e4
+0x00009584:  adrp     x8, #0x14000
+0x00009588:  ldr      d2, [x8, #0x5e0]
+0x0000958c:  fcmp     d2, #0.0
+0x00009590:  adrp     x8, #0xd000
+0x00009594:  b.eq     #0x95a8
+0x00009598:  fsub     d2, d0, d2
+0x0000959c:  ldr      d3, [x8, #0x68]
+0x000095a0:  fcmp     d2, d3
+0x000095a4:  b.le     #0x95f4
+0x000095a8:  fmov     d2, #5.00000000
+0x000095ac:  fcmp     d1, d2
+0x000095b0:  b.pl     #0x95f4
+0x000095b4:  adrp     x9, #0x14000
+0x000095b8:  ldrb     w9, [x9, #0x5f0]
+0x000095bc:  tbz      w9, #0, #0x95f4
+0x000095c0:  adrp     x9, #0x14000
+0x000095c4:  ldr      d1, [x9, #0x610]
+0x000095c8:  fsub     d0, d0, d1
+0x000095cc:  ldr      d1, [x8, #0x68]
+0x000095d0:  fcmp     d0, d1
+0x000095d4:  b.le     #0x95f4
+0x000095d8:  mov      w0, #0
+0x000095dc:  mov      x1, #0
+0x000095e0:  b        #0x95f0    ; -> sub_95f0
+0x000095e4:  adrp     x1, #0x11000
+0x000095e8:  add      x1, x1, #0x298    ; @"frames"
+0x000095ec:  mov      w0, #1
+0x000095f0:  bl       #0x9d8c    ; -> sub_9d8c
+0x000095f4:  ldr      x8, [x23, #0x5a0]
+0x000095f8:  sub      x9, x8, #4
+0x000095fc:  mov      x25, #-0x5555555555555556
+0x00009600:  movk     x25, #0xaaab
+0x00009604:  mul      x9, x9, x25
+0x00009608:  ror      x9, x9, #2
+0x0000960c:  mov      x10, #0x5555555555555555
+0x00009610:  and      x10, x10, #0x3ffffffffffffffc
+0x00009614:  cmp      x9, x10
+0x00009618:  b.hi     #0x97d0
+0x0000961c:  ldr      x20, [x24, #0x4a8]
+0x00009620:  cbz      x20, #0x97d0
+0x00009624:  adrp     x24, #0x14000
+0x00009628:  ldr      x9, [x24, #0x4b0]
+0x0000962c:  cbnz     x9, #0x97d0
+0x00009630:  adrp     x26, #0x14000
+0x00009634:  ldr      x21, [x26, #0x618]
+0x00009638:  cbnz     x21, #0x96c8
+0x0000963c:  adrp     x0, #0xc000
+0x00009640:  add      x0, x0, #0xbb0    ; "OMCPerfTicker"
+0x00009644:  bl       #0xb3bc    ; -> _objc_getClass
+0x00009648:  mov      x21, x0
+0x0000964c:  cbnz     x0, #0x96ac
+0x00009650:  adrp     x8, #0x14000
+0x00009654:  ldr      x0, [x8, #0x3f8]    ; class(NSObject)
+0x00009658:  bl       #0xb3d4    ; -> _objc_opt_class
+0x0000965c:  adrp     x1, #0xc000
+0x00009660:  add      x1, x1, #0xbb0    ; "OMCPerfTicker"
+0x00009664:  mov      x2, #0
+0x00009668:  bl       #0xb380    ; -> _objc_allocateClassPair
+0x0000966c:  mov      x21, x0
+0x00009670:  adrp     x0, #0xc000
+0x00009674:  add      x0, x0, #0xbaa    ; "tick:"
+0x00009678:  bl       #0xb4a0    ; -> _sel_registerName
+0x0000967c:  mov      x22, x0
+0x00009680:  adrp     x0, #0x10000
+0x00009684:  add      x0, x0, #0x638    ; block_lit(invoke=0x9f44 sub_9f44, sig=v24@?0@8@16)
+0x00009688:  bl       #0xb2fc    ; -> _imp_implementationWithBlock
+0x0000968c:  mov      x2, x0
+0x00009690:  adrp     x3, #0xc000
+0x00009694:  add      x3, x3, #0xbca    ; "v@:@"
+0x00009698:  mov      x0, x21
+0x0000969c:  mov      x1, x22
+0x000096a0:  bl       #0xb1a0    ; -> _class_addMethod
+0x000096a4:  mov      x0, x21
+0x000096a8:  bl       #0xb404    ; -> _objc_registerClassPair
+0x000096ac:  mov      x0, x21
+0x000096b0:  bl       #0xb3ec    ; -> _objc_opt_new
+0x000096b4:  ldr      x8, [x26, #0x618]
+0x000096b8:  str      x0, [x26, #0x618]
+0x000096bc:  mov      x0, x8
+0x000096c0:  bl       #0xb410    ; -> _objc_release
+0x000096c4:  ldr      x21, [x26, #0x618]
+0x000096c8:  mov      x0, x21
+0x000096cc:  bl       #0xb41c    ; -> _objc_retain
+0x000096d0:  adrp     x0, #0xc000
+0x000096d4:  add      x0, x0, #0xbaa    ; "tick:"
+0x000096d8:  bl       #0xb4a0    ; -> _sel_registerName
+0x000096dc:  mov      x3, x0
+0x000096e0:  mov      x0, x20
+0x000096e4:  mov      x2, x21
+0x000096e8:  bl       #0xb9c0    ; -> _objc_msgSend(displayLinkWithTarget:selector:)
+0x000096ec:  mov      x29, x29
+0x000096f0:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x000096f4:  ldr      x8, [x24, #0x4b0]
+0x000096f8:  str      x0, [x24, #0x4b0]
+0x000096fc:  mov      x0, x8
+0x00009700:  bl       #0xb410    ; -> _objc_release
+0x00009704:  mov      x0, x21
+0x00009708:  bl       #0xb410    ; -> _objc_release
+0x0000970c:  adrp     x8, #0x14000
+0x00009710:  str      xzr, [x8, #0x550]
+0x00009714:  adrp     x8, #0x14000
+0x00009718:  ldr      d0, [x8, #0x548]
+0x0000971c:  adrp     x8, #0x14000
+0x00009720:  str      d0, [x8, #0x5c0]
+0x00009724:  adrp     x8, #0x14000
+0x00009728:  ldr      d0, [x8, #0x540]
+0x0000972c:  adrp     x8, #0x14000
+0x00009730:  str      d0, [x8, #0x5b8]
+0x00009734:  ldr      x20, [x24, #0x4b0]
+0x00009738:  adrp     x8, #0x14000
+0x0000973c:  ldr      x0, [x8, #0x3f0]    ; class(NSRunLoop)
+0x00009740:  bl       #0xbc40    ; -> _objc_msgSend(mainRunLoop)
+0x00009744:  mov      x29, x29
+0x00009748:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x0000974c:  mov      x21, x0
+0x00009750:  adrp     x8, #0x10000
+0x00009754:  ldr      x8, [x8, #0x150]    ; got(_NSRunLoopCommonModes)
+0x00009758:  ldr      x3, [x8]
+0x0000975c:  mov      x0, x20
+0x00009760:  mov      x2, x21
+0x00009764:  bl       #0xb640    ; -> _objc_msgSend(addToRunLoop:forMode:)
+0x00009768:  mov      x0, x21
+0x0000976c:  bl       #0xb410    ; -> _objc_release
+0x00009770:  adrp     x8, #0x14000
+0x00009774:  ldr      x20, [x8, #0x528]
+0x00009778:  mov      x1, #0xe400
+0x0000977c:  movk     x1, #0x540b, lsl #16
+0x00009780:  movk     x1, #2, lsl #32
+0x00009784:  mov      x0, #0
+0x00009788:  bl       #0xb254    ; -> _dispatch_time
+0x0000978c:  adrp     x8, #0x10000
+0x00009790:  ldr      x8, [x8, #0x190]    ; got(__NSConcreteStackBlock)
+0x00009794:  str      x8, [sp, #8]
+0x00009798:  adrp     x8, #0xd000
+0x0000979c:  ldr      d0, [x8, #0x50]
+0x000097a0:  adrp     x8, #0x9000
+0x000097a4:  add      x8, x8, #0xeb0    ; func sub_9eb0
+0x000097a8:  str      d0, [sp, #0x10]
+0x000097ac:  adrp     x9, #0x10000
+0x000097b0:  add      x9, x9, #0x5d8
+0x000097b4:  stp      x8, x9, [sp, #0x18]
+0x000097b8:  str      x20, [sp, #0x28]
+0x000097bc:  adrp     x1, #0x10000
+0x000097c0:  ldr      x1, [x1, #0x1c0]    ; got(__dispatch_main_q)
+0x000097c4:  add      x2, sp, #8
+0x000097c8:  bl       #0xb1e8    ; -> _dispatch_after
+0x000097cc:  ldr      x8, [x23, #0x5a0]
+0x000097d0:  mul      x8, x8, x25
+0x000097d4:  ror      x8, x8, #1
+0x000097d8:  mov      x9, #-0x5555555555555556
+0x000097dc:  movk     x9, #0x2aaa, lsl #48
+0x000097e0:  cmp      x8, x9
+0x000097e4:  b.hi     #0x97ec
+0x000097e8:  bl       #0x9810    ; -> sub_9810
+0x000097ec:  mov      x0, x19
+0x000097f0:  bl       #0xb410    ; -> _objc_release
+0x000097f4:  ldp      x29, x30, [sp, #0x70]
+0x000097f8:  ldp      x20, x19, [sp, #0x60]
+0x000097fc:  ldp      x22, x21, [sp, #0x50]
+0x00009800:  ldp      x24, x23, [sp, #0x40]
+0x00009804:  ldp      x26, x25, [sp, #0x30]
+0x00009808:  add      sp, sp, #0x80
+0x0000980c:  ret      

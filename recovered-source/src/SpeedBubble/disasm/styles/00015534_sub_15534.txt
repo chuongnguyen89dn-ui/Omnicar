@@ -1,0 +1,52 @@
+# sub_15534
+# addr 0x15534 .. 0x155f8  (196 bytes)
+
+00015534  sub      sp, sp, #0x60                               
+00015538  stp      d9, d8, [sp, #0x30]                         
+0001553c  stp      x20, x19, [sp, #0x40]                       
+00015540  stp      x29, x30, [sp, #0x50]                       
+00015544  add      x29, sp, #0x50                              
+00015548  mov      v8.16b, v1.16b                              
+0001554c  mov      v9.16b, v0.16b                              
+00015550  mov      x19, x0                                     
+00015554  bl       #0x28004                                    ; _objc_retain
+00015558  mov      x0, x19                                     
+0001555c  bl       #0x29540                                    ; objc_msgSend$frame
+00015560  fabd     d0, d2, d9                                  
+00015564  fmov     d1, #0.25000000                             
+00015568  fcmp     d0, d1                                      
+0001556c  b.mi     #0x155dc                                    
+00015570  adrp     x8, #0x43000                                
+00015574  ldr      x20, [x8, #0x18]                            ; [0x43018] classref -> UIView (= import _OBJC_CLASS_$_UIView)
+00015578  adrp     x8, #0x38000                                
+0001557c  ldr      x8, [x8, #0x318]                            ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+00015580  str      x8, [sp]                                    
+00015584  adrp     x8, #0x32000                                
+00015588  ldr      d0, [x8, #0x780]                            ; [0x32780] __const[0x32780] double=1.6080749353e-314 float=-32.0
+0001558c  str      d0, [sp, #8]                                
+00015590  adrp     x8, #0x15000                                
+00015594  add      x8, x8, #0xeb0                              ; __TEXT,__text+0x11eb0
+00015598  adrp     x9, #0x38000                                
+0001559c  add      x9, x9, #0xa38                              ; __const[0x38a38] double=0.0 float=0.0
+000155a0  stp      x8, x9, [sp, #0x10]                         
+000155a4  mov      x0, x19                                     
+000155a8  bl       #0x28004                                    ; _objc_retain
+000155ac  str      x19, [sp, #0x20]                            
+000155b0  str      d9, [sp, #0x28]                             
+000155b4  fmov     d1, xzr                                     
+000155b8  mov      x3, sp                                      
+000155bc  mov      x0, x20                                     
+000155c0  mov      v0.16b, v8.16b                              
+000155c4  mov      w2, #4                                      
+000155c8  movk     w2, #2, lsl #16                             
+000155cc  mov      x4, #0                                      
+000155d0  bl       #0x285a0                                    ; objc_msgSend$animateWithDuration:delay:options:animations:completion:
+000155d4  ldr      x0, [sp, #0x20]                             
+000155d8  bl       #0x27ff8                                    ; _objc_release
+000155dc  mov      x0, x19                                     
+000155e0  bl       #0x27ff8                                    ; _objc_release
+000155e4  ldp      x29, x30, [sp, #0x50]                       
+000155e8  ldp      x20, x19, [sp, #0x40]                       
+000155ec  ldp      d9, d8, [sp, #0x30]                         
+000155f0  add      sp, sp, #0x60                               
+000155f4  ret                                                  

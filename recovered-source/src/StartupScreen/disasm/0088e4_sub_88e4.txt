@@ -1,0 +1,115 @@
+; sub_88e4
+; VA 0x88e4  size 448
+
+0x000088e4:  sub      sp, sp, #0x90
+0x000088e8:  stp      d9, d8, [sp, #0x40]
+0x000088ec:  stp      x24, x23, [sp, #0x50]
+0x000088f0:  stp      x22, x21, [sp, #0x60]
+0x000088f4:  stp      x20, x19, [sp, #0x70]
+0x000088f8:  stp      x29, x30, [sp, #0x80]
+0x000088fc:  add      x29, sp, #0x80
+0x00008900:  mov      x19, x0
+0x00008904:  mov      v8.16b, v1.16b
+0x00008908:  mov      v9.16b, v0.16b
+0x0000890c:  bl       #0x2212c    ; -> _objc_retain
+0x00008910:  mov      x8, #0x4059000000000000
+0x00008914:  fmov     d0, x8
+0x00008918:  fmul     d1, d9, d0
+0x0000891c:  frinta   d1, d1
+0x00008920:  fdiv     d1, d1, d0
+0x00008924:  fmul     d2, d8, d0
+0x00008928:  frinta   d2, d2
+0x0000892c:  adrp     x8, #0x3a000
+0x00008930:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x00008934:  fdiv     d0, d2, d0
+0x00008938:  stp      d1, d0, [sp]
+0x0000893c:  adrp     x2, #0x31000
+0x00008940:  add      x2, x2, #0xa68    ; @"https://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1"
+0x00008944:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00008948:  mov      x29, x29
+0x0000894c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008950:  mov      x20, x0
+0x00008954:  adrp     x8, #0x3a000
+0x00008958:  ldr      x0, [x8, #0xa60]    ; class(NSURL)
+0x0000895c:  mov      x2, x20
+0x00008960:  bl       #0x223a0    ; -> _objc_msgSend(URLWithString:)
+0x00008964:  mov      x29, x29
+0x00008968:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000896c:  mov      x21, x0
+0x00008970:  cbz      x0, #0x8a60
+0x00008974:  adrp     x8, #0x3a000
+0x00008978:  ldr      x0, [x8, #0xaa8]    ; class(NSURLSessionConfiguration)
+0x0000897c:  bl       #0x23260    ; -> _objc_msgSend(ephemeralSessionConfiguration)
+0x00008980:  mov      x29, x29
+0x00008984:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008988:  mov      x22, x0
+0x0000898c:  fmov     d0, #3.00000000
+0x00008990:  bl       #0x252e0    ; -> _objc_msgSend(setTimeoutIntervalForRequest:)
+0x00008994:  fmov     d0, #3.00000000
+0x00008998:  mov      x0, x22
+0x0000899c:  bl       #0x25300    ; -> _objc_msgSend(setTimeoutIntervalForResource:)
+0x000089a0:  mov      x0, x22
+0x000089a4:  mov      w2, #0
+0x000089a8:  bl       #0x25480    ; -> _objc_msgSend(setWaitsForConnectivity:)
+0x000089ac:  mov      x0, x22
+0x000089b0:  mov      w2, #1
+0x000089b4:  bl       #0x24fa0    ; -> _objc_msgSend(setRequestCachePolicy:)
+0x000089b8:  adrp     x8, #0x3a000
+0x000089bc:  ldr      x0, [x8, #0xab0]    ; class(NSURLSession)
+0x000089c0:  mov      x2, x22
+0x000089c4:  bl       #0x24340    ; -> _objc_msgSend(sessionWithConfiguration:)
+0x000089c8:  mov      x29, x29
+0x000089cc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000089d0:  mov      x23, x0
+0x000089d4:  bl       #0x21b08    ; -> _CACurrentMediaTime
+0x000089d8:  adrp     x8, #0x30000
+0x000089dc:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x000089e0:  str      x8, [sp, #0x10]
+0x000089e4:  adrp     x8, #0x28000
+0x000089e8:  ldr      d1, [x8, #0xdd0]
+0x000089ec:  adrp     x8, #0x8000
+0x000089f0:  add      x8, x8, #0xc94    ; func sub_8c94
+0x000089f4:  str      d1, [sp, #0x18]
+0x000089f8:  adrp     x9, #0x30000
+0x000089fc:  add      x9, x9, #0xa18
+0x00008a00:  stp      x8, x9, [sp, #0x20]
+0x00008a04:  str      d0, [sp, #0x38]
+0x00008a08:  mov      x0, x19
+0x00008a0c:  bl       #0x2212c    ; -> _objc_retain
+0x00008a10:  str      x19, [sp, #0x30]
+0x00008a14:  add      x3, sp, #0x10
+0x00008a18:  mov      x0, x23
+0x00008a1c:  mov      x2, x21
+0x00008a20:  bl       #0x22f00    ; -> _objc_msgSend(dataTaskWithURL:completionHandler:)
+0x00008a24:  mov      x29, x29
+0x00008a28:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008a2c:  mov      x24, x0
+0x00008a30:  bl       #0x24260    ; -> _objc_msgSend(resume)
+0x00008a34:  mov      x0, x23
+0x00008a38:  bl       #0x233a0    ; -> _objc_msgSend(finishTasksAndInvalidate)
+0x00008a3c:  mov      x0, x24
+0x00008a40:  bl       #0x22120    ; -> _objc_release
+0x00008a44:  ldr      x0, [sp, #0x30]
+0x00008a48:  bl       #0x22120    ; -> _objc_release
+0x00008a4c:  mov      x0, x23
+0x00008a50:  bl       #0x22120    ; -> _objc_release
+0x00008a54:  mov      x0, x22
+0x00008a58:  bl       #0x22120    ; -> _objc_release
+0x00008a5c:  b        #0x8a70    ; -> sub_8a70
+0x00008a60:  ldr      x8, [x19, #0x10]
+0x00008a64:  mov      x0, x19
+0x00008a68:  mov      x1, #0
+0x00008a6c:  blr      x8
+0x00008a70:  mov      x0, x21
+0x00008a74:  bl       #0x22120    ; -> _objc_release
+0x00008a78:  mov      x0, x20
+0x00008a7c:  bl       #0x22120    ; -> _objc_release
+0x00008a80:  mov      x0, x19
+0x00008a84:  bl       #0x22120    ; -> _objc_release
+0x00008a88:  ldp      x29, x30, [sp, #0x80]
+0x00008a8c:  ldp      x20, x19, [sp, #0x70]
+0x00008a90:  ldp      x22, x21, [sp, #0x60]
+0x00008a94:  ldp      x24, x23, [sp, #0x50]
+0x00008a98:  ldp      d9, d8, [sp, #0x40]
+0x00008a9c:  add      sp, sp, #0x90
+0x00008aa0:  ret      

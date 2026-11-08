@@ -1,0 +1,36 @@
+# +[SPPPrefs warnMarginKmh]
+# addr 0x1f254 .. 0x1f2d8  (132 bytes)
+
+0001f254  stp      d9, d8, [sp, #-0x30]!                       
+0001f258  stp      x20, x19, [sp, #0x10]                       
+0001f25c  stp      x29, x30, [sp, #0x20]                       
+0001f260  add      x29, sp, #0x20                              
+0001f264  adrp     x0, #0x3b000                                
+0001f268  add      x0, x0, #0x258                              ; @"speedBubbleWarnOver"
+0001f26c  bl       #0x1edb0                                    ; sub_1edb0
+0001f270  mov      x29, x29                                    
+0001f274  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f278  mov      x19, x0                                     
+0001f27c  cbz      x0, #0x1f290                                
+0001f280  mov      x0, x19                                     
+0001f284  bl       #0x292c0                                    ; objc_msgSend$doubleValue
+0001f288  frinta   d0, d0                                      
+0001f28c  b        #0x1f294                                    ; sub_1f294
+0001f290  fmov     d0, #5.00000000                             
+0001f294  fmov     d1, #-10.00000000                           
+0001f298  fmaxnm   d0, d0, d1                                  
+0001f29c  fmov     d1, #10.00000000                            
+0001f2a0  fcmp     d0, d1                                      
+0001f2a4  fcsel    d8, d1, d0, gt                              
+0001f2a8  mov      x0, x19                                     
+0001f2ac  bl       #0x27ff8                                    ; _objc_release
+0001f2b0  mov      v0.16b, v8.16b                              
+0001f2b4  ldp      x29, x30, [sp, #0x20]                       
+0001f2b8  ldp      x20, x19, [sp, #0x10]                       
+0001f2bc  ldp      d9, d8, [sp], #0x30                         
+0001f2c0  ret                                                  
+0001f2c4  mov      x20, x0                                     
+0001f2c8  mov      x0, x19                                     
+0001f2cc  bl       #0x27ff8                                    ; _objc_release
+0001f2d0  mov      x0, x20                                     
+0001f2d4  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,61 @@
+; sub_88d0
+0x0088d0  sub      sp, sp, #0x30
+0x0088d4  stp      x20, x19, [sp, #0x10]
+0x0088d8  stp      x29, x30, [sp, #0x20]
+0x0088dc  add      x29, sp, #0x20
+0x0088e0  mov      x19, x0
+0x0088e4  bl       #0x567c4 ; call _objc_retain
+0x0088e8  adrp     x8, #0x87000
+0x0088ec  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x0088f0  str      x19, [sp]
+0x0088f4  adrp     x2, #0x7a000
+0x0088f8  add      x2, x2, #0xe0 ; -> 0x7a0e0 @"-> split CarPlay: %@"
+0x0088fc  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x008900  mov      x29, x29
+0x008904  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008908  mov      x20, x0
+0x00890c  adrp     x0, #0x79000
+0x008910  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x008914  mov      x1, x20
+0x008918  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00891c  mov      x0, x20
+0x008920  bl       #0x567b8 ; call _objc_release
+0x008924  mov      x0, x19
+0x008928  bl       #0x567c4 ; call _objc_retain
+0x00892c  adrp     x8, #0x88000
+0x008930  ldr      x0, [x8, #0xa8]
+0x008934  str      x19, [x8, #0xa8]
+0x008938  bl       #0x567b8 ; call _objc_release
+0x00893c  bl       #0x56164 ; call _CFAbsoluteTimeGetCurrent
+0x008940  adrp     x8, #0x88000
+0x008944  str      d0, [x8, #0xb8]
+0x008948  adrp     x0, #0x5e000
+0x00894c  add      x0, x0, #0xebf ; -> 0x5eebf "NSDistributedNotificationCenter"
+0x008950  bl       #0x56734 ; call _objc_getClass
+0x008954  bl       #0x57ae0 ; objc_msgSend$defaultCenter
+0x008958  mov      x29, x29
+0x00895c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008960  mov      x20, x0
+0x008964  adrp     x2, #0x79000
+0x008968  add      x2, x2, #0xc80 ; -> 0x79c80 @"com.anlai.omnicar/splitscreen.native"
+0x00896c  mov      x3, #0
+0x008970  mov      x4, x19
+0x008974  bl       #0x59c60 ; objc_msgSend$postNotificationName:object:userInfo:
+0x008978  mov      x0, x20
+0x00897c  bl       #0x567b8 ; call _objc_release
+0x008980  mov      x0, x19
+0x008984  ldp      x29, x30, [sp, #0x20]
+0x008988  ldp      x20, x19, [sp, #0x10]
+0x00898c  add      sp, sp, #0x30
+0x008990  b        #0x567b8 ; call _objc_release
+0x008994  b        #0x8998
+0x008998  mov      x1, x20
+0x00899c  mov      x20, x0
+0x0089a0  mov      x0, x1
+0x0089a4  bl       #0x567b8 ; call _objc_release
+0x0089a8  b        #0x89b0
+0x0089ac  mov      x20, x0
+0x0089b0  mov      x0, x19
+0x0089b4  bl       #0x567b8 ; call _objc_release
+0x0089b8  mov      x0, x20
+0x0089bc  bl       #0x563e0 ; call __Unwind_Resume

@@ -1,0 +1,72 @@
+[1;31m> [1;3;39mMaking all in OmniCarApp…[m
+[1;31m> [1;3;39mMaking all for application OmniCar…[m
+[0;35m==> [1;39mCopying resource directories into the application wrapper…[m
+make[4]: Nothing to be done for 'internal-application-compile'.
+[1;31m> [1;3;39mMaking all in OmniCarCore…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarCore…[m
+make[4]: Nothing to be done for 'internal-tweak-compile'.
+[1;31m> [1;3;39mMaking all in OmniCarAppBridge…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarAppBridge…[m
+make[4]: Nothing to be done for 'internal-tweak-compile'.
+[1;31m> [1;3;39mMaking all in OmniCarCarProbe…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarCarProbe…[m
+make[4]: Nothing to be done for 'internal-tweak-compile'.
+[1;31m> [1;3;39mMaking all in OmniCarSpeedBubble…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarSpeedBubble…[m
+make[4]: Nothing to be done for 'internal-tweak-compile'.
+[1;31m> [1;3;39mMaking all in OmniCarSplitScreen…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarSplitScreen…[m
+[0;32m==> [1;39mCompiling SCPHooks.m (arm64)…[m
+[1mSCPHooks.m:327:13: [0m[0;1;31merror: [0m[1mstatic declaration of 'SCPLayoutElementKey' follows non-static declaration[0m
+  327 | static BOOL SCPLayoutElementKey(id element, NSString *candidate) {[0m
+      | [0;1;32m            ^
+[0m[1m./SCPShared.h:68:6: [0m[0;1;36mnote: [0mprevious declaration is here[0m
+   68 | BOOL SCPLayoutElementKey(id element, NSString *candidate);          // 0x8350 (predicate — see SCPShared.m note)[0m
+      | [0;1;32m     ^
+[0m[1mSCPHooks.m:651:35: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  651 |     OMCCheckHooks(@"SplitScreen", nil);   // second name list at 0x80338 in the original[0m
+      | [0;1;32m                                  ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m1 warning and 1 error generated.
+make[4]: *** [/home/hatch/theos/makefiles/instance/rules.mk:305: /home/hatch/workspace/omnicar-re/project/.theos/obj/arm64/SCPHooks.m.c6db338d.o] Error 1
+make[4]: *** Waiting for unfinished jobs....
+[0;32m==> [1;39mCompiling SCPSmallClasses.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPSpringBoardHooks.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCarSplit.m (arm64)…[m
+[1mSCPCarSplit.m:447:43: [0m[0;1;35mwarning: [0m[1munused variable 's' [-Wunused-variable][0m
+  447 |         NSString *b = bundleID; NSInteger s = slot;[0m
+      | [0;1;32m                                          ^
+[0m[1mSCPCarSplit.m:925:29: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  925 |         [self paneForBundle:nil].bundleID, vc]);   // INFERRED formatting of the keep-case log[0m
+      | [0;1;32m                            ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mSCPCarSplit.m:1050:28: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+ 1050 |     [self afterPaneRemoved:nil]; // [phase2; backported to src in phase 3] callee ignores the arg; binary arg type is @ (was the NSInteger slot)[0m
+      | [0;1;32m                           ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mSCPCarSplit.m:38:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'anyBarVisible' not found [-Wincomplete-implementation][0m
+   38 | @implementation SCPCarSplit[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:173:1: [0m[0;1;36mnote: [0mmethod 'anyBarVisible' declared here[0m
+  173 | - (BOOL)anyBarVisible;[0m
+      | [0;1;32m^
+[0m4 warnings generated.
+make[3]: *** [/home/hatch/theos/makefiles/instance/library.mk:52: /home/hatch/workspace/omnicar-re/project/.theos/obj/arm64/OmniCarSplitScreen.dylib] Error 2
+make[2]: *** [/home/hatch/theos/makefiles/instance/library.mk:37: internal-library-all_] Error 2
+make[1]: *** [/home/hatch/theos/makefiles/master/rules.mk:146: OmniCarSplitScreen.all.tweak.variables] Error 2
+make: *** [/home/hatch/theos/makefiles/master/aggregate.mk:12: internal-all] Error 2

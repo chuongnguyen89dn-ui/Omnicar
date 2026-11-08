@@ -1,0 +1,41 @@
+; sub_68e8
+0x0068e8  stp      x20, x19, [sp, #-0x20]!
+0x0068ec  stp      x29, x30, [sp, #0x10]
+0x0068f0  add      x29, sp, #0x10
+0x0068f4  adrp     x8, #0x88000
+0x0068f8  ldr      x8, [x8, #0x78]
+0x0068fc  blr      x8
+0x006900  adrp     x8, #0x87000
+0x006904  ldr      x0, [x8, #0x688] ; [0x87688] class:SCPCarSplit
+0x006908  bl       #0x5bea0 ; objc_msgSend$shared
+0x00690c  mov      x29, x29
+0x006910  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x006914  mov      x19, x0
+0x006918  bl       #0x5a4e0 ; objc_msgSend$rootDidLayout
+0x00691c  mov      x0, x19
+0x006920  ldp      x29, x30, [sp, #0x10]
+0x006924  ldp      x20, x19, [sp], #0x20
+0x006928  b        #0x567b8 ; call _objc_release
+0x00692c  mov      x20, x1
+0x006930  mov      x1, x19
+0x006934  mov      x19, x0
+0x006938  mov      x0, x1
+0x00693c  bl       #0x567b8 ; call _objc_release
+0x006940  b        #0x694c
+0x006944  mov      x20, x1
+0x006948  mov      x19, x0
+0x00694c  cmp      w20, #1
+0x006950  b.ne     #0x6980
+0x006954  mov      x0, x19
+0x006958  bl       #0x566ec ; call _objc_begin_catch
+0x00695c  mov      x1, x0
+0x006960  adrp     x0, #0x5f000
+0x006964  add      x0, x0, #0x2c2 ; -> 0x5f2c2 "rootDidLayout"
+0x006968  bl       #0x75cc ; -> sub_75cc
+0x00696c  ldp      x29, x30, [sp, #0x10]
+0x006970  ldp      x20, x19, [sp], #0x20
+0x006974  b        #0x56710 ; call _objc_end_catch
+0x006978  mov      x19, x0
+0x00697c  bl       #0x56710 ; call _objc_end_catch
+0x006980  mov      x0, x19
+0x006984  bl       #0x563e0 ; call __Unwind_Resume

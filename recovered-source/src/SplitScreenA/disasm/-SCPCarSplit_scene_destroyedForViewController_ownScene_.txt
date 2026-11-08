@@ -1,0 +1,250 @@
+; -[SCPCarSplit scene:destroyedForViewController:ownScene:]
+0x01ad58  sub      sp, sp, #0x1c0
+0x01ad5c  stp      d9, d8, [sp, #0x150]
+0x01ad60  stp      x28, x27, [sp, #0x160]
+0x01ad64  stp      x26, x25, [sp, #0x170]
+0x01ad68  stp      x24, x23, [sp, #0x180]
+0x01ad6c  stp      x22, x21, [sp, #0x190]
+0x01ad70  stp      x20, x19, [sp, #0x1a0]
+0x01ad74  stp      x29, x30, [sp, #0x1b0]
+0x01ad78  add      x29, sp, #0x1b0
+0x01ad7c  mov      x19, x4
+0x01ad80  str      x4, [sp, #0x28]
+0x01ad84  mov      x20, x3
+0x01ad88  mov      x21, x0
+0x01ad8c  adrp     x8, #0x78000
+0x01ad90  ldr      x8, [x8, #0x360] ; [0x78360] ___stack_chk_guard
+0x01ad94  ldr      x8, [x8] ; [0x78000] <ordinal 0>
+0x01ad98  stur     x8, [x29, #-0x70]
+0x01ad9c  str      x2, [sp, #0x38]
+0x01ada0  mov      x0, x2
+0x01ada4  bl       #0x567c4 ; call _objc_retain
+0x01ada8  mov      x0, x20
+0x01adac  bl       #0x567c4 ; call _objc_retain
+0x01adb0  mov      x0, x19
+0x01adb4  bl       #0x567c4 ; call _objc_retain
+0x01adb8  movi     v0.16b, #0
+0x01adbc  stp      q0, q0, [sp, #0x80]
+0x01adc0  stp      q0, q0, [sp, #0xa0]
+0x01adc4  str      x21, [sp, #0x20]
+0x01adc8  mov      x0, x21
+0x01adcc  bl       #0x56e20 ; objc_msgSend$allPanes
+0x01add0  mov      x29, x29
+0x01add4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01add8  add      x2, sp, #0x80
+0x01addc  add      x3, sp, #0xc0
+0x01ade0  str      x0, [sp, #0x30]
+0x01ade4  mov      w4, #0x10
+0x01ade8  bl       #0x57a00 ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0x01adec  mov      x24, x0
+0x01adf0  cbz      x0, #0x1b034
+0x01adf4  ldr      x8, [sp, #0x90]
+0x01adf8  ldr      x22, [x8] ; [0x78000] <ordinal 0>
+0x01adfc  adrp     x8, #0x6e000
+0x01ae00  ldr      d8, [x8, #0xff8]
+0x01ae04  mov      x19, #0
+0x01ae08  ldr      x8, [sp, #0x90]
+0x01ae0c  ldr      x8, [x8]
+0x01ae10  cmp      x8, x22
+0x01ae14  b.eq     #0x1ae20
+0x01ae18  ldr      x0, [sp, #0x30]
+0x01ae1c  bl       #0x5671c ; call _objc_enumerationMutation
+0x01ae20  ldr      x8, [sp, #0x88]
+0x01ae24  ldr      x23, [x8, x19, lsl #3]
+0x01ae28  mov      x0, x23
+0x01ae2c  bl       #0x5cae0 ; objc_msgSend$vc
+0x01ae30  mov      x29, x29
+0x01ae34  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01ae38  cmp      x0, x20
+0x01ae3c  cset     w21, eq
+0x01ae40  bl       #0x567b8 ; call _objc_release
+0x01ae44  tbz      w21, #0, #0x1b00c
+0x01ae48  ldr      x0, [sp, #0x38]
+0x01ae4c  bl       #0x1b13c ; -> sub_1b13c
+0x01ae50  mov      x29, x29
+0x01ae54  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01ae58  mov      x28, x0
+0x01ae5c  ldr      x21, [sp, #0x28]
+0x01ae60  mov      x0, x21
+0x01ae64  bl       #0x1b13c ; -> sub_1b13c
+0x01ae68  mov      x29, x29
+0x01ae6c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01ae70  mov      x27, x0
+0x01ae74  cbz      x21, #0x1af78
+0x01ae78  ldr      x8, [sp, #0x38]
+0x01ae7c  cmp      x21, x8
+0x01ae80  b.eq     #0x1ae98
+0x01ae84  cbz      x28, #0x1af78
+0x01ae88  mov      x0, x28
+0x01ae8c  mov      x2, x27
+0x01ae90  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x01ae94  tbz      w0, #0, #0x1af78
+0x01ae98  adrp     x8, #0x87000
+0x01ae9c  ldr      x26, [x8, #0x678] ; [0x87678] class:NSString
+0x01aea0  mov      x0, x23
+0x01aea4  bl       #0x57420 ; objc_msgSend$bundleID
+0x01aea8  mov      x29, x29
+0x01aeac  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01aeb0  mov      x25, x0
+0x01aeb4  mov      x0, x23
+0x01aeb8  bl       #0x5c100 ; objc_msgSend$slot
+0x01aebc  stp      x25, x0, [sp]
+0x01aec0  mov      x0, x26
+0x01aec4  adrp     x2, #0x7b000
+0x01aec8  add      x2, x2, #0x900 ; -> 0x7b900 @"CarSplit: scene cua %@ bi huy (app thoat/crash) -> dong ngan %d"
+0x01aecc  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x01aed0  mov      x29, x29
+0x01aed4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01aed8  mov      x26, x0
+0x01aedc  adrp     x0, #0x79000
+0x01aee0  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x01aee4  mov      x1, x26
+0x01aee8  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x01aeec  mov      x0, x26
+0x01aef0  bl       #0x567b8 ; call _objc_release
+0x01aef4  mov      x0, x25
+0x01aef8  bl       #0x567b8 ; call _objc_release
+0x01aefc  add      x0, sp, #0x78
+0x01af00  mov      x1, x23
+0x01af04  bl       #0x56740 ; call _objc_initWeak
+0x01af08  adrp     x8, #0x78000
+0x01af0c  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x01af10  str      x8, [sp, #0x40]
+0x01af14  str      d8, [sp, #0x48]
+0x01af18  adrp     x8, #0x1b000
+0x01af1c  add      x9, x8, #0x238 ; -> 0x1b238 sub_1b238
+0x01af20  adrp     x8, #0x78000
+0x01af24  add      x8, x8, #0xae0 ; -> 0x78ae0
+0x01af28  stp      x9, x8, [sp, #0x50]
+0x01af2c  add      x8, sp, #0x40
+0x01af30  add      x0, x8, #0x30 ; -> 0x78030 _class_getInstanceMethod
+0x01af34  add      x1, sp, #0x78
+0x01af38  bl       #0x566f8 ; call _objc_copyWeak
+0x01af3c  mov      x0, x20
+0x01af40  bl       #0x567c4 ; call _objc_retain
+0x01af44  ldr      x8, [sp, #0x20]
+0x01af48  stp      x20, x8, [sp, #0x60]
+0x01af4c  fmov     d0, xzr
+0x01af50  add      x0, sp, #0x40
+0x01af54  bl       #0x12efc ; -> sub_12efc
+0x01af58  ldr      x0, [sp, #0x60]
+0x01af5c  bl       #0x567b8 ; call _objc_release
+0x01af60  add      x8, sp, #0x40
+0x01af64  add      x0, x8, #0x30 ; -> 0x78030 _class_getInstanceMethod
+0x01af68  bl       #0x56704 ; call _objc_destroyWeak
+0x01af6c  add      x0, sp, #0x78
+0x01af70  bl       #0x56704 ; call _objc_destroyWeak
+0x01af74  b        #0x1affc
+0x01af78  adrp     x8, #0x87000
+0x01af7c  ldr      x26, [x8, #0x678] ; [0x87678] class:NSString
+0x01af80  cmp      x28, #0
+0x01af84  ldr      x8, [sp, #0x38]
+0x01af88  csel     x21, x8, x28, eq
+0x01af8c  mov      x0, x23
+0x01af90  bl       #0x57420 ; objc_msgSend$bundleID
+0x01af94  mov      x29, x29
+0x01af98  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01af9c  mov      x25, x0
+0x01afa0  mov      x0, x23
+0x01afa4  bl       #0x5c100 ; objc_msgSend$slot
+0x01afa8  cmp      x27, #0
+0x01afac  adrp     x8, #0x7b000
+0x01afb0  add      x8, x8, #0x740 ; -> 0x7b740 @"?"
+0x01afb4  csel     x8, x8, x27, eq
+0x01afb8  stp      x8, x0, [sp, #0x10]
+0x01afbc  stp      x21, x25, [sp]
+0x01afc0  mov      x0, x26
+0x01afc4  adrp     x2, #0x7b000
+0x01afc8  add      x2, x2, #0x8e0 ; -> 0x7b8e0 @"CarSplit: scene %@ bi huy khong phai cua %@ (%@) -> giu ngan %d"
+0x01afcc  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x01afd0  mov      x29, x29
+0x01afd4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01afd8  mov      x26, x0
+0x01afdc  adrp     x0, #0x79000
+0x01afe0  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x01afe4  mov      x1, x26
+0x01afe8  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x01afec  mov      x0, x26
+0x01aff0  bl       #0x567b8 ; call _objc_release
+0x01aff4  mov      x0, x25
+0x01aff8  bl       #0x567b8 ; call _objc_release
+0x01affc  mov      x0, x27
+0x01b000  bl       #0x567b8 ; call _objc_release
+0x01b004  mov      x0, x28
+0x01b008  bl       #0x567b8 ; call _objc_release
+0x01b00c  add      x19, x19, #1
+0x01b010  cmp      x24, x19
+0x01b014  b.ne     #0x1ae08
+0x01b018  add      x2, sp, #0x80
+0x01b01c  add      x3, sp, #0xc0
+0x01b020  ldr      x0, [sp, #0x30]
+0x01b024  mov      w4, #0x10
+0x01b028  bl       #0x57a00 ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0x01b02c  mov      x24, x0
+0x01b030  cbnz     x0, #0x1ae04
+0x01b034  ldr      x0, [sp, #0x30]
+0x01b038  bl       #0x567b8 ; call _objc_release
+0x01b03c  ldr      x0, [sp, #0x28]
+0x01b040  bl       #0x567b8 ; call _objc_release
+0x01b044  mov      x0, x20
+0x01b048  bl       #0x567b8 ; call _objc_release
+0x01b04c  ldr      x0, [sp, #0x38]
+0x01b050  bl       #0x567b8 ; call _objc_release
+0x01b054  ldur     x8, [x29, #-0x70]
+0x01b058  adrp     x9, #0x78000
+0x01b05c  ldr      x9, [x9, #0x360] ; [0x78360] ___stack_chk_guard
+0x01b060  ldr      x9, [x9] ; [0x78000] <ordinal 0>
+0x01b064  cmp      x9, x8
+0x01b068  b.ne     #0x1b090
+0x01b06c  ldp      x29, x30, [sp, #0x1b0]
+0x01b070  ldp      x20, x19, [sp, #0x1a0]
+0x01b074  ldp      x22, x21, [sp, #0x190]
+0x01b078  ldp      x24, x23, [sp, #0x180]
+0x01b07c  ldp      x26, x25, [sp, #0x170]
+0x01b080  ldp      x28, x27, [sp, #0x160]
+0x01b084  ldp      d9, d8, [sp, #0x150]
+0x01b088  add      sp, sp, #0x1c0
+0x01b08c  ret      
+0x01b090  bl       #0x56404 ; call ___stack_chk_fail
+0x01b094  b        #0x1b108
+0x01b098  mov      x23, x0
+0x01b09c  b        #0x1b114
+0x01b0a0  b        #0x1b108
+0x01b0a4  mov      x23, x0
+0x01b0a8  mov      x0, x26
+0x01b0ac  bl       #0x567b8 ; call _objc_release
+0x01b0b0  b        #0x1b0c8
+0x01b0b4  mov      x23, x0
+0x01b0b8  mov      x0, x26
+0x01b0bc  bl       #0x567b8 ; call _objc_release
+0x01b0c0  b        #0x1b0ec
+0x01b0c4  mov      x23, x0
+0x01b0c8  mov      x0, x25
+0x01b0cc  bl       #0x567b8 ; call _objc_release
+0x01b0d0  b        #0x1b0f4
+0x01b0d4  mov      x23, x0
+0x01b0d8  b        #0x1b0fc
+0x01b0dc  b        #0x1b108
+0x01b0e0  mov      x23, x0
+0x01b0e4  b        #0x1b0f4
+0x01b0e8  mov      x23, x0
+0x01b0ec  mov      x0, x25
+0x01b0f0  bl       #0x567b8 ; call _objc_release
+0x01b0f4  mov      x0, x27
+0x01b0f8  bl       #0x567b8 ; call _objc_release
+0x01b0fc  mov      x0, x28
+0x01b100  bl       #0x567b8 ; call _objc_release
+0x01b104  b        #0x1b10c
+0x01b108  mov      x23, x0
+0x01b10c  ldr      x0, [sp, #0x30]
+0x01b110  bl       #0x567b8 ; call _objc_release
+0x01b114  ldr      x0, [sp, #0x28]
+0x01b118  bl       #0x567b8 ; call _objc_release
+0x01b11c  mov      x0, x20
+0x01b120  bl       #0x567b8 ; call _objc_release
+0x01b124  ldr      x0, [sp, #0x38]
+0x01b128  bl       #0x567b8 ; call _objc_release
+0x01b12c  b        #0x1b134
+0x01b130  mov      x23, x0
+0x01b134  mov      x0, x23
+0x01b138  bl       #0x563e0 ; call __Unwind_Resume

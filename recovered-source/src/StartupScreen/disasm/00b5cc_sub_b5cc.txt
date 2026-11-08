@@ -1,0 +1,60 @@
+; sub_b5cc
+; VA 0xb5cc  size 228
+
+0x0000b5cc:  stp      x22, x21, [sp, #-0x30]!
+0x0000b5d0:  stp      x20, x19, [sp, #0x10]
+0x0000b5d4:  stp      x29, x30, [sp, #0x20]
+0x0000b5d8:  add      x29, sp, #0x20
+0x0000b5dc:  mov      x19, x0
+0x0000b5e0:  adrp     x8, #0x3a000
+0x0000b5e4:  ldr      x20, [x8, #0xaf0]    ; class(NSDateFormatter)
+0x0000b5e8:  bl       #0x2212c    ; -> _objc_retain
+0x0000b5ec:  mov      x0, x20
+0x0000b5f0:  bl       #0x220fc    ; -> _objc_opt_new
+0x0000b5f4:  mov      x20, x0
+0x0000b5f8:  adrp     x8, #0x3a000
+0x0000b5fc:  ldr      x0, [x8, #0xaf8]    ; class(NSLocale)
+0x0000b600:  adrp     x2, #0x32000
+0x0000b604:  add      x2, x2, #0x228    ; @"en_US_POSIX"
+0x0000b608:  bl       #0x23a60    ; -> _objc_msgSend(localeWithLocaleIdentifier:)
+0x0000b60c:  mov      x29, x29
+0x0000b610:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000b614:  mov      x21, x0
+0x0000b618:  mov      x0, x20
+0x0000b61c:  mov      x2, x21
+0x0000b620:  bl       #0x24b40    ; -> _objc_msgSend(setLocale:)
+0x0000b624:  mov      x0, x21
+0x0000b628:  bl       #0x22120    ; -> _objc_release
+0x0000b62c:  adrp     x8, #0x3a000
+0x0000b630:  ldr      x0, [x8, #0xae8]    ; class(NSCalendar)
+0x0000b634:  adrp     x8, #0x30000
+0x0000b638:  ldr      x8, [x8, #0x1f0]    ; got(_NSCalendarIdentifierGregorian)
+0x0000b63c:  ldr      x2, [x8]
+0x0000b640:  bl       #0x22980    ; -> _objc_msgSend(calendarWithIdentifier:)
+0x0000b644:  mov      x29, x29
+0x0000b648:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000b64c:  mov      x21, x0
+0x0000b650:  mov      x0, x20
+0x0000b654:  mov      x2, x21
+0x0000b658:  bl       #0x245c0    ; -> _objc_msgSend(setCalendar:)
+0x0000b65c:  mov      x0, x21
+0x0000b660:  bl       #0x22120    ; -> _objc_release
+0x0000b664:  adrp     x2, #0x32000
+0x0000b668:  add      x2, x2, #0x248    ; @"yyyy-MM-dd"
+0x0000b66c:  mov      x0, x20
+0x0000b670:  bl       #0x247a0    ; -> _objc_msgSend(setDateFormat:)
+0x0000b674:  mov      x0, x20
+0x0000b678:  mov      x2, x19
+0x0000b67c:  bl       #0x25bc0    ; -> _objc_msgSend(stringFromDate:)
+0x0000b680:  mov      x29, x29
+0x0000b684:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000b688:  mov      x21, x0
+0x0000b68c:  mov      x0, x19
+0x0000b690:  bl       #0x22120    ; -> _objc_release
+0x0000b694:  mov      x0, x20
+0x0000b698:  bl       #0x22120    ; -> _objc_release
+0x0000b69c:  mov      x0, x21
+0x0000b6a0:  ldp      x29, x30, [sp, #0x20]
+0x0000b6a4:  ldp      x20, x19, [sp, #0x10]
+0x0000b6a8:  ldp      x22, x21, [sp], #0x30
+0x0000b6ac:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

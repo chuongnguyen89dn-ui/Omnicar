@@ -1,0 +1,57 @@
+; sub_101bc
+0x0101bc  stp      x22, x21, [sp, #-0x30]!
+0x0101c0  stp      x20, x19, [sp, #0x10]
+0x0101c4  stp      x29, x30, [sp, #0x20]
+0x0101c8  add      x29, sp, #0x20
+0x0101cc  mov      x19, x0
+0x0101d0  bl       #0x567c4 ; call _objc_retain
+0x0101d4  mov      x0, x19
+0x0101d8  bl       #0x590c0 ; objc_msgSend$length
+0x0101dc  cbz      x0, #0x1022c
+0x0101e0  adrp     x0, #0x7a000
+0x0101e4  add      x0, x0, #0x380 ; -> 0x7a380 @"appBridge"
+0x0101e8  bl       #0x4f608 ; -> _OMCFeatureEnabled
+0x0101ec  tbz      w0, #0, #0x1022c
+0x0101f0  mov      x0, x19
+0x0101f4  bl       #0x9980 ; -> _SCPIsInjectedPhoneApp
+0x0101f8  tbz      w0, #0, #0x10204
+0x0101fc  mov      w20, #1
+0x010200  b        #0x10230
+0x010204  mov      x0, x19
+0x010208  bl       #0xe324 ; -> sub_e324
+0x01020c  mov      x29, x29
+0x010210  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x010214  mov      x21, x0
+0x010218  bl       #0xffb4 ; -> sub_ffb4
+0x01021c  mov      x20, x0
+0x010220  mov      x0, x21
+0x010224  bl       #0x567b8 ; call _objc_release
+0x010228  tbz      w20, #0, #0x1024c
+0x01022c  mov      w20, #0
+0x010230  mov      x0, x19
+0x010234  bl       #0x567b8 ; call _objc_release
+0x010238  mov      x0, x20
+0x01023c  ldp      x29, x30, [sp, #0x20]
+0x010240  ldp      x20, x19, [sp, #0x10]
+0x010244  ldp      x22, x21, [sp], #0x30
+0x010248  ret      
+0x01024c  bl       #0x48864 ; -> sub_48864
+0x010250  mov      x29, x29
+0x010254  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x010258  mov      x21, x0
+0x01025c  mov      x2, x19
+0x010260  bl       #0x57820 ; objc_msgSend$containsObject:
+0x010264  mov      x20, x0
+0x010268  mov      x0, x21
+0x01026c  bl       #0x567b8 ; call _objc_release
+0x010270  b        #0x10230
+0x010274  b        #0x10278
+0x010278  mov      x20, x0
+0x01027c  mov      x0, x21
+0x010280  bl       #0x567b8 ; call _objc_release
+0x010284  b        #0x1028c
+0x010288  mov      x20, x0
+0x01028c  mov      x0, x19
+0x010290  bl       #0x567b8 ; call _objc_release
+0x010294  mov      x0, x20
+0x010298  bl       #0x563e0 ; call __Unwind_Resume

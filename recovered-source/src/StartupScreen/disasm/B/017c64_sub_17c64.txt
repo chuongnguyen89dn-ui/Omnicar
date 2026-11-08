@@ -1,0 +1,130 @@
+; sub_17c64
+; VA 0x17c64  size 508
+
+0x00017c64:  adrp     x23, #0x3a000
+0x00017c68:  mov      x10, #-0x3fb2000000000000
+0x00017c6c:  mov      x9, #0x404e000000000000
+0x00017c70:  stp      x9, x10, [sp, #0x30]
+0x00017c74:  ldr      d0, [x8, #0xe58]
+0x00017c78:  str      d0, [sp, #0x28]
+0x00017c7c:  mov      x9, #-0x3fbc000000000000
+0x00017c80:  mov      x8, #0x4044000000000000
+0x00017c84:  stp      x8, x9, [sp, #0x18]
+0x00017c88:  mov      w8, #0x7f800000
+0x00017c8c:  str      w8, [sp, #0x10]
+0x00017c90:  mov      x24, #0
+0x00017c94:  ldr      x8, [sp, #0x60]
+0x00017c98:  ldr      x8, [x8]
+0x00017c9c:  cmp      x8, x20
+0x00017ca0:  b.eq     #0x17cb0
+0x00017ca4:  adrp     x0, #0x35000
+0x00017ca8:  add      x0, x0, #0x650
+0x00017cac:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x00017cb0:  ldr      x8, [sp, #0x58]
+0x00017cb4:  ldr      x27, [x8, x24, lsl #3]
+0x00017cb8:  mov      x0, x27
+0x00017cbc:  mov      x2, #0
+0x00017cc0:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x00017cc4:  mov      x29, x29
+0x00017cc8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017ccc:  mov      x28, x0
+0x00017cd0:  bl       #0x25f00    ; -> _objc_msgSend(unsignedIntValue)
+0x00017cd4:  mov      x26, x0
+0x00017cd8:  mov      x0, x28
+0x00017cdc:  bl       #0x22120    ; -> _objc_release
+0x00017ce0:  adrp     x8, #0x3a000
+0x00017ce4:  ldrsw    x8, [x8, #0xd84]
+0x00017ce8:  ldr      x19, [sp, #0x40]
+0x00017cec:  ldr      d10, [x19, x8]
+0x00017cf0:  mov      x0, x27
+0x00017cf4:  mov      w2, #1
+0x00017cf8:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x00017cfc:  mov      x29, x29
+0x00017d00:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017d04:  mov      x28, x0
+0x00017d08:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x00017d0c:  fmadd    d10, d0, d8, d10
+0x00017d10:  adrp     x8, #0x3a000
+0x00017d14:  ldrsw    x8, [x8, #0xd88]
+0x00017d18:  ldr      d11, [x19, x8]
+0x00017d1c:  mov      x0, x27
+0x00017d20:  mov      w2, #2
+0x00017d24:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x00017d28:  mov      x29, x29
+0x00017d2c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017d30:  mov      x19, x0
+0x00017d34:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x00017d38:  fmadd    d11, d0, d8, d11
+0x00017d3c:  mov      x0, x19
+0x00017d40:  bl       #0x22120    ; -> _objc_release
+0x00017d44:  mov      x0, x28
+0x00017d48:  bl       #0x22120    ; -> _objc_release
+0x00017d4c:  mov      x0, x27
+0x00017d50:  mov      w2, #3
+0x00017d54:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x00017d58:  mov      x29, x29
+0x00017d5c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017d60:  mov      x27, x0
+0x00017d64:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x00017d68:  fmul     d12, d8, d0
+0x00017d6c:  adrp     x28, #0x3a000
+0x00017d70:  ldr      x0, [x28, #0x9d8]    ; class(UIColor)
+0x00017d74:  ubfx     w8, w26, #0x10, #8
+0x00017d78:  ucvtf    d0, w8
+0x00017d7c:  ubfx     w8, w26, #8, #8
+0x00017d80:  ucvtf    d1, w8
+0x00017d84:  fdiv     d13, d0, d9
+0x00017d88:  fdiv     d14, d1, d9
+0x00017d8c:  and      w8, w26, #0xff
+0x00017d90:  ucvtf    d0, w8
+0x00017d94:  fdiv     d15, d0, d9
+0x00017d98:  mov      v0.16b, v13.16b
+0x00017d9c:  mov      v1.16b, v14.16b
+0x00017da0:  mov      v2.16b, v15.16b
+0x00017da4:  ldr      d3, [sp, #0x28]
+0x00017da8:  bl       #0x22b00    ; -> _objc_msgSend(colorWithRed:green:blue:alpha:)
+0x00017dac:  mov      x29, x29
+0x00017db0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017db4:  mov      x19, x0
+0x00017db8:  ldr      x0, [x28, #0x9d8]
+0x00017dbc:  fmov     d3, xzr
+0x00017dc0:  mov      v0.16b, v13.16b
+0x00017dc4:  mov      v1.16b, v14.16b
+0x00017dc8:  mov      v2.16b, v15.16b
+0x00017dcc:  bl       #0x22b00    ; -> _objc_msgSend(colorWithRed:green:blue:alpha:)
+0x00017dd0:  mov      x29, x29
+0x00017dd4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017dd8:  mov      x28, x0
+0x00017ddc:  mov      v0.16b, v10.16b
+0x00017de0:  mov      v1.16b, v11.16b
+0x00017de4:  mov      v2.16b, v12.16b
+0x00017de8:  mov      x0, x19
+0x00017dec:  mov      x1, x28
+0x00017df0:  bl       #0x12554    ; -> sub_12554
+0x00017df4:  mov      x29, x29
+0x00017df8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017dfc:  mov      x26, x0
+0x00017e00:  mov      x0, x28
+0x00017e04:  bl       #0x22120    ; -> _objc_release
+0x00017e08:  mov      x0, x19
+0x00017e0c:  bl       #0x22120    ; -> _objc_release
+0x00017e10:  mov      x0, x27
+0x00017e14:  bl       #0x22120    ; -> _objc_release
+0x00017e18:  ldr      x0, [sp, #0x48]
+0x00017e1c:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x00017e20:  mov      x29, x29
+0x00017e24:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017e28:  mov      x19, x0
+0x00017e2c:  mov      x2, x26
+0x00017e30:  bl       #0x22500    ; -> _objc_msgSend(addSublayer:)
+0x00017e34:  mov      x0, x19
+0x00017e38:  bl       #0x22120    ; -> _objc_release
+0x00017e3c:  adrp     x8, #0x3a000
+0x00017e40:  ldr      x0, [x8, #0xb38]    ; class(CABasicAnimation)
+0x00017e44:  adrp     x2, #0x32000
+0x00017e48:  add      x2, x2, #0xe28    ; @"position"
+0x00017e4c:  bl       #0x22600    ; -> _objc_msgSend(animationWithKeyPath:)
+0x00017e50:  mov      x29, x29
+0x00017e54:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017e58:  mov      x27, x0
+0x00017e5c:  ldr      x0, [x23, #0xb90]

@@ -1,0 +1,64 @@
+; sub_67d0
+; VA 0x67d0  size 244
+
+0x000067d0:  sub      sp, sp, #0x60
+0x000067d4:  stp      x22, x21, [sp, #0x30]
+0x000067d8:  stp      x20, x19, [sp, #0x40]
+0x000067dc:  stp      x29, x30, [sp, #0x50]
+0x000067e0:  add      x29, sp, #0x50
+0x000067e4:  mov      x19, x1
+0x000067e8:  mov      x20, x0
+0x000067ec:  mov      x0, x1
+0x000067f0:  bl       #0x2212c    ; -> _objc_retain
+0x000067f4:  add      x0, x20, #0x20
+0x000067f8:  bl       #0x220c0    ; -> _objc_loadWeakRetained
+0x000067fc:  mov      x20, x0
+0x00006800:  cbz      x19, #0x68a0
+0x00006804:  cbz      x20, #0x68a0
+0x00006808:  mov      x0, x20
+0x0000680c:  bl       #0x233c0    ; -> _objc_msgSend(finished)
+0x00006810:  tbnz     w0, #0, #0x68a0
+0x00006814:  mov      x0, x20
+0x00006818:  bl       #0x25aa0    ; -> _objc_msgSend(startView)
+0x0000681c:  mov      x29, x29
+0x00006820:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006824:  mov      x21, x0
+0x00006828:  mov      x2, x19
+0x0000682c:  bl       #0x254a0    ; -> _objc_msgSend(setWeather:)
+0x00006830:  adrp     x8, #0x3a000
+0x00006834:  adrp     x9, #0x30000
+0x00006838:  ldr      x9, [x9, #0x350]    ; got(__NSConcreteStackBlock)
+0x0000683c:  ldr      x22, [x8, #0xa10]    ; class(UIView)
+0x00006840:  str      x9, [sp, #8]
+0x00006844:  adrp     x8, #0x28000
+0x00006848:  ldr      d0, [x8, #0xdd0]
+0x0000684c:  adrp     x8, #0x6000
+0x00006850:  add      x8, x8, #0x8c4    ; func sub_68c4
+0x00006854:  str      d0, [sp, #0x10]
+0x00006858:  adrp     x9, #0x30000
+0x0000685c:  add      x9, x9, #0x788
+0x00006860:  stp      x8, x9, [sp, #0x18]
+0x00006864:  str      x21, [sp, #0x28]
+0x00006868:  mov      x0, x21
+0x0000686c:  bl       #0x2212c    ; -> _objc_retain
+0x00006870:  adrp     x8, #0x28000
+0x00006874:  ldr      d0, [x8, #0xde8]
+0x00006878:  add      x4, sp, #8
+0x0000687c:  mov      x0, x22
+0x00006880:  mov      x2, x21
+0x00006884:  mov      w3, #0x500000
+0x00006888:  mov      x5, #0
+0x0000688c:  bl       #0x25ee0    ; -> _objc_msgSend(transitionWithView:duration:options:animations:completion:)
+0x00006890:  ldr      x0, [sp, #0x28]
+0x00006894:  bl       #0x22120    ; -> _objc_release
+0x00006898:  mov      x0, x21
+0x0000689c:  bl       #0x22120    ; -> _objc_release
+0x000068a0:  mov      x0, x20
+0x000068a4:  bl       #0x22120    ; -> _objc_release
+0x000068a8:  mov      x0, x19
+0x000068ac:  bl       #0x22120    ; -> _objc_release
+0x000068b0:  ldp      x29, x30, [sp, #0x50]
+0x000068b4:  ldp      x20, x19, [sp, #0x40]
+0x000068b8:  ldp      x22, x21, [sp, #0x30]
+0x000068bc:  add      sp, sp, #0x60
+0x000068c0:  ret      

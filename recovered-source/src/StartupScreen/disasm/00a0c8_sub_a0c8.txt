@@ -1,0 +1,50 @@
+; sub_a0c8
+; VA 0xa0c8  size 188
+
+0x0000a0c8:  sub      sp, sp, #0x40
+0x0000a0cc:  stp      d9, d8, [sp, #0x10]
+0x0000a0d0:  stp      x20, x19, [sp, #0x20]
+0x0000a0d4:  stp      x29, x30, [sp, #0x30]
+0x0000a0d8:  add      x29, sp, #0x30
+0x0000a0dc:  adrp     x8, #0x3a000
+0x0000a0e0:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x0000a0e4:  cbz      x1, #0xa130
+0x0000a0e8:  mov      v8.16b, v1.16b
+0x0000a0ec:  mov      v9.16b, v0.16b
+0x0000a0f0:  str      x1, [sp]
+0x0000a0f4:  adrp     x2, #0x31000
+0x0000a0f8:  add      x2, x2, #0xea8    ; @"IP (%@)"
+0x0000a0fc:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x0000a100:  mov      x29, x29
+0x0000a104:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000a108:  mov      x19, x0
+0x0000a10c:  mov      v0.16b, v9.16b
+0x0000a110:  mov      v1.16b, v8.16b
+0x0000a114:  bl       #0x9f1c    ; -> sub_9f1c
+0x0000a118:  mov      x0, x19
+0x0000a11c:  ldp      x29, x30, [sp, #0x30]
+0x0000a120:  ldp      x20, x19, [sp, #0x20]
+0x0000a124:  ldp      d9, d8, [sp, #0x10]
+0x0000a128:  add      sp, sp, #0x40
+0x0000a12c:  b        #0x22120    ; -> _objc_release
+0x0000a130:  adrp     x2, #0x31000
+0x0000a134:  add      x2, x2, #0xe88    ; @"weather: SpringBoard has no position at all, answering without weather"
+0x0000a138:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x0000a13c:  mov      x29, x29
+0x0000a140:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000a144:  mov      x19, x0
+0x0000a148:  adrp     x0, #0x30000
+0x0000a14c:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x0000a150:  mov      x1, x19
+0x0000a154:  bl       #0x1b620    ; -> OMCLogWrite
+0x0000a158:  mov      x0, x19
+0x0000a15c:  bl       #0x22120    ; -> _objc_release
+0x0000a160:  adrp     x8, #0x3b000
+0x0000a164:  strb     wzr, [x8, #0x1a8]
+0x0000a168:  adrp     x0, #0x27000
+0x0000a16c:  add      x0, x0, #0x2fc    ; "com.anlai.omnicar/startupscreen.weather.ready"
+0x0000a170:  ldp      x29, x30, [sp, #0x30]
+0x0000a174:  ldp      x20, x19, [sp, #0x20]
+0x0000a178:  ldp      d9, d8, [sp, #0x10]
+0x0000a17c:  add      sp, sp, #0x40
+0x0000a180:  b        #0x21ff4    ; -> _notify_post

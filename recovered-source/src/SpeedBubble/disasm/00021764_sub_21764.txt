@@ -1,0 +1,20 @@
+# sub_21764
+# addr 0x21764 .. 0x217a8  (68 bytes)
+
+00021764  stp      x20, x19, [sp, #-0x20]!                     
+00021768  stp      x29, x30, [sp, #0x10]                       
+0002176c  add      x29, sp, #0x10                              
+00021770  adrp     x8, #0x43000                                
+00021774  ldr      x8, [x8, #0xa88]                            ; [0x43a88] __DATA,__bss+0x2e8
+00021778  cmn      x8, #1                                      
+0002177c  b.ne     #0x217a0                                    
+00021780  adrp     x8, #0x43000                                
+00021784  ldr      x19, [x8, #0xa80]                           ; [0x43a80] __DATA,__bss+0x2e0
+00021788  mov      x0, x19                                     
+0002178c  bl       #0x28004                                    ; _objc_retain
+00021790  mov      x0, x19                                     
+00021794  ldp      x29, x30, [sp, #0x10]                       
+00021798  ldp      x20, x19, [sp], #0x20                       
+0002179c  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+000217a0  bl       #0x27a24                                    ; sub_27a24
+000217a4  b        #0x21780                                    ; sub_21780

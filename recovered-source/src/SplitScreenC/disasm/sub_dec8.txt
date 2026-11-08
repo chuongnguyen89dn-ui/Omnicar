@@ -1,0 +1,127 @@
+; sub_dec8
+0x00dec8  sub      sp, sp, #0x80
+0x00decc  stp      d11, d10, [sp, #0x30]
+0x00ded0  stp      d9, d8, [sp, #0x40]
+0x00ded4  stp      x22, x21, [sp, #0x50]
+0x00ded8  stp      x20, x19, [sp, #0x60]
+0x00dedc  stp      x29, x30, [sp, #0x70]
+0x00dee0  add      x29, sp, #0x70
+0x00dee4  mov      x19, x0
+0x00dee8  bl       #0x567c4 ; call _objc_retain
+0x00deec  adrp     x20, #0x87000
+0x00def0  ldr      x0, [x20, #0x808] ; [0x87808] class:UIImage
+0x00def4  adrp     x8, #0x85000
+0x00def8  ldr      x1, [x8, #0xc58] ; [0x85c58] sel:_applicationIconImageForBundleIdentifier:format:scale:
+0x00defc  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x00df00  tbz      w0, #0, #0xdf38
+0x00df04  ldr      x0, [x20, #0x808] ; [0x87808] class:UIImage
+0x00df08  fmov     d0, #2.00000000
+0x00df0c  mov      x2, x19
+0x00df10  mov      w3, #2
+0x00df14  bl       #0x56a80 ; objc_msgSend$_applicationIconImageForBundleIdentifier:format:scale: (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00df18  mov      x29, x29
+0x00df1c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00df20  mov      x20, x0
+0x00df24  adrp     x21, #0x88000
+0x00df28  ldr      x8, [x21, #0x1a0]
+0x00df2c  cbz      x8, #0xdf40
+0x00df30  cbnz     x19, #0xdf68
+0x00df34  b        #0xe040
+0x00df38  mov      x20, #0
+0x00df3c  b        #0xe040
+0x00df40  adrp     x8, #0x87000
+0x00df44  ldr      x0, [x8, #0x690] ; [0x87690] class:NSMutableSet
+0x00df48  bl       #0x5a6e0 ; objc_msgSend$set (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00df4c  mov      x29, x29
+0x00df50  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00df54  ldr      x8, [x21, #0x1a0]
+0x00df58  str      x0, [x21, #0x1a0]
+0x00df5c  mov      x0, x8
+0x00df60  bl       #0x567b8 ; call _objc_release
+0x00df64  cbz      x19, #0xe040
+0x00df68  ldr      x0, [x21, #0x1a0]
+0x00df6c  mov      x2, x19
+0x00df70  bl       #0x57820 ; objc_msgSend$containsObject: (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00df74  tbnz     w0, #0, #0xe040
+0x00df78  ldr      x0, [x21, #0x1a0]
+0x00df7c  mov      x2, x19
+0x00df80  bl       #0x56ca0 ; objc_msgSend$addObject: (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00df84  adrp     x8, #0x87000
+0x00df88  ldr      x22, [x8, #0x678] ; [0x87678] class:NSString
+0x00df8c  cbz      x20, #0xdfac
+0x00df90  mov      x0, x20
+0x00df94  bl       #0x5c0a0 ; objc_msgSend$size (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00df98  bl       #0x563a4 ; call _NSStringFromCGSize
+0x00df9c  mov      x29, x29
+0x00dfa0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00dfa4  mov      x21, x0
+0x00dfa8  b        #0xdfb4
+0x00dfac  adrp     x21, #0x7a000
+0x00dfb0  add      x21, x21, #0x7a0 ; -> 0x7a7a0 @"nil"
+0x00dfb4  mov      x0, x20
+0x00dfb8  bl       #0x5a580 ; objc_msgSend$scale (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00dfbc  mov      v8.16b, v0.16b
+0x00dfc0  mov      x0, x20
+0x00dfc4  bl       #0x5c0a0 ; objc_msgSend$size (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00dfc8  mov      v9.16b, v0.16b
+0x00dfcc  mov      x0, x20
+0x00dfd0  bl       #0x5a580 ; objc_msgSend$scale (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00dfd4  mov      v10.16b, v0.16b
+0x00dfd8  mov      x0, x20
+0x00dfdc  bl       #0x5c0a0 ; objc_msgSend$size (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00dfe0  mov      v11.16b, v1.16b
+0x00dfe4  mov      x0, x20
+0x00dfe8  bl       #0x5a580 ; objc_msgSend$scale (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00dfec  fmul     d1, d9, d10
+0x00dff0  fmul     d0, d11, d0
+0x00dff4  stp      d1, d0, [sp, #0x18]
+0x00dff8  str      d8, [sp, #0x10]
+0x00dffc  stp      x19, x21, [sp]
+0x00e000  adrp     x2, #0x7d000
+0x00e004  add      x2, x2, #0xa40 ; -> 0x7da40 @"DIAG icon %@: %@ scale %.0f (%.0fx%.0f px)"
+0x00e008  mov      x0, x22
+0x00e00c  bl       #0x5c440 ; objc_msgSend$stringWithFormat: (sel=_applicationIconImageForBundleIdentifier:format:scale:)
+0x00e010  mov      x29, x29
+0x00e014  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00e018  mov      x22, x0
+0x00e01c  adrp     x0, #0x79000
+0x00e020  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x00e024  mov      x1, x22
+0x00e028  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00e02c  mov      x0, x22
+0x00e030  bl       #0x567b8 ; call _objc_release
+0x00e034  cbz      x20, #0xe040
+0x00e038  mov      x0, x21
+0x00e03c  bl       #0x567b8 ; call _objc_release
+0x00e040  mov      x0, x19
+0x00e044  bl       #0x567b8 ; call _objc_release
+0x00e048  mov      x0, x20
+0x00e04c  ldp      x29, x30, [sp, #0x70]
+0x00e050  ldp      x20, x19, [sp, #0x60]
+0x00e054  ldp      x22, x21, [sp, #0x50]
+0x00e058  ldp      d9, d8, [sp, #0x40]
+0x00e05c  ldp      d11, d10, [sp, #0x30]
+0x00e060  add      sp, sp, #0x80
+0x00e064  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x00e068  mov      x1, x22
+0x00e06c  mov      x22, x0
+0x00e070  mov      x0, x1
+0x00e074  bl       #0x567b8 ; call _objc_release
+0x00e078  b        #0xe088
+0x00e07c  b        #0xe084
+0x00e080  b        #0xe084
+0x00e084  mov      x22, x0
+0x00e088  cbz      x20, #0xe0a0
+0x00e08c  mov      x0, x21
+0x00e090  bl       #0x567b8 ; call _objc_release
+0x00e094  b        #0xe0a0
+0x00e098  b        #0xe0ac
+0x00e09c  mov      x22, x0
+0x00e0a0  mov      x0, x20
+0x00e0a4  bl       #0x567b8 ; call _objc_release
+0x00e0a8  b        #0xe0b0
+0x00e0ac  mov      x22, x0
+0x00e0b0  mov      x0, x19
+0x00e0b4  bl       #0x567b8 ; call _objc_release
+0x00e0b8  mov      x0, x22
+0x00e0bc  bl       #0x563e0 ; call __Unwind_Resume

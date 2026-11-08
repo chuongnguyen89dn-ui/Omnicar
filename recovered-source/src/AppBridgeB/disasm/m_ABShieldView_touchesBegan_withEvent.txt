@@ -1,0 +1,51 @@
+=== -[ABShieldView touchesBegan:withEvent:] @ 0xa4c4 (size 200) ===
+0000a4c4  stp      x20, x19, [sp, #-0x20]!
+0000a4c8  stp      x29, x30, [sp, #0x10]
+0000a4cc  add      x29, sp, #0x10
+0000a4d0  adrp     x8, #0x3e000
+0000a4d4  ldr      x0, [x8, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000a4d8  adrp     x2, #0x35000
+0000a4dc  add      x2, x2, #0x9b0 = @"cham ngoai thanh nut (lop chan) -> an thanh nut"
+0000a4e0  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000a4e4  mov      x29, x29
+0000a4e8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000a4ec  mov      x19, x0
+0000a4f0  adrp     x0, #0x34000
+0000a4f4  add      x0, x0, #0xef0 = @"AppBridge"
+0000a4f8  mov      x1, x19
+0000a4fc  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000a500  mov      x0, x19
+0000a504  bl       #0x2480c ; call _objc_release
+0000a508  adrp     x0, #0x28000
+0000a50c  add      x0, x0, #0xfc3 ; "NSDistributedNotificationCenter"
+0000a510  bl       #0x24788 ; call _objc_getClass
+0000a514  bl       #0x254c0 ; objc_msgSend sel=defaultCenter
+0000a518  mov      x29, x29
+0000a51c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000a520  mov      x19, x0
+0000a524  adrp     x2, #0x35000
+0000a528  add      x2, x2, #0x9d0 = @"com.anlai.omnicar/appbridge.bardismiss"
+0000a52c  adrp     x4, #0x34000
+0000a530  ldr      x4, [x4, #0x1f8] ; -> ___NSDictionary0__struct
+0000a534  mov      x3, #0
+0000a538  bl       #0x26620 ; objc_msgSend sel=postNotificationName:object:userInfo:
+0000a53c  mov      x0, x19
+0000a540  bl       #0x2480c ; call _objc_release
+0000a544  adrp     x8, #0x3e000
+0000a548  ldr      x0, [x8, #0x2e0] ; class ABHost
+0000a54c  bl       #0x27b20 ; objc_msgSend sel=shared
+0000a550  mov      x29, x29
+0000a554  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000a558  mov      x19, x0
+0000a55c  bl       #0x264e0 ; objc_msgSend sel=outsideTouched
+0000a560  mov      x0, x19
+0000a564  ldp      x29, x30, [sp, #0x10]
+0000a568  ldp      x20, x19, [sp], #0x20
+0000a56c  b        #0x2480c ; call _objc_release
+0000a570  b        #0xa578 ; call sub_a578
+0000a574  b        #0xa578 ; call sub_a578
+0000a578  mov      x20, x0
+0000a57c  mov      x0, x19
+0000a580  bl       #0x2480c ; call _objc_release
+0000a584  mov      x0, x20
+0000a588  bl       #0x24470 ; call __Unwind_Resume

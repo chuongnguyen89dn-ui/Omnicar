@@ -1,0 +1,233 @@
+; sub_1cf80
+; VA 0x1cf80  size 920
+
+0x0001cf80:  adrp     x20, #0x3a000
+0x0001cf84:  b.ge     #0x1d49c
+0x0001cf88:  ldr      x8, [sp, #0x20]
+0x0001cf8c:  cmp      x8, #1
+0x0001cf90:  b.lt     #0x1d948
+0x0001cf94:  adrp     x2, #0x33000
+0x0001cf98:  add      x2, x2, #0xe48    ; @"features"
+0x0001cf9c:  mov      x0, x21
+0x0001cfa0:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x0001cfa4:  mov      x29, x29
+0x0001cfa8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001cfac:  cmp      x0, #0
+0x0001cfb0:  adrp     x8, #0x30000
+0x0001cfb4:  ldr      x8, [x8, #0x208]    ; got(___NSArray0__struct)
+0x0001cfb8:  str      x0, [sp, #0x78]
+0x0001cfbc:  csel     x24, x8, x0, eq
+0x0001cfc0:  mov      x0, x27
+0x0001cfc4:  bl       #0x2212c    ; -> _objc_retain
+0x0001cfc8:  mov      x0, x24
+0x0001cfcc:  bl       #0x2212c    ; -> _objc_retain
+0x0001cfd0:  adrp     x0, #0x32000
+0x0001cfd4:  add      x0, x0, #0x1c8    ; @"com.anlai.omnicar"
+0x0001cfd8:  bl       #0x21b68    ; -> _CFPreferencesAppSynchronize
+0x0001cfdc:  adrp     x28, #0x3a000
+0x0001cfe0:  ldr      x0, [x28, #0xbd8]    ; class(NSMutableOrderedSet)
+0x0001cfe4:  bl       #0x23ee0    ; -> _objc_msgSend(orderedSet)
+0x0001cfe8:  mov      x29, x29
+0x0001cfec:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001cff0:  mov      x23, x0
+0x0001cff4:  movi     v0.16b, #0
+0x0001cff8:  stp      q0, q0, [sp, #0x180]
+0x0001cffc:  stp      q0, q0, [sp, #0x1a0]
+0x0001d000:  mov      x0, x27
+0x0001d004:  bl       #0x2212c    ; -> _objc_retain
+0x0001d008:  add      x2, sp, #0x180
+0x0001d00c:  sub      x3, x29, #0xe0
+0x0001d010:  mov      x0, x27
+0x0001d014:  mov      w4, #0x10
+0x0001d018:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001d01c:  cbz      x0, #0x1d094
+0x0001d020:  mov      x19, x0
+0x0001d024:  ldr      x8, [sp, #0x190]
+0x0001d028:  ldr      x21, [x8]
+0x0001d02c:  mov      x22, #0
+0x0001d030:  ldr      x8, [sp, #0x190]
+0x0001d034:  ldr      x8, [x8]
+0x0001d038:  cmp      x8, x21
+0x0001d03c:  b.eq     #0x1d048
+0x0001d040:  mov      x0, x27
+0x0001d044:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x0001d048:  ldr      x8, [sp, #0x188]
+0x0001d04c:  ldr      x20, [x8, x22, lsl #3]
+0x0001d050:  mov      x0, x24
+0x0001d054:  mov      x2, x20
+0x0001d058:  bl       #0x22d20    ; -> _objc_msgSend(containsObject:)
+0x0001d05c:  cbz      w0, #0x1d06c
+0x0001d060:  mov      x0, x23
+0x0001d064:  mov      x2, x20
+0x0001d068:  bl       #0x22480    ; -> _objc_msgSend(addObject:)
+0x0001d06c:  add      x22, x22, #1
+0x0001d070:  cmp      x19, x22
+0x0001d074:  b.ne     #0x1d030
+0x0001d078:  add      x2, sp, #0x180
+0x0001d07c:  sub      x3, x29, #0xe0
+0x0001d080:  mov      x0, x27
+0x0001d084:  mov      w4, #0x10
+0x0001d088:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001d08c:  mov      x19, x0
+0x0001d090:  cbnz     x0, #0x1d02c
+0x0001d094:  mov      x0, x27
+0x0001d098:  bl       #0x22120    ; -> _objc_release
+0x0001d09c:  mov      x0, x23
+0x0001d0a0:  bl       #0x22e00    ; -> _objc_msgSend(count)
+0x0001d0a4:  mov      x25, x23
+0x0001d0a8:  cbnz     x0, #0x1d1b0
+0x0001d0ac:  movi     v0.16b, #0
+0x0001d0b0:  stp      q0, q0, [sp, #0x160]
+0x0001d0b4:  stp      q0, q0, [sp, #0x140]
+0x0001d0b8:  mov      x0, x24
+0x0001d0bc:  bl       #0x2212c    ; -> _objc_retain
+0x0001d0c0:  add      x2, sp, #0x140
+0x0001d0c4:  add      x3, sp, #0x370
+0x0001d0c8:  mov      x26, x24
+0x0001d0cc:  mov      x0, x24
+0x0001d0d0:  mov      w4, #0x10
+0x0001d0d4:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001d0d8:  cbz      x0, #0x1d19c
+0x0001d0dc:  mov      x21, x0
+0x0001d0e0:  ldr      x8, [sp, #0x150]
+0x0001d0e4:  ldr      x24, [x8]
+0x0001d0e8:  adrp     x20, #0x30000
+0x0001d0ec:  ldr      x20, [x20, #0x220]    ; got(___kCFBooleanTrue)
+0x0001d0f0:  mov      x19, #0
+0x0001d0f4:  ldr      x8, [sp, #0x150]
+0x0001d0f8:  ldr      x8, [x8]
+0x0001d0fc:  cmp      x8, x24
+0x0001d100:  b.eq     #0x1d10c
+0x0001d104:  mov      x0, x26
+0x0001d108:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x0001d10c:  ldr      x8, [sp, #0x148]
+0x0001d110:  ldr      x22, [x8, x19, lsl #3]
+0x0001d114:  mov      x0, x22
+0x0001d118:  adrp     x2, #0x33000
+0x0001d11c:  add      x2, x2, #0x9e8    ; @"Enabled"
+0x0001d120:  bl       #0x25b40    ; -> _objc_msgSend(stringByAppendingString:)
+0x0001d124:  mov      x29, x29
+0x0001d128:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d12c:  mov      x23, x0
+0x0001d130:  mov      x1, x20
+0x0001d134:  bl       #0x1af70    ; -> OMCPref
+0x0001d138:  mov      x29, x29
+0x0001d13c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d140:  mov      x27, x0
+0x0001d144:  bl       #0x22880    ; -> _objc_msgSend(boolValue)
+0x0001d148:  mov      x28, x0
+0x0001d14c:  mov      x0, x27
+0x0001d150:  bl       #0x22120    ; -> _objc_release
+0x0001d154:  mov      x0, x23
+0x0001d158:  bl       #0x22120    ; -> _objc_release
+0x0001d15c:  mov      x23, x25
+0x0001d160:  cbz      w28, #0x1d170
+0x0001d164:  mov      x0, x23
+0x0001d168:  mov      x2, x22
+0x0001d16c:  bl       #0x22480    ; -> _objc_msgSend(addObject:)
+0x0001d170:  add      x19, x19, #1
+0x0001d174:  cmp      x21, x19
+0x0001d178:  ldr      x27, [sp, #0x50]
+0x0001d17c:  b.ne     #0x1d0f4
+0x0001d180:  add      x2, sp, #0x140
+0x0001d184:  add      x3, sp, #0x370
+0x0001d188:  mov      x0, x26
+0x0001d18c:  mov      w4, #0x10
+0x0001d190:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001d194:  mov      x21, x0
+0x0001d198:  cbnz     x0, #0x1d0f0
+0x0001d19c:  mov      x24, x26
+0x0001d1a0:  mov      x0, x26
+0x0001d1a4:  bl       #0x22120    ; -> _objc_release
+0x0001d1a8:  ldr      x26, [sp, #0x30]
+0x0001d1ac:  adrp     x28, #0x3a000
+0x0001d1b0:  mov      x0, x23
+0x0001d1b4:  bl       #0x22e00    ; -> _objc_msgSend(count)
+0x0001d1b8:  cbz      x0, #0x1d430
+0x0001d1bc:  str      x24, [sp, #0x70]
+0x0001d1c0:  adrp     x0, #0x33000
+0x0001d1c4:  add      x0, x0, #0xe68    ; @"rescueFeatures"
+0x0001d1c8:  mov      x1, #0
+0x0001d1cc:  bl       #0x1af70    ; -> OMCPref
+0x0001d1d0:  mov      x29, x29
+0x0001d1d4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d1d8:  mov      x19, x0
+0x0001d1dc:  ldr      x20, [x28, #0xbd8]
+0x0001d1e0:  adrp     x8, #0x3a000
+0x0001d1e4:  ldr      x0, [x8, #0xb00]    ; class(NSArray)
+0x0001d1e8:  bl       #0x220e4    ; -> _objc_opt_class
+0x0001d1ec:  mov      x1, x0
+0x0001d1f0:  mov      x0, x19
+0x0001d1f4:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x0001d1f8:  tst      w0, #1
+0x0001d1fc:  adrp     x8, #0x30000
+0x0001d200:  ldr      x8, [x8, #0x208]    ; got(___NSArray0__struct)
+0x0001d204:  str      x19, [sp, #0x68]
+0x0001d208:  csel     x2, x19, x8, ne
+0x0001d20c:  mov      x0, x20
+0x0001d210:  bl       #0x23f00    ; -> _objc_msgSend(orderedSetWithArray:)
+0x0001d214:  mov      x29, x29
+0x0001d218:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d21c:  mov      x20, x0
+0x0001d220:  movi     v0.16b, #0
+0x0001d224:  stp      q0, q0, [sp, #0x100]
+0x0001d228:  stp      q0, q0, [sp, #0x120]
+0x0001d22c:  mov      x0, x23
+0x0001d230:  bl       #0x2212c    ; -> _objc_retain
+0x0001d234:  add      x2, sp, #0x100
+0x0001d238:  add      x3, sp, #0x2f0
+0x0001d23c:  mov      x0, x23
+0x0001d240:  mov      w4, #0x10
+0x0001d244:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001d248:  cbz      x0, #0x1d2f4
+0x0001d24c:  mov      x27, x0
+0x0001d250:  ldr      x8, [sp, #0x110]
+0x0001d254:  ldr      x19, [x8]
+0x0001d258:  adrp     x21, #0x33000
+0x0001d25c:  add      x21, x21, #0x9e8    ; @"Enabled"
+0x0001d260:  adrp     x22, #0x30000
+0x0001d264:  ldr      x22, [x22, #0x218]    ; got(___kCFBooleanFalse)
+0x0001d268:  adrp     x23, #0x32000
+0x0001d26c:  add      x23, x23, #0x1c8    ; @"com.anlai.omnicar"
+0x0001d270:  mov      x26, #0
+0x0001d274:  ldr      x8, [sp, #0x110]
+0x0001d278:  ldr      x8, [x8]
+0x0001d27c:  cmp      x8, x19
+0x0001d280:  b.eq     #0x1d28c
+0x0001d284:  mov      x0, x25
+0x0001d288:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x0001d28c:  ldr      x8, [sp, #0x108]
+0x0001d290:  ldr      x28, [x8, x26, lsl #3]
+0x0001d294:  mov      x0, x28
+0x0001d298:  mov      x2, x21
+0x0001d29c:  bl       #0x25b40    ; -> _objc_msgSend(stringByAppendingString:)
+0x0001d2a0:  mov      x29, x29
+0x0001d2a4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d2a8:  mov      x24, x0
+0x0001d2ac:  mov      x1, x22
+0x0001d2b0:  mov      x2, x23
+0x0001d2b4:  bl       #0x21b80    ; -> _CFPreferencesSetAppValue
+0x0001d2b8:  mov      x0, x24
+0x0001d2bc:  bl       #0x22120    ; -> _objc_release
+0x0001d2c0:  mov      x0, x20
+0x0001d2c4:  mov      x2, x28
+0x0001d2c8:  bl       #0x22480    ; -> _objc_msgSend(addObject:)
+0x0001d2cc:  add      x26, x26, #1
+0x0001d2d0:  cmp      x27, x26
+0x0001d2d4:  b.ne     #0x1d274
+0x0001d2d8:  add      x2, sp, #0x100
+0x0001d2dc:  add      x3, sp, #0x2f0
+0x0001d2e0:  mov      x0, x25
+0x0001d2e4:  mov      w4, #0x10
+0x0001d2e8:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001d2ec:  mov      x27, x0
+0x0001d2f0:  cbnz     x0, #0x1d270
+0x0001d2f4:  mov      x0, x25
+0x0001d2f8:  bl       #0x22120    ; -> _objc_release
+0x0001d2fc:  mov      x0, x20
+0x0001d300:  bl       #0x226a0    ; -> _objc_msgSend(array)
+0x0001d304:  mov      x29, x29
+0x0001d308:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d30c:  mov      x21, x0
+0x0001d310:  adrp     x0, #0x33000
+0x0001d314:  add      x0, x0, #0xe68    ; @"rescueFeatures"

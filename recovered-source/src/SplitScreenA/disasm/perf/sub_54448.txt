@@ -1,0 +1,279 @@
+; sub_54448
+0x054448  sub      sp, sp, #0x80
+0x05444c  stp      x26, x25, [sp, #0x30]
+0x054450  stp      x24, x23, [sp, #0x40]
+0x054454  stp      x22, x21, [sp, #0x50]
+0x054458  stp      x20, x19, [sp, #0x60]
+0x05445c  stp      x29, x30, [sp, #0x70]
+0x054460  add      x29, sp, #0x70
+0x054464  adrp     x24, #0x88000
+0x054468  ldr      x8, [x24, #0x258]
+0x05446c  cbz      x8, #0x54884
+0x054470  ldp      d3, d2, [x0, #0x20]
+0x054474  ldp      d1, d0, [x0, #0x30]
+0x054478  adrp     x23, #0x88000
+0x05447c  ldr      x8, [x23, #0x350]
+0x054480  add      x8, x8, #1
+0x054484  str      x8, [x23, #0x350]
+0x054488  fcmp     d3, #0.0
+0x05448c  b.lt     #0x544b4
+0x054490  adrp     x8, #0x88000
+0x054494  ldr      d4, [x8, #0x338]
+0x054498  fadd     d4, d3, d4
+0x05449c  str      d4, [x8, #0x338]
+0x0544a0  adrp     x8, #0x88000
+0x0544a4  ldr      d4, [x8, #0x330]
+0x0544a8  fcmp     d4, d3
+0x0544ac  fcsel    d3, d3, d4, mi
+0x0544b0  str      d3, [x8, #0x330]
+0x0544b4  fcmp     d2, #0.0
+0x0544b8  b.lt     #0x544d8
+0x0544bc  adrp     x8, #0x88000
+0x0544c0  str      d2, [x8, #0x328]
+0x0544c4  adrp     x8, #0x88000
+0x0544c8  ldr      d3, [x8, #0x320]
+0x0544cc  fcmp     d3, d2
+0x0544d0  fcsel    d2, d2, d3, mi
+0x0544d4  str      d2, [x8, #0x320]
+0x0544d8  fcmp     d1, #0.0
+0x0544dc  b.le     #0x544f4
+0x0544e0  adrp     x8, #0x88000
+0x0544e4  ldr      d2, [x8, #0x348]
+0x0544e8  fcmp     d2, d1
+0x0544ec  fcsel    d1, d2, d1, mi
+0x0544f0  str      d1, [x8, #0x348]
+0x0544f4  fcmp     d0, #0.0
+0x0544f8  b.lt     #0x54510
+0x0544fc  adrp     x8, #0x88000
+0x054500  ldr      d1, [x8, #0x340]
+0x054504  fcmp     d1, d0
+0x054508  fcsel    d0, d1, d0, mi
+0x05450c  str      d0, [x8, #0x340]
+0x054510  adrp     x8, #0x87000
+0x054514  ldr      x0, [x8, #0x878] ; [0x87878] class:NSProcessInfo
+0x054518  bl       #0x59cc0 ; objc_msgSend$processInfo
+0x05451c  mov      x29, x29
+0x054520  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x054524  mov      x19, x0
+0x054528  adrp     x20, #0x88000
+0x05452c  ldr      x21, [x20, #0x358]
+0x054530  bl       #0x5c640 ; objc_msgSend$thermalState
+0x054534  cmp      x21, x0
+0x054538  csel     x8, x21, x0, gt
+0x05453c  str      x8, [x20, #0x358]
+0x054540  mov      x0, x19
+0x054544  bl       #0x58d60 ; objc_msgSend$isLowPowerModeEnabled
+0x054548  cbz      w0, #0x54558
+0x05454c  adrp     x8, #0x88000
+0x054550  mov      w9, #1
+0x054554  strb     w9, [x8, #0x360]
+0x054558  ldrb     w8, [x23, #0x350]
+0x05455c  tbnz     w8, #0, #0x5456c
+0x054560  adrp     x0, #0x7a000
+0x054564  add      x0, x0, #0x360 ; -> 0x7a360 @"com.anlai.omnicar"
+0x054568  bl       #0x56170 ; call _CFPreferencesAppSynchronize
+0x05456c  mov      x0, x19
+0x054570  bl       #0x5c640 ; objc_msgSend$thermalState
+0x054574  mov      x20, x0
+0x054578  bl       #0x4f5ac ; -> _OMCEnabled
+0x05457c  cbz      w0, #0x54668
+0x054580  adrp     x0, #0x7e000
+0x054584  add      x0, x0, #0x9a0 ; -> 0x7e9a0 @"liteMode"
+0x054588  adrp     x1, #0x80000
+0x05458c  add      x1, x1, #0x900 ; -> 0x80900
+0x054590  bl       #0x4f544 ; -> _OMCPref
+0x054594  mov      x29, x29
+0x054598  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x05459c  mov      x21, x0
+0x0545a0  bl       #0x58be0 ; objc_msgSend$integerValue
+0x0545a4  mov      x22, x0
+0x0545a8  mov      x0, x21
+0x0545ac  bl       #0x567b8 ; call _objc_release
+0x0545b0  cmp      x22, #2
+0x0545b4  b.ne     #0x54668
+0x0545b8  bl       #0x54220 ; -> sub_54220
+0x0545bc  cmp      x20, #1
+0x0545c0  b.le     #0x545d0
+0x0545c4  adrp     x1, #0x7f000
+0x0545c8  add      x1, x1, #0x380 ; -> 0x7f380 @"heat"
+0x0545cc  b        #0x5467c
+0x0545d0  adrp     x8, #0x88000
+0x0545d4  ldr      d1, [x8, #0x380]
+0x0545d8  fcmp     d1, #0.0
+0x0545dc  b.le     #0x54600
+0x0545e0  fsub     d1, d0, d1
+0x0545e4  mov      x8, #0x405e000000000000
+0x0545e8  fmov     d2, x8
+0x0545ec  fcmp     d1, d2
+0x0545f0  b.pl     #0x54600
+0x0545f4  adrp     x1, #0x7f000
+0x0545f8  add      x1, x1, #0x3a0 ; -> 0x7f3a0 @"hangs"
+0x0545fc  b        #0x5467c
+0x054600  adrp     x8, #0x88000
+0x054604  ldr      d1, [x8, #0x378]
+0x054608  fmov     d2, #15.00000000
+0x05460c  fcmp     d1, d2
+0x054610  b.ge     #0x54674
+0x054614  adrp     x8, #0x88000
+0x054618  ldr      d2, [x8, #0x390]
+0x05461c  fcmp     d2, #0.0
+0x054620  adrp     x8, #0x6f000
+0x054624  b.eq     #0x54638
+0x054628  fsub     d2, d0, d2
+0x05462c  ldr      d3, [x8, #0x150]
+0x054630  fcmp     d2, d3
+0x054634  b.le     #0x54684
+0x054638  fmov     d2, #5.00000000
+0x05463c  fcmp     d1, d2
+0x054640  b.pl     #0x54684
+0x054644  adrp     x9, #0x88000
+0x054648  ldrb     w9, [x9, #0x3a0]
+0x05464c  tbz      w9, #0, #0x54684
+0x054650  adrp     x9, #0x88000
+0x054654  ldr      d1, [x9, #0x3c0]
+0x054658  fsub     d0, d0, d1
+0x05465c  ldr      d1, [x8, #0x150]
+0x054660  fcmp     d0, d1
+0x054664  b.le     #0x54684
+0x054668  mov      w0, #0
+0x05466c  mov      x1, #0
+0x054670  b        #0x54680
+0x054674  adrp     x1, #0x7f000
+0x054678  add      x1, x1, #0x3c0 ; -> 0x7f3c0 @"frames"
+0x05467c  mov      w0, #1
+0x054680  bl       #0x54e1c ; -> sub_54e1c
+0x054684  ldr      x8, [x23, #0x350]
+0x054688  sub      x9, x8, #4
+0x05468c  mov      x25, #-0x5555555555555556
+0x054690  movk     x25, #0xaaab
+0x054694  mul      x9, x9, x25
+0x054698  ror      x9, x9, #2
+0x05469c  mov      x10, #0x5555555555555555
+0x0546a0  and      x10, x10, #0x3ffffffffffffffc
+0x0546a4  cmp      x9, x10
+0x0546a8  b.hi     #0x54860
+0x0546ac  ldr      x20, [x24, #0x258]
+0x0546b0  cbz      x20, #0x54860
+0x0546b4  adrp     x24, #0x88000
+0x0546b8  ldr      x9, [x24, #0x260]
+0x0546bc  cbnz     x9, #0x54860
+0x0546c0  adrp     x26, #0x88000
+0x0546c4  ldr      x21, [x26, #0x3c8]
+0x0546c8  cbnz     x21, #0x54758
+0x0546cc  adrp     x0, #0x62000
+0x0546d0  add      x0, x0, #0xdb8 ; -> 0x62db8 "OMCPerfTicker"
+0x0546d4  bl       #0x56734 ; call _objc_getClass
+0x0546d8  mov      x21, x0
+0x0546dc  cbnz     x0, #0x5473c
+0x0546e0  adrp     x8, #0x87000
+0x0546e4  ldr      x0, [x8, #0x6b0] ; [0x876b0] class:NSObject
+0x0546e8  bl       #0x5677c ; call _objc_opt_class
+0x0546ec  adrp     x1, #0x62000
+0x0546f0  add      x1, x1, #0xdb8 ; -> 0x62db8 "OMCPerfTicker"
+0x0546f4  mov      x2, #0
+0x0546f8  bl       #0x566d4 ; call _objc_allocateClassPair
+0x0546fc  mov      x21, x0
+0x054700  adrp     x0, #0x62000
+0x054704  add      x0, x0, #0xdb2 ; -> 0x62db2 "tick:"
+0x054708  bl       #0x568a8 ; call _sel_registerName
+0x05470c  mov      x22, x0
+0x054710  adrp     x0, #0x79000
+0x054714  add      x0, x0, #0x4e0 ; -> 0x794e0
+0x054718  bl       #0x565fc ; call _imp_implementationWithBlock
+0x05471c  mov      x2, x0
+0x054720  adrp     x3, #0x62000
+0x054724  add      x3, x3, #0xdd2 ; -> 0x62dd2 "v@:@"
+0x054728  mov      x0, x21
+0x05472c  mov      x1, x22
+0x054730  bl       #0x56464 ; call _class_addMethod
+0x054734  mov      x0, x21
+0x054738  bl       #0x567ac ; call _objc_registerClassPair
+0x05473c  mov      x0, x21
+0x054740  bl       #0x56794 ; call _objc_opt_new
+0x054744  ldr      x8, [x26, #0x3c8]
+0x054748  str      x0, [x26, #0x3c8]
+0x05474c  mov      x0, x8
+0x054750  bl       #0x567b8 ; call _objc_release
+0x054754  ldr      x21, [x26, #0x3c8]
+0x054758  mov      x0, x21
+0x05475c  bl       #0x567c4 ; call _objc_retain
+0x054760  adrp     x0, #0x62000
+0x054764  add      x0, x0, #0xdb2 ; -> 0x62db2 "tick:"
+0x054768  bl       #0x568a8 ; call _sel_registerName
+0x05476c  mov      x3, x0
+0x054770  mov      x0, x20
+0x054774  mov      x2, x21
+0x054778  bl       #0x57c80 ; objc_msgSend$displayLinkWithTarget:selector:
+0x05477c  mov      x29, x29
+0x054780  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x054784  ldr      x8, [x24, #0x260]
+0x054788  str      x0, [x24, #0x260]
+0x05478c  mov      x0, x8
+0x054790  bl       #0x567b8 ; call _objc_release
+0x054794  mov      x0, x21
+0x054798  bl       #0x567b8 ; call _objc_release
+0x05479c  adrp     x8, #0x88000
+0x0547a0  str      xzr, [x8, #0x300]
+0x0547a4  adrp     x8, #0x88000
+0x0547a8  ldr      d0, [x8, #0x2f8]
+0x0547ac  adrp     x8, #0x88000
+0x0547b0  str      d0, [x8, #0x370]
+0x0547b4  adrp     x8, #0x88000
+0x0547b8  ldr      d0, [x8, #0x2f0]
+0x0547bc  adrp     x8, #0x88000
+0x0547c0  str      d0, [x8, #0x368]
+0x0547c4  ldr      x20, [x24, #0x260]
+0x0547c8  adrp     x8, #0x87000
+0x0547cc  ldr      x0, [x8, #0x8c0] ; [0x878c0] class:NSRunLoop
+0x0547d0  bl       #0x59220 ; objc_msgSend$mainRunLoop
+0x0547d4  mov      x29, x29
+0x0547d8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0547dc  mov      x21, x0
+0x0547e0  adrp     x8, #0x78000
+0x0547e4  ldr      x8, [x8, #0x228] ; [0x78228] _NSRunLoopCommonModes
+0x0547e8  ldr      x3, [x8] ; [0x78000] <ordinal 0>
+0x0547ec  mov      x0, x20
+0x0547f0  mov      x2, x21
+0x0547f4  bl       #0x56d80 ; objc_msgSend$addToRunLoop:forMode:
+0x0547f8  mov      x0, x21
+0x0547fc  bl       #0x567b8 ; call _objc_release
+0x054800  adrp     x8, #0x88000
+0x054804  ldr      x20, [x8, #0x2d8]
+0x054808  mov      x1, #0xe400
+0x05480c  movk     x1, #0x540b, lsl #16
+0x054810  movk     x1, #2, lsl #32
+0x054814  mov      x0, #0
+0x054818  bl       #0x56548 ; call _dispatch_time
+0x05481c  adrp     x8, #0x78000
+0x054820  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x054824  str      x8, [sp, #8]
+0x054828  adrp     x8, #0x6f000
+0x05482c  ldr      d0, [x8, #8]
+0x054830  adrp     x8, #0x54000
+0x054834  add      x8, x8, #0xf40 ; -> 0x54f40 sub_54f40
+0x054838  str      d0, [sp, #0x10]
+0x05483c  adrp     x9, #0x78000
+0x054840  add      x9, x9, #0x9a0 ; -> 0x789a0
+0x054844  stp      x8, x9, [sp, #0x18]
+0x054848  str      x20, [sp, #0x28]
+0x05484c  adrp     x1, #0x78000
+0x054850  ldr      x1, [x1, #0x370] ; [0x78370] __dispatch_main_q
+0x054854  add      x2, sp, #8
+0x054858  bl       #0x564d0 ; call _dispatch_after
+0x05485c  ldr      x8, [x23, #0x350]
+0x054860  mul      x8, x8, x25
+0x054864  ror      x8, x8, #1
+0x054868  mov      x9, #-0x5555555555555556
+0x05486c  movk     x9, #0x2aaa, lsl #48
+0x054870  cmp      x8, x9
+0x054874  b.hi     #0x5487c
+0x054878  bl       #0x548a0 ; -> sub_548a0
+0x05487c  mov      x0, x19
+0x054880  bl       #0x567b8 ; call _objc_release
+0x054884  ldp      x29, x30, [sp, #0x70]
+0x054888  ldp      x20, x19, [sp, #0x60]
+0x05488c  ldp      x22, x21, [sp, #0x50]
+0x054890  ldp      x24, x23, [sp, #0x40]
+0x054894  ldp      x26, x25, [sp, #0x30]
+0x054898  add      sp, sp, #0x80
+0x05489c  ret      

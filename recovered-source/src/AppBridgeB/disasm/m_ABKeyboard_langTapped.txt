@@ -1,0 +1,26 @@
+=== -[ABKeyboard langTapped] @ 0x1c7b8 (size 100) ===
+0001c7b8  stp      x20, x19, [sp, #-0x20]!
+0001c7bc  stp      x29, x30, [sp, #0x10]
+0001c7c0  add      x29, sp, #0x10
+0001c7c4  mov      x20, x0
+0001c7c8  adrp     x4, #0x36000
+0001c7cc  add      x4, x4, #0xf90 = @"lang"
+0001c7d0  fmov     d0, #1.00000000
+0001c7d4  mov      x2, #0
+0001c7d8  mov      x3, #0
+0001c7dc  bl       #0x25de0 ; objc_msgSend sel=key:value:command:weight:
+0001c7e0  mov      x29, x29
+0001c7e4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001c7e8  mov      x19, x0
+0001c7ec  mov      x0, x20
+0001c7f0  mov      x2, x19
+0001c7f4  bl       #0x25e00 ; objc_msgSend sel=keyTapped:
+0001c7f8  mov      x0, x19
+0001c7fc  ldp      x29, x30, [sp, #0x10]
+0001c800  ldp      x20, x19, [sp], #0x20
+0001c804  b        #0x2480c ; call _objc_release
+0001c808  mov      x20, x0
+0001c80c  mov      x0, x19
+0001c810  bl       #0x2480c ; call _objc_release
+0001c814  mov      x0, x20
+0001c818  bl       #0x24470 ; call __Unwind_Resume

@@ -1,0 +1,69 @@
+; sub_b0e8
+0x00b0e8  sub      sp, sp, #0x40
+0x00b0ec  stp      x22, x21, [sp, #0x10]
+0x00b0f0  stp      x20, x19, [sp, #0x20]
+0x00b0f4  stp      x29, x30, [sp, #0x30]
+0x00b0f8  add      x29, sp, #0x30
+0x00b0fc  adrp     x0, #0x88000
+0x00b100  add      x0, x0, #0xd0 ; -> 0x880d0
+0x00b104  bl       #0x5674c ; call _objc_loadWeakRetained
+0x00b108  mov      x19, x0
+0x00b10c  adrp     x0, #0x7a000
+0x00b110  add      x0, x0, #0x6c0 ; -> 0x7a6c0 @"_handleAppLibraryRefresh"
+0x00b114  bl       #0x56374 ; call _NSSelectorFromString
+0x00b118  mov      x20, x0
+0x00b11c  mov      x0, x19
+0x00b120  mov      x1, x20
+0x00b124  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x00b128  tbz      w0, #0, #0xb13c
+0x00b12c  mov      x0, x19
+0x00b130  mov      x1, x20
+0x00b134  bl       #0x56758 ; call _objc_msgSend
+0x00b138  b        #0xb14c
+0x00b13c  adrp     x1, #0x7a000
+0x00b140  add      x1, x1, #0x6c0 ; -> 0x7a6c0 @"_handleAppLibraryRefresh"
+0x00b144  mov      x0, x19
+0x00b148  bl       #0x4f330 ; -> _SCPMissingSelector
+0x00b14c  mov      x0, x19
+0x00b150  ldp      x29, x30, [sp, #0x30]
+0x00b154  ldp      x20, x19, [sp, #0x20]
+0x00b158  ldp      x22, x21, [sp, #0x10]
+0x00b15c  add      sp, sp, #0x40
+0x00b160  b        #0x567b8 ; call _objc_release
+0x00b164  mov      x21, x1
+0x00b168  mov      x20, x0
+0x00b16c  mov      x0, x19
+0x00b170  bl       #0x567b8 ; call _objc_release
+0x00b174  cmp      w21, #1
+0x00b178  b.ne     #0xb1f0
+0x00b17c  mov      x0, x20
+0x00b180  bl       #0x566ec ; call _objc_begin_catch
+0x00b184  adrp     x8, #0x87000
+0x00b188  ldr      x8, [x8, #0x678] ; [0x87678] class:NSString
+0x00b18c  str      x0, [sp]
+0x00b190  adrp     x2, #0x7a000
+0x00b194  add      x2, x2, #0x6e0 ; -> 0x7a6e0 @"AppIcons: refresh loi %@"
+0x00b198  mov      x0, x8
+0x00b19c  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x00b1a0  mov      x29, x29
+0x00b1a4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00b1a8  mov      x19, x0
+0x00b1ac  adrp     x0, #0x79000
+0x00b1b0  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x00b1b4  mov      x1, x19
+0x00b1b8  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00b1bc  mov      x0, x19
+0x00b1c0  bl       #0x567b8 ; call _objc_release
+0x00b1c4  ldp      x29, x30, [sp, #0x30]
+0x00b1c8  ldp      x20, x19, [sp, #0x20]
+0x00b1cc  ldp      x22, x21, [sp, #0x10]
+0x00b1d0  add      sp, sp, #0x40
+0x00b1d4  b        #0x56710 ; call _objc_end_catch
+0x00b1d8  mov      x20, x0
+0x00b1dc  mov      x0, x19
+0x00b1e0  bl       #0x567b8 ; call _objc_release
+0x00b1e4  b        #0xb1ec
+0x00b1e8  mov      x20, x0
+0x00b1ec  bl       #0x56710 ; call _objc_end_catch
+0x00b1f0  mov      x0, x20
+0x00b1f4  bl       #0x563e0 ; call __Unwind_Resume

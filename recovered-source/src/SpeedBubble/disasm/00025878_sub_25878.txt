@@ -1,0 +1,31 @@
+# sub_25878
+# addr 0x25878 .. 0x258e8  (112 bytes)
+
+00025878  stp      x20, x19, [sp, #-0x20]!                     
+0002587c  stp      x29, x30, [sp, #0x10]                       
+00025880  add      x29, sp, #0x10                              
+00025884  mov      x19, x0                                     
+00025888  adrp     x20, #0x43000                               
+0002588c  ldr      w0, [x20, #0x79c]                           ; [0x4379c] __DATA,__data+0x1b4
+00025890  cmn      w0, #1                                      
+00025894  b.eq     #0x258a4                                    
+00025898  mov      w1, w19                                     
+0002589c  bl       #0x27efc                                    ; _notify_set_state
+000258a0  b        #0x258c4                                    ; sub_258c4
+000258a4  adrp     x0, #0x2f000                                
+000258a8  add      x0, x0, #0x1e9                              ; "com.anlai.omnicar/lite"
+000258ac  adrp     x1, #0x43000                                
+000258b0  add      x1, x1, #0x79c                              ; __DATA,__data+0x1b4
+000258b4  bl       #0x27ee4                                    ; _notify_register_check
+000258b8  cbz      w0, #0x258d8                                
+000258bc  mov      w8, #-1                                     
+000258c0  str      w8, [x20, #0x79c]                           
+000258c4  adrp     x0, #0x2f000                                
+000258c8  add      x0, x0, #0x1e9                              ; "com.anlai.omnicar/lite"
+000258cc  ldp      x29, x30, [sp, #0x10]                       
+000258d0  ldp      x20, x19, [sp], #0x20                       
+000258d4  b        #0x27ed8                                    ; _notify_post
+000258d8  ldr      w0, [x20, #0x79c]                           ; [0x4379c] __DATA,__data+0x1b4
+000258dc  cmn      w0, #1                                      
+000258e0  b.ne     #0x25898                                    
+000258e4  b        #0x258c4                                    ; sub_258c4

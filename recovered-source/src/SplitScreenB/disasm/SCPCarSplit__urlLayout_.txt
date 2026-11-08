@@ -1,0 +1,32 @@
+; ==== SCPCarSplit__urlLayout_  @0x24dc8..0x24e44 (124 bytes) ====
+00024dc8  stp      x20, x19, [sp, #-0x20]!                      
+00024dcc  stp      x29, x30, [sp, #0x10]                        
+00024dd0  add      x29, sp, #0x10                               
+00024dd4  cmp      w2, #0x1f                                    
+00024dd8  b.hi     #0x24e38                                     
+00024ddc  mov      x20, x2                                      
+00024de0  mov      w8, #1                                       
+00024de4  lsl      w8, w8, w2                                   
+00024de8  mov      w9, #0x200c                                  
+00024dec  movk     w9, #0x8000, lsl #16                         
+00024df0  tst      w8, w9                                       
+00024df4  b.eq     #0x24e38                                     
+00024df8  mov      x19, x0                                      
+00024dfc  bl       #0x56b60                                     ; msgSend "active"
+00024e00  cbz      w0, #0x24e18                                 
+00024e04  mov      x0, x19                                      
+00024e08  mov      x2, x20                                      
+00024e0c  ldp      x29, x30, [sp, #0x10]                        
+00024e10  ldp      x20, x19, [sp], #0x20                        
+00024e14  b        #0x5c580                                     ; msgSend "switchToLayout:" | tail-msgSend "switchToLayout:"
+00024e18  mov      x0, x19                                      
+00024e1c  mov      x2, x20                                      
+00024e20  bl       #0x56b40                                     ; msgSend "activateWithLayout:"
+00024e24  cbz      w0, #0x24e38                                 
+00024e28  mov      x0, x19                                      
+00024e2c  ldp      x29, x30, [sp, #0x10]                        
+00024e30  ldp      x20, x19, [sp], #0x20                        
+00024e34  b        #0x5c000                                     ; msgSend "showPickersForEmptySlots" | tail-msgSend "showPickersForEmptySlots"
+00024e38  ldp      x29, x30, [sp, #0x10]                        
+00024e3c  ldp      x20, x19, [sp], #0x20                        
+00024e40  ret                                                   

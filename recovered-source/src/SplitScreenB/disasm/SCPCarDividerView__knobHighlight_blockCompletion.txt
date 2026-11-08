@@ -1,0 +1,17 @@
+00047dbc  stp      x20, x19, [sp, #-0x20]!                      
+00047dc0  stp      x29, x30, [sp, #0x10]                        
+00047dc4  add      x29, sp, #0x10                               
+00047dc8  ldrb     w8, [x0, #0x28]                              
+00047dcc  tbnz     w8, #0, #0x47df4                             
+00047dd0  mov      x19, x0                                      
+00047dd4  ldr      x0, [x0, #0x20]                              
+00047dd8  bl       #0x59680                                     ; msgSend "opacity"
+00047ddc  fcmp     s0, #0.0                                     
+00047de0  b.ne     #0x47df4                                     
+00047de4  ldr      x0, [x19, #0x20]                             
+00047de8  ldp      x29, x30, [sp, #0x10]                        
+00047dec  ldp      x20, x19, [sp], #0x20                        
+00047df0  b        #0x5a2a0                                     ; msgSend "removeFromSuperlayer" | tail-msgSend "removeFromSuperlayer"
+00047df4  ldp      x29, x30, [sp, #0x10]                        
+00047df8  ldp      x20, x19, [sp], #0x20                        
+00047dfc  ret                                                   

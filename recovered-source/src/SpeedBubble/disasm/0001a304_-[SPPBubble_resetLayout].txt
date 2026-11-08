@@ -1,0 +1,84 @@
+# -[SPPBubble resetLayout]
+# addr 0x1a304 .. 0x1a448  (324 bytes)
+
+0001a304  sub      sp, sp, #0x90                               
+0001a308  stp      d9, d8, [sp, #0x60]                         
+0001a30c  stp      x20, x19, [sp, #0x70]                       
+0001a310  stp      x29, x30, [sp, #0x80]                       
+0001a314  add      x29, sp, #0x80                              
+0001a318  mov      x19, x0                                     
+0001a31c  adrp     x20, #0x43000                               
+0001a320  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001a324  mov      x8, #0x4059000000000000                     
+0001a328  fmov     d8, x8                                      
+0001a32c  mov      v0.16b, v8.16b                              
+0001a330  mov      w2, #0                                      
+0001a334  bl       #0x2b820                                    ; objc_msgSend$setSizePercent:forCar:
+0001a338  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001a33c  mov      v0.16b, v8.16b                              
+0001a340  mov      w2, #1                                      
+0001a344  bl       #0x2b820                                    ; objc_msgSend$setSizePercent:forCar:
+0001a348  mov      x0, x19                                     
+0001a34c  bl       #0x2a760                                    ; objc_msgSend$savedScale
+0001a350  mov      x0, x19                                     
+0001a354  bl       #0x2b6e0                                    ; objc_msgSend$setScale:
+0001a358  fmov     d0, #-1.00000000                            
+0001a35c  fmov     d1, #-1.00000000                            
+0001a360  mov      x0, x19                                     
+0001a364  bl       #0x2b640                                    ; objc_msgSend$setPhoneFraction:
+0001a368  fmov     d0, #-1.00000000                            
+0001a36c  fmov     d1, #-1.00000000                            
+0001a370  mov      x0, x19                                     
+0001a374  bl       #0x2abe0                                    ; objc_msgSend$setCarFraction:
+0001a378  mov      x0, x19                                     
+0001a37c  bl       #0x2c9a0                                    ; objc_msgSend$window
+0001a380  mov      x29, x29                                    
+0001a384  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001a388  mov      x20, x0                                     
+0001a38c  bl       #0x27ff8                                    ; _objc_release
+0001a390  cbz      x20, #0x1a3e4                               
+0001a394  add      x8, sp, #0x30                               
+0001a398  mov      x0, x19                                     
+0001a39c  bl       #0x28900                                    ; objc_msgSend$baseTransform
+0001a3a0  ldp      q0, q1, [sp, #0x30]                         
+0001a3a4  stp      q0, q1, [sp]                                
+0001a3a8  ldr      q0, [sp, #0x50]                             
+0001a3ac  str      q0, [sp, #0x20]                             
+0001a3b0  mov      x0, x19                                     
+0001a3b4  bl       #0x28c60                                    ; objc_msgSend$card
+0001a3b8  mov      x29, x29                                    
+0001a3bc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001a3c0  mov      x20, x0                                     
+0001a3c4  mov      x2, sp                                      
+0001a3c8  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+0001a3cc  mov      x0, x20                                     
+0001a3d0  bl       #0x27ff8                                    ; _objc_release
+0001a3d4  mov      x0, x19                                     
+0001a3d8  bl       #0x2a6c0                                    ; objc_msgSend$restoreCardPosition
+0001a3dc  mov      x0, x19                                     
+0001a3e0  bl       #0x28780                                    ; objc_msgSend$applyCrispScale
+0001a3e4  adrp     x8, #0x42000                                
+0001a3e8  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001a3ec  adrp     x2, #0x3a000                                
+0001a3f0  add      x2, x2, #0xcd8                              ; @"bubble: dat lai vi tri + kich thuoc"
+0001a3f4  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001a3f8  mov      x29, x29                                    
+0001a3fc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001a400  mov      x20, x0                                     
+0001a404  adrp     x0, #0x38000                                
+0001a408  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001a40c  mov      x1, x20                                     
+0001a410  bl       #0x2155c                                    ; _OMCLogWrite
+0001a414  mov      x0, x20                                     
+0001a418  bl       #0x27ff8                                    ; _objc_release
+0001a41c  ldp      x29, x30, [sp, #0x80]                       
+0001a420  ldp      x20, x19, [sp, #0x70]                       
+0001a424  ldp      d9, d8, [sp, #0x60]                         
+0001a428  add      sp, sp, #0x90                               
+0001a42c  ret                                                  
+0001a430  b        #0x1a434                                    ; sub_1a434
+0001a434  mov      x19, x0                                     
+0001a438  mov      x0, x20                                     
+0001a43c  bl       #0x27ff8                                    ; _objc_release
+0001a440  mov      x0, x19                                     
+0001a444  bl       #0x27c80                                    ; __Unwind_Resume

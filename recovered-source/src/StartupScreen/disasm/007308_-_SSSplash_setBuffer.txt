@@ -1,0 +1,15 @@
+; -[SSSplash setBuffer:]
+; VA 0x7308  size 48
+
+0x00007308:  stp      x20, x19, [sp, #-0x20]!
+0x0000730c:  stp      x29, x30, [sp, #0x10]
+0x00007310:  add      x29, sp, #0x10
+0x00007314:  mov      x19, x2
+0x00007318:  mov      x20, x0
+0x0000731c:  mov      x0, x2
+0x00007320:  bl       #0x2212c    ; -> _objc_retain
+0x00007324:  ldr      x0, [x20, #0x50]
+0x00007328:  str      x19, [x20, #0x50]
+0x0000732c:  ldp      x29, x30, [sp, #0x10]
+0x00007330:  ldp      x20, x19, [sp], #0x20
+0x00007334:  b        #0x22120    ; -> _objc_release

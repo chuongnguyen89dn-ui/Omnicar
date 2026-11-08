@@ -1,0 +1,56 @@
+; -[SSStartupView ss_addCanvas]
+; VA 0x107f4  size 212
+
+0x000107f4:  stp      x22, x21, [sp, #-0x30]!
+0x000107f8:  stp      x20, x19, [sp, #0x10]
+0x000107fc:  stp      x29, x30, [sp, #0x20]
+0x00010800:  add      x29, sp, #0x20
+0x00010804:  mov      x19, x0
+0x00010808:  adrp     x8, #0x3a000
+0x0001080c:  ldr      x0, [x8, #0xb60]    ; class(SSCanvasView)
+0x00010810:  bl       #0x22024    ; -> _objc_alloc
+0x00010814:  mov      x20, x0
+0x00010818:  adrp     x8, #0x3a000
+0x0001081c:  ldrsw    x21, [x8, #0xd30]
+0x00010820:  ldr      x0, [x19, x21]
+0x00010824:  bl       #0x228c0    ; -> _objc_msgSend(bounds)
+0x00010828:  mov      x0, x20
+0x0001082c:  bl       #0x23780    ; -> _objc_msgSend(initWithFrame:)
+0x00010830:  adrp     x8, #0x3a000
+0x00010834:  ldrsw    x22, [x8, #0xd2c]
+0x00010838:  ldr      x8, [x19, x22]
+0x0001083c:  str      x0, [x19, x22]
+0x00010840:  mov      x0, x8
+0x00010844:  bl       #0x22120    ; -> _objc_release
+0x00010848:  ldr      x0, [x19, x22]
+0x0001084c:  mov      x2, x19
+0x00010850:  bl       #0x24ea0    ; -> _objc_msgSend(setOwner:)
+0x00010854:  ldr      x0, [x19, x22]
+0x00010858:  mov      w2, #0
+0x0001085c:  bl       #0x24e20    ; -> _objc_msgSend(setOpaque:)
+0x00010860:  adrp     x8, #0x3a000
+0x00010864:  ldr      x0, [x8, #0x9d8]    ; class(UIColor)
+0x00010868:  bl       #0x22ac0    ; -> _objc_msgSend(clearColor)
+0x0001086c:  mov      x29, x29
+0x00010870:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00010874:  mov      x20, x0
+0x00010878:  ldr      x0, [x19, x22]
+0x0001087c:  mov      x2, x20
+0x00010880:  bl       #0x24500    ; -> _objc_msgSend(setBackgroundColor:)
+0x00010884:  mov      x0, x20
+0x00010888:  bl       #0x22120    ; -> _objc_release
+0x0001088c:  ldr      x0, [x19, x22]
+0x00010890:  mov      w2, #0
+0x00010894:  bl       #0x25400    ; -> _objc_msgSend(setUserInteractionEnabled:)
+0x00010898:  ldr      x0, [x19, x22]
+0x0001089c:  fmov     d0, #1.00000000
+0x000108a0:  bl       #0x246e0    ; -> _objc_msgSend(setContentScaleFactor:)
+0x000108a4:  ldr      x0, [x19, x22]
+0x000108a8:  mov      w2, #3
+0x000108ac:  bl       #0x246c0    ; -> _objc_msgSend(setContentMode:)
+0x000108b0:  ldr      x0, [x19, x21]
+0x000108b4:  ldr      x2, [x19, x22]
+0x000108b8:  ldp      x29, x30, [sp, #0x20]
+0x000108bc:  ldp      x20, x19, [sp, #0x10]
+0x000108c0:  ldp      x22, x21, [sp], #0x30
+0x000108c4:  b        #0x22520    ; -> _objc_msgSend(addSubview:)

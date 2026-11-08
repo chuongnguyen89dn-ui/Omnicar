@@ -1,0 +1,103 @@
+; ==== SCPCarSplit__bridgeHandleTapped_  @0x3f65c..0x3f7f4 (408 bytes) ====
+0003f65c  stp      d9, d8, [sp, #-0x40]!                        
+0003f660  stp      x22, x21, [sp, #0x10]                        
+0003f664  stp      x20, x19, [sp, #0x20]                        
+0003f668  stp      x29, x30, [sp, #0x30]                        
+0003f66c  add      x29, sp, #0x30                               
+0003f670  mov      x19, x2                                      
+0003f674  mov      x21, x0                                      
+0003f678  mov      x0, x2                                       
+0003f67c  bl       #0x567c4                                     ; call _objc_retain
+0003f680  mov      x0, x21                                      
+0003f684  mov      x2, x19                                      
+0003f688  bl       #0x59820                                     ; msgSend "paneForBundle:"
+0003f68c  mov      x29, x29                                     
+0003f690  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003f694  mov      x20, x0                                      
+0003f698  mov      x0, x21                                      
+0003f69c  bl       #0x56b60                                     ; msgSend "active"
+0003f6a0  cmp      x20, #0                                      
+0003f6a4  csel     w8, wzr, w0, eq                              
+0003f6a8  tbz      w8, #0, #0x3f794                             
+0003f6ac  bl       #0x56164                                     ; call _CFAbsoluteTimeGetCurrent
+0003f6b0  mov      v8.16b, v0.16b                               
+0003f6b4  mov      x0, x21                                      
+0003f6b8  bl       #0x58e40                                     ; msgSend "lastBridgeTapBundle"
+0003f6bc  mov      x29, x29                                     
+0003f6c0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003f6c4  mov      x22, x0                                      
+0003f6c8  mov      x2, x19                                      
+0003f6cc  bl       #0x58d00                                     ; msgSend "isEqualToString:"
+0003f6d0  tbz      w0, #0, #0x3f700                             
+0003f6d4  mov      x0, x21                                      
+0003f6d8  bl       #0x58e20                                     ; msgSend "lastBridgeTapAt"
+0003f6dc  fsub     d9, d8, d0                                   
+0003f6e0  mov      x0, x22                                      
+0003f6e4  bl       #0x567b8                                     ; call _objc_release
+0003f6e8  adrp     x8, #0x6f000                                 
+0003f6ec  ldr      d0, [x8, #0x98]                              ; double 0.35
+0003f6f0  fcmp     d9, d0                                       
+0003f6f4  cset     w22, mi                                      
+0003f6f8  csel     x2, xzr, x19, mi                             
+0003f6fc  b        #0x3f710                                     
+0003f700  mov      x0, x22                                      
+0003f704  bl       #0x567b8                                     ; call _objc_release
+0003f708  mov      w22, #0                                      
+0003f70c  mov      x2, x19                                      
+0003f710  mov      x0, x21                                      
+0003f714  bl       #0x5b0a0                                     ; msgSend "setLastBridgeTapBundle:"
+0003f718  mov      x0, x21                                      
+0003f71c  mov      v0.16b, v8.16b                               
+0003f720  bl       #0x5b080                                     ; msgSend "setLastBridgeTapAt:"
+0003f724  cbz      w22, #0x3f758                                
+0003f728  mov      x0, x21                                      
+0003f72c  bl       #0x58200                                     ; msgSend "floatPane"
+0003f730  mov      x29, x29                                     
+0003f734  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003f738  mov      x22, x0                                      
+0003f73c  bl       #0x567b8                                     ; call _objc_release
+0003f740  cmp      x20, x22                                     
+0003f744  b.eq     #0x3f78c                                     
+0003f748  mov      x0, x21                                      
+0003f74c  mov      x2, x20                                      
+0003f750  bl       #0x5c780                                     ; msgSend "toggleZoomForPane:"
+0003f754  b        #0x3f794                                     
+0003f758  mov      x0, x20                                      
+0003f75c  bl       #0x57160                                     ; msgSend "bar"
+0003f760  mov      x29, x29                                     
+0003f764  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003f768  mov      x22, x0                                      
+0003f76c  bl       #0x58d20                                     ; msgSend "isHidden"
+0003f770  mov      x2, x0                                       
+0003f774  mov      x0, x21                                      
+0003f778  mov      x3, x20                                      
+0003f77c  bl       #0x5a8c0                                     ; msgSend "setBarVisible:forPane:"
+0003f780  mov      x0, x22                                      
+0003f784  bl       #0x567b8                                     ; call _objc_release
+0003f788  b        #0x3f794                                     
+0003f78c  mov      x0, x21                                      
+0003f790  bl       #0x5c760                                     ; msgSend "toggleFloatSize"
+0003f794  mov      x0, x20                                      
+0003f798  bl       #0x567b8                                     ; call _objc_release
+0003f79c  mov      x0, x19                                      
+0003f7a0  ldp      x29, x30, [sp, #0x30]                        
+0003f7a4  ldp      x20, x19, [sp, #0x20]                        
+0003f7a8  ldp      x22, x21, [sp, #0x10]                        
+0003f7ac  ldp      d9, d8, [sp], #0x40                          
+0003f7b0  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+0003f7b4  b        #0x3f7bc                                     
+0003f7b8  b        #0x3f7d8                                     
+0003f7bc  mov      x21, x0                                      
+0003f7c0  mov      x0, x22                                      
+0003f7c4  bl       #0x567b8                                     ; call _objc_release
+0003f7c8  b        #0x3f7dc                                     
+0003f7cc  b        #0x3f7d8                                     
+0003f7d0  mov      x21, x0                                      
+0003f7d4  b        #0x3f7e4                                     
+0003f7d8  mov      x21, x0                                      
+0003f7dc  mov      x0, x20                                      
+0003f7e0  bl       #0x567b8                                     ; call _objc_release
+0003f7e4  mov      x0, x19                                      
+0003f7e8  bl       #0x567b8                                     ; call _objc_release
+0003f7ec  mov      x0, x21                                      
+0003f7f0  bl       #0x563e0                                     ; call __Unwind_Resume

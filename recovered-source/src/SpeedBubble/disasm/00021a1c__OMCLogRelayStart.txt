@@ -1,0 +1,36 @@
+# _OMCLogRelayStart
+# addr 0x21a1c .. 0x21aa0  (132 bytes)
+
+00021a1c  stp      x20, x19, [sp, #-0x20]!                     
+00021a20  stp      x29, x30, [sp, #0x10]                       
+00021a24  add      x29, sp, #0x10                              
+00021a28  adrp     x8, #0x43000                                
+00021a2c  ldr      x8, [x8, #0xa98]                            ; [0x43a98] __DATA,__bss+0x2f8
+00021a30  cmn      x8, #1                                      
+00021a34  b.ne     #0x21a98                                    
+00021a38  adrp     x8, #0x43000                                
+00021a3c  ldrb     w8, [x8, #0xa90]                            
+00021a40  cmp      w8, #1                                      
+00021a44  b.ne     #0x21a8c                                    
+00021a48  bl       #0x219f0                                    ; sub_219f0
+00021a4c  mov      x29, x29                                    
+00021a50  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021a54  mov      x19, x0                                     
+00021a58  adrp     x2, #0x3b000                                
+00021a5c  add      x2, x2, #0x618                              ; @"com.anlai.omnicar/log"
+00021a60  adrp     x5, #0x38000                                
+00021a64  add      x5, x5, #0xd18                              ; __const[0x38d18] double=-4.4501477170146e-308 float=2.802596928649634e-43
+00021a68  mov      x3, #0                                      
+00021a6c  mov      x4, #0                                      
+00021a70  bl       #0x28480                                    ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+00021a74  mov      x29, x29                                    
+00021a78  bl       #0x28070                                    ; _objc_unsafeClaimAutoreleasedReturnValue
+00021a7c  mov      x0, x19                                     
+00021a80  ldp      x29, x30, [sp, #0x10]                       
+00021a84  ldp      x20, x19, [sp], #0x20                       
+00021a88  b        #0x27ff8                                    ; _objc_release
+00021a8c  ldp      x29, x30, [sp, #0x10]                       
+00021a90  ldp      x20, x19, [sp], #0x20                       
+00021a94  ret                                                  
+00021a98  bl       #0x27a40                                    ; sub_27a40
+00021a9c  b        #0x21a38                                    ; sub_21a38

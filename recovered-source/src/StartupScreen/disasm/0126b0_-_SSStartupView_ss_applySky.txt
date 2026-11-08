@@ -1,0 +1,253 @@
+; -[SSStartupView ss_applySky:]
+; VA 0x126b0  size 1000
+
+0x000126b0:  sub      sp, sp, #0x1e0
+0x000126b4:  stp      d11, d10, [sp, #0x180]
+0x000126b8:  stp      d9, d8, [sp, #0x190]
+0x000126bc:  stp      x28, x27, [sp, #0x1a0]
+0x000126c0:  stp      x22, x21, [sp, #0x1b0]
+0x000126c4:  stp      x20, x19, [sp, #0x1c0]
+0x000126c8:  stp      x29, x30, [sp, #0x1d0]
+0x000126cc:  add      x29, sp, #0x1d0
+0x000126d0:  mov      v8.16b, v0.16b
+0x000126d4:  mov      x19, x0
+0x000126d8:  adrp     x8, #0x3a000
+0x000126dc:  ldrsw    x20, [x8, #0xd64]
+0x000126e0:  ldr      x8, [x0, x20]
+0x000126e4:  cbz      x8, #0x12730
+0x000126e8:  fmov     d0, #0.25000000
+0x000126ec:  fmul     d0, d8, d0
+0x000126f0:  sub      x8, x29, #0xd0
+0x000126f4:  fmov     d1, xzr
+0x000126f8:  fmov     d2, xzr
+0x000126fc:  fmov     d3, #1.00000000
+0x00012700:  bl       #0x21b20    ; -> _CATransform3DMakeRotation
+0x00012704:  ldr      x0, [x19, x20]
+0x00012708:  ldp      q0, q1, [x29, #-0x90]
+0x0001270c:  stp      q0, q1, [sp, #0xc0]
+0x00012710:  ldp      q0, q1, [x29, #-0x70]
+0x00012714:  stp      q0, q1, [sp, #0xe0]
+0x00012718:  ldp      q0, q1, [x29, #-0xd0]
+0x0001271c:  stp      q0, q1, [sp, #0x80]
+0x00012720:  ldp      q0, q1, [x29, #-0xb0]
+0x00012724:  stp      q0, q1, [sp, #0xa0]
+0x00012728:  add      x2, sp, #0x80
+0x0001272c:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x00012730:  adrp     x8, #0x3a000
+0x00012734:  ldrsw    x8, [x8, #0xd5c]
+0x00012738:  ldr      x0, [x19, x8]
+0x0001273c:  cbz      x0, #0x1281c
+0x00012740:  fmov     d0, #7.00000000
+0x00012744:  fdiv     d0, d8, d0
+0x00012748:  frintm   d0, d0
+0x0001274c:  fmov     d1, #-7.00000000
+0x00012750:  fmadd    d0, d0, d1, d8
+0x00012754:  adrp     x8, #0x28000
+0x00012758:  ldr      d1, [x8, #0xfe8]
+0x0001275c:  fadd     d1, d0, d1
+0x00012760:  fabs     d1, d1
+0x00012764:  adrp     x8, #0x28000
+0x00012768:  ldr      d2, [x8, #0xff0]
+0x0001276c:  fdiv     d1, d1, d2
+0x00012770:  fmov     d2, #1.00000000
+0x00012774:  fadd     d1, d1, d2
+0x00012778:  fcmp     d1, d2
+0x0001277c:  fcsel    d3, d2, d1, gt
+0x00012780:  fcmp     d1, #0.0
+0x00012784:  fmov     d1, xzr
+0x00012788:  fcsel    d3, d1, d3, mi
+0x0001278c:  adrp     x8, #0x28000
+0x00012790:  ldr      d4, [x8, #0xff8]
+0x00012794:  fadd     d4, d0, d4
+0x00012798:  fabs     d4, d4
+0x0001279c:  adrp     x8, #0x29000
+0x000127a0:  ldr      d5, [x8]
+0x000127a4:  fdiv     d4, d4, d5
+0x000127a8:  fadd     d4, d4, d2
+0x000127ac:  fcmp     d4, d2
+0x000127b0:  fcsel    d5, d2, d4, gt
+0x000127b4:  adrp     x8, #0x28000
+0x000127b8:  ldr      d6, [x8, #0xef8]
+0x000127bc:  fmul     d5, d5, d6
+0x000127c0:  fcmp     d4, #0.0
+0x000127c4:  fcsel    d4, d1, d5, mi
+0x000127c8:  adrp     x8, #0x29000
+0x000127cc:  ldr      d5, [x8, #8]
+0x000127d0:  fadd     d0, d0, d5
+0x000127d4:  fabs     d0, d0
+0x000127d8:  adrp     x8, #0x29000
+0x000127dc:  ldr      d5, [x8, #0x10]
+0x000127e0:  fdiv     d0, d0, d5
+0x000127e4:  fadd     d0, d0, d2
+0x000127e8:  fcmp     d0, d2
+0x000127ec:  fcsel    d2, d2, d0, gt
+0x000127f0:  fcmp     d0, #0.0
+0x000127f4:  fcsel    d0, d1, d2, mi
+0x000127f8:  fcmp     d4, d0
+0x000127fc:  fcsel    d0, d0, d4, mi
+0x00012800:  fcmp     d3, d0
+0x00012804:  fcsel    d0, d0, d3, mi
+0x00012808:  adrp     x8, #0x28000
+0x0001280c:  ldr      d1, [x8, #0xf98]
+0x00012810:  fmul     d0, d0, d1
+0x00012814:  fcvt     s0, d0
+0x00012818:  bl       #0x24e00    ; -> _objc_msgSend(setOpacity:)
+0x0001281c:  adrp     x8, #0x3a000
+0x00012820:  ldrsw    x20, [x8, #0xd60]
+0x00012824:  ldr      x8, [x19, x20]
+0x00012828:  cbz      x8, #0x1295c
+0x0001282c:  fmov     d9, xzr
+0x00012830:  fmov     d10, #1.00000000
+0x00012834:  fcmp     d8, d10
+0x00012838:  adrp     x21, #0x29000
+0x0001283c:  fmov     d0, xzr
+0x00012840:  b.pl     #0x1297c
+0x00012844:  ldr      d1, [x21, #0x18]
+0x00012848:  fcmp     d8, d1
+0x0001284c:  fcsel    d1, d0, d10, mi
+0x00012850:  fcmp     d8, d10
+0x00012854:  fcsel    d9, d9, d1, mi
+0x00012858:  adrp     x8, #0x29000
+0x0001285c:  ldr      d1, [x8, #0x40]
+0x00012860:  adrp     x8, #0x28000
+0x00012864:  ldr      d8, [x8, #0xf48]
+0x00012868:  fmadd    d0, d0, d8, d1
+0x0001286c:  mov      x8, sp
+0x00012870:  fmov     d1, xzr
+0x00012874:  fmov     d2, xzr
+0x00012878:  fmov     d3, #1.00000000
+0x0001287c:  bl       #0x21b20    ; -> _CATransform3DMakeRotation
+0x00012880:  ldr      x0, [x19, x20]
+0x00012884:  ldp      q0, q1, [sp, #0x40]
+0x00012888:  stp      q0, q1, [sp, #0xc0]
+0x0001288c:  ldp      q0, q1, [sp, #0x60]
+0x00012890:  stp      q0, q1, [sp, #0xe0]
+0x00012894:  ldp      q0, q1, [sp]
+0x00012898:  stp      q0, q1, [sp, #0x80]
+0x0001289c:  ldp      q0, q1, [sp, #0x20]
+0x000128a0:  stp      q0, q1, [sp, #0xa0]
+0x000128a4:  add      x2, sp, #0x80
+0x000128a8:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x000128ac:  adrp     x8, #0x3a000
+0x000128b0:  ldrsw    x8, [x8, #0xd74]
+0x000128b4:  ldr      d0, [x19, x8]
+0x000128b8:  fabd     d0, d9, d0
+0x000128bc:  adrp     x9, #0x29000
+0x000128c0:  ldr      d1, [x9, #0x48]
+0x000128c4:  fcmp     d0, d1
+0x000128c8:  b.le     #0x1295c
+0x000128cc:  str      d9, [x19, x8]
+0x000128d0:  bl       #0x21cf4    ; -> _CGPathCreateMutable
+0x000128d4:  mov      x20, x0
+0x000128d8:  adrp     x8, #0x3a000
+0x000128dc:  ldrsw    x21, [x8, #0xd70]
+0x000128e0:  ldr      x0, [x19, x21]
+0x000128e4:  bl       #0x228c0    ; -> _objc_msgSend(bounds)
+0x000128e8:  mov      x0, x20
+0x000128ec:  mov      x1, #0
+0x000128f0:  bl       #0x21cdc    ; -> _CGPathAddRect
+0x000128f4:  fcmp     d9, #0.0
+0x000128f8:  b.le     #0x12948
+0x000128fc:  adrp     x8, #0x3a000
+0x00012900:  ldrsw    x8, [x8, #0xd8c]
+0x00012904:  add      x22, x19, x8
+0x00012908:  ldp      d0, d1, [x22]
+0x0001290c:  mov      x0, x20
+0x00012910:  mov      x1, #0
+0x00012914:  bl       #0x21d00    ; -> _CGPathMoveToPoint
+0x00012918:  ldp      d0, d1, [x22]
+0x0001291c:  adrp     x8, #0x3a000
+0x00012920:  ldrsw    x8, [x8, #0xd90]
+0x00012924:  ldr      d2, [x19, x8]
+0x00012928:  fmadd    d4, d9, d8, d8
+0x0001292c:  mov      x0, x20
+0x00012930:  mov      x1, #0
+0x00012934:  mov      v3.16b, v8.16b
+0x00012938:  mov      w2, #0
+0x0001293c:  bl       #0x21cd0    ; -> _CGPathAddArc
+0x00012940:  mov      x0, x20
+0x00012944:  bl       #0x21ce8    ; -> _CGPathCloseSubpath
+0x00012948:  ldr      x0, [x19, x21]
+0x0001294c:  mov      x2, x20
+0x00012950:  bl       #0x24ec0    ; -> _objc_msgSend(setPath:)
+0x00012954:  mov      x0, x20
+0x00012958:  bl       #0x21d0c    ; -> _CGPathRelease
+0x0001295c:  ldp      x29, x30, [sp, #0x1d0]
+0x00012960:  ldp      x20, x19, [sp, #0x1c0]
+0x00012964:  ldp      x22, x21, [sp, #0x1b0]
+0x00012968:  ldp      x28, x27, [sp, #0x1a0]
+0x0001296c:  ldp      d9, d8, [sp, #0x190]
+0x00012970:  ldp      d11, d10, [sp, #0x180]
+0x00012974:  add      sp, sp, #0x1e0
+0x00012978:  ret      
+0x0001297c:  ldr      d0, [x21, #0x18]
+0x00012980:  fcmp     d8, d0
+0x00012984:  b.pl     #0x129dc
+0x00012988:  fmov     d0, #-1.00000000
+0x0001298c:  fadd     d0, d8, d0
+0x00012990:  adrp     x8, #0x29000
+0x00012994:  ldr      d1, [x8, #0x38]
+0x00012998:  fdiv     d0, d0, d1
+0x0001299c:  fmov     d11, #1.00000000
+0x000129a0:  fcmp     d0, d11
+0x000129a4:  fcsel    d1, d11, d0, gt
+0x000129a8:  fcmp     d0, #0.0
+0x000129ac:  fmov     d0, xzr
+0x000129b0:  fcsel    d1, d0, d1, mi
+0x000129b4:  fcmp     d1, #0.0
+0x000129b8:  fcsel    d0, d0, d1, mi
+0x000129bc:  fmov     d1, #0.50000000
+0x000129c0:  fcmp     d0, d1
+0x000129c4:  b.pl     #0x12a48
+0x000129c8:  fmov     d1, #4.00000000
+0x000129cc:  fmul     d1, d0, d1
+0x000129d0:  fmul     d1, d0, d1
+0x000129d4:  fmul     d0, d0, d1
+0x000129d8:  b        #0x12844    ; -> sub_12844
+0x000129dc:  adrp     x8, #0x29000
+0x000129e0:  ldr      d0, [x8, #0x20]
+0x000129e4:  fcmp     d8, d0
+0x000129e8:  fmov     d0, xzr
+0x000129ec:  b.pl     #0x12844
+0x000129f0:  adrp     x8, #0x29000
+0x000129f4:  ldr      d0, [x8, #0x28]
+0x000129f8:  fadd     d0, d8, d0
+0x000129fc:  adrp     x8, #0x29000
+0x00012a00:  ldr      d1, [x8, #0x30]
+0x00012a04:  fdiv     d0, d0, d1
+0x00012a08:  fmov     d11, #1.00000000
+0x00012a0c:  fcmp     d0, d11
+0x00012a10:  fcsel    d1, d11, d0, gt
+0x00012a14:  fcmp     d0, #0.0
+0x00012a18:  fmov     d0, xzr
+0x00012a1c:  fcsel    d1, d0, d1, mi
+0x00012a20:  fcmp     d1, #0.0
+0x00012a24:  fcsel    d0, d0, d1, mi
+0x00012a28:  fmov     d1, #0.50000000
+0x00012a2c:  fcmp     d0, d1
+0x00012a30:  b.pl     #0x12a6c
+0x00012a34:  fmov     d1, #4.00000000
+0x00012a38:  fmul     d1, d0, d1
+0x00012a3c:  fmul     d1, d0, d1
+0x00012a40:  fmul     d0, d0, d1
+0x00012a44:  b        #0x12a8c    ; -> sub_12a8c
+0x00012a48:  fmov     d1, #2.00000000
+0x00012a4c:  fmov     d2, #-2.00000000
+0x00012a50:  fmadd    d0, d0, d2, d1
+0x00012a54:  fmov     d1, #3.00000000
+0x00012a58:  bl       #0x221c8    ; -> _pow
+0x00012a5c:  fmov     d1, #-0.50000000
+0x00012a60:  fmul     d0, d0, d1
+0x00012a64:  fadd     d0, d0, d11
+0x00012a68:  b        #0x12844    ; -> sub_12844
+0x00012a6c:  fmov     d1, #2.00000000
+0x00012a70:  fmov     d2, #-2.00000000
+0x00012a74:  fmadd    d0, d0, d2, d1
+0x00012a78:  fmov     d1, #3.00000000
+0x00012a7c:  bl       #0x221c8    ; -> _pow
+0x00012a80:  fmov     d1, #-0.50000000
+0x00012a84:  fmul     d0, d0, d1
+0x00012a88:  fadd     d0, d0, d11
+0x00012a8c:  fmov     d1, #1.00000000
+0x00012a90:  fsub     d0, d1, d0
+0x00012a94:  b        #0x12844    ; -> sub_12844

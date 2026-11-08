@@ -1,0 +1,12 @@
+# -[SPPOverspeed reloadPrefs]
+# addr 0x1f5e8 .. 0x1f60c  (36 bytes)
+
+0001f5e8  stp      x20, x19, [sp, #-0x20]!                     
+0001f5ec  stp      x29, x30, [sp, #0x10]                       
+0001f5f0  add      x29, sp, #0x10                              
+0001f5f4  mov      x19, x0                                     
+0001f5f8  bl       #0x29c40                                    ; objc_msgSend$loadPrefs
+0001f5fc  mov      x0, x19                                     
+0001f600  ldp      x29, x30, [sp, #0x10]                       
+0001f604  ldp      x20, x19, [sp], #0x20                       
+0001f608  b        #0x29360                                    ; objc_msgSend$evaluate

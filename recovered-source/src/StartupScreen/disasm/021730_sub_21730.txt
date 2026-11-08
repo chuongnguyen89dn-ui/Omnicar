@@ -1,0 +1,139 @@
+; sub_21730
+; VA 0x21730  size 544
+
+0x00021730:  sub      sp, sp, #0x140
+0x00021734:  stp      d11, d10, [sp, #0xc0]
+0x00021738:  stp      d9, d8, [sp, #0xd0]
+0x0002173c:  stp      x28, x27, [sp, #0xe0]
+0x00021740:  stp      x26, x25, [sp, #0xf0]
+0x00021744:  stp      x24, x23, [sp, #0x100]
+0x00021748:  stp      x22, x21, [sp, #0x110]
+0x0002174c:  stp      x20, x19, [sp, #0x120]
+0x00021750:  stp      x29, x30, [sp, #0x130]
+0x00021754:  add      x29, sp, #0x130
+0x00021758:  mov      x19, x0
+0x0002175c:  adrp     x8, #0x30000
+0x00021760:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x00021764:  ldr      x8, [x8]
+0x00021768:  stur     x8, [x29, #-0x78]
+0x0002176c:  mov      x0, x1
+0x00021770:  bl       #0x22320    ; -> _objc_msgSend(CGContext)
+0x00021774:  mov      x20, x0
+0x00021778:  movi     v0.16b, #0
+0x0002177c:  stp      q0, q0, [sp, #0x90]
+0x00021780:  mov      x8, #0x4058000000000000
+0x00021784:  dup      v1.2d, x8
+0x00021788:  stp      q1, q0, [sp, #0x70]
+0x0002178c:  stur     q1, [sp, #0x88]
+0x00021790:  ldrb     w8, [x19, #0x28]
+0x00021794:  adrp     x9, #0x3a000
+0x00021798:  ldr      x0, [x9, #0x9d8]    ; class(UIColor)
+0x0002179c:  tbz      w8, #0, #0x217c0
+0x000217a0:  adrp     x8, #0x29000
+0x000217a4:  ldr      d0, [x8, #0x360]
+0x000217a8:  adrp     x8, #0x29000
+0x000217ac:  ldr      d1, [x8, #0x6e8]
+0x000217b0:  adrp     x8, #0x29000
+0x000217b4:  ldr      d2, [x8, #0x2c0]
+0x000217b8:  fmov     d3, #1.00000000
+0x000217bc:  b        #0x217e0    ; -> sub_217e0
+0x000217c0:  adrp     x8, #0x29000
+0x000217c4:  ldr      d0, [x8, #0x408]
+0x000217c8:  adrp     x8, #0x29000
+0x000217cc:  ldr      d1, [x8, #0x6e0]
+0x000217d0:  adrp     x8, #0x28000
+0x000217d4:  ldr      d2, [x8, #0xf58]
+0x000217d8:  adrp     x8, #0x29000
+0x000217dc:  ldr      d3, [x8, #0xa8]
+0x000217e0:  bl       #0x22b00    ; -> _objc_msgSend(colorWithRed:green:blue:alpha:)
+0x000217e4:  mov      x29, x29
+0x000217e8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000217ec:  mov      x21, x0
+0x000217f0:  bl       #0x24900    ; -> _objc_msgSend(setFill)
+0x000217f4:  mov      x8, #0x4058000000000000
+0x000217f8:  fmov     d2, x8
+0x000217fc:  fmov     d0, xzr
+0x00021800:  fmov     d1, xzr
+0x00021804:  mov      x0, x20
+0x00021808:  mov      v3.16b, v2.16b
+0x0002180c:  bl       #0x21c34    ; -> _CGContextFillRect
+0x00021810:  adrp     x24, #0x29000
+0x00021814:  add      x24, x24, #0x710
+0x00021818:  bl       #0x21bec    ; -> _CGColorSpaceCreateDeviceRGB
+0x0002181c:  mov      x22, x0
+0x00021820:  mov      x25, #0
+0x00021824:  adrp     x8, #0x28000
+0x00021828:  ldr      d9, [x8, #0xe50]
+0x0002182c:  adrp     x8, #0x29000
+0x00021830:  ldr      d10, [x8, #0x6f0]
+0x00021834:  movi     d11, #0x0000ff000000ff
+0x00021838:  mov      x8, #0xe00000000000
+0x0002183c:  movk     x8, #0x406f, lsl #48
+0x00021840:  dup      v4.2d, x8
+0x00021844:  adrp     x8, #0x29000
+0x00021848:  add      x8, x8, #0x4a0
+0x0002184c:  ldr      q0, [x8]
+0x00021850:  stp      q0, q4, [sp]
+0x00021854:  add      x26, sp, #0x70
+0x00021858:  adrp     x8, #0x29000
+0x0002185c:  ldr      d8, [x8, #0x6f8]
+0x00021860:  ldr      w8, [x24], #4
+0x00021864:  and      w9, w8, #0xff
+0x00021868:  ucvtf    d0, w9
+0x0002186c:  dup      v1.2s, w8
+0x00021870:  ushl     v1.2s, v1.2s, v10.2s
+0x00021874:  and      v1.8b, v1.8b, v11.8b
+0x00021878:  ushll    v1.2d, v1.2s, #0
+0x0002187c:  ucvtf    v1.2d, v1.2d
+0x00021880:  ldr      q2, [sp, #0x10]
+0x00021884:  fdiv     v1.2d, v1.2d, v2.2d
+0x00021888:  ldr      d2, [x19, #0x20]
+0x0002188c:  fdiv     d0, d0, d9
+0x00021890:  stp      d0, d2, [sp, #0x40]
+0x00021894:  str      q1, [sp, #0x50]
+0x00021898:  str      d0, [sp, #0x60]
+0x0002189c:  str      xzr, [sp, #0x68]
+0x000218a0:  ldr      q0, [sp]
+0x000218a4:  stp      q0, q1, [sp, #0x20]
+0x000218a8:  add      x1, sp, #0x30
+0x000218ac:  add      x2, sp, #0x20
+0x000218b0:  mov      x0, x22
+0x000218b4:  mov      w3, #2
+0x000218b8:  bl       #0x21c94    ; -> _CGGradientCreateWithColorComponents
+0x000218bc:  mov      x23, x0
+0x000218c0:  add      x8, x26, x25
+0x000218c4:  ldp      d0, d1, [x8]
+0x000218c8:  fmov     d2, xzr
+0x000218cc:  mov      x0, x20
+0x000218d0:  mov      x1, x23
+0x000218d4:  mov      v3.16b, v0.16b
+0x000218d8:  mov      v4.16b, v1.16b
+0x000218dc:  mov      v5.16b, v8.16b
+0x000218e0:  mov      w2, #0
+0x000218e4:  bl       #0x21c1c    ; -> _CGContextDrawRadialGradient
+0x000218e8:  mov      x0, x23
+0x000218ec:  bl       #0x21ca0    ; -> _CGGradientRelease
+0x000218f0:  add      x25, x25, #0x10
+0x000218f4:  cmp      x25, #0x40
+0x000218f8:  b.ne     #0x21860
+0x000218fc:  mov      x0, x22
+0x00021900:  bl       #0x21bf8    ; -> _CGColorSpaceRelease
+0x00021904:  mov      x0, x21
+0x00021908:  bl       #0x22120    ; -> _objc_release
+0x0002190c:  ldur     x8, [x29, #-0x78]
+0x00021910:  adrp     x9, #0x30000
+0x00021914:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x00021918:  ldr      x9, [x9]
+0x0002191c:  cmp      x9, x8
+0x00021920:  b.ne     #0x2194c
+0x00021924:  ldp      x29, x30, [sp, #0x130]
+0x00021928:  ldp      x20, x19, [sp, #0x120]
+0x0002192c:  ldp      x22, x21, [sp, #0x110]
+0x00021930:  ldp      x24, x23, [sp, #0x100]
+0x00021934:  ldp      x26, x25, [sp, #0xf0]
+0x00021938:  ldp      x28, x27, [sp, #0xe0]
+0x0002193c:  ldp      d9, d8, [sp, #0xd0]
+0x00021940:  ldp      d11, d10, [sp, #0xc0]
+0x00021944:  add      sp, sp, #0x140
+0x00021948:  ret      
+0x0002194c:  bl       #0x21dd8    ; -> ___stack_chk_fail

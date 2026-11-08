@@ -1,0 +1,44 @@
+; sub_1c9f0
+; VA 0x1c9f0  size 160
+
+0x0001c9f0:  mov      x0, x19
+0x0001c9f4:  bl       #0x22120    ; -> _objc_release
+0x0001c9f8:  adrp     x8, #0x3a000
+0x0001c9fc:  ldr      x19, [x8, #0x9c8]    ; class(NSMutableArray)
+0x0001ca00:  adrp     x2, #0x34000
+0x0001ca04:  add      x2, x2, #0x88    ; @"suspects"
+0x0001ca08:  mov      x0, x21
+0x0001ca0c:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x0001ca10:  mov      x29, x29
+0x0001ca14:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ca18:  mov      x20, x0
+0x0001ca1c:  cmp      x0, #0
+0x0001ca20:  adrp     x8, #0x30000
+0x0001ca24:  ldr      x8, [x8, #0x208]    ; got(___NSArray0__struct)
+0x0001ca28:  csel     x2, x8, x0, eq
+0x0001ca2c:  mov      x0, x19
+0x0001ca30:  bl       #0x226e0    ; -> _objc_msgSend(arrayWithArray:)
+0x0001ca34:  mov      x29, x29
+0x0001ca38:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ca3c:  mov      x27, x0
+0x0001ca40:  mov      x0, x20
+0x0001ca44:  bl       #0x22120    ; -> _objc_release
+0x0001ca48:  adrp     x19, #0x3a000
+0x0001ca4c:  ldr      x0, [x19, #0x9c0]    ; class(NSString)
+0x0001ca50:  ldr      x2, [sp, #0x48]
+0x0001ca54:  mov      w3, #4
+0x0001ca58:  mov      x4, #0
+0x0001ca5c:  bl       #0x25c00    ; -> _objc_msgSend(stringWithContentsOfFile:encoding:error:)
+0x0001ca60:  mov      x29, x29
+0x0001ca64:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ca68:  str      x0, [sp, #0x40]
+0x0001ca6c:  bl       #0x23a40    ; -> _objc_msgSend(length)
+0x0001ca70:  adrp     x20, #0x3a000
+0x0001ca74:  str      x21, [sp, #0x38]
+0x0001ca78:  cbz      x0, #0x1d49c
+0x0001ca7c:  ldr      x0, [x19, #0x9c0]
+0x0001ca80:  ldr      x8, [sp, #0x40]
+0x0001ca84:  str      x8, [sp]
+0x0001ca88:  adrp     x2, #0x34000
+0x0001ca8c:  add      x2, x2, #0xa8    ; @"CARPLAY SAP LAN TRUOC:
+%@"

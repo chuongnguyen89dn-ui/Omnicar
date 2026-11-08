@@ -1,0 +1,22 @@
+; ==== SCPCarSplit__panePopOut_  @0x201f0..0x20244 (84 bytes) ====
+000201f0  stp      x20, x19, [sp, #-0x20]!                      
+000201f4  stp      x29, x30, [sp, #0x10]                        
+000201f8  add      x29, sp, #0x10                               
+000201fc  mov      x20, x0                                      
+00020200  bl       #0x59840                                     ; msgSend "paneForView:"
+00020204  mov      x29, x29                                     
+00020208  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002020c  mov      x19, x0                                      
+00020210  cbz      x0, #0x20220                                 
+00020214  mov      x0, x20                                      
+00020218  mov      x2, x19                                      
+0002021c  bl       #0x59c00                                     ; msgSend "popOutPane:"
+00020220  mov      x0, x19                                      
+00020224  ldp      x29, x30, [sp, #0x10]                        
+00020228  ldp      x20, x19, [sp], #0x20                        
+0002022c  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+00020230  mov      x20, x0                                      
+00020234  mov      x0, x19                                      
+00020238  bl       #0x567b8                                     ; call _objc_release
+0002023c  mov      x0, x20                                      
+00020240  bl       #0x563e0                                     ; call __Unwind_Resume

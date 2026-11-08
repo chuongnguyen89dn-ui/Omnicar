@@ -1,0 +1,40 @@
+; sub_13e24
+; VA 0x13e24  size 148
+
+0x00013e24:  stp      x22, x21, [sp, #-0x30]!
+0x00013e28:  stp      x20, x19, [sp, #0x10]
+0x00013e2c:  stp      x29, x30, [sp, #0x20]
+0x00013e30:  add      x29, sp, #0x20
+0x00013e34:  mov      x19, x0
+0x00013e38:  bl       #0x2212c    ; -> _objc_retain
+0x00013e3c:  adrp     x8, #0x3a000
+0x00013e40:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x00013e44:  bl       #0x220e4    ; -> _objc_opt_class
+0x00013e48:  mov      x1, x0
+0x00013e4c:  mov      x0, x19
+0x00013e50:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x00013e54:  tbz      w0, #0, #0x13e94
+0x00013e58:  adrp     x8, #0x3a000
+0x00013e5c:  ldr      x0, [x8, #0xa50]    ; class(NSCharacterSet)
+0x00013e60:  bl       #0x26060    ; -> _objc_msgSend(whitespaceAndNewlineCharacterSet)
+0x00013e64:  mov      x29, x29
+0x00013e68:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00013e6c:  mov      x21, x0
+0x00013e70:  mov      x0, x19
+0x00013e74:  mov      x2, x21
+0x00013e78:  bl       #0x25ba0    ; -> _objc_msgSend(stringByTrimmingCharactersInSet:)
+0x00013e7c:  mov      x29, x29
+0x00013e80:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00013e84:  mov      x20, x0
+0x00013e88:  mov      x0, x21
+0x00013e8c:  bl       #0x22120    ; -> _objc_release
+0x00013e90:  b        #0x13e9c    ; -> sub_13e9c
+0x00013e94:  adrp     x20, #0x32000
+0x00013e98:  add      x20, x20, #0x9c8    ; @""
+0x00013e9c:  mov      x0, x19
+0x00013ea0:  bl       #0x22120    ; -> _objc_release
+0x00013ea4:  mov      x0, x20
+0x00013ea8:  ldp      x29, x30, [sp, #0x20]
+0x00013eac:  ldp      x20, x19, [sp, #0x10]
+0x00013eb0:  ldp      x22, x21, [sp], #0x30
+0x00013eb4:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

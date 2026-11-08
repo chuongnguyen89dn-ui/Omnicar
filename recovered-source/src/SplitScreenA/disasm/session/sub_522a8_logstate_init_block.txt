@@ -1,0 +1,13 @@
+; sub_522a8
+0x0522a8  stp      x29, x30, [sp, #-0x10]!
+0x0522ac  mov      x29, sp
+0x0522b0  adrp     x0, #0x62000
+0x0522b4  add      x0, x0, #0xa0f ; -> 0x62a0f "com.anlai.omnicar.log"
+0x0522b8  mov      x1, #0
+0x0522bc  bl       #0x56500 ; call _dispatch_queue_create
+0x0522c0  adrp     x9, #0x88000
+0x0522c4  ldr      x8, [x9, #0x290]
+0x0522c8  str      x0, [x9, #0x290]
+0x0522cc  mov      x0, x8
+0x0522d0  ldp      x29, x30, [sp], #0x10
+0x0522d4  b        #0x567b8 ; call _objc_release

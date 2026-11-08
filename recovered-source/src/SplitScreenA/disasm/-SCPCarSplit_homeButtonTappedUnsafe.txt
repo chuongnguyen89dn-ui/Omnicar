@@ -1,0 +1,70 @@
+; -[SCPCarSplit homeButtonTappedUnsafe]
+0x04360c  sub      sp, sp, #0x40
+0x043610  stp      x22, x21, [sp, #0x10]
+0x043614  stp      x20, x19, [sp, #0x20]
+0x043618  stp      x29, x30, [sp, #0x30]
+0x04361c  add      x29, sp, #0x30
+0x043620  mov      x20, x0
+0x043624  bl       #0x56b60 ; objc_msgSend$active
+0x043628  tbz      w0, #0, #0x43634
+0x04362c  mov      x19, #0
+0x043630  b        #0x43648
+0x043634  mov      x0, x20
+0x043638  bl       #0x58380 ; objc_msgSend$fullscreenAppBundle
+0x04363c  mov      x29, x29
+0x043640  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x043644  mov      x19, x0
+0x043648  adrp     x8, #0x87000
+0x04364c  ldr      x21, [x8, #0x678] ; [0x87678] class:NSString
+0x043650  mov      x0, x20
+0x043654  bl       #0x56b60 ; objc_msgSend$active
+0x043658  adrp     x8, #0x7d000
+0x04365c  add      x8, x8, #0x860 ; -> 0x7d860 @"man chinh"
+0x043660  cmp      x19, #0
+0x043664  csel     x8, x8, x19, eq
+0x043668  adrp     x9, #0x7d000
+0x04366c  add      x9, x9, #0x840 ; -> 0x7d840 @"dang chia -> doi bo cuc"
+0x043670  cmp      w0, #0
+0x043674  csel     x8, x9, x8, ne
+0x043678  str      x8, [sp]
+0x04367c  adrp     x2, #0x7d000
+0x043680  add      x2, x2, #0x820 ; -> 0x7d820 @"CarSplit: bam nut Split Screen tren dock (%@)"
+0x043684  mov      x0, x21
+0x043688  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x04368c  mov      x29, x29
+0x043690  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x043694  mov      x21, x0
+0x043698  adrp     x0, #0x79000
+0x04369c  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x0436a0  mov      x1, x21
+0x0436a4  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x0436a8  mov      x0, x21
+0x0436ac  bl       #0x567b8 ; call _objc_release
+0x0436b0  mov      x0, x20
+0x0436b4  bl       #0x5c820 ; objc_msgSend$tray
+0x0436b8  mov      x29, x29
+0x0436bc  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0436c0  mov      x21, x0
+0x0436c4  bl       #0x567b8 ; call _objc_release
+0x0436c8  cbz      x21, #0x436d8
+0x0436cc  mov      x0, x20
+0x0436d0  bl       #0x57680 ; objc_msgSend$collapseAppTray
+0x0436d4  b        #0x436e4
+0x0436d8  mov      x0, x20
+0x0436dc  mov      x2, x19
+0x0436e0  bl       #0x5bf80 ; objc_msgSend$showLayoutPanelForApp:
+0x0436e4  mov      x0, x19
+0x0436e8  ldp      x29, x30, [sp, #0x30]
+0x0436ec  ldp      x20, x19, [sp, #0x20]
+0x0436f0  ldp      x22, x21, [sp, #0x10]
+0x0436f4  add      sp, sp, #0x40
+0x0436f8  b        #0x567b8 ; call _objc_release
+0x0436fc  mov      x20, x0
+0x043700  mov      x0, x21
+0x043704  bl       #0x567b8 ; call _objc_release
+0x043708  b        #0x43710
+0x04370c  mov      x20, x0
+0x043710  mov      x0, x19
+0x043714  bl       #0x567b8 ; call _objc_release
+0x043718  mov      x0, x20
+0x04371c  bl       #0x563e0 ; call __Unwind_Resume

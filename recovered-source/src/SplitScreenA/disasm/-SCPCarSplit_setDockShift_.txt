@@ -1,0 +1,131 @@
+; -[SCPCarSplit setDockShift:]
+0x0426f8  sub      sp, sp, #0xd0
+0x0426fc  stp      d9, d8, [sp, #0x90]
+0x042700  stp      x22, x21, [sp, #0xa0]
+0x042704  stp      x20, x19, [sp, #0xb0]
+0x042708  stp      x29, x30, [sp, #0xc0]
+0x04270c  add      x29, sp, #0xc0
+0x042710  mov      v8.16b, v0.16b
+0x042714  bl       #0x12658 ; -> sub_12658
+0x042718  mov      x29, x29
+0x04271c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x042720  mov      x20, x0
+0x042724  adrp     x0, #0x7b000
+0x042728  add      x0, x0, #0x140 ; -> 0x7b140 @"appDockViewController"
+0x04272c  bl       #0x56374 ; call _NSSelectorFromString
+0x042730  mov      x19, x0
+0x042734  mov      x0, x20
+0x042738  mov      x1, x19
+0x04273c  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x042740  tbz      w0, #0, #0x42760
+0x042744  mov      x0, x20
+0x042748  mov      x1, x19
+0x04274c  bl       #0x56758 ; call _objc_msgSend
+0x042750  mov      x29, x29
+0x042754  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x042758  mov      x19, x0
+0x04275c  b        #0x42774
+0x042760  adrp     x1, #0x7b000
+0x042764  add      x1, x1, #0x140 ; -> 0x7b140 @"appDockViewController"
+0x042768  mov      x0, x20
+0x04276c  bl       #0x4f330 ; -> _SCPMissingSelector
+0x042770  mov      x19, #0
+0x042774  mov      x0, x20
+0x042778  bl       #0x567b8 ; call _objc_release
+0x04277c  cbz      x19, #0x42870
+0x042780  mov      x0, x19
+0x042784  bl       #0x567c4 ; call _objc_retain
+0x042788  adrp     x0, #0x7b000
+0x04278c  add      x0, x0, #0x160 ; -> 0x7b160 @"view"
+0x042790  bl       #0x56374 ; call _NSSelectorFromString
+0x042794  mov      x20, x0
+0x042798  mov      x0, x19
+0x04279c  mov      x1, x20
+0x0427a0  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x0427a4  tbz      w0, #0, #0x427c4
+0x0427a8  mov      x0, x19
+0x0427ac  mov      x1, x20
+0x0427b0  bl       #0x56758 ; call _objc_msgSend
+0x0427b4  mov      x29, x29
+0x0427b8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0427bc  mov      x20, x0
+0x0427c0  b        #0x427d8
+0x0427c4  adrp     x1, #0x7b000
+0x0427c8  add      x1, x1, #0x160 ; -> 0x7b160 @"view"
+0x0427cc  mov      x0, x19
+0x0427d0  bl       #0x4f330 ; -> _SCPMissingSelector
+0x0427d4  mov      x20, #0
+0x0427d8  mov      x0, x19
+0x0427dc  bl       #0x567b8 ; call _objc_release
+0x0427e0  mov      x0, x19
+0x0427e4  bl       #0x567b8 ; call _objc_release
+0x0427e8  cbz      x20, #0x42870
+0x0427ec  fcmp     d8, #0.0
+0x0427f0  b.le     #0x42808
+0x0427f4  fneg     d1, d8
+0x0427f8  add      x8, sp, #0x60
+0x0427fc  fmov     d0, xzr
+0x042800  bl       #0x561e8 ; call _CGAffineTransformMakeTranslation
+0x042804  b        #0x42820
+0x042808  adrp     x8, #0x78000
+0x04280c  ldr      x8, [x8, #0x598] ; [0x78598] _CGAffineTransformIdentity
+0x042810  ldp      q0, q1, [x8]
+0x042814  stp      q0, q1, [sp, #0x60]
+0x042818  ldr      q0, [x8, #0x20] ; [0x78020] _class_copyPropertyList
+0x04281c  str      q0, [sp, #0x80]
+0x042820  add      x8, sp, #0x30
+0x042824  mov      x0, x20
+0x042828  bl       #0x5c7c0 ; objc_msgSend$transform
+0x04282c  ldp      q0, q1, [sp, #0x60]
+0x042830  stp      q0, q1, [sp]
+0x042834  ldr      q0, [sp, #0x80]
+0x042838  str      q0, [sp, #0x20]
+0x04283c  add      x0, sp, #0x30
+0x042840  mov      x1, sp
+0x042844  bl       #0x561c4 ; call _CGAffineTransformEqualToTransform
+0x042848  tbnz     w0, #0, #0x42868
+0x04284c  ldp      q0, q1, [sp, #0x60]
+0x042850  stp      q0, q1, [sp, #0x30]
+0x042854  ldr      q0, [sp, #0x80]
+0x042858  str      q0, [sp, #0x50]
+0x04285c  add      x2, sp, #0x30
+0x042860  mov      x0, x20
+0x042864  bl       #0x5bc60 ; objc_msgSend$setTransform:
+0x042868  mov      x0, x20
+0x04286c  bl       #0x567b8 ; call _objc_release
+0x042870  ldp      x29, x30, [sp, #0xc0]
+0x042874  ldp      x20, x19, [sp, #0xb0]
+0x042878  ldp      x22, x21, [sp, #0xa0]
+0x04287c  ldp      d9, d8, [sp, #0x90]
+0x042880  add      sp, sp, #0xd0
+0x042884  ret      
+0x042888  mov      x21, x0
+0x04288c  mov      x0, x20
+0x042890  bl       #0x567b8 ; call _objc_release
+0x042894  mov      x0, x21
+0x042898  bl       #0x563e0 ; call __Unwind_Resume
+0x04289c  b        #0x428b0
+0x0428a0  b        #0x428c8
+0x0428a4  mov      x22, x1
+0x0428a8  mov      x21, x0
+0x0428ac  b        #0x428d8
+0x0428b0  mov      x22, x1
+0x0428b4  mov      x21, x0
+0x0428b8  mov      x0, x19
+0x0428bc  bl       #0x567b8 ; call _objc_release
+0x0428c0  mov      x0, x19
+0x0428c4  b        #0x428d4
+0x0428c8  mov      x22, x1
+0x0428cc  mov      x21, x0
+0x0428d0  mov      x0, x20
+0x0428d4  bl       #0x567b8 ; call _objc_release
+0x0428d8  cmp      w22, #1
+0x0428dc  b.ne     #0x42894
+0x0428e0  mov      x0, x21
+0x0428e4  bl       #0x566ec ; call _objc_begin_catch
+0x0428e8  ldp      x29, x30, [sp, #0xc0]
+0x0428ec  ldp      x20, x19, [sp, #0xb0]
+0x0428f0  ldp      x22, x21, [sp, #0xa0]
+0x0428f4  ldp      d9, d8, [sp, #0x90]
+0x0428f8  add      sp, sp, #0xd0
+0x0428fc  b        #0x56710 ; call _objc_end_catch

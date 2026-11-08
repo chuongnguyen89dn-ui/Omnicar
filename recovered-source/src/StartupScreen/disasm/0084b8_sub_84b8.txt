@@ -1,0 +1,122 @@
+; sub_84b8
+; VA 0x84b8  size 476
+
+0x000084b8:  sub      sp, sp, #0x70
+0x000084bc:  stp      x26, x25, [sp, #0x20]
+0x000084c0:  stp      x24, x23, [sp, #0x30]
+0x000084c4:  stp      x22, x21, [sp, #0x40]
+0x000084c8:  stp      x20, x19, [sp, #0x50]
+0x000084cc:  stp      x29, x30, [sp, #0x60]
+0x000084d0:  add      x29, sp, #0x60
+0x000084d4:  mov      x20, x1
+0x000084d8:  mov      x19, x0
+0x000084dc:  bl       #0x2212c    ; -> _objc_retain
+0x000084e0:  mov      x0, x20
+0x000084e4:  bl       #0x2212c    ; -> _objc_retain
+0x000084e8:  adrp     x25, #0x3a000
+0x000084ec:  ldr      x21, [x25, #0x9c0]    ; class(NSString)
+0x000084f0:  mov      x0, x19
+0x000084f4:  bl       #0x220e4    ; -> _objc_opt_class
+0x000084f8:  bl       #0x21d6c    ; -> _NSStringFromClass
+0x000084fc:  mov      x29, x29
+0x00008500:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008504:  mov      x22, x0
+0x00008508:  mov      x0, x19
+0x0000850c:  bl       #0x24320    ; -> _objc_msgSend(session)
+0x00008510:  mov      x29, x29
+0x00008514:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008518:  mov      x23, x0
+0x0000851c:  bl       #0x242a0    ; -> _objc_msgSend(role)
+0x00008520:  mov      x29, x29
+0x00008524:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008528:  mov      x24, x0
+0x0000852c:  stp      x22, x0, [sp, #8]
+0x00008530:  str      x20, [sp]
+0x00008534:  adrp     x2, #0x32000
+0x00008538:  add      x2, x2, #0x2a8    ; @"%@: %@ role=%@"
+0x0000853c:  mov      x0, x21
+0x00008540:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00008544:  mov      x29, x29
+0x00008548:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000854c:  mov      x21, x0
+0x00008550:  adrp     x0, #0x30000
+0x00008554:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00008558:  mov      x1, x21
+0x0000855c:  bl       #0x1b620    ; -> OMCLogWrite
+0x00008560:  mov      x0, x21
+0x00008564:  bl       #0x22120    ; -> _objc_release
+0x00008568:  mov      x0, x24
+0x0000856c:  bl       #0x22120    ; -> _objc_release
+0x00008570:  mov      x0, x23
+0x00008574:  bl       #0x22120    ; -> _objc_release
+0x00008578:  mov      x0, x22
+0x0000857c:  bl       #0x22120    ; -> _objc_release
+0x00008580:  adrp     x8, #0x3a000
+0x00008584:  ldr      x0, [x8, #0xa48]    ; class(UIWindowScene)
+0x00008588:  bl       #0x220e4    ; -> _objc_opt_class
+0x0000858c:  mov      x1, x0
+0x00008590:  mov      x0, x19
+0x00008594:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x00008598:  tbz      w0, #0, #0x866c
+0x0000859c:  ldr      x21, [x25, #0x9c0]
+0x000085a0:  mov      x0, x19
+0x000085a4:  bl       #0x2212c    ; -> _objc_retain
+0x000085a8:  mov      x0, x19
+0x000085ac:  bl       #0x25ec0    ; -> _objc_msgSend(traitCollection)
+0x000085b0:  mov      x29, x29
+0x000085b4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000085b8:  mov      x22, x0
+0x000085bc:  bl       #0x25f80    ; -> _objc_msgSend(userInterfaceIdiom)
+0x000085c0:  mov      x23, x0
+0x000085c4:  mov      x0, x19
+0x000085c8:  bl       #0x242e0    ; -> _objc_msgSend(screen)
+0x000085cc:  mov      x29, x29
+0x000085d0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000085d4:  mov      x24, x0
+0x000085d8:  bl       #0x8308    ; -> sub_8308
+0x000085dc:  mov      x29, x29
+0x000085e0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000085e4:  mov      x25, x0
+0x000085e8:  stp      x23, x0, [sp, #8]
+0x000085ec:  str      x20, [sp]
+0x000085f0:  adrp     x2, #0x32000
+0x000085f4:  add      x2, x2, #0x2c8    ; @"%@: idiom=%ld screen=%@"
+0x000085f8:  mov      x0, x21
+0x000085fc:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00008600:  mov      x29, x29
+0x00008604:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008608:  mov      x21, x0
+0x0000860c:  adrp     x0, #0x30000
+0x00008610:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00008614:  mov      x1, x21
+0x00008618:  bl       #0x1b620    ; -> OMCLogWrite
+0x0000861c:  mov      x0, x21
+0x00008620:  bl       #0x22120    ; -> _objc_release
+0x00008624:  mov      x0, x25
+0x00008628:  bl       #0x22120    ; -> _objc_release
+0x0000862c:  mov      x0, x24
+0x00008630:  bl       #0x22120    ; -> _objc_release
+0x00008634:  mov      x0, x22
+0x00008638:  bl       #0x22120    ; -> _objc_release
+0x0000863c:  mov      x0, x19
+0x00008640:  bl       #0x242e0    ; -> _objc_msgSend(screen)
+0x00008644:  mov      x29, x29
+0x00008648:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000864c:  mov      x21, x0
+0x00008650:  mov      x1, x19
+0x00008654:  mov      x2, x20
+0x00008658:  bl       #0xa6c4    ; -> sub_a6c4
+0x0000865c:  mov      x0, x19
+0x00008660:  bl       #0x22120    ; -> _objc_release
+0x00008664:  mov      x0, x21
+0x00008668:  bl       #0x22120    ; -> _objc_release
+0x0000866c:  mov      x0, x20
+0x00008670:  bl       #0x22120    ; -> _objc_release
+0x00008674:  mov      x0, x19
+0x00008678:  ldp      x29, x30, [sp, #0x60]
+0x0000867c:  ldp      x20, x19, [sp, #0x50]
+0x00008680:  ldp      x22, x21, [sp, #0x40]
+0x00008684:  ldp      x24, x23, [sp, #0x30]
+0x00008688:  ldp      x26, x25, [sp, #0x20]
+0x0000868c:  add      sp, sp, #0x70
+0x00008690:  b        #0x22120    ; -> _objc_release

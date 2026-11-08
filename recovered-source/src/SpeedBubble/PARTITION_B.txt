@@ -1,0 +1,94 @@
+PARTITION B — SpeedBubble SOURCE-APP side (agent B, wave 2.5)
+Written 2026-11-08 before reconstruction. PARTITION_A.txt did not exist at
+claim time (checked: no PARTITION* file anywhere under omnicar-re), so this
+claim is by function role; if agent A later claims any address below, the
+tie-break rule is: source-app-process behaviour = B, SpringBoard/CarPlayApp
+HUD behaviour = A.
+
+CLAIMED BY B (arm64 slice addresses; all inside OmniCarSpeedBubble.dylib):
+
+Constructors / control plane
+  0x44a8  __init_0            (268 B)  + its notify handler block sub_45b4
+  0x45b4  sub_45b4            (1212 B) block invoke (notify token handler,
+                                       reads notify_get_state)
+  0x5950  __init_1            (1628 B) THE source-app constructor: host
+                                       bundle-id detection, CLLocationManager
+                                       hooks, FlutterEngine hooks, dlsym +
+                                       MSHookFunction UIAccessibility hook,
+                                       UIScene notification observers
+
+SPPSpeedGPS (the in-app GPS engine) — all methods + adjacent helpers
+  0x4a70  +[SPPSpeedGPS shared]
+  0x4ab4  sub_4ab4            (44 B, block invoke)
+  0x4ae0  -[SPPSpeedGPS appManager:running:]
+  0x4cac  -[SPPSpeedGPS scheduleStop]
+  0x4d44  sub_4d44            (212 B helper)
+  0x4e18  sub_4e18 / 0x4e20 sub_4e20   (8 B thunks)
+  0x4e28  -[SPPSpeedGPS start]
+  0x4ffc  -[SPPSpeedGPS stop]
+  0x50c0  -[SPPSpeedGPS locationManager:didUpdateLocations:]
+  0x538c  sub_538c            (268 B helper)
+  0x5498  sub_5498            (668 B helper; notify_set_state+notify_post —
+                               publication path)
+  0x5734  sub_5734            (100 B helper)
+  0x5798  -[SPPSpeedGPS locationManager:didFailWithError:]
+  0x583c..0x5950  SPPSpeedGPS accessors + .cxx_destruct (trivial group)
+
+CLLocationManager hook replacements + their blocks
+  0x5fac  sub_5fac            (48 B) replacement IMP startUpdatingLocation
+  0x5fdc  sub_5fdc            (48 B) replacement IMP stopUpdatingLocation
+  0x600c  sub_600c            (140 B, block invoke)
+  0x6098  sub_6098            (856 B, block invoke taking NSTimer*)
+
+Flutter channel cluster (Vietmap)
+  0x63f0  sub_63f0            (232 B helper)
+  0x64d8  sub_64d8            (208 B helper)
+  0x65a8  sub_65a8            (144 B helper; notify_get_state reader)
+  0x6638  sub_6638            (228 B) replacement IMP
+                             setMessageHandlerOnChannel:binaryMessageHandler:taskQueue:
+  0x671c  sub_671c            (196 B) replacement IMP
+                             setMessageHandlerOnChannel:binaryMessageHandler:
+  0x67e0  sub_67e0            (392 B helper)
+  0x6968  sub_6968            (312 B helper)
+  0x6aa0  sub_6aa0            (1988 B helper — message/scan core, TBD)
+
+Speed-scan cluster
+  0x7264  sub_7264 / 0x7270 sub_7270 / 0x7298 sub_7298 / 0x72c0 sub_72c0
+  0x72f4  sub_72f4            (72 B, block invoke)
+  0x733c  sub_733c            (1480 B — scan engine core, TBD)
+  0x7904  sub_7904            (168 B helper)
+  0x79ac  sub_79ac            (8 B) replacement IMP for
+                             UIAccessibilityIsSwitchControlRunning (MSHookFunction)
+  0x79b4  sub_79b4            (92 B, block invoke)
+  0x7a10  sub_7a10            (20 B, block invoke)
+  0x7a24  sub_7a24            (80 B — UIScene notification block body)
+  0x7a74  sub_7a74            (16 B thunk)
+
+CONDITIONAL (role to be determined from code; claimed by B only if it turns
+out to be scan/source machinery, otherwise ceded to A):
+  0x7a84  sub_7a84            (9780 B — role TBD)
+  0x4000..0x44a8 pre-init helpers (sub_4000, sub_4040, sub_4080, sub_40c0,
+          sub_4118, sub_4170 block invoke, sub_42ac, sub_42b8, sub_42c4,
+          sub_42d0, sub_4384) — claimed only if referenced from B's set.
+
+NOT claimed (display side / agent A, or other agents):
+  __init_2 (0xcb30), __init_3 (0x239a0, OMC common), SPPBubble, SPPBubbleView,
+  SPPGlassView, SPPIconView, SPPSignView, SPPOverspeed, SPPSoundDelegate,
+  SPPPrefs, SPPMakeCarWindow / SPPMakeWindowPassThrough / SPPGetCarPlayCADisplay,
+  SPPPlayTone / SPPSpeak / SPPVoice* , all OMC* common functions (OMCCommon
+  agent), and every function >= 0xa0b8 not listed above.
+
+ADDENDUM (2026-11-08, after PARTITION_A.txt appeared and reconstruction):
+  - sub_7a84 RESOLVED: it is the screen-scan engine (SPPScanScreen) — B's.
+    Its helpers >= 0xa0b8 (sub_a0b8, a2c4, a530, a938, aa4c, afb4, b0ec,
+    b878, bf50) are explicitly NOT claimed by A ("source-app side = B");
+    B documents their call contracts; bodies NOT-RECOVERED by B.
+  - Pre-init 0x4000-0x44a8: libroot trampolines, shared infra — CEDED by B;
+    A concurs (not claimed by A either). Coordinator/shared bucket.
+  - __init_0 + sub_45b4: DUAL-CLAIMED (A: CarPlayApp bootstrap; B: recorded
+    in SBOpenCar.m as a boundary file). Coordinator picks one canonical
+    copy; B's verified reading stands either way.
+  - SPPSpeedGPS: A confirms body = B. A claims only display-side consume
+    of the "com.anlai.omnicar/location" channel.
+  - Notify channels: B documents the PUBLISH formats (speedbubble.speed,
+    location) and the READ of speedbubble.source; A documents consume.

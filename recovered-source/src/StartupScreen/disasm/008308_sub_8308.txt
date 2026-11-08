@@ -1,0 +1,73 @@
+; sub_8308
+; VA 0x8308  size 280
+
+0x00008308:  sub      sp, sp, #0x80
+0x0000830c:  stp      x26, x25, [sp, #0x30]
+0x00008310:  stp      x24, x23, [sp, #0x40]
+0x00008314:  stp      x22, x21, [sp, #0x50]
+0x00008318:  stp      x20, x19, [sp, #0x60]
+0x0000831c:  stp      x29, x30, [sp, #0x70]
+0x00008320:  add      x29, sp, #0x70
+0x00008324:  cbz      x0, #0x83f8
+0x00008328:  mov      x19, x0
+0x0000832c:  adrp     x8, #0x3a000
+0x00008330:  ldr      x21, [x8, #0x9c0]    ; class(NSString)
+0x00008334:  bl       #0x2212c    ; -> _objc_retain
+0x00008338:  mov      x0, x19
+0x0000833c:  bl       #0x220e4    ; -> _objc_opt_class
+0x00008340:  bl       #0x21d6c    ; -> _NSStringFromClass
+0x00008344:  mov      x29, x29
+0x00008348:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000834c:  mov      x20, x0
+0x00008350:  adrp     x8, #0x3a000
+0x00008354:  ldr      x0, [x8, #0xa28]    ; class(UIScreen)
+0x00008358:  bl       #0x23ba0    ; -> _objc_msgSend(mainScreen)
+0x0000835c:  mov      x29, x29
+0x00008360:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008364:  mov      x22, x0
+0x00008368:  cmp      x19, x0
+0x0000836c:  cset     w26, eq
+0x00008370:  mov      x0, x19
+0x00008374:  bl       #0x25ec0    ; -> _objc_msgSend(traitCollection)
+0x00008378:  mov      x29, x29
+0x0000837c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008380:  mov      x23, x0
+0x00008384:  bl       #0x25f80    ; -> _objc_msgSend(userInterfaceIdiom)
+0x00008388:  mov      x24, x0
+0x0000838c:  mov      x0, x19
+0x00008390:  bl       #0x228c0    ; -> _objc_msgSend(bounds)
+0x00008394:  bl       #0x21d60    ; -> _NSStringFromCGRect
+0x00008398:  mov      x29, x29
+0x0000839c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000083a0:  mov      x25, x0
+0x000083a4:  stp      x24, x0, [sp, #0x18]
+0x000083a8:  stp      x19, x26, [sp, #8]
+0x000083ac:  str      x20, [sp]
+0x000083b0:  adrp     x2, #0x32000
+0x000083b4:  add      x2, x2, #0x288    ; @"<%@ %p main=%d idiom=%ld bounds=%@>"
+0x000083b8:  mov      x0, x21
+0x000083bc:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x000083c0:  mov      x29, x29
+0x000083c4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000083c8:  mov      x21, x0
+0x000083cc:  mov      x0, x19
+0x000083d0:  bl       #0x22120    ; -> _objc_release
+0x000083d4:  mov      x0, x25
+0x000083d8:  bl       #0x22120    ; -> _objc_release
+0x000083dc:  mov      x0, x23
+0x000083e0:  bl       #0x22120    ; -> _objc_release
+0x000083e4:  mov      x0, x22
+0x000083e8:  bl       #0x22120    ; -> _objc_release
+0x000083ec:  mov      x0, x20
+0x000083f0:  bl       #0x22120    ; -> _objc_release
+0x000083f4:  b        #0x8400    ; -> sub_8400
+0x000083f8:  adrp     x21, #0x31000
+0x000083fc:  add      x21, x21, #0xfe8    ; @"(nil)"
+0x00008400:  mov      x0, x21
+0x00008404:  ldp      x29, x30, [sp, #0x70]
+0x00008408:  ldp      x20, x19, [sp, #0x60]
+0x0000840c:  ldp      x22, x21, [sp, #0x50]
+0x00008410:  ldp      x24, x23, [sp, #0x40]
+0x00008414:  ldp      x26, x25, [sp, #0x30]
+0x00008418:  add      sp, sp, #0x80
+0x0000841c:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

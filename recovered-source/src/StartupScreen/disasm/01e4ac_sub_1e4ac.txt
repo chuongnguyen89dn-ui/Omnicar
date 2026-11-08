@@ -1,0 +1,95 @@
+; sub_1e4ac
+; VA 0x1e4ac  size 364
+
+0x0001e4ac:  sub      sp, sp, #0xe0
+0x0001e4b0:  stp      x26, x25, [sp, #0x90]
+0x0001e4b4:  stp      x24, x23, [sp, #0xa0]
+0x0001e4b8:  stp      x22, x21, [sp, #0xb0]
+0x0001e4bc:  stp      x20, x19, [sp, #0xc0]
+0x0001e4c0:  stp      x29, x30, [sp, #0xd0]
+0x0001e4c4:  add      x29, sp, #0xd0
+0x0001e4c8:  mov      x20, x1
+0x0001e4cc:  mov      x19, x0
+0x0001e4d0:  adrp     x8, #0x30000
+0x0001e4d4:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0001e4d8:  ldr      x8, [x8]
+0x0001e4dc:  stur     x8, [x29, #-0x48]
+0x0001e4e0:  strb     wzr, [sp, #0x48]
+0x0001e4e4:  cmp      w3, #1
+0x0001e4e8:  b.lt     #0x1e5a8
+0x0001e4ec:  mov      x21, x2
+0x0001e4f0:  mov      w26, w3
+0x0001e4f4:  adrp     x22, #0x27000
+0x0001e4f8:  add      x22, x22, #0xe1a    ; "OmniCar"
+0x0001e4fc:  adrp     x23, #0x28000
+0x0001e500:  add      x23, x23, #0x823    ; ".dylib"
+0x0001e504:  ldr      x0, [x21], #8
+0x0001e508:  add      x1, sp, #0x28
+0x0001e50c:  bl       #0x21f04    ; -> _dladdr
+0x0001e510:  ldr      x24, [sp, #0x28]
+0x0001e514:  cmp      w0, #0
+0x0001e518:  ccmp     x24, #0, #4, ne
+0x0001e51c:  b.eq     #0x1e570
+0x0001e520:  mov      x0, x24
+0x0001e524:  mov      w1, #0x2f
+0x0001e528:  bl       #0x2227c    ; -> _strrchr
+0x0001e52c:  cmp      x0, #0
+0x0001e530:  csinc    x24, x24, x0, eq
+0x0001e534:  mov      x0, x24
+0x0001e538:  bl       #0x22264    ; -> _strlen
+0x0001e53c:  mov      x25, x0
+0x0001e540:  mov      x0, x24
+0x0001e544:  mov      x1, x22
+0x0001e548:  mov      w2, #7
+0x0001e54c:  bl       #0x22270    ; -> _strncmp
+0x0001e550:  cmp      w0, #0
+0x0001e554:  ccmp     x25, #0xe, #0, eq
+0x0001e558:  b.lo     #0x1e570
+0x0001e55c:  add      x8, x24, x25
+0x0001e560:  sub      x0, x8, #6
+0x0001e564:  mov      x1, x23
+0x0001e568:  bl       #0x22240    ; -> _strcmp
+0x0001e56c:  cbz      w0, #0x1e57c
+0x0001e570:  subs     x26, x26, #1
+0x0001e574:  b.ne     #0x1e504
+0x0001e578:  b        #0x1e5a8    ; -> sub_1e5a8
+0x0001e57c:  sub      x8, x25, #0xd
+0x0001e580:  cmp      x8, #0x3f
+0x0001e584:  mov      w9, #0x3f
+0x0001e588:  csel     x21, x8, x9, lo
+0x0001e58c:  add      x22, sp, #0x48
+0x0001e590:  add      x0, sp, #0x48
+0x0001e594:  add      x1, x24, #7
+0x0001e598:  mov      x2, x21
+0x0001e59c:  mov      w3, #0x40
+0x0001e5a0:  bl       #0x21dc0    ; -> ___memcpy_chk
+0x0001e5a4:  strb     wzr, [x22, x21]
+0x0001e5a8:  mov      x0, #0
+0x0001e5ac:  bl       #0x222c4    ; -> _time
+0x0001e5b0:  adrp     x8, #0x3b000
+0x0001e5b4:  ldr      x8, [x8, #0x260]
+0x0001e5b8:  ldr      x9, [x8, #0x440]
+0x0001e5bc:  sub      x9, x0, x9
+0x0001e5c0:  add      x8, x8, #0x400
+0x0001e5c4:  stp      x8, x20, [sp, #0x10]
+0x0001e5c8:  add      x8, sp, #0x48
+0x0001e5cc:  stp      x9, x8, [sp]
+0x0001e5d0:  adrp     x1, #0x28000
+0x0001e5d4:  add      x1, x1, #0x7f6    ; "omc-crash age=%ld suspect=%s last=%s how=%s
+"
+0x0001e5d8:  mov      x0, x19
+0x0001e5dc:  bl       #0x21f28    ; -> _dprintf
+0x0001e5e0:  ldur     x8, [x29, #-0x48]
+0x0001e5e4:  adrp     x9, #0x30000
+0x0001e5e8:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0001e5ec:  ldr      x9, [x9]
+0x0001e5f0:  cmp      x9, x8
+0x0001e5f4:  b.ne     #0x1e614
+0x0001e5f8:  ldp      x29, x30, [sp, #0xd0]
+0x0001e5fc:  ldp      x20, x19, [sp, #0xc0]
+0x0001e600:  ldp      x22, x21, [sp, #0xb0]
+0x0001e604:  ldp      x24, x23, [sp, #0xa0]
+0x0001e608:  ldp      x26, x25, [sp, #0x90]
+0x0001e60c:  add      sp, sp, #0xe0
+0x0001e610:  ret      
+0x0001e614:  bl       #0x21dd8    ; -> ___stack_chk_fail

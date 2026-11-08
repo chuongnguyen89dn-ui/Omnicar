@@ -1,0 +1,76 @@
+; sub_20838
+; VA 0x20838  size 292
+
+0x00020838:  sub      sp, sp, #0x40
+0x0002083c:  stp      x22, x21, [sp, #0x10]
+0x00020840:  stp      x20, x19, [sp, #0x20]
+0x00020844:  stp      x29, x30, [sp, #0x30]
+0x00020848:  add      x29, sp, #0x30
+0x0002084c:  mov      x19, x1
+0x00020850:  mov      x20, x0
+0x00020854:  mov      x0, x1
+0x00020858:  bl       #0x2212c    ; -> _objc_retain
+0x0002085c:  adrp     x8, #0x3b000
+0x00020860:  ldrb     w9, [x8, #0x340]
+0x00020864:  cmp      w9, w20
+0x00020868:  b.eq     #0x20944
+0x0002086c:  strb     w20, [x8, #0x340]
+0x00020870:  bl       #0x1fc3c    ; -> sub_1fc3c
+0x00020874:  adrp     x8, #0x3b000
+0x00020878:  str      d0, [x8, #0x360]
+0x0002087c:  tbz      w20, #0, #0x208e0
+0x00020880:  adrp     x8, #0x3b000
+0x00020884:  ldr      x9, [x8, #0x338]
+0x00020888:  add      x9, x9, #1
+0x0002088c:  str      x9, [x8, #0x338]
+0x00020890:  mov      x0, x19
+0x00020894:  bl       #0x2212c    ; -> _objc_retain
+0x00020898:  adrp     x8, #0x3b000
+0x0002089c:  ldr      x0, [x8, #0x228]
+0x000208a0:  str      x19, [x8, #0x228]
+0x000208a4:  bl       #0x22120    ; -> _objc_release
+0x000208a8:  mov      w0, #1
+0x000208ac:  bl       #0x1f93c    ; -> sub_1f93c
+0x000208b0:  adrp     x8, #0x3a000
+0x000208b4:  ldr      x22, [x8, #0x9c0]    ; class(NSString)
+0x000208b8:  adrp     x0, #0x34000
+0x000208bc:  add      x0, x0, #0x468    ; @" vi "
+0x000208c0:  mov      x2, x19
+0x000208c4:  bl       #0x25b40    ; -> _objc_msgSend(stringByAppendingString:)
+0x000208c8:  mov      x29, x29
+0x000208cc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000208d0:  mov      x21, x0
+0x000208d4:  adrp     x8, #0x34000
+0x000208d8:  add      x8, x8, #0x428    ; @"BAT"
+0x000208dc:  b        #0x20900    ; -> sub_20900
+0x000208e0:  mov      w0, #0
+0x000208e4:  bl       #0x1f93c    ; -> sub_1f93c
+0x000208e8:  adrp     x8, #0x3a000
+0x000208ec:  ldr      x22, [x8, #0x9c0]    ; class(NSString)
+0x000208f0:  adrp     x21, #0x32000
+0x000208f4:  add      x21, x21, #0x9c8    ; @""
+0x000208f8:  adrp     x8, #0x34000
+0x000208fc:  add      x8, x8, #0x448    ; @"tat"
+0x00020900:  stp      x8, x21, [sp]
+0x00020904:  adrp     x2, #0x34000
+0x00020908:  add      x2, x2, #0x408    ; @"che do nhe tu dong: %@%@"
+0x0002090c:  mov      x0, x22
+0x00020910:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00020914:  mov      x29, x29
+0x00020918:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0002091c:  mov      x22, x0
+0x00020920:  adrp     x0, #0x33000
+0x00020924:  add      x0, x0, #0xe08    ; @"Core"
+0x00020928:  mov      x1, x22
+0x0002092c:  bl       #0x1b620    ; -> OMCLogWrite
+0x00020930:  mov      x0, x22
+0x00020934:  bl       #0x22120    ; -> _objc_release
+0x00020938:  cbz      w20, #0x20944
+0x0002093c:  mov      x0, x21
+0x00020940:  bl       #0x22120    ; -> _objc_release
+0x00020944:  mov      x0, x19
+0x00020948:  ldp      x29, x30, [sp, #0x30]
+0x0002094c:  ldp      x20, x19, [sp, #0x20]
+0x00020950:  ldp      x22, x21, [sp, #0x10]
+0x00020954:  add      sp, sp, #0x40
+0x00020958:  b        #0x22120    ; -> _objc_release

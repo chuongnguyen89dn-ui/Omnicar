@@ -1,0 +1,25 @@
+; ==== BLOCK_floatDockBack_anim  @0x140ec..0x1414c (96 bytes) ====
+000140ec  sub      sp, sp, #0x80                                
+000140f0  stp      x20, x19, [sp, #0x60]                        
+000140f4  stp      x29, x30, [sp, #0x70]                        
+000140f8  add      x29, sp, #0x70                               
+000140fc  mov      x19, x0                                      
+00014100  ldr      x0, [x0, #0x20]                              
+00014104  fmov     d0, xzr                                      
+00014108  bl       #0x5a7c0                                     ; msgSend "setAlpha:"
+0001410c  adrp     x8, #0x6f000                                 
+00014110  ldr      d0, [x8, #0x80]                              ; double 0.8
+00014114  add      x8, sp, #0x30                                
+00014118  mov      v1.16b, v0.16b                               
+0001411c  bl       #0x561dc                                     ; call _CGAffineTransformMakeScale
+00014120  ldp      q0, q1, [sp, #0x30]                          
+00014124  stp      q0, q1, [sp]                                 
+00014128  ldr      q0, [sp, #0x50]                              
+0001412c  str      q0, [sp, #0x20]                              
+00014130  ldr      x0, [x19, #0x20]                             
+00014134  mov      x2, sp                                       
+00014138  bl       #0x5bc60                                     ; msgSend "setTransform:"
+0001413c  ldp      x29, x30, [sp, #0x70]                        
+00014140  ldp      x20, x19, [sp, #0x60]                        
+00014144  add      sp, sp, #0x80                                
+00014148  ret                                                   

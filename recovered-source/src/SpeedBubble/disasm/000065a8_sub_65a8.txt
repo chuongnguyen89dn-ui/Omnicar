@@ -1,0 +1,39 @@
+# sub_65a8
+# addr 0x65a8 .. 0x6638  (144 bytes)
+
+000065a8  sub      sp, sp, #0x30                               
+000065ac  stp      x20, x19, [sp, #0x10]                       
+000065b0  stp      x29, x30, [sp, #0x20]                       
+000065b4  add      x29, sp, #0x20                              
+000065b8  adrp     x19, #0x43000                               
+000065bc  ldr      w8, [x19, #0x800]                           ; [0x43800] __DATA,__bss+0x60
+000065c0  cmp      w8, #2                                      
+000065c4  b.ge     #0x65d0                                     
+000065c8  mov      w0, #1                                      
+000065cc  b        #0x6620                                     ; sub_6620
+000065d0  adrp     x20, #0x43000                               
+000065d4  ldr      w0, [x20, #0x840]                           ; [0x43840] __DATA,__bss+0xa0
+000065d8  cbz      w0, #0x6600                                 
+000065dc  mov      w8, #0xff                                   
+000065e0  str      x8, [sp, #8]                                
+000065e4  add      x1, sp, #8                                  
+000065e8  bl       #0x27ecc                                    ; _notify_get_state
+000065ec  ldr      x8, [sp, #8]                                
+000065f0  ldr      w9, [x19, #0x800]                           ; [0x43800] __DATA,__bss+0x60
+000065f4  cmp      x8, x9                                      
+000065f8  cset     w0, eq                                      
+000065fc  b        #0x6620                                     ; sub_6620
+00006600  adrp     x0, #0x2d000                                
+00006604  add      x0, x0, #0xde2                              ; "com.anlai.omnicar/speedbubble.source"
+00006608  adrp     x1, #0x43000                                
+0000660c  add      x1, x1, #0x840                              ; __DATA,__bss+0xa0
+00006610  bl       #0x27ee4                                    ; _notify_register_check
+00006614  cbz      w0, #0x6630                                 
+00006618  mov      w0, #0                                      
+0000661c  str      wzr, [x20, #0x840]                          
+00006620  ldp      x29, x30, [sp, #0x20]                       
+00006624  ldp      x20, x19, [sp, #0x10]                       
+00006628  add      sp, sp, #0x30                               
+0000662c  ret                                                  
+00006630  ldr      w0, [x20, #0x840]                           ; [0x43840] __DATA,__bss+0xa0
+00006634  b        #0x65dc                                     ; sub_65dc

@@ -1,0 +1,70 @@
+; sub_1d624
+; VA 0x1d624  size 268
+
+0x0001d624:  mov      x3, #0
+0x0001d628:  mov      x4, x21
+0x0001d62c:  bl       #0x224c0    ; -> _objc_msgSend(addObserverForName:object:queue:usingBlock:)
+0x0001d630:  mov      x29, x29
+0x0001d634:  bl       #0x221a4    ; -> _objc_unsafeClaimAutoreleasedReturnValue
+0x0001d638:  mov      x0, x21
+0x0001d63c:  bl       #0x22120    ; -> _objc_release
+0x0001d640:  mov      x0, x19
+0x0001d644:  bl       #0x22120    ; -> _objc_release
+0x0001d648:  bl       #0x1e23c    ; -> sub_1e23c
+0x0001d64c:  ldr      x0, [sp, #0x40]
+0x0001d650:  bl       #0x22120    ; -> _objc_release
+0x0001d654:  mov      x0, x27
+0x0001d658:  bl       #0x22120    ; -> _objc_release
+0x0001d65c:  ldr      x0, [sp, #0x38]
+0x0001d660:  bl       #0x22120    ; -> _objc_release
+0x0001d664:  ldr      x0, [sp, #0x48]
+0x0001d668:  bl       #0x22120    ; -> _objc_release
+0x0001d66c:  adrp     x22, #0x3a000
+0x0001d670:  adrp     x20, #0x3a000
+0x0001d674:  ldr      x19, [x20, #0xa98]    ; class(NSMutableDictionary)
+0x0001d678:  bl       #0x1da18    ; -> sub_1da18
+0x0001d67c:  mov      x29, x29
+0x0001d680:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d684:  mov      x23, x20
+0x0001d688:  mov      x20, x0
+0x0001d68c:  mov      x0, x19
+0x0001d690:  mov      x2, x20
+0x0001d694:  bl       #0x230e0    ; -> _objc_msgSend(dictionaryWithContentsOfFile:)
+0x0001d698:  mov      x29, x29
+0x0001d69c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d6a0:  mov      x21, x0
+0x0001d6a4:  cbz      x0, #0x1d6b8
+0x0001d6a8:  mov      x0, x21
+0x0001d6ac:  bl       #0x2212c    ; -> _objc_retain
+0x0001d6b0:  mov      x19, x21
+0x0001d6b4:  b        #0x1d6cc    ; -> sub_1d6cc
+0x0001d6b8:  ldr      x0, [x23, #0xa98]
+0x0001d6bc:  bl       #0x230c0    ; -> _objc_msgSend(dictionary)
+0x0001d6c0:  mov      x29, x29
+0x0001d6c4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d6c8:  mov      x19, x0
+0x0001d6cc:  mov      x0, x21
+0x0001d6d0:  bl       #0x22120    ; -> _objc_release
+0x0001d6d4:  mov      x0, x20
+0x0001d6d8:  bl       #0x22120    ; -> _objc_release
+0x0001d6dc:  adrp     x2, #0x33000
+0x0001d6e0:  add      x2, x2, #0xe48    ; @"features"
+0x0001d6e4:  mov      x0, x19
+0x0001d6e8:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x0001d6ec:  mov      x29, x29
+0x0001d6f0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001d6f4:  mov      x21, x0
+0x0001d6f8:  cmp      x0, #0
+0x0001d6fc:  adrp     x8, #0x30000
+0x0001d700:  ldr      x8, [x8, #0x208]    ; got(___NSArray0__struct)
+0x0001d704:  csel     x20, x8, x0, eq
+0x0001d708:  mov      x0, x20
+0x0001d70c:  bl       #0x2212c    ; -> _objc_retain
+0x0001d710:  mov      x0, x21
+0x0001d714:  bl       #0x22120    ; -> _objc_release
+0x0001d718:  mov      x0, x20
+0x0001d71c:  mov      x2, x26
+0x0001d720:  bl       #0x22d20    ; -> _objc_msgSend(containsObject:)
+0x0001d724:  tbnz     w0, #0, #0x1d784
+0x0001d728:  mov      x0, x20
+0x0001d72c:  mov      x2, x26

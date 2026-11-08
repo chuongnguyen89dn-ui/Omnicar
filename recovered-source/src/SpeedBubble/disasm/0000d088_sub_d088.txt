@@ -1,0 +1,35 @@
+# sub_d088
+# addr 0xd088 .. 0xd108  (128 bytes)
+
+0000d088  stp      x20, x19, [sp, #-0x20]!                     
+0000d08c  stp      x29, x30, [sp, #0x10]                       
+0000d090  add      x29, sp, #0x10                              
+0000d094  adrp     x19, #0x43000                               
+0000d098  ldr      w8, [x19, #0x8b0]                           ; [0x438b0] __DATA,__bss+0x110
+0000d09c  cbz      w8, #0xd0e0                                 
+0000d0a0  adrp     x20, #0x43000                               
+0000d0a4  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0000d0a8  bl       #0x29320                                    ; objc_msgSend$enabled
+0000d0ac  cbz      w0, #0xd0c0                                 
+0000d0b0  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0000d0b4  bl       #0x2bf40                                    ; objc_msgSend$source
+0000d0b8  sxtw     x1, w0                                      
+0000d0bc  b        #0xd0c4                                     ; sub_d0c4
+0000d0c0  mov      w1, #0xff                                   
+0000d0c4  ldr      w0, [x19, #0x8b0]                           ; [0x438b0] __DATA,__bss+0x110
+0000d0c8  bl       #0x27efc                                    ; _notify_set_state
+0000d0cc  adrp     x0, #0x2d000                                
+0000d0d0  add      x0, x0, #0xde2                              ; "com.anlai.omnicar/speedbubble.source"
+0000d0d4  ldp      x29, x30, [sp, #0x10]                       
+0000d0d8  ldp      x20, x19, [sp], #0x20                       
+0000d0dc  b        #0x27ed8                                    ; _notify_post
+0000d0e0  adrp     x0, #0x2d000                                
+0000d0e4  add      x0, x0, #0xde2                              ; "com.anlai.omnicar/speedbubble.source"
+0000d0e8  adrp     x1, #0x43000                                
+0000d0ec  add      x1, x1, #0x8b0                              ; __DATA,__bss+0x110
+0000d0f0  bl       #0x27ee4                                    ; _notify_register_check
+0000d0f4  cbz      w0, #0xd0a0                                 
+0000d0f8  str      wzr, [x19, #0x8b0]                          
+0000d0fc  ldp      x29, x30, [sp, #0x10]                       
+0000d100  ldp      x20, x19, [sp], #0x20                       
+0000d104  ret                                                  

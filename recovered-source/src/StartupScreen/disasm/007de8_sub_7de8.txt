@@ -1,0 +1,140 @@
+; sub_7de8
+; VA 0x7de8  size 548
+
+0x00007de8:  bl       #0x25e00    ; -> _objc_msgSend(timeIntervalSinceNow)
+0x00007dec:  fneg     d0, d0
+0x00007df0:  str      d0, [sp]
+0x00007df4:  adrp     x2, #0x31000
+0x00007df8:  add      x2, x2, #0xda8    ; @"%.0fs old"
+0x00007dfc:  mov      x0, x23
+0x00007e00:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00007e04:  mov      x29, x29
+0x00007e08:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00007e0c:  mov      x24, x0
+0x00007e10:  b        #0x7e1c    ; -> sub_7e1c
+0x00007e14:  adrp     x24, #0x31000
+0x00007e18:  add      x24, x24, #0xdc8    ; @"none"
+0x00007e1c:  sub      w25, w22, #3
+0x00007e20:  stp      x22, x24, [sp]
+0x00007e24:  adrp     x2, #0x31000
+0x00007e28:  add      x2, x2, #0xd88    ; @"weather: SpringBoard location status %d, last fix %@"
+0x00007e2c:  mov      x0, x23
+0x00007e30:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00007e34:  mov      x29, x29
+0x00007e38:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00007e3c:  mov      x22, x0
+0x00007e40:  adrp     x0, #0x30000
+0x00007e44:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00007e48:  mov      x1, x22
+0x00007e4c:  bl       #0x1b620    ; -> OMCLogWrite
+0x00007e50:  mov      x0, x22
+0x00007e54:  bl       #0x22120    ; -> _objc_release
+0x00007e58:  cbz      x20, #0x7ed0
+0x00007e5c:  mov      x0, x24
+0x00007e60:  bl       #0x22120    ; -> _objc_release
+0x00007e64:  mov      x0, x21
+0x00007e68:  bl       #0x22120    ; -> _objc_release
+0x00007e6c:  cmp      w25, #2
+0x00007e70:  b.hs     #0x7fd8
+0x00007e74:  mov      x0, x20
+0x00007e78:  bl       #0x25e40    ; -> _objc_msgSend(timestamp)
+0x00007e7c:  mov      x29, x29
+0x00007e80:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00007e84:  mov      x21, x0
+0x00007e88:  bl       #0x25e00    ; -> _objc_msgSend(timeIntervalSinceNow)
+0x00007e8c:  mov      v8.16b, v0.16b
+0x00007e90:  mov      x0, x21
+0x00007e94:  bl       #0x22120    ; -> _objc_release
+0x00007e98:  adrp     x8, #0x28000
+0x00007e9c:  ldr      d0, [x8, #0xdf8]
+0x00007ea0:  fcmp     d8, d0
+0x00007ea4:  b.le     #0x7ed8
+0x00007ea8:  mov      x0, x20
+0x00007eac:  bl       #0x22dc0    ; -> _objc_msgSend(coordinate)
+0x00007eb0:  mov      v8.16b, v0.16b
+0x00007eb4:  mov      x0, x20
+0x00007eb8:  bl       #0x22dc0    ; -> _objc_msgSend(coordinate)
+0x00007ebc:  adrp     x0, #0x31000
+0x00007ec0:  add      x0, x0, #0xde8    ; @"last CoreLocation"
+0x00007ec4:  mov      v0.16b, v8.16b
+0x00007ec8:  bl       #0x9f1c    ; -> sub_9f1c
+0x00007ecc:  b        #0x7fdc    ; -> sub_7fdc
+0x00007ed0:  cmp      w25, #2
+0x00007ed4:  b.hs     #0x7fd8
+0x00007ed8:  adrp     x8, #0x3a000
+0x00007edc:  ldr      x0, [x8, #0xad8]    ; class(SSLocationOnce)
+0x00007ee0:  bl       #0x220fc    ; -> _objc_opt_new
+0x00007ee4:  mov      x21, x0
+0x00007ee8:  adrp     x8, #0x30000
+0x00007eec:  ldr      x8, [x8, #0x340]    ; got(_kCLLocationAccuracyKilometer)
+0x00007ef0:  ldr      d0, [x8]
+0x00007ef4:  mov      x0, x19
+0x00007ef8:  bl       #0x24800    ; -> _objc_msgSend(setDesiredAccuracy:)
+0x00007efc:  mov      x0, x19
+0x00007f00:  mov      x2, x21
+0x00007f04:  bl       #0x247e0    ; -> _objc_msgSend(setDelegate:)
+0x00007f08:  mov      x0, x21
+0x00007f0c:  mov      x2, x19
+0x00007f10:  bl       #0x24bc0    ; -> _objc_msgSend(setManager:)
+0x00007f14:  adrp     x2, #0x30000
+0x00007f18:  add      x2, x2, #0xaa8    ; block_lit(invoke=0x9f9c sub_9f9c, sig=v16@?0@"CLLocation"8)
+0x00007f1c:  mov      x0, x21
+0x00007f20:  bl       #0x24860    ; -> _objc_msgSend(setDone:)
+0x00007f24:  adrp     x8, #0x3b000
+0x00007f28:  ldr      x22, [x8, #0x190]
+0x00007f2c:  str      x21, [x8, #0x190]
+0x00007f30:  mov      x0, x21
+0x00007f34:  bl       #0x2212c    ; -> _objc_retain
+0x00007f38:  mov      x0, x22
+0x00007f3c:  bl       #0x22120    ; -> _objc_release
+0x00007f40:  mov      x0, x19
+0x00007f44:  bl       #0x25a80    ; -> _objc_msgSend(startUpdatingLocation)
+0x00007f48:  add      x0, sp, #0x38
+0x00007f4c:  mov      x1, x21
+0x00007f50:  bl       #0x220b4    ; -> _objc_initWeak
+0x00007f54:  mov      x0, x21
+0x00007f58:  bl       #0x22120    ; -> _objc_release
+0x00007f5c:  mov      x1, #0xbc00
+0x00007f60:  movk     x1, #0x65a0, lsl #16
+0x00007f64:  movk     x1, #1, lsl #32
+0x00007f68:  mov      x0, #0
+0x00007f6c:  bl       #0x21ef8    ; -> _dispatch_time
+0x00007f70:  mov      x21, x0
+0x00007f74:  adrp     x8, #0x30000
+0x00007f78:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x00007f7c:  str      x8, [sp, #0x10]
+0x00007f80:  adrp     x8, #0x28000
+0x00007f84:  ldr      d0, [x8, #0xdd0]
+0x00007f88:  adrp     x8, #0xa000
+0x00007f8c:  add      x8, x8, #0xc
+0x00007f90:  str      d0, [sp, #0x18]
+0x00007f94:  adrp     x9, #0x30000
+0x00007f98:  add      x9, x9, #0x6f8
+0x00007f9c:  stp      x8, x9, [sp, #0x20]
+0x00007fa0:  add      x22, sp, #0x10
+0x00007fa4:  add      x0, x22, #0x20
+0x00007fa8:  add      x1, sp, #0x38
+0x00007fac:  bl       #0x2206c    ; -> _objc_copyWeak
+0x00007fb0:  adrp     x1, #0x30000
+0x00007fb4:  ldr      x1, [x1, #0x388]    ; got(__dispatch_main_q)
+0x00007fb8:  add      x2, sp, #0x10
+0x00007fbc:  mov      x0, x21
+0x00007fc0:  bl       #0x21e8c    ; -> _dispatch_after
+0x00007fc4:  add      x0, x22, #0x20
+0x00007fc8:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00007fcc:  add      x0, sp, #0x38
+0x00007fd0:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00007fd4:  b        #0x7fdc    ; -> sub_7fdc
+0x00007fd8:  bl       #0x9b7c    ; -> sub_9b7c
+0x00007fdc:  mov      x0, x20
+0x00007fe0:  bl       #0x22120    ; -> _objc_release
+0x00007fe4:  mov      x0, x19
+0x00007fe8:  bl       #0x22120    ; -> _objc_release
+0x00007fec:  ldp      x29, x30, [sp, #0x90]
+0x00007ff0:  ldp      x20, x19, [sp, #0x80]
+0x00007ff4:  ldp      x22, x21, [sp, #0x70]
+0x00007ff8:  ldp      x24, x23, [sp, #0x60]
+0x00007ffc:  ldp      x26, x25, [sp, #0x50]
+0x00008000:  ldp      d9, d8, [sp, #0x40]
+0x00008004:  add      sp, sp, #0xa0
+0x00008008:  ret      

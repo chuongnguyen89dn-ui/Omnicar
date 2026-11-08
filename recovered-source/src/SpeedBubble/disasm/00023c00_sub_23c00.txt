@@ -1,0 +1,15 @@
+# sub_23c00
+# addr 0x23c00 .. 0x23c30  (48 bytes)
+
+00023c00  stp      x29, x30, [sp, #-0x10]!                     
+00023c04  mov      x29, sp                                     
+00023c08  adrp     x0, #0x2f000                                
+00023c0c  add      x0, x0, #0x52a                              ; "com.anlai.omnicar.log"
+00023c10  mov      x1, #0                                      
+00023c14  bl       #0x27d7c                                    ; _dispatch_queue_create
+00023c18  adrp     x9, #0x43000                                
+00023c1c  ldr      x8, [x9, #0xa80]                            ; [0x43a80] __DATA,__bss+0x2e0
+00023c20  str      x0, [x9, #0xa80]                            
+00023c24  mov      x0, x8                                      
+00023c28  ldp      x29, x30, [sp], #0x10                       
+00023c2c  b        #0x27ff8                                    ; _objc_release

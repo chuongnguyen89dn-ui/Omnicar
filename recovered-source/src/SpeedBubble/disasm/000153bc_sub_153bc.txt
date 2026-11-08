@@ -1,0 +1,97 @@
+# sub_153bc
+# addr 0x153bc .. 0x15534  (376 bytes)
+
+000153bc  stp      d13, d12, [sp, #-0x60]!                     
+000153c0  stp      d11, d10, [sp, #0x10]                       
+000153c4  stp      d9, d8, [sp, #0x20]                         
+000153c8  stp      x22, x21, [sp, #0x30]                       
+000153cc  stp      x20, x19, [sp, #0x40]                       
+000153d0  stp      x29, x30, [sp, #0x50]                       
+000153d4  add      x29, sp, #0x50                              
+000153d8  mov      x20, x1                                     
+000153dc  mov      x19, x0                                     
+000153e0  mov      x0, x1                                      
+000153e4  bl       #0x28004                                    ; _objc_retain
+000153e8  mov      x0, x19                                     
+000153ec  bl       #0x28004                                    ; _objc_retain
+000153f0  mov      x0, x20                                     
+000153f4  bl       #0x29540                                    ; objc_msgSend$frame
+000153f8  bl       #0x27bcc                                    ; _CGRectGetMinY
+000153fc  mov      v8.16b, v0.16b                              
+00015400  mov      x0, x20                                     
+00015404  bl       #0x294a0                                    ; objc_msgSend$font
+00015408  mov      x29, x29                                    
+0001540c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00015410  mov      x21, x0                                     
+00015414  bl       #0x288a0                                    ; objc_msgSend$ascender
+00015418  fadd     d9, d8, d0                                  
+0001541c  mov      x0, x20                                     
+00015420  bl       #0x29540                                    ; objc_msgSend$frame
+00015424  mov      v8.16b, v3.16b                              
+00015428  mov      x0, x20                                     
+0001542c  bl       #0x294a0                                    ; objc_msgSend$font
+00015430  mov      x29, x29                                    
+00015434  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00015438  mov      x22, x0                                     
+0001543c  bl       #0x29c00                                    ; objc_msgSend$lineHeight
+00015440  fsub     d0, d8, d0                                  
+00015444  fmov     d1, #0.50000000                             
+00015448  fmul     d0, d0, d1                                  
+0001544c  fadd     d13, d9, d0                                 
+00015450  mov      x0, x22                                     
+00015454  bl       #0x27ff8                                    ; _objc_release
+00015458  mov      x0, x21                                     
+0001545c  bl       #0x27ff8                                    ; _objc_release
+00015460  mov      x8, #0x4069000000000000                     
+00015464  fmov     d0, x8                                      
+00015468  mov      x8, #0x4044000000000000                     
+0001546c  fmov     d1, x8                                      
+00015470  mov      x0, x19                                     
+00015474  bl       #0x2bf00                                    ; objc_msgSend$sizeThatFits:
+00015478  frintp   d8, d0                                      
+0001547c  mov      x0, x20                                     
+00015480  bl       #0x29540                                    ; objc_msgSend$frame
+00015484  mov      v9.16b, v0.16b                              
+00015488  mov      v10.16b, v1.16b                             
+0001548c  mov      v11.16b, v2.16b                             
+00015490  mov      v12.16b, v3.16b                             
+00015494  mov      x0, x20                                     
+00015498  bl       #0x27ff8                                    ; _objc_release
+0001549c  mov      v0.16b, v9.16b                              
+000154a0  mov      v1.16b, v10.16b                             
+000154a4  mov      v2.16b, v11.16b                             
+000154a8  mov      v3.16b, v12.16b                             
+000154ac  bl       #0x27b9c                                    ; _CGRectGetMaxX
+000154b0  fmov     d1, #4.00000000                             
+000154b4  fadd     d9, d0, d1                                  
+000154b8  mov      x0, x19                                     
+000154bc  bl       #0x294a0                                    ; objc_msgSend$font
+000154c0  mov      x29, x29                                    
+000154c4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000154c8  mov      x20, x0                                     
+000154cc  bl       #0x288a0                                    ; objc_msgSend$ascender
+000154d0  fsub     d10, d13, d0                                
+000154d4  mov      x0, x19                                     
+000154d8  bl       #0x294a0                                    ; objc_msgSend$font
+000154dc  mov      x29, x29                                    
+000154e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000154e4  mov      x21, x0                                     
+000154e8  bl       #0x29c00                                    ; objc_msgSend$lineHeight
+000154ec  mov      v3.16b, v0.16b                              
+000154f0  mov      x0, x19                                     
+000154f4  mov      v0.16b, v9.16b                              
+000154f8  mov      v1.16b, v10.16b                             
+000154fc  mov      v2.16b, v8.16b                              
+00015500  bl       #0x2afc0                                    ; objc_msgSend$setFrame:
+00015504  mov      x0, x19                                     
+00015508  bl       #0x27ff8                                    ; _objc_release
+0001550c  mov      x0, x21                                     
+00015510  bl       #0x27ff8                                    ; _objc_release
+00015514  mov      x0, x20                                     
+00015518  ldp      x29, x30, [sp, #0x50]                       
+0001551c  ldp      x20, x19, [sp, #0x40]                       
+00015520  ldp      x22, x21, [sp, #0x30]                       
+00015524  ldp      d9, d8, [sp, #0x20]                         
+00015528  ldp      d11, d10, [sp, #0x10]                       
+0001552c  ldp      d13, d12, [sp], #0x60                       
+00015530  b        #0x27ff8                                    ; _objc_release

@@ -1,0 +1,272 @@
+; -[SSStartupView ss_applyMotes:]
+; VA 0x10cf0  size 1076
+
+0x00010cf0:  stp      d15, d14, [sp, #-0xa0]!
+0x00010cf4:  stp      d13, d12, [sp, #0x10]
+0x00010cf8:  stp      d11, d10, [sp, #0x20]
+0x00010cfc:  stp      d9, d8, [sp, #0x30]
+0x00010d00:  stp      x28, x27, [sp, #0x40]
+0x00010d04:  stp      x26, x25, [sp, #0x50]
+0x00010d08:  stp      x24, x23, [sp, #0x60]
+0x00010d0c:  stp      x22, x21, [sp, #0x70]
+0x00010d10:  stp      x20, x19, [sp, #0x80]
+0x00010d14:  stp      x29, x30, [sp, #0x90]
+0x00010d18:  add      x29, sp, #0x90
+0x00010d1c:  sub      sp, sp, #0x200
+0x00010d20:  mov      v8.16b, v0.16b
+0x00010d24:  mov      x19, x0
+0x00010d28:  adrp     x8, #0x3a000
+0x00010d2c:  ldrsw    x23, [x8, #0xd3c]
+0x00010d30:  ldr      x0, [x0, x23]
+0x00010d34:  bl       #0x22e00    ; -> _objc_msgSend(count)
+0x00010d38:  cbz      x0, #0x110f4
+0x00010d3c:  mov      x20, x0
+0x00010d40:  adrp     x8, #0x3a000
+0x00010d44:  ldrsw    x8, [x8, #0xd38]
+0x00010d48:  ldr      x0, [x19, x8]
+0x00010d4c:  bl       #0x22960    ; -> _objc_msgSend(bytes)
+0x00010d50:  mov      x21, #0
+0x00010d54:  adrp     x8, #0x3a000
+0x00010d58:  ldrsw    x8, [x8, #0xd80]
+0x00010d5c:  ldr      d11, [x19, x8]
+0x00010d60:  adrp     x8, #0x3a000
+0x00010d64:  ldrsw    x8, [x8, #0xd08]
+0x00010d68:  add      x8, x19, x8
+0x00010d6c:  ldp      d1, d2, [x8]
+0x00010d70:  mov      x8, #0x4049000000000000
+0x00010d74:  fmov     d0, x8
+0x00010d78:  fmul     d4, d8, d0
+0x00010d7c:  mov      x8, #0x405e000000000000
+0x00010d80:  fmov     d0, x8
+0x00010d84:  fmadd    d3, d11, d0, d2
+0x00010d88:  stp      d3, d4, [sp, #0x60]
+0x00010d8c:  fnmadd   d4, d11, d0, d2
+0x00010d90:  fmov     d0, #30.00000000
+0x00010d94:  fmadd    d5, d11, d0, d2
+0x00010d98:  fnmadd   d0, d11, d0, d2
+0x00010d9c:  stp      d0, d4, [sp, #0x18]
+0x00010da0:  mov      x8, #0x4044000000000000
+0x00010da4:  fmov     d0, x8
+0x00010da8:  fmadd    d3, d11, d0, d2
+0x00010dac:  stp      d3, d5, [sp, #0x50]
+0x00010db0:  fnmadd   d0, d11, d0, d2
+0x00010db4:  str      d0, [sp, #0x10]
+0x00010db8:  adrp     x8, #0x28000
+0x00010dbc:  ldr      d0, [x8, #0xee8]
+0x00010dc0:  fmadd    d3, d11, d0, d1
+0x00010dc4:  str      d3, [sp, #0x48]
+0x00010dc8:  str      d1, [sp, #0x70]
+0x00010dcc:  fnmadd   d0, d11, d0, d1
+0x00010dd0:  str      d0, [sp, #8]
+0x00010dd4:  adrp     x8, #0x28000
+0x00010dd8:  ldr      d0, [x8, #0xdf0]
+0x00010ddc:  str      d0, [sp, #0x40]
+0x00010de0:  adrp     x8, #0x28000
+0x00010de4:  ldr      d0, [x8, #0xef8]
+0x00010de8:  str      d0, [sp, #0x38]
+0x00010dec:  adrp     x8, #0x28000
+0x00010df0:  ldr      d1, [x8, #0xef0]
+0x00010df4:  mov      x24, #0x404e000000000000
+0x00010df8:  fmov     d0, x24
+0x00010dfc:  fmul     d0, d8, d0
+0x00010e00:  stp      d0, d1, [sp, #0x28]
+0x00010e04:  str      d2, [sp, #0x78]
+0x00010e08:  fneg     d0, d2
+0x00010e0c:  str      d0, [sp]
+0x00010e10:  add      x25, x0, #0x18
+0x00010e14:  ldur     x26, [x25, #-0x18]
+0x00010e18:  ldp      d9, d10, [x25, #-0x10]
+0x00010e1c:  ldp      d12, d13, [x25]
+0x00010e20:  ldp      d14, d15, [x25, #0x10]
+0x00010e24:  ldr      x0, [x19, x23]
+0x00010e28:  mov      x2, x21
+0x00010e2c:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x00010e30:  mov      x29, x29
+0x00010e34:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00010e38:  mov      x22, x0
+0x00010e3c:  cmp      x26, #3
+0x00010e40:  b.gt     #0x10e80
+0x00010e44:  cmp      x26, #1
+0x00010e48:  b.gt     #0x10f14
+0x00010e4c:  cbz      x26, #0x10f98
+0x00010e50:  cmp      x26, #1
+0x00010e54:  b.ne     #0x110dc
+0x00010e58:  fmov     d0, #2.00000000
+0x00010e5c:  fmadd    d0, d8, d0, d15
+0x00010e60:  bl       #0x22228    ; -> _sin
+0x00010e64:  fabs     d0, d0
+0x00010e68:  ldp      d2, d1, [sp, #0x38]
+0x00010e6c:  fmadd    d0, d0, d2, d1
+0x00010e70:  fcvt     s0, d0
+0x00010e74:  mov      x0, x22
+0x00010e78:  bl       #0x24e00    ; -> _objc_msgSend(setOpacity:)
+0x00010e7c:  b        #0x110dc    ; -> sub_110dc
+0x00010e80:  cmp      x26, #5
+0x00010e84:  b.gt     #0x10f54
+0x00010e88:  cmp      x26, #4
+0x00010e8c:  b.eq     #0x10fcc
+0x00010e90:  cmp      x26, #5
+0x00010e94:  b.ne     #0x110dc
+0x00010e98:  fmadd    d0, d8, d14, d15
+0x00010e9c:  bl       #0x22228    ; -> _sin
+0x00010ea0:  fmadd    d1, d8, d12, d10
+0x00010ea4:  ldr      d2, [sp, #0x50]
+0x00010ea8:  fcmp     d2, #0.0
+0x00010eac:  b.le     #0x10ec0
+0x00010eb0:  fdiv     d2, d1, d2
+0x00010eb4:  frintm   d2, d2
+0x00010eb8:  ldr      d3, [sp, #0x10]
+0x00010ebc:  fmadd    d1, d3, d2, d1
+0x00010ec0:  fmov     d2, #30.00000000
+0x00010ec4:  fmul     d0, d0, d2
+0x00010ec8:  fmadd    d0, d0, d11, d9
+0x00010ecc:  fmov     d2, #-20.00000000
+0x00010ed0:  fmadd    d1, d11, d2, d1
+0x00010ed4:  mov      x0, x22
+0x00010ed8:  bl       #0x24ee0    ; -> _objc_msgSend(setPosition:)
+0x00010edc:  fadd     d0, d8, d15
+0x00010ee0:  add      x8, sp, #0x180
+0x00010ee4:  fmov     d1, xzr
+0x00010ee8:  fmov     d2, xzr
+0x00010eec:  fmov     d3, #1.00000000
+0x00010ef0:  bl       #0x21b20    ; -> _CATransform3DMakeRotation
+0x00010ef4:  ldp      q0, q1, [sp, #0x1c0]
+0x00010ef8:  stp      q0, q1, [sp, #0x140]
+0x00010efc:  ldp      q0, q1, [sp, #0x1e0]
+0x00010f00:  stp      q0, q1, [sp, #0x160]
+0x00010f04:  ldp      q0, q1, [sp, #0x180]
+0x00010f08:  stp      q0, q1, [sp, #0x100]
+0x00010f0c:  ldp      q0, q1, [sp, #0x1a0]
+0x00010f10:  b        #0x110cc    ; -> sub_110cc
+0x00010f14:  cmp      x26, #2
+0x00010f18:  b.eq     #0x11014
+0x00010f1c:  cmp      x26, #3
+0x00010f20:  b.ne     #0x110dc
+0x00010f24:  fmadd    d0, d8, d12, d9
+0x00010f28:  ldr      d1, [sp, #0x70]
+0x00010f2c:  fadd     d1, d1, d14
+0x00010f30:  fcmp     d1, #0.0
+0x00010f34:  b.le     #0x10f44
+0x00010f38:  fdiv     d2, d0, d1
+0x00010f3c:  frintm   d2, d2
+0x00010f40:  fmsub    d0, d1, d2, d0
+0x00010f44:  fmov     d1, #-0.50000000
+0x00010f48:  fmul     d1, d14, d1
+0x00010f4c:  fadd     d0, d0, d1
+0x00010f50:  b        #0x1103c    ; -> sub_1103c
+0x00010f54:  cmp      x26, #6
+0x00010f58:  b.eq     #0x1104c
+0x00010f5c:  cmp      x26, #7
+0x00010f60:  b.ne     #0x110dc
+0x00010f64:  ldp      d1, d0, [sp, #0x60]
+0x00010f68:  fmadd    d0, d0, d11, d15
+0x00010f6c:  fcmp     d1, #0.0
+0x00010f70:  b.le     #0x10f84
+0x00010f74:  fdiv     d1, d0, d1
+0x00010f78:  frintm   d1, d1
+0x00010f7c:  ldr      d2, [sp, #0x20]
+0x00010f80:  fmadd    d0, d2, d1, d0
+0x00010f84:  ldr      d1, [sp, #0x78]
+0x00010f88:  fsub     d0, d1, d0
+0x00010f8c:  fmov     d1, x24
+0x00010f90:  fmadd    d1, d11, d1, d0
+0x00010f94:  b        #0x10fc0    ; -> sub_10fc0
+0x00010f98:  ldr      d0, [sp, #0x28]
+0x00010f9c:  fmul     d0, d0, d12
+0x00010fa0:  fmadd    d1, d0, d11, d10
+0x00010fa4:  ldr      d0, [sp, #0x78]
+0x00010fa8:  fcmp     d0, #0.0
+0x00010fac:  b.le     #0x10fc0
+0x00010fb0:  fdiv     d0, d1, d0
+0x00010fb4:  frintm   d0, d0
+0x00010fb8:  ldr      d2, [sp]
+0x00010fbc:  fmadd    d1, d2, d0, d1
+0x00010fc0:  mov      x0, x22
+0x00010fc4:  mov      v0.16b, v9.16b
+0x00010fc8:  b        #0x11044    ; -> sub_11044
+0x00010fcc:  fadd     d0, d8, d15
+0x00010fd0:  bl       #0x22228    ; -> _sin
+0x00010fd4:  fmadd    d1, d8, d12, d10
+0x00010fd8:  ldr      d2, [sp, #0x78]
+0x00010fdc:  fmov     d3, #4.00000000
+0x00010fe0:  fmadd    d2, d13, d3, d2
+0x00010fe4:  fcmp     d2, #0.0
+0x00010fe8:  b.le     #0x10ff8
+0x00010fec:  fdiv     d3, d1, d2
+0x00010ff0:  frintm   d3, d3
+0x00010ff4:  fmsub    d1, d2, d3, d1
+0x00010ff8:  fmov     d2, #10.00000000
+0x00010ffc:  fmul     d0, d0, d2
+0x00011000:  fmadd    d0, d0, d11, d9
+0x00011004:  fmov     d2, #-2.00000000
+0x00011008:  fmadd    d1, d13, d2, d1
+0x0001100c:  mov      x0, x22
+0x00011010:  b        #0x11044    ; -> sub_11044
+0x00011014:  fmadd    d0, d8, d12, d9
+0x00011018:  ldr      d1, [sp, #0x48]
+0x0001101c:  fcmp     d1, #0.0
+0x00011020:  b.le     #0x11034
+0x00011024:  fdiv     d1, d0, d1
+0x00011028:  frintm   d1, d1
+0x0001102c:  ldr      d2, [sp, #8]
+0x00011030:  fmadd    d0, d2, d1, d0
+0x00011034:  ldr      d1, [sp, #0x30]
+0x00011038:  fmadd    d0, d11, d1, d0
+0x0001103c:  mov      x0, x22
+0x00011040:  mov      v1.16b, v10.16b
+0x00011044:  bl       #0x24ee0    ; -> _objc_msgSend(setPosition:)
+0x00011048:  b        #0x110dc    ; -> sub_110dc
+0x0001104c:  fmov     d0, #2.00000000
+0x00011050:  fmadd    d0, d8, d0, d15
+0x00011054:  bl       #0x22228    ; -> _sin
+0x00011058:  fmadd    d1, d8, d12, d10
+0x0001105c:  ldr      d2, [sp, #0x58]
+0x00011060:  fcmp     d2, #0.0
+0x00011064:  b.le     #0x11078
+0x00011068:  fdiv     d2, d1, d2
+0x0001106c:  frintm   d2, d2
+0x00011070:  ldr      d3, [sp, #0x18]
+0x00011074:  fmadd    d1, d3, d2, d1
+0x00011078:  fmov     d2, #20.00000000
+0x0001107c:  fmul     d0, d0, d2
+0x00011080:  fmadd    d0, d0, d11, d9
+0x00011084:  fmov     d2, #-15.00000000
+0x00011088:  fmadd    d1, d11, d2, d1
+0x0001108c:  mov      x0, x22
+0x00011090:  bl       #0x24ee0    ; -> _objc_msgSend(setPosition:)
+0x00011094:  fmov     d0, #3.00000000
+0x00011098:  fmadd    d0, d8, d0, d15
+0x0001109c:  add      x8, sp, #0x80
+0x000110a0:  fmov     d1, xzr
+0x000110a4:  fmov     d2, xzr
+0x000110a8:  fmov     d3, #1.00000000
+0x000110ac:  bl       #0x21b20    ; -> _CATransform3DMakeRotation
+0x000110b0:  ldp      q0, q1, [sp, #0xc0]
+0x000110b4:  stp      q0, q1, [sp, #0x140]
+0x000110b8:  ldp      q0, q1, [sp, #0xe0]
+0x000110bc:  stp      q0, q1, [sp, #0x160]
+0x000110c0:  ldp      q0, q1, [sp, #0x80]
+0x000110c4:  stp      q0, q1, [sp, #0x100]
+0x000110c8:  ldp      q0, q1, [sp, #0xa0]
+0x000110cc:  stp      q0, q1, [sp, #0x120]
+0x000110d0:  add      x2, sp, #0x100
+0x000110d4:  mov      x0, x22
+0x000110d8:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x000110dc:  add      x25, x25, #0x38
+0x000110e0:  mov      x0, x22
+0x000110e4:  bl       #0x22120    ; -> _objc_release
+0x000110e8:  add      x21, x21, #1
+0x000110ec:  cmp      x20, x21
+0x000110f0:  b.ne     #0x10e14
+0x000110f4:  add      sp, sp, #0x200
+0x000110f8:  ldp      x29, x30, [sp, #0x90]
+0x000110fc:  ldp      x20, x19, [sp, #0x80]
+0x00011100:  ldp      x22, x21, [sp, #0x70]
+0x00011104:  ldp      x24, x23, [sp, #0x60]
+0x00011108:  ldp      x26, x25, [sp, #0x50]
+0x0001110c:  ldp      x28, x27, [sp, #0x40]
+0x00011110:  ldp      d9, d8, [sp, #0x30]
+0x00011114:  ldp      d11, d10, [sp, #0x20]
+0x00011118:  ldp      d13, d12, [sp, #0x10]
+0x0001111c:  ldp      d15, d14, [sp], #0xa0
+0x00011120:  ret      

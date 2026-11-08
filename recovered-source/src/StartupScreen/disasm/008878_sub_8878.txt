@@ -1,0 +1,30 @@
+; sub_8878
+; VA 0x8878  size 108
+
+0x00008878:  stp      x20, x19, [sp, #-0x20]!
+0x0000887c:  stp      x29, x30, [sp, #0x10]
+0x00008880:  add      x29, sp, #0x10
+0x00008884:  mov      x0, x1
+0x00008888:  bl       #0x23e60    ; -> _objc_msgSend(object)
+0x0000888c:  mov      x29, x29
+0x00008890:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008894:  mov      x19, x0
+0x00008898:  adrp     x8, #0x3a000
+0x0000889c:  ldr      x0, [x8, #0xa48]    ; class(UIWindowScene)
+0x000088a0:  bl       #0x220e4    ; -> _objc_opt_class
+0x000088a4:  mov      x1, x0
+0x000088a8:  mov      x0, x19
+0x000088ac:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x000088b0:  tbz      w0, #0, #0x88d4
+0x000088b4:  mov      x0, x19
+0x000088b8:  bl       #0x242e0    ; -> _objc_msgSend(screen)
+0x000088bc:  mov      x29, x29
+0x000088c0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000088c4:  mov      x20, x0
+0x000088c8:  bl       #0x8838    ; -> sub_8838
+0x000088cc:  mov      x0, x20
+0x000088d0:  bl       #0x22120    ; -> _objc_release
+0x000088d4:  mov      x0, x19
+0x000088d8:  ldp      x29, x30, [sp, #0x10]
+0x000088dc:  ldp      x20, x19, [sp], #0x20
+0x000088e0:  b        #0x22120    ; -> _objc_release

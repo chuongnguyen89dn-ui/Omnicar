@@ -1,0 +1,40 @@
+# _OMCLogoMeshImage
+# addr 0x274cc .. 0x27560  (148 bytes)
+
+000274cc  sub      sp, sp, #0x50                               
+000274d0  stp      x20, x19, [sp, #0x30]                       
+000274d4  stp      x29, x30, [sp, #0x40]                       
+000274d8  add      x29, sp, #0x40                              
+000274dc  mov      x19, x0                                     
+000274e0  adrp     x8, #0x43000                                
+000274e4  add      x8, x8, #0xbd8                              ; __DATA,__bss+0x438
+000274e8  add      x0, x8, w0, uxtw #3                         
+000274ec  adrp     x8, #0x38000                                
+000274f0  ldr      x8, [x8, #0x318]                            ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+000274f4  str      x8, [sp, #8]                                
+000274f8  adrp     x8, #0x32000                                
+000274fc  ldr      d0, [x8, #0xa30]                            ; [0x32a30] __const[0x32a30] double=1.591496843e-314 float=-2.0
+00027500  str      d0, [sp, #0x10]                             
+00027504  adrp     x8, #0x27000                                
+00027508  add      x8, x8, #0x560                              ; __TEXT,__text+0x23560
+0002750c  adrp     x9, #0x38000                                
+00027510  add      x9, x9, #0xed8                              ; __const[0x38ed8] double=0.0 float=0.0
+00027514  stp      x8, x9, [sp, #0x18]                         
+00027518  strb     w19, [sp, #0x2c]                            
+0002751c  str      w19, [sp, #0x28]                            
+00027520  ldr      x8, [x0]                                    
+00027524  cmn      x8, #1                                      
+00027528  b.ne     #0x27554                                    
+0002752c  adrp     x8, #0x43000                                
+00027530  add      x8, x8, #0xbc8                              ; __DATA,__bss+0x428
+00027534  ldr      x19, [x8, w19, uxtw #3]                     ; [0x43bc8] __DATA,__bss+0x428
+00027538  mov      x0, x19                                     
+0002753c  bl       #0x28004                                    ; _objc_retain
+00027540  mov      x0, x19                                     
+00027544  ldp      x29, x30, [sp, #0x40]                       
+00027548  ldp      x20, x19, [sp, #0x30]                       
+0002754c  add      sp, sp, #0x50                               
+00027550  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+00027554  add      x1, sp, #8                                  
+00027558  bl       #0x27d70                                    ; _dispatch_once
+0002755c  b        #0x2752c                                    ; sub_2752c

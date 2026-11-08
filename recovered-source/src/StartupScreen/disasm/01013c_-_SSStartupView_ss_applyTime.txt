@@ -1,0 +1,120 @@
+; -[SSStartupView ss_applyTime:]
+; VA 0x1013c  size 468
+
+0x0001013c:  sub      sp, sp, #0x130
+0x00010140:  stp      d9, d8, [sp, #0xd0]
+0x00010144:  stp      x28, x27, [sp, #0xe0]
+0x00010148:  stp      x24, x23, [sp, #0xf0]
+0x0001014c:  stp      x22, x21, [sp, #0x100]
+0x00010150:  stp      x20, x19, [sp, #0x110]
+0x00010154:  stp      x29, x30, [sp, #0x120]
+0x00010158:  add      x29, sp, #0x120
+0x0001015c:  adrp     x8, #0x30000
+0x00010160:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x00010164:  ldr      x8, [x8]
+0x00010168:  stur     x8, [x29, #-0x58]
+0x0001016c:  adrp     x8, #0x3a000
+0x00010170:  ldrsw    x8, [x8, #0xd24]
+0x00010174:  ldrb     w8, [x0, x8]
+0x00010178:  cmp      w8, #1
+0x0001017c:  b.ne     #0x102d4
+0x00010180:  mov      v8.16b, v0.16b
+0x00010184:  mov      x19, x0
+0x00010188:  adrp     x22, #0x3a000
+0x0001018c:  ldr      x0, [x22, #0xb50]    ; class(CATransaction)
+0x00010190:  bl       #0x227e0    ; -> _objc_msgSend(begin)
+0x00010194:  ldr      x0, [x22, #0xb50]
+0x00010198:  mov      w2, #1
+0x0001019c:  bl       #0x24820    ; -> _objc_msgSend(setDisableActions:)
+0x000101a0:  movi     v0.16b, #0
+0x000101a4:  stp      q0, q0, [sp, #0x20]
+0x000101a8:  stp      q0, q0, [sp]
+0x000101ac:  adrp     x8, #0x3a000
+0x000101b0:  ldrsw    x8, [x8, #0xd28]
+0x000101b4:  ldr      x20, [x19, x8]
+0x000101b8:  mov      x0, x20
+0x000101bc:  bl       #0x2212c    ; -> _objc_retain
+0x000101c0:  mov      x2, sp
+0x000101c4:  add      x3, sp, #0x48
+0x000101c8:  mov      x0, x20
+0x000101cc:  mov      w4, #0x10
+0x000101d0:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x000101d4:  cbz      x0, #0x10238
+0x000101d8:  mov      x21, x0
+0x000101dc:  ldr      x8, [sp, #0x10]
+0x000101e0:  ldr      x23, [x8]
+0x000101e4:  mov      x24, #0
+0x000101e8:  ldr      x8, [sp, #0x10]
+0x000101ec:  ldr      x8, [x8]
+0x000101f0:  cmp      x8, x23
+0x000101f4:  b.eq     #0x10200
+0x000101f8:  mov      x0, x20
+0x000101fc:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x00010200:  ldr      x8, [sp, #8]
+0x00010204:  ldr      x0, [x8, x24, lsl #3]
+0x00010208:  mov      v0.16b, v8.16b
+0x0001020c:  bl       #0x22640    ; -> _objc_msgSend(applyTime:)
+0x00010210:  add      x24, x24, #1
+0x00010214:  cmp      x21, x24
+0x00010218:  b.ne     #0x101e8
+0x0001021c:  mov      x2, sp
+0x00010220:  add      x3, sp, #0x48
+0x00010224:  mov      x0, x20
+0x00010228:  mov      w4, #0x10
+0x0001022c:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00010230:  mov      x21, x0
+0x00010234:  cbnz     x0, #0x101e4
+0x00010238:  mov      x0, x20
+0x0001023c:  bl       #0x22120    ; -> _objc_release
+0x00010240:  mov      x0, x19
+0x00010244:  mov      v0.16b, v8.16b
+0x00010248:  bl       #0x256a0    ; -> _objc_msgSend(ss_applyMotes:)
+0x0001024c:  adrp     x8, #0x3a000
+0x00010250:  ldrsw    x8, [x8, #0xcb0]
+0x00010254:  ldr      x8, [x19, x8]
+0x00010258:  cmp      x8, #4
+0x0001025c:  b.gt     #0x10280
+0x00010260:  cmp      x8, #3
+0x00010264:  b.eq     #0x102a0
+0x00010268:  cmp      x8, #4
+0x0001026c:  b.ne     #0x102bc
+0x00010270:  mov      x0, x19
+0x00010274:  mov      v0.16b, v8.16b
+0x00010278:  bl       #0x25660    ; -> _objc_msgSend(ss_applyEngine:)
+0x0001027c:  b        #0x102bc    ; -> sub_102bc
+0x00010280:  cmp      x8, #5
+0x00010284:  b.eq     #0x102b0
+0x00010288:  cmp      x8, #7
+0x0001028c:  b.ne     #0x102bc
+0x00010290:  mov      x0, x19
+0x00010294:  mov      v0.16b, v8.16b
+0x00010298:  bl       #0x25680    ; -> _objc_msgSend(ss_applyHud:)
+0x0001029c:  b        #0x102bc    ; -> sub_102bc
+0x000102a0:  mov      x0, x19
+0x000102a4:  mov      v0.16b, v8.16b
+0x000102a8:  bl       #0x256c0    ; -> _objc_msgSend(ss_applySky:)
+0x000102ac:  b        #0x102bc    ; -> sub_102bc
+0x000102b0:  mov      x0, x19
+0x000102b4:  mov      v0.16b, v8.16b
+0x000102b8:  bl       #0x25700    ; -> _objc_msgSend(ss_applyWelcome:)
+0x000102bc:  adrp     x8, #0x3a000
+0x000102c0:  ldrsw    x8, [x8, #0xd2c]
+0x000102c4:  ldr      x0, [x19, x8]
+0x000102c8:  bl       #0x24ce0    ; -> _objc_msgSend(setNeedsDisplay)
+0x000102cc:  ldr      x0, [x22, #0xb50]
+0x000102d0:  bl       #0x22b40    ; -> _objc_msgSend(commit)
+0x000102d4:  ldur     x8, [x29, #-0x58]
+0x000102d8:  adrp     x9, #0x30000
+0x000102dc:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x000102e0:  ldr      x9, [x9]
+0x000102e4:  cmp      x9, x8
+0x000102e8:  b.ne     #0x1030c
+0x000102ec:  ldp      x29, x30, [sp, #0x120]
+0x000102f0:  ldp      x20, x19, [sp, #0x110]
+0x000102f4:  ldp      x22, x21, [sp, #0x100]
+0x000102f8:  ldp      x24, x23, [sp, #0xf0]
+0x000102fc:  ldp      x28, x27, [sp, #0xe0]
+0x00010300:  ldp      d9, d8, [sp, #0xd0]
+0x00010304:  add      sp, sp, #0x130
+0x00010308:  ret      
+0x0001030c:  bl       #0x21dd8    ; -> ___stack_chk_fail

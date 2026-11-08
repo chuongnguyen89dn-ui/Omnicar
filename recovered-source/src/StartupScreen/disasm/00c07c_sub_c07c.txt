@@ -1,0 +1,16 @@
+; sub_c07c
+; VA 0xc07c  size 52
+
+0x0000c07c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000c080:  mov      x20, x0
+0x0000c084:  cbz      x19, #0xc0a0
+0x0000c088:  mov      x0, x20
+0x0000c08c:  mov      w2, #0x20
+0x0000c090:  mov      x3, x19
+0x0000c094:  bl       #0x22b80    ; -> _objc_msgSend(component:fromDate:)
+0x0000c098:  mov      x21, x0
+0x0000c09c:  b        #0xc0d4    ; -> sub_c0d4
+0x0000c0a0:  adrp     x8, #0x3a000
+0x0000c0a4:  ldr      x0, [x8, #0xa90]    ; class(NSDate)
+0x0000c0a8:  bl       #0x22f40    ; -> _objc_msgSend(date)
+0x0000c0ac:  mov      x29, x29

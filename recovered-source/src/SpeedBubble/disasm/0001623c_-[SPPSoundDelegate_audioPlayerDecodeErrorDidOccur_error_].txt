@@ -1,0 +1,26 @@
+# -[SPPSoundDelegate audioPlayerDecodeErrorDidOccur:error:]
+# addr 0x1623c .. 0x16298  (92 bytes)
+
+0001623c  sub      sp, sp, #0x30                               
+00016240  stp      x20, x19, [sp, #0x10]                       
+00016244  stp      x29, x30, [sp, #0x20]                       
+00016248  add      x29, sp, #0x20                              
+0001624c  adrp     x8, #0x42000                                
+00016250  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00016254  str      x3, [sp]                                    
+00016258  adrp     x2, #0x3a000                                
+0001625c  add      x2, x2, #0x4b8                              ; @"am thanh: loi giai ma %@"
+00016260  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00016264  mov      x29, x29                                    
+00016268  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001626c  mov      x19, x0                                     
+00016270  adrp     x0, #0x38000                                
+00016274  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00016278  mov      x1, x19                                     
+0001627c  bl       #0x2155c                                    ; _OMCLogWrite
+00016280  mov      x0, x19                                     
+00016284  bl       #0x27ff8                                    ; _objc_release
+00016288  ldp      x29, x30, [sp, #0x20]                       
+0001628c  ldp      x20, x19, [sp, #0x10]                       
+00016290  add      sp, sp, #0x30                               
+00016294  b        #0x161a8                                    ; sub_161a8

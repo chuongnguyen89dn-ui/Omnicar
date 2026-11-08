@@ -1,0 +1,13 @@
+; -[SCPCarSplit setSoloCover:]
+0x04585c  stp      x20, x19, [sp, #-0x20]!
+0x045860  stp      x29, x30, [sp, #0x10]
+0x045864  add      x29, sp, #0x10
+0x045868  mov      x19, x2
+0x04586c  mov      x20, x0
+0x045870  mov      x0, x2
+0x045874  bl       #0x567c4 ; call _objc_retain
+0x045878  ldr      x0, [x20, #0x38]
+0x04587c  str      x19, [x20, #0x38]
+0x045880  ldp      x29, x30, [sp, #0x10]
+0x045884  ldp      x20, x19, [sp], #0x20
+0x045888  b        #0x567b8 ; call _objc_release

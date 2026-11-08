@@ -1,0 +1,31 @@
+; sub_8e90
+; VA 0x8e90  size 112
+
+0x00008e90:  stp      x20, x19, [sp, #-0x20]!
+0x00008e94:  stp      x29, x30, [sp, #0x10]
+0x00008e98:  add      x29, sp, #0x10
+0x00008e9c:  mov      x19, x0
+0x00008ea0:  adrp     x20, #0x14000
+0x00008ea4:  ldr      w0, [x20, #0x434]
+0x00008ea8:  cmn      w0, #1
+0x00008eac:  b.eq     #0x8ebc
+0x00008eb0:  mov      w1, w19
+0x00008eb4:  bl       #0xb368    ; -> _notify_set_state
+0x00008eb8:  b        #0x8edc    ; -> sub_8edc
+0x00008ebc:  adrp     x0, #0xc000
+0x00008ec0:  add      x0, x0, #0x428    ; "com.anlai.omnicar/lite"
+0x00008ec4:  adrp     x1, #0x14000
+0x00008ec8:  add      x1, x1, #0x434
+0x00008ecc:  bl       #0xb35c    ; -> _notify_register_check
+0x00008ed0:  cbz      w0, #0x8ef0
+0x00008ed4:  mov      w8, #-1
+0x00008ed8:  str      w8, [x20, #0x434]
+0x00008edc:  adrp     x0, #0xc000
+0x00008ee0:  add      x0, x0, #0x428    ; "com.anlai.omnicar/lite"
+0x00008ee4:  ldp      x29, x30, [sp, #0x10]
+0x00008ee8:  ldp      x20, x19, [sp], #0x20
+0x00008eec:  b        #0xb350    ; -> _notify_post
+0x00008ef0:  ldr      w0, [x20, #0x434]
+0x00008ef4:  cmn      w0, #1
+0x00008ef8:  b.ne     #0x8eb0
+0x00008efc:  b        #0x8edc    ; -> sub_8edc

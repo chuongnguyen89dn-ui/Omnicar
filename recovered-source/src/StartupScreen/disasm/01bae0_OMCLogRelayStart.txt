@@ -1,0 +1,36 @@
+; OMCLogRelayStart
+; VA 0x1bae0  size 132
+
+0x0001bae0:  stp      x20, x19, [sp, #-0x20]!
+0x0001bae4:  stp      x29, x30, [sp, #0x10]
+0x0001bae8:  add      x29, sp, #0x10
+0x0001baec:  adrp     x8, #0x3b000
+0x0001baf0:  ldr      x8, [x8, #0x248]
+0x0001baf4:  cmn      x8, #1
+0x0001baf8:  b.ne     #0x1bb5c
+0x0001bafc:  adrp     x8, #0x3b000
+0x0001bb00:  ldrb     w8, [x8, #0x240]
+0x0001bb04:  cmp      w8, #1
+0x0001bb08:  b.ne     #0x1bb50
+0x0001bb0c:  bl       #0x1bab4    ; -> sub_1bab4
+0x0001bb10:  mov      x29, x29
+0x0001bb14:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bb18:  mov      x19, x0
+0x0001bb1c:  adrp     x2, #0x33000
+0x0001bb20:  add      x2, x2, #0xb68    ; @"com.anlai.omnicar/log"
+0x0001bb24:  adrp     x5, #0x30000
+0x0001bb28:  add      x5, x5, #0xd08    ; block_lit(invoke=0x1bb64 sub_1bb64, sig=v16@?0@"NSNotification"8)
+0x0001bb2c:  mov      x3, #0
+0x0001bb30:  mov      x4, #0
+0x0001bb34:  bl       #0x224c0    ; -> _objc_msgSend(addObserverForName:object:queue:usingBlock:)
+0x0001bb38:  mov      x29, x29
+0x0001bb3c:  bl       #0x221a4    ; -> _objc_unsafeClaimAutoreleasedReturnValue
+0x0001bb40:  mov      x0, x19
+0x0001bb44:  ldp      x29, x30, [sp, #0x10]
+0x0001bb48:  ldp      x20, x19, [sp], #0x20
+0x0001bb4c:  b        #0x22120    ; -> _objc_release
+0x0001bb50:  ldp      x29, x30, [sp, #0x10]
+0x0001bb54:  ldp      x20, x19, [sp], #0x20
+0x0001bb58:  ret      
+0x0001bb5c:  bl       #0x21ab4    ; -> sub_21ab4
+0x0001bb60:  b        #0x1bafc    ; -> sub_1bafc

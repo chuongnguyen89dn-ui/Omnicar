@@ -1,0 +1,39 @@
+; sub_cc60
+; VA 0xcc60  size 144
+
+0x0000cc60:  mov      w0, #0xb36b
+0x0000cc64:  movk     w0, #0xff, lsl #16
+0x0000cc68:  mov      w1, #0x665e
+0x0000cc6c:  movk     w1, #0xf2, lsl #16
+0x0000cc70:  b        #0xd044    ; -> sub_d044
+0x0000cc74:  adrp     x8, #0x3a000
+0x0000cc78:  ldrsw    x8, [x8, #0xd14]
+0x0000cc7c:  mov      x9, #0x4004000000000000
+0x0000cc80:  str      x9, [x19, x8]
+0x0000cc84:  cmp      x20, #1
+0x0000cc88:  b.eq     #0xcec4
+0x0000cc8c:  cbnz     x20, #0xd010
+0x0000cc90:  adrp     x20, #0x3a000
+0x0000cc94:  ldr      x0, [x20, #0x9d8]    ; class(UIColor)
+0x0000cc98:  bl       #0x22860    ; -> _objc_msgSend(blackColor)
+0x0000cc9c:  mov      x29, x29
+0x0000cca0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000cca4:  mov      x22, x0
+0x0000cca8:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0000ccac:  bl       #0x22300    ; -> _objc_msgSend(CGColor)
+0x0000ccb0:  str      x0, [sp, #0x38]
+0x0000ccb4:  ldr      x0, [x20, #0x9d8]
+0x0000ccb8:  bl       #0x22860    ; -> _objc_msgSend(blackColor)
+0x0000ccbc:  mov      x29, x29
+0x0000ccc0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000ccc4:  mov      x23, x0
+0x0000ccc8:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0000cccc:  bl       #0x22300    ; -> _objc_msgSend(CGColor)
+0x0000ccd0:  str      x0, [sp, #0x40]
+0x0000ccd4:  adrp     x8, #0x3a000
+0x0000ccd8:  ldr      x0, [x8, #0xb00]    ; class(NSArray)
+0x0000ccdc:  add      x2, sp, #0x38
+0x0000cce0:  mov      w3, #2
+0x0000cce4:  bl       #0x22700    ; -> _objc_msgSend(arrayWithObjects:count:)
+0x0000cce8:  mov      x29, x29
+0x0000ccec:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue

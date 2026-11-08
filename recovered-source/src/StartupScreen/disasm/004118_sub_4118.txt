@@ -1,0 +1,25 @@
+; sub_4118
+; VA 0x4118  size 88
+
+0x00004118:  stp      x20, x19, [sp, #-0x20]!
+0x0000411c:  stp      x29, x30, [sp, #0x10]
+0x00004120:  add      x29, sp, #0x10
+0x00004124:  mov      x19, x1
+0x00004128:  mov      x20, x0
+0x0000412c:  adrp     x8, #0x3b000
+0x00004130:  ldr      x8, [x8, #0x148]
+0x00004134:  cmn      x8, #1
+0x00004138:  b.ne     #0x4158
+0x0000413c:  adrp     x8, #0x3b000
+0x00004140:  ldr      x2, [x8, #0x140]
+0x00004144:  mov      x0, x20
+0x00004148:  mov      x1, x19
+0x0000414c:  ldp      x29, x30, [sp, #0x10]
+0x00004150:  ldp      x20, x19, [sp], #0x20
+0x00004154:  br       x2
+0x00004158:  adrp     x0, #0x3b000
+0x0000415c:  add      x0, x0, #0x148
+0x00004160:  adrp     x1, #0x30000
+0x00004164:  add      x1, x1, #0x6d8    ; block_lit(invoke=0x4170 sub_4170, sig=v8@?0)
+0x00004168:  bl       #0x21ea4    ; -> _dispatch_once
+0x0000416c:  b        #0x413c    ; -> sub_413c

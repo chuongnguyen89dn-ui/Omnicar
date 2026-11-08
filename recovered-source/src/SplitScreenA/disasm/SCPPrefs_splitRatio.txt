@@ -1,0 +1,35 @@
+; +[SCPPrefs splitRatio]
+0x04df3c  stp      d9, d8, [sp, #-0x30]!
+0x04df40  stp      x20, x19, [sp, #0x10]
+0x04df44  stp      x29, x30, [sp, #0x20]
+0x04df48  add      x29, sp, #0x20
+0x04df4c  adrp     x0, #0x7e000
+0x04df50  add      x0, x0, #0x560 ; -> 0x7e560 @"splitScreenSplitRatio"
+0x04df54  bl       #0x4dab8 ; -> sub_4dab8
+0x04df58  mov      x29, x29
+0x04df5c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04df60  mov      x19, x0
+0x04df64  cbz      x0, #0x4df74
+0x04df68  mov      x0, x19
+0x04df6c  bl       #0x57e00 ; objc_msgSend$doubleValue
+0x04df70  b        #0x4df78
+0x04df74  fmov     d0, #0.50000000
+0x04df78  adrp     x8, #0x6f000
+0x04df7c  ldr      d1, [x8, #0x78]
+0x04df80  fmaxnm   d0, d0, d1
+0x04df84  adrp     x8, #0x6f000
+0x04df88  ldr      d1, [x8, #0x80]
+0x04df8c  fcmp     d0, d1
+0x04df90  fcsel    d8, d1, d0, gt
+0x04df94  mov      x0, x19
+0x04df98  bl       #0x567b8 ; call _objc_release
+0x04df9c  mov      v0.16b, v8.16b
+0x04dfa0  ldp      x29, x30, [sp, #0x20]
+0x04dfa4  ldp      x20, x19, [sp, #0x10]
+0x04dfa8  ldp      d9, d8, [sp], #0x30
+0x04dfac  ret      
+0x04dfb0  mov      x20, x0
+0x04dfb4  mov      x0, x19
+0x04dfb8  bl       #0x567b8 ; call _objc_release
+0x04dfbc  mov      x0, x20
+0x04dfc0  bl       #0x563e0 ; call __Unwind_Resume

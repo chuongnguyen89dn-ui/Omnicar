@@ -1,0 +1,54 @@
+; -[SCPCarSplit killAppSoon:]
+0x0180dc  sub      sp, sp, #0x60
+0x0180e0  stp      x20, x19, [sp, #0x40]
+0x0180e4  stp      x29, x30, [sp, #0x50]
+0x0180e8  add      x29, sp, #0x50
+0x0180ec  mov      x19, x2
+0x0180f0  mov      x20, x0
+0x0180f4  mov      x0, x2
+0x0180f8  bl       #0x567c4 ; call _objc_retain
+0x0180fc  mov      x0, x19
+0x018100  bl       #0x590c0 ; objc_msgSend$length
+0x018104  cbz      x0, #0x18184
+0x018108  sub      x0, x29, #0x18
+0x01810c  mov      x1, x20
+0x018110  bl       #0x56740 ; call _objc_initWeak
+0x018114  adrp     x8, #0x78000
+0x018118  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x01811c  str      x8, [sp, #8]
+0x018120  adrp     x8, #0x6e000
+0x018124  ldr      d0, [x8, #0xff8]
+0x018128  adrp     x8, #0x18000
+0x01812c  add      x8, x8, #0x1b0 ; -> 0x181b0 sub_181b0
+0x018130  str      d0, [sp, #0x10]
+0x018134  adrp     x9, #0x78000
+0x018138  add      x9, x9, #0xb40 ; -> 0x78b40
+0x01813c  stp      x8, x9, [sp, #0x18]
+0x018140  add      x20, sp, #8
+0x018144  add      x0, x20, #0x28
+0x018148  sub      x1, x29, #0x18
+0x01814c  bl       #0x566f8 ; call _objc_copyWeak
+0x018150  mov      x0, x19
+0x018154  bl       #0x567c4 ; call _objc_retain
+0x018158  str      x19, [sp, #0x28]
+0x01815c  adrp     x8, #0x6f000
+0x018160  ldr      d0, [x8, #0xa8]
+0x018164  add      x0, sp, #8
+0x018168  bl       #0x12efc ; -> sub_12efc
+0x01816c  ldr      x0, [sp, #0x28]
+0x018170  bl       #0x567b8 ; call _objc_release
+0x018174  add      x0, x20, #0x28
+0x018178  bl       #0x56704 ; call _objc_destroyWeak
+0x01817c  sub      x0, x29, #0x18
+0x018180  bl       #0x56704 ; call _objc_destroyWeak
+0x018184  mov      x0, x19
+0x018188  bl       #0x567b8 ; call _objc_release
+0x01818c  ldp      x29, x30, [sp, #0x50]
+0x018190  ldp      x20, x19, [sp, #0x40]
+0x018194  add      sp, sp, #0x60
+0x018198  ret      
+0x01819c  mov      x20, x0
+0x0181a0  mov      x0, x19
+0x0181a4  bl       #0x567b8 ; call _objc_release
+0x0181a8  mov      x0, x20
+0x0181ac  bl       #0x563e0 ; call __Unwind_Resume

@@ -1,0 +1,23 @@
+=== sub_5c64 @ 0x5c64 (size 88) ===
+00005c64  stp      x20, x19, [sp, #-0x20]!
+00005c68  stp      x29, x30, [sp, #0x10]
+00005c6c  add      x29, sp, #0x10
+00005c70  adrp     x20, #0x3e000
+00005c74  ldr      x19, [x20, #0x9b8]
+00005c78  cbnz     x19, #0x5ca4
+00005c7c  adrp     x8, #0x3e000
+00005c80  ldr      x0, [x8, #0x298] ; bind _OBJC_CLASS_$_NSHashTable
+00005c84  bl       #0x28180 ; objc_msgSend sel=weakObjectsHashTable
+00005c88  mov      x29, x29
+00005c8c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00005c90  ldr      x8, [x20, #0x9b8]
+00005c94  str      x0, [x20, #0x9b8]
+00005c98  mov      x0, x8
+00005c9c  bl       #0x2480c ; call _objc_release
+00005ca0  ldr      x19, [x20, #0x9b8]
+00005ca4  mov      x0, x19
+00005ca8  bl       #0x24818 ; call _objc_retain
+00005cac  mov      x0, x19
+00005cb0  ldp      x29, x30, [sp, #0x10]
+00005cb4  ldp      x20, x19, [sp], #0x20
+00005cb8  b        #0x24734 ; call _objc_autoreleaseReturnValue

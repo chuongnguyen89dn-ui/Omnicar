@@ -1,0 +1,30 @@
+# +[SPPPrefs style]
+# addr 0x1ed44 .. 0x1edb0  (108 bytes)
+
+0001ed44  stp      x20, x19, [sp, #-0x20]!                     
+0001ed48  stp      x29, x30, [sp, #0x10]                       
+0001ed4c  add      x29, sp, #0x10                              
+0001ed50  adrp     x0, #0x3b000                                
+0001ed54  add      x0, x0, #0xb8                               ; @"speedBubbleLook"
+0001ed58  bl       #0x1edb0                                    ; sub_1edb0
+0001ed5c  mov      x29, x29                                    
+0001ed60  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001ed64  mov      x19, x0                                     
+0001ed68  cbz      x0, #0x1ed80                                
+0001ed6c  mov      x0, x19                                     
+0001ed70  bl       #0x29960                                    ; objc_msgSend$integerValue
+0001ed74  cmp      x0, #9                                      
+0001ed78  csel     x20, x0, xzr, lo                            
+0001ed7c  b        #0x1ed84                                    ; sub_1ed84
+0001ed80  mov      x20, #0                                     
+0001ed84  mov      x0, x19                                     
+0001ed88  bl       #0x27ff8                                    ; _objc_release
+0001ed8c  mov      x0, x20                                     
+0001ed90  ldp      x29, x30, [sp, #0x10]                       
+0001ed94  ldp      x20, x19, [sp], #0x20                       
+0001ed98  ret                                                  
+0001ed9c  mov      x20, x0                                     
+0001eda0  mov      x0, x19                                     
+0001eda4  bl       #0x27ff8                                    ; _objc_release
+0001eda8  mov      x0, x20                                     
+0001edac  bl       #0x27c80                                    ; __Unwind_Resume

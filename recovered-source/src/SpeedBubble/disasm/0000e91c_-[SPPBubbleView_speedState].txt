@@ -1,0 +1,49 @@
+# -[SPPBubbleView speedState]
+# addr 0xe91c .. 0xe9d4  (184 bytes)
+
+0000e91c  stp      d9, d8, [sp, #-0x40]!                       
+0000e920  stp      x22, x21, [sp, #0x10]                       
+0000e924  stp      x20, x19, [sp, #0x20]                       
+0000e928  stp      x29, x30, [sp, #0x30]                       
+0000e92c  add      x29, sp, #0x30                              
+0000e930  mov      x19, x0                                     
+0000e934  bl       #0x29bc0                                    ; objc_msgSend$limit
+0000e938  cmp      w0, #1                                      
+0000e93c  b.lt     #0xe984                                     
+0000e940  mov      x0, x19                                     
+0000e944  bl       #0x2bfc0                                    ; objc_msgSend$speed
+0000e948  tbnz     w0, #0x1f, #0xe984                          
+0000e94c  mov      x0, x19                                     
+0000e950  bl       #0x28b40                                    ; objc_msgSend$builtStyle
+0000e954  mov      x21, x0                                     
+0000e958  mov      x0, x19                                     
+0000e95c  bl       #0x2bfc0                                    ; objc_msgSend$speed
+0000e960  mov      x20, x0                                     
+0000e964  mov      x0, x19                                     
+0000e968  bl       #0x29bc0                                    ; objc_msgSend$limit
+0000e96c  cmp      x21, #7                                     
+0000e970  b.ne     #0xe98c                                     
+0000e974  cmp      w20, w0                                     
+0000e978  b.lt     #0xe994                                     
+0000e97c  mov      w0, #2                                      
+0000e980  b        #0xe9c0                                     ; sub_e9c0
+0000e984  mov      w0, #0                                      
+0000e988  b        #0xe9c0                                     ; sub_e9c0
+0000e98c  cmp      w20, w0                                     
+0000e990  b.gt     #0xe97c                                     
+0000e994  mov      x0, x19                                     
+0000e998  bl       #0x2bfc0                                    ; objc_msgSend$speed
+0000e99c  scvtf    d8, w0                                      
+0000e9a0  mov      x0, x19                                     
+0000e9a4  bl       #0x29bc0                                    ; objc_msgSend$limit
+0000e9a8  scvtf    d0, w0                                      
+0000e9ac  adrp     x8, #0x32000                                
+0000e9b0  ldr      d1, [x8, #0x7e8]                            ; [0x327e8] __const[0x327e8] double=0.9 float=-107374184.0
+0000e9b4  fmul     d0, d0, d1                                  
+0000e9b8  fcmp     d0, d8                                      
+0000e9bc  cset     w0, ls                                      
+0000e9c0  ldp      x29, x30, [sp, #0x30]                       
+0000e9c4  ldp      x20, x19, [sp, #0x20]                       
+0000e9c8  ldp      x22, x21, [sp, #0x10]                       
+0000e9cc  ldp      d9, d8, [sp], #0x40                         
+0000e9d0  ret                                                  

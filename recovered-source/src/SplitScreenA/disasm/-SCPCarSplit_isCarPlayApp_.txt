@@ -1,0 +1,38 @@
+; -[SCPCarSplit isCarPlayApp:]
+0x00ff20  stp      x22, x21, [sp, #-0x30]!
+0x00ff24  stp      x20, x19, [sp, #0x10]
+0x00ff28  stp      x29, x30, [sp, #0x20]
+0x00ff2c  add      x29, sp, #0x20
+0x00ff30  mov      x19, x2
+0x00ff34  mov      x0, x2
+0x00ff38  bl       #0x567c4 ; call _objc_retain
+0x00ff3c  mov      x0, x19
+0x00ff40  bl       #0xe324 ; -> sub_e324
+0x00ff44  mov      x29, x29
+0x00ff48  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00ff4c  mov      x20, x0
+0x00ff50  bl       #0xffb4 ; -> sub_ffb4
+0x00ff54  tbz      w0, #0, #0xff60
+0x00ff58  mov      w21, #1
+0x00ff5c  b        #0xff6c
+0x00ff60  mov      x0, x19
+0x00ff64  bl       #0x101bc ; -> sub_101bc
+0x00ff68  mov      x21, x0
+0x00ff6c  mov      x0, x20
+0x00ff70  bl       #0x567b8 ; call _objc_release
+0x00ff74  mov      x0, x19
+0x00ff78  bl       #0x567b8 ; call _objc_release
+0x00ff7c  mov      x0, x21
+0x00ff80  ldp      x29, x30, [sp, #0x20]
+0x00ff84  ldp      x20, x19, [sp, #0x10]
+0x00ff88  ldp      x22, x21, [sp], #0x30
+0x00ff8c  ret      
+0x00ff90  mov      x21, x0
+0x00ff94  b        #0xffa4
+0x00ff98  mov      x21, x0
+0x00ff9c  mov      x0, x20
+0x00ffa0  bl       #0x567b8 ; call _objc_release
+0x00ffa4  mov      x0, x19
+0x00ffa8  bl       #0x567b8 ; call _objc_release
+0x00ffac  mov      x0, x21
+0x00ffb0  bl       #0x563e0 ; call __Unwind_Resume

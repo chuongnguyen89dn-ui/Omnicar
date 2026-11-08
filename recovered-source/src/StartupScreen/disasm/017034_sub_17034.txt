@@ -1,0 +1,39 @@
+; sub_17034
+; VA 0x17034  size 144
+
+0x00017034:  add      x2, x2, #0x348
+0x00017038:  mov      x0, x28
+0x0001703c:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x00017040:  mov      x29, x29
+0x00017044:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017048:  mov      x27, x0
+0x0001704c:  bl       #0xedf0    ; -> sub_edf0
+0x00017050:  mov      x29, x29
+0x00017054:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017058:  mov      x28, x0
+0x0001705c:  stp      x0, x24, [sp]
+0x00017060:  adrp     x2, #0x32000
+0x00017064:  add      x2, x2, #0xa88    ; @"b'%\x00@\x00 \x00\xb7'"
+0x00017068:  mov      x0, x21
+0x0001706c:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00017070:  mov      x29, x29
+0x00017074:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017078:  mov      x23, x0
+0x0001707c:  stur     x0, [x29, #-0xd0]
+0x00017080:  mov      x0, x25
+0x00017084:  bl       #0x22e00    ; -> _objc_msgSend(count)
+0x00017088:  cbz      x0, #0x17148
+0x0001708c:  adrp     x2, #0x32000
+0x00017090:  add      x2, x2, #0xb28    ; @"b' \x00\xb7'"
+0x00017094:  mov      x0, x25
+0x00017098:  bl       #0x22bc0    ; -> _objc_msgSend(componentsJoinedByString:)
+0x0001709c:  mov      x29, x29
+0x000170a0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000170a4:  b        #0x17164    ; -> sub_17164
+0x000170a8:  mov      x0, x20
+0x000170ac:  bl       #0x227a0    ; -> _objc_msgSend(batteryPercent)
+0x000170b0:  adrp     x19, #0x3a000
+0x000170b4:  tbnz     x0, #0x3f, #0x17240
+0x000170b8:  mov      x0, x20
+0x000170bc:  bl       #0x227a0    ; -> _objc_msgSend(batteryPercent)
+0x000170c0:  mov      x21, x0

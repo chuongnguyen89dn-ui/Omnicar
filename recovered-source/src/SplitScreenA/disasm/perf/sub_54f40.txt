@@ -1,0 +1,38 @@
+; sub_54f40
+0x054f40  ldr      x8, [x0, #0x20]
+0x054f44  adrp     x9, #0x88000
+0x054f48  ldr      x9, [x9, #0x2d8]
+0x054f4c  cmp      x8, x9
+0x054f50  b.ne     #0x54fd0
+0x054f54  stp      x20, x19, [sp, #-0x20]!
+0x054f58  stp      x29, x30, [sp, #0x10]
+0x054f5c  add      x29, sp, #0x10
+0x054f60  adrp     x19, #0x88000
+0x054f64  ldr      x0, [x19, #0x260]
+0x054f68  bl       #0x58c00 ; objc_msgSend$invalidate
+0x054f6c  ldr      x0, [x19, #0x260]
+0x054f70  str      xzr, [x19, #0x260]
+0x054f74  bl       #0x567b8 ; call _objc_release
+0x054f78  adrp     x8, #0x88000
+0x054f7c  ldr      d0, [x8, #0x2f8]
+0x054f80  adrp     x8, #0x88000
+0x054f84  ldr      d1, [x8, #0x370]
+0x054f88  fsub     d0, d0, d1
+0x054f8c  mov      x8, #0x4059000000000000
+0x054f90  fmov     d1, x8
+0x054f94  fcmp     d0, d1
+0x054f98  ldp      x29, x30, [sp, #0x10]
+0x054f9c  ldp      x20, x19, [sp], #0x20
+0x054fa0  b.lt     #0x54fd0
+0x054fa4  adrp     x8, #0x88000
+0x054fa8  ldr      d1, [x8, #0x2f0]
+0x054fac  adrp     x8, #0x88000
+0x054fb0  ldr      d2, [x8, #0x368]
+0x054fb4  fsub     d1, d1, d2
+0x054fb8  mov      x8, #0x4059000000000000
+0x054fbc  fmov     d2, x8
+0x054fc0  fmul     d1, d1, d2
+0x054fc4  fdiv     d0, d1, d0
+0x054fc8  adrp     x8, #0x88000
+0x054fcc  str      d0, [x8, #0x378]
+0x054fd0  ret      

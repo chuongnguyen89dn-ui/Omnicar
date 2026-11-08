@@ -1,0 +1,54 @@
+; _SCPChosenPhoneApps
+0x009a60  stp      x20, x19, [sp, #-0x20]!
+0x009a64  stp      x29, x30, [sp, #0x10]
+0x009a68  add      x29, sp, #0x10
+0x009a6c  adrp     x0, #0x7a000
+0x009a70  add      x0, x0, #0x380 ; -> 0x7a380 @"appBridge"
+0x009a74  bl       #0x4f608 ; -> _OMCFeatureEnabled
+0x009a78  tbz      w0, #0, #0x9ad8
+0x009a7c  bl       #0x4f538 ; -> _OMCPrefsSync
+0x009a80  adrp     x0, #0x7a000
+0x009a84  add      x0, x0, #0x3a0 ; -> 0x7a3a0 @"appBridgeApps"
+0x009a88  mov      x1, #0
+0x009a8c  bl       #0x4f544 ; -> _OMCPref
+0x009a90  mov      x29, x29
+0x009a94  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x009a98  mov      x19, x0
+0x009a9c  adrp     x8, #0x87000
+0x009aa0  ldr      x0, [x8, #0x680] ; [0x87680] class:NSArray
+0x009aa4  bl       #0x5677c ; call _objc_opt_class
+0x009aa8  mov      x1, x0
+0x009aac  mov      x0, x19
+0x009ab0  bl       #0x56788 ; call _objc_opt_isKindOfClass
+0x009ab4  mov      x8, x0
+0x009ab8  adrp     x9, #0x87000
+0x009abc  ldr      x0, [x9, #0x6f0] ; [0x876f0] class:NSSet
+0x009ac0  tbz      w8, #0, #0x9af4
+0x009ac4  mov      x2, x19
+0x009ac8  bl       #0x5be40 ; objc_msgSend$setWithArray:
+0x009acc  mov      x29, x29
+0x009ad0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x009ad4  b        #0x9b00
+0x009ad8  adrp     x8, #0x87000
+0x009adc  ldr      x0, [x8, #0x6f0] ; [0x876f0] class:NSSet
+0x009ae0  bl       #0x5a6e0 ; objc_msgSend$set
+0x009ae4  mov      x29, x29
+0x009ae8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x009aec  mov      x20, x0
+0x009af0  b        #0x9b0c
+0x009af4  bl       #0x5a6e0 ; objc_msgSend$set
+0x009af8  mov      x29, x29
+0x009afc  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x009b00  mov      x20, x0
+0x009b04  mov      x0, x19
+0x009b08  bl       #0x567b8 ; call _objc_release
+0x009b0c  mov      x0, x20
+0x009b10  ldp      x29, x30, [sp, #0x10]
+0x009b14  ldp      x20, x19, [sp], #0x20
+0x009b18  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x009b1c  b        #0x9b20
+0x009b20  mov      x20, x0
+0x009b24  mov      x0, x19
+0x009b28  bl       #0x567b8 ; call _objc_release
+0x009b2c  mov      x0, x20
+0x009b30  bl       #0x563e0 ; call __Unwind_Resume

@@ -1,0 +1,252 @@
+=== -[ABHost nudgePane:] @ 0xf9ac (size 1004) ===
+0000f9ac  sub      sp, sp, #0x100
+0000f9b0  stp      d11, d10, [sp, #0x90]
+0000f9b4  stp      d9, d8, [sp, #0xa0]
+0000f9b8  stp      x26, x25, [sp, #0xb0]
+0000f9bc  stp      x24, x23, [sp, #0xc0]
+0000f9c0  stp      x22, x21, [sp, #0xd0]
+0000f9c4  stp      x20, x19, [sp, #0xe0]
+0000f9c8  stp      x29, x30, [sp, #0xf0]
+0000f9cc  add      x29, sp, #0xf0
+0000f9d0  mov      x19, x2
+0000f9d4  mov      x21, x0
+0000f9d8  mov      x0, x2
+0000f9dc  bl       #0x24818 ; call _objc_retain
+0000f9e0  mov      x0, x19
+0000f9e4  bl       #0x24d00 ; objc_msgSend sel=appViewController
+0000f9e8  mov      x29, x29
+0000f9ec  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000f9f0  mov      x20, x0
+0000f9f4  adrp     x0, #0x36000
+0000f9f8  add      x0, x0, #0x130 = @"sceneHandle"
+0000f9fc  bl       #0x2441c ; call _NSSelectorFromString
+0000fa00  mov      x22, x0
+0000fa04  mov      x0, x20
+0000fa08  mov      x1, x22
+0000fa0c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000fa10  tbz      w0, #0, #0xfa30
+0000fa14  mov      x0, x20
+0000fa18  mov      x1, x22
+0000fa1c  bl       #0x247ac ; call _objc_msgSend
+0000fa20  mov      x29, x29
+0000fa24  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000fa28  mov      x23, x0
+0000fa2c  b        #0xfa44 ; call sub_fa44
+0000fa30  adrp     x1, #0x36000
+0000fa34  add      x1, x1, #0x130 = @"sceneHandle"
+0000fa38  mov      x0, x20
+0000fa3c  bl       #0x9698 ; call sym:_ABMissingSelector
+0000fa40  mov      x23, #0
+0000fa44  mov      x0, x20
+0000fa48  bl       #0x2480c ; call _objc_release
+0000fa4c  adrp     x0, #0x36000
+0000fa50  add      x0, x0, #0x150 = @"sceneIfExists"
+0000fa54  bl       #0x2441c ; call _NSSelectorFromString
+0000fa58  mov      x20, x0
+0000fa5c  mov      x0, x23
+0000fa60  mov      x1, x20
+0000fa64  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000fa68  tbz      w0, #0, #0xfa88
+0000fa6c  mov      x0, x23
+0000fa70  mov      x1, x20
+0000fa74  bl       #0x247ac ; call _objc_msgSend
+0000fa78  mov      x29, x29
+0000fa7c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000fa80  mov      x20, x0
+0000fa84  b        #0xfa9c ; call sub_fa9c
+0000fa88  adrp     x1, #0x36000
+0000fa8c  add      x1, x1, #0x150 = @"sceneIfExists"
+0000fa90  mov      x0, x23
+0000fa94  bl       #0x9698 ; call sym:_ABMissingSelector
+0000fa98  mov      x20, #0
+0000fa9c  mov      x0, x23
+0000faa0  bl       #0x2480c ; call _objc_release
+0000faa4  cbz      x20, #0xfc48
+0000faa8  mov      x0, x21
+0000faac  bl       #0x28260 ; objc_msgSend sel=zoom
+0000fab0  mov      v8.16b, v0.16b
+0000fab4  mov      x0, x19
+0000fab8  bl       #0x24f60 ; objc_msgSend sel=box
+0000fabc  mov      x29, x29
+0000fac0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000fac4  mov      x23, x0
+0000fac8  bl       #0x24f40 ; objc_msgSend sel=bounds
+0000facc  mov      v9.16b, v2.16b
+0000fad0  mov      v10.16b, v3.16b
+0000fad4  mov      x0, x23
+0000fad8  bl       #0x2480c ; call _objc_release
+0000fadc  mov      x0, x21
+0000fae0  mov      x2, x19
+0000fae4  bl       #0x256a0 ; objc_msgSend sel=effectiveOrientation:
+0000fae8  fdiv     d0, d10, d8
+0000faec  frinta   d0, d0
+0000faf0  fdiv     d1, d9, d8
+0000faf4  frinta   d1, d1
+0000faf8  sub      x8, x0, #3
+0000fafc  cmp      x8, #2
+0000fb00  fcsel    d9, d1, d0, lo
+0000fb04  fcsel    d8, d0, d1, lo
+0000fb08  mov      x0, x20
+0000fb0c  bl       #0x24818 ; call _objc_retain
+0000fb10  adrp     x0, #0x36000
+0000fb14  add      x0, x0, #0x170 = @"updateSettingsWithBlock:"
+0000fb18  bl       #0x2441c ; call _NSSelectorFromString
+0000fb1c  mov      x22, x0
+0000fb20  mov      x0, x20
+0000fb24  mov      x1, x22
+0000fb28  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000fb2c  tbz      w0, #0, #0xfb88
+0000fb30  fmov     d0, #-1.00000000
+0000fb34  fadd     d0, d9, d0
+0000fb38  fmov     d1, #1.00000000
+0000fb3c  fmaxnm   d0, d0, d1
+0000fb40  adrp     x8, #0x34000
+0000fb44  ldr      x8, [x8, #0x258] ; -> __NSConcreteStackBlock
+0000fb48  str      x8, [sp, #0x50]
+0000fb4c  adrp     x8, #0x2b000
+0000fb50  ldr      d1, [x8, #0x1e8] ; -> 0xc0000000
+0000fb54  str      d1, [sp, #0x58]
+0000fb58  adrp     x8, #0xf000
+0000fb5c  add      x8, x8, #0xd98
+0000fb60  adrp     x9, #0x34000
+0000fb64  add      x9, x9, #0x940
+0000fb68  stp      x8, x9, [sp, #0x60]
+0000fb6c  stp      xzr, xzr, [sp, #0x70]
+0000fb70  stp      d8, d0, [sp, #0x80]
+0000fb74  add      x2, sp, #0x50
+0000fb78  mov      x0, x20
+0000fb7c  mov      x1, x22
+0000fb80  bl       #0x247ac ; call _objc_msgSend
+0000fb84  b        #0xfb98 ; call sub_fb98
+0000fb88  adrp     x1, #0x36000
+0000fb8c  add      x1, x1, #0x170 = @"updateSettingsWithBlock:"
+0000fb90  mov      x0, x20
+0000fb94  bl       #0x9698 ; call sym:_ABMissingSelector
+0000fb98  mov      x0, x20
+0000fb9c  bl       #0x2480c ; call _objc_release
+0000fba0  add      x0, sp, #0x48
+0000fba4  mov      x1, x21
+0000fba8  bl       #0x24794 ; call _objc_initWeak
+0000fbac  add      x0, sp, #0x40
+0000fbb0  mov      x1, x19
+0000fbb4  bl       #0x24794 ; call _objc_initWeak
+0000fbb8  mov      x0, #0
+0000fbbc  mov      w1, #0xf080
+0000fbc0  movk     w1, #0x2fa, lsl #16
+0000fbc4  bl       #0x245cc ; call _dispatch_time
+0000fbc8  mov      x21, x0
+0000fbcc  adrp     x8, #0x34000
+0000fbd0  ldr      x8, [x8, #0x258] ; -> __NSConcreteStackBlock
+0000fbd4  str      x8, [sp, #0x10]
+0000fbd8  adrp     x8, #0x2b000
+0000fbdc  ldr      d0, [x8, #0x1d0] ; -> 0xc2000000
+0000fbe0  adrp     x8, #0xf000
+0000fbe4  add      x8, x8, #0xdf8
+0000fbe8  str      d0, [sp, #0x18]
+0000fbec  adrp     x9, #0x34000
+0000fbf0  add      x9, x9, #0x8c0
+0000fbf4  stp      x8, x9, [sp, #0x20]
+0000fbf8  add      x22, sp, #0x10
+0000fbfc  add      x0, x22, #0x20
+0000fc00  add      x1, sp, #0x40
+0000fc04  bl       #0x2474c ; call _objc_copyWeak
+0000fc08  add      x0, x22, #0x28
+0000fc0c  add      x1, sp, #0x48
+0000fc10  bl       #0x2474c ; call _objc_copyWeak
+0000fc14  adrp     x1, #0x34000
+0000fc18  ldr      x1, [x1, #0x290] ; -> __dispatch_main_q
+0000fc1c  add      x2, sp, #0x10
+0000fc20  mov      x0, x21
+0000fc24  bl       #0x24548 ; call _dispatch_after
+0000fc28  add      x0, x22, #0x28
+0000fc2c  bl       #0x24758 ; call _objc_destroyWeak
+0000fc30  add      x0, x22, #0x20
+0000fc34  bl       #0x24758 ; call _objc_destroyWeak
+0000fc38  add      x0, sp, #0x40
+0000fc3c  bl       #0x24758 ; call _objc_destroyWeak
+0000fc40  add      x0, sp, #0x48
+0000fc44  bl       #0x24758 ; call _objc_destroyWeak
+0000fc48  mov      x0, x20
+0000fc4c  bl       #0x2480c ; call _objc_release
+0000fc50  mov      x0, x19
+0000fc54  bl       #0x2480c ; call _objc_release
+0000fc58  ldp      x29, x30, [sp, #0xf0]
+0000fc5c  ldp      x20, x19, [sp, #0xe0]
+0000fc60  ldp      x22, x21, [sp, #0xd0]
+0000fc64  ldp      x24, x23, [sp, #0xc0]
+0000fc68  ldp      x26, x25, [sp, #0xb0]
+0000fc6c  ldp      d9, d8, [sp, #0xa0]
+0000fc70  ldp      d11, d10, [sp, #0x90]
+0000fc74  add      sp, sp, #0x100
+0000fc78  ret      
+0000fc7c  b        #0xfd7c ; call sub_fd7c
+0000fc80  mov      x22, x0
+0000fc84  mov      x0, x23
+0000fc88  bl       #0x2480c ; call _objc_release
+0000fc8c  b        #0xfd80 ; call sub_fd80
+0000fc90  b        #0xfd7c ; call sub_fd7c
+0000fc94  b        #0xfd7c ; call sub_fd7c
+0000fc98  b        #0xfd70 ; call sub_fd70
+0000fc9c  b        #0xfd7c ; call sub_fd7c
+0000fca0  mov      x22, x0
+0000fca4  b        #0xfd88 ; call sub_fd88
+0000fca8  mov      x23, x1
+0000fcac  mov      x22, x0
+0000fcb0  mov      x0, x20
+0000fcb4  bl       #0x2480c ; call _objc_release
+0000fcb8  cmp      w23, #1
+0000fcbc  b.ne     #0xfd80
+0000fcc0  mov      x0, x22
+0000fcc4  bl       #0x24740 ; call _objc_begin_catch
+0000fcc8  mov      x23, x0
+0000fccc  bl       #0x24818 ; call _objc_retain
+0000fcd0  adrp     x8, #0x3e000
+0000fcd4  ldr      x22, [x8, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000fcd8  mov      x0, x19
+0000fcdc  bl       #0x25020 ; objc_msgSend sel=bundleID
+0000fce0  mov      x29, x29
+0000fce4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000fce8  mov      x24, x0
+0000fcec  stp      x0, x23, [sp]
+0000fcf0  adrp     x2, #0x36000
+0000fcf4  add      x2, x2, #0x270 = @"nudge %@ loi %@"
+0000fcf8  mov      x0, x22
+0000fcfc  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000fd00  mov      x29, x29
+0000fd04  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000fd08  mov      x25, x0
+0000fd0c  adrp     x0, #0x34000
+0000fd10  add      x0, x0, #0xef0 = @"AppBridge"
+0000fd14  mov      x1, x25
+0000fd18  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000fd1c  mov      x0, x25
+0000fd20  bl       #0x2480c ; call _objc_release
+0000fd24  mov      x0, x24
+0000fd28  bl       #0x2480c ; call _objc_release
+0000fd2c  mov      x0, x23
+0000fd30  bl       #0x2480c ; call _objc_release
+0000fd34  bl       #0x24764 ; call _objc_end_catch
+0000fd38  b        #0xfba0 ; call sub_fba0
+0000fd3c  mov      x22, x0
+0000fd40  mov      x0, x25
+0000fd44  bl       #0x2480c ; call _objc_release
+0000fd48  b        #0xfd50 ; call sub_fd50
+0000fd4c  mov      x22, x0
+0000fd50  mov      x0, x24
+0000fd54  bl       #0x2480c ; call _objc_release
+0000fd58  b        #0xfd60 ; call sub_fd60
+0000fd5c  mov      x22, x0
+0000fd60  mov      x0, x23
+0000fd64  bl       #0x2480c ; call _objc_release
+0000fd68  bl       #0x24764 ; call _objc_end_catch
+0000fd6c  b        #0xfd80 ; call sub_fd80
+0000fd70  mov      x22, x0
+0000fd74  mov      x0, x23
+0000fd78  b        #0xfd84 ; call sub_fd84
+0000fd7c  mov      x22, x0
+0000fd80  mov      x0, x20
+0000fd84  bl       #0x2480c ; call _objc_release
+0000fd88  mov      x0, x19
+0000fd8c  bl       #0x2480c ; call _objc_release
+0000fd90  mov      x0, x22
+0000fd94  bl       #0x24470 ; call __Unwind_Resume

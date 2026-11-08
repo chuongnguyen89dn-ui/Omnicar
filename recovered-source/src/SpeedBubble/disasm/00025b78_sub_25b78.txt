@@ -1,0 +1,25 @@
+# sub_25b78
+# addr 0x25b78 .. 0x25bd0  (88 bytes)
+
+00025b78  stp      x29, x30, [sp, #-0x10]!                     
+00025b7c  mov      x29, sp                                     
+00025b80  adrp     x8, #0x43000                                
+00025b84  ldr      w8, [x8, #0xb9c]                            ; [0x43b9c] __DATA,__bss+0x3fc
+00025b88  cbnz     w8, #0x25b98                                
+00025b8c  adrp     x0, #0x43000                                
+00025b90  add      x0, x0, #0xb98                              ; __DATA,__bss+0x3f8
+00025b94  bl       #0x27ea8                                    ; _mach_timebase_info
+00025b98  bl       #0x27e84                                    ; _mach_absolute_time
+00025b9c  ucvtf    d0, x0                                      
+00025ba0  adrp     x8, #0x43000                                
+00025ba4  add      x8, x8, #0xb98                              ; __DATA,__bss+0x3f8
+00025ba8  ldp      s1, s2, [x8]                                
+00025bac  ucvtf    d1, d1                                      
+00025bb0  fmul     d0, d0, d1                                  
+00025bb4  ucvtf    d1, d2                                      
+00025bb8  fdiv     d0, d0, d1                                  
+00025bbc  adrp     x8, #0x32000                                
+00025bc0  ldr      d1, [x8, #0x7a0]                            ; [0x327a0] __const[0x327a0] double=1000000000.0 float=0.0
+00025bc4  fdiv     d0, d0, d1                                  
+00025bc8  ldp      x29, x30, [sp], #0x10                       
+00025bcc  ret                                                  

@@ -1,0 +1,15 @@
+# sub_24178
+# addr 0x24178 .. 0x241a8  (48 bytes)
+
+00024178  stp      x29, x30, [sp, #-0x10]!                     
+0002417c  mov      x29, sp                                     
+00024180  mov      x0, #0                                      
+00024184  mov      w1, #0x2800                                 
+00024188  movk     w1, #0xee6b, lsl #16                        
+0002418c  bl       #0x27dc4                                    ; _dispatch_time
+00024190  adrp     x1, #0x38000                                
+00024194  ldr      x1, [x1, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+00024198  adrp     x2, #0x38000                                
+0002419c  add      x2, x2, #0xdf8                              ; __const[0x38df8] double=-4.4501477170146e-308 float=2.802596928649634e-43
+000241a0  ldp      x29, x30, [sp], #0x10                       
+000241a4  b        #0x27d58                                    ; _dispatch_after

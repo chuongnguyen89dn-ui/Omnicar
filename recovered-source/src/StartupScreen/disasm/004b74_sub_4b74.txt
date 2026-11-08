@@ -1,0 +1,75 @@
+; sub_4b74
+; VA 0x4b74  size 288
+
+0x00004b74:  mov      x0, x25
+0x00004b78:  bl       #0x22120    ; -> _objc_release
+0x00004b7c:  add      x20, x20, #1
+0x00004b80:  cmp      x24, x20
+0x00004b84:  b.ne     #0x4ad0
+0x00004b88:  add      x2, sp, #0x500
+0x00004b8c:  add      x3, sp, #0x480
+0x00004b90:  mov      x0, x26
+0x00004b94:  mov      w4, #0x10
+0x00004b98:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00004b9c:  mov      x24, x0
+0x00004ba0:  cbnz     x0, #0x4acc
+0x00004ba4:  mov      x0, x19
+0x00004ba8:  bl       #0x22120    ; -> _objc_release
+0x00004bac:  add      x28, x28, #1
+0x00004bb0:  ldr      x8, [sp, #0x18]
+0x00004bb4:  cmp      x28, x8
+0x00004bb8:  b.ne     #0x4a40
+0x00004bbc:  add      x2, sp, #0x540
+0x00004bc0:  add      x3, sp, #0x80
+0x00004bc4:  adrp     x0, #0x35000
+0x00004bc8:  add      x0, x0, #0x458
+0x00004bcc:  mov      w4, #0x10
+0x00004bd0:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00004bd4:  str      x0, [sp, #0x18]
+0x00004bd8:  ldr      x8, [sp, #0x18]
+0x00004bdc:  cbnz     x8, #0x4a3c
+0x00004be0:  mov      x23, #0
+0x00004be4:  b        #0x4cb4    ; -> sub_4cb4
+0x00004be8:  adrp     x0, #0x30000
+0x00004bec:  add      x0, x0, #0xfa8    ; @"startupScreenScaleMode"
+0x00004bf0:  adrp     x1, #0x34000
+0x00004bf4:  add      x1, x1, #0xde0
+0x00004bf8:  bl       #0x1af70    ; -> OMCPref
+0x00004bfc:  mov      x29, x29
+0x00004c00:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00004c04:  mov      x19, x0
+0x00004c08:  bl       #0x23860    ; -> _objc_msgSend(integerValue)
+0x00004c0c:  cmp      x0, #1
+0x00004c10:  cset     w20, eq
+0x00004c14:  mov      x0, x19
+0x00004c18:  bl       #0x22120    ; -> _objc_release
+0x00004c1c:  adrp     x8, #0x3a000
+0x00004c20:  ldr      x0, [x8, #0x9d0]    ; class(UIImageView)
+0x00004c24:  bl       #0x22024    ; -> _objc_alloc
+0x00004c28:  mov      x19, x0
+0x00004c2c:  ldr      x0, [sp, #0x58]
+0x00004c30:  bl       #0x228c0    ; -> _objc_msgSend(bounds)
+0x00004c34:  mov      x0, x19
+0x00004c38:  bl       #0x23780    ; -> _objc_msgSend(initWithFrame:)
+0x00004c3c:  ldr      x21, [sp, #0x60]
+0x00004c40:  ldr      x8, [x21, #0x20]!
+0x00004c44:  str      x0, [x21]
+0x00004c48:  mov      x0, x8
+0x00004c4c:  bl       #0x22120    ; -> _objc_release
+0x00004c50:  adrp     x8, #0x3a000
+0x00004c54:  ldr      x0, [x8, #0x9d8]    ; class(UIColor)
+0x00004c58:  bl       #0x22860    ; -> _objc_msgSend(blackColor)
+0x00004c5c:  mov      x29, x29
+0x00004c60:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00004c64:  mov      x19, x0
+0x00004c68:  ldr      x0, [x21]
+0x00004c6c:  mov      x2, x19
+0x00004c70:  bl       #0x24500    ; -> _objc_msgSend(setBackgroundColor:)
+0x00004c74:  mov      x0, x19
+0x00004c78:  bl       #0x22120    ; -> _objc_release
+0x00004c7c:  cmp      w20, #0
+0x00004c80:  mov      w8, #1
+0x00004c84:  cinc     x2, x8, eq
+0x00004c88:  ldr      x0, [x21]
+0x00004c8c:  bl       #0x246c0    ; -> _objc_msgSend(setContentMode:)
+0x00004c90:  ldr      x0, [x21]

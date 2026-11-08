@@ -1,0 +1,13 @@
+; -[SCPCarSplit setSlots:]
+0x045a8c  stp      x20, x19, [sp, #-0x20]!
+0x045a90  stp      x29, x30, [sp, #0x10]
+0x045a94  add      x29, sp, #0x10
+0x045a98  mov      x19, x2
+0x045a9c  mov      x20, x0
+0x045aa0  mov      x0, x2
+0x045aa4  bl       #0x567c4 ; call _objc_retain
+0x045aa8  ldr      x0, [x20, #0x98]
+0x045aac  str      x19, [x20, #0x98]
+0x045ab0  ldp      x29, x30, [sp, #0x10]
+0x045ab4  ldp      x20, x19, [sp], #0x20
+0x045ab8  b        #0x567b8 ; call _objc_release

@@ -1,0 +1,73 @@
+; sub_1b86c
+; VA 0x1b86c  size 280
+
+0x0001b86c:  sub      sp, sp, #0x50
+0x0001b870:  stp      x22, x21, [sp, #0x20]
+0x0001b874:  stp      x20, x19, [sp, #0x30]
+0x0001b878:  stp      x29, x30, [sp, #0x40]
+0x0001b87c:  add      x29, sp, #0x40
+0x0001b880:  mov      x19, x0
+0x0001b884:  adrp     x8, #0x30000
+0x0001b888:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0001b88c:  ldr      x8, [x8]
+0x0001b890:  str      x8, [sp, #0x18]
+0x0001b894:  adrp     x20, #0x3b000
+0x0001b898:  ldr      x8, [x20, #0x248]
+0x0001b89c:  cmn      x8, #1
+0x0001b8a0:  b.ne     #0x1b970
+0x0001b8a4:  adrp     x21, #0x3b000
+0x0001b8a8:  ldrb     w8, [x21, #0x240]
+0x0001b8ac:  cmp      w8, #1
+0x0001b8b0:  b.ne     #0x1b8b8
+0x0001b8b4:  bl       #0x1b984    ; -> sub_1b984
+0x0001b8b8:  ldr      x0, [x19, #0x20]
+0x0001b8bc:  bl       #0x1ba44    ; -> sub_1ba44
+0x0001b8c0:  tbnz     w0, #0, #0x1b944
+0x0001b8c4:  ldr      x8, [x20, #0x248]
+0x0001b8c8:  cmn      x8, #1
+0x0001b8cc:  b.ne     #0x1b978
+0x0001b8d0:  ldrb     w8, [x21, #0x240]
+0x0001b8d4:  tbnz     w8, #0, #0x1b944
+0x0001b8d8:  bl       #0x1bab4    ; -> sub_1bab4
+0x0001b8dc:  mov      x29, x29
+0x0001b8e0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b8e4:  mov      x20, x0
+0x0001b8e8:  adrp     x8, #0x33000
+0x0001b8ec:  add      x9, x8, #0xb88    ; @"line"
+0x0001b8f0:  ldr      x8, [x19, #0x20]
+0x0001b8f4:  stp      x9, x8, [sp, #8]
+0x0001b8f8:  adrp     x8, #0x3a000
+0x0001b8fc:  ldr      x0, [x8, #0xa58]    ; class(NSDictionary)
+0x0001b900:  add      x2, sp, #0x10
+0x0001b904:  add      x3, sp, #8
+0x0001b908:  mov      w4, #1
+0x0001b90c:  bl       #0x23100    ; -> _objc_msgSend(dictionaryWithObjects:forKeys:count:)
+0x0001b910:  mov      x29, x29
+0x0001b914:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b918:  mov      x19, x0
+0x0001b91c:  adrp     x2, #0x33000
+0x0001b920:  add      x2, x2, #0xb68    ; @"com.anlai.omnicar/log"
+0x0001b924:  mov      x0, x20
+0x0001b928:  mov      x3, #0
+0x0001b92c:  mov      x4, x19
+0x0001b930:  bl       #0x24040    ; -> _objc_msgSend(postNotificationName:object:userInfo:)
+0x0001b934:  mov      x0, x19
+0x0001b938:  bl       #0x22120    ; -> _objc_release
+0x0001b93c:  mov      x0, x20
+0x0001b940:  bl       #0x22120    ; -> _objc_release
+0x0001b944:  ldr      x8, [sp, #0x18]
+0x0001b948:  adrp     x9, #0x30000
+0x0001b94c:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0001b950:  ldr      x9, [x9]
+0x0001b954:  cmp      x9, x8
+0x0001b958:  b.ne     #0x1b980
+0x0001b95c:  ldp      x29, x30, [sp, #0x40]
+0x0001b960:  ldp      x20, x19, [sp, #0x30]
+0x0001b964:  ldp      x22, x21, [sp, #0x20]
+0x0001b968:  add      sp, sp, #0x50
+0x0001b96c:  ret      
+0x0001b970:  bl       #0x21aac    ; -> sub_21aac
+0x0001b974:  b        #0x1b8a4    ; -> sub_1b8a4
+0x0001b978:  bl       #0x21ab0    ; -> sub_21ab0
+0x0001b97c:  b        #0x1b8d0    ; -> sub_1b8d0
+0x0001b980:  bl       #0x21dd8    ; -> ___stack_chk_fail

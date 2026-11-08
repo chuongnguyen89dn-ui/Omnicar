@@ -1,0 +1,24 @@
+; -[SSStartupView ss_now]
+; VA 0xfe34  size 84
+
+0x0000fe34:  stp      x20, x19, [sp, #-0x20]!
+0x0000fe38:  stp      x29, x30, [sp, #0x10]
+0x0000fe3c:  add      x29, sp, #0x10
+0x0000fe40:  mov      x19, x0
+0x0000fe44:  adrp     x8, #0x3a000
+0x0000fe48:  ldrsw    x8, [x8, #0xd20]
+0x0000fe4c:  ldrb     w8, [x0, x8]
+0x0000fe50:  cmp      w8, #1
+0x0000fe54:  b.ne     #0xfe70
+0x0000fe58:  bl       #0x21b08    ; -> _CACurrentMediaTime
+0x0000fe5c:  adrp     x8, #0x3a000
+0x0000fe60:  ldrsw    x8, [x8, #0xd1c]
+0x0000fe64:  ldr      d1, [x19, x8]
+0x0000fe68:  fsub     d0, d0, d1
+0x0000fe6c:  b        #0xfe7c    ; -> sub_fe7c
+0x0000fe70:  adrp     x8, #0x3a000
+0x0000fe74:  ldrsw    x8, [x8, #0xd14]
+0x0000fe78:  ldr      d0, [x19, x8]
+0x0000fe7c:  ldp      x29, x30, [sp, #0x10]
+0x0000fe80:  ldp      x20, x19, [sp], #0x20
+0x0000fe84:  ret      

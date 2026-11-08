@@ -1,0 +1,25 @@
+# sub_40c0
+# addr 0x40c0 .. 0x4118  (88 bytes)
+
+000040c0  stp      x20, x19, [sp, #-0x20]!                     
+000040c4  stp      x29, x30, [sp, #0x10]                       
+000040c8  add      x29, sp, #0x10                              
+000040cc  mov      x19, x1                                     
+000040d0  mov      x20, x0                                     
+000040d4  adrp     x8, #0x43000                                
+000040d8  ldr      x8, [x8, #0x7c8]                            ; [0x437c8] __DATA,__bss+0x28
+000040dc  cmn      x8, #1                                      
+000040e0  b.ne     #0x4100                                     
+000040e4  adrp     x8, #0x43000                                
+000040e8  ldr      x2, [x8, #0x7b8]                            ; [0x437b8] __DATA,__bss+0x18
+000040ec  mov      x0, x20                                     
+000040f0  mov      x1, x19                                     
+000040f4  ldp      x29, x30, [sp, #0x10]                       
+000040f8  ldp      x20, x19, [sp], #0x20                       
+000040fc  br       x2                                          
+00004100  adrp     x0, #0x43000                                
+00004104  add      x0, x0, #0x7c8                              ; __DATA,__bss+0x28
+00004108  adrp     x1, #0x38000                                
+0000410c  add      x1, x1, #0x668                              ; __const[0x38668] double=-4.4501477170146e-308 float=2.802596928649634e-43
+00004110  bl       #0x27d70                                    ; _dispatch_once
+00004114  b        #0x40e4                                     ; sub_40e4

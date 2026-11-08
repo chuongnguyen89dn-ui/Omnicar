@@ -1,0 +1,95 @@
+; sub_7308
+; VA 0x7308  size 368
+
+0x00007308:  stp      x28, x27, [sp, #-0x60]!
+0x0000730c:  stp      x26, x25, [sp, #0x10]
+0x00007310:  stp      x24, x23, [sp, #0x20]
+0x00007314:  stp      x22, x21, [sp, #0x30]
+0x00007318:  stp      x20, x19, [sp, #0x40]
+0x0000731c:  stp      x29, x30, [sp, #0x50]
+0x00007320:  add      x29, sp, #0x50
+0x00007324:  sub      sp, sp, #0x2f0
+0x00007328:  mov      x19, x0
+0x0000732c:  adrp     x8, #0x10000
+0x00007330:  ldr      x8, [x8, #0x1b0]    ; got(___stack_chk_guard)
+0x00007334:  ldr      x8, [x8]
+0x00007338:  stur     x8, [x29, #-0x58]
+0x0000733c:  bl       #0xb41c    ; -> _objc_retain
+0x00007340:  adrp     x8, #0x14000
+0x00007344:  ldr      x0, [x8, #0x510]
+0x00007348:  mov      w8, #0x1a4
+0x0000734c:  str      x8, [sp]
+0x00007350:  mov      w1, #0x209
+0x00007354:  bl       #0xb464    ; -> _open
+0x00007358:  tbnz     w0, #0x1f, #0x7510
+0x0000735c:  mov      x20, x0
+0x00007360:  movi     v0.16b, #0
+0x00007364:  stp      q0, q0, [sp, #0x20]
+0x00007368:  stp      q0, q0, [sp, #0x40]
+0x0000736c:  mov      x0, x19
+0x00007370:  bl       #0xb740    ; -> _objc_msgSend(callStackReturnAddresses)
+0x00007374:  mov      x29, x29
+0x00007378:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x0000737c:  mov      x21, x0
+0x00007380:  add      x2, sp, #0x20
+0x00007384:  add      x3, sp, #0x68
+0x00007388:  mov      w4, #0x10
+0x0000738c:  bl       #0xb880    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00007390:  cbz      x0, #0x741c
+0x00007394:  mov      x22, x0
+0x00007398:  mov      x23, #0
+0x0000739c:  ldr      x8, [sp, #0x30]
+0x000073a0:  ldr      x24, [x8]
+0x000073a4:  add      x25, sp, #0xe8
+0x000073a8:  mov      x26, #0
+0x000073ac:  sxtw     x27, w23
+0x000073b0:  ldr      x8, [sp, #0x30]
+0x000073b4:  ldr      x8, [x8]
+0x000073b8:  cmp      x8, x24
+0x000073bc:  b.eq     #0x73c8
+0x000073c0:  mov      x0, x21
+0x000073c4:  bl       #0xb3b0    ; -> _objc_enumerationMutation
+0x000073c8:  cmp      x27, #0x40
+0x000073cc:  b.eq     #0x7414
+0x000073d0:  ldr      x8, [sp, #0x28]
+0x000073d4:  ldr      x0, [x8, x26, lsl #3]
+0x000073d8:  bl       #0xc2c0    ; -> _objc_msgSend(unsignedLongLongValue)
+0x000073dc:  add      x23, x27, #1
+0x000073e0:  str      x0, [x25, x27, lsl #3]
+0x000073e4:  add      x26, x26, #1
+0x000073e8:  mov      x27, x23
+0x000073ec:  cmp      x22, x26
+0x000073f0:  b.ne     #0x73b0
+0x000073f4:  add      x2, sp, #0x20
+0x000073f8:  add      x3, sp, #0x68
+0x000073fc:  mov      x0, x21
+0x00007400:  mov      w4, #0x10
+0x00007404:  bl       #0xb880    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00007408:  mov      x22, x0
+0x0000740c:  cbnz     x0, #0x73a8
+0x00007410:  b        #0x7420    ; -> sub_7420
+0x00007414:  mov      w23, #0x40
+0x00007418:  b        #0x7420    ; -> sub_7420
+0x0000741c:  mov      w23, #0
+0x00007420:  mov      x0, x21
+0x00007424:  bl       #0xb410    ; -> _objc_release
+0x00007428:  adrp     x1, #0xc000
+0x0000742c:  add      x1, x1, #0x94b    ; "exception"
+0x00007430:  add      x2, sp, #0xe8
+0x00007434:  mov      x0, x20
+0x00007438:  mov      x3, x23
+0x0000743c:  bl       #0x7a00    ; -> sub_7a00
+0x00007440:  adrp     x8, #0x14000
+0x00007444:  ldr      x21, [x8, #0x378]    ; class(NSString)
+0x00007448:  mov      x0, x19
+0x0000744c:  bl       #0xbce0    ; -> _objc_msgSend(name)
+0x00007450:  mov      x29, x29
+0x00007454:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00007458:  mov      x22, x0
+0x0000745c:  mov      x0, x19
+0x00007460:  bl       #0xbf20    ; -> _objc_msgSend(reason)
+0x00007464:  mov      x29, x29
+0x00007468:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x0000746c:  mov      x23, x0
+0x00007470:  mov      x0, x19
+0x00007474:  bl       #0xb760    ; -> _objc_msgSend(callStackSymbols)

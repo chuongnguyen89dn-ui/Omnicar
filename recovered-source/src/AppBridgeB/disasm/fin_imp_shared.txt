@@ -1,0 +1,17 @@
+0x00a9e8: stp      x20, x19, [sp, #-0x20]!                      
+0x00a9ec: stp      x29, x30, [sp, #0x10]                        
+0x00a9f0: add      x29, sp, #0x10                               
+0x00a9f4: adrp     x8, #0x3e000                                 
+0x00a9f8: ldr      x8, [x8, #0xa38]                             ; [0x3ea38] __bss@0x3ea38 -> ?@0x0
+0x00a9fc: cmn      x8, #1                                       
+0x00aa00: b.ne     #0xaa24                                      ; -> 0xaa24
+0x00aa04: adrp     x8, #0x3e000                                 
+0x00aa08: ldr      x19, [x8, #0xa30]                            ; [0x3ea30] __bss@0x3ea30 -> ?@0x0
+0x00aa0c: mov      x0, x19                                      
+0x00aa10: bl       #0x24818                                     ; call stub _objc_retain
+0x00aa14: mov      x0, x19                                      
+0x00aa18: ldp      x29, x30, [sp, #0x10]                        
+0x00aa1c: ldp      x20, x19, [sp], #0x20                        
+0x00aa20: b        #0x24734                                     ; call stub _objc_autoreleaseReturnValue
+0x00aa24: bl       #0x241b8                                     ; call 0x241b8 (func @0x241b8)
+0x00aa28: b        #0xaa04                                      ; call 0xaa04

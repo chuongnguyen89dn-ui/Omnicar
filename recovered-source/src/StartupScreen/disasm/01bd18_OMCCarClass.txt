@@ -1,0 +1,85 @@
+; OMCCarClass
+; VA 0x1bd18  size 328
+
+0x0001bd18:  stp      x22, x21, [sp, #-0x30]!
+0x0001bd1c:  stp      x20, x19, [sp, #0x10]
+0x0001bd20:  stp      x29, x30, [sp, #0x20]
+0x0001bd24:  add      x29, sp, #0x20
+0x0001bd28:  mov      x19, x0
+0x0001bd2c:  bl       #0x220a8    ; -> _objc_getClass
+0x0001bd30:  cbz      x0, #0x1bd40
+0x0001bd34:  mov      x21, x0
+0x0001bd38:  bl       #0x2212c    ; -> _objc_retain
+0x0001bd3c:  b        #0x1be4c    ; -> sub_1be4c
+0x0001bd40:  adrp     x8, #0x3a000
+0x0001bd44:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x0001bd48:  mov      x2, x19
+0x0001bd4c:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x0001bd50:  mov      x29, x29
+0x0001bd54:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bd58:  mov      x19, x0
+0x0001bd5c:  adrp     x2, #0x33000
+0x0001bd60:  add      x2, x2, #0xd48    ; @"DashBoard"
+0x0001bd64:  bl       #0x23920    ; -> _objc_msgSend(isEqualToString:)
+0x0001bd68:  cbz      w0, #0x1bd88
+0x0001bd6c:  adrp     x0, #0x28000
+0x0001bd70:  add      x0, x0, #0x4c3    ; "CARApplication"
+0x0001bd74:  bl       #0x220a8    ; -> _objc_getClass
+0x0001bd78:  mov      x29, x29
+0x0001bd7c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bd80:  mov      x21, x0
+0x0001bd84:  b        #0x1be44    ; -> sub_1be44
+0x0001bd88:  adrp     x2, #0x33000
+0x0001bd8c:  add      x2, x2, #0xd68    ; @"DB"
+0x0001bd90:  mov      x0, x19
+0x0001bd94:  bl       #0x23540    ; -> _objc_msgSend(hasPrefix:)
+0x0001bd98:  cbz      w0, #0x1bdfc
+0x0001bd9c:  mov      x0, x19
+0x0001bda0:  mov      w2, #2
+0x0001bda4:  bl       #0x25c80    ; -> _objc_msgSend(substringFromIndex:)
+0x0001bda8:  mov      x29, x29
+0x0001bdac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bdb0:  cbz      x0, #0x1bdfc
+0x0001bdb4:  mov      x20, x0
+0x0001bdb8:  adrp     x0, #0x33000
+0x0001bdbc:  add      x0, x0, #0xd88    ; @"CAR"
+0x0001bdc0:  mov      x2, x20
+0x0001bdc4:  bl       #0x25b40    ; -> _objc_msgSend(stringByAppendingString:)
+0x0001bdc8:  mov      x29, x29
+0x0001bdcc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bdd0:  mov      x22, x0
+0x0001bdd4:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0001bdd8:  bl       #0x223c0    ; -> _objc_msgSend(UTF8String)
+0x0001bddc:  bl       #0x220a8    ; -> _objc_getClass
+0x0001bde0:  mov      x21, x0
+0x0001bde4:  mov      x0, x22
+0x0001bde8:  bl       #0x22120    ; -> _objc_release
+0x0001bdec:  cbz      x21, #0x1be04
+0x0001bdf0:  mov      x0, x21
+0x0001bdf4:  bl       #0x2212c    ; -> _objc_retain
+0x0001bdf8:  b        #0x1be3c    ; -> sub_1be3c
+0x0001bdfc:  mov      x21, #0
+0x0001be00:  b        #0x1be44    ; -> sub_1be44
+0x0001be04:  adrp     x0, #0x33000
+0x0001be08:  add      x0, x0, #0xda8    ; @"_CAR"
+0x0001be0c:  mov      x2, x20
+0x0001be10:  bl       #0x25b40    ; -> _objc_msgSend(stringByAppendingString:)
+0x0001be14:  mov      x29, x29
+0x0001be18:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001be1c:  mov      x22, x0
+0x0001be20:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0001be24:  bl       #0x223c0    ; -> _objc_msgSend(UTF8String)
+0x0001be28:  bl       #0x220a8    ; -> _objc_getClass
+0x0001be2c:  mov      x21, x0
+0x0001be30:  bl       #0x2212c    ; -> _objc_retain
+0x0001be34:  mov      x0, x22
+0x0001be38:  bl       #0x22120    ; -> _objc_release
+0x0001be3c:  mov      x0, x20
+0x0001be40:  bl       #0x22120    ; -> _objc_release
+0x0001be44:  mov      x0, x19
+0x0001be48:  bl       #0x22120    ; -> _objc_release
+0x0001be4c:  mov      x0, x21
+0x0001be50:  ldp      x29, x30, [sp, #0x20]
+0x0001be54:  ldp      x20, x19, [sp, #0x10]
+0x0001be58:  ldp      x22, x21, [sp], #0x30
+0x0001be5c:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

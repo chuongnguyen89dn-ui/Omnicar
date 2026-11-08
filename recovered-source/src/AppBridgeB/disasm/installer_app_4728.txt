@@ -1,0 +1,609 @@
+=== sub_4728 @ 0x4728 (size 2432) ===
+00004728  stp      x28, x27, [sp, #-0x60]!
+0000472c  stp      x26, x25, [sp, #0x10]
+00004730  stp      x24, x23, [sp, #0x20]
+00004734  stp      x22, x21, [sp, #0x30]
+00004738  stp      x20, x19, [sp, #0x40]
+0000473c  stp      x29, x30, [sp, #0x50]
+00004740  add      x29, sp, #0x50
+00004744  sub      sp, sp, #0x1b0
+00004748  mov      x20, x0
+0000474c  adrp     x8, #0x34000
+00004750  ldr      x8, [x8, #0x278] ; -> ___stack_chk_guard
+00004754  ldr      x8, [x8]
+00004758  stur     x8, [x29, #-0x60]
+0000475c  str      x1, [sp, #0x18]
+00004760  mov      x0, x1
+00004764  bl       #0x24818 ; call _objc_retain
+00004768  adrp     x8, #0x3e000
+0000476c  ldrb     w9, [x8, #0x938]
+00004770  adrp     x19, #0x3e000
+00004774  tbnz     w9, #0, #0x49f0
+00004778  mov      w9, #1
+0000477c  strb     w9, [x8, #0x938]
+00004780  adrp     x0, #0x29000
+00004784  add      x0, x0, #0xb ; "CADisplayLink"
+00004788  bl       #0x24788 ; call _objc_getClass
+0000478c  mov      x21, x0
+00004790  bl       #0x2489c ; call _object_getClass
+00004794  adrp     x8, #0x3d000
+00004798  ldr      x1, [x8, #0x5c0] ; selref @displayLinkWithTarget:selector:
+0000479c  adrp     x2, #0x5000
+000047a0  add      x2, x2, #0xa8
+000047a4  adrp     x3, #0x3e000
+000047a8  add      x3, x3, #0x940
+000047ac  bl       #0x243ec ; call _MSHookMessageEx
+000047b0  adrp     x8, #0x3d000
+000047b4  ldr      x1, [x8, #0xd98] ; selref @setPreferredFramesPerSecond:
+000047b8  adrp     x2, #0x5000
+000047bc  add      x2, x2, #0x144
+000047c0  adrp     x3, #0x3e000
+000047c4  add      x3, x3, #0x948
+000047c8  mov      x0, x21
+000047cc  bl       #0x243ec ; call _MSHookMessageEx
+000047d0  adrp     x8, #0x3d000
+000047d4  ldr      x1, [x8, #0xd90] ; selref @setPreferredFrameRateRange:
+000047d8  adrp     x2, #0x5000
+000047dc  add      x2, x2, #0x220
+000047e0  adrp     x3, #0x3e000
+000047e4  add      x3, x3, #0x950
+000047e8  mov      x0, x21
+000047ec  bl       #0x243ec ; call _MSHookMessageEx
+000047f0  adrp     x0, #0x29000
+000047f4  add      x0, x0, #0x19 ; "UIWindow"
+000047f8  bl       #0x24788 ; call _objc_getClass
+000047fc  adrp     x8, #0x3d000
+00004800  ldr      x1, [x8, #0x1f0] ; selref @_setRotatableViewOrientation:duration:force:
+00004804  adrp     x2, #0x5000
+00004808  add      x2, x2, #0x43c
+0000480c  adrp     x3, #0x3e000
+00004810  add      x3, x3, #0x958
+00004814  bl       #0x243ec ; call _MSHookMessageEx
+00004818  adrp     x0, #0x29000
+0000481c  add      x0, x0, #0x22 ; "UIDevice"
+00004820  bl       #0x24788 ; call _objc_getClass
+00004824  mov      x21, x0
+00004828  adrp     x8, #0x3d000
+0000482c  ldr      x1, [x8, #0x1f8] ; selref @beginGeneratingDeviceOrientationNotifications
+00004830  adrp     x2, #0x5000
+00004834  add      x2, x2, #0x4c8
+00004838  adrp     x3, #0x3e000
+0000483c  add      x3, x3, #0x960
+00004840  bl       #0x243ec ; call _MSHookMessageEx
+00004844  adrp     x8, #0x3d000
+00004848  ldr      x1, [x8, #0x200] ; selref @setOrientation:animated:
+0000484c  adrp     x2, #0x5000
+00004850  add      x2, x2, #0x504
+00004854  adrp     x3, #0x3e000
+00004858  add      x3, x3, #0x968
+0000485c  mov      x0, x21
+00004860  bl       #0x243ec ; call _MSHookMessageEx
+00004864  adrp     x8, #0x3d000
+00004868  ldr      x1, [x8, #0x970] ; selref @orientation
+0000486c  adrp     x2, #0x5000
+00004870  add      x2, x2, #0x5d8
+00004874  adrp     x3, #0x3e000
+00004878  add      x3, x3, #0x970
+0000487c  mov      x0, x21
+00004880  bl       #0x243ec ; call _MSHookMessageEx
+00004884  adrp     x0, #0x29000
+00004888  add      x0, x0, #0x2b ; "UITextField"
+0000488c  bl       #0x24788 ; call _objc_getClass
+00004890  mov      x23, x0
+00004894  adrp     x8, #0x3d000
+00004898  ldr      x21, [x8, #0x208] ; selref @becomeFirstResponder
+0000489c  adrp     x2, #0x5000
+000048a0  add      x2, x2, #0x60c
+000048a4  adrp     x3, #0x3e000
+000048a8  add      x3, x3, #0x978
+000048ac  mov      x1, x21
+000048b0  bl       #0x243ec ; call _MSHookMessageEx
+000048b4  adrp     x8, #0x3d000
+000048b8  ldr      x22, [x8, #0xa80] ; selref @resignFirstResponder
+000048bc  adrp     x2, #0x5000
+000048c0  add      x2, x2, #0x658
+000048c4  adrp     x3, #0x3e000
+000048c8  add      x3, x3, #0x980
+000048cc  mov      x0, x23
+000048d0  mov      x1, x22
+000048d4  bl       #0x243ec ; call _MSHookMessageEx
+000048d8  adrp     x0, #0x29000
+000048dc  add      x0, x0, #0x37 ; "UITextView"
+000048e0  bl       #0x24788 ; call _objc_getClass
+000048e4  mov      x23, x0
+000048e8  adrp     x2, #0x5000
+000048ec  add      x2, x2, #0x694
+000048f0  adrp     x3, #0x3e000
+000048f4  add      x3, x3, #0x988
+000048f8  mov      x1, x21
+000048fc  bl       #0x243ec ; call _MSHookMessageEx
+00004900  adrp     x2, #0x5000
+00004904  add      x2, x2, #0x6f8
+00004908  adrp     x3, #0x3e000
+0000490c  add      x3, x3, #0x990
+00004910  mov      x0, x23
+00004914  mov      x1, x22
+00004918  bl       #0x243ec ; call _MSHookMessageEx
+0000491c  adrp     x0, #0x29000
+00004920  add      x0, x0, #0x42 ; "UIWindowScene"
+00004924  adrp     x1, #0x34000
+00004928  add      x1, x1, #0xed0 = @"requestGeometryUpdateWithPreferences:errorHandler:"
+0000492c  bl       #0x1e384 ; call sym:_OMCHasMethod
+00004930  cbz      w0, #0x4988
+00004934  adrp     x0, #0x29000
+00004938  add      x0, x0, #0x42 ; "UIWindowScene"
+0000493c  bl       #0x24788 ; call _objc_getClass
+00004940  adrp     x8, #0x3d000
+00004944  ldr      x1, [x8, #0x210] ; selref @requestGeometryUpdateWithPreferences:errorHandler:
+00004948  adrp     x2, #0x5000
+0000494c  add      x2, x2, #0x734
+00004950  adrp     x3, #0x3e000
+00004954  add      x3, x3, #0x998
+00004958  bl       #0x243ec ; call _MSHookMessageEx
+0000495c  adrp     x0, #0x29000
+00004960  add      x0, x0, #0x83 ; "UIViewController"
+00004964  bl       #0x24788 ; call _objc_getClass
+00004968  adrp     x8, #0x3d000
+0000496c  ldr      x1, [x8, #0x218] ; selref @setNeedsUpdateOfSupportedInterfaceOrientations
+00004970  adrp     x2, #0x5000
+00004974  add      x2, x2, #0x888
+00004978  adrp     x3, #0x3e000
+0000497c  add      x3, x3, #0x9a0
+00004980  bl       #0x243ec ; call _MSHookMessageEx
+00004984  b        #0x49b4 ; call sub_49b4
+00004988  adrp     x0, #0x29000
+0000498c  add      x0, x0, #0x83 ; "UIViewController"
+00004990  bl       #0x24788 ; call _objc_getClass
+00004994  bl       #0x2489c ; call _object_getClass
+00004998  adrp     x8, #0x3d000
+0000499c  ldr      x1, [x8, #0x220] ; selref @attemptRotationToDeviceOrientation
+000049a0  adrp     x2, #0x5000
+000049a4  add      x2, x2, #0x8c0
+000049a8  adrp     x3, #0x3e000
+000049ac  add      x3, x3, #0x9a8
+000049b0  bl       #0x243ec ; call _MSHookMessageEx
+000049b4  ldr      x0, [x19, #0x290] ; bind _OBJC_CLASS_$_NSString
+000049b8  ldr      x8, [x20, #0x20]
+000049bc  str      x8, [sp]
+000049c0  adrp     x2, #0x34000
+000049c4  add      x2, x2, #0xf10 = @"%@: dua len xe, cai hook"
+000049c8  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+000049cc  mov      x29, x29
+000049d0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000049d4  mov      x21, x0
+000049d8  adrp     x0, #0x34000
+000049dc  add      x0, x0, #0xef0 = @"AppBridge"
+000049e0  mov      x1, x21
+000049e4  bl       #0x1dd30 ; call sym:_OMCLogWrite
+000049e8  mov      x0, x21
+000049ec  bl       #0x2480c ; call _objc_release
+000049f0  ldr      x0, [sp, #0x18]
+000049f4  bl       #0x280c0 ; objc_msgSend sel=userInfo
+000049f8  mov      x29, x29
+000049fc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004a00  mov      x21, x0
+00004a04  bl       #0x24818 ; call _objc_retain
+00004a08  adrp     x2, #0x34000
+00004a0c  add      x2, x2, #0xf50 = @"orientation"
+00004a10  mov      x0, x21
+00004a14  bl       #0x26420 ; objc_msgSend sel=objectForKeyedSubscript:
+00004a18  mov      x29, x29
+00004a1c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004a20  mov      x24, x0
+00004a24  bl       #0x25ba0 ; objc_msgSend sel=intValue
+00004a28  mov      x22, x0
+00004a2c  mov      x0, x24
+00004a30  bl       #0x2480c ; call _objc_release
+00004a34  adrp     x26, #0x3e000
+00004a38  adrp     x25, #0x3e000
+00004a3c  cmp      w22, #0
+00004a40  b.le     #0x4a8c
+00004a44  ldr      w23, [x25, #0x7d0] ; -> 0xffffffff
+00004a48  str      w22, [x25, #0x7d0]
+00004a4c  adrp     x8, #0x3e000
+00004a50  str      xzr, [x8, #0x9c8]
+00004a54  adrp     x2, #0x35000
+00004a58  add      x2, x2, #0xd0 = @"device"
+00004a5c  mov      x0, x21
+00004a60  bl       #0x26420 ; objc_msgSend sel=objectForKeyedSubscript:
+00004a64  mov      x29, x29
+00004a68  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004a6c  mov      x24, x0
+00004a70  bl       #0x25ba0 ; objc_msgSend sel=intValue
+00004a74  str      w0, [x26, #0x9d0]
+00004a78  mov      x0, x24
+00004a7c  bl       #0x2480c ; call _objc_release
+00004a80  ldr      w9, [x25, #0x7d0] ; -> 0xffffffff
+00004a84  ldr      w8, [x26, #0x9d0]
+00004a88  b        #0x4adc ; call sub_4adc
+00004a8c  adrp     x0, #0x3e000
+00004a90  add      x0, x0, #0x930
+00004a94  bl       #0x247a0 ; call _objc_loadWeakRetained
+00004a98  mov      x23, x0
+00004a9c  bl       #0x2480c ; call _objc_release
+00004aa0  cbz      x23, #0x4ac0
+00004aa4  adrp     x0, #0x3e000
+00004aa8  add      x0, x0, #0x930
+00004aac  bl       #0x247a0 ; call _objc_loadWeakRetained
+00004ab0  mov      x24, x0
+00004ab4  bl       #0x26900 ; objc_msgSend sel=resignFirstResponder
+00004ab8  mov      x0, x24
+00004abc  bl       #0x2480c ; call _objc_release
+00004ac0  mov      w8, #0
+00004ac4  ldr      w23, [x25, #0x7d0] ; -> 0xffffffff
+00004ac8  str      w22, [x25, #0x7d0]
+00004acc  adrp     x9, #0x3e000
+00004ad0  str      xzr, [x9, #0x9c8]
+00004ad4  str      wzr, [x26, #0x9d0]
+00004ad8  mov      x9, x22
+00004adc  cmp      w22, w23
+00004ae0  cset     w10, ne
+00004ae4  ldr      x0, [x19, #0x290] ; bind _OBJC_CLASS_$_NSString
+00004ae8  stp      x8, x10, [sp, #8]
+00004aec  str      x9, [sp]
+00004af0  adrp     x2, #0x35000
+00004af4  add      x2, x2, #0xf0 = @"huong o %d, thiet bi gia %d (doi=%d)"
+00004af8  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00004afc  mov      x29, x29
+00004b00  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004b04  mov      x24, x0
+00004b08  adrp     x0, #0x34000
+00004b0c  add      x0, x0, #0xef0 = @"AppBridge"
+00004b10  mov      x1, x24
+00004b14  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00004b18  mov      x0, x24
+00004b1c  bl       #0x2480c ; call _objc_release
+00004b20  cmp      w22, w23
+00004b24  b.eq     #0x4ca8
+00004b28  ldr      w8, [x26, #0x9d0]
+00004b2c  cmp      w8, #1
+00004b30  b.lt     #0x4bc4
+00004b34  movi     v0.16b, #0
+00004b38  stp      q0, q0, [sp, #0x40]
+00004b3c  stp      q0, q0, [sp, #0x20]
+00004b40  adrp     x0, #0x39000
+00004b44  add      x0, x0, #0x3f0
+00004b48  add      x2, sp, #0x20
+00004b4c  add      x3, sp, #0xa0
+00004b50  mov      w4, #0x10
+00004b54  bl       #0x25440 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+00004b58  mov      x23, x0
+00004b5c  cbz      x0, #0x4bc4
+00004b60  ldr      x8, [sp, #0x30]
+00004b64  ldr      x24, [x8] ; selref @textFieldShouldReturn:
+00004b68  adrp     x22, #0x39000
+00004b6c  add      x22, x22, #0x3f0
+00004b70  mov      x26, #0
+00004b74  ldr      x8, [sp, #0x30]
+00004b78  ldr      x8, [x8] ; selref @textFieldShouldReturn:
+00004b7c  cmp      x8, x24
+00004b80  b.eq     #0x4b8c
+00004b84  mov      x0, x22
+00004b88  bl       #0x24770 ; call _objc_enumerationMutation
+00004b8c  ldr      x8, [sp, #0x28]
+00004b90  ldr      x0, [x8, x26, lsl #3]
+00004b94  bl       #0x25640 ; objc_msgSend sel=doubleValue
+00004b98  bl       #0x5ff0 ; call sub_5ff0
+00004b9c  add      x26, x26, #1
+00004ba0  cmp      x23, x26
+00004ba4  b.ne     #0x4b74
+00004ba8  add      x2, sp, #0x20
+00004bac  add      x3, sp, #0xa0
+00004bb0  mov      x0, x22
+00004bb4  mov      w4, #0x10
+00004bb8  bl       #0x25440 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+00004bbc  mov      x23, x0
+00004bc0  cbnz     x0, #0x4b70
+00004bc4  ldr      w23, [x25, #0x7d0] ; -> 0xffffffff
+00004bc8  cmn      w23, #1
+00004bcc  b.ne     #0x4c00
+00004bd0  adrp     x8, #0x3e000
+00004bd4  ldr      x0, [x8, #0x2b8] ; bind _OBJC_CLASS_$_UIDevice
+00004bd8  bl       #0x25460 ; objc_msgSend sel=currentDevice
+00004bdc  mov      x29, x29
+00004be0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004be4  mov      x24, x0
+00004be8  bl       #0x264c0 ; objc_msgSend sel=orientation
+00004bec  mov      x22, x0
+00004bf0  mov      x0, x24
+00004bf4  bl       #0x2480c ; call _objc_release
+00004bf8  cmp      w22, #1
+00004bfc  csinc    w23, w22, wzr, gt
+00004c00  bl       #0x612c ; call sub_612c
+00004c04  cmp      w23, #1
+00004c08  b.lt     #0x4c1c
+00004c0c  mov      w8, #1
+00004c10  lsl      w8, w8, w23
+00004c14  tst      x0, x8
+00004c18  b.eq     #0x4c6c
+00004c1c  bl       #0x61d0 ; call sub_61d0
+00004c20  mov      x29, x29
+00004c24  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004c28  mov      x24, x0
+00004c2c  adrp     x0, #0x35000
+00004c30  add      x0, x0, #0x130 = @"_setRotatableViewOrientation:duration:force:"
+00004c34  bl       #0x2441c ; call _NSSelectorFromString
+00004c38  cbz      x24, #0x4ca0
+00004c3c  mov      x22, x0
+00004c40  mov      x0, x24
+00004c44  mov      x1, x22
+00004c48  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+00004c4c  tbz      w0, #0, #0x4ca0
+00004c50  sxtw     x2, w23
+00004c54  fmov     d0, xzr
+00004c58  mov      x0, x24
+00004c5c  mov      x1, x22
+00004c60  mov      w3, #1
+00004c64  bl       #0x247ac ; call _objc_msgSend
+00004c68  b        #0x4ca0 ; call sub_4ca0
+00004c6c  ldr      x8, [x19, #0x290] ; bind _OBJC_CLASS_$_NSString
+00004c70  stp      x23, x0, [sp]
+00004c74  adrp     x2, #0x35000
+00004c78  add      x2, x2, #0x110 = @"bo qua ep xoay %d: app chi cho mask %lu"
+00004c7c  mov      x0, x8
+00004c80  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00004c84  mov      x29, x29
+00004c88  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004c8c  mov      x24, x0
+00004c90  adrp     x0, #0x34000
+00004c94  add      x0, x0, #0xef0 = @"AppBridge"
+00004c98  mov      x1, x24
+00004c9c  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00004ca0  mov      x0, x24
+00004ca4  bl       #0x2480c ; call _objc_release
+00004ca8  mov      x0, x21
+00004cac  bl       #0x2480c ; call _objc_release
+00004cb0  mov      x0, x21
+00004cb4  bl       #0x2480c ; call _objc_release
+00004cb8  ldr      x0, [sp, #0x18]
+00004cbc  bl       #0x280c0 ; objc_msgSend sel=userInfo
+00004cc0  mov      x29, x29
+00004cc4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004cc8  mov      x20, x0
+00004ccc  adrp     x2, #0x34000
+00004cd0  add      x2, x2, #0xf50 = @"orientation"
+00004cd4  bl       #0x26420 ; objc_msgSend sel=objectForKeyedSubscript:
+00004cd8  mov      x29, x29
+00004cdc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004ce0  mov      x21, x0
+00004ce4  bl       #0x25ba0 ; objc_msgSend sel=intValue
+00004ce8  mov      x25, x0
+00004cec  cmp      w0, #1
+00004cf0  b.lt     #0x4d2c
+00004cf4  ldr      x0, [sp, #0x18]
+00004cf8  bl       #0x280c0 ; objc_msgSend sel=userInfo
+00004cfc  mov      x29, x29
+00004d00  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004d04  mov      x23, x0
+00004d08  adrp     x2, #0x34000
+00004d0c  add      x2, x2, #0xf70 = @"fps"
+00004d10  bl       #0x26420 ; objc_msgSend sel=objectForKeyedSubscript:
+00004d14  mov      x29, x29
+00004d18  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004d1c  mov      x24, x0
+00004d20  bl       #0x25ba0 ; objc_msgSend sel=intValue
+00004d24  mov      x22, x0
+00004d28  b        #0x4d30 ; call sub_4d30
+00004d2c  mov      w22, #0
+00004d30  adrp     x8, #0x3e000
+00004d34  ldr      w9, [x8, #0x9b0]
+00004d38  cmp      w22, w9
+00004d3c  b.eq     #0x4e30
+00004d40  str      w22, [x8, #0x9b0]
+00004d44  movi     v0.16b, #0
+00004d48  stp      q0, q0, [sp, #0x60]
+00004d4c  stp      q0, q0, [sp, #0x80]
+00004d50  bl       #0x5c64 ; call sub_5c64
+00004d54  mov      x29, x29
+00004d58  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004d5c  mov      x27, x0
+00004d60  bl       #0x24c00 ; objc_msgSend sel=allObjects
+00004d64  mov      x29, x29
+00004d68  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004d6c  mov      x26, x0
+00004d70  mov      x0, x27
+00004d74  bl       #0x2480c ; call _objc_release
+00004d78  add      x2, sp, #0x60
+00004d7c  sub      x3, x29, #0xe0
+00004d80  mov      x0, x26
+00004d84  mov      w4, #0x10
+00004d88  bl       #0x25440 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+00004d8c  mov      x27, x0
+00004d90  cbz      x0, #0x4dec
+00004d94  ldr      x8, [sp, #0x70]
+00004d98  ldr      x28, [x8] ; selref @textFieldShouldReturn:
+00004d9c  mov      x19, #0
+00004da0  ldr      x8, [sp, #0x70]
+00004da4  ldr      x8, [x8] ; selref @textFieldShouldReturn:
+00004da8  cmp      x8, x28
+00004dac  b.eq     #0x4db8
+00004db0  mov      x0, x26
+00004db4  bl       #0x24770 ; call _objc_enumerationMutation
+00004db8  ldr      x8, [sp, #0x68]
+00004dbc  ldr      x0, [x8, x19, lsl #3]
+00004dc0  bl       #0x5cbc ; call sub_5cbc
+00004dc4  add      x19, x19, #1
+00004dc8  cmp      x27, x19
+00004dcc  b.ne     #0x4da0
+00004dd0  add      x2, sp, #0x60
+00004dd4  sub      x3, x29, #0xe0
+00004dd8  mov      x0, x26
+00004ddc  mov      w4, #0x10
+00004de0  bl       #0x25440 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+00004de4  mov      x27, x0
+00004de8  cbnz     x0, #0x4d9c
+00004dec  mov      x0, x26
+00004df0  bl       #0x2480c ; call _objc_release
+00004df4  adrp     x8, #0x3e000
+00004df8  ldr      x0, [x8, #0x290] ; bind _OBJC_CLASS_$_NSString
+00004dfc  str      x22, [sp]
+00004e00  adrp     x2, #0x35000
+00004e04  add      x2, x2, #0x150 = @"gioi han khung hinh: %d"
+00004e08  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00004e0c  mov      x29, x29
+00004e10  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00004e14  mov      x26, x0
+00004e18  adrp     x0, #0x34000
+00004e1c  add      x0, x0, #0xef0 = @"AppBridge"
+00004e20  mov      x1, x26
+00004e24  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00004e28  mov      x0, x26
+00004e2c  bl       #0x2480c ; call _objc_release
+00004e30  cmp      w25, #1
+00004e34  b.lt     #0x4e48
+00004e38  mov      x0, x24
+00004e3c  bl       #0x2480c ; call _objc_release
+00004e40  mov      x0, x23
+00004e44  bl       #0x2480c ; call _objc_release
+00004e48  mov      x0, x21
+00004e4c  bl       #0x2480c ; call _objc_release
+00004e50  mov      x0, x20
+00004e54  bl       #0x2480c ; call _objc_release
+00004e58  ldr      x0, [sp, #0x18]
+00004e5c  bl       #0x2480c ; call _objc_release
+00004e60  ldur     x8, [x29, #-0x60]
+00004e64  adrp     x9, #0x34000
+00004e68  ldr      x9, [x9, #0x278] ; -> ___stack_chk_guard
+00004e6c  ldr      x9, [x9]
+00004e70  cmp      x9, x8
+00004e74  b.ne     #0x4e98
+00004e78  add      sp, sp, #0x1b0
+00004e7c  ldp      x29, x30, [sp, #0x50]
+00004e80  ldp      x20, x19, [sp, #0x40]
+00004e84  ldp      x22, x21, [sp, #0x30]
+00004e88  ldp      x24, x23, [sp, #0x20]
+00004e8c  ldp      x26, x25, [sp, #0x10]
+00004e90  ldp      x28, x27, [sp], #0x60
+00004e94  ret      
+00004e98  bl       #0x24488 ; call ___stack_chk_fail
+00004e9c  mov      x23, x1
+00004ea0  mov      x22, x0
+00004ea4  mov      x0, x24
+00004ea8  bl       #0x2480c ; call _objc_release
+00004eac  b        #0x4fd4 ; call sub_4fd4
+00004eb0  mov      x23, x1
+00004eb4  mov      x22, x0
+00004eb8  mov      x0, x24
+00004ebc  bl       #0x2480c ; call _objc_release
+00004ec0  b        #0x4fd4 ; call sub_4fd4
+00004ec4  b        #0x4fcc ; call sub_4fcc
+00004ec8  b        #0x4f78 ; call sub_4f78
+00004ecc  b        #0x4fbc ; call sub_4fbc
+00004ed0  b        #0x4fcc ; call sub_4fcc
+00004ed4  b        #0x4fcc ; call sub_4fcc
+00004ed8  mov      x22, x0
+00004edc  cmp      w25, #0
+00004ee0  cset     w19, gt
+00004ee4  mov      x0, x26
+00004ee8  bl       #0x2480c ; call _objc_release
+00004eec  b        #0x506c ; call sub_506c
+00004ef0  mov      x22, x0
+00004ef4  mov      x0, x21
+00004ef8  bl       #0x2480c ; call _objc_release
+00004efc  b        #0x5090 ; call sub_5090
+00004f00  b        #0x5058 ; call sub_5058
+00004f04  b        #0x4fbc ; call sub_4fbc
+00004f08  mov      x22, x0
+00004f0c  cmp      w25, #0
+00004f10  cset     w19, gt
+00004f14  mov      x0, x27
+00004f18  bl       #0x2480c ; call _objc_release
+00004f1c  cbnz     w19, #0x5070
+00004f20  b        #0x5080 ; call sub_5080
+00004f24  b        #0x4fbc ; call sub_4fbc
+00004f28  b        #0x4fbc ; call sub_4fbc
+00004f2c  b        #0x4fbc ; call sub_4fbc
+00004f30  b        #0x4fcc ; call sub_4fcc
+00004f34  mov      x22, x0
+00004f38  b        #0x5070 ; call sub_5070
+00004f3c  mov      x22, x0
+00004f40  b        #0x5078 ; call sub_5078
+00004f44  b        #0x4f78 ; call sub_4f78
+00004f48  mov      x23, x1
+00004f4c  mov      x22, x0
+00004f50  mov      x0, x24
+00004f54  bl       #0x2480c ; call _objc_release
+00004f58  b        #0x4fd4 ; call sub_4fd4
+00004f5c  mov      x22, x0
+00004f60  cmp      w25, #0
+00004f64  b.gt     #0x5070
+00004f68  b        #0x5080 ; call sub_5080
+00004f6c  b        #0x4f78 ; call sub_4f78
+00004f70  mov      x22, x0
+00004f74  b        #0x5088 ; call sub_5088
+00004f78  mov      x23, x1
+00004f7c  mov      x22, x0
+00004f80  mov      x0, x24
+00004f84  bl       #0x2480c ; call _objc_release
+00004f88  b        #0x4fd4 ; call sub_4fd4
+00004f8c  b        #0x4fcc ; call sub_4fcc
+00004f90  mov      x23, x1
+00004f94  mov      x22, x0
+00004f98  b        #0x4fe4 ; call sub_4fe4
+00004f9c  b        #0x4fbc ; call sub_4fbc
+00004fa0  b        #0x4fbc ; call sub_4fbc
+00004fa4  b        #0x4fbc ; call sub_4fbc
+00004fa8  mov      x22, x0
+00004fac  b        #0x5080 ; call sub_5080
+00004fb0  b        #0x4fcc ; call sub_4fcc
+00004fb4  b        #0x4fbc ; call sub_4fbc
+00004fb8  b        #0x4fbc ; call sub_4fbc
+00004fbc  mov      x22, x0
+00004fc0  b        #0x5090 ; call sub_5090
+00004fc4  b        #0x4fcc ; call sub_4fcc
+00004fc8  b        #0x5058 ; call sub_5058
+00004fcc  mov      x23, x1
+00004fd0  mov      x22, x0
+00004fd4  mov      x0, x21
+00004fd8  bl       #0x2480c ; call _objc_release
+00004fdc  mov      x0, x21
+00004fe0  bl       #0x2480c ; call _objc_release
+00004fe4  cmp      w23, #1
+00004fe8  b.ne     #0x5090
+00004fec  mov      x0, x22
+00004ff0  bl       #0x24740 ; call _objc_begin_catch
+00004ff4  ldr      x8, [x19, #0x290] ; bind ___objc_personality_v0
+00004ff8  ldr      x9, [x20, #0x20]
+00004ffc  stp      x9, x0, [sp]
+00005000  adrp     x2, #0x34000
+00005004  add      x2, x2, #0xf30 = @"%@: xoay loi %@"
+00005008  mov      x0, x8
+0000500c  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00005010  mov      x29, x29
+00005014  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00005018  mov      x20, x0
+0000501c  adrp     x0, #0x34000
+00005020  add      x0, x0, #0xef0 = @"AppBridge"
+00005024  mov      x1, x20
+00005028  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000502c  mov      x0, x20
+00005030  bl       #0x2480c ; call _objc_release
+00005034  bl       #0x24764 ; call _objc_end_catch
+00005038  b        #0x4cb8 ; call sub_4cb8
+0000503c  mov      x22, x0
+00005040  mov      x0, x20
+00005044  bl       #0x2480c ; call _objc_release
+00005048  b        #0x5050 ; call sub_5050
+0000504c  mov      x22, x0
+00005050  bl       #0x24764 ; call _objc_end_catch
+00005054  b        #0x5090 ; call sub_5090
+00005058  mov      x22, x0
+0000505c  cmp      w25, #0
+00005060  cset     w19, gt
+00005064  mov      x0, x26
+00005068  bl       #0x2480c ; call _objc_release
+0000506c  tbz      w19, #0, #0x5080
+00005070  mov      x0, x24
+00005074  bl       #0x2480c ; call _objc_release
+00005078  mov      x0, x23
+0000507c  bl       #0x2480c ; call _objc_release
+00005080  mov      x0, x21
+00005084  bl       #0x2480c ; call _objc_release
+00005088  mov      x0, x20
+0000508c  bl       #0x2480c ; call _objc_release
+00005090  ldr      x0, [sp, #0x18]
+00005094  bl       #0x2480c ; call _objc_release
+00005098  b        #0x50a0 ; call sub_50a0
+0000509c  mov      x22, x0
+000050a0  mov      x0, x22
+000050a4  bl       #0x24470 ; call __Unwind_Resume

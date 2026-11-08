@@ -1,0 +1,18 @@
+; sub_51fb8
+0x051fb8  stp      x20, x19, [sp, #-0x20]!
+0x051fbc  stp      x29, x30, [sp, #0x10]
+0x051fc0  add      x29, sp, #0x10
+0x051fc4  adrp     x19, #0x88000
+0x051fc8  ldr      x0, [x19, #0x2c0]
+0x051fcc  cbnz     x0, #0x51ff0
+0x051fd0  adrp     x0, #0x62000
+0x051fd4  add      x0, x0, #0xa2c ; -> 0x62a2c "OMC_CRASHGUARD"
+0x051fd8  bl       #0x565b4 ; call _getenv
+0x051fdc  cbz      x0, #0x51ff0
+0x051fe0  mov      x1, #0
+0x051fe4  mov      w2, #0x10
+0x051fe8  bl       #0x56938 ; call _strtoull
+0x051fec  str      x0, [x19, #0x2c0]
+0x051ff0  ldp      x29, x30, [sp, #0x10]
+0x051ff4  ldp      x20, x19, [sp], #0x20
+0x051ff8  ret      

@@ -1,0 +1,146 @@
+PARTITION A — SpeedBubble DISPLAY side (agent A)
+Scope: everything that runs in com.apple.springboard and com.apple.CarPlayApp:
+bubble window/HUD, the 9 styles, drag + pinch-resize, tap-to-reopen, menu,
+over-speed warning PRESENTATION, phone-mode vs car-mode rendering, consume
+side of the notify channels. PARTITION_B.txt did not exist when this was
+written (checked 2026-11-08 ~09:17); B should flag overlaps to coordinator.
+
+=====================================================================
+CLAIMED — constructors / bootstrap (display roles only)
+=====================================================================
+__init_0            @0x44a8  CarPlayApp role: OMCCrashGuard gate +
+                             notify_register_dispatch("com.anlai.omnicar/speedbubble.opencar")
+sub_45b4            @0x45b4  invoke of the opencar notify block (CarPlayApp)
+__init_2            @0xcb30  SpringBoard role: MSHookMessageEx(SpringBoard,
+                             applicationDidFinishLaunching:, sub_cc34, orig bss+0x100)
+sub_cc34            @0xcc34  replacement IMP for applicationDidFinishLaunching:
+sub_cec4            @0xcec4  notify handler block invoke (sig v12@?0i8) — channel consume
+sub_cf78            @0xcf78  notify handler block invoke (sig v12@?0i8) — channel consume
+sub_cfc4            @0xcfc4  notify handler block invoke (sig v12@?0i8) — channel consume
+sub_d010            @0xd010  notify handler block invoke (sig v12@?0i8) — channel consume
+sub_d088            @0xd088  helper inside the display bootstrap cluster
+sub_d108            @0xd108  notify handler block invoke (sig v12@?0i8) — channel consume
+sub_d17c            @0xd17c  NSNotification-observer block invoke (display bootstrap)
+sub_d1cc            @0xd1cc  display bootstrap body (called from sub_cc34 path)
+sub_d300            @0xd300  tiny block thunk in bootstrap cluster
+sub_d304            @0xd304  tiny block thunk in bootstrap cluster
+sub_d308            @0xd308  helper in bootstrap cluster
+sub_d354            @0xd354  tiny block thunk in bootstrap cluster
+
+=====================================================================
+CLAIMED — classes (ALL methods, incl. accessors and .cxx_destruct)
+=====================================================================
+SPPGlassView        @0xd358–0xda80   glass background view (fill/sheen gradients)
+SPPIconView         @0xda80–0xe040   source-app icon tile (shape/mask)
+SPPSignView         @0xe040–0xe88c   speed-limit sign view (+ helpers
+                                     sub_e27c @0xe27c, sub_e318 @0xe318)
+SPPBubbleView       @0xe88c–0x15eb0  THE 9-STYLE BUBBLE VIEW:
+                                     buildStyle: @0xed04, renderStyle @0x120c8,
+                                     render @0x1585c, setOverLimitWarning: @0x1148c,
+                                     applyColor: @0x118f4, speedState/stateColor/
+                                     numberColor/speedRatio, bit:/addBit:to:,
+                                     shapePart:in:stroke:width:,
+                                     stackNumberAt:top:width:, stackHeight
+                                     + interleaved helpers sub_10fc8, sub_11150,
+                                     sub_112a0, sub_1138c, sub_15268, sub_152d8,
+                                     sub_153bc, sub_15534, sub_155f8, sub_157dc,
+                                     sub_15814, sub_15eb0, sub_15f08, sub_15f10
+SPPSoundDelegate    @0x161a4–0x162a0 AVAudioPlayer/AVSpeechSynthesizer delegate
+                                     (+ helper sub_161a8 @0x161a8)
+SPPBubble           @0x17ab4–0x1ea60 DISPLAY ORCHESTRATOR (all methods):
+                                     +shared, updateSpeed:limit:(appForeground:)(app:),
+                                     anyAppForeground, sourceAppState, refresh,
+                                     renderBubble, feedWarning, sourceStopped:,
+                                     hide, speedState, setWarnShake:, resetLayout,
+                                     runDemo, tapped:/panned:/pinched:/longPressed:,
+                                     showMenu/hideMenu/menuButton:/setMenuButton:off:/
+                                     menuTapped:/armMenuTimer/placeMenuAnimated:,
+                                     quitSourceApp, ensureWindow,
+                                     startOrientationTracking/phoneRotation/
+                                     applyPhoneOrientationForce:, defaultCardCenter,
+                                     saveCardPosition/restoreCardPosition/clampCard,
+                                     applyCrispScale, savedScale/applySavedScale/
+                                     baseTransform/baseScaled:, setSpeed:, setCarBusy:
+                                     + interleaved helpers/block invokes sub_17af8,
+                                     sub_18070, sub_180ec, sub_180f8, sub_19270,
+                                     sub_193b8, sub_1947c, sub_19540, sub_19810,
+                                     sub_19884, sub_1a5e8, sub_1a778, sub_1a7b0,
+                                     sub_1ba44, sub_1bbb0, sub_1beb0, sub_1c040,
+                                     sub_1c0a0, sub_1c420, sub_1c474, sub_1c508,
+                                     sub_1c544, sub_1c5d8, sub_1cfe4, sub_1d078,
+                                     sub_1d0e4, sub_1d940, sub_1daac, sub_1e418,
+                                     sub_1ea60 (tentative — verify affiliation)
+SPPOverspeed        @0x1f458–0x20b50 OVER-SPEED WARNING PRESENTER (all methods):
+                                     +shared, loadPrefs/reloadPrefs, carChanged,
+                                     updateSpeed:limit:, evaluate @0x1f680,
+                                     ensureWindow, dropWindow, showFx: @0x20198
+                                     + helpers sub_1f49c (block invoke), sub_1ff2c,
+                                     sub_20870, sub_208a0, sub_20904, sub_20934,
+                                     sub_20b50, sub_20d48 (tentative — verify)
+
+=====================================================================
+CLAIMED — C functions (warning sound/voice + car window plumbing)
+=====================================================================
+_SPPVoiceTemplate   @0x15f18  voice line template builder
+_SPPVoiceIsFun      @0x16018  fun-line predicate
+_SPPVoiceLine       @0x16028  voice line picker
+_SPPPlayTone        @0x162a0  generated-WAV tone player (+ sub_16a1c, sub_16c54)
+_SPPSpeak           @0x16ca4  AVSpeechSynthesizer speak (+ sub_16e44)
+_SPPGetCarPlayCADisplay @0x16ebc  find the CarPlay CADisplay
+_SPPMakeCarWindow   @0x172a8  create window on the car display
+_SPPMakeWindowPassThrough @0x1789c  hit-test pass-through window setup
+sub_179e0           @0x179e0  helper in car-window cluster
+
+=====================================================================
+STRADDLERS — claimed ONLY as marked; coordinator arbitrates
+=====================================================================
+SPPPrefs            @0x1ed28–0x1f458  All 16 class methods are the config
+                    source for the display classes (style, color,
+                    sizePercentForCar:, warnMode/warnFx/warnVoice/warnTone/
+                    warnVoiceLine/warnVoiceText, warnMarginKmh, source).
+                    A reconstructs it as display-side config. EXCEPTION:
+                    +appEnabled: @0x1f430 and +source @0x1f2d8 may gate the
+                    in-app side — if B needs them, B documents that use;
+                    the method bodies stay in A's file (single source).
+SPPSpeedGPS         @0x4a70–0x5950 + helpers sub_4ab4, sub_4d44, sub_4e18,
+                    sub_4e20, sub_538c, sub_5498, sub_5734.
+                    Body = B (it PUBLISHES packed lat/lon on
+                    "com.anlai.omnicar/location", notify_set_state, >=3.0s
+                    throttle, accuracy 0..5000m gate — proven in
+                    didUpdateLocations:). A claims ONLY: any display-side
+                    instantiation/consume of that channel and SPPBubble's
+                    own-GPS fallback behaviour, if present in SPPBubble's
+                    code. Flagged for coordinator.
+Notify channels     com.anlai.omnicar/speedbubble.speed / .source / .demo /
+                    .resetlayout (+ com.anlai.omnicar/speed,
+                    com.anlai.omnicar/location): A documents the CONSUME
+                    format (handler blocks above + SPPBubble refresh path);
+                    B documents the publish format.
+_OMC* shared helpers @0x20ea0–0x27a94 (incl. __init_3 @0x239a0, sub_24554,
+                    sub_21720…, sub_23c00…sub_2798c, _OMCLogWrite, _OMCPref,
+                    _OMCEnabled, _OMCCheckHooks, _OMCCrashGuard …):
+                    NOT claimed by A — shared OmniCar infra used by every
+                    module; A cites their behaviour only where a display
+                    function depends on it. Coordinator/shared bucket.
+libroot trampolines @0x4000–0x44a8 (sub_4000…sub_4384): shared infra,
+                    NOT claimed.
+
+=====================================================================
+EXPLICITLY NOT CLAIMED BY A (source-app side = B)
+=====================================================================
+__init_1 @0x5950 (in-app ctor), sub_5fac, sub_5fdc (CLLocationManager hook
+replacements), sub_600c, sub_6098, sub_63f0, sub_64d8, sub_65a8,
+sub_6638, sub_671c (FlutterEngine channel hook replacements), sub_67e0,
+sub_6968, sub_6aa0, sub_7264, sub_7270, sub_7298, sub_72c0, sub_72f4,
+sub_733c, sub_7904, sub_79ac (UIAccessibilityIsSwitchControlRunning hook
+replacement), sub_79b4, sub_7a10, sub_7a24, sub_7a74, sub_7a84 (9780B —
+second in-app installer), and the whole scan/hook range
+sub_a0b8 … sub_c70c (sub_a0b8, sub_a2c4, sub_a530, sub_a938, sub_aa4c,
+sub_ae3c, sub_afb4, sub_b0ec, sub_b214, sub_b4f0, sub_b720, sub_b878,
+sub_bf50, sub_c018, sub_c204, sub_c70c).
+
+Deliverables from A: reconstructed display-side source in
+src/SpeedBubble/ (SPPBubble.m, SPPBubbleView.m, SPPGlassView.m,
+SPPIconView.m, SPPSignView.m, SPPOverspeed.m, SPPSoundDelegate.m,
+SPPPrefs.m, SPPDisplayBoot.m, SPPWarningSound.m, SPPWindowFactory.m),
+report REPORT_A.md (display side only).

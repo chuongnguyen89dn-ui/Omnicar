@@ -1,0 +1,423 @@
+{
+ "featureLabel": "STARTUPSCREEN",
+ "featureSymbol": "play.rectangle.fill",
+ "title": "Startup Screen",
+ "featureOrder": 10,
+ "items": [
+  {
+   "cell": "PSGroupCell"
+  },
+  {
+   "cell": "PSSwitchCell",
+   "label": "STARTUPSCREEN_ENABLE",
+   "key": "startupScreenEnabled",
+   "default": true,
+   "defaults": "com.anlai.omnicar",
+   "PostNotification": "com.anlai.omnicar/prefschanged"
+  },
+  {
+   "cell": "PSGroupCell",
+   "label": "STARTUPSCREEN_VIDEO_GROUP",
+   "footerText": "STARTUPSCREEN_VIDEO_FOOTER",
+   "ssStyles": [
+    0
+   ]
+  },
+  {
+   "detail": "PSListItemsController",
+   "id": "videoName",
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSLinkListCell",
+   "dynamicTitles": true,
+   "label": "STARTUPSCREEN_CURRENT_VIDEO",
+   "key": "startupScreenVideoName",
+   "ssStyles": [
+    0
+   ],
+   "PostNotification": "com.anlai.omnicar/prefschanged"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_ADD",
+   "ssStyles": [
+    0
+   ],
+   "action": "addVideo"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_PREVIEW",
+   "ssStyles": [
+    0
+   ],
+   "action": "previewVideo"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_DELETE",
+   "ssStyles": [
+    0
+   ],
+   "isDestructive": true,
+   "action": "deleteVideo"
+  },
+  {
+   "cell": "PSGroupCell",
+   "label": "STARTUPSCREEN_DISPLAY_GROUP",
+   "footerText": "STARTUPSCREEN_DISPLAY_FOOTER",
+   "ssStyles": [
+    0
+   ]
+  },
+  {
+   "validValues": [
+    0,
+    1
+   ],
+   "validTitles": [
+    "STARTUPSCREEN_SCALE_FILL",
+    "STARTUPSCREEN_SCALE_FIT"
+   ],
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSSegmentCell",
+   "key": "startupScreenScaleMode",
+   "ssStyles": [
+    0
+   ],
+   "PostNotification": "com.anlai.omnicar/prefschanged",
+   "default": 0
+  },
+  {
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSSwitchCell",
+   "label": "STARTUPSCREEN_PLAY_FULL",
+   "key": "startupScreenPlayFull",
+   "ssStyles": [
+    0
+   ],
+   "PostNotification": "com.anlai.omnicar/prefschanged",
+   "default": false
+  },
+  {
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSSwitchCell",
+   "label": "STARTUPSCREEN_SOUND",
+   "key": "startupScreenSound",
+   "ssStyles": [
+    0
+   ],
+   "PostNotification": "com.anlai.omnicar/prefschanged",
+   "default": false
+  },
+  {
+   "cell": "PSGroupCell",
+   "label": "STARTUPSCREEN_LOGO_GROUP",
+   "footerText": "STARTUPSCREEN_LOGO_FOOTER",
+   "ssStyles": [
+    1
+   ]
+  },
+  {
+   "validValues": [
+    0,
+    1,
+    2
+   ],
+   "validTitles": [
+    "STARTUPSCREEN_EFFECT_FADE",
+    "STARTUPSCREEN_EFFECT_ZOOM",
+    "STARTUPSCREEN_EFFECT_GLOW"
+   ],
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSSegmentCell",
+   "key": "startupScreenLogoEffect",
+   "ssStyles": [
+    1
+   ],
+   "PostNotification": "com.anlai.omnicar/prefschanged",
+   "default": 0
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_LOGO_CHOOSE",
+   "ssStyles": [
+    1
+   ],
+   "action": "chooseLogo"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_LOGO_DELETE",
+   "ssStyles": [
+    1
+   ],
+   "isDestructive": true,
+   "action": "deleteLogo"
+  },
+  {
+   "cell": "PSGroupCell",
+   "id": "nameGroup",
+   "label": "STARTUPSCREEN_GREETING_GROUP",
+   "footerText": "STARTUPSCREEN_GREETING_FOOTER",
+   "ssStyles": [
+    2,
+    3,
+    6,
+    8
+   ]
+  },
+  {
+   "placeholder": "STARTUPSCREEN_NAME_PLACEHOLDER",
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSEditTextCell",
+   "label": "STARTUPSCREEN_NAME",
+   "key": "startupScreenGreetingName",
+   "ssStyles": [
+    2,
+    3,
+    6,
+    8
+   ],
+   "PostNotification": "com.anlai.omnicar/prefschanged"
+  },
+  {
+   "cell": "PSGroupCell",
+   "id": "carGroup",
+   "footerText": "STARTUPSCREEN_CAR_NAME_FOOTER",
+   "ssStyles": [
+    4,
+    7
+   ]
+  },
+  {
+   "id": "carName",
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSEditTextCell",
+   "label": "STARTUPSCREEN_CAR_NAME",
+   "key": "startupScreenCarName",
+   "ssStyles": [
+    4,
+    7
+   ],
+   "PostNotification": "com.anlai.omnicar/prefschanged"
+  },
+  {
+   "cell": "PSGroupCell",
+   "id": "tempoGroup",
+   "footerText": "STARTUPSCREEN_TEMPO_FOOTER",
+   "ssStyles": [
+    5
+   ]
+  },
+  {
+   "validValues": [
+    0,
+    1,
+    2
+   ],
+   "validTitles": [
+    "STARTUPSCREEN_TEMPO_SLOW",
+    "STARTUPSCREEN_TEMPO_NORMAL",
+    "STARTUPSCREEN_TEMPO_FAST"
+   ],
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSSegmentCell",
+   "key": "startupScreenTempo",
+   "ssStyles": [
+    5
+   ],
+   "PostNotification": "com.anlai.omnicar/prefschanged",
+   "default": 1
+  },
+  {
+   "cell": "PSGroupCell",
+   "label": "STARTUPSCREEN_RANDOM_GROUP",
+   "footerText": "STARTUPSCREEN_RANDOM_FOOTER",
+   "ssStyles": [
+    9
+   ]
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_STYLE_VIDEO",
+   "symbol": "film",
+   "ssRandomStyle": 0,
+   "ssStyles": [
+    9
+   ],
+   "action": "toggleRandomStyle:"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_STYLE_LOGO",
+   "symbol": "seal",
+   "ssRandomStyle": 1,
+   "ssStyles": [
+    9
+   ],
+   "action": "toggleRandomStyle:"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_STYLE_GREETING",
+   "symbol": "hand.wave",
+   "ssRandomStyle": 2,
+   "ssStyles": [
+    9
+   ],
+   "action": "toggleRandomStyle:"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_STYLE_WEATHER",
+   "symbol": "cloud.sun.rain",
+   "ssRandomStyle": 3,
+   "ssStyles": [
+    9
+   ],
+   "action": "toggleRandomStyle:"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_STYLE_ENGINE",
+   "symbol": "speedometer",
+   "ssRandomStyle": 4,
+   "ssStyles": [
+    9
+   ],
+   "action": "toggleRandomStyle:"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_STYLE_WELCOME",
+   "symbol": "car.fill",
+   "ssRandomStyle": 5,
+   "ssStyles": [
+    9
+   ],
+   "action": "toggleRandomStyle:"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_STYLE_PARTICLES",
+   "symbol": "sparkles",
+   "ssRandomStyle": 6,
+   "ssStyles": [
+    9
+   ],
+   "action": "toggleRandomStyle:"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_STYLE_HUD",
+   "symbol": "scope",
+   "ssRandomStyle": 7,
+   "ssStyles": [
+    9
+   ],
+   "action": "toggleRandomStyle:"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_STYLE_BRIEFING",
+   "symbol": "rectangle.grid.2x2",
+   "ssRandomStyle": 8,
+   "ssStyles": [
+    9
+   ],
+   "action": "toggleRandomStyle:"
+  },
+  {
+   "label": "STARTUPSCREEN_DURATION_GROUP",
+   "cell": "PSGroupCell",
+   "footerText": "STARTUPSCREEN_DURATION_FOOTER"
+  },
+  {
+   "showValue": true,
+   "min": 1.0,
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSSliderCell",
+   "isSegmented": true,
+   "key": "startupScreenDuration",
+   "max": 30.0,
+   "segmentCount": 29,
+   "PostNotification": "com.anlai.omnicar/prefschanged",
+   "default": 5.0
+  },
+  {
+   "cell": "PSSwitchCell",
+   "label": "STARTUPSCREEN_TAP_TO_SKIP",
+   "key": "startupScreenTapToSkip",
+   "default": true,
+   "defaults": "com.anlai.omnicar",
+   "PostNotification": "com.anlai.omnicar/prefschanged"
+  },
+  {
+   "cell": "PSGroupCell",
+   "id": "soundGroup",
+   "label": "STARTUPSCREEN_STARTUP_SOUND_GROUP",
+   "footerText": "STARTUPSCREEN_STARTUP_SOUND_FOOTER"
+  },
+  {
+   "label": "STARTUPSCREEN_SOUND_CHOOSE",
+   "cell": "PSButtonCell",
+   "action": "chooseSound"
+  },
+  {
+   "label": "STARTUPSCREEN_SOUND_PREVIEW",
+   "cell": "PSButtonCell",
+   "action": "previewSound"
+  },
+  {
+   "cell": "PSButtonCell",
+   "label": "STARTUPSCREEN_SOUND_DELETE",
+   "isDestructive": true,
+   "action": "deleteSound"
+  },
+  {
+   "showValue": true,
+   "min": 0.0,
+   "defaults": "com.anlai.omnicar",
+   "cell": "PSSliderCell",
+   "isSegmented": true,
+   "key": "startupScreenSoundVolume",
+   "max": 100.0,
+   "segmentCount": 20,
+   "PostNotification": "com.anlai.omnicar/prefschanged",
+   "default": 100.0
+  },
+  {
+   "cell": "PSSwitchCell",
+   "label": "STARTUPSCREEN_SOUND_SKIP_CALL",
+   "key": "startupScreenSoundSkipCall",
+   "default": true,
+   "defaults": "com.anlai.omnicar",
+   "PostNotification": "com.anlai.omnicar/prefschanged"
+  },
+  {
+   "label": "STARTUPSCREEN_OCCASIONS_GROUP",
+   "cell": "PSGroupCell",
+   "footerText": "STARTUPSCREEN_OCCASIONS_FOOTER"
+  },
+  {
+   "cell": "PSSwitchCell",
+   "label": "STARTUPSCREEN_OCCASIONS",
+   "key": "startupScreenOccasions",
+   "default": true,
+   "defaults": "com.anlai.omnicar",
+   "PostNotification": "com.anlai.omnicar/prefschanged"
+  },
+  {
+   "id": "birthday",
+   "cell": "PSStaticTextCell",
+   "label": "STARTUPSCREEN_BIRTHDAY"
+  },
+  {
+   "cell": "PSButtonCell",
+   "id": "occasionPreview",
+   "label": "STARTUPSCREEN_PREVIEW",
+   "action": "previewOccasion"
+  }
+ ],
+ "featureController": "OMCStartupScreenController"
+}

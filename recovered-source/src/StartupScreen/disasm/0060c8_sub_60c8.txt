@@ -1,0 +1,50 @@
+; sub_60c8
+; VA 0x60c8  size 188
+
+0x000060c8:  mov      x0, x19
+0x000060cc:  bl       #0x234a0    ; -> _objc_msgSend(frameCount)
+0x000060d0:  cmp      x20, x0
+0x000060d4:  b.hs     #0x61e4
+0x000060d8:  mov      x0, x19
+0x000060dc:  mov      w2, #1
+0x000060e0:  bl       #0x247c0    ; -> _objc_msgSend(setDecoding:)
+0x000060e4:  mov      x0, x19
+0x000060e8:  bl       #0x24100    ; -> _objc_msgSend(queuedFrames)
+0x000060ec:  mov      x20, x0
+0x000060f0:  mov      x0, x19
+0x000060f4:  bl       #0x234a0    ; -> _objc_msgSend(frameCount)
+0x000060f8:  udiv     x8, x20, x0
+0x000060fc:  msub     x21, x8, x0, x20
+0x00006100:  mov      x0, x19
+0x00006104:  bl       #0x24100    ; -> _objc_msgSend(queuedFrames)
+0x00006108:  add      x2, x0, #1
+0x0000610c:  mov      x0, x19
+0x00006110:  bl       #0x24f20    ; -> _objc_msgSend(setQueuedFrames:)
+0x00006114:  mov      x0, x19
+0x00006118:  bl       #0x234c0    ; -> _objc_msgSend(framesDir)
+0x0000611c:  mov      x29, x29
+0x00006120:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006124:  mov      x20, x0
+0x00006128:  adrp     x8, #0x3a000
+0x0000612c:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x00006130:  str      x21, [sp]
+0x00006134:  adrp     x2, #0x31000
+0x00006138:  add      x2, x2, #0xc8    ; @"%05lu.jpg"
+0x0000613c:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00006140:  mov      x29, x29
+0x00006144:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006148:  mov      x21, x0
+0x0000614c:  mov      x0, x20
+0x00006150:  mov      x2, x21
+0x00006154:  bl       #0x25b20    ; -> _objc_msgSend(stringByAppendingPathComponent:)
+0x00006158:  mov      x29, x29
+0x0000615c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006160:  mov      x22, x0
+0x00006164:  mov      x0, x21
+0x00006168:  bl       #0x22120    ; -> _objc_release
+0x0000616c:  mov      x0, x20
+0x00006170:  bl       #0x22120    ; -> _objc_release
+0x00006174:  mov      x0, x19
+0x00006178:  bl       #0x23020    ; -> _objc_msgSend(decodeQueue)
+0x0000617c:  mov      x29, x29
+0x00006180:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue

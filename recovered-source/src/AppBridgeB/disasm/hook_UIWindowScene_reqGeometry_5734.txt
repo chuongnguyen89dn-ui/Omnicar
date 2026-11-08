@@ -1,0 +1,86 @@
+=== sub_5734 @ 0x5734 (size 340) ===
+00005734  sub      sp, sp, #0x50
+00005738  stp      x24, x23, [sp, #0x10]
+0000573c  stp      x22, x21, [sp, #0x20]
+00005740  stp      x20, x19, [sp, #0x30]
+00005744  stp      x29, x30, [sp, #0x40]
+00005748  add      x29, sp, #0x40
+0000574c  mov      x20, x3
+00005750  mov      x19, x2
+00005754  mov      x21, x1
+00005758  mov      x22, x0
+0000575c  mov      x0, x2
+00005760  bl       #0x24818 ; call _objc_retain
+00005764  mov      x0, x20
+00005768  bl       #0x24818 ; call _objc_retain
+0000576c  adrp     x8, #0x3e000
+00005770  ldr      w8, [x8, #0x7d0] ; -> 0xffffffff
+00005774  cmp      w8, #1
+00005778  b.lt     #0x5818
+0000577c  adrp     x8, #0x3d000
+00005780  ldr      x23, [x8, #0x228] ; selref @interfaceOrientations
+00005784  mov      x0, x19
+00005788  mov      x1, x23
+0000578c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+00005790  tbz      w0, #0, #0x5818
+00005794  mov      x0, x19
+00005798  mov      x1, x23
+0000579c  bl       #0x247ac ; call _objc_msgSend
+000057a0  mov      w8, #4
+000057a4  mov      w9, #3
+000057a8  lsr      x10, x0, #1
+000057ac  and      x10, x10, #2
+000057b0  tst      w0, #8
+000057b4  csel     x9, x9, x10, ne
+000057b8  tst      w0, #0x10
+000057bc  csel     x8, x8, x9, ne
+000057c0  tst      w0, #2
+000057c4  csel     x9, xzr, x8, ne
+000057c8  adrp     x24, #0x3e000
+000057cc  str      x9, [x24, #0x9c8]
+000057d0  adrp     x8, #0x3e000
+000057d4  ldr      x8, [x8, #0x290] ; bind _OBJC_CLASS_$_NSString
+000057d8  stp      x0, x9, [sp]
+000057dc  adrp     x2, #0x35000
+000057e0  add      x2, x2, #0xb0 = @"app xin huong mask=%lu -> %lld"
+000057e4  mov      x0, x8
+000057e8  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+000057ec  mov      x29, x29
+000057f0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000057f4  mov      x23, x0
+000057f8  adrp     x0, #0x34000
+000057fc  add      x0, x0, #0xef0 = @"AppBridge"
+00005800  mov      x1, x23
+00005804  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00005808  mov      x0, x23
+0000580c  bl       #0x2480c ; call _objc_release
+00005810  ldr      x0, [x24, #0x9c8]
+00005814  bl       #0x6750 ; call sub_6750
+00005818  adrp     x8, #0x3e000
+0000581c  ldr      x8, [x8, #0x998]
+00005820  mov      x0, x22
+00005824  mov      x1, x21
+00005828  mov      x2, x19
+0000582c  mov      x3, x20
+00005830  blr      x8
+00005834  mov      x0, x20
+00005838  bl       #0x2480c ; call _objc_release
+0000583c  mov      x0, x19
+00005840  ldp      x29, x30, [sp, #0x40]
+00005844  ldp      x20, x19, [sp, #0x30]
+00005848  ldp      x22, x21, [sp, #0x20]
+0000584c  ldp      x24, x23, [sp, #0x10]
+00005850  add      sp, sp, #0x50
+00005854  b        #0x2480c ; call _objc_release
+00005858  mov      x21, x0
+0000585c  mov      x0, x23
+00005860  bl       #0x2480c ; call _objc_release
+00005864  b        #0x5870 ; call sub_5870
+00005868  b        #0x586c ; call sub_586c
+0000586c  mov      x21, x0
+00005870  mov      x0, x20
+00005874  bl       #0x2480c ; call _objc_release
+00005878  mov      x0, x19
+0000587c  bl       #0x2480c ; call _objc_release
+00005880  mov      x0, x21
+00005884  bl       #0x24470 ; call __Unwind_Resume

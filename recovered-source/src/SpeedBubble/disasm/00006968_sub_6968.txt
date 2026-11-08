@@ -1,0 +1,81 @@
+# sub_6968
+# addr 0x6968 .. 0x6aa0  (312 bytes)
+
+00006968  sub      sp, sp, #0x70                               
+0000696c  stp      x24, x23, [sp, #0x30]                       
+00006970  stp      x22, x21, [sp, #0x40]                       
+00006974  stp      x20, x19, [sp, #0x50]                       
+00006978  stp      x29, x30, [sp, #0x60]                       
+0000697c  add      x29, sp, #0x60                              
+00006980  mov      x20, x2                                     
+00006984  mov      x19, x1                                     
+00006988  mov      x22, x0                                     
+0000698c  mov      x0, x1                                      
+00006990  bl       #0x28004                                    ; _objc_retain
+00006994  mov      x0, x20                                     
+00006998  bl       #0x28004                                    ; _objc_retain
+0000699c  mov      x0, x19                                     
+000069a0  bl       #0x28fa0                                    ; objc_msgSend$copy
+000069a4  mov      x21, x0                                     
+000069a8  adrp     x8, #0x42000                                
+000069ac  ldr      x0, [x8, #0xf90]                            ; [0x42f90] classref -> NSThread (= import _OBJC_CLASS_$_NSThread)
+000069b0  bl       #0x29a80                                    ; objc_msgSend$isMainThread
+000069b4  cbz      w0, #0x69c8                                 
+000069b8  ldr      x0, [x22, #0x20]                            
+000069bc  mov      x1, x21                                     
+000069c0  bl       #0x6aa0                                     ; sub_6aa0
+000069c4  b        #0x6a30                                     ; sub_6a30
+000069c8  adrp     x8, #0x38000                                
+000069cc  ldr      x8, [x8, #0x318]                            ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+000069d0  str      x8, [sp]                                    
+000069d4  adrp     x8, #0x32000                                
+000069d8  ldr      d0, [x8, #0x780]                            ; [0x32780] __const[0x32780] double=1.6080749353e-314 float=-32.0
+000069dc  adrp     x8, #0x7000                                 
+000069e0  add      x8, x8, #0x264                              ; __TEXT,__text+0x3264
+000069e4  str      d0, [sp, #8]                                
+000069e8  adrp     x9, #0x38000                                
+000069ec  add      x9, x9, #0x7c8                              ; __const[0x387c8] double=0.0 float=0.0
+000069f0  stp      x8, x9, [sp, #0x10]                         
+000069f4  ldr      x23, [x22, #0x20]                           
+000069f8  mov      x0, x23                                     
+000069fc  bl       #0x28004                                    ; _objc_retain
+00006a00  str      x23, [sp, #0x20]                            
+00006a04  mov      x0, x21                                     
+00006a08  bl       #0x28004                                    ; _objc_retain
+00006a0c  str      x21, [sp, #0x28]                            
+00006a10  adrp     x0, #0x38000                                
+00006a14  ldr      x0, [x0, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+00006a18  mov      x1, sp                                      
+00006a1c  bl       #0x27d64                                    ; _dispatch_async
+00006a20  ldr      x0, [sp, #0x28]                             
+00006a24  bl       #0x27ff8                                    ; _objc_release
+00006a28  ldr      x0, [sp, #0x20]                             
+00006a2c  bl       #0x27ff8                                    ; _objc_release
+00006a30  ldr      x0, [x22, #0x28]                            
+00006a34  ldr      x8, [x0, #0x10]                             ; [0x38010] __DATA_CONST,__got+0x10 (= import _class_copyPropertyList)
+00006a38  mov      x1, x19                                     
+00006a3c  mov      x2, x20                                     
+00006a40  blr      x8                                          
+00006a44  mov      x0, x21                                     
+00006a48  bl       #0x27ff8                                    ; _objc_release
+00006a4c  mov      x0, x20                                     
+00006a50  bl       #0x27ff8                                    ; _objc_release
+00006a54  mov      x0, x19                                     
+00006a58  bl       #0x27ff8                                    ; _objc_release
+00006a5c  ldp      x29, x30, [sp, #0x60]                       
+00006a60  ldp      x20, x19, [sp, #0x50]                       
+00006a64  ldp      x22, x21, [sp, #0x40]                       
+00006a68  ldp      x24, x23, [sp, #0x30]                       
+00006a6c  add      sp, sp, #0x70                               
+00006a70  ret                                                  
+00006a74  mov      x22, x0                                     
+00006a78  b        #0x6a88                                     ; sub_6a88
+00006a7c  mov      x22, x0                                     
+00006a80  mov      x0, x21                                     
+00006a84  bl       #0x27ff8                                    ; _objc_release
+00006a88  mov      x0, x20                                     
+00006a8c  bl       #0x27ff8                                    ; _objc_release
+00006a90  mov      x0, x19                                     
+00006a94  bl       #0x27ff8                                    ; _objc_release
+00006a98  mov      x0, x22                                     
+00006a9c  bl       #0x27c80                                    ; __Unwind_Resume

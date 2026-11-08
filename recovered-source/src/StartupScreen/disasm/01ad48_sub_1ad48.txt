@@ -1,0 +1,66 @@
+; sub_1ad48
+; VA 0x1ad48  size 252
+
+0x0001ad48:  sub      sp, sp, #0x90
+0x0001ad4c:  stp      x22, x21, [sp, #0x60]
+0x0001ad50:  stp      x20, x19, [sp, #0x70]
+0x0001ad54:  stp      x29, x30, [sp, #0x80]
+0x0001ad58:  add      x29, sp, #0x80
+0x0001ad5c:  mov      x19, x1
+0x0001ad60:  adrp     x8, #0x30000
+0x0001ad64:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0001ad68:  ldr      x8, [x8]
+0x0001ad6c:  stur     x8, [x29, #-0x28]
+0x0001ad70:  mov      x8, #0x4040000000000000
+0x0001ad74:  fmov     d2, x8
+0x0001ad78:  mov      x8, #0x4044000000000000
+0x0001ad7c:  fmov     d3, x8
+0x0001ad80:  fmov     d0, xzr
+0x0001ad84:  fmov     d1, xzr
+0x0001ad88:  mov      x0, x1
+0x0001ad8c:  bl       #0x21c04    ; -> _CGContextAddEllipseInRect
+0x0001ad90:  mov      x0, x19
+0x0001ad94:  bl       #0x21c10    ; -> _CGContextClip
+0x0001ad98:  bl       #0x21bec    ; -> _CGColorSpaceCreateDeviceRGB
+0x0001ad9c:  mov      x20, x0
+0x0001ada0:  adrp     x8, #0x29000
+0x0001ada4:  add      x8, x8, #0x5b0
+0x0001ada8:  ldp      q0, q1, [x8]
+0x0001adac:  stp      q0, q1, [sp, #0x10]
+0x0001adb0:  ldp      q0, q1, [x8, #0x20]
+0x0001adb4:  stp      q0, q1, [sp, #0x30]
+0x0001adb8:  adrp     x8, #0x29000
+0x0001adbc:  add      x8, x8, #0x4a0
+0x0001adc0:  ldr      q0, [x8]
+0x0001adc4:  str      q0, [sp]
+0x0001adc8:  add      x1, sp, #0x10
+0x0001adcc:  mov      x2, sp
+0x0001add0:  mov      w3, #2
+0x0001add4:  bl       #0x21c94    ; -> _CGGradientCreateWithColorComponents
+0x0001add8:  mov      x21, x0
+0x0001addc:  fmov     d0, #11.00000000
+0x0001ade0:  fmov     d1, #14.00000000
+0x0001ade4:  fmov     d2, xzr
+0x0001ade8:  fmov     d3, #16.00000000
+0x0001adec:  fmov     d4, #20.00000000
+0x0001adf0:  fmov     d5, #22.00000000
+0x0001adf4:  mov      x0, x19
+0x0001adf8:  mov      x1, x21
+0x0001adfc:  mov      w2, #2
+0x0001ae00:  bl       #0x21c1c    ; -> _CGContextDrawRadialGradient
+0x0001ae04:  mov      x0, x21
+0x0001ae08:  bl       #0x21ca0    ; -> _CGGradientRelease
+0x0001ae0c:  mov      x0, x20
+0x0001ae10:  bl       #0x21bf8    ; -> _CGColorSpaceRelease
+0x0001ae14:  ldur     x8, [x29, #-0x28]
+0x0001ae18:  adrp     x9, #0x30000
+0x0001ae1c:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0001ae20:  ldr      x9, [x9]
+0x0001ae24:  cmp      x9, x8
+0x0001ae28:  b.ne     #0x1ae40
+0x0001ae2c:  ldp      x29, x30, [sp, #0x80]
+0x0001ae30:  ldp      x20, x19, [sp, #0x70]
+0x0001ae34:  ldp      x22, x21, [sp, #0x60]
+0x0001ae38:  add      sp, sp, #0x90
+0x0001ae3c:  ret      
+0x0001ae40:  bl       #0x21dd8    ; -> ___stack_chk_fail

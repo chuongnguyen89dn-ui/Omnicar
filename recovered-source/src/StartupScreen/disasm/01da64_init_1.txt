@@ -1,0 +1,44 @@
+; __init_1
+; VA 0x1da64  size 164
+
+0x0001da64:  sub      sp, sp, #0x50
+0x0001da68:  stp      x20, x19, [sp, #0x30]
+0x0001da6c:  stp      x29, x30, [sp, #0x40]
+0x0001da70:  add      x29, sp, #0x40
+0x0001da74:  adrp     x8, #0x3a000
+0x0001da78:  ldr      x0, [x8, #0xa78]    ; class(NSProcessInfo)
+0x0001da7c:  bl       #0x240c0    ; -> _objc_msgSend(processInfo)
+0x0001da80:  mov      x29, x29
+0x0001da84:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001da88:  mov      x20, x0
+0x0001da8c:  bl       #0x240e0    ; -> _objc_msgSend(?)
+0x0001da90:  mov      x29, x29
+0x0001da94:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001da98:  mov      x19, x0
+0x0001da9c:  mov      x0, x20
+0x0001daa0:  bl       #0x22120    ; -> _objc_release
+0x0001daa4:  adrp     x2, #0x33000
+0x0001daa8:  add      x2, x2, #0xee8    ; @"SpringBoard"
+0x0001daac:  mov      x0, x19
+0x0001dab0:  bl       #0x23920    ; -> _objc_msgSend(isEqualToString:)
+0x0001dab4:  tbnz     w0, #0, #0x1dacc
+0x0001dab8:  adrp     x2, #0x33000
+0x0001dabc:  add      x2, x2, #0xf08    ; @"CarPlay"
+0x0001dac0:  mov      x0, x19
+0x0001dac4:  bl       #0x23920    ; -> _objc_msgSend(isEqualToString:)
+0x0001dac8:  cbz      w0, #0x1db1c
+0x0001dacc:  adrp     x8, #0x30000
+0x0001dad0:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x0001dad4:  str      x8, [sp, #8]
+0x0001dad8:  adrp     x8, #0x28000
+0x0001dadc:  ldr      d0, [x8, #0xdd0]
+0x0001dae0:  str      d0, [sp, #0x10]
+0x0001dae4:  adrp     x8, #0x1d000
+0x0001dae8:  add      x8, x8, #0xb34    ; func sub_1db34
+0x0001daec:  adrp     x9, #0x30000
+0x0001daf0:  add      x9, x9, #0x788
+0x0001daf4:  stp      x8, x9, [sp, #0x18]
+0x0001daf8:  mov      x0, x19
+0x0001dafc:  bl       #0x2212c    ; -> _objc_retain
+0x0001db00:  str      x19, [sp, #0x28]
+0x0001db04:  adrp     x0, #0x30000

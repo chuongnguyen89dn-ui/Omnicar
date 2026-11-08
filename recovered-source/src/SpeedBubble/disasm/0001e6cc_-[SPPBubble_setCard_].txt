@@ -1,0 +1,15 @@
+# -[SPPBubble setCard:]
+# addr 0x1e6cc .. 0x1e6fc  (48 bytes)
+
+0001e6cc  stp      x20, x19, [sp, #-0x20]!                     
+0001e6d0  stp      x29, x30, [sp, #0x10]                       
+0001e6d4  add      x29, sp, #0x10                              
+0001e6d8  mov      x19, x2                                     
+0001e6dc  mov      x20, x0                                     
+0001e6e0  mov      x0, x2                                      
+0001e6e4  bl       #0x28004                                    ; _objc_retain
+0001e6e8  ldr      x0, [x20, #0x28]                            
+0001e6ec  str      x19, [x20, #0x28]                           
+0001e6f0  ldp      x29, x30, [sp, #0x10]                       
+0001e6f4  ldp      x20, x19, [sp], #0x20                       
+0001e6f8  b        #0x27ff8                                    ; _objc_release

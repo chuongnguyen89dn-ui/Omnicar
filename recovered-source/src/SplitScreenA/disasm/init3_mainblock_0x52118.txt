@@ -1,0 +1,101 @@
+; sub_52118
+0x052118  sub      sp, sp, #0x80
+0x05211c  stp      x22, x21, [sp, #0x50]
+0x052120  stp      x20, x19, [sp, #0x60]
+0x052124  stp      x29, x30, [sp, #0x70]
+0x052128  add      x29, sp, #0x70
+0x05212c  mov      x19, x0
+0x052130  adrp     x8, #0x78000
+0x052134  ldr      x8, [x8, #0x360] ; [0x78360] ___stack_chk_guard
+0x052138  ldr      x8, [x8] ; [0x78000] <ordinal 0>
+0x05213c  stur     x8, [x29, #-0x28]
+0x052140  adrp     x21, #0x87000
+0x052144  ldr      x0, [x21, #0x678] ; [0x87678] class:NSString
+0x052148  ldr      x10, [x19, #0x20]
+0x05214c  adrp     x8, #0x5f000
+0x052150  add      x8, x8, #0xadd ; -> 0x5fadd "1.0.3"
+0x052154  adrp     x9, #0x62000
+0x052158  add      x9, x9, #0x9e0 ; -> 0x629e0 "fbebb21"
+0x05215c  stp      x8, x10, [sp, #8]
+0x052160  str      x9, [sp]
+0x052164  adrp     x2, #0x7e000
+0x052168  add      x2, x2, #0xee0 ; -> 0x7eee0 @"build %s (%s) loaded into %@"
+0x05216c  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x052170  mov      x29, x29
+0x052174  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x052178  mov      x20, x0
+0x05217c  adrp     x0, #0x79000
+0x052180  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x052184  mov      x1, x20
+0x052188  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x05218c  mov      x0, x20
+0x052190  bl       #0x567b8 ; call _objc_release
+0x052194  ldr      x0, [x21, #0x678] ; [0x87678] class:NSString
+0x052198  ldr      x10, [x19, #0x20]
+0x05219c  adrp     x8, #0x5e000
+0x0521a0  add      x8, x8, #0x6f7 ; -> 0x5e6f7 "SplitScreen"
+0x0521a4  adrp     x9, #0x7e000
+0x0521a8  add      x9, x9, #0xf20 ; -> 0x7ef20 @"diagLoaded."
+0x0521ac  stp      x8, x10, [sp, #8]
+0x0521b0  str      x9, [sp]
+0x0521b4  adrp     x2, #0x7e000
+0x0521b8  add      x2, x2, #0xf00 ; -> 0x7ef00 @"%@%s@%@"
+0x0521bc  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x0521c0  mov      x29, x29
+0x0521c4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0521c8  mov      x19, x0
+0x0521cc  adrp     x8, #0x7e000
+0x0521d0  add      x8, x8, #0xf40 ; -> 0x7ef40 @"version"
+0x0521d4  adrp     x9, #0x7a000
+0x0521d8  add      x9, x9, #0x840 ; -> 0x7a840 @"1.0.3"
+0x0521dc  adrp     x10, #0x7e000
+0x0521e0  add      x10, x10, #0xf60 ; -> 0x7ef60 @"build"
+0x0521e4  stp      x8, x10, [sp, #0x18]
+0x0521e8  adrp     x8, #0x7e000
+0x0521ec  add      x8, x8, #0xf80 ; -> 0x7ef80 @"fbebb21"
+0x0521f0  stp      x9, x8, [sp, #0x30]
+0x0521f4  adrp     x8, #0x7e000
+0x0521f8  add      x8, x8, #0xfa0 ; -> 0x7efa0 @"date"
+0x0521fc  str      x8, [sp, #0x28]
+0x052200  adrp     x8, #0x87000
+0x052204  ldr      x0, [x8, #0x738] ; [0x87738] class:NSDate
+0x052208  bl       #0x57aa0 ; objc_msgSend$date
+0x05220c  mov      x29, x29
+0x052210  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x052214  mov      x20, x0
+0x052218  str      x0, [sp, #0x40]
+0x05221c  adrp     x8, #0x87000
+0x052220  ldr      x0, [x8, #0x6b8] ; [0x876b8] class:NSDictionary
+0x052224  add      x2, sp, #0x30
+0x052228  add      x3, sp, #0x18
+0x05222c  mov      w4, #3
+0x052230  bl       #0x57bc0 ; objc_msgSend$dictionaryWithObjects:forKeys:count:
+0x052234  mov      x29, x29
+0x052238  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x05223c  mov      x21, x0
+0x052240  mov      x0, x20
+0x052244  bl       #0x567b8 ; call _objc_release
+0x052248  adrp     x20, #0x7a000
+0x05224c  add      x20, x20, #0x360 ; -> 0x7a360 @"com.anlai.omnicar"
+0x052250  mov      x0, x19
+0x052254  mov      x1, x21
+0x052258  mov      x2, x20
+0x05225c  bl       #0x561a0 ; call _CFPreferencesSetAppValue
+0x052260  mov      x0, x20
+0x052264  bl       #0x56170 ; call _CFPreferencesAppSynchronize
+0x052268  mov      x0, x21
+0x05226c  bl       #0x567b8 ; call _objc_release
+0x052270  mov      x0, x19
+0x052274  bl       #0x567b8 ; call _objc_release
+0x052278  ldur     x8, [x29, #-0x28]
+0x05227c  adrp     x9, #0x78000
+0x052280  ldr      x9, [x9, #0x360] ; [0x78360] ___stack_chk_guard
+0x052284  ldr      x9, [x9] ; [0x78000] <ordinal 0>
+0x052288  cmp      x9, x8
+0x05228c  b.ne     #0x522a4
+0x052290  ldp      x29, x30, [sp, #0x70]
+0x052294  ldp      x20, x19, [sp, #0x60]
+0x052298  ldp      x22, x21, [sp, #0x50]
+0x05229c  add      sp, sp, #0x80
+0x0522a0  ret      
+0x0522a4  bl       #0x56404 ; call ___stack_chk_fail

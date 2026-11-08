@@ -1,0 +1,15 @@
+; sub_7218
+; VA 0x7218  size 48
+
+0x00007218:  stp      x29, x30, [sp, #-0x10]!
+0x0000721c:  mov      x29, sp
+0x00007220:  adrp     x0, #0xc000
+0x00007224:  add      x0, x0, #0x79b    ; "com.anlai.omnicar.log"
+0x00007228:  mov      x1, #0
+0x0000722c:  bl       #0xb20c    ; -> _dispatch_queue_create
+0x00007230:  adrp     x9, #0x14000
+0x00007234:  ldr      x8, [x9, #0x4e0]
+0x00007238:  str      x0, [x9, #0x4e0]
+0x0000723c:  mov      x0, x8
+0x00007240:  ldp      x29, x30, [sp], #0x10
+0x00007244:  b        #0xb410    ; -> _objc_release

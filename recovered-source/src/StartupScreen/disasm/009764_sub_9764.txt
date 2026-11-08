@@ -1,0 +1,203 @@
+; sub_9764
+; VA 0x9764  size 800
+
+0x00009764:  stp      x28, x27, [sp, #-0x60]!
+0x00009768:  stp      x26, x25, [sp, #0x10]
+0x0000976c:  stp      x24, x23, [sp, #0x20]
+0x00009770:  stp      x22, x21, [sp, #0x30]
+0x00009774:  stp      x20, x19, [sp, #0x40]
+0x00009778:  stp      x29, x30, [sp, #0x50]
+0x0000977c:  add      x29, sp, #0x50
+0x00009780:  sub      sp, sp, #0x4e0
+0x00009784:  adrp     x8, #0x30000
+0x00009788:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0000978c:  ldr      x8, [x8]
+0x00009790:  stur     x8, [x29, #-0x58]
+0x00009794:  adrp     x8, #0x3a000
+0x00009798:  ldr      x0, [x8, #0xa30]    ; class(NSFileManager)
+0x0000979c:  bl       #0x23080    ; -> _objc_msgSend(defaultManager)
+0x000097a0:  mov      x29, x29
+0x000097a4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000097a8:  mov      x19, x0
+0x000097ac:  adrp     x0, #0x31000
+0x000097b0:  add      x0, x0, #0xc48    ; @"startupScreenVideoName"
+0x000097b4:  mov      x1, #0
+0x000097b8:  bl       #0x1af70    ; -> OMCPref
+0x000097bc:  mov      x29, x29
+0x000097c0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000097c4:  mov      x20, x0
+0x000097c8:  bl       #0x23a40    ; -> _objc_msgSend(length)
+0x000097cc:  cbz      x0, #0x9858
+0x000097d0:  adrp     x0, #0x31000
+0x000097d4:  add      x0, x0, #0x368    ; @"/var/mobile/Library/OmniCar/StartupScreen/Videos"
+0x000097d8:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x000097dc:  add      x1, sp, #0xd8
+0x000097e0:  bl       #0x4118    ; -> sub_4118
+0x000097e4:  cbz      x0, #0x9808
+0x000097e8:  mov      x2, x0
+0x000097ec:  adrp     x8, #0x3a000
+0x000097f0:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x000097f4:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x000097f8:  mov      x29, x29
+0x000097fc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009800:  mov      x21, x0
+0x00009804:  b        #0x980c    ; -> sub_980c
+0x00009808:  mov      x21, #0
+0x0000980c:  mov      x0, x21
+0x00009810:  mov      x2, x20
+0x00009814:  bl       #0x25b20    ; -> _objc_msgSend(stringByAppendingPathComponent:)
+0x00009818:  mov      x29, x29
+0x0000981c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009820:  mov      x22, x0
+0x00009824:  mov      x0, x19
+0x00009828:  mov      x2, x22
+0x0000982c:  bl       #0x232c0    ; -> _objc_msgSend(fileExistsAtPath:)
+0x00009830:  mov      x23, x0
+0x00009834:  mov      x0, x22
+0x00009838:  bl       #0x22120    ; -> _objc_release
+0x0000983c:  mov      x0, x21
+0x00009840:  bl       #0x22120    ; -> _objc_release
+0x00009844:  cbz      w23, #0x9858
+0x00009848:  mov      x0, x20
+0x0000984c:  bl       #0x2212c    ; -> _objc_retain
+0x00009850:  mov      x24, x20
+0x00009854:  b        #0x9a34    ; -> sub_9a34
+0x00009858:  adrp     x0, #0x31000
+0x0000985c:  add      x0, x0, #0x368    ; @"/var/mobile/Library/OmniCar/StartupScreen/Videos"
+0x00009860:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x00009864:  add      x1, sp, #0xd8
+0x00009868:  bl       #0x4118    ; -> sub_4118
+0x0000986c:  cbz      x0, #0x9890
+0x00009870:  mov      x2, x0
+0x00009874:  adrp     x8, #0x3a000
+0x00009878:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x0000987c:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x00009880:  mov      x29, x29
+0x00009884:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009888:  mov      x23, x0
+0x0000988c:  b        #0x9894    ; -> sub_9894
+0x00009890:  mov      x23, #0
+0x00009894:  str      xzr, [sp, #0x50]
+0x00009898:  add      x3, sp, #0x50
+0x0000989c:  mov      x0, x19
+0x000098a0:  mov      x2, x23
+0x000098a4:  bl       #0x22da0    ; -> _objc_msgSend(contentsOfDirectoryAtPath:error:)
+0x000098a8:  mov      x29, x29
+0x000098ac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000098b0:  mov      x24, x0
+0x000098b4:  ldr      x21, [sp, #0x50]
+0x000098b8:  mov      x0, x21
+0x000098bc:  bl       #0x2212c    ; -> _objc_retain
+0x000098c0:  adrp     x8, #0x39000
+0x000098c4:  ldr      x2, [x8, #0xaa0]    ; selref(compare:)
+0x000098c8:  mov      x0, x24
+0x000098cc:  bl       #0x25600    ; -> _objc_msgSend(sortedArrayUsingSelector:)
+0x000098d0:  mov      x29, x29
+0x000098d4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000098d8:  mov      x22, x0
+0x000098dc:  mov      x0, x24
+0x000098e0:  bl       #0x22120    ; -> _objc_release
+0x000098e4:  mov      x0, x23
+0x000098e8:  bl       #0x22120    ; -> _objc_release
+0x000098ec:  cbz      x21, #0x9970
+0x000098f0:  adrp     x24, #0x3a000
+0x000098f4:  ldr      x23, [x24, #0x9c0]    ; class(NSString)
+0x000098f8:  adrp     x0, #0x31000
+0x000098fc:  add      x0, x0, #0x368    ; @"/var/mobile/Library/OmniCar/StartupScreen/Videos"
+0x00009900:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x00009904:  add      x1, sp, #0xd8
+0x00009908:  bl       #0x4118    ; -> sub_4118
+0x0000990c:  cbz      x0, #0x992c
+0x00009910:  mov      x2, x0
+0x00009914:  ldr      x0, [x24, #0x9c0]
+0x00009918:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x0000991c:  mov      x29, x29
+0x00009920:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009924:  mov      x24, x0
+0x00009928:  b        #0x9930    ; -> sub_9930
+0x0000992c:  mov      x24, #0
+0x00009930:  stp      x24, x21, [sp]
+0x00009934:  adrp     x2, #0x31000
+0x00009938:  add      x2, x2, #0xc68    ; @"cannot list %@: %@"
+0x0000993c:  mov      x0, x23
+0x00009940:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00009944:  mov      x29, x29
+0x00009948:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000994c:  mov      x23, x0
+0x00009950:  adrp     x0, #0x30000
+0x00009954:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00009958:  mov      x1, x23
+0x0000995c:  bl       #0x1b620    ; -> OMCLogWrite
+0x00009960:  mov      x0, x23
+0x00009964:  bl       #0x22120    ; -> _objc_release
+0x00009968:  mov      x0, x24
+0x0000996c:  bl       #0x22120    ; -> _objc_release
+0x00009970:  movi     v0.16b, #0
+0x00009974:  stp      q0, q0, [sp, #0x30]
+0x00009978:  stp      q0, q0, [sp, #0x10]
+0x0000997c:  mov      x0, x22
+0x00009980:  bl       #0x2212c    ; -> _objc_retain
+0x00009984:  add      x2, sp, #0x10
+0x00009988:  add      x3, sp, #0x58
+0x0000998c:  mov      x0, x22
+0x00009990:  mov      w4, #0x10
+0x00009994:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00009998:  cbz      x0, #0x9a0c
+0x0000999c:  mov      x25, x0
+0x000099a0:  ldr      x8, [sp, #0x20]
+0x000099a4:  ldr      x26, [x8]
+0x000099a8:  adrp     x23, #0x31000
+0x000099ac:  add      x23, x23, #0xc88    ; @"."
+0x000099b0:  mov      x27, #0
+0x000099b4:  ldr      x8, [sp, #0x20]
+0x000099b8:  ldr      x8, [x8]
+0x000099bc:  cmp      x8, x26
+0x000099c0:  b.eq     #0x99cc
+0x000099c4:  mov      x0, x22
+0x000099c8:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x000099cc:  ldr      x8, [sp, #0x18]
+0x000099d0:  ldr      x24, [x8, x27, lsl #3]
+0x000099d4:  mov      x0, x24
+0x000099d8:  mov      x2, x23
+0x000099dc:  bl       #0x23540    ; -> _objc_msgSend(hasPrefix:)
+0x000099e0:  cbz      w0, #0x9a14
+0x000099e4:  add      x27, x27, #1
+0x000099e8:  cmp      x25, x27
+0x000099ec:  b.ne     #0x99b4
+0x000099f0:  add      x2, sp, #0x10
+0x000099f4:  add      x3, sp, #0x58
+0x000099f8:  mov      x0, x22
+0x000099fc:  mov      w4, #0x10
+0x00009a00:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00009a04:  mov      x25, x0
+0x00009a08:  cbnz     x0, #0x99b0
+0x00009a0c:  mov      x24, #0
+0x00009a10:  b        #0x9a1c    ; -> sub_9a1c
+0x00009a14:  mov      x0, x24
+0x00009a18:  bl       #0x2212c    ; -> _objc_retain
+0x00009a1c:  mov      x0, x22
+0x00009a20:  bl       #0x22120    ; -> _objc_release
+0x00009a24:  mov      x0, x22
+0x00009a28:  bl       #0x22120    ; -> _objc_release
+0x00009a2c:  mov      x0, x21
+0x00009a30:  bl       #0x22120    ; -> _objc_release
+0x00009a34:  mov      x0, x20
+0x00009a38:  bl       #0x22120    ; -> _objc_release
+0x00009a3c:  mov      x0, x19
+0x00009a40:  bl       #0x22120    ; -> _objc_release
+0x00009a44:  ldur     x8, [x29, #-0x58]
+0x00009a48:  adrp     x9, #0x30000
+0x00009a4c:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x00009a50:  ldr      x9, [x9]
+0x00009a54:  cmp      x9, x8
+0x00009a58:  b.ne     #0x9a80
+0x00009a5c:  mov      x0, x24
+0x00009a60:  add      sp, sp, #0x4e0
+0x00009a64:  ldp      x29, x30, [sp, #0x50]
+0x00009a68:  ldp      x20, x19, [sp, #0x40]
+0x00009a6c:  ldp      x22, x21, [sp, #0x30]
+0x00009a70:  ldp      x24, x23, [sp, #0x20]
+0x00009a74:  ldp      x26, x25, [sp, #0x10]
+0x00009a78:  ldp      x28, x27, [sp], #0x60
+0x00009a7c:  b        #0x22054    ; -> _objc_autoreleaseReturnValue
+0x00009a80:  bl       #0x21dd8    ; -> ___stack_chk_fail

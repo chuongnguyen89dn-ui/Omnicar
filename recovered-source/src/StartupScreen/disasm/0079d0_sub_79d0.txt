@@ -1,0 +1,32 @@
+; sub_79d0
+; VA 0x79d0  size 116
+
+0x000079d0:  sub      sp, sp, #0x40
+0x000079d4:  stp      x29, x30, [sp, #0x30]
+0x000079d8:  add      x29, sp, #0x30
+0x000079dc:  mov      x0, x2
+0x000079e0:  adrp     x1, #0x31000
+0x000079e4:  add      x1, x1, #0x148    ; @"com.anlai.omnicar/startupscreen.audio.play"
+0x000079e8:  mov      x2, #0
+0x000079ec:  bl       #0x21b98    ; -> _CFStringCompare
+0x000079f0:  cmp      x0, #0
+0x000079f4:  adrp     x8, #0x30000
+0x000079f8:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x000079fc:  cset     w9, eq
+0x00007a00:  str      x8, [sp, #8]
+0x00007a04:  adrp     x8, #0x28000
+0x00007a08:  ldr      d0, [x8, #0xde0]
+0x00007a0c:  adrp     x8, #0x8000
+0x00007a10:  add      x8, x8, #0xf0c    ; func sub_8f0c
+0x00007a14:  str      d0, [sp, #0x10]
+0x00007a18:  adrp     x10, #0x30000
+0x00007a1c:  add      x10, x10, #0xa48
+0x00007a20:  stp      x8, x10, [sp, #0x18]
+0x00007a24:  strb     w9, [sp, #0x28]
+0x00007a28:  adrp     x0, #0x30000
+0x00007a2c:  ldr      x0, [x0, #0x388]    ; got(__dispatch_main_q)
+0x00007a30:  add      x1, sp, #8
+0x00007a34:  bl       #0x21e98    ; -> _dispatch_async
+0x00007a38:  ldp      x29, x30, [sp, #0x30]
+0x00007a3c:  add      sp, sp, #0x40
+0x00007a40:  ret      

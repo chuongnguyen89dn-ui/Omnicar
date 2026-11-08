@@ -1,0 +1,40 @@
+=== -[ABBarButton pointInside:withEvent:] @ 0x9f90 (size 156) ===
+00009f90  stp      d15, d14, [sp, #-0x60]!
+00009f94  stp      d13, d12, [sp, #0x10]
+00009f98  stp      d11, d10, [sp, #0x20]
+00009f9c  stp      d9, d8, [sp, #0x30]
+00009fa0  stp      x20, x19, [sp, #0x40]
+00009fa4  stp      x29, x30, [sp, #0x50]
+00009fa8  add      x29, sp, #0x50
+00009fac  mov      v8.16b, v1.16b
+00009fb0  mov      v9.16b, v0.16b
+00009fb4  mov      x19, x0
+00009fb8  bl       #0x24f40 ; objc_msgSend sel=bounds
+00009fbc  mov      x8, #-0x3fba000000000000
+00009fc0  fmov     d12, x8
+00009fc4  fadd     d0, d2, d12
+00009fc8  fmov     d13, #0.50000000
+00009fcc  fmul     d0, d0, d13
+00009fd0  fcmp     d0, #0.0
+00009fd4  fmov     d14, xzr
+00009fd8  fcsel    d10, d14, d0, gt
+00009fdc  mov      x0, x19
+00009fe0  bl       #0x24f40 ; objc_msgSend sel=bounds
+00009fe4  mov      v11.16b, v3.16b
+00009fe8  mov      x0, x19
+00009fec  bl       #0x24f40 ; objc_msgSend sel=bounds
+00009ff0  fadd     d4, d11, d12
+00009ff4  fmul     d4, d4, d13
+00009ff8  fcmp     d4, #0.0
+00009ffc  fcsel    d5, d14, d4, gt
+0000a000  mov      v4.16b, v10.16b
+0000a004  bl       #0x243b0 ; call _CGRectInset
+0000a008  mov      v4.16b, v9.16b
+0000a00c  mov      v5.16b, v8.16b
+0000a010  ldp      x29, x30, [sp, #0x50]
+0000a014  ldp      x20, x19, [sp, #0x40]
+0000a018  ldp      d9, d8, [sp, #0x30]
+0000a01c  ldp      d11, d10, [sp, #0x20]
+0000a020  ldp      d13, d12, [sp, #0x10]
+0000a024  ldp      d15, d14, [sp], #0x60
+0000a028  b        #0x2435c ; call _CGRectContainsPoint

@@ -1,0 +1,60 @@
+StartupScreen-B CLAIM — taken over from the original agent's unwritten remainder
+(date: 2026-11-08; original agent's files SSStartupScreen.h/.m, SSSplash.m,
+SSStartupView.m, StartupScreen_REPORT.md were already on disk at inventory time
+and are NOT touched by B).
+
+BASIS: the original report §9 + §10 mark the items below INFERRED /
+NOT-RECOVERED at line level (structural reconstructions exist in
+SSStartupView.m). B claims the LINE-LEVEL reconstruction of exactly this
+SSStartupView scene/text-builder family. B writes NEW files only
+(SSStartupViewScenesB.m, category implementations marked as superseding the
+structural bodies in SSStartupView.m at integration); B never overwrites the
+original agent's files.
+
+CLAIMED — SSStartupView methods (VA):
+  -[SSStartupView ss_sceneColors]                 0xd580
+  -[SSStartupView buildGreetingWithDate:period:]   0xd824
+  -[SSStartupView buildWeatherWithPeriod:]         0xdcdc
+  -[SSStartupView ss_buildSky]                     0x11124
+  -[SSStartupView ss_gaugeAt:radius:label:unit:max:red:in:]  0x12a98
+  -[SSStartupView ss_buildEngine]                  0x134b8
+  -[SSStartupView ss_buildWelcome]                 0x14384
+  -[SSStartupView ss_buildParticles]               0x14d50
+  -[SSStartupView ss_buildHud]                     0x15ad0
+  -[SSStartupView ss_buildBriefing]                0x16af8
+  -[SSStartupView ss_buildLiquid]                  0x17bb4
+  -[SSStartupView ss_buildFestive]                 0x18af0
+  -[SSStartupView .cxx_destruct]                   0x1a5b0
+
+CLAIMED — unnamed C helpers / block invokes inside those builders' ranges:
+  sub_c8c8 0xc8c8, sub_cbb4 0xcbb4, sub_cc60 0xcc60, sub_ccf0 0xccf0 (reload helpers)
+  sub_d4f0 0xd4f0 (weather symbol table), sub_d6f0 0xd6f0 (scene colour table)
+  sub_da28 0xda28, sub_db60 0xdb60, sub_dc18 0xdc18 (greeting/condition text tables)
+  sub_eb68 0xeb68, sub_edf0 0xedf0 (weather builder helpers)
+  sub_f6ac 0xf6ac (font helper)
+  sub_109cc 0x109cc, sub_10b78 0x10b78, sub_10d50 0x10d50 (label/mote helpers)
+  sub_115c8 0x115c8, sub_11628 0x11628, sub_119a8 0x119a8, sub_11ad0 0x11ad0,
+  sub_12544 0x12544, sub_12554 0x12554 (sky builder helpers/blocks)
+  sub_12af8 0x12af8 (gauge helper)
+  sub_13e24 0x13e24, sub_13eb8 0x13eb8 (engine helpers)
+  sub_149cc 0x149cc (welcome helper)
+  sub_155c8 0x155c8, sub_159a8 0x159a8 (particles helpers)
+  sub_1630c 0x1630c, sub_163a4 0x163a4, sub_163d4 0x163d4, sub_16414 0x16414,
+  sub_1649c 0x1649c, sub_164dc 0x164dc, sub_16544* 0x16544 (hud helpers;
+  *only if still structural in SSStartupScreen.m at write time)
+  sub_16974 0x16974 (applyHud helper)
+  sub_16c0c 0x16c0c, sub_16d00 0x16d00, sub_16d18 0x16d18, sub_16d48 0x16d48,
+  sub_16e44 0x16e44, sub_16f64 0x16f64, sub_16f70 0x16f70, sub_16fd8 0x16fd8,
+  sub_17034 0x17034, sub_170c4 0x170c4, sub_17220 0x17220, sub_17620 0x17620,
+  sub_177e4 0x177e4, sub_1786c 0x1786c, sub_17a44 0x17a44, sub_17ab4 0x17ab4,
+  sub_17ae0 0x17ae0 (briefing helpers/blocks)
+  sub_17c64 0x17c64, sub_17e60 0x17e60, sub_18550 0x18550, sub_186fc 0x186fc,
+  sub_18730 0x18730, sub_18840 0x18840 (liquid helpers/blocks)
+  sub_199d4 0x199d4, sub_19b34 0x19b34, sub_19cc4 0x19cc4, sub_19cf4 0x19cf4,
+  sub_19db4 0x19db4 (festive helpers/blocks)
+  sub_1a4ac 0x1a4ac (accessor-range helper)
+
+NOT CLAIMED (left to the original agent / already VERIFIED there):
+  all of SSStartupScreen.m's C layer, all of SSSplash + its block invokes,
+  SSFade/SSGauge/SSLinkTarget/SSCanvasView, the 75 shared OMC-core functions,
+  and every method the original report marks VERIFIED.

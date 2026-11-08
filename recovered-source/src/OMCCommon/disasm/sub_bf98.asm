@@ -1,0 +1,41 @@
+; === sub_bf98 @ 0xbf98 size=160 ===
+0x0000bf98  stp      x29, x30, [sp, #-0x10]!
+0x0000bf9c  mov      x29, sp
+0x0000bfa0  bl       #0xb1e4 ; call sub_b1e4
+0x0000bfa4  adrp     x8, #0x18000
+0x0000bfa8  ldr      d1, [x8, #0x630] ; -> [__DATA,__bss+0x130]
+0x0000bfac  fcmp     d1, #0.0
+0x0000bfb0  b.le     #0xc02c
+0x0000bfb4  fsub     d1, d0, d1
+0x0000bfb8  adrp     x9, #0x18000
+0x0000bfbc  ldr      d3, [x9, #0x610] ; -> [__DATA,__bss+0x110]
+0x0000bfc0  fmov     d2, #1.50000000
+0x0000bfc4  fmul     d4, d3, d2
+0x0000bfc8  fmov     d2, xzr
+0x0000bfcc  fcmp     d1, d4
+0x0000bfd0  b.le     #0xbfe4
+0x0000bfd4  fdiv     d2, d1, d3
+0x0000bfd8  frinta   d2, d2
+0x0000bfdc  fmov     d3, #-1.00000000
+0x0000bfe0  fadd     d2, d2, d3
+0x0000bfe4  fmov     d3, #1.00000000
+0x0000bfe8  fadd     d3, d2, d3
+0x0000bfec  adrp     x9, #0x18000
+0x0000bff0  ldr      d4, [x9, #0x628] ; -> [__DATA,__bss+0x128]
+0x0000bff4  fadd     d3, d4, d3
+0x0000bff8  str      d3, [x9, #0x628]
+0x0000bffc  adrp     x9, #0x18000
+0x0000c000  ldr      d3, [x9, #0x620] ; -> [__DATA,__bss+0x120]
+0x0000c004  fadd     d2, d2, d3
+0x0000c008  str      d2, [x9, #0x620]
+0x0000c00c  adrp     x9, #0x18000
+0x0000c010  ldr      d2, [x9, #0x618] ; -> [__DATA,__bss+0x118]
+0x0000c014  adrp     x10, #0xf000
+0x0000c018  ldr      d3, [x10, #0xad0] ; -> [__TEXT,__const+0x20 [u64=0x408f400000000000 f64=1000.0]]
+0x0000c01c  fmul     d1, d1, d3
+0x0000c020  fcmp     d2, d1
+0x0000c024  fcsel    d1, d1, d2, mi
+0x0000c028  str      d1, [x9, #0x618]
+0x0000c02c  str      d0, [x8, #0x630]
+0x0000c030  ldp      x29, x30, [sp], #0x10
+0x0000c034  ret      

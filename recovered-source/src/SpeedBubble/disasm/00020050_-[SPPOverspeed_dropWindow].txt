@@ -1,0 +1,85 @@
+# -[SPPOverspeed dropWindow]
+# addr 0x20050 .. 0x20198  (328 bytes)
+
+00020050  stp      x22, x21, [sp, #-0x30]!                     
+00020054  stp      x20, x19, [sp, #0x10]                       
+00020058  stp      x29, x30, [sp, #0x20]                       
+0002005c  add      x29, sp, #0x20                              
+00020060  mov      x19, x0                                     
+00020064  bl       #0x2c9a0                                    ; objc_msgSend$window
+00020068  mov      x29, x29                                    
+0002006c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00020070  mov      x20, x0                                     
+00020074  bl       #0x27ff8                                    ; _objc_release
+00020078  cbz      x20, #0x20158                               
+0002007c  mov      x0, x19                                     
+00020080  bl       #0x295e0                                    ; objc_msgSend$glow
+00020084  mov      x29, x29                                    
+00020088  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002008c  mov      x20, x0                                     
+00020090  bl       #0x29b80                                    ; objc_msgSend$layer
+00020094  mov      x29, x29                                    
+00020098  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002009c  mov      x21, x0                                     
+000200a0  bl       #0x2a540                                    ; objc_msgSend$removeAllAnimations
+000200a4  mov      x0, x21                                     
+000200a8  bl       #0x27ff8                                    ; _objc_release
+000200ac  mov      x0, x20                                     
+000200b0  bl       #0x27ff8                                    ; _objc_release
+000200b4  mov      x0, x19                                     
+000200b8  bl       #0x29460                                    ; objc_msgSend$flash
+000200bc  mov      x29, x29                                    
+000200c0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000200c4  mov      x20, x0                                     
+000200c8  bl       #0x29b80                                    ; objc_msgSend$layer
+000200cc  mov      x29, x29                                    
+000200d0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000200d4  mov      x21, x0                                     
+000200d8  bl       #0x2a540                                    ; objc_msgSend$removeAllAnimations
+000200dc  mov      x0, x21                                     
+000200e0  bl       #0x27ff8                                    ; _objc_release
+000200e4  mov      x0, x20                                     
+000200e8  bl       #0x27ff8                                    ; _objc_release
+000200ec  mov      x0, x19                                     
+000200f0  bl       #0x2c9a0                                    ; objc_msgSend$window
+000200f4  mov      x29, x29                                    
+000200f8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000200fc  mov      x20, x0                                     
+00020100  mov      w2, #1                                      
+00020104  bl       #0x2b060                                    ; objc_msgSend$setHidden:
+00020108  mov      x0, x20                                     
+0002010c  bl       #0x27ff8                                    ; _objc_release
+00020110  mov      x0, x19                                     
+00020114  mov      x2, #0                                      
+00020118  bl       #0x2bce0                                    ; objc_msgSend$setWindow:
+0002011c  mov      x0, x19                                     
+00020120  mov      x2, #0                                      
+00020124  bl       #0x2b040                                    ; objc_msgSend$setGlow:
+00020128  mov      x0, x19                                     
+0002012c  mov      x2, #0                                      
+00020130  bl       #0x2af60                                    ; objc_msgSend$setFlash:
+00020134  mov      x0, x19                                     
+00020138  mov      x2, #0                                      
+0002013c  bl       #0x2ae60                                    ; objc_msgSend$setDisplayID:
+00020140  mov      x0, x19                                     
+00020144  mov      x2, #-1                                     
+00020148  ldp      x29, x30, [sp, #0x20]                       
+0002014c  ldp      x20, x19, [sp, #0x10]                       
+00020150  ldp      x22, x21, [sp], #0x30                       
+00020154  b        #0x2b7e0                                    ; objc_msgSend$setShownFx:
+00020158  ldp      x29, x30, [sp, #0x20]                       
+0002015c  ldp      x20, x19, [sp, #0x10]                       
+00020160  ldp      x22, x21, [sp], #0x30                       
+00020164  ret                                                  
+00020168  b        #0x20184                                    ; sub_20184
+0002016c  b        #0x20174                                    ; sub_20174
+00020170  b        #0x20184                                    ; sub_20184
+00020174  mov      x19, x0                                     
+00020178  mov      x0, x21                                     
+0002017c  bl       #0x27ff8                                    ; _objc_release
+00020180  b        #0x20188                                    ; sub_20188
+00020184  mov      x19, x0                                     
+00020188  mov      x0, x20                                     
+0002018c  bl       #0x27ff8                                    ; _objc_release
+00020190  mov      x0, x19                                     
+00020194  bl       #0x27c80                                    ; __Unwind_Resume

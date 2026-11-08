@@ -1,0 +1,40 @@
+; sub_9eb0
+; VA 0x9eb0  size 148
+
+0x00009eb0:  ldr      x8, [x0, #0x20]
+0x00009eb4:  adrp     x9, #0x14000
+0x00009eb8:  ldr      x9, [x9, #0x528]
+0x00009ebc:  cmp      x8, x9
+0x00009ec0:  b.ne     #0x9f40
+0x00009ec4:  stp      x20, x19, [sp, #-0x20]!
+0x00009ec8:  stp      x29, x30, [sp, #0x10]
+0x00009ecc:  add      x29, sp, #0x10
+0x00009ed0:  adrp     x19, #0x14000
+0x00009ed4:  ldr      x0, [x19, #0x4b0]
+0x00009ed8:  bl       #0xbb00    ; -> _objc_msgSend(invalidate)
+0x00009edc:  ldr      x0, [x19, #0x4b0]
+0x00009ee0:  str      xzr, [x19, #0x4b0]
+0x00009ee4:  bl       #0xb410    ; -> _objc_release
+0x00009ee8:  adrp     x8, #0x14000
+0x00009eec:  ldr      d0, [x8, #0x548]
+0x00009ef0:  adrp     x8, #0x14000
+0x00009ef4:  ldr      d1, [x8, #0x5c0]
+0x00009ef8:  fsub     d0, d0, d1
+0x00009efc:  mov      x8, #0x4059000000000000
+0x00009f00:  fmov     d1, x8
+0x00009f04:  fcmp     d0, d1
+0x00009f08:  ldp      x29, x30, [sp, #0x10]
+0x00009f0c:  ldp      x20, x19, [sp], #0x20
+0x00009f10:  b.lt     #0x9f40
+0x00009f14:  adrp     x8, #0x14000
+0x00009f18:  ldr      d1, [x8, #0x540]
+0x00009f1c:  adrp     x8, #0x14000
+0x00009f20:  ldr      d2, [x8, #0x5b8]
+0x00009f24:  fsub     d1, d1, d2
+0x00009f28:  mov      x8, #0x4059000000000000
+0x00009f2c:  fmov     d2, x8
+0x00009f30:  fmul     d1, d1, d2
+0x00009f34:  fdiv     d0, d1, d0
+0x00009f38:  adrp     x8, #0x14000
+0x00009f3c:  str      d0, [x8, #0x5c8]
+0x00009f40:  ret      

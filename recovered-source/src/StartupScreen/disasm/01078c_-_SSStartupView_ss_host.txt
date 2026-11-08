@@ -1,0 +1,29 @@
+; -[SSStartupView ss_host]
+; VA 0x1078c  size 104
+
+0x0001078c:  stp      x22, x21, [sp, #-0x30]!
+0x00010790:  stp      x20, x19, [sp, #0x10]
+0x00010794:  stp      x29, x30, [sp, #0x20]
+0x00010798:  add      x29, sp, #0x20
+0x0001079c:  mov      x19, x0
+0x000107a0:  adrp     x8, #0x3a000
+0x000107a4:  ldr      x0, [x8, #0xa10]    ; class(UIView)
+0x000107a8:  bl       #0x22024    ; -> _objc_alloc
+0x000107ac:  mov      x20, x0
+0x000107b0:  adrp     x8, #0x3a000
+0x000107b4:  ldrsw    x21, [x8, #0xd30]
+0x000107b8:  ldr      x0, [x19, x21]
+0x000107bc:  bl       #0x228c0    ; -> _objc_msgSend(bounds)
+0x000107c0:  mov      x0, x20
+0x000107c4:  bl       #0x23780    ; -> _objc_msgSend(initWithFrame:)
+0x000107c8:  mov      x20, x0
+0x000107cc:  mov      w2, #0
+0x000107d0:  bl       #0x25400    ; -> _objc_msgSend(setUserInteractionEnabled:)
+0x000107d4:  ldr      x0, [x19, x21]
+0x000107d8:  mov      x2, x20
+0x000107dc:  bl       #0x22520    ; -> _objc_msgSend(addSubview:)
+0x000107e0:  mov      x0, x20
+0x000107e4:  ldp      x29, x30, [sp, #0x20]
+0x000107e8:  ldp      x20, x19, [sp, #0x10]
+0x000107ec:  ldp      x22, x21, [sp], #0x30
+0x000107f0:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

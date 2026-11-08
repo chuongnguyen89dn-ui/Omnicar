@@ -1,0 +1,41 @@
+; sub_bc44
+0x00bc44  stp      x22, x21, [sp, #-0x30]!
+0x00bc48  stp      x20, x19, [sp, #0x10]
+0x00bc4c  stp      x29, x30, [sp, #0x20]
+0x00bc50  add      x29, sp, #0x20
+0x00bc54  bl       #0xc338 ; -> sub_c338
+0x00bc58  mov      x29, x29
+0x00bc5c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00bc60  mov      x19, x0
+0x00bc64  bl       #0x56824 ; call _objc_sync_enter
+0x00bc68  adrp     x21, #0x88000
+0x00bc6c  ldr      x20, [x21, #0xe8]
+0x00bc70  cbnz     x20, #0xbc9c
+0x00bc74  adrp     x0, #0x7a000
+0x00bc78  add      x0, x0, #0x800 ; -> 0x7a800 @"homeScreenShownApps"
+0x00bc7c  bl       #0xc268 ; -> sub_c268
+0x00bc80  mov      x29, x29
+0x00bc84  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00bc88  ldr      x8, [x21, #0xe8]
+0x00bc8c  str      x0, [x21, #0xe8]
+0x00bc90  mov      x0, x8
+0x00bc94  bl       #0x567b8 ; call _objc_release
+0x00bc98  ldr      x20, [x21, #0xe8]
+0x00bc9c  mov      x0, x20
+0x00bca0  bl       #0x567c4 ; call _objc_retain
+0x00bca4  mov      x0, x19
+0x00bca8  bl       #0x56830 ; call _objc_sync_exit
+0x00bcac  mov      x0, x19
+0x00bcb0  bl       #0x567b8 ; call _objc_release
+0x00bcb4  mov      x0, x20
+0x00bcb8  ldp      x29, x30, [sp, #0x20]
+0x00bcbc  ldp      x20, x19, [sp, #0x10]
+0x00bcc0  ldp      x22, x21, [sp], #0x30
+0x00bcc4  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x00bcc8  mov      x20, x0
+0x00bccc  mov      x0, x19
+0x00bcd0  bl       #0x56830 ; call _objc_sync_exit
+0x00bcd4  mov      x0, x19
+0x00bcd8  bl       #0x567b8 ; call _objc_release
+0x00bcdc  mov      x0, x20
+0x00bce0  bl       #0x563e0 ; call __Unwind_Resume

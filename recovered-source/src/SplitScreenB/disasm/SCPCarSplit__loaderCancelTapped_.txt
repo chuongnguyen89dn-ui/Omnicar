@@ -1,0 +1,142 @@
+; ==== SCPCarSplit__loaderCancelTapped_  @0x2b980..0x2bbb4 (564 bytes) ====
+0002b980  sub      sp, sp, #0x50                                
+0002b984  stp      x24, x23, [sp, #0x10]                        
+0002b988  stp      x22, x21, [sp, #0x20]                        
+0002b98c  stp      x20, x19, [sp, #0x30]                        
+0002b990  stp      x29, x30, [sp, #0x40]                        
+0002b994  add      x29, sp, #0x40                               
+0002b998  mov      x19, x2                                      
+0002b99c  mov      x22, x0                                      
+0002b9a0  mov      x0, x2                                       
+0002b9a4  bl       #0x567c4                                     ; call _objc_retain
+0002b9a8  mov      x0, x22                                      
+0002b9ac  mov      x2, x19                                      
+0002b9b0  bl       #0x59840                                     ; msgSend "paneForView:"
+0002b9b4  mov      x29, x29                                     
+0002b9b8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002b9bc  mov      x20, x0                                      
+0002b9c0  bl       #0x59100                                     ; msgSend "loader"
+0002b9c4  mov      x29, x29                                     
+0002b9c8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002b9cc  mov      x24, x0                                      
+0002b9d0  bl       #0x56aa0                                     ; msgSend "accessibilityIdentifier"
+0002b9d4  mov      x29, x29                                     
+0002b9d8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002b9dc  mov      x21, x0                                      
+0002b9e0  mov      x0, x24                                      
+0002b9e4  bl       #0x567b8                                     ; call _objc_release
+0002b9e8  cbz      x20, #0x2ba98                                
+0002b9ec  cbz      x21, #0x2ba98                                
+0002b9f0  adrp     x8, #0x87000                                 
+0002b9f4  ldr      x23, [x8, #0x678]                            ; classref NSString
+0002b9f8  mov      x0, x20                                      
+0002b9fc  bl       #0x5c100                                     ; msgSend "slot"
+0002ba00  stp      x21, x0, [sp]                                
+0002ba04  adrp     x2, #0x7c000                                 
+0002ba08  add      x2, x2, #0x4e0                               
+0002ba0c  mov      x0, x23                                      
+0002ba10  bl       #0x5c440                                     ; msgSend "stringWithFormat:"
+0002ba14  mov      x29, x29                                     
+0002ba18  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002ba1c  mov      x24, x0                                      
+0002ba20  adrp     x0, #0x79000                                 
+0002ba24  add      x0, x0, #0x5c0                               
+0002ba28  mov      x1, x24                                      
+0002ba2c  bl       #0x4fbf4                                     
+0002ba30  mov      x0, x24                                      
+0002ba34  bl       #0x567b8                                     ; call _objc_release
+0002ba38  adrp     x8, #0x87000                                 
+0002ba3c  ldr      x0, [x8, #0x738]                             ; classref NSDate
+0002ba40  bl       #0x57aa0                                     ; msgSend "date"
+0002ba44  mov      x29, x29                                     
+0002ba48  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002ba4c  mov      x24, x0                                      
+0002ba50  mov      x0, x22                                      
+0002ba54  bl       #0x57500                                     ; msgSend "cancelledLaunches"
+0002ba58  mov      x29, x29                                     
+0002ba5c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002ba60  mov      x23, x0                                      
+0002ba64  mov      x2, x24                                      
+0002ba68  mov      x3, x21                                      
+0002ba6c  bl       #0x5b480                                     ; msgSend "setObject:forKeyedSubscript:"
+0002ba70  mov      x0, x23                                      
+0002ba74  bl       #0x567b8                                     ; call _objc_release
+0002ba78  mov      x0, x24                                      
+0002ba7c  bl       #0x567b8                                     ; call _objc_release
+0002ba80  mov      x0, x20                                      
+0002ba84  bl       #0x5c100                                     ; msgSend "slot"
+0002ba88  mov      x3, x0                                       
+0002ba8c  mov      x0, x22                                      
+0002ba90  mov      x2, x21                                      
+0002ba94  bl       #0x58ee0                                     ; msgSend "launchFailed:slot:"
+0002ba98  mov      x0, x21                                      
+0002ba9c  bl       #0x567b8                                     ; call _objc_release
+0002baa0  mov      x0, x20                                      
+0002baa4  bl       #0x567b8                                     ; call _objc_release
+0002baa8  mov      x0, x19                                      
+0002baac  ldp      x29, x30, [sp, #0x40]                        
+0002bab0  ldp      x20, x19, [sp, #0x30]                        
+0002bab4  ldp      x22, x21, [sp, #0x20]                        
+0002bab8  ldp      x24, x23, [sp, #0x10]                        
+0002babc  add      sp, sp, #0x50                                
+0002bac0  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+0002bac4  mov      x2, x23                                      
+0002bac8  mov      x23, x1                                      
+0002bacc  mov      x22, x0                                      
+0002bad0  mov      x0, x2                                       
+0002bad4  bl       #0x567b8                                     ; call _objc_release
+0002bad8  b        #0x2bae8                                     
+0002badc  b        #0x2bae0                                     
+0002bae0  mov      x23, x1                                      
+0002bae4  mov      x22, x0                                      
+0002bae8  mov      x0, x24                                      
+0002baec  bl       #0x567b8                                     ; call _objc_release
+0002baf0  b        #0x2bb24                                     
+0002baf4  mov      x23, x1                                      
+0002baf8  mov      x22, x0                                      
+0002bafc  mov      x0, x24                                      
+0002bb00  b        #0x2bb28                                     
+0002bb04  mov      x23, x1                                      
+0002bb08  mov      x22, x0                                      
+0002bb0c  b        #0x2bb2c                                     
+0002bb10  mov      x23, x1                                      
+0002bb14  mov      x22, x0                                      
+0002bb18  b        #0x2bb34                                     
+0002bb1c  mov      x23, x1                                      
+0002bb20  mov      x22, x0                                      
+0002bb24  mov      x0, x21                                      
+0002bb28  bl       #0x567b8                                     ; call _objc_release
+0002bb2c  mov      x0, x20                                      
+0002bb30  bl       #0x567b8                                     ; call _objc_release
+0002bb34  cmp      w23, #1                                      
+0002bb38  b.ne     #0x2bba4                                     
+0002bb3c  mov      x0, x22                                      
+0002bb40  bl       #0x566ec                                     ; call _objc_begin_catch
+0002bb44  adrp     x8, #0x87000                                 
+0002bb48  ldr      x8, [x8, #0x678]                             ; classref NSString
+0002bb4c  str      x0, [sp]                                     
+0002bb50  adrp     x2, #0x7c000                                 
+0002bb54  add      x2, x2, #0x500                               
+0002bb58  mov      x0, x8                                       
+0002bb5c  bl       #0x5c440                                     ; msgSend "stringWithFormat:"
+0002bb60  mov      x29, x29                                     
+0002bb64  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002bb68  mov      x20, x0                                      
+0002bb6c  adrp     x0, #0x79000                                 
+0002bb70  add      x0, x0, #0x5c0                               
+0002bb74  mov      x1, x20                                      
+0002bb78  bl       #0x4fbf4                                     
+0002bb7c  mov      x0, x20                                      
+0002bb80  bl       #0x567b8                                     ; call _objc_release
+0002bb84  bl       #0x56710                                     ; call _objc_end_catch
+0002bb88  b        #0x2baa8                                     
+0002bb8c  mov      x22, x0                                      
+0002bb90  mov      x0, x20                                      
+0002bb94  bl       #0x567b8                                     ; call _objc_release
+0002bb98  b        #0x2bba0                                     
+0002bb9c  mov      x22, x0                                      
+0002bba0  bl       #0x56710                                     ; call _objc_end_catch
+0002bba4  mov      x0, x19                                      
+0002bba8  bl       #0x567b8                                     ; call _objc_release
+0002bbac  mov      x0, x22                                      
+0002bbb0  bl       #0x563e0                                     ; call __Unwind_Resume

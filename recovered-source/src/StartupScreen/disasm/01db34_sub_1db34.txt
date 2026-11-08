@@ -1,0 +1,103 @@
+; sub_1db34
+; VA 0x1db34  size 400
+
+0x0001db34:  sub      sp, sp, #0x80
+0x0001db38:  stp      x22, x21, [sp, #0x50]
+0x0001db3c:  stp      x20, x19, [sp, #0x60]
+0x0001db40:  stp      x29, x30, [sp, #0x70]
+0x0001db44:  add      x29, sp, #0x70
+0x0001db48:  mov      x19, x0
+0x0001db4c:  adrp     x8, #0x30000
+0x0001db50:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0001db54:  ldr      x8, [x8]
+0x0001db58:  stur     x8, [x29, #-0x28]
+0x0001db5c:  adrp     x21, #0x3a000
+0x0001db60:  ldr      x0, [x21, #0x9c0]    ; class(NSString)
+0x0001db64:  ldr      x10, [x19, #0x20]
+0x0001db68:  adrp     x8, #0x28000
+0x0001db6c:  add      x8, x8, #0x628    ; "1.0.3"
+0x0001db70:  adrp     x9, #0x28000
+0x0001db74:  add      x9, x9, #0x620    ; "fbebb21"
+0x0001db78:  stp      x8, x10, [sp, #8]
+0x0001db7c:  str      x9, [sp]
+0x0001db80:  adrp     x2, #0x33000
+0x0001db84:  add      x2, x2, #0xf28    ; @"build %s (%s) loaded into %@"
+0x0001db88:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x0001db8c:  mov      x29, x29
+0x0001db90:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001db94:  mov      x20, x0
+0x0001db98:  adrp     x0, #0x30000
+0x0001db9c:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x0001dba0:  mov      x1, x20
+0x0001dba4:  bl       #0x1b620    ; -> OMCLogWrite
+0x0001dba8:  mov      x0, x20
+0x0001dbac:  bl       #0x22120    ; -> _objc_release
+0x0001dbb0:  ldr      x0, [x21, #0x9c0]
+0x0001dbb4:  ldr      x10, [x19, #0x20]
+0x0001dbb8:  adrp     x8, #0x26000
+0x0001dbbc:  add      x8, x8, #0xc63    ; "StartupScreen"
+0x0001dbc0:  adrp     x9, #0x33000
+0x0001dbc4:  add      x9, x9, #0xf68    ; @"diagLoaded."
+0x0001dbc8:  stp      x8, x10, [sp, #8]
+0x0001dbcc:  str      x9, [sp]
+0x0001dbd0:  adrp     x2, #0x33000
+0x0001dbd4:  add      x2, x2, #0xf48    ; @"%@%s@%@"
+0x0001dbd8:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x0001dbdc:  mov      x29, x29
+0x0001dbe0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001dbe4:  mov      x19, x0
+0x0001dbe8:  adrp     x8, #0x33000
+0x0001dbec:  add      x8, x8, #0xf88    ; @"version"
+0x0001dbf0:  adrp     x9, #0x33000
+0x0001dbf4:  add      x9, x9, #0xfa8    ; @"1.0.3"
+0x0001dbf8:  adrp     x10, #0x33000
+0x0001dbfc:  add      x10, x10, #0xfc8    ; @"build"
+0x0001dc00:  stp      x8, x10, [sp, #0x18]
+0x0001dc04:  adrp     x8, #0x33000
+0x0001dc08:  add      x8, x8, #0xfe8    ; @"fbebb21"
+0x0001dc0c:  stp      x9, x8, [sp, #0x30]
+0x0001dc10:  adrp     x8, #0x31000
+0x0001dc14:  add      x8, x8, #0x928    ; @"date"
+0x0001dc18:  str      x8, [sp, #0x28]
+0x0001dc1c:  adrp     x8, #0x3a000
+0x0001dc20:  ldr      x0, [x8, #0xa90]    ; class(NSDate)
+0x0001dc24:  bl       #0x22f40    ; -> _objc_msgSend(date)
+0x0001dc28:  mov      x29, x29
+0x0001dc2c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001dc30:  mov      x20, x0
+0x0001dc34:  str      x0, [sp, #0x40]
+0x0001dc38:  adrp     x8, #0x3a000
+0x0001dc3c:  ldr      x0, [x8, #0xa58]    ; class(NSDictionary)
+0x0001dc40:  add      x2, sp, #0x30
+0x0001dc44:  add      x3, sp, #0x18
+0x0001dc48:  mov      w4, #3
+0x0001dc4c:  bl       #0x23100    ; -> _objc_msgSend(dictionaryWithObjects:forKeys:count:)
+0x0001dc50:  mov      x29, x29
+0x0001dc54:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001dc58:  mov      x21, x0
+0x0001dc5c:  mov      x0, x20
+0x0001dc60:  bl       #0x22120    ; -> _objc_release
+0x0001dc64:  adrp     x20, #0x32000
+0x0001dc68:  add      x20, x20, #0x1c8    ; @"com.anlai.omnicar"
+0x0001dc6c:  mov      x0, x19
+0x0001dc70:  mov      x1, x21
+0x0001dc74:  mov      x2, x20
+0x0001dc78:  bl       #0x21b80    ; -> _CFPreferencesSetAppValue
+0x0001dc7c:  mov      x0, x20
+0x0001dc80:  bl       #0x21b68    ; -> _CFPreferencesAppSynchronize
+0x0001dc84:  mov      x0, x21
+0x0001dc88:  bl       #0x22120    ; -> _objc_release
+0x0001dc8c:  mov      x0, x19
+0x0001dc90:  bl       #0x22120    ; -> _objc_release
+0x0001dc94:  ldur     x8, [x29, #-0x28]
+0x0001dc98:  adrp     x9, #0x30000
+0x0001dc9c:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0001dca0:  ldr      x9, [x9]
+0x0001dca4:  cmp      x9, x8
+0x0001dca8:  b.ne     #0x1dcc0
+0x0001dcac:  ldp      x29, x30, [sp, #0x70]
+0x0001dcb0:  ldp      x20, x19, [sp, #0x60]
+0x0001dcb4:  ldp      x22, x21, [sp, #0x50]
+0x0001dcb8:  add      sp, sp, #0x80
+0x0001dcbc:  ret      
+0x0001dcc0:  bl       #0x21dd8    ; -> ___stack_chk_fail

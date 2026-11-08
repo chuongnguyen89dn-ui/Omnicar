@@ -1,0 +1,121 @@
+; -[SSStartupView ss_applyWelcome:]
+; VA 0x14b78  size 472
+
+0x00014b78:  stp      d13, d12, [sp, #-0x50]!
+0x00014b7c:  stp      d11, d10, [sp, #0x10]
+0x00014b80:  stp      d9, d8, [sp, #0x20]
+0x00014b84:  stp      x20, x19, [sp, #0x30]
+0x00014b88:  stp      x29, x30, [sp, #0x40]
+0x00014b8c:  add      x29, sp, #0x40
+0x00014b90:  mov      v8.16b, v0.16b
+0x00014b94:  mov      x19, x0
+0x00014b98:  adrp     x8, #0x3a000
+0x00014b9c:  ldrsw    x8, [x8, #0xd0c]
+0x00014ba0:  ldr      d9, [x0, x8]
+0x00014ba4:  adrp     x8, #0x29000
+0x00014ba8:  ldr      d0, [x8, #0x198]
+0x00014bac:  fmul     d0, d9, d0
+0x00014bb0:  adrp     x8, #0x29000
+0x00014bb4:  ldr      d1, [x8, #0x1a0]
+0x00014bb8:  fmul     d1, d9, d1
+0x00014bbc:  fsub     d2, d8, d0
+0x00014bc0:  fsub     d0, d1, d0
+0x00014bc4:  fdiv     d0, d2, d0
+0x00014bc8:  fmov     d10, #1.00000000
+0x00014bcc:  fcmp     d0, d10
+0x00014bd0:  fcsel    d1, d10, d0, gt
+0x00014bd4:  fcmp     d0, #0.0
+0x00014bd8:  fmov     d0, xzr
+0x00014bdc:  fcsel    d1, d0, d1, mi
+0x00014be0:  fcmp     d1, #0.0
+0x00014be4:  fcsel    d0, d0, d1, mi
+0x00014be8:  fmov     d1, #0.50000000
+0x00014bec:  fcmp     d0, d1
+0x00014bf0:  b.pl     #0x14c08
+0x00014bf4:  fmov     d1, #4.00000000
+0x00014bf8:  fmul     d1, d0, d1
+0x00014bfc:  fmul     d1, d0, d1
+0x00014c00:  fmul     d0, d0, d1
+0x00014c04:  b        #0x14c28    ; -> sub_14c28
+0x00014c08:  fmov     d1, #2.00000000
+0x00014c0c:  fmov     d2, #-2.00000000
+0x00014c10:  fmadd    d0, d0, d2, d1
+0x00014c14:  fmov     d1, #3.00000000
+0x00014c18:  bl       #0x221c8    ; -> _pow
+0x00014c1c:  fmov     d1, #-0.50000000
+0x00014c20:  fmul     d0, d0, d1
+0x00014c24:  fadd     d0, d0, d10
+0x00014c28:  fmov     d10, #0.50000000
+0x00014c2c:  fmul     d11, d0, d10
+0x00014c30:  fsub     d0, d10, d11
+0x00014c34:  adrp     x8, #0x3a000
+0x00014c38:  ldrsw    x20, [x8, #0xd54]
+0x00014c3c:  ldr      x0, [x19, x20]
+0x00014c40:  bl       #0x251e0    ; -> _objc_msgSend(setStrokeStart:)
+0x00014c44:  fadd     d0, d11, d10
+0x00014c48:  ldr      x0, [x19, x20]
+0x00014c4c:  bl       #0x251c0    ; -> _objc_msgSend(setStrokeEnd:)
+0x00014c50:  adrp     x8, #0x28000
+0x00014c54:  ldr      d0, [x8, #0xfa0]
+0x00014c58:  fmul     d0, d9, d0
+0x00014c5c:  adrp     x8, #0x29000
+0x00014c60:  ldr      d1, [x8, #0xe0]
+0x00014c64:  fmul     d12, d9, d1
+0x00014c68:  fsub     d1, d8, d0
+0x00014c6c:  fsub     d0, d12, d0
+0x00014c70:  fdiv     d0, d1, d0
+0x00014c74:  fmov     d10, #1.00000000
+0x00014c78:  fcmp     d0, d10
+0x00014c7c:  fcsel    d1, d10, d0, gt
+0x00014c80:  fcmp     d0, #0.0
+0x00014c84:  fmov     d11, xzr
+0x00014c88:  fcsel    d0, d11, d1, mi
+0x00014c8c:  fcvt     s0, d0
+0x00014c90:  adrp     x8, #0x3a000
+0x00014c94:  ldrsw    x8, [x8, #0xd50]
+0x00014c98:  ldr      x0, [x19, x8]
+0x00014c9c:  bl       #0x24e00    ; -> _objc_msgSend(setOpacity:)
+0x00014ca0:  adrp     x8, #0x29000
+0x00014ca4:  ldr      d0, [x8, #0x1a8]
+0x00014ca8:  fmul     d1, d9, d0
+0x00014cac:  fmov     s0, #1.00000000
+0x00014cb0:  fcmp     d8, d12
+0x00014cb4:  fccmp    d8, d1, #0, gt
+0x00014cb8:  b.mi     #0x14ce4
+0x00014cbc:  fmov     d0, #2.50000000
+0x00014cc0:  fmul     d0, d9, d0
+0x00014cc4:  fcmp     d8, d0
+0x00014cc8:  cset     w8, gt
+0x00014ccc:  adrp     x9, #0x29000
+0x00014cd0:  ldr      d0, [x9, #0x1b0]
+0x00014cd4:  fmul     d0, d9, d0
+0x00014cd8:  fcmp     d8, d0
+0x00014cdc:  csel     w8, wzr, w8, pl
+0x00014ce0:  ucvtf    s0, w8
+0x00014ce4:  adrp     x8, #0x3a000
+0x00014ce8:  ldrsw    x8, [x8, #0xd6c]
+0x00014cec:  ldr      x0, [x19, x8]
+0x00014cf0:  bl       #0x24e00    ; -> _objc_msgSend(setOpacity:)
+0x00014cf4:  adrp     x8, #0x28000
+0x00014cf8:  ldr      d0, [x8, #0xeb0]
+0x00014cfc:  fmul     d0, d9, d0
+0x00014d00:  fadd     d1, d9, d9
+0x00014d04:  fsub     d2, d8, d0
+0x00014d08:  fsub     d0, d1, d0
+0x00014d0c:  fdiv     d0, d2, d0
+0x00014d10:  fcmp     d0, d10
+0x00014d14:  fcsel    d1, d10, d0, gt
+0x00014d18:  fmov     d2, #0.25000000
+0x00014d1c:  fmul     d1, d1, d2
+0x00014d20:  fcmp     d0, #0.0
+0x00014d24:  fcsel    d0, d11, d1, mi
+0x00014d28:  fcvt     s0, d0
+0x00014d2c:  adrp     x8, #0x3a000
+0x00014d30:  ldrsw    x8, [x8, #0xd68]
+0x00014d34:  ldr      x0, [x19, x8]
+0x00014d38:  ldp      x29, x30, [sp, #0x40]
+0x00014d3c:  ldp      x20, x19, [sp, #0x30]
+0x00014d40:  ldp      d9, d8, [sp, #0x20]
+0x00014d44:  ldp      d11, d10, [sp, #0x10]
+0x00014d48:  ldp      d13, d12, [sp], #0x50
+0x00014d4c:  b        #0x24e00    ; -> _objc_msgSend(setOpacity:)

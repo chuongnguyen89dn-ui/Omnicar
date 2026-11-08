@@ -1,0 +1,10 @@
+# +[SPPPrefs enabled]
+# addr 0x1ed28 .. 0x1ed44  (28 bytes)
+
+0001ed28  stp      x29, x30, [sp, #-0x10]!                     
+0001ed2c  mov      x29, sp                                     
+0001ed30  bl       #0x20ea0                                    ; _OMCPrefsSync
+0001ed34  adrp     x0, #0x38000                                
+0001ed38  add      x0, x0, #0xf58                              ; @"speedBubble"
+0001ed3c  ldp      x29, x30, [sp], #0x10                       
+0001ed40  b        #0x20f70                                    ; _OMCFeatureEnabled

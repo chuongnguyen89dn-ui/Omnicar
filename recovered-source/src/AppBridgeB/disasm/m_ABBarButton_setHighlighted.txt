@@ -1,0 +1,55 @@
+=== -[ABBarButton setHighlighted:] @ 0xa02c (size 216) ===
+0000a02c  sub      sp, sp, #0x70
+0000a030  stp      x22, x21, [sp, #0x40]
+0000a034  stp      x20, x19, [sp, #0x50]
+0000a038  stp      x29, x30, [sp, #0x60]
+0000a03c  add      x29, sp, #0x60
+0000a040  mov      x19, x2
+0000a044  mov      x20, x0
+0000a048  bl       #0x25d20 ; objc_msgSend sel=isHighlighted
+0000a04c  mov      x21, x0
+0000a050  adrp     x8, #0x3e000
+0000a054  ldr      x8, [x8, #0x468] ; -> class ABBarButton
+0000a058  stp      x20, x8, [sp, #0x30]
+0000a05c  adrp     x8, #0x3d000
+0000a060  ldr      x1, [x8, #0x260] ; selref @setHighlighted:
+0000a064  add      x0, sp, #0x30
+0000a068  mov      x2, x19
+0000a06c  bl       #0x247c4 ; call _objc_msgSendSuper2
+0000a070  cmp      w19, w21
+0000a074  b.eq     #0xa0ec
+0000a078  adrp     x8, #0x3e000
+0000a07c  ldr      x0, [x8, #0x2d0] ; bind _OBJC_CLASS_$_UIView
+0000a080  cmp      w19, #0
+0000a084  adrp     x8, #0x2b000
+0000a088  ldr      d0, [x8, #0x1f0] ; -> 0x333333333
+0000a08c  adrp     x8, #0x2b000
+0000a090  ldr      d1, [x8, #0x1f8] ; -> 0x1eb851eb8
+0000a094  fcsel    d0, d1, d0, ne
+0000a098  adrp     x8, #0x34000
+0000a09c  ldr      x8, [x8, #0x258] ; -> __NSConcreteStackBlock
+0000a0a0  str      x8, [sp]
+0000a0a4  adrp     x8, #0x2b000
+0000a0a8  ldr      d1, [x8, #0x1d0] ; -> 0xc2000000
+0000a0ac  str      d1, [sp, #8]
+0000a0b0  adrp     x8, #0xa000
+0000a0b4  add      x8, x8, #0x104
+0000a0b8  adrp     x9, #0x34000
+0000a0bc  add      x9, x9, #0x810
+0000a0c0  stp      x8, x9, [sp, #0x10]
+0000a0c4  str      x20, [sp, #0x20]
+0000a0c8  strb     w19, [sp, #0x28]
+0000a0cc  adrp     x8, #0x2b000
+0000a0d0  ldr      d2, [x8, #0x200] ; -> 0x666666666
+0000a0d4  fmov     d1, xzr
+0000a0d8  fmov     d3, xzr
+0000a0dc  mov      x3, sp
+0000a0e0  mov      w2, #6
+0000a0e4  mov      x4, #0
+0000a0e8  bl       #0x24ca0 ; objc_msgSend sel=animateWithDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:
+0000a0ec  ldp      x29, x30, [sp, #0x60]
+0000a0f0  ldp      x20, x19, [sp, #0x50]
+0000a0f4  ldp      x22, x21, [sp, #0x40]
+0000a0f8  add      sp, sp, #0x70
+0000a0fc  ret      
+0000a100  bl       #0x24470 ; call __Unwind_Resume

@@ -1,0 +1,27 @@
+; sub_155c8
+; VA 0x155c8  size 96
+
+0x000155c8:  stp      x29, x30, [sp, #-0x10]!
+0x000155cc:  mov      x29, sp
+0x000155d0:  cmp      x0, #1
+0x000155d4:  b.eq     #0x155f0
+0x000155d8:  cbnz     x0, #0x15604
+0x000155dc:  adrp     x0, #0x33000
+0x000155e0:  add      x0, x0, #0x7a8    ; @"b'C\x00h\x00\xe0\x00o\x00 \x00b\x00u\x00'"
+0x000155e4:  adrp     x1, #0x33000
+0x000155e8:  add      x1, x1, #0x7c8    ; @"Good morning"
+0x000155ec:  b        #0x15614    ; -> sub_15614
+0x000155f0:  adrp     x0, #0x33000
+0x000155f4:  add      x0, x0, #0x7e8    ; @"b'C\x00h\x00\xe0\x00o\x00 \x00b\x00u\x00\xd5'"
+0x000155f8:  adrp     x1, #0x33000
+0x000155fc:  add      x1, x1, #0x808    ; @"Good afternoon"
+0x00015600:  b        #0x15614    ; -> sub_15614
+0x00015604:  adrp     x0, #0x33000
+0x00015608:  add      x0, x0, #0x828    ; @"b'C\x00h\x00\xe0\x00o\x00 \x00b\x00u'"
+0x0001560c:  adrp     x1, #0x33000
+0x00015610:  add      x1, x1, #0x848    ; @"Good evening"
+0x00015614:  bl       #0x21318    ; -> OMCTr
+0x00015618:  mov      x29, x29
+0x0001561c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00015620:  ldp      x29, x30, [sp], #0x10
+0x00015624:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

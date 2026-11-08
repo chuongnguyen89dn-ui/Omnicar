@@ -1,0 +1,15 @@
+=== sub_5888 @ 0x5888 (size 56) ===
+00005888  stp      x29, x30, [sp, #-0x10]!
+0000588c  mov      x29, sp
+00005890  adrp     x8, #0x3e000
+00005894  ldr      x8, [x8, #0x9a0]
+00005898  blr      x8
+0000589c  adrp     x8, #0x3e000
+000058a0  ldr      w8, [x8, #0x7d0] ; -> 0xffffffff
+000058a4  cmp      w8, #1
+000058a8  b.lt     #0x58b8
+000058ac  mov      w0, #0xff
+000058b0  ldp      x29, x30, [sp], #0x10
+000058b4  b        #0x6750 ; call sub_6750
+000058b8  ldp      x29, x30, [sp], #0x10
+000058bc  ret      

@@ -1,0 +1,49 @@
+# -[SPPBubble setSpeed:]
+# addr 0x17d64 .. 0x17e1c  (184 bytes)
+
+00017d64  stp      x22, x21, [sp, #-0x30]!                     
+00017d68  stp      x20, x19, [sp, #0x10]                       
+00017d6c  stp      x29, x30, [sp, #0x20]                       
+00017d70  add      x29, sp, #0x20                              
+00017d74  mov      x19, x2                                     
+00017d78  str      w2, [x0, #0x10]                             
+00017d7c  bl       #0x291c0                                    ; objc_msgSend$demoTimer
+00017d80  mov      x29, x29                                    
+00017d84  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017d88  mov      x20, x0                                     
+00017d8c  bl       #0x27ff8                                    ; _objc_release
+00017d90  cbnz     x20, #0x17dbc                               
+00017d94  cmp      w19, #0xff                                  
+00017d98  mov      w8, #0xff                                   
+00017d9c  csel     w8, w19, w8, lo                             
+00017da0  cmn      w19, #1                                     
+00017da4  mov      w9, #0xffff                                 
+00017da8  csel     w19, w8, w9, gt                             
+00017dac  adrp     x21, #0x43000                               
+00017db0  ldr      x8, [x21, #0x790]                           ; [0x43790] __DATA,__data+0x1a8 (= import <ordinal 65535>)
+00017db4  cmp      x8, x19                                     
+00017db8  b.ne     #0x17dcc                                    
+00017dbc  ldp      x29, x30, [sp, #0x20]                       
+00017dc0  ldp      x20, x19, [sp, #0x10]                       
+00017dc4  ldp      x22, x21, [sp], #0x30                       
+00017dc8  ret                                                  
+00017dcc  adrp     x8, #0x43000                                
+00017dd0  ldr      w0, [x8, #0x9dc]                            ; [0x439dc] __DATA,__bss+0x23c
+00017dd4  cbnz     w0, #0x17df8                                
+00017dd8  adrp     x0, #0x2e000                                
+00017ddc  add      x0, x0, #0xdd4                              ; "com.anlai.omnicar/speed"
+00017de0  adrp     x20, #0x43000                               
+00017de4  add      x20, x20, #0x9dc                            ; __DATA,__bss+0x23c
+00017de8  mov      x1, x20                                     
+00017dec  bl       #0x27ee4                                    ; _notify_register_check
+00017df0  ldr      w0, [x20]                                   ; [0x439dc] __DATA,__bss+0x23c
+00017df4  cbz      w0, #0x17dbc                                
+00017df8  str      x19, [x21, #0x790]                          
+00017dfc  mov      x1, x19                                     
+00017e00  bl       #0x27efc                                    ; _notify_set_state
+00017e04  adrp     x0, #0x2e000                                
+00017e08  add      x0, x0, #0xdd4                              ; "com.anlai.omnicar/speed"
+00017e0c  ldp      x29, x30, [sp, #0x20]                       
+00017e10  ldp      x20, x19, [sp, #0x10]                       
+00017e14  ldp      x22, x21, [sp], #0x30                       
+00017e18  b        #0x27ed8                                    ; _notify_post

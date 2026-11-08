@@ -1,0 +1,59 @@
+00035c74  stp      x22, x21, [sp, #-0x30]!                      
+00035c78  stp      x20, x19, [sp, #0x10]                        
+00035c7c  stp      x29, x30, [sp, #0x20]                        
+00035c80  add      x29, sp, #0x20                               
+00035c84  bl       #0x4f698                                     
+00035c88  mov      x19, x0                                      
+00035c8c  adrp     x8, #0x87000                                 
+00035c90  ldr      x0, [x8, #0x7c8]                             ; classref UIVisualEffectView
+00035c94  bl       #0x566bc                                     ; call _objc_alloc
+00035c98  mov      x20, x0                                      
+00035c9c  tbz      w19, #0, #0x35ce4                            
+00035ca0  mov      x0, x20                                      
+00035ca4  mov      x2, #0                                       
+00035ca8  bl       #0x589a0                                     ; msgSend "initWithEffect:"
+00035cac  mov      x20, x0                                      
+00035cb0  adrp     x8, #0x87000                                 
+00035cb4  ldr      x0, [x8, #0x730]                             ; classref UIColor
+00035cb8  adrp     x8, #0x6f000                                 
+00035cbc  ldr      d1, [x8, #0x160]                             ; double 0.92
+00035cc0  fmov     d0, #1.00000000                              
+00035cc4  bl       #0x57700                                     ; msgSend "colorWithWhite:alpha:"
+00035cc8  mov      x29, x29                                     
+00035ccc  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00035cd0  mov      x19, x0                                      
+00035cd4  mov      x0, x20                                      
+00035cd8  mov      x2, x19                                      
+00035cdc  bl       #0x5a860                                     ; msgSend "setBackgroundColor:"
+00035ce0  b        #0x35d10                                     
+00035ce4  adrp     x8, #0x87000                                 
+00035ce8  ldr      x0, [x8, #0x838]                             ; classref UIBlurEffect
+00035cec  mov      w2, #0xb                                     
+00035cf0  bl       #0x57e80                                     ; msgSend "effectWithStyle:"
+00035cf4  mov      x29, x29                                     
+00035cf8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00035cfc  mov      x19, x0                                      
+00035d00  mov      x0, x20                                      
+00035d04  mov      x2, x19                                      
+00035d08  bl       #0x589a0                                     ; msgSend "initWithEffect:"
+00035d0c  mov      x20, x0                                      
+00035d10  mov      x0, x19                                      
+00035d14  bl       #0x567b8                                     ; call _objc_release
+00035d18  mov      x0, x20                                      
+00035d1c  ldp      x29, x30, [sp, #0x20]                        
+00035d20  ldp      x20, x19, [sp, #0x10]                        
+00035d24  ldp      x22, x21, [sp], #0x30                        
+00035d28  b        #0x566e0                                     ; call _objc_autoreleaseReturnValue | tail _objc_autoreleaseReturnValue
+00035d2c  mov      x21, x0                                      
+00035d30  mov      x0, x19                                      
+00035d34  bl       #0x567b8                                     ; call _objc_release
+00035d38  b        #0x35d48                                     
+00035d3c  mov      x21, x0                                      
+00035d40  b        #0x35d4c                                     
+00035d44  mov      x21, x0                                      
+00035d48  mov      x19, x20                                     
+00035d4c  mov      x0, x19                                      
+00035d50  bl       #0x567b8                                     ; call _objc_release
+00035d54  mov      x0, x21                                      
+00035d58  bl       #0x563e0                                     ; call __Unwind_Resume
+00035d5c  stp      x24, x23, [sp, #-0x40]!                      

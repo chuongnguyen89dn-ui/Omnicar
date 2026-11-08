@@ -1,0 +1,76 @@
+; sub_4384
+; VA 0x4384  size 292
+
+0x00004384:  stp      x24, x23, [sp, #-0x40]!
+0x00004388:  stp      x22, x21, [sp, #0x10]
+0x0000438c:  stp      x20, x19, [sp, #0x20]
+0x00004390:  stp      x29, x30, [sp, #0x30]
+0x00004394:  add      x29, sp, #0x30
+0x00004398:  cbz      x0, #0x443c
+0x0000439c:  mov      x19, x1
+0x000043a0:  mov      x20, x0
+0x000043a4:  cbnz     x1, #0x43b4
+0x000043a8:  mov      w0, #0x400
+0x000043ac:  bl       #0x21fdc    ; -> _malloc
+0x000043b0:  mov      x19, x0
+0x000043b4:  adrp     x22, #0x3b000
+0x000043b8:  ldr      x8, [x22, #0x148]
+0x000043bc:  cmn      x8, #1
+0x000043c0:  b.ne     #0x4478
+0x000043c4:  adrp     x8, #0x3b000
+0x000043c8:  ldr      x8, [x8, #0x120]
+0x000043cc:  blr      x8
+0x000043d0:  mov      x21, x0
+0x000043d4:  ldr      x8, [x22, #0x148]
+0x000043d8:  cmn      x8, #1
+0x000043dc:  b.ne     #0x4490
+0x000043e0:  adrp     x8, #0x3b000
+0x000043e4:  ldr      x8, [x8, #0x128]
+0x000043e8:  blr      x8
+0x000043ec:  mov      x23, x0
+0x000043f0:  bl       #0x22264    ; -> _strlen
+0x000043f4:  ldrb     w8, [x20]
+0x000043f8:  cmp      w8, #0x2f
+0x000043fc:  b.ne     #0x4444
+0x00004400:  mov      x22, x0
+0x00004404:  mov      x0, x20
+0x00004408:  mov      x1, x23
+0x0000440c:  mov      x2, x22
+0x00004410:  bl       #0x22270    ; -> _strncmp
+0x00004414:  cbz      w0, #0x4450
+0x00004418:  mov      x0, x19
+0x0000441c:  mov      x1, x21
+0x00004420:  mov      w2, #0x400
+0x00004424:  bl       #0x22258    ; -> _strlcpy
+0x00004428:  mov      x0, x19
+0x0000442c:  mov      x1, x20
+0x00004430:  mov      w2, #0x400
+0x00004434:  bl       #0x2224c    ; -> _strlcat
+0x00004438:  b        #0x4460    ; -> sub_4460
+0x0000443c:  mov      x19, #0
+0x00004440:  b        #0x4460    ; -> sub_4460
+0x00004444:  mov      x0, x19
+0x00004448:  mov      x1, x20
+0x0000444c:  b        #0x4458    ; -> sub_4458
+0x00004450:  add      x1, x20, x22
+0x00004454:  mov      x0, x19
+0x00004458:  mov      w2, #0x400
+0x0000445c:  bl       #0x22258    ; -> _strlcpy
+0x00004460:  mov      x0, x19
+0x00004464:  ldp      x29, x30, [sp, #0x30]
+0x00004468:  ldp      x20, x19, [sp, #0x20]
+0x0000446c:  ldp      x22, x21, [sp, #0x10]
+0x00004470:  ldp      x24, x23, [sp], #0x40
+0x00004474:  ret      
+0x00004478:  adrp     x0, #0x3b000
+0x0000447c:  add      x0, x0, #0x148
+0x00004480:  adrp     x1, #0x30000
+0x00004484:  add      x1, x1, #0x6d8    ; block_lit(invoke=0x4170 sub_4170, sig=v8@?0)
+0x00004488:  bl       #0x21ea4    ; -> _dispatch_once
+0x0000448c:  b        #0x43c4    ; -> sub_43c4
+0x00004490:  adrp     x0, #0x3b000
+0x00004494:  add      x0, x0, #0x148
+0x00004498:  adrp     x1, #0x30000
+0x0000449c:  add      x1, x1, #0x6d8    ; block_lit(invoke=0x4170 sub_4170, sig=v8@?0)
+0x000044a0:  bl       #0x21ea4    ; -> _dispatch_once
+0x000044a4:  b        #0x43e0    ; -> sub_43e0

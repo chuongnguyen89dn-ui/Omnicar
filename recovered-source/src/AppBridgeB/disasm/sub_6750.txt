@@ -1,0 +1,44 @@
+=== sub_6750 @ 0x6750 (size 172) ===
+00006750  sub      sp, sp, #0x50
+00006754  stp      x20, x19, [sp, #0x30]
+00006758  stp      x29, x30, [sp, #0x40]
+0000675c  add      x29, sp, #0x40
+00006760  mov      x19, x0
+00006764  adrp     x20, #0x3e000
+00006768  ldr      x0, [x20, #0x9d8]
+0000676c  cbz      x0, #0x6780
+00006770  bl       #0x24560 ; call _dispatch_block_cancel
+00006774  ldr      x0, [x20, #0x9d8]
+00006778  str      xzr, [x20, #0x9d8]
+0000677c  bl       #0x2480c ; call _objc_release
+00006780  adrp     x8, #0x34000
+00006784  ldr      x8, [x8, #0x258] ; -> __NSConcreteStackBlock
+00006788  str      x8, [sp, #8]
+0000678c  adrp     x8, #0x2b000
+00006790  ldr      d0, [x8, #0x1e8] ; -> 0xc0000000
+00006794  adrp     x8, #0x6000
+00006798  add      x8, x8, #0x7fc
+0000679c  str      d0, [sp, #0x10]
+000067a0  adrp     x9, #0x34000
+000067a4  add      x9, x9, #0x650
+000067a8  stp      x8, x9, [sp, #0x18]
+000067ac  str      x19, [sp, #0x28]
+000067b0  add      x1, sp, #8
+000067b4  mov      x0, #0
+000067b8  bl       #0x2456c ; call _dispatch_block_create
+000067bc  ldr      x8, [x20, #0x9d8]
+000067c0  str      x0, [x20, #0x9d8]
+000067c4  mov      x0, x8
+000067c8  bl       #0x2480c ; call _objc_release
+000067cc  mov      x0, #0
+000067d0  mov      w1, #0xb280
+000067d4  movk     w1, #0xee6, lsl #16
+000067d8  bl       #0x245cc ; call _dispatch_time
+000067dc  ldr      x2, [x20, #0x9d8]
+000067e0  adrp     x1, #0x34000
+000067e4  ldr      x1, [x1, #0x290] ; -> __dispatch_main_q
+000067e8  bl       #0x24548 ; call _dispatch_after
+000067ec  ldp      x29, x30, [sp, #0x40]
+000067f0  ldp      x20, x19, [sp, #0x30]
+000067f4  add      sp, sp, #0x50
+000067f8  ret      

@@ -1,0 +1,35 @@
+; ==== SCPCarSplit__refreshAppTabSoon  @0x36d3c..0x36dc4 (136 bytes) ====
+00036d3c  sub      sp, sp, #0x50                                
+00036d40  stp      x20, x19, [sp, #0x30]                        
+00036d44  stp      x29, x30, [sp, #0x40]                        
+00036d48  add      x29, sp, #0x40                               
+00036d4c  mov      x1, x0                                       
+00036d50  sub      x0, x29, #0x18                               
+00036d54  bl       #0x56740                                     ; call _objc_initWeak
+00036d58  adrp     x8, #0x78000                                 
+00036d5c  ldr      x8, [x8, #0x338]                             
+00036d60  str      x8, [sp]                                     
+00036d64  adrp     x8, #0x6e000                                 
+00036d68  ldr      d0, [x8, #0xff8]                             ; double 1.6080749353e-314
+00036d6c  adrp     x8, #0x36000                                 
+00036d70  add      x8, x8, #0xdc4                               
+00036d74  str      d0, [sp, #8]                                 
+00036d78  adrp     x9, #0x78000                                 
+00036d7c  add      x9, x9, #0xcd0                               
+00036d80  stp      x8, x9, [sp, #0x10]                          
+00036d84  mov      x19, sp                                      
+00036d88  add      x0, x19, #0x20                               
+00036d8c  sub      x1, x29, #0x18                               
+00036d90  bl       #0x566f8                                     ; call _objc_copyWeak
+00036d94  adrp     x8, #0x6f000                                 
+00036d98  ldr      d0, [x8, #0x98]                              ; double 0.35
+00036d9c  mov      x0, sp                                       
+00036da0  bl       #0x12efc                                     
+00036da4  add      x0, x19, #0x20                               
+00036da8  bl       #0x56704                                     ; call _objc_destroyWeak
+00036dac  sub      x0, x29, #0x18                               
+00036db0  bl       #0x56704                                     ; call _objc_destroyWeak
+00036db4  ldp      x29, x30, [sp, #0x40]                        
+00036db8  ldp      x20, x19, [sp, #0x30]                        
+00036dbc  add      sp, sp, #0x50                                
+00036dc0  ret                                                   

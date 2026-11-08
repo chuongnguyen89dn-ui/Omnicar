@@ -1,0 +1,18 @@
+; sub_4fdfc
+0x04fdfc  stp      x20, x19, [sp, #-0x20]!
+0x04fe00  stp      x29, x30, [sp, #0x10]
+0x04fe04  add      x29, sp, #0x10
+0x04fe08  adrp     x8, #0x88000
+0x04fe0c  ldr      x8, [x8, #0x298]
+0x04fe10  cmn      x8, #1
+0x04fe14  b.ne     #0x4fe38
+0x04fe18  adrp     x8, #0x88000
+0x04fe1c  ldr      x19, [x8, #0x290]
+0x04fe20  mov      x0, x19
+0x04fe24  bl       #0x567c4 ; call _objc_retain
+0x04fe28  mov      x0, x19
+0x04fe2c  ldp      x29, x30, [sp, #0x10]
+0x04fe30  ldp      x20, x19, [sp], #0x20
+0x04fe34  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x04fe38  bl       #0x560e8 ; -> sub_560e8
+0x04fe3c  b        #0x4fe18

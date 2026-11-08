@@ -1,0 +1,20 @@
+; sub_4d6c
+; VA 0x4d6c  size 68
+
+0x00004d6c:  stp      x20, x19, [sp, #-0x20]!
+0x00004d70:  stp      x29, x30, [sp, #0x10]
+0x00004d74:  add      x29, sp, #0x10
+0x00004d78:  adrp     x8, #0x14000
+0x00004d7c:  ldr      x8, [x8, #0x4e8]
+0x00004d80:  cmn      x8, #1
+0x00004d84:  b.ne     #0x4da8
+0x00004d88:  adrp     x8, #0x14000
+0x00004d8c:  ldr      x19, [x8, #0x4e0]
+0x00004d90:  mov      x0, x19
+0x00004d94:  bl       #0xb41c    ; -> _objc_retain
+0x00004d98:  mov      x0, x19
+0x00004d9c:  ldp      x29, x30, [sp, #0x10]
+0x00004da0:  ldp      x20, x19, [sp], #0x20
+0x00004da4:  b        #0xb38c    ; -> _objc_autoreleaseReturnValue
+0x00004da8:  bl       #0xafec    ; -> sub_afec
+0x00004dac:  b        #0x4d88    ; -> sub_4d88

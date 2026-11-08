@@ -1,0 +1,354 @@
+# sub_261f8
+# addr 0x261f8 .. 0x26774  (1404 bytes)
+
+000261f8  stp      d9, d8, [sp, #-0x40]!                       
+000261fc  stp      x22, x21, [sp, #0x10]                       
+00026200  stp      x20, x19, [sp, #0x20]                       
+00026204  stp      x29, x30, [sp, #0x30]                       
+00026208  add      x29, sp, #0x30                              
+0002620c  adrp     x20, #0x43000                               
+00026210  ldr      x0, [x20, #0xa60]                           ; [0x43a60] __DATA,__bss+0x2c0
+00026214  cbz      x0, #0x26228                                
+00026218  bl       #0x2c5a0                                    ; objc_msgSend$timeIntervalSinceNow
+0002621c  fmov     d1, #-30.00000000                           
+00026220  fcmp     d0, d1                                      
+00026224  b.le     #0x2623c                                    
+00026228  ldp      x29, x30, [sp, #0x30]                       
+0002622c  ldp      x20, x19, [sp, #0x20]                       
+00026230  ldp      x22, x21, [sp, #0x10]                       
+00026234  ldp      d9, d8, [sp], #0x40                         
+00026238  ret                                                  
+0002623c  fneg     d8, d0                                      
+00026240  adrp     x8, #0x43000                                
+00026244  ldr      x0, [x8, #0x68]                             ; [0x43068] classref -> NSMutableDictionary (= import _OBJC_CLASS_$_NSMutableDictionary)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+00026248  bl       #0x29200                                    ; objc_msgSend$dictionary
+0002624c  mov      x29, x29                                    
+00026250  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026254  mov      x19, x0                                     
+00026258  ldr      x2, [x20, #0xa60]                           ; [0x43a60] __DATA,__bss+0x2c0
+0002625c  adrp     x3, #0x3b000                                
+00026260  add      x3, x3, #0xf18                              ; @"start"
+00026264  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026268  adrp     x8, #0x43000                                
+0002626c  ldr      x0, [x8, #0x160]                            ; [0x43160] classref -> NSDate (= import _OBJC_CLASS_$_NSDate)
+00026270  bl       #0x290c0                                    ; objc_msgSend$date
+00026274  mov      x29, x29                                    
+00026278  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002627c  mov      x20, x0                                     
+00026280  adrp     x3, #0x3b000                                
+00026284  add      x3, x3, #0xf38                              ; @"updated"
+00026288  mov      x0, x19                                     
+0002628c  mov      x2, x20                                     
+00026290  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026294  mov      x0, x20                                     
+00026298  bl       #0x27ff8                                    ; _objc_release
+0002629c  adrp     x21, #0x42000                               
+000262a0  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+000262a4  fcvtas   x2, d8                                      
+000262a8  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+000262ac  mov      x29, x29                                    
+000262b0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000262b4  mov      x20, x0                                     
+000262b8  adrp     x3, #0x3b000                                
+000262bc  add      x3, x3, #0xf58                              ; @"seconds"
+000262c0  mov      x0, x19                                     
+000262c4  mov      x2, x20                                     
+000262c8  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+000262cc  mov      x0, x20                                     
+000262d0  bl       #0x27ff8                                    ; _objc_release
+000262d4  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+000262d8  adrp     x8, #0x43000                                
+000262dc  ldr      d0, [x8, #0xad0]                            ; [0x43ad0] __DATA,__bss+0x330
+000262e0  fmov     d1, #1.00000000                             
+000262e4  fdiv     d0, d1, d0                                  
+000262e8  fcvtas   x2, d0                                      
+000262ec  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+000262f0  mov      x29, x29                                    
+000262f4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000262f8  mov      x20, x0                                     
+000262fc  adrp     x3, #0x3b000                                
+00026300  add      x3, x3, #0xf78                              ; @"fps"
+00026304  mov      x0, x19                                     
+00026308  mov      x2, x20                                     
+0002630c  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026310  mov      x0, x20                                     
+00026314  bl       #0x27ff8                                    ; _objc_release
+00026318  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+0002631c  adrp     x8, #0x43000                                
+00026320  ldr      d0, [x8, #0xae8]                            ; [0x43ae8] __DATA,__bss+0x348
+00026324  fcvtas   x2, d0                                      
+00026328  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+0002632c  mov      x29, x29                                    
+00026330  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026334  mov      x20, x0                                     
+00026338  adrp     x3, #0x3b000                                
+0002633c  add      x3, x3, #0xe98                              ; @"frames"
+00026340  mov      x0, x19                                     
+00026344  mov      x2, x20                                     
+00026348  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+0002634c  mov      x0, x20                                     
+00026350  bl       #0x27ff8                                    ; _objc_release
+00026354  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+00026358  adrp     x8, #0x43000                                
+0002635c  ldr      d0, [x8, #0xae0]                            ; [0x43ae0] __DATA,__bss+0x340
+00026360  fcvtas   x2, d0                                      
+00026364  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+00026368  mov      x29, x29                                    
+0002636c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026370  mov      x20, x0                                     
+00026374  adrp     x3, #0x3b000                                
+00026378  add      x3, x3, #0xf98                              ; @"late"
+0002637c  mov      x0, x19                                     
+00026380  mov      x2, x20                                     
+00026384  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026388  mov      x0, x20                                     
+0002638c  bl       #0x27ff8                                    ; _objc_release
+00026390  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+00026394  adrp     x8, #0x43000                                
+00026398  ldr      d0, [x8, #0xad8]                            ; [0x43ad8] __DATA,__bss+0x338
+0002639c  fcvtas   x2, d0                                      
+000263a0  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+000263a4  mov      x29, x29                                    
+000263a8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000263ac  mov      x20, x0                                     
+000263b0  adrp     x3, #0x3b000                                
+000263b4  add      x3, x3, #0xfb8                              ; @"worstMs"
+000263b8  mov      x0, x19                                     
+000263bc  mov      x2, x20                                     
+000263c0  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+000263c4  mov      x0, x20                                     
+000263c8  bl       #0x27ff8                                    ; _objc_release
+000263cc  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+000263d0  adrp     x8, #0x43000                                
+000263d4  ldr      d0, [x8, #0xb08]                            ; [0x43b08] __DATA,__bss+0x368
+000263d8  fcvtas   x2, d0                                      
+000263dc  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+000263e0  mov      x29, x29                                    
+000263e4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000263e8  mov      x20, x0                                     
+000263ec  adrp     x3, #0x3b000                                
+000263f0  add      x3, x3, #0xe78                              ; @"hangs"
+000263f4  mov      x0, x19                                     
+000263f8  mov      x2, x20                                     
+000263fc  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026400  mov      x0, x20                                     
+00026404  bl       #0x27ff8                                    ; _objc_release
+00026408  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+0002640c  adrp     x8, #0x43000                                
+00026410  ldr      d0, [x8, #0xb00]                            ; [0x43b00] __DATA,__bss+0x360
+00026414  fcvtas   x2, d0                                      
+00026418  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+0002641c  mov      x29, x29                                    
+00026420  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026424  mov      x20, x0                                     
+00026428  adrp     x3, #0x3b000                                
+0002642c  add      x3, x3, #0xfd8                              ; @"freezes"
+00026430  mov      x0, x19                                     
+00026434  mov      x2, x20                                     
+00026438  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+0002643c  mov      x0, x20                                     
+00026440  bl       #0x27ff8                                    ; _objc_release
+00026444  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+00026448  adrp     x8, #0x43000                                
+0002644c  ldr      d0, [x8, #0xaf8]                            ; [0x43af8] __DATA,__bss+0x358
+00026450  fcvtas   x2, d0                                      
+00026454  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+00026458  mov      x29, x29                                    
+0002645c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026460  mov      x20, x0                                     
+00026464  adrp     x3, #0x3b000                                
+00026468  add      x3, x3, #0xff8                              ; @"hangMaxMs"
+0002646c  mov      x0, x19                                     
+00026470  mov      x2, x20                                     
+00026474  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026478  mov      x0, x20                                     
+0002647c  bl       #0x27ff8                                    ; _objc_release
+00026480  adrp     x20, #0x43000                               
+00026484  ldr      x0, [x20, #0xa70]                           ; [0x43a70] __DATA,__bss+0x2d0
+00026488  bl       #0x29000                                    ; objc_msgSend$count
+0002648c  cbz      x0, #0x264b8                                
+00026490  ldr      x0, [x20, #0xa70]                           ; [0x43a70] __DATA,__bss+0x2d0
+00026494  bl       #0x28fa0                                    ; objc_msgSend$copy
+00026498  mov      x20, x0                                     
+0002649c  adrp     x3, #0x3c000                                
+000264a0  add      x3, x3, #0x18                               ; @"hangWho"
+000264a4  mov      x0, x19                                     
+000264a8  mov      x2, x20                                     
+000264ac  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+000264b0  mov      x0, x20                                     
+000264b4  bl       #0x27ff8                                    ; _objc_release
+000264b8  adrp     x8, #0x43000                                
+000264bc  ldr      x8, [x8, #0xb40]                            ; [0x43b40] __DATA,__bss+0x3a0
+000264c0  cbz      x8, #0x2664c                                
+000264c4  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+000264c8  adrp     x9, #0x43000                                
+000264cc  ldr      d0, [x9, #0xb28]                            ; [0x43b28] __DATA,__bss+0x388
+000264d0  ucvtf    d1, x8                                      
+000264d4  fdiv     d0, d0, d1                                  
+000264d8  fcvtas   x2, d0                                      
+000264dc  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+000264e0  mov      x29, x29                                    
+000264e4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000264e8  mov      x20, x0                                     
+000264ec  adrp     x3, #0x3c000                                
+000264f0  add      x3, x3, #0x38                               ; @"cpuAvg"
+000264f4  mov      x0, x19                                     
+000264f8  mov      x2, x20                                     
+000264fc  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026500  mov      x0, x20                                     
+00026504  bl       #0x27ff8                                    ; _objc_release
+00026508  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+0002650c  adrp     x8, #0x43000                                
+00026510  ldr      d0, [x8, #0xb20]                            ; [0x43b20] __DATA,__bss+0x380
+00026514  fcvtas   x2, d0                                      
+00026518  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+0002651c  mov      x29, x29                                    
+00026520  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026524  mov      x20, x0                                     
+00026528  adrp     x3, #0x3c000                                
+0002652c  add      x3, x3, #0x58                               ; @"cpuMax"
+00026530  mov      x0, x19                                     
+00026534  mov      x2, x20                                     
+00026538  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+0002653c  mov      x0, x20                                     
+00026540  bl       #0x27ff8                                    ; _objc_release
+00026544  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+00026548  adrp     x8, #0x43000                                
+0002654c  ldr      d0, [x8, #0xb18]                            ; [0x43b18] __DATA,__bss+0x378
+00026550  fcvtas   x2, d0                                      
+00026554  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+00026558  mov      x29, x29                                    
+0002655c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026560  mov      x20, x0                                     
+00026564  adrp     x3, #0x3c000                                
+00026568  add      x3, x3, #0x78                               ; @"memMB"
+0002656c  mov      x0, x19                                     
+00026570  mov      x2, x20                                     
+00026574  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026578  mov      x0, x20                                     
+0002657c  bl       #0x27ff8                                    ; _objc_release
+00026580  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+00026584  adrp     x8, #0x43000                                
+00026588  ldr      d0, [x8, #0xb10]                            ; [0x43b10] __DATA,__bss+0x370
+0002658c  fcvtas   x2, d0                                      
+00026590  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+00026594  mov      x29, x29                                    
+00026598  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002659c  mov      x20, x0                                     
+000265a0  adrp     x3, #0x3c000                                
+000265a4  add      x3, x3, #0x98                               ; @"memMaxMB"
+000265a8  mov      x0, x19                                     
+000265ac  mov      x2, x20                                     
+000265b0  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+000265b4  mov      x0, x20                                     
+000265b8  bl       #0x27ff8                                    ; _objc_release
+000265bc  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+000265c0  adrp     x8, #0x43000                                
+000265c4  ldr      d0, [x8, #0xb38]                            ; [0x43b38] __DATA,__bss+0x398
+000265c8  fcvtas   x8, d0                                      
+000265cc  mov      x9, #0x7fefffffffffffff                     
+000265d0  fmov     d8, x9                                      
+000265d4  fcmp     d0, d8                                      
+000265d8  csel     x2, x8, xzr, mi                             
+000265dc  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+000265e0  mov      x29, x29                                    
+000265e4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000265e8  mov      x20, x0                                     
+000265ec  adrp     x3, #0x3c000                                
+000265f0  add      x3, x3, #0xb8                               ; @"availMinMB"
+000265f4  mov      x0, x19                                     
+000265f8  mov      x2, x20                                     
+000265fc  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026600  mov      x0, x20                                     
+00026604  bl       #0x27ff8                                    ; _objc_release
+00026608  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+0002660c  adrp     x8, #0x43000                                
+00026610  ldr      d0, [x8, #0xb30]                            ; [0x43b30] __DATA,__bss+0x390
+00026614  fcvtas   x8, d0                                      
+00026618  fcmp     d0, d8                                      
+0002661c  csel     x2, x8, xzr, mi                             
+00026620  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+00026624  mov      x29, x29                                    
+00026628  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002662c  mov      x20, x0                                     
+00026630  adrp     x3, #0x3c000                                
+00026634  add      x3, x3, #0xd8                               ; @"sysFreeMinMB"
+00026638  mov      x0, x19                                     
+0002663c  mov      x2, x20                                     
+00026640  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026644  mov      x0, x20                                     
+00026648  bl       #0x27ff8                                    ; _objc_release
+0002664c  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+00026650  adrp     x8, #0x43000                                
+00026654  ldr      x2, [x8, #0xb48]                            ; [0x43b48] __DATA,__bss+0x3a8
+00026658  bl       #0x2a080                                    ; objc_msgSend$numberWithInteger:
+0002665c  mov      x29, x29                                    
+00026660  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026664  mov      x20, x0                                     
+00026668  adrp     x3, #0x3c000                                
+0002666c  add      x3, x3, #0xf8                               ; @"thermalMax"
+00026670  mov      x0, x19                                     
+00026674  mov      x2, x20                                     
+00026678  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+0002667c  mov      x0, x20                                     
+00026680  bl       #0x27ff8                                    ; _objc_release
+00026684  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+00026688  adrp     x8, #0x43000                                
+0002668c  ldrb     w2, [x8, #0xb50]                            
+00026690  bl       #0x2a020                                    ; objc_msgSend$numberWithBool:
+00026694  mov      x29, x29                                    
+00026698  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002669c  mov      x20, x0                                     
+000266a0  adrp     x3, #0x3c000                                
+000266a4  add      x3, x3, #0x118                              ; @"lowPower"
+000266a8  mov      x0, x19                                     
+000266ac  mov      x2, x20                                     
+000266b0  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+000266b4  mov      x0, x20                                     
+000266b8  bl       #0x27ff8                                    ; _objc_release
+000266bc  adrp     x8, #0x43000                                
+000266c0  ldr      x8, [x8, #0xa68]                            ; [0x43a68] __DATA,__bss+0x2c8
+000266c4  adrp     x9, #0x38000                                
+000266c8  ldr      x9, [x9, #0x1d0]                            ; [0x381d0] __DATA_CONST,__got+0x1d0 (= import ___NSArray0__struct)
+000266cc  cmp      x8, #0                                      
+000266d0  csel     x2, x9, x8, eq                              
+000266d4  adrp     x3, #0x3c000                                
+000266d8  add      x3, x3, #0x138                              ; @"tweaks"
+000266dc  mov      x0, x19                                     
+000266e0  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+000266e4  ldr      x0, [x21, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+000266e8  adrp     x8, #0x43000                                
+000266ec  ldr      x2, [x8, #0xb88]                            ; [0x43b88] __DATA,__bss+0x3e8
+000266f0  bl       #0x2a0c0                                    ; objc_msgSend$numberWithUnsignedInteger:
+000266f4  mov      x29, x29                                    
+000266f8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000266fc  mov      x20, x0                                     
+00026700  adrp     x3, #0x3c000                                
+00026704  add      x3, x3, #0x158                              ; @"liteCount"
+00026708  mov      x0, x19                                     
+0002670c  mov      x2, x20                                     
+00026710  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026714  mov      x0, x20                                     
+00026718  bl       #0x27ff8                                    ; _objc_release
+0002671c  adrp     x8, #0x43000                                
+00026720  ldr      x2, [x8, #0xa78]                            ; [0x43a78] __DATA,__bss+0x2d8
+00026724  cbz      x2, #0x26738                                
+00026728  adrp     x3, #0x3c000                                
+0002672c  add      x3, x3, #0x178                              ; @"liteReason"
+00026730  mov      x0, x19                                     
+00026734  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00026738  adrp     x0, #0x3c000                                
+0002673c  add      x0, x0, #0x198                              ; @"diagPerf"
+00026740  adrp     x20, #0x3b000                               
+00026744  add      x20, x20, #0x138                            ; @"com.anlai.omnicar"
+00026748  mov      x1, x19                                     
+0002674c  mov      x2, x20                                     
+00026750  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+00026754  mov      x0, x20                                     
+00026758  bl       #0x27adc                                    ; _CFPreferencesAppSynchronize
+0002675c  mov      x0, x19                                     
+00026760  ldp      x29, x30, [sp, #0x30]                       
+00026764  ldp      x20, x19, [sp, #0x20]                       
+00026768  ldp      x22, x21, [sp, #0x10]                       
+0002676c  ldp      d9, d8, [sp], #0x40                         
+00026770  b        #0x27ff8                                    ; _objc_release

@@ -1,0 +1,193 @@
+; -[SCPCarSplit hostedApp:state:]
+0x03f35c  sub      sp, sp, #0x70
+0x03f360  stp      x26, x25, [sp, #0x20]
+0x03f364  stp      x24, x23, [sp, #0x30]
+0x03f368  stp      x22, x21, [sp, #0x40]
+0x03f36c  stp      x20, x19, [sp, #0x50]
+0x03f370  stp      x29, x30, [sp, #0x60]
+0x03f374  add      x29, sp, #0x60
+0x03f378  mov      x20, x3
+0x03f37c  mov      x19, x2
+0x03f380  mov      x21, x0
+0x03f384  mov      x0, x2
+0x03f388  bl       #0x567c4 ; call _objc_retain
+0x03f38c  mov      x0, x20
+0x03f390  bl       #0x567c4 ; call _objc_retain
+0x03f394  mov      x0, x21
+0x03f398  bl       #0x5c1e0 ; objc_msgSend$soloHostedBundle
+0x03f39c  mov      x29, x29
+0x03f3a0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f3a4  mov      x22, x0
+0x03f3a8  cbz      x0, #0x3f444
+0x03f3ac  mov      x0, x21
+0x03f3b0  bl       #0x5c1e0 ; objc_msgSend$soloHostedBundle
+0x03f3b4  mov      x29, x29
+0x03f3b8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f3bc  mov      x23, x0
+0x03f3c0  mov      x2, x19
+0x03f3c4  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x03f3c8  mov      x24, x0
+0x03f3cc  mov      x0, x23
+0x03f3d0  bl       #0x567b8 ; call _objc_release
+0x03f3d4  mov      x0, x22
+0x03f3d8  bl       #0x567b8 ; call _objc_release
+0x03f3dc  cbz      w24, #0x3f444
+0x03f3e0  adrp     x2, #0x7d000
+0x03f3e4  add      x2, x2, #0x4e0 ; -> 0x7d4e0 @"ready"
+0x03f3e8  mov      x0, x20
+0x03f3ec  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x03f3f0  tbnz     w0, #0, #0x3f438
+0x03f3f4  adrp     x8, #0x87000
+0x03f3f8  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x03f3fc  stp      x19, x20, [sp]
+0x03f400  adrp     x2, #0x7d000
+0x03f404  add      x2, x2, #0x500 ; -> 0x7d500 @"AppBridge: app toan man %@ %@"
+0x03f408  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x03f40c  mov      x29, x29
+0x03f410  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f414  mov      x22, x0
+0x03f418  adrp     x0, #0x79000
+0x03f41c  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x03f420  mov      x1, x22
+0x03f424  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x03f428  mov      x0, x22
+0x03f42c  bl       #0x567b8 ; call _objc_release
+0x03f430  mov      x0, x21
+0x03f434  bl       #0x57ec0 ; objc_msgSend$endHostedSolo
+0x03f438  mov      x0, x21
+0x03f43c  bl       #0x58480 ; objc_msgSend$hideSoloCover
+0x03f440  b        #0x3f5c0
+0x03f444  mov      x0, x21
+0x03f448  mov      x2, x19
+0x03f44c  bl       #0x59820 ; objc_msgSend$paneForBundle:
+0x03f450  mov      x29, x29
+0x03f454  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f458  mov      x22, x0
+0x03f45c  mov      x0, x21
+0x03f460  bl       #0x56b60 ; objc_msgSend$active
+0x03f464  cmp      x22, #0
+0x03f468  csel     w8, wzr, w0, eq
+0x03f46c  cmp      w8, #1
+0x03f470  b.ne     #0x3f5b8
+0x03f474  mov      x0, x22
+0x03f478  bl       #0x5cae0 ; objc_msgSend$vc
+0x03f47c  mov      x29, x29
+0x03f480  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f484  mov      x23, x0
+0x03f488  bl       #0x14fa4 ; -> sub_14fa4
+0x03f48c  mov      x24, x0
+0x03f490  mov      x0, x23
+0x03f494  bl       #0x567b8 ; call _objc_release
+0x03f498  tbz      w24, #0, #0x3f5b8
+0x03f49c  adrp     x2, #0x7d000
+0x03f4a0  add      x2, x2, #0x4e0 ; -> 0x7d4e0 @"ready"
+0x03f4a4  mov      x0, x20
+0x03f4a8  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x03f4ac  cbz      w0, #0x3f4c4
+0x03f4b0  mov      x0, x21
+0x03f4b4  mov      x2, x22
+0x03f4b8  mov      w3, #1
+0x03f4bc  bl       #0x5a340 ; objc_msgSend$removeLoaderFromPane:animated:
+0x03f4c0  b        #0x3f5b8
+0x03f4c4  adrp     x24, #0x87000
+0x03f4c8  ldr      x23, [x24, #0x678] ; [0x87678] class:NSString
+0x03f4cc  mov      x0, x22
+0x03f4d0  bl       #0x5c100 ; objc_msgSend$slot
+0x03f4d4  stp      x20, x0, [sp, #8]
+0x03f4d8  str      x19, [sp]
+0x03f4dc  adrp     x2, #0x7d000
+0x03f4e0  add      x2, x2, #0x520 ; -> 0x7d520 @"AppBridge: %@ %@ -> dong o %d"
+0x03f4e4  mov      x0, x23
+0x03f4e8  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x03f4ec  mov      x29, x29
+0x03f4f0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f4f4  mov      x23, x0
+0x03f4f8  adrp     x0, #0x79000
+0x03f4fc  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x03f500  mov      x1, x23
+0x03f504  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x03f508  mov      x0, x23
+0x03f50c  bl       #0x567b8 ; call _objc_release
+0x03f510  adrp     x2, #0x7d000
+0x03f514  add      x2, x2, #0x540 ; -> 0x7d540 @"failed"
+0x03f518  mov      x0, x20
+0x03f51c  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x03f520  cbz      w0, #0x3f5a0
+0x03f524  ldr      x25, [x24, #0x678] ; [0x87678] class:NSString
+0x03f528  adrp     x0, #0x7d000
+0x03f52c  add      x0, x0, #0x560 ; -> 0x7d560 @"K"
+0x03f530  adrp     x1, #0x7d000
+0x03f534  add      x1, x1, #0x580 ; -> 0x7d580 @"Couldn't show %@ on the car"
+0x03f538  bl       #0x558fc ; -> _OMCTr
+0x03f53c  mov      x29, x29
+0x03f540  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f544  mov      x23, x0
+0x03f548  mov      x0, x21
+0x03f54c  mov      x2, x19
+0x03f550  bl       #0x57ca0 ; objc_msgSend$displayNameFor:
+0x03f554  mov      x29, x29
+0x03f558  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f55c  mov      x24, x0
+0x03f560  str      x0, [sp]
+0x03f564  mov      x0, x25
+0x03f568  mov      x2, x23
+0x03f56c  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x03f570  mov      x29, x29
+0x03f574  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f578  mov      x25, x0
+0x03f57c  mov      x0, x21
+0x03f580  mov      x2, x25
+0x03f584  bl       #0x5c720 ; objc_msgSend$toast:
+0x03f588  mov      x0, x25
+0x03f58c  bl       #0x567b8 ; call _objc_release
+0x03f590  mov      x0, x24
+0x03f594  bl       #0x567b8 ; call _objc_release
+0x03f598  mov      x0, x23
+0x03f59c  bl       #0x567b8 ; call _objc_release
+0x03f5a0  mov      x0, x22
+0x03f5a4  bl       #0x5c100 ; objc_msgSend$slot
+0x03f5a8  mov      x2, x0
+0x03f5ac  mov      x0, x21
+0x03f5b0  mov      w3, #0
+0x03f5b4  bl       #0x57660 ; objc_msgSend$closeSlot:background:
+0x03f5b8  mov      x0, x22
+0x03f5bc  bl       #0x567b8 ; call _objc_release
+0x03f5c0  mov      x0, x20
+0x03f5c4  bl       #0x567b8 ; call _objc_release
+0x03f5c8  mov      x0, x19
+0x03f5cc  ldp      x29, x30, [sp, #0x60]
+0x03f5d0  ldp      x20, x19, [sp, #0x50]
+0x03f5d4  ldp      x22, x21, [sp, #0x40]
+0x03f5d8  ldp      x24, x23, [sp, #0x30]
+0x03f5dc  ldp      x26, x25, [sp, #0x20]
+0x03f5e0  add      sp, sp, #0x70
+0x03f5e4  b        #0x567b8 ; call _objc_release
+0x03f5e8  mov      x21, x0
+0x03f5ec  mov      x0, x25
+0x03f5f0  bl       #0x567b8 ; call _objc_release
+0x03f5f4  b        #0x3f5fc
+0x03f5f8  mov      x21, x0
+0x03f5fc  mov      x0, x24
+0x03f600  bl       #0x567b8 ; call _objc_release
+0x03f604  b        #0x3f61c
+0x03f608  b        #0x3f618
+0x03f60c  b        #0x3f618
+0x03f610  b        #0x3f630
+0x03f614  b        #0x3f618
+0x03f618  mov      x21, x0
+0x03f61c  mov      x0, x23
+0x03f620  bl       #0x567b8 ; call _objc_release
+0x03f624  b        #0x3f634
+0x03f628  b        #0x3f630
+0x03f62c  b        #0x3f640
+0x03f630  mov      x21, x0
+0x03f634  mov      x0, x22
+0x03f638  bl       #0x567b8 ; call _objc_release
+0x03f63c  b        #0x3f644
+0x03f640  mov      x21, x0
+0x03f644  mov      x0, x20
+0x03f648  bl       #0x567b8 ; call _objc_release
+0x03f64c  mov      x0, x19
+0x03f650  bl       #0x567b8 ; call _objc_release
+0x03f654  mov      x0, x21
+0x03f658  bl       #0x563e0 ; call __Unwind_Resume

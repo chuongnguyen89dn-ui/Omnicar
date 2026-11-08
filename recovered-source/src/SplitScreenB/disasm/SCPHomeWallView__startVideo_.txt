@@ -1,0 +1,252 @@
+; ==== SCPHomeWallView__startVideo_  @0x494d0..0x498bc (1004 bytes) ====
+000494d0  sub      sp, sp, #0x80                                
+000494d4  stp      d11, d10, [sp, #0x10]                        
+000494d8  stp      d9, d8, [sp, #0x20]                          
+000494dc  stp      x26, x25, [sp, #0x30]                        
+000494e0  stp      x24, x23, [sp, #0x40]                        
+000494e4  stp      x22, x21, [sp, #0x50]                        
+000494e8  stp      x20, x19, [sp, #0x60]                        
+000494ec  stp      x29, x30, [sp, #0x70]                        
+000494f0  add      x29, sp, #0x70                               
+000494f4  mov      x19, x2                                      
+000494f8  mov      x21, x0                                      
+000494fc  mov      x0, x2                                       
+00049500  bl       #0x567c4                                     ; call _objc_retain
+00049504  mov      x0, x21                                      
+00049508  bl       #0x5c340                                     ; msgSend "stopVideo"
+0004950c  adrp     x8, #0x87000                                 
+00049510  ldr      x20, [x8, #0x848]                            ; classref AVPlayerItem
+00049514  adrp     x8, #0x87000                                 
+00049518  ldr      x0, [x8, #0x6c8]                             ; classref NSURL
+0004951c  mov      x2, x19                                      
+00049520  bl       #0x580a0                                     ; msgSend "fileURLWithPath:"
+00049524  mov      x29, x29                                     
+00049528  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0004952c  mov      x22, x0                                      
+00049530  mov      x0, x20                                      
+00049534  mov      x2, x22                                      
+00049538  bl       #0x59b40                                     ; msgSend "playerItemWithURL:"
+0004953c  mov      x29, x29                                     
+00049540  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049544  mov      x20, x0                                      
+00049548  mov      x0, x22                                      
+0004954c  bl       #0x567b8                                     ; call _objc_release
+00049550  adrp     x8, #0x87000                                 
+00049554  ldr      x0, [x8, #0x850]                             ; classref AVQueuePlayer
+00049558  adrp     x2, #0x78000                                 
+0004955c  ldr      x2, [x2, #0x238]                             
+00049560  bl       #0x59e40                                     ; msgSend "queuePlayerWithItems:"
+00049564  mov      x29, x29                                     
+00049568  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0004956c  mov      x22, x0                                      
+00049570  mov      x0, x21                                      
+00049574  mov      x2, x22                                      
+00049578  bl       #0x5b680                                     ; msgSend "setPlayer:"
+0004957c  mov      x0, x22                                      
+00049580  bl       #0x567b8                                     ; call _objc_release
+00049584  mov      x0, x21                                      
+00049588  bl       #0x59b20                                     ; msgSend "player"
+0004958c  mov      x29, x29                                     
+00049590  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049594  mov      x22, x0                                      
+00049598  mov      w2, #1                                       
+0004959c  bl       #0x5b3a0                                     ; msgSend "setMuted:"
+000495a0  mov      x0, x22                                      
+000495a4  bl       #0x567b8                                     ; call _objc_release
+000495a8  mov      x0, x21                                      
+000495ac  bl       #0x59b20                                     ; msgSend "player"
+000495b0  mov      x29, x29                                     
+000495b4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000495b8  mov      x22, x0                                      
+000495bc  mov      w2, #0                                       
+000495c0  bl       #0x5b700                                     ; msgSend "setPreventsDisplaySleepDuringVideoPlayback:"
+000495c4  mov      x0, x22                                      
+000495c8  bl       #0x567b8                                     ; call _objc_release
+000495cc  adrp     x8, #0x87000                                 
+000495d0  ldr      x23, [x8, #0x858]                            ; classref AVPlayerLooper
+000495d4  mov      x0, x21                                      
+000495d8  bl       #0x59b20                                     ; msgSend "player"
+000495dc  mov      x29, x29                                     
+000495e0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000495e4  mov      x22, x0                                      
+000495e8  mov      x0, x23                                      
+000495ec  mov      x2, x22                                      
+000495f0  mov      x3, x20                                      
+000495f4  bl       #0x59b80                                     ; msgSend "playerLooperWithPlayer:templateItem:"
+000495f8  mov      x29, x29                                     
+000495fc  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049600  mov      x23, x0                                      
+00049604  mov      x0, x21                                      
+00049608  mov      x2, x23                                      
+0004960c  bl       #0x5b300                                     ; msgSend "setLooper:"
+00049610  mov      x0, x23                                      
+00049614  bl       #0x567b8                                     ; call _objc_release
+00049618  mov      x0, x22                                      
+0004961c  bl       #0x567b8                                     ; call _objc_release
+00049620  adrp     x8, #0x87000                                 
+00049624  ldr      x23, [x8, #0x860]                            ; classref AVPlayerLayer
+00049628  mov      x0, x21                                      
+0004962c  bl       #0x59b20                                     ; msgSend "player"
+00049630  mov      x29, x29                                     
+00049634  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049638  mov      x22, x0                                      
+0004963c  mov      x0, x23                                      
+00049640  mov      x2, x22                                      
+00049644  bl       #0x59b60                                     ; msgSend "playerLayerWithPlayer:"
+00049648  mov      x29, x29                                     
+0004964c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049650  mov      x23, x0                                      
+00049654  mov      x0, x21                                      
+00049658  mov      x2, x23                                      
+0004965c  bl       #0x5bde0                                     ; msgSend "setVideoLayer:"
+00049660  mov      x0, x23                                      
+00049664  bl       #0x567b8                                     ; call _objc_release
+00049668  mov      x0, x22                                      
+0004966c  bl       #0x567b8                                     ; call _objc_release
+00049670  mov      x0, x21                                      
+00049674  bl       #0x5cb40                                     ; msgSend "videoLayer"
+00049678  mov      x29, x29                                     
+0004967c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049680  mov      x22, x0                                      
+00049684  adrp     x8, #0x78000                                 
+00049688  ldr      x8, [x8, #0x320]                             
+0004968c  ldr      x2, [x8]                                     
+00049690  bl       #0x5bdc0                                     ; msgSend "setVideoGravity:"
+00049694  mov      x0, x22                                      
+00049698  bl       #0x567b8                                     ; call _objc_release
+0004969c  mov      x0, x21                                      
+000496a0  bl       #0x57320                                     ; msgSend "bounds"
+000496a4  mov      v8.16b, v0.16b                               
+000496a8  mov      v9.16b, v1.16b                               
+000496ac  mov      v10.16b, v2.16b                              
+000496b0  mov      v11.16b, v3.16b                              
+000496b4  mov      x0, x21                                      
+000496b8  bl       #0x5cb40                                     ; msgSend "videoLayer"
+000496bc  mov      x29, x29                                     
+000496c0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000496c4  mov      x22, x0                                      
+000496c8  mov      v0.16b, v8.16b                               
+000496cc  mov      v1.16b, v9.16b                               
+000496d0  mov      v2.16b, v10.16b                              
+000496d4  mov      v3.16b, v11.16b                              
+000496d8  bl       #0x5ae20                                     ; msgSend "setFrame:"
+000496dc  mov      x0, x22                                      
+000496e0  bl       #0x567b8                                     ; call _objc_release
+000496e4  mov      x0, x21                                      
+000496e8  bl       #0x58fa0                                     ; msgSend "layer"
+000496ec  mov      x29, x29                                     
+000496f0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000496f4  mov      x22, x0                                      
+000496f8  mov      x0, x21                                      
+000496fc  bl       #0x5cb40                                     ; msgSend "videoLayer"
+00049700  mov      x29, x29                                     
+00049704  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049708  mov      x23, x0                                      
+0004970c  mov      x0, x21                                      
+00049710  bl       #0x587e0                                     ; msgSend "image"
+00049714  mov      x29, x29                                     
+00049718  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0004971c  mov      x24, x0                                      
+00049720  bl       #0x58fa0                                     ; msgSend "layer"
+00049724  mov      x29, x29                                     
+00049728  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0004972c  mov      x25, x0                                      
+00049730  mov      x0, x22                                      
+00049734  mov      x2, x23                                      
+00049738  mov      x3, x25                                      
+0004973c  bl       #0x58ac0                                     ; msgSend "insertSublayer:above:"
+00049740  mov      x0, x25                                      
+00049744  bl       #0x567b8                                     ; call _objc_release
+00049748  mov      x0, x24                                      
+0004974c  bl       #0x567b8                                     ; call _objc_release
+00049750  mov      x0, x23                                      
+00049754  bl       #0x567b8                                     ; call _objc_release
+00049758  mov      x0, x22                                      
+0004975c  bl       #0x567b8                                     ; call _objc_release
+00049760  mov      x0, x21                                      
+00049764  bl       #0x587e0                                     ; msgSend "image"
+00049768  mov      x29, x29                                     
+0004976c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049770  mov      x22, x0                                      
+00049774  mov      x2, #0                                       
+00049778  bl       #0x5b000                                     ; msgSend "setImage:"
+0004977c  mov      x0, x22                                      
+00049780  bl       #0x567b8                                     ; call _objc_release
+00049784  adrp     x8, #0x87000                                 
+00049788  ldr      x23, [x8, #0x678]                            ; classref NSString
+0004978c  mov      x0, x19                                      
+00049790  bl       #0x58ec0                                     ; msgSend "lastPathComponent"
+00049794  mov      x29, x29                                     
+00049798  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0004979c  mov      x22, x0                                      
+000497a0  str      x0, [sp]                                     
+000497a4  adrp     x2, #0x7d000                                 
+000497a8  add      x2, x2, #0xee0                               
+000497ac  mov      x0, x23                                      
+000497b0  bl       #0x5c440                                     ; msgSend "stringWithFormat:"
+000497b4  mov      x29, x29                                     
+000497b8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000497bc  mov      x23, x0                                      
+000497c0  adrp     x0, #0x79000                                 
+000497c4  add      x0, x0, #0x5c0                               
+000497c8  mov      x1, x23                                      
+000497cc  bl       #0x4fbf4                                     
+000497d0  mov      x0, x23                                      
+000497d4  bl       #0x567b8                                     ; call _objc_release
+000497d8  mov      x0, x22                                      
+000497dc  bl       #0x567b8                                     ; call _objc_release
+000497e0  mov      x0, x21                                      
+000497e4  bl       #0x5c960                                     ; msgSend "updatePlayback"
+000497e8  mov      x0, x20                                      
+000497ec  bl       #0x567b8                                     ; call _objc_release
+000497f0  mov      x0, x19                                      
+000497f4  ldp      x29, x30, [sp, #0x70]                        
+000497f8  ldp      x20, x19, [sp, #0x60]                        
+000497fc  ldp      x22, x21, [sp, #0x50]                        
+00049800  ldp      x24, x23, [sp, #0x40]                        
+00049804  ldp      x26, x25, [sp, #0x30]                        
+00049808  ldp      d9, d8, [sp, #0x20]                          
+0004980c  ldp      d11, d10, [sp, #0x10]                        
+00049810  add      sp, sp, #0x80                                
+00049814  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+00049818  b        #0x4985c                                     
+0004981c  b        #0x49878                                     
+00049820  b        #0x49878                                     
+00049824  mov      x21, x0                                      
+00049828  mov      x0, x25                                      
+0004982c  bl       #0x567b8                                     ; call _objc_release
+00049830  b        #0x49838                                     
+00049834  mov      x21, x0                                      
+00049838  mov      x0, x24                                      
+0004983c  bl       #0x567b8                                     ; call _objc_release
+00049840  b        #0x49860                                     
+00049844  b        #0x4985c                                     
+00049848  b        #0x49878                                     
+0004984c  b        #0x49878                                     
+00049850  b        #0x49878                                     
+00049854  b        #0x4985c                                     
+00049858  b        #0x49878                                     
+0004985c  mov      x21, x0                                      
+00049860  mov      x0, x23                                      
+00049864  bl       #0x567b8                                     ; call _objc_release
+00049868  b        #0x4987c                                     
+0004986c  b        #0x49878                                     
+00049870  b        #0x49878                                     
+00049874  b        #0x49878                                     
+00049878  mov      x21, x0                                      
+0004987c  mov      x0, x22                                      
+00049880  bl       #0x567b8                                     ; call _objc_release
+00049884  b        #0x498a4                                     
+00049888  mov      x21, x0                                      
+0004988c  mov      x0, x22                                      
+00049890  b        #0x498a8                                     
+00049894  b        #0x49898                                     
+00049898  mov      x21, x0                                      
+0004989c  b        #0x498ac                                     
+000498a0  mov      x21, x0                                      
+000498a4  mov      x0, x20                                      
+000498a8  bl       #0x567b8                                     ; call _objc_release
+000498ac  mov      x0, x19                                      
+000498b0  bl       #0x567b8                                     ; call _objc_release
+000498b4  mov      x0, x21                                      
+000498b8  bl       #0x563e0                                     ; call __Unwind_Resume

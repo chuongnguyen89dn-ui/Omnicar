@@ -1,0 +1,70 @@
+; sub_5a5c
+; VA 0x5a5c  size 268
+
+0x00005a5c:  sub      sp, sp, #0x50
+0x00005a60:  stp      x22, x21, [sp, #0x20]
+0x00005a64:  stp      x20, x19, [sp, #0x30]
+0x00005a68:  stp      x29, x30, [sp, #0x40]
+0x00005a6c:  add      x29, sp, #0x40
+0x00005a70:  mov      x2, x0
+0x00005a74:  adrp     x8, #0x30000
+0x00005a78:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x00005a7c:  ldr      x8, [x8]
+0x00005a80:  str      x8, [sp, #0x18]
+0x00005a84:  adrp     x8, #0x3a000
+0x00005a88:  ldr      x0, [x8, #0xa60]    ; class(NSURL)
+0x00005a8c:  bl       #0x23340    ; -> _objc_msgSend(fileURLWithPath:)
+0x00005a90:  mov      x1, #0
+0x00005a94:  bl       #0x21cc4    ; -> _CGImageSourceCreateWithURL
+0x00005a98:  mov      x20, x0
+0x00005a9c:  cbz      x0, #0x5b34
+0x00005aa0:  adrp     x8, #0x30000
+0x00005aa4:  ldr      x8, [x8, #0x2d0]    ; got(_kCGImageSourceShouldCacheImmediately)
+0x00005aa8:  ldr      x8, [x8]
+0x00005aac:  str      x8, [sp, #8]
+0x00005ab0:  adrp     x8, #0x30000
+0x00005ab4:  ldr      x8, [x8, #0x220]    ; got(___kCFBooleanTrue)
+0x00005ab8:  str      x8, [sp, #0x10]
+0x00005abc:  adrp     x8, #0x3a000
+0x00005ac0:  ldr      x0, [x8, #0xa58]    ; class(NSDictionary)
+0x00005ac4:  add      x2, sp, #0x10
+0x00005ac8:  add      x3, sp, #8
+0x00005acc:  mov      w4, #1
+0x00005ad0:  bl       #0x23100    ; -> _objc_msgSend(dictionaryWithObjects:forKeys:count:)
+0x00005ad4:  mov      x29, x29
+0x00005ad8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005adc:  mov      x19, x0
+0x00005ae0:  mov      x0, x20
+0x00005ae4:  mov      x1, #0
+0x00005ae8:  mov      x2, x19
+0x00005aec:  bl       #0x21cb8    ; -> _CGImageSourceCreateImageAtIndex
+0x00005af0:  mov      x21, x0
+0x00005af4:  mov      x0, x20
+0x00005af8:  bl       #0x21b8c    ; -> _CFRelease
+0x00005afc:  cbz      x21, #0x5b28
+0x00005b00:  adrp     x8, #0x3a000
+0x00005b04:  ldr      x0, [x8, #0xa68]    ; class(UIImage)
+0x00005b08:  mov      x2, x21
+0x00005b0c:  bl       #0x23640    ; -> _objc_msgSend(imageWithCGImage:)
+0x00005b10:  mov      x29, x29
+0x00005b14:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005b18:  mov      x20, x0
+0x00005b1c:  mov      x0, x21
+0x00005b20:  bl       #0x21cac    ; -> _CGImageRelease
+0x00005b24:  b        #0x5b2c    ; -> sub_5b2c
+0x00005b28:  mov      x20, #0
+0x00005b2c:  mov      x0, x19
+0x00005b30:  bl       #0x22120    ; -> _objc_release
+0x00005b34:  ldr      x8, [sp, #0x18]
+0x00005b38:  adrp     x9, #0x30000
+0x00005b3c:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x00005b40:  ldr      x9, [x9]
+0x00005b44:  cmp      x9, x8
+0x00005b48:  b.ne     #0x5b64
+0x00005b4c:  mov      x0, x20
+0x00005b50:  ldp      x29, x30, [sp, #0x40]
+0x00005b54:  ldp      x20, x19, [sp, #0x30]
+0x00005b58:  ldp      x22, x21, [sp, #0x20]
+0x00005b5c:  add      sp, sp, #0x50
+0x00005b60:  b        #0x22054    ; -> _objc_autoreleaseReturnValue
+0x00005b64:  bl       #0x21dd8    ; -> ___stack_chk_fail

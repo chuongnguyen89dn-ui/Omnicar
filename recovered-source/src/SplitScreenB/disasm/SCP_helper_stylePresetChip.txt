@@ -1,0 +1,533 @@
+; ==== SCP_helper_stylePresetChip  @0x30450..0x30ca0 (2128 bytes) ====
+00030450  sub      sp, sp, #0x190                               
+00030454  stp      d13, d12, [sp, #0x100]                       
+00030458  stp      d11, d10, [sp, #0x110]                       
+0003045c  stp      d9, d8, [sp, #0x120]                         
+00030460  stp      x28, x27, [sp, #0x130]                       
+00030464  stp      x26, x25, [sp, #0x140]                       
+00030468  stp      x24, x23, [sp, #0x150]                       
+0003046c  stp      x22, x21, [sp, #0x160]                       
+00030470  stp      x20, x19, [sp, #0x170]                       
+00030474  stp      x29, x30, [sp, #0x180]                       
+00030478  add      x29, sp, #0x180                              
+0003047c  mov      x19, x0                                      
+00030480  adrp     x8, #0x78000                                 
+00030484  ldr      x8, [x8, #0x360]                             
+00030488  ldr      x8, [x8]                                     
+0003048c  stur     x8, [x29, #-0x90]                            
+00030490  bl       #0x567c4                                     ; call _objc_retain
+00030494  movi     v0.16b, #0                                   
+00030498  stp      q0, q0, [sp]                                 
+0003049c  stp      q0, q0, [sp, #0x20]                          
+000304a0  mov      x0, x19                                      
+000304a4  bl       #0x58fa0                                     ; msgSend "layer"
+000304a8  mov      x29, x29                                     
+000304ac  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000304b0  mov      x20, x0                                      
+000304b4  bl       #0x5c4a0                                     ; msgSend "sublayers"
+000304b8  mov      x29, x29                                     
+000304bc  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000304c0  mov      x21, x0                                      
+000304c4  mov      x0, x20                                      
+000304c8  bl       #0x567b8                                     ; call _objc_release
+000304cc  mov      x2, sp                                       
+000304d0  add      x3, sp, #0x70                                
+000304d4  mov      x0, x21                                      
+000304d8  mov      w4, #0x10                                    
+000304dc  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+000304e0  mov      x22, x0                                      
+000304e4  cbz      x0, #0x30598                                 
+000304e8  mov      x20, #0                                      
+000304ec  ldr      x8, [sp, #0x10]                              
+000304f0  ldr      x28, [x8]                                    
+000304f4  adrp     x23, #0x7d000                                
+000304f8  add      x23, x23, #0xd20                             
+000304fc  mov      x27, #0                                      
+00030500  ldr      x8, [sp, #0x10]                              
+00030504  ldr      x8, [x8]                                     
+00030508  cmp      x8, x28                                      
+0003050c  b.eq     #0x30518                                     
+00030510  mov      x0, x21                                      
+00030514  bl       #0x5671c                                     ; call _objc_enumerationMutation
+00030518  ldr      x8, [sp, #8]                                 
+0003051c  ldr      x24, [x8, x27, lsl #3]                       
+00030520  mov      x0, x24                                      
+00030524  bl       #0x59400                                     ; msgSend "name"
+00030528  mov      x29, x29                                     
+0003052c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030530  mov      x25, x0                                      
+00030534  mov      x2, x23                                      
+00030538  bl       #0x58d00                                     ; msgSend "isEqualToString:"
+0003053c  mov      x26, x0                                      
+00030540  mov      x0, x25                                      
+00030544  bl       #0x567b8                                     ; call _objc_release
+00030548  cbz      w26, #0x30560                                
+0003054c  mov      x0, x24                                      
+00030550  bl       #0x567c4                                     ; call _objc_retain
+00030554  mov      x0, x20                                      
+00030558  bl       #0x567b8                                     ; call _objc_release
+0003055c  mov      x20, x24                                     
+00030560  add      x27, x27, #1                                 
+00030564  cmp      x22, x27                                     
+00030568  b.ne     #0x30500                                     
+0003056c  mov      x2, sp                                       
+00030570  add      x3, sp, #0x70                                
+00030574  mov      x0, x21                                      
+00030578  mov      w4, #0x10                                    
+0003057c  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+00030580  mov      x22, x0                                      
+00030584  cbnz     x0, #0x304fc                                 
+00030588  mov      x0, x21                                      
+0003058c  bl       #0x567b8                                     ; call _objc_release
+00030590  cbz      x20, #0x305a0                                
+00030594  b        #0x3085c                                     
+00030598  mov      x0, x21                                      
+0003059c  bl       #0x567b8                                     ; call _objc_release
+000305a0  adrp     x8, #0x87000                                 
+000305a4  ldr      x0, [x8, #0x7d0]                             ; classref CAGradientLayer
+000305a8  mov      x20, #0                                      
+000305ac  bl       #0x58fa0                                     ; msgSend "layer"
+000305b0  mov      x29, x29                                     
+000305b4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000305b8  mov      x21, x0                                      
+000305bc  adrp     x2, #0x7d000                                 
+000305c0  add      x2, x2, #0xd20                               
+000305c4  mov      x20, x0                                      
+000305c8  bl       #0x5b3c0                                     ; msgSend "setName:"
+000305cc  adrp     x8, #0x78000                                 
+000305d0  ldr      x8, [x8, #0x2f8]                             
+000305d4  ldr      x2, [x8]                                     
+000305d8  mov      x20, x21                                     
+000305dc  mov      x0, x21                                      
+000305e0  bl       #0x5bd40                                     ; msgSend "setType:"
+000305e4  fmov     d0, #0.50000000                              
+000305e8  fmov     d1, #0.50000000                              
+000305ec  mov      x20, x21                                     
+000305f0  mov      x0, x21                                      
+000305f4  bl       #0x5ba60                                     ; msgSend "setStartPoint:"
+000305f8  fmov     d0, xzr                                      
+000305fc  fmov     d1, #1.00000000                              
+00030600  mov      x20, x21                                     
+00030604  mov      x0, x21                                      
+00030608  bl       #0x5ac40                                     ; msgSend "setEndPoint:"
+0003060c  adrp     x8, #0x87000                                 
+00030610  ldr      x0, [x8, #0x730]                             ; classref UIColor
+00030614  adrp     x8, #0x6f000                                 
+00030618  ldr      d8, [x8, #0x1f0]                             ; double 0.6549019607843137
+0003061c  adrp     x8, #0x6f000                                 
+00030620  ldr      d9, [x8, #0x1f8]                             ; double 0.5450980392156862
+00030624  adrp     x8, #0x6f000                                 
+00030628  ldr      d10, [x8, #0x200]                            ; double 0.9803921568627451
+0003062c  fmov     d3, #1.00000000                              
+00030630  mov      v0.16b, v8.16b                               
+00030634  mov      v1.16b, v9.16b                               
+00030638  mov      v2.16b, v10.16b                              
+0003063c  bl       #0x576e0                                     ; msgSend "colorWithRed:green:blue:alpha:"
+00030640  mov      x29, x29                                     
+00030644  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030648  mov      x20, x0                                      
+0003064c  bl       #0x567d0                                     ; call _objc_retainAutorelease
+00030650  mov      x0, x20                                      
+00030654  bl       #0x569a0                                     ; msgSend "CGColor"
+00030658  str      x0, [sp, #0x48]                              
+0003065c  adrp     x8, #0x87000                                 
+00030660  ldr      x0, [x8, #0x730]                             ; classref UIColor
+00030664  adrp     x8, #0x6f000                                 
+00030668  ldr      d0, [x8, #0x208]                             ; double 0.3764705882352941
+0003066c  adrp     x8, #0x6f000                                 
+00030670  ldr      d1, [x8, #0x210]                             ; double 0.7725490196078432
+00030674  fmov     d3, #1.00000000                              
+00030678  mov      v2.16b, v10.16b                              
+0003067c  bl       #0x576e0                                     ; msgSend "colorWithRed:green:blue:alpha:"
+00030680  mov      x29, x29                                     
+00030684  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030688  mov      x23, x0                                      
+0003068c  bl       #0x567d0                                     ; call _objc_retainAutorelease
+00030690  mov      x0, x23                                      
+00030694  bl       #0x569a0                                     ; msgSend "CGColor"
+00030698  str      x0, [sp, #0x50]                              
+0003069c  adrp     x8, #0x87000                                 
+000306a0  ldr      x0, [x8, #0x730]                             ; classref UIColor
+000306a4  adrp     x8, #0x6f000                                 
+000306a8  ldr      d0, [x8, #0x218]                             ; double 0.3686274509803922
+000306ac  adrp     x8, #0x6f000                                 
+000306b0  ldr      d1, [x8, #0x220]                             ; double 0.8666666666666667
+000306b4  adrp     x8, #0x6f000                                 
+000306b8  ldr      d2, [x8, #0x228]                             ; double 0.7137254901960784
+000306bc  fmov     d3, #1.00000000                              
+000306c0  bl       #0x576e0                                     ; msgSend "colorWithRed:green:blue:alpha:"
+000306c4  mov      x29, x29                                     
+000306c8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000306cc  mov      x24, x0                                      
+000306d0  bl       #0x567d0                                     ; call _objc_retainAutorelease
+000306d4  mov      x0, x24                                      
+000306d8  bl       #0x569a0                                     ; msgSend "CGColor"
+000306dc  str      x0, [sp, #0x58]                              
+000306e0  adrp     x8, #0x87000                                 
+000306e4  ldr      x0, [x8, #0x730]                             ; classref UIColor
+000306e8  adrp     x8, #0x6f000                                 
+000306ec  ldr      d0, [x8, #0x230]                             ; double 0.9607843137254902
+000306f0  adrp     x8, #0x6f000                                 
+000306f4  ldr      d1, [x8, #0x238]                             ; double 0.6039215686274509
+000306f8  adrp     x8, #0x6f000                                 
+000306fc  ldr      d2, [x8, #0x240]                             ; double 0.7529411764705882
+00030700  fmov     d3, #1.00000000                              
+00030704  bl       #0x576e0                                     ; msgSend "colorWithRed:green:blue:alpha:"
+00030708  mov      x29, x29                                     
+0003070c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030710  mov      x25, x0                                      
+00030714  bl       #0x567d0                                     ; call _objc_retainAutorelease
+00030718  mov      x0, x25                                      
+0003071c  bl       #0x569a0                                     ; msgSend "CGColor"
+00030720  str      x0, [sp, #0x60]                              
+00030724  adrp     x8, #0x87000                                 
+00030728  ldr      x0, [x8, #0x730]                             ; classref UIColor
+0003072c  fmov     d3, #1.00000000                              
+00030730  mov      v0.16b, v8.16b                               
+00030734  mov      v1.16b, v9.16b                               
+00030738  mov      v2.16b, v10.16b                              
+0003073c  bl       #0x576e0                                     ; msgSend "colorWithRed:green:blue:alpha:"
+00030740  mov      x29, x29                                     
+00030744  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030748  mov      x26, x0                                      
+0003074c  bl       #0x567d0                                     ; call _objc_retainAutorelease
+00030750  mov      x0, x26                                      
+00030754  bl       #0x569a0                                     ; msgSend "CGColor"
+00030758  str      x0, [sp, #0x68]                              
+0003075c  adrp     x8, #0x87000                                 
+00030760  ldr      x0, [x8, #0x680]                             ; classref NSArray
+00030764  add      x2, sp, #0x48                                
+00030768  mov      w3, #5                                       
+0003076c  bl       #0x57080                                     ; msgSend "arrayWithObjects:count:"
+00030770  mov      x29, x29                                     
+00030774  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030778  mov      x22, x0                                      
+0003077c  mov      x0, x21                                      
+00030780  mov      x2, x22                                      
+00030784  bl       #0x5aa00                                     ; msgSend "setColors:"
+00030788  mov      x0, x22                                      
+0003078c  bl       #0x567b8                                     ; call _objc_release
+00030790  mov      x0, x26                                      
+00030794  bl       #0x567b8                                     ; call _objc_release
+00030798  mov      x0, x25                                      
+0003079c  bl       #0x567b8                                     ; call _objc_release
+000307a0  mov      x0, x24                                      
+000307a4  bl       #0x567b8                                     ; call _objc_release
+000307a8  mov      x0, x23                                      
+000307ac  bl       #0x567b8                                     ; call _objc_release
+000307b0  mov      x0, x20                                      
+000307b4  bl       #0x567b8                                     ; call _objc_release
+000307b8  adrp     x8, #0x87000                                 
+000307bc  ldr      x0, [x8, #0x720]                             ; classref CAShapeLayer
+000307c0  bl       #0x58fa0                                     ; msgSend "layer"
+000307c4  mov      x29, x29                                     
+000307c8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000307cc  mov      x20, x0                                      
+000307d0  mov      x2, #0                                       
+000307d4  bl       #0x5aca0                                     ; msgSend "setFillColor:"
+000307d8  adrp     x8, #0x87000                                 
+000307dc  ldr      x0, [x8, #0x730]                             ; classref UIColor
+000307e0  bl       #0x572c0                                     ; msgSend "blackColor"
+000307e4  mov      x29, x29                                     
+000307e8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000307ec  mov      x23, x0                                      
+000307f0  bl       #0x567d0                                     ; call _objc_retainAutorelease
+000307f4  mov      x0, x23                                      
+000307f8  bl       #0x569a0                                     ; msgSend "CGColor"
+000307fc  mov      x2, x0                                       
+00030800  mov      x0, x20                                      
+00030804  bl       #0x5baa0                                     ; msgSend "setStrokeColor:"
+00030808  mov      x0, x23                                      
+0003080c  bl       #0x567b8                                     ; call _objc_release
+00030810  fmov     d0, #2.00000000                              
+00030814  mov      x0, x20                                      
+00030818  bl       #0x5b240                                     ; msgSend "setLineWidth:"
+0003081c  mov      x0, x21                                      
+00030820  mov      x2, x20                                      
+00030824  bl       #0x5b320                                     ; msgSend "setMask:"
+00030828  mov      x0, x19                                      
+0003082c  bl       #0x58fa0                                     ; msgSend "layer"
+00030830  mov      x29, x29                                     
+00030834  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030838  mov      x23, x0                                      
+0003083c  mov      x2, x21                                      
+00030840  mov      w3, #0                                       
+00030844  bl       #0x58ae0                                     ; msgSend "insertSublayer:atIndex:"
+00030848  mov      x0, x23                                      
+0003084c  bl       #0x567b8                                     ; call _objc_release
+00030850  mov      x0, x20                                      
+00030854  bl       #0x567b8                                     ; call _objc_release
+00030858  mov      x20, x21                                     
+0003085c  adrp     x24, #0x87000                                
+00030860  ldr      x0, [x24, #0x728]                            ; classref CATransaction
+00030864  bl       #0x571c0                                     ; msgSend "begin"
+00030868  ldr      x0, [x24, #0x728]                            ; classref CATransaction
+0003086c  mov      w2, #1                                       
+00030870  bl       #0x5ab20                                     ; msgSend "setDisableActions:"
+00030874  mov      x0, x19                                      
+00030878  bl       #0x57320                                     ; msgSend "bounds"
+0003087c  mov      x0, x20                                      
+00030880  bl       #0x5ae20                                     ; msgSend "setFrame:"
+00030884  adrp     x8, #0x87000                                 
+00030888  ldr      x21, [x8, #0x718]                            ; classref UIBezierPath
+0003088c  mov      x0, x19                                      
+00030890  bl       #0x57320                                     ; msgSend "bounds"
+00030894  fmov     d4, #1.00000000                              
+00030898  fmov     d5, #1.00000000                              
+0003089c  bl       #0x562fc                                     ; call _CGRectInset
+000308a0  mov      v8.16b, v0.16b                               
+000308a4  mov      v9.16b, v1.16b                               
+000308a8  mov      v10.16b, v2.16b                              
+000308ac  mov      v11.16b, v3.16b                              
+000308b0  mov      x0, x19                                      
+000308b4  bl       #0x58fa0                                     ; msgSend "layer"
+000308b8  mov      x29, x29                                     
+000308bc  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000308c0  mov      x23, x0                                      
+000308c4  bl       #0x579c0                                     ; msgSend "cornerRadius"
+000308c8  mov      v12.16b, v0.16b                              
+000308cc  mov      x0, x23                                      
+000308d0  bl       #0x567b8                                     ; call _objc_release
+000308d4  fmov     d0, #-1.00000000                             
+000308d8  fadd     d0, d12, d0                                  
+000308dc  fmov     d1, xzr                                      
+000308e0  fmaxnm   d4, d0, d1                                   
+000308e4  mov      x0, x21                                      
+000308e8  mov      v0.16b, v8.16b                               
+000308ec  mov      v1.16b, v9.16b                               
+000308f0  mov      v2.16b, v10.16b                              
+000308f4  mov      v3.16b, v11.16b                              
+000308f8  bl       #0x572a0                                     ; msgSend "bezierPathWithRoundedRect:cornerRadius:"
+000308fc  mov      x29, x29                                     
+00030900  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030904  mov      x21, x0                                      
+00030908  bl       #0x567d0                                     ; call _objc_retainAutorelease
+0003090c  mov      x0, x21                                      
+00030910  bl       #0x56a00                                     ; msgSend "CGPath"
+00030914  mov      x22, x0                                      
+00030918  mov      x0, x20                                      
+0003091c  bl       #0x59300                                     ; msgSend "mask"
+00030920  mov      x29, x29                                     
+00030924  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030928  mov      x23, x0                                      
+0003092c  mov      x2, x22                                      
+00030930  bl       #0x5b560                                     ; msgSend "setPath:"
+00030934  mov      x0, x23                                      
+00030938  bl       #0x567b8                                     ; call _objc_release
+0003093c  mov      x0, x21                                      
+00030940  bl       #0x567b8                                     ; call _objc_release
+00030944  ldr      x0, [x24, #0x728]                            ; classref CATransaction
+00030948  bl       #0x57720                                     ; msgSend "commit"
+0003094c  mov      x0, x19                                      
+00030950  bl       #0x58fa0                                     ; msgSend "layer"
+00030954  mov      x29, x29                                     
+00030958  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003095c  mov      x21, x0                                      
+00030960  fmov     d0, xzr                                      
+00030964  bl       #0x5a900                                     ; msgSend "setBorderWidth:"
+00030968  mov      x0, x21                                      
+0003096c  bl       #0x567b8                                     ; call _objc_release
+00030970  adrp     x8, #0x87000                                 
+00030974  ldr      x0, [x8, #0x730]                             ; classref UIColor
+00030978  adrp     x8, #0x6f000                                 
+0003097c  ldr      d0, [x8, #0x30]                              ; double 0.6078431372549019
+00030980  adrp     x8, #0x6f000                                 
+00030984  ldr      d1, [x8, #0x38]                              ; double 0.5294117647058824
+00030988  adrp     x8, #0x6f000                                 
+0003098c  ldr      d2, [x8, #0x40]                              ; double 0.9725490196078431
+00030990  fmov     d3, #1.00000000                              
+00030994  bl       #0x576e0                                     ; msgSend "colorWithRed:green:blue:alpha:"
+00030998  mov      x29, x29                                     
+0003099c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000309a0  mov      x21, x0                                      
+000309a4  bl       #0x567d0                                     ; call _objc_retainAutorelease
+000309a8  mov      x0, x21                                      
+000309ac  bl       #0x569a0                                     ; msgSend "CGColor"
+000309b0  mov      x22, x0                                      
+000309b4  mov      x0, x19                                      
+000309b8  bl       #0x58fa0                                     ; msgSend "layer"
+000309bc  mov      x29, x29                                     
+000309c0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000309c4  mov      x23, x0                                      
+000309c8  mov      x2, x22                                      
+000309cc  bl       #0x5b860                                     ; msgSend "setShadowColor:"
+000309d0  mov      x0, x23                                      
+000309d4  bl       #0x567b8                                     ; call _objc_release
+000309d8  mov      x0, x21                                      
+000309dc  bl       #0x567b8                                     ; call _objc_release
+000309e0  mov      x0, x19                                      
+000309e4  bl       #0x58fa0                                     ; msgSend "layer"
+000309e8  mov      x29, x29                                     
+000309ec  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000309f0  mov      x21, x0                                      
+000309f4  adrp     x8, #0x6f000                                 
+000309f8  ldr      s0, [x8, #0x404]                             
+000309fc  bl       #0x5b8a0                                     ; msgSend "setShadowOpacity:"
+00030a00  mov      x0, x21                                      
+00030a04  bl       #0x567b8                                     ; call _objc_release
+00030a08  mov      x0, x19                                      
+00030a0c  bl       #0x58fa0                                     ; msgSend "layer"
+00030a10  mov      x29, x29                                     
+00030a14  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030a18  mov      x21, x0                                      
+00030a1c  fmov     d0, #8.00000000                              
+00030a20  bl       #0x5b8e0                                     ; msgSend "setShadowRadius:"
+00030a24  mov      x0, x21                                      
+00030a28  bl       #0x567b8                                     ; call _objc_release
+00030a2c  mov      x0, x19                                      
+00030a30  bl       #0x58fa0                                     ; msgSend "layer"
+00030a34  mov      x29, x29                                     
+00030a38  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00030a3c  mov      x21, x0                                      
+00030a40  fmov     d0, xzr                                      
+00030a44  fmov     d1, #4.00000000                              
+00030a48  bl       #0x5b880                                     ; msgSend "setShadowOffset:"
+00030a4c  mov      x0, x21                                      
+00030a50  bl       #0x567b8                                     ; call _objc_release
+00030a54  mov      x0, x20                                      
+00030a58  bl       #0x567b8                                     ; call _objc_release
+00030a5c  mov      x0, x19                                      
+00030a60  bl       #0x567b8                                     ; call _objc_release
+00030a64  ldur     x8, [x29, #-0x90]                            
+00030a68  adrp     x9, #0x78000                                 
+00030a6c  ldr      x9, [x9, #0x360]                             
+00030a70  ldr      x9, [x9]                                     
+00030a74  cmp      x9, x8                                       
+00030a78  b.ne     #0x30aa8                                     
+00030a7c  ldp      x29, x30, [sp, #0x180]                       
+00030a80  ldp      x20, x19, [sp, #0x170]                       
+00030a84  ldp      x22, x21, [sp, #0x160]                       
+00030a88  ldp      x24, x23, [sp, #0x150]                       
+00030a8c  ldp      x26, x25, [sp, #0x140]                       
+00030a90  ldp      x28, x27, [sp, #0x130]                       
+00030a94  ldp      d9, d8, [sp, #0x120]                         
+00030a98  ldp      d11, d10, [sp, #0x110]                       
+00030a9c  ldp      d13, d12, [sp, #0x100]                       
+00030aa0  add      sp, sp, #0x190                               
+00030aa4  ret                                                   
+00030aa8  bl       #0x56404                                     ; call ___stack_chk_fail
+00030aac  mov      x22, x0                                      
+00030ab0  mov      x0, x23                                      
+00030ab4  bl       #0x567b8                                     ; call _objc_release
+00030ab8  b        #0x30c3c                                     
+00030abc  b        #0x30ad4                                     
+00030ac0  mov      x1, x22                                      
+00030ac4  mov      x22, x0                                      
+00030ac8  mov      x0, x1                                       
+00030acc  bl       #0x567b8                                     ; call _objc_release
+00030ad0  b        #0x30bbc                                     
+00030ad4  mov      x22, x0                                      
+00030ad8  b        #0x30c44                                     
+00030adc  mov      x22, x0                                      
+00030ae0  mov      x0, x21                                      
+00030ae4  bl       #0x567b8                                     ; call _objc_release
+00030ae8  mov      x0, x20                                      
+00030aec  bl       #0x567b8                                     ; call _objc_release
+00030af0  b        #0x30c88                                     
+00030af4  mov      x22, x0                                      
+00030af8  mov      x0, x21                                      
+00030afc  bl       #0x567b8                                     ; call _objc_release
+00030b00  mov      x0, x20                                      
+00030b04  bl       #0x567b8                                     ; call _objc_release
+00030b08  b        #0x30c88                                     
+00030b0c  mov      x22, x0                                      
+00030b10  mov      x0, x21                                      
+00030b14  bl       #0x567b8                                     ; call _objc_release
+00030b18  mov      x0, x20                                      
+00030b1c  bl       #0x567b8                                     ; call _objc_release
+00030b20  b        #0x30c88                                     
+00030b24  mov      x22, x0                                      
+00030b28  mov      x0, x23                                      
+00030b2c  bl       #0x567b8                                     ; call _objc_release
+00030b30  b        #0x30c0c                                     
+00030b34  mov      x22, x0                                      
+00030b38  mov      x0, x21                                      
+00030b3c  bl       #0x567b8                                     ; call _objc_release
+00030b40  mov      x0, x20                                      
+00030b44  bl       #0x567b8                                     ; call _objc_release
+00030b48  b        #0x30c88                                     
+00030b4c  mov      x22, x0                                      
+00030b50  mov      x0, x23                                      
+00030b54  bl       #0x567b8                                     ; call _objc_release
+00030b58  b        #0x30c24                                     
+00030b5c  mov      x22, x0                                      
+00030b60  mov      x0, x23                                      
+00030b64  bl       #0x567b8                                     ; call _objc_release
+00030b68  mov      x0, x20                                      
+00030b6c  bl       #0x567b8                                     ; call _objc_release
+00030b70  b        #0x30c88                                     
+00030b74  mov      x22, x0                                      
+00030b78  mov      x0, x20                                      
+00030b7c  bl       #0x567b8                                     ; call _objc_release
+00030b80  b        #0x30c88                                     
+00030b84  mov      x22, x0                                      
+00030b88  mov      x20, #0                                      
+00030b8c  b        #0x30c78                                     
+00030b90  mov      x22, x0                                      
+00030b94  mov      x0, x20                                      
+00030b98  bl       #0x567b8                                     ; call _objc_release
+00030b9c  b        #0x30c88                                     
+00030ba0  mov      x22, x0                                      
+00030ba4  b        #0x30c88                                     
+00030ba8  mov      x22, x0                                      
+00030bac  mov      x0, x23                                      
+00030bb0  bl       #0x567b8                                     ; call _objc_release
+00030bb4  b        #0x30c3c                                     
+00030bb8  mov      x22, x0                                      
+00030bbc  mov      x0, x26                                      
+00030bc0  bl       #0x567b8                                     ; call _objc_release
+00030bc4  b        #0x30bcc                                     
+00030bc8  mov      x22, x0                                      
+00030bcc  mov      x0, x25                                      
+00030bd0  bl       #0x567b8                                     ; call _objc_release
+00030bd4  b        #0x30bdc                                     
+00030bd8  mov      x22, x0                                      
+00030bdc  mov      x0, x24                                      
+00030be0  bl       #0x567b8                                     ; call _objc_release
+00030be4  b        #0x30bec                                     
+00030be8  mov      x22, x0                                      
+00030bec  mov      x0, x23                                      
+00030bf0  bl       #0x567b8                                     ; call _objc_release
+00030bf4  b        #0x30bfc                                     
+00030bf8  mov      x22, x0                                      
+00030bfc  mov      x0, x20                                      
+00030c00  bl       #0x567b8                                     ; call _objc_release
+00030c04  b        #0x30c44                                     
+00030c08  mov      x22, x0                                      
+00030c0c  mov      x0, x21                                      
+00030c10  bl       #0x567b8                                     ; call _objc_release
+00030c14  mov      x0, x20                                      
+00030c18  bl       #0x567b8                                     ; call _objc_release
+00030c1c  b        #0x30c88                                     
+00030c20  mov      x22, x0                                      
+00030c24  mov      x0, x21                                      
+00030c28  bl       #0x567b8                                     ; call _objc_release
+00030c2c  mov      x0, x20                                      
+00030c30  bl       #0x567b8                                     ; call _objc_release
+00030c34  b        #0x30c88                                     
+00030c38  mov      x22, x0                                      
+00030c3c  mov      x0, x20                                      
+00030c40  bl       #0x567b8                                     ; call _objc_release
+00030c44  mov      x0, x21                                      
+00030c48  bl       #0x567b8                                     ; call _objc_release
+00030c4c  b        #0x30c88                                     
+00030c50  mov      x22, x0                                      
+00030c54  mov      x0, x20                                      
+00030c58  bl       #0x567b8                                     ; call _objc_release
+00030c5c  b        #0x30c88                                     
+00030c60  b        #0x30c74                                     
+00030c64  mov      x22, x0                                      
+00030c68  mov      x0, x25                                      
+00030c6c  bl       #0x567b8                                     ; call _objc_release
+00030c70  b        #0x30c78                                     
+00030c74  mov      x22, x0                                      
+00030c78  mov      x0, x21                                      
+00030c7c  bl       #0x567b8                                     ; call _objc_release
+00030c80  mov      x0, x20                                      
+00030c84  bl       #0x567b8                                     ; call _objc_release
+00030c88  mov      x0, x19                                      
+00030c8c  bl       #0x567b8                                     ; call _objc_release
+00030c90  b        #0x30c98                                     
+00030c94  mov      x22, x0                                      
+00030c98  mov      x0, x22                                      
+00030c9c  bl       #0x563e0                                     ; call __Unwind_Resume

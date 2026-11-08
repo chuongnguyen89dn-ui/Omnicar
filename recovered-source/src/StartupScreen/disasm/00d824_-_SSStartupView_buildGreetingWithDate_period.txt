@@ -1,0 +1,132 @@
+; -[SSStartupView buildGreetingWithDate:period:]
+; VA 0xd824  size 516
+
+0x0000d824:  sub      sp, sp, #0x60
+0x0000d828:  stp      x24, x23, [sp, #0x20]
+0x0000d82c:  stp      x22, x21, [sp, #0x30]
+0x0000d830:  stp      x20, x19, [sp, #0x40]
+0x0000d834:  stp      x29, x30, [sp, #0x50]
+0x0000d838:  add      x29, sp, #0x50
+0x0000d83c:  mov      x21, x3
+0x0000d840:  mov      x20, x2
+0x0000d844:  mov      x19, x0
+0x0000d848:  adrp     x8, #0x30000
+0x0000d84c:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0000d850:  ldr      x8, [x8]
+0x0000d854:  str      x8, [sp, #0x18]
+0x0000d858:  adrp     x8, #0x3a000
+0x0000d85c:  ldr      x22, [x8, #0xaf0]    ; class(NSDateFormatter)
+0x0000d860:  mov      x0, x2
+0x0000d864:  bl       #0x2212c    ; -> _objc_retain
+0x0000d868:  mov      x0, x22
+0x0000d86c:  mov      x2, x20
+0x0000d870:  mov      x3, #0
+0x0000d874:  mov      w4, #1
+0x0000d878:  bl       #0x23aa0    ; -> _objc_msgSend(localizedStringFromDate:dateStyle:timeStyle:)
+0x0000d87c:  mov      x29, x29
+0x0000d880:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000d884:  mov      x22, x0
+0x0000d888:  bl       #0xda28    ; -> sub_da28
+0x0000d88c:  mov      x29, x29
+0x0000d890:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000d894:  adrp     x8, #0x3a000
+0x0000d898:  ldrsw    x23, [x8, #0xcd8]
+0x0000d89c:  ldr      x8, [x19, x23]
+0x0000d8a0:  str      x0, [x19, x23]
+0x0000d8a4:  mov      x0, x8
+0x0000d8a8:  bl       #0x22120    ; -> _objc_release
+0x0000d8ac:  mov      x0, x22
+0x0000d8b0:  bl       #0x22120    ; -> _objc_release
+0x0000d8b4:  mov      x0, x19
+0x0000d8b8:  bl       #0x23cc0    ; -> _objc_msgSend(name)
+0x0000d8bc:  mov      x29, x29
+0x0000d8c0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000d8c4:  mov      x22, x0
+0x0000d8c8:  mov      x1, x21
+0x0000d8cc:  bl       #0xdb60    ; -> sub_db60
+0x0000d8d0:  mov      x29, x29
+0x0000d8d4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000d8d8:  mov      x21, x0
+0x0000d8dc:  bl       #0xda28    ; -> sub_da28
+0x0000d8e0:  mov      x29, x29
+0x0000d8e4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000d8e8:  adrp     x8, #0x3a000
+0x0000d8ec:  ldrsw    x24, [x8, #0xcd4]
+0x0000d8f0:  ldr      x8, [x19, x24]
+0x0000d8f4:  str      x0, [x19, x24]
+0x0000d8f8:  mov      x0, x8
+0x0000d8fc:  bl       #0x22120    ; -> _objc_release
+0x0000d900:  mov      x0, x21
+0x0000d904:  bl       #0x22120    ; -> _objc_release
+0x0000d908:  mov      x0, x22
+0x0000d90c:  bl       #0x22120    ; -> _objc_release
+0x0000d910:  mov      x0, x20
+0x0000d914:  bl       #0xdc18    ; -> sub_dc18
+0x0000d918:  mov      x29, x29
+0x0000d91c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000d920:  mov      x21, x0
+0x0000d924:  mov      x0, x20
+0x0000d928:  bl       #0x22120    ; -> _objc_release
+0x0000d92c:  mov      x0, x21
+0x0000d930:  bl       #0xda28    ; -> sub_da28
+0x0000d934:  mov      x29, x29
+0x0000d938:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000d93c:  adrp     x8, #0x3a000
+0x0000d940:  ldrsw    x22, [x8, #0xcd0]
+0x0000d944:  ldr      x8, [x19, x22]
+0x0000d948:  str      x0, [x19, x22]
+0x0000d94c:  mov      x0, x8
+0x0000d950:  bl       #0x22120    ; -> _objc_release
+0x0000d954:  mov      x0, x21
+0x0000d958:  bl       #0x22120    ; -> _objc_release
+0x0000d95c:  ldr      x0, [x19, x22]
+0x0000d960:  adrp     x8, #0x28000
+0x0000d964:  ldr      d0, [x8, #0xe58]
+0x0000d968:  bl       #0x24420    ; -> _objc_msgSend(setAlpha:)
+0x0000d96c:  adrp     x8, #0x3a000
+0x0000d970:  ldr      x0, [x8, #0xb18]    ; class(UIStackView)
+0x0000d974:  bl       #0x22024    ; -> _objc_alloc
+0x0000d978:  mov      x20, x0
+0x0000d97c:  ldr      x8, [x19, x23]
+0x0000d980:  ldr      x9, [x19, x24]
+0x0000d984:  stp      x8, x9, [sp]
+0x0000d988:  ldr      x8, [x19, x22]
+0x0000d98c:  str      x8, [sp, #0x10]
+0x0000d990:  adrp     x8, #0x3a000
+0x0000d994:  ldr      x0, [x8, #0xb00]    ; class(NSArray)
+0x0000d998:  mov      x2, sp
+0x0000d99c:  mov      w3, #3
+0x0000d9a0:  bl       #0x22700    ; -> _objc_msgSend(arrayWithObjects:count:)
+0x0000d9a4:  mov      x29, x29
+0x0000d9a8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000d9ac:  mov      x21, x0
+0x0000d9b0:  mov      x0, x20
+0x0000d9b4:  mov      x2, x21
+0x0000d9b8:  bl       #0x23700    ; -> _objc_msgSend(initWithArrangedSubviews:)
+0x0000d9bc:  adrp     x8, #0x3a000
+0x0000d9c0:  ldrsw    x20, [x8, #0xcc0]
+0x0000d9c4:  ldr      x8, [x19, x20]
+0x0000d9c8:  str      x0, [x19, x20]
+0x0000d9cc:  mov      x0, x8
+0x0000d9d0:  bl       #0x22120    ; -> _objc_release
+0x0000d9d4:  mov      x0, x21
+0x0000d9d8:  bl       #0x22120    ; -> _objc_release
+0x0000d9dc:  ldr      x0, [x19, x20]
+0x0000d9e0:  mov      w2, #1
+0x0000d9e4:  bl       #0x244e0    ; -> _objc_msgSend(setAxis:)
+0x0000d9e8:  ldr      x0, [x19, x20]
+0x0000d9ec:  mov      w2, #3
+0x0000d9f0:  bl       #0x24400    ; -> _objc_msgSend(setAlignment:)
+0x0000d9f4:  ldr      x8, [sp, #0x18]
+0x0000d9f8:  adrp     x9, #0x30000
+0x0000d9fc:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0000da00:  ldr      x9, [x9]
+0x0000da04:  cmp      x9, x8
+0x0000da08:  b.ne     #0xda24
+0x0000da0c:  ldp      x29, x30, [sp, #0x50]
+0x0000da10:  ldp      x20, x19, [sp, #0x40]
+0x0000da14:  ldp      x22, x21, [sp, #0x30]
+0x0000da18:  ldp      x24, x23, [sp, #0x20]
+0x0000da1c:  add      sp, sp, #0x60
+0x0000da20:  ret      
+0x0000da24:  bl       #0x21dd8    ; -> ___stack_chk_fail

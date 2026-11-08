@@ -1,0 +1,20 @@
+; sub_6f28
+; VA 0x6f28  size 68
+
+0x00006f28:  stp      x20, x19, [sp, #-0x20]!
+0x00006f2c:  stp      x29, x30, [sp, #0x10]
+0x00006f30:  add      x29, sp, #0x10
+0x00006f34:  adrp     x19, #0x14000
+0x00006f38:  ldr      x0, [x19, #0x510]
+0x00006f3c:  cbnz     x0, #0x6f60
+0x00006f40:  adrp     x0, #0xc000
+0x00006f44:  add      x0, x0, #0x803    ; "OMC_CRASHGUARD"
+0x00006f48:  bl       #0xb2c0    ; -> _getenv
+0x00006f4c:  cbz      x0, #0x6f60
+0x00006f50:  mov      x1, #0
+0x00006f54:  mov      w2, #0x10
+0x00006f58:  bl       #0xb530    ; -> _strtoull
+0x00006f5c:  str      x0, [x19, #0x510]
+0x00006f60:  ldp      x29, x30, [sp, #0x10]
+0x00006f64:  ldp      x20, x19, [sp], #0x20
+0x00006f68:  ret      

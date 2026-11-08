@@ -1,0 +1,14 @@
+; sub_1bab4
+; VA 0x1bab4  size 44
+
+0x0001bab4:  stp      x29, x30, [sp, #-0x10]!
+0x0001bab8:  mov      x29, sp
+0x0001babc:  adrp     x0, #0x34000
+0x0001bac0:  add      x0, x0, #0x28    ; @"NSDistributedNotificationCenter"
+0x0001bac4:  bl       #0x21d24    ; -> _NSClassFromString
+0x0001bac8:  cbz      x0, #0x1bad8
+0x0001bacc:  bl       #0x23060    ; -> _objc_msgSend(defaultCenter)
+0x0001bad0:  mov      x29, x29
+0x0001bad4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bad8:  ldp      x29, x30, [sp], #0x10
+0x0001badc:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

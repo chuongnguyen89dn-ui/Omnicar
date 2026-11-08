@@ -1,0 +1,55 @@
+# sub_64d8
+# addr 0x64d8 .. 0x65a8  (208 bytes)
+
+000064d8  stp      x24, x23, [sp, #-0x40]!                     
+000064dc  stp      x22, x21, [sp, #0x10]                       
+000064e0  stp      x20, x19, [sp, #0x20]                       
+000064e4  stp      x29, x30, [sp, #0x30]                       
+000064e8  add      x29, sp, #0x30                              
+000064ec  mov      x19, x0                                     
+000064f0  ldr      x23, [x0, #0x20]                            
+000064f4  adrp     x22, #0x42000                               
+000064f8  ldr      x0, [x22, #0xf68]                           ; [0x42f68] classref -> SPPSpeedGPS
+000064fc  bl       #0x2bd80                                    ; objc_msgSend$shared
+00006500  mov      x29, x29                                    
+00006504  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00006508  mov      x20, x0                                     
+0000650c  bl       #0x29e80                                    ; objc_msgSend$mgr
+00006510  mov      x29, x29                                    
+00006514  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00006518  mov      x21, x0                                     
+0000651c  bl       #0x27ff8                                    ; _objc_release
+00006520  mov      x0, x20                                     
+00006524  bl       #0x27ff8                                    ; _objc_release
+00006528  cmp      x23, x21                                    
+0000652c  b.eq     #0x657c                                     
+00006530  ldrb     w8, [x19, #0x28]                            
+00006534  cmp      w8, #1                                      
+00006538  b.ne     #0x6544                                     
+0000653c  bl       #0x65a8                                     ; sub_65a8
+00006540  cbz      w0, #0x657c                                 
+00006544  ldr      x0, [x22, #0xf68]                           ; [0x42f68] classref -> SPPSpeedGPS
+00006548  bl       #0x2bd80                                    ; objc_msgSend$shared
+0000654c  mov      x29, x29                                    
+00006550  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00006554  mov      x20, x0                                     
+00006558  ldr      x2, [x19, #0x20]                            
+0000655c  ldrb     w3, [x19, #0x28]                            
+00006560  bl       #0x28680                                    ; objc_msgSend$appManager:running:
+00006564  mov      x0, x20                                     
+00006568  ldp      x29, x30, [sp, #0x30]                       
+0000656c  ldp      x20, x19, [sp, #0x20]                       
+00006570  ldp      x22, x21, [sp, #0x10]                       
+00006574  ldp      x24, x23, [sp], #0x40                       
+00006578  b        #0x27ff8                                    ; _objc_release
+0000657c  ldp      x29, x30, [sp, #0x30]                       
+00006580  ldp      x20, x19, [sp, #0x20]                       
+00006584  ldp      x22, x21, [sp, #0x10]                       
+00006588  ldp      x24, x23, [sp], #0x40                       
+0000658c  ret                                                  
+00006590  b        #0x6594                                     ; sub_6594
+00006594  mov      x19, x0                                     
+00006598  mov      x0, x20                                     
+0000659c  bl       #0x27ff8                                    ; _objc_release
+000065a0  mov      x0, x19                                     
+000065a4  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,65 @@
+; -[SCPCarSplit hostCloseAll]
+0x03f25c  sub      sp, sp, #0x50
+0x03f260  stp      x22, x21, [sp, #0x20]
+0x03f264  stp      x20, x19, [sp, #0x30]
+0x03f268  stp      x29, x30, [sp, #0x40]
+0x03f26c  add      x29, sp, #0x40
+0x03f270  mov      x20, x0
+0x03f274  adrp     x8, #0x78000
+0x03f278  ldr      x8, [x8, #0x360] ; [0x78360] ___stack_chk_guard
+0x03f27c  ldr      x8, [x8] ; [0x78000] <ordinal 0>
+0x03f280  str      x8, [sp, #0x18]
+0x03f284  bl       #0x5c1e0 ; objc_msgSend$soloHostedBundle
+0x03f288  mov      x29, x29
+0x03f28c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f290  mov      x19, x0
+0x03f294  cbz      x0, #0x3f2cc
+0x03f298  adrp     x8, #0x7d000
+0x03f29c  add      x8, x8, #0x4c0 ; -> 0x7d4c0 @"except"
+0x03f2a0  stp      x8, x19, [sp, #8]
+0x03f2a4  adrp     x8, #0x87000
+0x03f2a8  ldr      x0, [x8, #0x6b8] ; [0x876b8] class:NSDictionary
+0x03f2ac  add      x2, sp, #0x10
+0x03f2b0  add      x3, sp, #8
+0x03f2b4  mov      w4, #1
+0x03f2b8  bl       #0x57bc0 ; objc_msgSend$dictionaryWithObjects:forKeys:count:
+0x03f2bc  mov      x29, x29
+0x03f2c0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03f2c4  mov      x21, x0
+0x03f2c8  b        #0x3f2d4
+0x03f2cc  adrp     x21, #0x78000
+0x03f2d0  ldr      x21, [x21, #0x240] ; [0x78240] ___NSDictionary0__struct
+0x03f2d4  adrp     x2, #0x7d000
+0x03f2d8  add      x2, x2, #0x4a0 ; -> 0x7d4a0 @"com.anlai.omnicar/appbridge.closeall"
+0x03f2dc  mov      x0, x20
+0x03f2e0  mov      x3, x21
+0x03f2e4  bl       #0x58720 ; objc_msgSend$hostPost:info:
+0x03f2e8  cbz      x19, #0x3f2f4
+0x03f2ec  mov      x0, x21
+0x03f2f0  bl       #0x567b8 ; call _objc_release
+0x03f2f4  mov      x0, x19
+0x03f2f8  bl       #0x567b8 ; call _objc_release
+0x03f2fc  ldr      x8, [sp, #0x18]
+0x03f300  adrp     x9, #0x78000
+0x03f304  ldr      x9, [x9, #0x360] ; [0x78360] ___stack_chk_guard
+0x03f308  ldr      x9, [x9] ; [0x78000] <ordinal 0>
+0x03f30c  cmp      x9, x8
+0x03f310  b.ne     #0x3f328
+0x03f314  ldp      x29, x30, [sp, #0x40]
+0x03f318  ldp      x20, x19, [sp, #0x30]
+0x03f31c  ldp      x22, x21, [sp, #0x20]
+0x03f320  add      sp, sp, #0x50
+0x03f324  ret      
+0x03f328  bl       #0x56404 ; call ___stack_chk_fail
+0x03f32c  mov      x20, x0
+0x03f330  b        #0x3f344
+0x03f334  mov      x20, x0
+0x03f338  cbz      x19, #0x3f344
+0x03f33c  mov      x0, x21
+0x03f340  bl       #0x567b8 ; call _objc_release
+0x03f344  mov      x0, x19
+0x03f348  bl       #0x567b8 ; call _objc_release
+0x03f34c  b        #0x3f354
+0x03f350  mov      x20, x0
+0x03f354  mov      x0, x20
+0x03f358  bl       #0x563e0 ; call __Unwind_Resume

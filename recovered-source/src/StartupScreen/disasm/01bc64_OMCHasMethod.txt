@@ -1,0 +1,48 @@
+; OMCHasMethod
+; VA 0x1bc64  size 180
+
+0x0001bc64:  stp      x22, x21, [sp, #-0x30]!
+0x0001bc68:  stp      x20, x19, [sp, #0x10]
+0x0001bc6c:  stp      x29, x30, [sp, #0x20]
+0x0001bc70:  add      x29, sp, #0x20
+0x0001bc74:  mov      x19, x1
+0x0001bc78:  mov      x20, x0
+0x0001bc7c:  mov      x0, x1
+0x0001bc80:  bl       #0x2212c    ; -> _objc_retain
+0x0001bc84:  mov      x0, x20
+0x0001bc88:  bl       #0x1bd18    ; -> OMCCarClass
+0x0001bc8c:  mov      x20, x0
+0x0001bc90:  cbz      x0, #0x1bcfc
+0x0001bc94:  adrp     x2, #0x33000
+0x0001bc98:  add      x2, x2, #0xba8    ; @"+"
+0x0001bc9c:  mov      x0, x19
+0x0001bca0:  bl       #0x23540    ; -> _objc_msgSend(hasPrefix:)
+0x0001bca4:  cbz      w0, #0x1bce0
+0x0001bca8:  mov      x0, x19
+0x0001bcac:  mov      w2, #1
+0x0001bcb0:  bl       #0x25c80    ; -> _objc_msgSend(substringFromIndex:)
+0x0001bcb4:  mov      x29, x29
+0x0001bcb8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bcbc:  mov      x21, x0
+0x0001bcc0:  bl       #0x21d48    ; -> _NSSelectorFromString
+0x0001bcc4:  mov      x22, x0
+0x0001bcc8:  mov      x0, x21
+0x0001bccc:  bl       #0x22120    ; -> _objc_release
+0x0001bcd0:  mov      x0, x20
+0x0001bcd4:  mov      x1, x22
+0x0001bcd8:  bl       #0x21e5c    ; -> _class_getClassMethod
+0x0001bcdc:  b        #0x1bcf4    ; -> sub_1bcf4
+0x0001bce0:  mov      x0, x19
+0x0001bce4:  bl       #0x21d48    ; -> _NSSelectorFromString
+0x0001bce8:  mov      x1, x0
+0x0001bcec:  mov      x0, x20
+0x0001bcf0:  bl       #0x21e68    ; -> _class_getInstanceMethod
+0x0001bcf4:  cmp      x0, #0
+0x0001bcf8:  cset     w20, ne
+0x0001bcfc:  mov      x0, x19
+0x0001bd00:  bl       #0x22120    ; -> _objc_release
+0x0001bd04:  mov      x0, x20
+0x0001bd08:  ldp      x29, x30, [sp, #0x20]
+0x0001bd0c:  ldp      x20, x19, [sp, #0x10]
+0x0001bd10:  ldp      x22, x21, [sp], #0x30
+0x0001bd14:  ret      

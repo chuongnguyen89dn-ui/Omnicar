@@ -1,0 +1,32 @@
+# sub_19810
+# addr 0x19810 .. 0x19884  (116 bytes)
+
+00019810  sub      sp, sp, #0x80                               
+00019814  stp      x20, x19, [sp, #0x60]                       
+00019818  stp      x29, x30, [sp, #0x70]                       
+0001981c  add      x29, sp, #0x70                              
+00019820  mov      x19, x0                                     
+00019824  ldr      x0, [x0, #0x20]                             
+00019828  fmov     d0, xzr                                     
+0001982c  bl       #0x2a980                                    ; objc_msgSend$setAlpha:
+00019830  ldr      x0, [x19, #0x28]                            
+00019834  cbz      x0, #0x1984c                                
+00019838  adrp     x8, #0x32000                                
+0001983c  ldr      d0, [x8, #0x948]                            ; [0x32948] __const[0x32948] double=0.8 float=-1.5881868392106856e-23
+00019840  add      x8, sp, #0x30                               
+00019844  bl       #0x288e0                                    ; objc_msgSend$baseScaled:
+00019848  b        #0x19858                                    ; sub_19858
+0001984c  movi     v0.16b, #0                                  
+00019850  stp      q0, q0, [sp, #0x40]                         
+00019854  str      q0, [sp, #0x30]                             
+00019858  ldp      q0, q1, [sp, #0x30]                         
+0001985c  stp      q0, q1, [sp]                                
+00019860  ldr      q0, [sp, #0x50]                             
+00019864  str      q0, [sp, #0x20]                             
+00019868  ldr      x0, [x19, #0x20]                            
+0001986c  mov      x2, sp                                      
+00019870  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+00019874  ldp      x29, x30, [sp, #0x70]                       
+00019878  ldp      x20, x19, [sp, #0x60]                       
+0001987c  add      sp, sp, #0x80                               
+00019880  ret                                                  

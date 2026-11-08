@@ -1,0 +1,21 @@
+; ==== SCPCarSplit__mainStack  @0x10ffc..0x1104c (80 bytes) ====
+00010ffc  stp      x20, x19, [sp, #-0x20]!                      
+00011000  stp      x29, x30, [sp, #0x10]                        
+00011004  add      x29, sp, #0x10                               
+00011008  mov      x19, x0                                      
+0001100c  bl       #0x59040                                     ; msgSend "layoutKind"
+00011010  cmp      x0, #1                                       
+00011014  b.eq     #0x11028                                     
+00011018  mov      x0, x19                                      
+0001101c  bl       #0x59040                                     ; msgSend "layoutKind"
+00011020  cmp      x0, #2                                       
+00011024  b.ne     #0x1103c                                     
+00011028  mov      x0, x19                                      
+0001102c  bl       #0x59800                                     ; msgSend "paneCount"
+00011030  cmp      w0, #3                                       
+00011034  cset     w0, eq                                       
+00011038  b        #0x11040                                     
+0001103c  mov      w0, #0                                       
+00011040  ldp      x29, x30, [sp, #0x10]                        
+00011044  ldp      x20, x19, [sp], #0x20                        
+00011048  ret                                                   

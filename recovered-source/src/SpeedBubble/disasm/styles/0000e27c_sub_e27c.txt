@@ -1,0 +1,42 @@
+# sub_e27c
+# addr 0xe27c .. 0xe318  (156 bytes)
+
+0000e27c  stp      x22, x21, [sp, #-0x30]!                     
+0000e280  stp      x20, x19, [sp, #0x10]                       
+0000e284  stp      x29, x30, [sp, #0x20]                       
+0000e288  add      x29, sp, #0x20                              
+0000e28c  mov      x19, x1                                     
+0000e290  mov      x20, x0                                     
+0000e294  adrp     x8, #0x43000                                
+0000e298  ldr      x21, [x8]                                   ; [0x43000] classref -> UILabel (= import _OBJC_CLASS_$_UILabel)
+0000e29c  mov      x0, x1                                      
+0000e2a0  bl       #0x28004                                    ; _objc_retain
+0000e2a4  mov      x0, x20                                     
+0000e2a8  bl       #0x28004                                    ; _objc_retain
+0000e2ac  mov      x0, x21                                     
+0000e2b0  bl       #0x27f14                                    ; _objc_alloc_init
+0000e2b4  mov      x21, x0                                     
+0000e2b8  mov      x2, x20                                     
+0000e2bc  bl       #0x2afa0                                    ; objc_msgSend$setFont:
+0000e2c0  mov      x0, x20                                     
+0000e2c4  bl       #0x27ff8                                    ; _objc_release
+0000e2c8  mov      x0, x21                                     
+0000e2cc  mov      x2, x19                                     
+0000e2d0  bl       #0x2ba00                                    ; objc_msgSend$setTextColor:
+0000e2d4  mov      x0, x19                                     
+0000e2d8  bl       #0x27ff8                                    ; _objc_release
+0000e2dc  mov      x0, x21                                     
+0000e2e0  mov      w2, #1                                      
+0000e2e4  bl       #0x2b9e0                                    ; objc_msgSend$setTextAlignment:
+0000e2e8  mov      x0, x21                                     
+0000e2ec  mov      w2, #1                                      
+0000e2f0  bl       #0x2a920                                    ; objc_msgSend$setAdjustsFontSizeToFitWidth:
+0000e2f4  adrp     x8, #0x32000                                
+0000e2f8  ldr      d0, [x8, #0x848]                            ; [0x32848] __const[0x32848] double=0.6 float=4.17232506322307e-08
+0000e2fc  mov      x0, x21                                     
+0000e300  bl       #0x2b420                                    ; objc_msgSend$setMinimumScaleFactor:
+0000e304  mov      x0, x21                                     
+0000e308  ldp      x29, x30, [sp, #0x20]                       
+0000e30c  ldp      x20, x19, [sp, #0x10]                       
+0000e310  ldp      x22, x21, [sp], #0x30                       
+0000e314  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

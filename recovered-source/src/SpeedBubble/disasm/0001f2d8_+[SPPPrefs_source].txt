@@ -1,0 +1,89 @@
+# +[SPPPrefs source]
+# addr 0x1f2d8 .. 0x1f430  (344 bytes)
+
+0001f2d8  stp      x22, x21, [sp, #-0x30]!                     
+0001f2dc  stp      x20, x19, [sp, #0x10]                       
+0001f2e0  stp      x29, x30, [sp, #0x20]                       
+0001f2e4  add      x29, sp, #0x20                              
+0001f2e8  adrp     x0, #0x3b000                                
+0001f2ec  add      x0, x0, #0x278                              ; @"speedBubbleSource"
+0001f2f0  bl       #0x1edb0                                    ; sub_1edb0
+0001f2f4  mov      x29, x29                                    
+0001f2f8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f2fc  mov      x19, x0                                     
+0001f300  cbz      x0, #0x1f360                                
+0001f304  mov      x0, x19                                     
+0001f308  bl       #0x29940                                    ; objc_msgSend$intValue
+0001f30c  mov      x20, x0                                     
+0001f310  adrp     x0, #0x3b000                                
+0001f314  add      x0, x0, #0x298                              ; @"speedBubbleSourceV2"
+0001f318  bl       #0x1edb0                                    ; sub_1edb0
+0001f31c  mov      x29, x29                                    
+0001f320  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f324  mov      x21, x0                                     
+0001f328  bl       #0x28a60                                    ; objc_msgSend$boolValue
+0001f32c  mov      x22, x0                                     
+0001f330  mov      x0, x21                                     
+0001f334  bl       #0x27ff8                                    ; _objc_release
+0001f338  cmp      w20, #2                                     
+0001f33c  csel     w8, w20, wzr, lo                            
+0001f340  cmp      w20, #4                                     
+0001f344  mov      w9, #2                                      
+0001f348  csel     w8, w9, w8, eq                              
+0001f34c  cmp      w22, #0                                     
+0001f350  csel     w8, w20, w8, ne                             
+0001f354  cmp      w8, #4                                      
+0001f358  csel     w22, w8, wzr, lo                            
+0001f35c  b        #0x1f3d0                                    ; sub_1f3d0
+0001f360  adrp     x0, #0x3b000                                
+0001f364  add      x0, x0, #0x2b8                              ; @"speedBubbleAppVietmap"
+0001f368  bl       #0x1edb0                                    ; sub_1edb0
+0001f36c  mov      x29, x29                                    
+0001f370  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f374  mov      x20, x0                                     
+0001f378  adrp     x0, #0x3b000                                
+0001f37c  add      x0, x0, #0x2d8                              ; @"speedBubbleAppGOFA"
+0001f380  bl       #0x1edb0                                    ; sub_1edb0
+0001f384  mov      x29, x29                                    
+0001f388  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f38c  mov      x21, x0                                     
+0001f390  cbz      x20, #0x1f3a0                               
+0001f394  mov      x0, x20                                     
+0001f398  bl       #0x28a60                                    ; objc_msgSend$boolValue
+0001f39c  tbz      w0, #0, #0x1f3a8                            
+0001f3a0  mov      w22, #0                                     
+0001f3a4  b        #0x1f3c0                                    ; sub_1f3c0
+0001f3a8  cbz      x21, #0x1f3bc                               
+0001f3ac  mov      x0, x21                                     
+0001f3b0  bl       #0x28a60                                    ; objc_msgSend$boolValue
+0001f3b4  mov      x22, x0                                     
+0001f3b8  b        #0x1f3c0                                    ; sub_1f3c0
+0001f3bc  mov      w22, #1                                     
+0001f3c0  mov      x0, x21                                     
+0001f3c4  bl       #0x27ff8                                    ; _objc_release
+0001f3c8  mov      x0, x20                                     
+0001f3cc  bl       #0x27ff8                                    ; _objc_release
+0001f3d0  mov      x0, x19                                     
+0001f3d4  bl       #0x27ff8                                    ; _objc_release
+0001f3d8  mov      x0, x22                                     
+0001f3dc  ldp      x29, x30, [sp, #0x20]                       
+0001f3e0  ldp      x20, x19, [sp, #0x10]                       
+0001f3e4  ldp      x22, x21, [sp], #0x30                       
+0001f3e8  ret                                                  
+0001f3ec  mov      x22, x0                                     
+0001f3f0  mov      x0, x21                                     
+0001f3f4  bl       #0x27ff8                                    ; _objc_release
+0001f3f8  b        #0x1f400                                    ; sub_1f400
+0001f3fc  mov      x22, x0                                     
+0001f400  mov      x0, x20                                     
+0001f404  b        #0x1f414                                    ; sub_1f414
+0001f408  b        #0x1f41c                                    ; sub_1f41c
+0001f40c  mov      x22, x0                                     
+0001f410  mov      x0, x21                                     
+0001f414  bl       #0x27ff8                                    ; _objc_release
+0001f418  b        #0x1f420                                    ; sub_1f420
+0001f41c  mov      x22, x0                                     
+0001f420  mov      x0, x19                                     
+0001f424  bl       #0x27ff8                                    ; _objc_release
+0001f428  mov      x0, x22                                     
+0001f42c  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,22 @@
+# sub_cfc4
+# addr 0xcfc4 .. 0xd010  (76 bytes)
+
+0000cfc4  stp      x20, x19, [sp, #-0x20]!                     
+0000cfc8  stp      x29, x30, [sp, #0x10]                       
+0000cfcc  add      x29, sp, #0x10                              
+0000cfd0  adrp     x8, #0x43000                                
+0000cfd4  ldr      x0, [x8, #0x40]                             ; [0x43040] classref -> SPPBubble
+0000cfd8  bl       #0x2bd80                                    ; objc_msgSend$shared
+0000cfdc  mov      x29, x29                                    
+0000cfe0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000cfe4  mov      x19, x0                                     
+0000cfe8  bl       #0x2a680                                    ; objc_msgSend$resetLayout
+0000cfec  mov      x0, x19                                     
+0000cff0  ldp      x29, x30, [sp, #0x10]                       
+0000cff4  ldp      x20, x19, [sp], #0x20                       
+0000cff8  b        #0x27ff8                                    ; _objc_release
+0000cffc  mov      x20, x0                                     
+0000d000  mov      x0, x19                                     
+0000d004  bl       #0x27ff8                                    ; _objc_release
+0000d008  mov      x0, x20                                     
+0000d00c  bl       #0x27c80                                    ; __Unwind_Resume

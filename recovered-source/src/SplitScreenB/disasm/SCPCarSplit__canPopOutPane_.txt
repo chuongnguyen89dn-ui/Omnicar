@@ -1,0 +1,14 @@
+; ==== SCPCarSplit__canPopOutPane_  @0x201bc..0x201f0 (52 bytes) ====
+000201bc  stp      x20, x19, [sp, #-0x20]!                      
+000201c0  stp      x29, x30, [sp, #0x10]                        
+000201c4  add      x29, sp, #0x10                               
+000201c8  bl       #0x59be0                                     ; msgSend "popOutBlockReason:"
+000201cc  mov      x29, x29                                     
+000201d0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000201d4  cmp      x0, #0                                       
+000201d8  cset     w19, eq                                      
+000201dc  bl       #0x567b8                                     ; call _objc_release
+000201e0  mov      x0, x19                                      
+000201e4  ldp      x29, x30, [sp, #0x10]                        
+000201e8  ldp      x20, x19, [sp], #0x20                        
+000201ec  ret                                                   

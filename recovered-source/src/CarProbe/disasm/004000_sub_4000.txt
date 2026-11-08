@@ -1,0 +1,51 @@
+; sub_4000
+; VA 0x4000  size 192
+
+0x00004000:  stp      x29, x30, [sp, #-0x10]!
+0x00004004:  mov      x29, sp
+0x00004008:  adrp     x8, #0x14000
+0x0000400c:  ldr      x8, [x8, #0x468]
+0x00004010:  cmn      x8, #1
+0x00004014:  b.ne     #0x4028
+0x00004018:  adrp     x8, #0x14000
+0x0000401c:  ldr      x0, [x8, #0x440]
+0x00004020:  ldp      x29, x30, [sp], #0x10
+0x00004024:  br       x0
+0x00004028:  adrp     x0, #0x14000
+0x0000402c:  add      x0, x0, #0x468
+0x00004030:  adrp     x1, #0x10000
+0x00004034:  add      x1, x1, #0x408    ; block_lit(invoke=0x4170 sub_4170, sig=v8@?0)
+0x00004038:  bl       #0xb200    ; -> _dispatch_once
+0x0000403c:  b        #0x4018    ; -> sub_4018
+0x00004040:  stp      x29, x30, [sp, #-0x10]!
+0x00004044:  mov      x29, sp
+0x00004048:  adrp     x8, #0x14000
+0x0000404c:  ldr      x8, [x8, #0x468]
+0x00004050:  cmn      x8, #1
+0x00004054:  b.ne     #0x4068
+0x00004058:  adrp     x8, #0x14000
+0x0000405c:  ldr      x0, [x8, #0x448]
+0x00004060:  ldp      x29, x30, [sp], #0x10
+0x00004064:  br       x0
+0x00004068:  adrp     x0, #0x14000
+0x0000406c:  add      x0, x0, #0x468
+0x00004070:  adrp     x1, #0x10000
+0x00004074:  add      x1, x1, #0x408    ; block_lit(invoke=0x4170 sub_4170, sig=v8@?0)
+0x00004078:  bl       #0xb200    ; -> _dispatch_once
+0x0000407c:  b        #0x4058    ; -> sub_4058
+0x00004080:  stp      x29, x30, [sp, #-0x10]!
+0x00004084:  mov      x29, sp
+0x00004088:  adrp     x8, #0x14000
+0x0000408c:  ldr      x8, [x8, #0x468]
+0x00004090:  cmn      x8, #1
+0x00004094:  b.ne     #0x40a8
+0x00004098:  adrp     x8, #0x14000
+0x0000409c:  ldr      x0, [x8, #0x450]
+0x000040a0:  ldp      x29, x30, [sp], #0x10
+0x000040a4:  br       x0
+0x000040a8:  adrp     x0, #0x14000
+0x000040ac:  add      x0, x0, #0x468
+0x000040b0:  adrp     x1, #0x10000
+0x000040b4:  add      x1, x1, #0x408    ; block_lit(invoke=0x4170 sub_4170, sig=v8@?0)
+0x000040b8:  bl       #0xb200    ; -> _dispatch_once
+0x000040bc:  b        #0x4098    ; -> sub_4098

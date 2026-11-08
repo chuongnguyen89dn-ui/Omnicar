@@ -1,0 +1,80 @@
+# sub_d1cc
+# addr 0xd1cc .. 0xd300  (308 bytes)
+
+0000d1cc  sub      sp, sp, #0x130                              
+0000d1d0  stp      d9, d8, [sp, #0xd0]                         
+0000d1d4  stp      x28, x27, [sp, #0xe0]                       
+0000d1d8  stp      x24, x23, [sp, #0xf0]                       
+0000d1dc  stp      x22, x21, [sp, #0x100]                      
+0000d1e0  stp      x20, x19, [sp, #0x110]                      
+0000d1e4  stp      x29, x30, [sp, #0x120]                      
+0000d1e8  add      x29, sp, #0x120                             
+0000d1ec  adrp     x8, #0x38000                                
+0000d1f0  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0000d1f4  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000d1f8  stur     x8, [x29, #-0x58]                           
+0000d1fc  bl       #0xd308                                     ; sub_d308
+0000d200  movi     v0.16b, #0                                  
+0000d204  stp      q0, q0, [sp, #0x20]                         
+0000d208  stp      q0, q0, [sp]                                
+0000d20c  adrp     x0, #0x3c000                                
+0000d210  add      x0, x0, #0xe18                              ; __DATA_CONST,__objc_arrayobj+0xd8
+0000d214  mov      x2, sp                                      
+0000d218  add      x3, sp, #0x48                               
+0000d21c  mov      w4, #0x10                                   
+0000d220  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0000d224  mov      x19, x0                                     
+0000d228  cbz      x0, #0xd2c0                                 
+0000d22c  ldr      x8, [sp, #0x10]                             
+0000d230  ldr      x23, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000d234  adrp     x8, #0x32000                                
+0000d238  ldr      d8, [x8, #0x7a0]                            ; [0x327a0] __const[0x327a0] double=1000000000.0 float=0.0
+0000d23c  adrp     x20, #0x38000                               
+0000d240  ldr      x20, [x20, #0x350]                          ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000d244  adrp     x21, #0x38000                               
+0000d248  add      x21, x21, #0x9d8                            ; __const[0x389d8] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000d24c  adrp     x22, #0x3c000                               
+0000d250  add      x22, x22, #0xe18                            ; __DATA_CONST,__objc_arrayobj+0xd8
+0000d254  mov      x24, #0                                     
+0000d258  ldr      x8, [sp, #0x10]                             
+0000d25c  ldr      x8, [x8]                                    ; [0x32000] __TEXT,__gcc_except_tab+0x2338
+0000d260  cmp      x8, x23                                     
+0000d264  b.eq     #0xd270                                     
+0000d268  mov      x0, x22                                     
+0000d26c  bl       #0x27f68                                    ; _objc_enumerationMutation
+0000d270  ldr      x8, [sp, #8]                                
+0000d274  ldr      x0, [x8, x24, lsl #3]                       ; [0x32000] __TEXT,__gcc_except_tab+0x2338
+0000d278  bl       #0x292c0                                    ; objc_msgSend$doubleValue
+0000d27c  fmul     d0, d0, d8                                  
+0000d280  fcvtzs   x1, d0                                      
+0000d284  mov      x0, #0                                      
+0000d288  bl       #0x27dc4                                    ; _dispatch_time
+0000d28c  mov      x1, x20                                     
+0000d290  mov      x2, x21                                     
+0000d294  bl       #0x27d58                                    ; _dispatch_after
+0000d298  add      x24, x24, #1                                
+0000d29c  cmp      x19, x24                                    
+0000d2a0  b.ne     #0xd258                                     
+0000d2a4  mov      x2, sp                                      
+0000d2a8  add      x3, sp, #0x48                               
+0000d2ac  mov      x0, x22                                     
+0000d2b0  mov      w4, #0x10                                   
+0000d2b4  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0000d2b8  mov      x19, x0                                     
+0000d2bc  cbnz     x0, #0xd254                                 
+0000d2c0  ldur     x8, [x29, #-0x58]                           
+0000d2c4  adrp     x9, #0x38000                                
+0000d2c8  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0000d2cc  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000d2d0  cmp      x9, x8                                      
+0000d2d4  b.ne     #0xd2f8                                     
+0000d2d8  ldp      x29, x30, [sp, #0x120]                      
+0000d2dc  ldp      x20, x19, [sp, #0x110]                      
+0000d2e0  ldp      x22, x21, [sp, #0x100]                      
+0000d2e4  ldp      x24, x23, [sp, #0xf0]                       
+0000d2e8  ldp      x28, x27, [sp, #0xe0]                       
+0000d2ec  ldp      d9, d8, [sp, #0xd0]                         
+0000d2f0  add      sp, sp, #0x130                              
+0000d2f4  ret                                                  
+0000d2f8  bl       #0x27ca4                                    ; ___stack_chk_fail
+0000d2fc  bl       #0x27c80                                    ; __Unwind_Resume

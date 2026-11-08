@@ -1,0 +1,73 @@
+# sub_217a8
+# addr 0x217a8 .. 0x218c0  (280 bytes)
+
+000217a8  sub      sp, sp, #0x50                               
+000217ac  stp      x22, x21, [sp, #0x20]                       
+000217b0  stp      x20, x19, [sp, #0x30]                       
+000217b4  stp      x29, x30, [sp, #0x40]                       
+000217b8  add      x29, sp, #0x40                              
+000217bc  mov      x19, x0                                     
+000217c0  adrp     x8, #0x38000                                
+000217c4  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+000217c8  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000217cc  str      x8, [sp, #0x18]                             
+000217d0  adrp     x20, #0x43000                               
+000217d4  ldr      x8, [x20, #0xa98]                           ; [0x43a98] __DATA,__bss+0x2f8
+000217d8  cmn      x8, #1                                      
+000217dc  b.ne     #0x218ac                                    
+000217e0  adrp     x21, #0x43000                               
+000217e4  ldrb     w8, [x21, #0xa90]                           
+000217e8  cmp      w8, #1                                      
+000217ec  b.ne     #0x217f4                                    
+000217f0  bl       #0x218c0                                    ; sub_218c0
+000217f4  ldr      x0, [x19, #0x20]                            
+000217f8  bl       #0x21980                                    ; sub_21980
+000217fc  tbnz     w0, #0, #0x21880                            
+00021800  ldr      x8, [x20, #0xa98]                           ; [0x43a98] __DATA,__bss+0x2f8
+00021804  cmn      x8, #1                                      
+00021808  b.ne     #0x218b4                                    
+0002180c  ldrb     w8, [x21, #0xa90]                           
+00021810  tbnz     w8, #0, #0x21880                            
+00021814  bl       #0x219f0                                    ; sub_219f0
+00021818  mov      x29, x29                                    
+0002181c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021820  mov      x20, x0                                     
+00021824  adrp     x8, #0x3b000                                
+00021828  add      x9, x8, #0x638                              ; @"line"
+0002182c  ldr      x8, [x19, #0x20]                            
+00021830  stp      x9, x8, [sp, #8]                            
+00021834  adrp     x8, #0x42000                                
+00021838  ldr      x0, [x8, #0xfa8]                            ; [0x42fa8] classref -> NSDictionary (= import _OBJC_CLASS_$_NSDictionary)
+0002183c  add      x2, sp, #0x10                               
+00021840  add      x3, sp, #8                                  
+00021844  mov      w4, #1                                      
+00021848  bl       #0x29240                                    ; objc_msgSend$dictionaryWithObjects:forKeys:count:
+0002184c  mov      x29, x29                                    
+00021850  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021854  mov      x19, x0                                     
+00021858  adrp     x2, #0x3b000                                
+0002185c  add      x2, x2, #0x618                              ; @"com.anlai.omnicar/log"
+00021860  mov      x0, x20                                     
+00021864  mov      x3, #0                                      
+00021868  mov      x4, x19                                     
+0002186c  bl       #0x2a380                                    ; objc_msgSend$postNotificationName:object:userInfo:
+00021870  mov      x0, x19                                     
+00021874  bl       #0x27ff8                                    ; _objc_release
+00021878  mov      x0, x20                                     
+0002187c  bl       #0x27ff8                                    ; _objc_release
+00021880  ldr      x8, [sp, #0x18]                             
+00021884  adrp     x9, #0x38000                                
+00021888  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0002188c  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00021890  cmp      x9, x8                                      
+00021894  b.ne     #0x218bc                                    
+00021898  ldp      x29, x30, [sp, #0x40]                       
+0002189c  ldp      x20, x19, [sp, #0x30]                       
+000218a0  ldp      x22, x21, [sp, #0x20]                       
+000218a4  add      sp, sp, #0x50                               
+000218a8  ret                                                  
+000218ac  bl       #0x27a38                                    ; sub_27a38
+000218b0  b        #0x217e0                                    ; sub_217e0
+000218b4  bl       #0x27a3c                                    ; sub_27a3c
+000218b8  b        #0x2180c                                    ; sub_2180c
+000218bc  bl       #0x27ca4                                    ; ___stack_chk_fail

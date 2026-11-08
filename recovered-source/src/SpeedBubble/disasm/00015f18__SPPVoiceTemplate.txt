@@ -1,0 +1,67 @@
+# _SPPVoiceTemplate
+# addr 0x15f18 .. 0x16018  (256 bytes)
+
+00015f18  stp      x29, x30, [sp, #-0x10]!                     
+00015f1c  mov      x29, sp                                     
+00015f20  cmp      x0, #3                                      
+00015f24  b.le     #0x15f54                                    
+00015f28  cmp      x0, #5                                      
+00015f2c  b.gt     #0x15f80                                    
+00015f30  cmp      x0, #4                                      
+00015f34  b.eq     #0x15fcc                                    
+00015f38  cmp      x0, #5                                      
+00015f3c  b.ne     #0x15fb8                                    
+00015f40  adrp     x0, #0x3a000                                
+00015f44  add      x0, x0, #0x378                              ; @"C"
+00015f48  adrp     x1, #0x3a000                                
+00015f4c  add      x1, x1, #0x398                              ; @"The speed camera is smiling at you"
+00015f50  b        #0x16004                                    ; sub_16004
+00015f54  cmp      x0, #1                                      
+00015f58  b.eq     #0x15fa4                                    
+00015f5c  cmp      x0, #2                                      
+00015f60  b.eq     #0x15ff4                                    
+00015f64  cmp      x0, #3                                      
+00015f68  b.ne     #0x15fb8                                    
+00015f6c  adrp     x0, #0x3a000                                
+00015f70  add      x0, x0, #0x2f8                              ; @"�"
+00015f74  adrp     x1, #0x3a000                                
+00015f78  add      x1, x1, #0x318                              ; @"Hey, this is a car, not a plane!"
+00015f7c  b        #0x16004                                    ; sub_16004
+00015f80  cmp      x0, #6                                      
+00015f84  b.eq     #0x15fe0                                    
+00015f88  cmp      x0, #7                                      
+00015f8c  b.ne     #0x15fb8                                    
+00015f90  adrp     x0, #0x3a000                                
+00015f94  add      x0, x0, #0x3f8                              ; @"N"
+00015f98  adrp     x1, #0x3a000                                
+00015f9c  add      x1, x1, #0x418                              ; @"Easy on the gas, speeding won't make you any better looking"
+00015fa0  b        #0x16004                                    ; sub_16004
+00015fa4  adrp     x0, #0x3a000                                
+00015fa8  add      x0, x0, #0x278                              ; @"Q"
+00015fac  adrp     x1, #0x3a000                                
+00015fb0  add      x1, x1, #0x298                              ; @"Too fast, the limit is {L}"
+00015fb4  b        #0x16004                                    ; sub_16004
+00015fb8  adrp     x0, #0x3a000                                
+00015fbc  add      x0, x0, #0x438                              ; @"B"
+00015fc0  adrp     x1, #0x3a000                                
+00015fc4  add      x1, x1, #0x458                              ; @"You are over the speed limit"
+00015fc8  b        #0x16004                                    ; sub_16004
+00015fcc  adrp     x0, #0x3a000                                
+00015fd0  add      x0, x0, #0x338                              ; @"B"
+00015fd4  adrp     x1, #0x3a000                                
+00015fd8  add      x1, x1, #0x358                              ; @"Easy now, the road is long and the wallet is thin"
+00015fdc  b        #0x16004                                    ; sub_16004
+00015fe0  adrp     x0, #0x3a000                                
+00015fe4  add      x0, x0, #0x3b8                              ; @"C"
+00015fe8  adrp     x1, #0x3a000                                
+00015fec  add      x1, x1, #0x3d8                              ; @"What's the rush? Dinner at home is still hot"
+00015ff0  b        #0x16004                                    ; sub_16004
+00015ff4  adrp     x0, #0x3a000                                
+00015ff8  add      x0, x0, #0x2b8                              ; @"V"
+00015ffc  adrp     x1, #0x3a000                                
+00016000  add      x1, x1, #0x2d8                              ; @"Please slow down"
+00016004  bl       #0x27254                                    ; _OMCTr
+00016008  mov      x29, x29                                    
+0001600c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016010  ldp      x29, x30, [sp], #0x10                       
+00016014  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

@@ -1,0 +1,132 @@
+; sub_66dc
+0x0066dc  stp      x26, x25, [sp, #-0x50]!
+0x0066e0  stp      x24, x23, [sp, #0x10]
+0x0066e4  stp      x22, x21, [sp, #0x20]
+0x0066e8  stp      x20, x19, [sp, #0x30]
+0x0066ec  stp      x29, x30, [sp, #0x40]
+0x0066f0  add      x29, sp, #0x40
+0x0066f4  mov      x19, x3
+0x0066f8  mov      x21, x2
+0x0066fc  mov      x22, x1
+0x006700  mov      x23, x0
+0x006704  mov      x0, x3
+0x006708  bl       #0x567c4 ; call _objc_retain
+0x00670c  adrp     x8, #0x87000
+0x006710  ldr      x0, [x8, #0x688] ; [0x87688] class:SCPCarSplit
+0x006714  bl       #0x5bea0 ; objc_msgSend$shared
+0x006718  mov      x29, x29
+0x00671c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x006720  mov      x20, x0
+0x006724  bl       #0x56b60 ; objc_msgSend$active
+0x006728  cbz      w0, #0x67dc
+0x00672c  mov      x0, x23
+0x006730  bl       #0x567c4 ; call _objc_retain
+0x006734  adrp     x0, #0x79000
+0x006738  add      x0, x0, #0xf20 ; -> 0x79f20 @"currentBaseViewController"
+0x00673c  bl       #0x56374 ; call _NSSelectorFromString
+0x006740  mov      x24, x0
+0x006744  mov      x0, x23
+0x006748  mov      x1, x24
+0x00674c  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x006750  tbz      w0, #0, #0x6770
+0x006754  mov      x0, x23
+0x006758  mov      x1, x24
+0x00675c  bl       #0x56758 ; call _objc_msgSend
+0x006760  mov      x29, x29
+0x006764  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x006768  mov      x24, x0
+0x00676c  b        #0x6784
+0x006770  adrp     x1, #0x79000
+0x006774  add      x1, x1, #0xf20 ; -> 0x79f20 @"currentBaseViewController"
+0x006778  mov      x0, x23
+0x00677c  bl       #0x4f330 ; -> _SCPMissingSelector
+0x006780  mov      x24, #0
+0x006784  mov      x0, x23
+0x006788  bl       #0x567b8 ; call _objc_release
+0x00678c  mov      x0, x24
+0x006790  bl       #0x567b8 ; call _objc_release
+0x006794  cbnz     x24, #0x67dc
+0x006798  adrp     x8, #0x87000
+0x00679c  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x0067a0  adrp     x2, #0x79000
+0x0067a4  add      x2, x2, #0xf40 ; -> 0x79f40 @"CarSplit: DashBoard ve man chinh -> tat split"
+0x0067a8  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x0067ac  mov      x29, x29
+0x0067b0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0067b4  mov      x24, x0
+0x0067b8  adrp     x0, #0x79000
+0x0067bc  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x0067c0  mov      x1, x24
+0x0067c4  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x0067c8  mov      x0, x24
+0x0067cc  bl       #0x567b8 ; call _objc_release
+0x0067d0  mov      x0, x20
+0x0067d4  mov      w2, #0
+0x0067d8  bl       #0x57600 ; objc_msgSend$closeGoingHome:
+0x0067dc  mov      x0, x20
+0x0067e0  bl       #0x5a240 ; objc_msgSend$removeAppTab
+0x0067e4  adrp     x8, #0x88000
+0x0067e8  ldr      x8, [x8, #0x70]
+0x0067ec  mov      x0, x23
+0x0067f0  mov      x1, x22
+0x0067f4  mov      x2, x21
+0x0067f8  mov      x3, x19
+0x0067fc  blr      x8
+0x006800  mov      x0, x20
+0x006804  bl       #0x5a0a0 ; objc_msgSend$refreshAppTabSoon
+0x006808  mov      x0, x20
+0x00680c  bl       #0x567b8 ; call _objc_release
+0x006810  mov      x0, x19
+0x006814  ldp      x29, x30, [sp, #0x40]
+0x006818  ldp      x20, x19, [sp, #0x30]
+0x00681c  ldp      x22, x21, [sp, #0x20]
+0x006820  ldp      x24, x23, [sp, #0x10]
+0x006824  ldp      x26, x25, [sp], #0x50
+0x006828  b        #0x567b8 ; call _objc_release
+0x00682c  mov      x25, x1
+0x006830  mov      x1, x24
+0x006834  mov      x24, x0
+0x006838  mov      x0, x1
+0x00683c  b        #0x6850
+0x006840  b        #0x6844
+0x006844  mov      x25, x1
+0x006848  mov      x24, x0
+0x00684c  mov      x0, x23
+0x006850  bl       #0x567b8 ; call _objc_release
+0x006854  b        #0x68b4
+0x006858  mov      x24, x0
+0x00685c  cmp      w1, #1
+0x006860  b.ne     #0x688c
+0x006864  mov      x0, x24
+0x006868  bl       #0x566ec ; call _objc_begin_catch
+0x00686c  mov      x1, x0
+0x006870  adrp     x0, #0x5f000
+0x006874  add      x0, x0, #0x2b0 ; -> 0x5f2b0 "refreshAppTabSoon"
+0x006878  bl       #0x75cc ; -> sub_75cc
+0x00687c  bl       #0x56710 ; call _objc_end_catch
+0x006880  b        #0x6808
+0x006884  b        #0x68dc
+0x006888  mov      x24, x0
+0x00688c  mov      x0, x20
+0x006890  bl       #0x567b8 ; call _objc_release
+0x006894  b        #0x689c
+0x006898  mov      x24, x0
+0x00689c  mov      x0, x19
+0x0068a0  bl       #0x567b8 ; call _objc_release
+0x0068a4  mov      x0, x24
+0x0068a8  bl       #0x563e0 ; call __Unwind_Resume
+0x0068ac  mov      x25, x1
+0x0068b0  mov      x24, x0
+0x0068b4  cmp      w25, #1
+0x0068b8  b.ne     #0x688c
+0x0068bc  mov      x0, x24
+0x0068c0  bl       #0x566ec ; call _objc_begin_catch
+0x0068c4  mov      x1, x0
+0x0068c8  adrp     x0, #0x5f000
+0x0068cc  add      x0, x0, #0x296 ; -> 0x5f296 "dismissBaseViewController"
+0x0068d0  bl       #0x75cc ; -> sub_75cc
+0x0068d4  bl       #0x56710 ; call _objc_end_catch
+0x0068d8  b        #0x67e4
+0x0068dc  mov      x24, x0
+0x0068e0  bl       #0x56710 ; call _objc_end_catch
+0x0068e4  b        #0x688c

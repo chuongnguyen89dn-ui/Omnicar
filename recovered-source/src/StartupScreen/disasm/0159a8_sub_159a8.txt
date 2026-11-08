@@ -1,0 +1,77 @@
+; sub_159a8
+; VA 0x159a8  size 296
+
+0x000159a8:  fmov     d5, #-1.00000000
+0x000159ac:  fmov     d4, #2.00000000
+0x000159b0:  fmadd    d3, d2, d4, d5
+0x000159b4:  fabs     d6, d3
+0x000159b8:  fmov     d3, #1.00000000
+0x000159bc:  fsub     d6, d3, d6
+0x000159c0:  fmul     d1, d1, d6
+0x000159c4:  adrp     x8, #0x29000
+0x000159c8:  ldr      d6, [x8, #0x1e8]
+0x000159cc:  fdiv     d6, d0, d6
+0x000159d0:  frintm   d6, d6
+0x000159d4:  adrp     x8, #0x29000
+0x000159d8:  ldr      d7, [x8, #0x1f0]
+0x000159dc:  fmadd    d0, d6, d7, d0
+0x000159e0:  mov      x8, #0x404e000000000000
+0x000159e4:  fmov     d6, x8
+0x000159e8:  fdiv     d6, d0, d6
+0x000159ec:  fmov     d0, #0.50000000
+0x000159f0:  fmul     d0, d6, d0
+0x000159f4:  frintz   d0, d0
+0x000159f8:  fmsub    d0, d0, d4, d6
+0x000159fc:  movi     v7.2d, #0xffffffffffffffff
+0x00015a00:  fneg     v7.2d, v7.2d
+0x00015a04:  bif      v0.16b, v6.16b, v7.16b
+0x00015a08:  fadd     d0, d0, d5
+0x00015a0c:  fabs     d0, d0
+0x00015a10:  fsub     d0, d3, d0
+0x00015a14:  fmul     d5, d1, d0
+0x00015a18:  fmov     d0, xzr
+0x00015a1c:  fcmp     d6, d3
+0x00015a20:  b.pl     #0x15a30
+0x00015a24:  fmov     d4, xzr
+0x00015a28:  mov      v6.16b, v1.16b
+0x00015a2c:  b        #0x15a7c    ; -> sub_15a7c
+0x00015a30:  fmov     d7, xzr
+0x00015a34:  fmov     d16, #3.00000000
+0x00015a38:  fmov     d17, #4.00000000
+0x00015a3c:  fmov     d18, #5.00000000
+0x00015a40:  fcmp     d6, d18
+0x00015a44:  fcsel    d18, d1, d5, mi
+0x00015a48:  fcsel    d19, d5, d1, mi
+0x00015a4c:  fcmp     d6, d17
+0x00015a50:  fcsel    d17, d5, d7, mi
+0x00015a54:  fcsel    d18, d1, d18, mi
+0x00015a58:  fcsel    d19, d7, d19, mi
+0x00015a5c:  fcmp     d6, d16
+0x00015a60:  fcsel    d16, d1, d17, mi
+0x00015a64:  fcsel    d17, d5, d18, mi
+0x00015a68:  fcsel    d18, d7, d19, mi
+0x00015a6c:  fcmp     d6, d4
+0x00015a70:  fcsel    d6, d5, d18, mi
+0x00015a74:  fcsel    d5, d1, d16, mi
+0x00015a78:  fcsel    d4, d7, d17, mi
+0x00015a7c:  fmov     d7, #-0.50000000
+0x00015a80:  fmul     d1, d1, d7
+0x00015a84:  fadd     d1, d2, d1
+0x00015a88:  fadd     d2, d1, d6
+0x00015a8c:  fcmp     d2, d3
+0x00015a90:  fcsel    d6, d3, d2, gt
+0x00015a94:  fcmp     d2, #0.0
+0x00015a98:  fcsel    d2, d0, d6, mi
+0x00015a9c:  fadd     d5, d1, d5
+0x00015aa0:  fcmp     d5, d3
+0x00015aa4:  fcsel    d6, d3, d5, gt
+0x00015aa8:  fcmp     d5, #0.0
+0x00015aac:  fcsel    d5, d0, d6, mi
+0x00015ab0:  stp      d2, d5, [x0]
+0x00015ab4:  fadd     d1, d1, d4
+0x00015ab8:  fcmp     d1, d3
+0x00015abc:  fcsel    d2, d3, d1, gt
+0x00015ac0:  fcmp     d1, #0.0
+0x00015ac4:  fcsel    d0, d0, d2, mi
+0x00015ac8:  str      d0, [x0, #0x10]
+0x00015acc:  ret      

@@ -1,0 +1,45 @@
+; sub_a184
+; VA 0xa184  size 168
+
+0x0000a184:  stp      x20, x19, [sp, #-0x20]!
+0x0000a188:  stp      x29, x30, [sp, #0x10]
+0x0000a18c:  add      x29, sp, #0x10
+0x0000a190:  mov      x19, x0
+0x0000a194:  bl       #0x2212c    ; -> _objc_retain
+0x0000a198:  adrp     x20, #0x3a000
+0x0000a19c:  ldr      x0, [x20, #0xa70]    ; class(NSNumber)
+0x0000a1a0:  bl       #0x220e4    ; -> _objc_opt_class
+0x0000a1a4:  mov      x1, x0
+0x0000a1a8:  mov      x0, x19
+0x0000a1ac:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x0000a1b0:  tbz      w0, #0, #0xa1c4
+0x0000a1b4:  mov      x0, x19
+0x0000a1b8:  bl       #0x2212c    ; -> _objc_retain
+0x0000a1bc:  mov      x20, x19
+0x0000a1c0:  b        #0xa214    ; -> sub_a214
+0x0000a1c4:  adrp     x8, #0x3a000
+0x0000a1c8:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x0000a1cc:  bl       #0x220e4    ; -> _objc_opt_class
+0x0000a1d0:  mov      x1, x0
+0x0000a1d4:  mov      x0, x19
+0x0000a1d8:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x0000a1dc:  tbz      w0, #0, #0xa210
+0x0000a1e0:  mov      x0, x19
+0x0000a1e4:  bl       #0x23a40    ; -> _objc_msgSend(length)
+0x0000a1e8:  cbz      x0, #0xa210
+0x0000a1ec:  ldr      x20, [x20, #0xa70]
+0x0000a1f0:  mov      x0, x19
+0x0000a1f4:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x0000a1f8:  mov      x0, x20
+0x0000a1fc:  bl       #0x23dc0    ; -> _objc_msgSend(numberWithDouble:)
+0x0000a200:  mov      x29, x29
+0x0000a204:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000a208:  mov      x20, x0
+0x0000a20c:  b        #0xa214    ; -> sub_a214
+0x0000a210:  mov      x20, #0
+0x0000a214:  mov      x0, x19
+0x0000a218:  bl       #0x22120    ; -> _objc_release
+0x0000a21c:  mov      x0, x20
+0x0000a220:  ldp      x29, x30, [sp, #0x10]
+0x0000a224:  ldp      x20, x19, [sp], #0x20
+0x0000a228:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

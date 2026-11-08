@@ -1,0 +1,114 @@
+; sub_cde0
+0x00cde0  sub      sp, sp, #0x50
+0x00cde4  stp      x24, x23, [sp, #0x10]
+0x00cde8  stp      x22, x21, [sp, #0x20]
+0x00cdec  stp      x20, x19, [sp, #0x30]
+0x00cdf0  stp      x29, x30, [sp, #0x40]
+0x00cdf4  add      x29, sp, #0x40
+0x00cdf8  mov      x20, x1
+0x00cdfc  mov      x19, x0
+0x00ce00  bl       #0x567c4 ; call _objc_retain
+0x00ce04  mov      x0, x20
+0x00ce08  bl       #0x567c4 ; call _objc_retain
+0x00ce0c  cbz      x20, #0xcebc
+0x00ce10  mov      x0, x20
+0x00ce14  bl       #0x56848 ; call _object_getClass
+0x00ce18  mov      x1, x0
+0x00ce1c  mov      x0, x19
+0x00ce20  bl       #0xcfa4 ; -> sub_cfa4
+0x00ce24  mov      x0, x20
+0x00ce28  bl       #0x57b20 ; objc_msgSend$description
+0x00ce2c  mov      x29, x29
+0x00ce30  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00ce34  mov      x21, x0
+0x00ce38  adrp     x8, #0x87000
+0x00ce3c  ldr      x23, [x8, #0x678] ; [0x87678] class:NSString
+0x00ce40  mov      x0, x21
+0x00ce44  bl       #0x590c0 ; objc_msgSend$length
+0x00ce48  mov      x22, x0
+0x00ce4c  mov      x24, x21
+0x00ce50  cmp      x0, #0x5dd
+0x00ce54  b.lo     #0xce70
+0x00ce58  mov      x0, x21
+0x00ce5c  mov      w2, #0x5dc
+0x00ce60  bl       #0x5c4e0 ; objc_msgSend$substringToIndex:
+0x00ce64  mov      x29, x29
+0x00ce68  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00ce6c  mov      x24, x0
+0x00ce70  stp      x19, x24, [sp]
+0x00ce74  adrp     x2, #0x7a000
+0x00ce78  add      x2, x2, #0xe60 ; -> 0x7ae60 @"DIAG %@ description: %@"
+0x00ce7c  mov      x0, x23
+0x00ce80  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x00ce84  mov      x29, x29
+0x00ce88  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00ce8c  mov      x23, x0
+0x00ce90  adrp     x0, #0x79000
+0x00ce94  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x00ce98  mov      x1, x23
+0x00ce9c  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00cea0  mov      x0, x23
+0x00cea4  bl       #0x567b8 ; call _objc_release
+0x00cea8  cmp      x22, #0x5dd
+0x00ceac  b.lo     #0xcef0
+0x00ceb0  mov      x0, x24
+0x00ceb4  bl       #0x567b8 ; call _objc_release
+0x00ceb8  b        #0xcef0
+0x00cebc  adrp     x8, #0x87000
+0x00cec0  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x00cec4  str      x19, [sp]
+0x00cec8  adrp     x2, #0x7a000
+0x00cecc  add      x2, x2, #0xe20 ; -> 0x7ae20 @"DIAG %@: nil"
+0x00ced0  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x00ced4  mov      x29, x29
+0x00ced8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00cedc  mov      x21, x0
+0x00cee0  adrp     x0, #0x79000
+0x00cee4  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x00cee8  mov      x1, x21
+0x00ceec  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00cef0  mov      x0, x21
+0x00cef4  bl       #0x567b8 ; call _objc_release
+0x00cef8  mov      x0, x20
+0x00cefc  bl       #0x567b8 ; call _objc_release
+0x00cf00  mov      x0, x19
+0x00cf04  ldp      x29, x30, [sp, #0x40]
+0x00cf08  ldp      x20, x19, [sp, #0x30]
+0x00cf0c  ldp      x22, x21, [sp, #0x20]
+0x00cf10  ldp      x24, x23, [sp, #0x10]
+0x00cf14  add      sp, sp, #0x50
+0x00cf18  b        #0x567b8 ; call _objc_release
+0x00cf1c  b        #0xcf78
+0x00cf20  mov      x1, x23
+0x00cf24  mov      x23, x0
+0x00cf28  mov      x0, x1
+0x00cf2c  bl       #0x567b8 ; call _objc_release
+0x00cf30  b        #0xcf38
+0x00cf34  mov      x23, x0
+0x00cf38  cmp      x22, #0x5dd
+0x00cf3c  b.lo     #0xcf7c
+0x00cf40  mov      x0, x24
+0x00cf44  bl       #0x567b8 ; call _objc_release
+0x00cf48  b        #0xcf7c
+0x00cf4c  mov      x23, x0
+0x00cf50  cmp      w1, #1
+0x00cf54  b.ne     #0xcf70
+0x00cf58  mov      x0, x23
+0x00cf5c  bl       #0x566ec ; call _objc_begin_catch
+0x00cf60  bl       #0x56710 ; call _objc_end_catch
+0x00cf64  adrp     x21, #0x7a000
+0x00cf68  add      x21, x21, #0xe40 ; -> 0x7ae40 @"(description loi)"
+0x00cf6c  b        #0xce38
+0x00cf70  mov      x21, #0
+0x00cf74  b        #0xcf7c
+0x00cf78  mov      x23, x0
+0x00cf7c  mov      x0, x21
+0x00cf80  bl       #0x567b8 ; call _objc_release
+0x00cf84  b        #0xcf8c
+0x00cf88  mov      x23, x0
+0x00cf8c  mov      x0, x20
+0x00cf90  bl       #0x567b8 ; call _objc_release
+0x00cf94  mov      x0, x19
+0x00cf98  bl       #0x567b8 ; call _objc_release
+0x00cf9c  mov      x0, x23
+0x00cfa0  bl       #0x563e0 ; call __Unwind_Resume

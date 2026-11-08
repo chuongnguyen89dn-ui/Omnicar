@@ -1,0 +1,46 @@
+; sub_cbb4
+; VA 0xcbb4  size 172
+
+0x0000cbb4:  adrp     x8, #0x3a000
+0x0000cbb8:  ldrsw    x8, [x8, #0xd14]
+0x0000cbbc:  mov      x9, #0x3333333333333333
+0x0000cbc0:  movk     x9, #0x400b, lsl #48
+0x0000cbc4:  b        #0xce00    ; -> sub_ce00
+0x0000cbc8:  cmp      x20, #3
+0x0000cbcc:  b.eq     #0xcc44
+0x0000cbd0:  cmp      x20, #4
+0x0000cbd4:  b.eq     #0xcde8
+0x0000cbd8:  cmp      x20, #5
+0x0000cbdc:  b.ne     #0xcc74
+0x0000cbe0:  ldr      d0, [x19, x9]
+0x0000cbe4:  fmov     d1, #4.00000000
+0x0000cbe8:  fmul     d0, d0, d1
+0x0000cbec:  adrp     x10, #0x3a000
+0x0000cbf0:  ldrsw    x10, [x10, #0xd14]
+0x0000cbf4:  str      d0, [x19, x10]
+0x0000cbf8:  ldr      d0, [x19, x9]
+0x0000cbfc:  adrp     x9, #0x28000
+0x0000cc00:  ldr      d1, [x9, #0xe18]
+0x0000cc04:  fmul     d0, d0, d1
+0x0000cc08:  str      d0, [x19, x8]
+0x0000cc0c:  b        #0xce04    ; -> sub_ce04
+0x0000cc10:  cmp      x20, #8
+0x0000cc14:  b.eq     #0xcdc8
+0x0000cc18:  cmp      x20, #9
+0x0000cc1c:  b.ne     #0xcc74
+0x0000cc20:  adrp     x9, #0x3a000
+0x0000cc24:  ldrsw    x9, [x9, #0xd14]
+0x0000cc28:  mov      x10, #0x6666666666666666
+0x0000cc2c:  movk     x10, #0x4006, lsl #48
+0x0000cc30:  str      x10, [x19, x9]
+0x0000cc34:  mov      x9, #-0x3333333333333334
+0x0000cc38:  movk     x9, #0xcccd
+0x0000cc3c:  movk     x9, #0x4004, lsl #48
+0x0000cc40:  b        #0xce00    ; -> sub_ce00
+0x0000cc44:  adrp     x8, #0x3a000
+0x0000cc48:  ldrsw    x8, [x8, #0xd14]
+0x0000cc4c:  mov      x9, #0x4008000000000000
+0x0000cc50:  str      x9, [x19, x8]
+0x0000cc54:  cmp      x22, #1
+0x0000cc58:  b.gt     #0xcea8
+0x0000cc5c:  cbnz     x22, #0xd020

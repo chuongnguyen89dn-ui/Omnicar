@@ -1,0 +1,40 @@
+; OMCLogoMeshImage
+; VA 0x21590  size 148
+
+0x00021590:  sub      sp, sp, #0x50
+0x00021594:  stp      x20, x19, [sp, #0x30]
+0x00021598:  stp      x29, x30, [sp, #0x40]
+0x0002159c:  add      x29, sp, #0x40
+0x000215a0:  mov      x19, x0
+0x000215a4:  adrp     x8, #0x3b000
+0x000215a8:  add      x8, x8, #0x388
+0x000215ac:  add      x0, x8, w0, uxtw #3
+0x000215b0:  adrp     x8, #0x30000
+0x000215b4:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x000215b8:  str      x8, [sp, #8]
+0x000215bc:  adrp     x8, #0x28000
+0x000215c0:  ldr      d0, [x8, #0xde0]
+0x000215c4:  str      d0, [sp, #0x10]
+0x000215c8:  adrp     x8, #0x21000
+0x000215cc:  add      x8, x8, #0x624    ; func sub_21624
+0x000215d0:  adrp     x9, #0x30000
+0x000215d4:  add      x9, x9, #0xec8
+0x000215d8:  stp      x8, x9, [sp, #0x18]
+0x000215dc:  strb     w19, [sp, #0x2c]
+0x000215e0:  str      w19, [sp, #0x28]
+0x000215e4:  ldr      x8, [x0]
+0x000215e8:  cmn      x8, #1
+0x000215ec:  b.ne     #0x21618
+0x000215f0:  adrp     x8, #0x3b000
+0x000215f4:  add      x8, x8, #0x378
+0x000215f8:  ldr      x19, [x8, w19, uxtw #3]
+0x000215fc:  mov      x0, x19
+0x00021600:  bl       #0x2212c    ; -> _objc_retain
+0x00021604:  mov      x0, x19
+0x00021608:  ldp      x29, x30, [sp, #0x40]
+0x0002160c:  ldp      x20, x19, [sp, #0x30]
+0x00021610:  add      sp, sp, #0x50
+0x00021614:  b        #0x22054    ; -> _objc_autoreleaseReturnValue
+0x00021618:  add      x1, sp, #8
+0x0002161c:  bl       #0x21ea4    ; -> _dispatch_once
+0x00021620:  b        #0x215f0    ; -> sub_215f0

@@ -1,0 +1,31 @@
+; ==== SCPCarSplit__refreshPickerSheetSoon  @0x31a0c..0x31a84 (120 bytes) ====
+00031a0c  sub      sp, sp, #0x50                                
+00031a10  stp      x20, x19, [sp, #0x30]                        
+00031a14  stp      x29, x30, [sp, #0x40]                        
+00031a18  add      x29, sp, #0x40                               
+00031a1c  mov      x19, x0                                      
+00031a20  bl       #0x59ac0                                     ; msgSend "pickerSheetQueued"
+00031a24  tbnz     w0, #0, #0x31a74                             
+00031a28  mov      x0, x19                                      
+00031a2c  mov      w2, #1                                       
+00031a30  bl       #0x5b640                                     ; msgSend "setPickerSheetQueued:"
+00031a34  adrp     x8, #0x78000                                 
+00031a38  ldr      x8, [x8, #0x338]                             
+00031a3c  str      x8, [sp, #8]                                 
+00031a40  adrp     x8, #0x6e000                                 
+00031a44  ldr      d0, [x8, #0xff8]                             ; double 1.6080749353e-314
+00031a48  adrp     x8, #0x31000                                 
+00031a4c  add      x8, x8, #0xa84                               
+00031a50  str      d0, [sp, #0x10]                              
+00031a54  adrp     x9, #0x78000                                 
+00031a58  add      x9, x9, #0x910                               
+00031a5c  stp      x8, x9, [sp, #0x18]                          
+00031a60  str      x19, [sp, #0x28]                             
+00031a64  adrp     x0, #0x78000                                 
+00031a68  ldr      x0, [x0, #0x370]                             
+00031a6c  add      x1, sp, #8                                   
+00031a70  bl       #0x564dc                                     ; call _dispatch_async
+00031a74  ldp      x29, x30, [sp, #0x40]                        
+00031a78  ldp      x20, x19, [sp, #0x30]                        
+00031a7c  add      sp, sp, #0x50                                
+00031a80  ret                                                   

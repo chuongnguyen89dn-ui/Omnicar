@@ -1,0 +1,80 @@
+; +[SCPPrefs ratioForPairLeft:right:]
+0x04eb34  stp      d9, d8, [sp, #-0x50]!
+0x04eb38  stp      x24, x23, [sp, #0x10]
+0x04eb3c  stp      x22, x21, [sp, #0x20]
+0x04eb40  stp      x20, x19, [sp, #0x30]
+0x04eb44  stp      x29, x30, [sp, #0x40]
+0x04eb48  add      x29, sp, #0x40
+0x04eb4c  mov      x20, x3
+0x04eb50  mov      x19, x2
+0x04eb54  mov      x0, x2
+0x04eb58  bl       #0x567c4 ; call _objc_retain
+0x04eb5c  mov      x0, x20
+0x04eb60  bl       #0x567c4 ; call _objc_retain
+0x04eb64  adrp     x0, #0x7e000
+0x04eb68  add      x0, x0, #0x6c0 ; -> 0x7e6c0 @"splitScreenPairRatios"
+0x04eb6c  bl       #0x4dab8 ; -> sub_4dab8
+0x04eb70  mov      x29, x29
+0x04eb74  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04eb78  mov      x21, x0
+0x04eb7c  adrp     x8, #0x87000
+0x04eb80  ldr      x0, [x8, #0x6b8] ; [0x876b8] class:NSDictionary
+0x04eb84  bl       #0x5677c ; call _objc_opt_class
+0x04eb88  mov      x1, x0
+0x04eb8c  mov      x0, x21
+0x04eb90  bl       #0x56788 ; call _objc_opt_isKindOfClass
+0x04eb94  fmov     d8, xzr
+0x04eb98  tbz      w0, #0, #0x4ebec
+0x04eb9c  mov      x0, x19
+0x04eba0  mov      x1, x20
+0x04eba4  bl       #0x4ec70 ; -> sub_4ec70
+0x04eba8  mov      x29, x29
+0x04ebac  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04ebb0  mov      x23, x0
+0x04ebb4  mov      x0, x21
+0x04ebb8  mov      x2, x23
+0x04ebbc  bl       #0x59660 ; objc_msgSend$objectForKeyedSubscript:
+0x04ebc0  mov      x29, x29
+0x04ebc4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04ebc8  mov      x22, x0
+0x04ebcc  mov      x0, x23
+0x04ebd0  bl       #0x567b8 ; call _objc_release
+0x04ebd4  cbz      x22, #0x4ebe4
+0x04ebd8  mov      x0, x22
+0x04ebdc  bl       #0x57e00 ; objc_msgSend$doubleValue
+0x04ebe0  mov      v8.16b, v0.16b
+0x04ebe4  mov      x0, x22
+0x04ebe8  bl       #0x567b8 ; call _objc_release
+0x04ebec  mov      x0, x21
+0x04ebf0  bl       #0x567b8 ; call _objc_release
+0x04ebf4  mov      x0, x20
+0x04ebf8  bl       #0x567b8 ; call _objc_release
+0x04ebfc  mov      x0, x19
+0x04ec00  bl       #0x567b8 ; call _objc_release
+0x04ec04  mov      v0.16b, v8.16b
+0x04ec08  ldp      x29, x30, [sp, #0x40]
+0x04ec0c  ldp      x20, x19, [sp, #0x30]
+0x04ec10  ldp      x22, x21, [sp, #0x20]
+0x04ec14  ldp      x24, x23, [sp, #0x10]
+0x04ec18  ldp      d9, d8, [sp], #0x50
+0x04ec1c  ret      
+0x04ec20  mov      x8, x22
+0x04ec24  mov      x22, x0
+0x04ec28  mov      x0, x8
+0x04ec2c  b        #0x4ec38
+0x04ec30  mov      x22, x0
+0x04ec34  mov      x0, x23
+0x04ec38  bl       #0x567b8 ; call _objc_release
+0x04ec3c  b        #0x4ec50
+0x04ec40  b        #0x4ec4c
+0x04ec44  mov      x22, x0
+0x04ec48  b        #0x4ec58
+0x04ec4c  mov      x22, x0
+0x04ec50  mov      x0, x21
+0x04ec54  bl       #0x567b8 ; call _objc_release
+0x04ec58  mov      x0, x20
+0x04ec5c  bl       #0x567b8 ; call _objc_release
+0x04ec60  mov      x0, x19
+0x04ec64  bl       #0x567b8 ; call _objc_release
+0x04ec68  mov      x0, x22
+0x04ec6c  bl       #0x563e0 ; call __Unwind_Resume

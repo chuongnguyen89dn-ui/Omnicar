@@ -1,0 +1,54 @@
+=== sub_5504 @ 0x5504 (size 212) ===
+00005504  sub      sp, sp, #0x50
+00005508  stp      x24, x23, [sp, #0x10]
+0000550c  stp      x22, x21, [sp, #0x20]
+00005510  stp      x20, x19, [sp, #0x30]
+00005514  stp      x29, x30, [sp, #0x40]
+00005518  add      x29, sp, #0x40
+0000551c  mov      x19, x3
+00005520  mov      x20, x2
+00005524  mov      x21, x1
+00005528  mov      x22, x0
+0000552c  adrp     x8, #0x3e000
+00005530  ldr      w8, [x8, #0x7d0] ; -> 0xffffffff
+00005534  cmp      w8, #1
+00005538  b.lt     #0x5594
+0000553c  sub      x8, x20, #3
+00005540  cmp      x8, #2
+00005544  csel     x8, x20, xzr, lo
+00005548  adrp     x24, #0x3e000
+0000554c  str      x8, [x24, #0x9c8]
+00005550  adrp     x9, #0x3e000
+00005554  ldr      x0, [x9, #0x290] ; bind _OBJC_CLASS_$_NSString
+00005558  stp      x20, x8, [sp]
+0000555c  adrp     x2, #0x34000
+00005560  add      x2, x2, #0xff0 = @"app setOrientation %lld -> %lld"
+00005564  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00005568  mov      x29, x29
+0000556c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00005570  mov      x23, x0
+00005574  adrp     x0, #0x34000
+00005578  add      x0, x0, #0xef0 = @"AppBridge"
+0000557c  mov      x1, x23
+00005580  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00005584  mov      x0, x23
+00005588  bl       #0x2480c ; call _objc_release
+0000558c  ldr      x0, [x24, #0x9c8]
+00005590  bl       #0x6750 ; call sub_6750
+00005594  adrp     x8, #0x3e000
+00005598  ldr      x4, [x8, #0x968]
+0000559c  mov      x0, x22
+000055a0  mov      x1, x21
+000055a4  mov      x2, x20
+000055a8  mov      x3, x19
+000055ac  ldp      x29, x30, [sp, #0x40]
+000055b0  ldp      x20, x19, [sp, #0x30]
+000055b4  ldp      x22, x21, [sp, #0x20]
+000055b8  ldp      x24, x23, [sp, #0x10]
+000055bc  add      sp, sp, #0x50
+000055c0  br       x4
+000055c4  mov      x19, x0
+000055c8  mov      x0, x23
+000055cc  bl       #0x2480c ; call _objc_release
+000055d0  mov      x0, x19
+000055d4  bl       #0x24470 ; call __Unwind_Resume

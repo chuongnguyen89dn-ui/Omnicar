@@ -1,0 +1,21 @@
+; sub_800c
+; VA 0x800c  size 72
+
+0x0000800c:  stp      x20, x19, [sp, #-0x20]!
+0x00008010:  stp      x29, x30, [sp, #0x10]
+0x00008014:  add      x29, sp, #0x10
+0x00008018:  adrp     x19, #0x3b000
+0x0000801c:  ldr      x8, [x19, #0x160]
+0x00008020:  cbz      x8, #0x8030
+0x00008024:  ldp      x29, x30, [sp, #0x10]
+0x00008028:  ldp      x20, x19, [sp], #0x20
+0x0000802c:  ret      
+0x00008030:  adrp     x8, #0x3a000
+0x00008034:  ldr      x0, [x8, #0xa20]    ; class(CXCallObserver)
+0x00008038:  bl       #0x220fc    ; -> _objc_opt_new
+0x0000803c:  ldr      x8, [x19, #0x160]
+0x00008040:  str      x0, [x19, #0x160]
+0x00008044:  mov      x0, x8
+0x00008048:  ldp      x29, x30, [sp, #0x10]
+0x0000804c:  ldp      x20, x19, [sp], #0x20
+0x00008050:  b        #0x22120    ; -> _objc_release

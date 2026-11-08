@@ -1,0 +1,56 @@
+; sub_4af0
+0x004af0  stp      x22, x21, [sp, #-0x30]!
+0x004af4  stp      x20, x19, [sp, #0x10]
+0x004af8  stp      x29, x30, [sp, #0x20]
+0x004afc  add      x29, sp, #0x20
+0x004b00  adrp     x8, #0x87000
+0x004b04  ldr      x8, [x8, #0xfb0]
+0x004b08  blr      x8
+0x004b0c  mov      x29, x29
+0x004b10  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x004b14  mov      x19, x0
+0x004b18  bl       #0x9a60 ; -> _SCPChosenPhoneApps
+0x004b1c  mov      x29, x29
+0x004b20  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x004b24  mov      x20, x0
+0x004b28  bl       #0x579e0 ; objc_msgSend$count
+0x004b2c  cbz      x0, #0x4b50
+0x004b30  bl       #0xc37c ; -> _SCPAppIconsBeginInjection
+0x004b34  mov      x21, x0
+0x004b38  mov      x0, x20
+0x004b3c  bl       #0x567b8 ; call _objc_release
+0x004b40  cbz      w21, #0x4b58
+0x004b44  mov      x0, x19
+0x004b48  bl       #0xa500 ; -> _SCPAddChosenAppsToLibrary
+0x004b4c  b        #0x4b58
+0x004b50  mov      x0, x20
+0x004b54  bl       #0x567b8 ; call _objc_release
+0x004b58  mov      x0, x19
+0x004b5c  ldp      x29, x30, [sp, #0x20]
+0x004b60  ldp      x20, x19, [sp, #0x10]
+0x004b64  ldp      x22, x21, [sp], #0x30
+0x004b68  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x004b6c  mov      x21, x1
+0x004b70  mov      x20, x0
+0x004b74  b        #0x4b8c
+0x004b78  mov      x21, x1
+0x004b7c  mov      x1, x20
+0x004b80  mov      x20, x0
+0x004b84  mov      x0, x1
+0x004b88  bl       #0x567b8 ; call _objc_release
+0x004b8c  cmp      w21, #1
+0x004b90  b.ne     #0x4bbc
+0x004b94  mov      x0, x20
+0x004b98  bl       #0x566ec ; call _objc_begin_catch
+0x004b9c  mov      x1, x0
+0x004ba0  adrp     x0, #0x5e000
+0x004ba4  add      x0, x0, #0xabe ; -> 0x5eabe "_newApplicationLibrary"
+0x004ba8  bl       #0x5520 ; -> sub_5520
+0x004bac  bl       #0x56710 ; call _objc_end_catch
+0x004bb0  b        #0x4b58
+0x004bb4  mov      x20, x0
+0x004bb8  bl       #0x56710 ; call _objc_end_catch
+0x004bbc  mov      x0, x19
+0x004bc0  bl       #0x567b8 ; call _objc_release
+0x004bc4  mov      x0, x20
+0x004bc8  bl       #0x563e0 ; call __Unwind_Resume

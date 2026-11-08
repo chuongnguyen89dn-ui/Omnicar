@@ -1,0 +1,101 @@
+=== sub_67fc @ 0x67fc (size 400) ===
+000067fc  sub      sp, sp, #0x60
+00006800  stp      x26, x25, [sp, #0x10]
+00006804  stp      x24, x23, [sp, #0x20]
+00006808  stp      x22, x21, [sp, #0x30]
+0000680c  stp      x20, x19, [sp, #0x40]
+00006810  stp      x29, x30, [sp, #0x50]
+00006814  add      x29, sp, #0x50
+00006818  mov      x19, x0
+0000681c  adrp     x8, #0x3e000
+00006820  ldr      x0, [x8, #0x9d8]
+00006824  str      xzr, [x8, #0x9d8]
+00006828  bl       #0x2480c ; call _objc_release
+0000682c  ldr      x22, [x19, #0x20]
+00006830  adrp     x23, #0x3e000
+00006834  ldr      w8, [x23, #0x9e0]
+00006838  cbnz     w8, #0x6850
+0000683c  adrp     x0, #0x29000
+00006840  add      x0, x0, #0x173 ; "com.anlai.omnicar/appbridge.apporient"
+00006844  adrp     x1, #0x3e000
+00006848  add      x1, x1, #0x9e0
+0000684c  bl       #0x246f8 ; call _notify_register_check
+00006850  bl       #0x612c ; call sub_612c
+00006854  mov      x20, x0
+00006858  adrp     x8, #0x3e000
+0000685c  ldr      x0, [x8, #0x280] ; bind _OBJC_CLASS_$_NSBundle
+00006860  bl       #0x26080 ; objc_msgSend sel=mainBundle
+00006864  mov      x29, x29
+00006868  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000686c  mov      x19, x0
+00006870  bl       #0x25040 ; objc_msgSend sel=bundleIdentifier
+00006874  mov      x29, x29
+00006878  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000687c  mov      x21, x0
+00006880  bl       #0x24818 ; call _objc_retain
+00006884  mov      x0, x21
+00006888  bl       #0x24824 ; call _objc_retainAutorelease
+0000688c  bl       #0x24a40 ; objc_msgSend sel=UTF8String
+00006890  mov      x24, #0xc5000000
+00006894  movk     x24, #0x1c9d, lsl #32
+00006898  movk     x24, #0x81, lsl #48
+0000689c  cbz      x0, #0x68d0
+000068a0  ldrb     w8, [x0]
+000068a4  cbz      w8, #0x68d0
+000068a8  add      x10, x0, #1
+000068ac  mov      w9, #0x9dc5
+000068b0  movk     w9, #0x811c, lsl #16
+000068b4  mov      w11, #0x193
+000068b8  movk     w11, #0x100, lsl #16
+000068bc  eor      w8, w9, w8
+000068c0  mul      w9, w8, w11
+000068c4  ldrb     w8, [x10], #1
+000068c8  cbnz     w8, #0x68bc
+000068cc  ubfiz    x24, x9, #0x18, #0x20
+000068d0  mov      x0, x21
+000068d4  bl       #0x2480c ; call _objc_release
+000068d8  and      x25, x22, #0xff
+000068dc  bfi      x25, x20, #8, #0x10
+000068e0  mov      x0, x21
+000068e4  bl       #0x2480c ; call _objc_release
+000068e8  mov      x0, x19
+000068ec  bl       #0x2480c ; call _objc_release
+000068f0  ldr      w0, [x23, #0x9e0]
+000068f4  orr      x1, x25, x24
+000068f8  bl       #0x24710 ; call _notify_set_state
+000068fc  adrp     x0, #0x29000
+00006900  add      x0, x0, #0x173 ; "com.anlai.omnicar/appbridge.apporient"
+00006904  bl       #0x246ec ; call _notify_post
+00006908  adrp     x8, #0x3e000
+0000690c  ldr      x0, [x8, #0x290] ; bind _OBJC_CLASS_$_NSString
+00006910  stp      x22, x20, [sp]
+00006914  adrp     x2, #0x35000
+00006918  add      x2, x2, #0x10 = @"bao SpringBoard: ma %lld, mask %lu"
+0000691c  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00006920  mov      x29, x29
+00006924  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00006928  mov      x19, x0
+0000692c  adrp     x0, #0x34000
+00006930  add      x0, x0, #0xef0 = @"AppBridge"
+00006934  mov      x1, x19
+00006938  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000693c  mov      x0, x19
+00006940  ldp      x29, x30, [sp, #0x50]
+00006944  ldp      x20, x19, [sp, #0x40]
+00006948  ldp      x22, x21, [sp, #0x30]
+0000694c  ldp      x24, x23, [sp, #0x20]
+00006950  ldp      x26, x25, [sp, #0x10]
+00006954  add      sp, sp, #0x60
+00006958  b        #0x2480c ; call _objc_release
+0000695c  b        #0x6978 ; call sub_6978
+00006960  mov      x20, x0
+00006964  mov      x0, x21
+00006968  bl       #0x2480c ; call _objc_release
+0000696c  mov      x0, x21
+00006970  bl       #0x2480c ; call _objc_release
+00006974  b        #0x697c ; call sub_697c
+00006978  mov      x20, x0
+0000697c  mov      x0, x19
+00006980  bl       #0x2480c ; call _objc_release
+00006984  mov      x0, x20
+00006988  bl       #0x24470 ; call __Unwind_Resume

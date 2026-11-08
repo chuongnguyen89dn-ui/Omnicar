@@ -1,0 +1,16 @@
+# -[SPPOverspeed updateSpeed:limit:]
+# addr 0x1f64c .. 0x1f680  (52 bytes)
+
+0001f64c  stp      x20, x19, [sp, #-0x20]!                     
+0001f650  stp      x29, x30, [sp, #0x10]                       
+0001f654  add      x29, sp, #0x10                              
+0001f658  mov      x19, x3                                     
+0001f65c  mov      x20, x0                                     
+0001f660  bl       #0x2b840                                    ; objc_msgSend$setSpeed:
+0001f664  mov      x0, x20                                     
+0001f668  mov      x2, x19                                     
+0001f66c  bl       #0x2b1c0                                    ; objc_msgSend$setLimit:
+0001f670  mov      x0, x20                                     
+0001f674  ldp      x29, x30, [sp, #0x10]                       
+0001f678  ldp      x20, x19, [sp], #0x20                       
+0001f67c  b        #0x29360                                    ; objc_msgSend$evaluate

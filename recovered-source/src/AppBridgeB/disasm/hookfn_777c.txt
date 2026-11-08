@@ -1,0 +1,49 @@
+=== sub_777c @ 0x777c (size 192) ===
+0000777c  stp      x22, x21, [sp, #-0x30]!
+00007780  stp      x20, x19, [sp, #0x10]
+00007784  stp      x29, x30, [sp, #0x20]
+00007788  add      x29, sp, #0x20
+0000778c  mov      x19, x0
+00007790  cmp      w0, #1
+00007794  b.ne     #0x780c
+00007798  adrp     x8, #0x3e000
+0000779c  ldr      x0, [x8, #0x2e0] ; class ABHost
+000077a0  bl       #0x27b20 ; objc_msgSend sel=shared
+000077a4  mov      x29, x29
+000077a8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000077ac  mov      x20, x0
+000077b0  bl       #0x25420 ; objc_msgSend sel=count
+000077b4  mov      x21, x0
+000077b8  mov      x0, x20
+000077bc  bl       #0x2480c ; call _objc_release
+000077c0  cbz      x21, #0x780c
+000077c4  adrp     x8, #0x3e000
+000077c8  ldr      x8, [x8, #0xa10]
+000077cc  mov      w0, #1
+000077d0  blr      x8
+000077d4  mov      x0, #0
+000077d8  mov      w1, #0xca00
+000077dc  movk     w1, #0x3b9a, lsl #16
+000077e0  bl       #0x245cc ; call _dispatch_time
+000077e4  adrp     x1, #0x34000
+000077e8  ldr      x1, [x1, #0x290] ; -> __dispatch_main_q
+000077ec  adrp     x2, #0x34000
+000077f0  add      x2, x2, #0x7d0
+000077f4  bl       #0x24548 ; call _dispatch_after
+000077f8  mov      w0, #0
+000077fc  ldp      x29, x30, [sp, #0x20]
+00007800  ldp      x20, x19, [sp, #0x10]
+00007804  ldp      x22, x21, [sp], #0x30
+00007808  ret      
+0000780c  adrp     x8, #0x3e000
+00007810  ldr      x1, [x8, #0xa10]
+00007814  mov      x0, x19
+00007818  ldp      x29, x30, [sp, #0x20]
+0000781c  ldp      x20, x19, [sp, #0x10]
+00007820  ldp      x22, x21, [sp], #0x30
+00007824  br       x1
+00007828  mov      x19, x0
+0000782c  mov      x0, x20
+00007830  bl       #0x2480c ; call _objc_release
+00007834  mov      x0, x19
+00007838  bl       #0x24470 ; call __Unwind_Resume

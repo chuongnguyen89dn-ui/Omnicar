@@ -1,0 +1,100 @@
+# sub_e318
+# addr 0xe318 .. 0xe49c  (388 bytes)
+
+0000e318  sub      sp, sp, #0x70                               
+0000e31c  stp      d9, d8, [sp, #0x20]                         
+0000e320  stp      x24, x23, [sp, #0x30]                       
+0000e324  stp      x22, x21, [sp, #0x40]                       
+0000e328  stp      x20, x19, [sp, #0x50]                       
+0000e32c  stp      x29, x30, [sp, #0x60]                       
+0000e330  add      x29, sp, #0x60                              
+0000e334  mov      v8.16b, v0.16b                              
+0000e338  adrp     x8, #0x38000                                
+0000e33c  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0000e340  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000e344  str      x8, [sp, #0x18]                             
+0000e348  adrp     x23, #0x43000                               
+0000e34c  ldr      x0, [x23, #0x78]                            ; [0x43078] classref -> UIFont (= import _OBJC_CLASS_$_UIFont)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+0000e350  adrp     x8, #0x38000                                
+0000e354  ldr      x8, [x8, #0x230]                            ; [0x38230] __DATA_CONST,__got+0x230 (= import _UIFontWeightHeavy)
+0000e358  ldr      d1, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000e35c  bl       #0x2c460                                    ; objc_msgSend$systemFontOfSize:weight:
+0000e360  mov      x29, x29                                    
+0000e364  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000e368  mov      x19, x0                                     
+0000e36c  bl       #0x294c0                                    ; objc_msgSend$fontDescriptor
+0000e370  mov      x29, x29                                    
+0000e374  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000e378  mov      x21, x0                                     
+0000e37c  adrp     x8, #0x38000                                
+0000e380  ldr      x8, [x8, #0x220]                            ; [0x38220] __DATA_CONST,__got+0x220 (= import _UIFontDescriptorSystemDesignRounded)
+0000e384  ldr      x2, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000e388  bl       #0x29500                                    ; objc_msgSend$fontDescriptorWithDesign:
+0000e38c  mov      x29, x29                                    
+0000e390  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000e394  mov      x22, x0                                     
+0000e398  cbz      x0, #0xe3ac                                 
+0000e39c  mov      x0, x22                                     
+0000e3a0  bl       #0x28004                                    ; _objc_retain
+0000e3a4  mov      x20, x22                                    
+0000e3a8  b        #0xe3c0                                     ; sub_e3c0
+0000e3ac  mov      x0, x19                                     
+0000e3b0  bl       #0x294c0                                    ; objc_msgSend$fontDescriptor
+0000e3b4  mov      x29, x29                                    
+0000e3b8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000e3bc  mov      x20, x0                                     
+0000e3c0  mov      x0, x22                                     
+0000e3c4  bl       #0x27ff8                                    ; _objc_release
+0000e3c8  mov      x0, x21                                     
+0000e3cc  bl       #0x27ff8                                    ; _objc_release
+0000e3d0  adrp     x8, #0x38000                                
+0000e3d4  ldr      x8, [x8, #0x218]                            ; [0x38218] __DATA_CONST,__got+0x218 (= import _UIFontDescriptorFeatureSettingsAttribute)
+0000e3d8  ldr      x9, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000e3dc  adrp     x8, #0x3c000                                
+0000e3e0  add      x8, x8, #0xe60                              ; __DATA_CONST,__objc_arrayobj+0x120
+0000e3e4  stp      x9, x8, [sp, #8]                            
+0000e3e8  adrp     x8, #0x42000                                
+0000e3ec  ldr      x0, [x8, #0xfa8]                            ; [0x42fa8] classref -> NSDictionary (= import _OBJC_CLASS_$_NSDictionary)
+0000e3f0  add      x2, sp, #0x10                               
+0000e3f4  add      x3, sp, #8                                  
+0000e3f8  mov      w4, #1                                      
+0000e3fc  bl       #0x29240                                    ; objc_msgSend$dictionaryWithObjects:forKeys:count:
+0000e400  mov      x29, x29                                    
+0000e404  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000e408  mov      x21, x0                                     
+0000e40c  mov      x0, x20                                     
+0000e410  mov      x2, x21                                     
+0000e414  bl       #0x294e0                                    ; objc_msgSend$fontDescriptorByAddingAttributes:
+0000e418  mov      x29, x29                                    
+0000e41c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000e420  mov      x22, x0                                     
+0000e424  mov      x0, x20                                     
+0000e428  bl       #0x27ff8                                    ; _objc_release
+0000e42c  mov      x0, x21                                     
+0000e430  bl       #0x27ff8                                    ; _objc_release
+0000e434  ldr      x0, [x23, #0x78]                            ; [0x43078] classref -> UIFont (= import _OBJC_CLASS_$_UIFont)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+0000e438  mov      x2, x22                                     
+0000e43c  mov      v0.16b, v8.16b                              
+0000e440  bl       #0x29520                                    ; objc_msgSend$fontWithDescriptor:size:
+0000e444  mov      x29, x29                                    
+0000e448  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000e44c  mov      x20, x0                                     
+0000e450  mov      x0, x22                                     
+0000e454  bl       #0x27ff8                                    ; _objc_release
+0000e458  mov      x0, x19                                     
+0000e45c  bl       #0x27ff8                                    ; _objc_release
+0000e460  ldr      x8, [sp, #0x18]                             
+0000e464  adrp     x9, #0x38000                                
+0000e468  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0000e46c  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000e470  cmp      x9, x8                                      
+0000e474  b.ne     #0xe498                                     
+0000e478  mov      x0, x20                                     
+0000e47c  ldp      x29, x30, [sp, #0x60]                       
+0000e480  ldp      x20, x19, [sp, #0x50]                       
+0000e484  ldp      x22, x21, [sp, #0x40]                       
+0000e488  ldp      x24, x23, [sp, #0x30]                       
+0000e48c  ldp      d9, d8, [sp, #0x20]                         
+0000e490  add      sp, sp, #0x70                               
+0000e494  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+0000e498  bl       #0x27ca4                                    ; ___stack_chk_fail

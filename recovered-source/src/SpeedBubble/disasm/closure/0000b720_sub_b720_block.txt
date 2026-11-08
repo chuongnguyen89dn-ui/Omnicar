@@ -1,0 +1,87 @@
+; ==== sub_b720_block @0xb720..0xb878 (344 bytes) — closure pass dump ====
+0000b720  stp      x22, x21, [sp, #-0x30]!                        
+0000b724  stp      x20, x19, [sp, #0x10]                          
+0000b728  stp      x29, x30, [sp, #0x20]                          
+0000b72c  add      x29, sp, #0x20                                 
+0000b730  mov      x19, x0                                        
+0000b734  bl       #0x28004                                       ; call _objc_retain
+0000b738  cbz      x19, #0xb7ac                                   ; -> loc_b7ac
+0000b73c  mov      x0, x19                                        
+0000b740  bl       #0x291e0                                       ; objc_msgSend$description
+0000b744  mov      x29, x29                                       
+0000b748  bl       #0x2801c                                       ; call _objc_retainAutoreleasedReturnValue
+0000b74c  mov      x20, x0                                        
+0000b750  adrp     x2, #0x39000                                   
+0000b754  add      x2, x2, #0xa38                                 ; [0x39a38] got ___CFConstantStringClassReference
+0000b758  bl       #0x2a460                                       ; objc_msgSend$rangeOfString:
+0000b75c  mov      x21, x0                                        
+0000b760  mov      x8, #0x7fffffffffffffff                        
+0000b764  cmp      x0, x8                                         
+0000b768  b.eq     #0xb7a4                                        ; -> loc_b7a4
+0000b76c  mov      x22, x1                                        
+0000b770  mov      x0, x20                                        
+0000b774  bl       #0x29ba0                                       ; objc_msgSend$length
+0000b778  add      x21, x21, x22                                  
+0000b77c  sub      x5, x0, x21                                    
+0000b780  adrp     x2, #0x39000                                   
+0000b784  add      x2, x2, #0xa58                                 ; [0x39a58] got ___CFConstantStringClassReference
+0000b788  mov      x0, x20                                        
+0000b78c  mov      x3, #0                                         
+0000b790  mov      x4, x21                                        
+0000b794  bl       #0x2a4a0                                       ; objc_msgSend$rangeOfString:options:range:
+0000b798  mov      x8, #0x7fffffffffffffff                        
+0000b79c  cmp      x0, x8                                         
+0000b7a0  b.ne     #0xb7b4                                        ; -> loc_b7b4
+0000b7a4  mov      x22, #0                                        
+0000b7a8  b        #0xb818                                        ; -> loc_b818
+0000b7ac  mov      x22, #0                                        
+0000b7b0  b        #0xb820                                        ; -> loc_b820
+0000b7b4  sub      x3, x0, x21                                    
+0000b7b8  mov      x0, x20                                        
+0000b7bc  mov      x2, x21                                        
+0000b7c0  bl       #0x2c400                                       ; objc_msgSend$substringWithRange:
+0000b7c4  mov      x29, x29                                       
+0000b7c8  bl       #0x2801c                                       ; call _objc_retainAutoreleasedReturnValue
+0000b7cc  mov      x21, x0                                        
+0000b7d0  adrp     x2, #0x39000                                   
+0000b7d4  add      x2, x2, #0xa78                                 ; [0x39a78] got ___CFConstantStringClassReference
+0000b7d8  bl       #0x2a460                                       ; objc_msgSend$rangeOfString:
+0000b7dc  mov      x8, #0x7fffffffffffffff                        
+0000b7e0  cmp      x0, x8                                         
+0000b7e4  b.ne     #0xb7f8                                        ; -> loc_b7f8
+0000b7e8  mov      x0, x21                                        
+0000b7ec  bl       #0x28004                                       ; call _objc_retain
+0000b7f0  mov      x22, x21                                       
+0000b7f4  b        #0xb810                                        ; -> loc_b810
+0000b7f8  add      x2, x0, x1                                     
+0000b7fc  mov      x0, x21                                        
+0000b800  bl       #0x2c3c0                                       ; objc_msgSend$substringFromIndex:
+0000b804  mov      x29, x29                                       
+0000b808  bl       #0x2801c                                       ; call _objc_retainAutoreleasedReturnValue
+0000b80c  mov      x22, x0                                        
+0000b810  mov      x0, x21                                        
+0000b814  bl       #0x27ff8                                       ; call _objc_release
+0000b818  mov      x0, x20                                        
+0000b81c  bl       #0x27ff8                                       ; call _objc_release
+0000b820  mov      x0, x19                                        
+0000b824  bl       #0x27ff8                                       ; call _objc_release
+0000b828  mov      x0, x22                                        
+0000b82c  ldp      x29, x30, [sp, #0x20]                          
+0000b830  ldp      x20, x19, [sp, #0x10]                          
+0000b834  ldp      x22, x21, [sp], #0x30                          
+0000b838  b        #0x27f2c                                       ; call _objc_autoreleaseReturnValue
+0000b83c  b        #0xb854                                        ; -> loc_b854
+0000b840  mov      x22, x0                                        
+0000b844  mov      x0, x21                                        
+0000b848  bl       #0x27ff8                                       ; call _objc_release
+0000b84c  b        #0xb858                                        ; -> loc_b858
+0000b850  b        #0xb854                                        ; -> loc_b854
+0000b854  mov      x22, x0                                        
+0000b858  mov      x0, x20                                        
+0000b85c  bl       #0x27ff8                                       ; call _objc_release
+0000b860  b        #0xb868                                        ; -> loc_b868
+0000b864  mov      x22, x0                                        
+0000b868  mov      x0, x19                                        
+0000b86c  bl       #0x27ff8                                       ; call _objc_release
+0000b870  mov      x0, x22                                        
+0000b874  bl       #0x27c80                                       ; call __Unwind_Resume

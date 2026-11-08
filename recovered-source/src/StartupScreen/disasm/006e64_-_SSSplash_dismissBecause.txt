@@ -1,0 +1,103 @@
+; -[SSSplash dismissBecause:]
+; VA 0x6e64  size 400
+
+0x00006e64:  sub      sp, sp, #0xb0
+0x00006e68:  stp      d9, d8, [sp, #0x60]
+0x00006e6c:  stp      x24, x23, [sp, #0x70]
+0x00006e70:  stp      x22, x21, [sp, #0x80]
+0x00006e74:  stp      x20, x19, [sp, #0x90]
+0x00006e78:  stp      x29, x30, [sp, #0xa0]
+0x00006e7c:  add      x29, sp, #0xa0
+0x00006e80:  mov      x19, x2
+0x00006e84:  mov      x20, x0
+0x00006e88:  mov      x0, x2
+0x00006e8c:  bl       #0x2212c    ; -> _objc_retain
+0x00006e90:  mov      x0, x20
+0x00006e94:  bl       #0x233c0    ; -> _objc_msgSend(finished)
+0x00006e98:  tbnz     w0, #0, #0x6fd0
+0x00006e9c:  mov      x0, x20
+0x00006ea0:  mov      w2, #1
+0x00006ea4:  bl       #0x24980    ; -> _objc_msgSend(setFinished:)
+0x00006ea8:  mov      x0, x20
+0x00006eac:  mov      x2, x19
+0x00006eb0:  bl       #0x248c0    ; -> _objc_msgSend(setEndReason:)
+0x00006eb4:  adrp     x22, #0x3a000
+0x00006eb8:  ldr      x21, [x22, #0x9c0]    ; class(NSString)
+0x00006ebc:  bl       #0x21b08    ; -> _CACurrentMediaTime
+0x00006ec0:  mov      v8.16b, v0.16b
+0x00006ec4:  mov      x0, x20
+0x00006ec8:  bl       #0x25540    ; -> _objc_msgSend(shownAt)
+0x00006ecc:  fsub     d0, d8, d0
+0x00006ed0:  str      d0, [sp, #8]
+0x00006ed4:  str      x19, [sp]
+0x00006ed8:  adrp     x2, #0x31000
+0x00006edc:  add      x2, x2, #0x1e8    ; @"%@ after %.1fs"
+0x00006ee0:  mov      x0, x21
+0x00006ee4:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00006ee8:  mov      x29, x29
+0x00006eec:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006ef0:  adrp     x23, #0x3b000
+0x00006ef4:  ldr      x8, [x23, #0x150]
+0x00006ef8:  str      x0, [x23, #0x150]
+0x00006efc:  mov      x0, x8
+0x00006f00:  bl       #0x22120    ; -> _objc_release
+0x00006f04:  ldr      x21, [x22, #0x9c0]
+0x00006f08:  mov      x0, x20
+0x00006f0c:  bl       #0x25560    ; -> _objc_msgSend(shownFrames)
+0x00006f10:  ldr      x8, [x23, #0x150]
+0x00006f14:  stp      x0, x8, [sp]
+0x00006f18:  adrp     x2, #0x31000
+0x00006f1c:  add      x2, x2, #0x208    ; @"dismissing after %lu frames: %@"
+0x00006f20:  mov      x0, x21
+0x00006f24:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00006f28:  mov      x29, x29
+0x00006f2c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006f30:  mov      x21, x0
+0x00006f34:  adrp     x0, #0x30000
+0x00006f38:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00006f3c:  mov      x1, x21
+0x00006f40:  bl       #0x1b620    ; -> OMCLogWrite
+0x00006f44:  mov      x0, x21
+0x00006f48:  bl       #0x22120    ; -> _objc_release
+0x00006f4c:  bl       #0x21b50    ; -> _CFNotificationCenterGetDarwinNotifyCenter
+0x00006f50:  adrp     x1, #0x31000
+0x00006f54:  add      x1, x1, #0x228    ; @"com.anlai.omnicar/startupscreen.audio.stop"
+0x00006f58:  mov      x2, #0
+0x00006f5c:  mov      x3, #0
+0x00006f60:  mov      w4, #1
+0x00006f64:  bl       #0x21b5c    ; -> _CFNotificationCenterPostNotification
+0x00006f68:  adrp     x8, #0x3a000
+0x00006f6c:  ldr      x0, [x8, #0xa10]    ; class(UIView)
+0x00006f70:  adrp     x8, #0x30000
+0x00006f74:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x00006f78:  stp      x20, x8, [sp, #0x30]
+0x00006f7c:  adrp     x9, #0x28000
+0x00006f80:  ldr      d0, [x9, #0xdd0]
+0x00006f84:  str      d0, [sp, #0x40]
+0x00006f88:  adrp     x9, #0x6000
+0x00006f8c:  add      x9, x9, #0xff4    ; func sub_6ff4
+0x00006f90:  adrp     x10, #0x30000
+0x00006f94:  add      x10, x10, #0x788
+0x00006f98:  stp      x9, x10, [sp, #0x48]
+0x00006f9c:  str      x20, [sp, #0x58]
+0x00006fa0:  str      x8, [sp, #0x10]
+0x00006fa4:  adrp     x8, #0x7000
+0x00006fa8:  add      x8, x8, #0x2c    ; func sub_702c
+0x00006fac:  str      d0, [sp, #0x18]
+0x00006fb0:  adrp     x9, #0x30000
+0x00006fb4:  add      x9, x9, #0x818
+0x00006fb8:  stp      x8, x9, [sp, #0x20]
+0x00006fbc:  adrp     x8, #0x28000
+0x00006fc0:  ldr      d0, [x8, #0xdf0]
+0x00006fc4:  add      x2, sp, #0x38
+0x00006fc8:  add      x3, sp, #0x10
+0x00006fcc:  bl       #0x225a0    ; -> _objc_msgSend(animateWithDuration:animations:completion:)
+0x00006fd0:  mov      x0, x19
+0x00006fd4:  bl       #0x22120    ; -> _objc_release
+0x00006fd8:  ldp      x29, x30, [sp, #0xa0]
+0x00006fdc:  ldp      x20, x19, [sp, #0x90]
+0x00006fe0:  ldp      x22, x21, [sp, #0x80]
+0x00006fe4:  ldp      x24, x23, [sp, #0x70]
+0x00006fe8:  ldp      d9, d8, [sp, #0x60]
+0x00006fec:  add      sp, sp, #0xb0
+0x00006ff0:  ret      

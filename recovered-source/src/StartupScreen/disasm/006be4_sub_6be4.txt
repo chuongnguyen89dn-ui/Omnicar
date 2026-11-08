@@ -1,0 +1,16 @@
+; sub_6be4
+; VA 0x6be4  size 52
+
+0x00006be4:  stp      x20, x19, [sp, #-0x20]!
+0x00006be8:  stp      x29, x30, [sp, #0x10]
+0x00006bec:  add      x29, sp, #0x10
+0x00006bf0:  add      x0, x0, #0x20
+0x00006bf4:  bl       #0x220c0    ; -> _objc_loadWeakRetained
+0x00006bf8:  mov      x19, x0
+0x00006bfc:  adrp     x2, #0x31000
+0x00006c00:  add      x2, x2, #0x108    ; @"video ended"
+0x00006c04:  bl       #0x23120    ; -> _objc_msgSend(dismissBecause:)
+0x00006c08:  mov      x0, x19
+0x00006c0c:  ldp      x29, x30, [sp, #0x10]
+0x00006c10:  ldp      x20, x19, [sp], #0x20
+0x00006c14:  b        #0x22120    ; -> _objc_release

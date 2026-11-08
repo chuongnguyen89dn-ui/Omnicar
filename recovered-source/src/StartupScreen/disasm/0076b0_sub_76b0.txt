@@ -1,0 +1,217 @@
+; sub_76b0
+; VA 0x76b0  size 856
+
+0x000076b0:  sub      x3, x29, #0xe0
+0x000076b4:  mov      w4, #0x10
+0x000076b8:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x000076bc:  adrp     x27, #0x3a000
+0x000076c0:  cbz      x0, #0x7778
+0x000076c4:  mov      x24, x0
+0x000076c8:  ldr      x8, [sp, #0x30]
+0x000076cc:  ldr      x28, [x8]
+0x000076d0:  adrp     x22, #0x31000
+0x000076d4:  add      x22, x22, #0x328    ; @"existing screen: %@"
+0x000076d8:  adrp     x23, #0x30000
+0x000076dc:  add      x23, x23, #0xf28    ; @"StartupScreen"
+0x000076e0:  mov      x19, #0
+0x000076e4:  ldr      x8, [sp, #0x30]
+0x000076e8:  ldr      x8, [x8]
+0x000076ec:  cmp      x8, x28
+0x000076f0:  b.eq     #0x76fc
+0x000076f4:  mov      x0, x21
+0x000076f8:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x000076fc:  ldr      x8, [sp, #0x28]
+0x00007700:  ldr      x0, [x8, x19, lsl #3]
+0x00007704:  ldr      x25, [x27, #0x9c0]
+0x00007708:  bl       #0x8308    ; -> sub_8308
+0x0000770c:  mov      x29, x29
+0x00007710:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00007714:  mov      x26, x0
+0x00007718:  str      x0, [sp]
+0x0000771c:  mov      x0, x25
+0x00007720:  mov      x2, x22
+0x00007724:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00007728:  mov      x29, x29
+0x0000772c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00007730:  mov      x25, x0
+0x00007734:  mov      x0, x23
+0x00007738:  mov      x1, x25
+0x0000773c:  bl       #0x1b620    ; -> OMCLogWrite
+0x00007740:  mov      x0, x25
+0x00007744:  bl       #0x22120    ; -> _objc_release
+0x00007748:  mov      x0, x26
+0x0000774c:  bl       #0x22120    ; -> _objc_release
+0x00007750:  add      x19, x19, #1
+0x00007754:  cmp      x24, x19
+0x00007758:  b.ne     #0x76e4
+0x0000775c:  add      x2, sp, #0x20
+0x00007760:  sub      x3, x29, #0xe0
+0x00007764:  mov      x0, x21
+0x00007768:  mov      w4, #0x10
+0x0000776c:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00007770:  mov      x24, x0
+0x00007774:  cbnz     x0, #0x76e0
+0x00007778:  mov      x0, x21
+0x0000777c:  bl       #0x22120    ; -> _objc_release
+0x00007780:  ldr      x21, [x27, #0x9c0]
+0x00007784:  adrp     x0, #0x31000
+0x00007788:  add      x0, x0, #0x368    ; @"/var/mobile/Library/OmniCar/StartupScreen/Videos"
+0x0000778c:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x00007790:  add      x1, sp, #0x60
+0x00007794:  bl       #0x4118    ; -> sub_4118
+0x00007798:  cbz      x0, #0x7800
+0x0000779c:  mov      x2, x0
+0x000077a0:  ldr      x0, [x27, #0x9c0]
+0x000077a4:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x000077a8:  mov      x29, x29
+0x000077ac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000077b0:  mov      x22, x0
+0x000077b4:  b        #0x7804    ; -> sub_7804
+0x000077b8:  mov      x0, x20
+0x000077bc:  bl       #0x22120    ; -> _objc_release
+0x000077c0:  mov      x0, x19
+0x000077c4:  bl       #0x2203c    ; -> _objc_autoreleasePoolPop
+0x000077c8:  ldur     x8, [x29, #-0x60]
+0x000077cc:  adrp     x9, #0x30000
+0x000077d0:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x000077d4:  ldr      x9, [x9]
+0x000077d8:  cmp      x9, x8
+0x000077dc:  b.ne     #0x79cc
+0x000077e0:  add      sp, sp, #0x4f0
+0x000077e4:  ldp      x29, x30, [sp, #0x50]
+0x000077e8:  ldp      x20, x19, [sp, #0x40]
+0x000077ec:  ldp      x22, x21, [sp, #0x30]
+0x000077f0:  ldp      x24, x23, [sp, #0x20]
+0x000077f4:  ldp      x26, x25, [sp, #0x10]
+0x000077f8:  ldp      x28, x27, [sp], #0x60
+0x000077fc:  ret      
+0x00007800:  mov      x22, #0
+0x00007804:  adrp     x8, #0x3a000
+0x00007808:  ldr      x0, [x8, #0xa30]    ; class(NSFileManager)
+0x0000780c:  bl       #0x23080    ; -> _objc_msgSend(defaultManager)
+0x00007810:  mov      x29, x29
+0x00007814:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00007818:  mov      x23, x0
+0x0000781c:  adrp     x0, #0x31000
+0x00007820:  add      x0, x0, #0x368    ; @"/var/mobile/Library/OmniCar/StartupScreen/Videos"
+0x00007824:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x00007828:  add      x1, sp, #0x60
+0x0000782c:  bl       #0x4118    ; -> sub_4118
+0x00007830:  ldr      x19, [sp, #0x18]
+0x00007834:  cbz      x0, #0x7854
+0x00007838:  mov      x2, x0
+0x0000783c:  ldr      x0, [x27, #0x9c0]
+0x00007840:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x00007844:  mov      x29, x29
+0x00007848:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000784c:  mov      x24, x0
+0x00007850:  b        #0x7858    ; -> sub_7858
+0x00007854:  mov      x24, #0
+0x00007858:  mov      x0, x23
+0x0000785c:  mov      x2, x24
+0x00007860:  bl       #0x23980    ; -> _objc_msgSend(isReadableFileAtPath:)
+0x00007864:  stp      x22, x0, [sp]
+0x00007868:  adrp     x2, #0x31000
+0x0000786c:  add      x2, x2, #0x348    ; @"videos dir %@ readable=%d"
+0x00007870:  mov      x0, x21
+0x00007874:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00007878:  mov      x29, x29
+0x0000787c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00007880:  mov      x21, x0
+0x00007884:  adrp     x0, #0x30000
+0x00007888:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x0000788c:  mov      x1, x21
+0x00007890:  bl       #0x1b620    ; -> OMCLogWrite
+0x00007894:  mov      x0, x21
+0x00007898:  bl       #0x22120    ; -> _objc_release
+0x0000789c:  mov      x0, x24
+0x000078a0:  bl       #0x22120    ; -> _objc_release
+0x000078a4:  mov      x0, x23
+0x000078a8:  bl       #0x22120    ; -> _objc_release
+0x000078ac:  mov      x0, x22
+0x000078b0:  bl       #0x22120    ; -> _objc_release
+0x000078b4:  adrp     x8, #0x3a000
+0x000078b8:  ldr      x0, [x8, #0xa38]    ; class(NSNotificationCenter)
+0x000078bc:  bl       #0x23060    ; -> _objc_msgSend(defaultCenter)
+0x000078c0:  mov      x29, x29
+0x000078c4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000078c8:  mov      x21, x0
+0x000078cc:  adrp     x8, #0x3a000
+0x000078d0:  ldr      x0, [x8, #0xa40]    ; class(NSOperationQueue)
+0x000078d4:  bl       #0x23b60    ; -> _objc_msgSend(mainQueue)
+0x000078d8:  mov      x29, x29
+0x000078dc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000078e0:  mov      x22, x0
+0x000078e4:  adrp     x8, #0x30000
+0x000078e8:  ldr      x8, [x8, #0x2a0]    ; got(_UISceneWillConnectNotification)
+0x000078ec:  ldr      x2, [x8]
+0x000078f0:  adrp     x5, #0x30000
+0x000078f4:  add      x5, x5, #0x908    ; block_lit(invoke=0x8420 sub_8420, sig=v16@?0@"NSNotification"8)
+0x000078f8:  mov      x0, x21
+0x000078fc:  mov      x3, #0
+0x00007900:  mov      x4, x22
+0x00007904:  bl       #0x224c0    ; -> _objc_msgSend(addObserverForName:object:queue:usingBlock:)
+0x00007908:  mov      x29, x29
+0x0000790c:  bl       #0x221a4    ; -> _objc_unsafeClaimAutoreleasedReturnValue
+0x00007910:  adrp     x8, #0x30000
+0x00007914:  ldr      x8, [x8, #0x290]    ; got(_UISceneDidActivateNotification)
+0x00007918:  ldr      x2, [x8]
+0x0000791c:  adrp     x5, #0x30000
+0x00007920:  add      x5, x5, #0x928    ; block_lit(invoke=0x8694 sub_8694, sig=v16@?0@"NSNotification"8)
+0x00007924:  mov      x0, x21
+0x00007928:  mov      x3, #0
+0x0000792c:  mov      x4, x22
+0x00007930:  bl       #0x224c0    ; -> _objc_msgSend(addObserverForName:object:queue:usingBlock:)
+0x00007934:  mov      x29, x29
+0x00007938:  bl       #0x221a4    ; -> _objc_unsafeClaimAutoreleasedReturnValue
+0x0000793c:  adrp     x8, #0x30000
+0x00007940:  ldr      x8, [x8, #0x2a8]    ; got(_UIScreenDidConnectNotification)
+0x00007944:  ldr      x2, [x8]
+0x00007948:  adrp     x5, #0x30000
+0x0000794c:  add      x5, x5, #0x948    ; block_lit(invoke=0x86d0 sub_86d0, sig=v16@?0@"NSNotification"8)
+0x00007950:  mov      x0, x21
+0x00007954:  mov      x3, #0
+0x00007958:  mov      x4, x22
+0x0000795c:  bl       #0x224c0    ; -> _objc_msgSend(addObserverForName:object:queue:usingBlock:)
+0x00007960:  mov      x29, x29
+0x00007964:  bl       #0x221a4    ; -> _objc_unsafeClaimAutoreleasedReturnValue
+0x00007968:  adrp     x8, #0x30000
+0x0000796c:  ldr      x8, [x8, #0x2b0]    ; got(_UIScreenDidDisconnectNotification)
+0x00007970:  ldr      x2, [x8]
+0x00007974:  adrp     x5, #0x30000
+0x00007978:  add      x5, x5, #0x968    ; block_lit(invoke=0x8768 sub_8768, sig=v16@?0@"NSNotification"8)
+0x0000797c:  mov      x0, x21
+0x00007980:  mov      x3, #0
+0x00007984:  mov      x4, x22
+0x00007988:  bl       #0x224c0    ; -> _objc_msgSend(addObserverForName:object:queue:usingBlock:)
+0x0000798c:  mov      x29, x29
+0x00007990:  bl       #0x221a4    ; -> _objc_unsafeClaimAutoreleasedReturnValue
+0x00007994:  adrp     x8, #0x30000
+0x00007998:  ldr      x8, [x8, #0x298]    ; got(_UISceneDidDisconnectNotification)
+0x0000799c:  ldr      x2, [x8]
+0x000079a0:  adrp     x5, #0x30000
+0x000079a4:  add      x5, x5, #0x988    ; block_lit(invoke=0x8878 sub_8878, sig=v16@?0@"NSNotification"8)
+0x000079a8:  mov      x0, x21
+0x000079ac:  mov      x3, #0
+0x000079b0:  mov      x4, x22
+0x000079b4:  bl       #0x224c0    ; -> _objc_msgSend(addObserverForName:object:queue:usingBlock:)
+0x000079b8:  mov      x29, x29
+0x000079bc:  bl       #0x221a4    ; -> _objc_unsafeClaimAutoreleasedReturnValue
+0x000079c0:  mov      x0, x22
+0x000079c4:  bl       #0x22120    ; -> _objc_release
+0x000079c8:  b        #0x7620    ; -> sub_7620
+0x000079cc:  bl       #0x21dd8    ; -> ___stack_chk_fail
+0x000079d0:  sub      sp, sp, #0x40
+0x000079d4:  stp      x29, x30, [sp, #0x30]
+0x000079d8:  add      x29, sp, #0x30
+0x000079dc:  mov      x0, x2
+0x000079e0:  adrp     x1, #0x31000
+0x000079e4:  add      x1, x1, #0x148    ; @"com.anlai.omnicar/startupscreen.audio.play"
+0x000079e8:  mov      x2, #0
+0x000079ec:  bl       #0x21b98    ; -> _CFStringCompare
+0x000079f0:  cmp      x0, #0
+0x000079f4:  adrp     x8, #0x30000
+0x000079f8:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x000079fc:  cset     w9, eq
+0x00007a00:  str      x8, [sp, #8]
+0x00007a04:  adrp     x8, #0x28000

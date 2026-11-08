@@ -1,0 +1,46 @@
+; _SCPAppIconsCarScreenOK
+0x00c570  stp      x20, x19, [sp, #-0x20]!
+0x00c574  stp      x29, x30, [sp, #0x10]
+0x00c578  add      x29, sp, #0x10
+0x00c57c  bl       #0x4f538 ; -> _OMCPrefsSync
+0x00c580  adrp     x0, #0x7a000
+0x00c584  add      x0, x0, #0x860 ; -> 0x7a860 @"splitScreenIconsPending"
+0x00c588  mov      x1, #0
+0x00c58c  bl       #0x4f544 ; -> _OMCPref
+0x00c590  mov      x29, x29
+0x00c594  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00c598  mov      x19, x0
+0x00c59c  bl       #0x572e0 ; objc_msgSend$boolValue
+0x00c5a0  mov      x20, x0
+0x00c5a4  mov      x0, x19
+0x00c5a8  bl       #0x567b8 ; call _objc_release
+0x00c5ac  cbz      w20, #0xc600
+0x00c5b0  adrp     x0, #0x7a000
+0x00c5b4  add      x0, x0, #0x860 ; -> 0x7a860 @"splitScreenIconsPending"
+0x00c5b8  mov      x1, #0
+0x00c5bc  bl       #0xc4f4 ; -> sub_c4f4
+0x00c5c0  adrp     x8, #0x87000
+0x00c5c4  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x00c5c8  adrp     x2, #0x7a000
+0x00c5cc  add      x2, x2, #0x8e0 ; -> 0x7a8e0 @"AppIcons: man xe hien binh thuong sau khi chen icon"
+0x00c5d0  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x00c5d4  mov      x29, x29
+0x00c5d8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00c5dc  mov      x19, x0
+0x00c5e0  adrp     x0, #0x79000
+0x00c5e4  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x00c5e8  mov      x1, x19
+0x00c5ec  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00c5f0  mov      x0, x19
+0x00c5f4  ldp      x29, x30, [sp, #0x10]
+0x00c5f8  ldp      x20, x19, [sp], #0x20
+0x00c5fc  b        #0x567b8 ; call _objc_release
+0x00c600  ldp      x29, x30, [sp, #0x10]
+0x00c604  ldp      x20, x19, [sp], #0x20
+0x00c608  ret      
+0x00c60c  b        #0xc610
+0x00c610  mov      x20, x0
+0x00c614  mov      x0, x19
+0x00c618  bl       #0x567b8 ; call _objc_release
+0x00c61c  mov      x0, x20
+0x00c620  bl       #0x563e0 ; call __Unwind_Resume

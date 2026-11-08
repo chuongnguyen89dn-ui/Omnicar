@@ -1,0 +1,48 @@
+; -[SCPHostedAppVC viewDidLoad]
+0x00fc58  sub      sp, sp, #0x40
+0x00fc5c  stp      x22, x21, [sp, #0x10]
+0x00fc60  stp      x20, x19, [sp, #0x20]
+0x00fc64  stp      x29, x30, [sp, #0x30]
+0x00fc68  add      x29, sp, #0x30
+0x00fc6c  mov      x20, x0
+0x00fc70  adrp     x8, #0x87000
+0x00fc74  ldr      x8, [x8, #0x8f0]
+0x00fc78  stp      x0, x8, [sp]
+0x00fc7c  adrp     x8, #0x85000
+0x00fc80  ldr      x1, [x8, #0xb50] ; [0x85b50] sel:viewDidLoad
+0x00fc84  mov      x0, sp
+0x00fc88  bl       #0x56770 ; call _objc_msgSendSuper2 (sel=viewDidLoad)
+0x00fc8c  adrp     x8, #0x87000
+0x00fc90  ldr      x0, [x8, #0x730] ; [0x87730] class:UIColor
+0x00fc94  adrp     x8, #0x6f000
+0x00fc98  ldr      d0, [x8, #0x68]
+0x00fc9c  fmov     d1, #1.00000000
+0x00fca0  bl       #0x57700 ; objc_msgSend$colorWithWhite:alpha: (sel=viewDidLoad)
+0x00fca4  mov      x29, x29
+0x00fca8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00fcac  mov      x19, x0
+0x00fcb0  mov      x0, x20
+0x00fcb4  bl       #0x5cb60 ; objc_msgSend$view (sel=viewDidLoad)
+0x00fcb8  mov      x29, x29
+0x00fcbc  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00fcc0  mov      x20, x0
+0x00fcc4  mov      x2, x19
+0x00fcc8  bl       #0x5a860 ; objc_msgSend$setBackgroundColor: (sel=viewDidLoad)
+0x00fccc  mov      x0, x20
+0x00fcd0  bl       #0x567b8 ; call _objc_release
+0x00fcd4  mov      x0, x19
+0x00fcd8  bl       #0x567b8 ; call _objc_release
+0x00fcdc  ldp      x29, x30, [sp, #0x30]
+0x00fce0  ldp      x20, x19, [sp, #0x20]
+0x00fce4  ldp      x22, x21, [sp, #0x10]
+0x00fce8  add      sp, sp, #0x40
+0x00fcec  ret      
+0x00fcf0  mov      x21, x0
+0x00fcf4  mov      x0, x20
+0x00fcf8  bl       #0x567b8 ; call _objc_release
+0x00fcfc  b        #0xfd04
+0x00fd00  mov      x21, x0
+0x00fd04  mov      x0, x19
+0x00fd08  bl       #0x567b8 ; call _objc_release
+0x00fd0c  mov      x0, x21
+0x00fd10  bl       #0x563e0 ; call __Unwind_Resume

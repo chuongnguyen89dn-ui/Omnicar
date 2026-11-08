@@ -1,0 +1,95 @@
+=== -[ABKey setHighlighted:] @ 0x187d4 (size 376) ===
+000187d4  sub      sp, sp, #0x70
+000187d8  stp      x22, x21, [sp, #0x40]
+000187dc  stp      x20, x19, [sp, #0x50]
+000187e0  stp      x29, x30, [sp, #0x60]
+000187e4  add      x29, sp, #0x60
+000187e8  mov      x19, x2
+000187ec  mov      x20, x0
+000187f0  bl       #0x25d20 ; objc_msgSend sel=isHighlighted
+000187f4  cmp      w19, w0
+000187f8  b.eq     #0x18910
+000187fc  adrp     x8, #0x3e000
+00018800  ldr      x8, [x8, #0x470] ; -> class ABKey
+00018804  stp      x20, x8, [sp, #0x30]
+00018808  adrp     x8, #0x3d000
+0001880c  ldr      x1, [x8, #0x260] ; selref @setHighlighted:
+00018810  add      x0, sp, #0x30
+00018814  mov      x2, x19
+00018818  bl       #0x247c4 ; call _objc_msgSendSuper2
+0001881c  mov      x0, x20
+00018820  mov      x2, x19
+00018824  bl       #0x26500 ; objc_msgSend sel=paint:
+00018828  adrp     x8, #0x3e000
+0001882c  ldr      x0, [x8, #0x2d0] ; bind _OBJC_CLASS_$_UIView
+00018830  cmp      w19, #0
+00018834  adrp     x8, #0x2b000
+00018838  ldr      d0, [x8, #0x1f0] ; -> 0x333333333
+0001883c  adrp     x8, #0x2b000
+00018840  ldr      d1, [x8, #0x398] ; -> 0x147ae147b
+00018844  fcsel    d0, d1, d0, ne
+00018848  adrp     x8, #0x2b000
+0001884c  ldr      d1, [x8, #0x210] ; -> 0x333333333
+00018850  fmov     d2, #1.00000000
+00018854  fcsel    d2, d2, d1, ne
+00018858  adrp     x8, #0x34000
+0001885c  ldr      x8, [x8, #0x258] ; -> __NSConcreteStackBlock
+00018860  str      x8, [sp]
+00018864  adrp     x8, #0x2b000
+00018868  ldr      d1, [x8, #0x1d0] ; -> 0xc2000000
+0001886c  str      d1, [sp, #8]
+00018870  adrp     x8, #0x18000
+00018874  add      x8, x8, #0x94c
+00018878  adrp     x9, #0x34000
+0001887c  add      x9, x9, #0x810
+00018880  stp      x8, x9, [sp, #0x10]
+00018884  str      x20, [sp, #0x20]
+00018888  strb     w19, [sp, #0x28]
+0001888c  fmov     d1, xzr
+00018890  fmov     d3, xzr
+00018894  mov      x3, sp
+00018898  mov      w2, #6
+0001889c  mov      x4, #0
+000188a0  bl       #0x24ca0 ; objc_msgSend sel=animateWithDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:
+000188a4  mov      x0, x20
+000188a8  bl       #0x25260 ; objc_msgSend sel=command
+000188ac  mov      x29, x29
+000188b0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000188b4  mov      x21, x0
+000188b8  cbnz     x0, #0x18908
+000188bc  mov      x0, x20
+000188c0  bl       #0x280e0 ; objc_msgSend sel=value
+000188c4  mov      x29, x29
+000188c8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000188cc  mov      x21, x0
+000188d0  bl       #0x25fa0 ; objc_msgSend sel=length
+000188d4  mov      x22, x0
+000188d8  mov      x0, x21
+000188dc  bl       #0x2480c ; call _objc_release
+000188e0  cbz      x22, #0x18910
+000188e4  adrp     x8, #0x3e000
+000188e8  ldr      x0, [x8, #0x2e8] ; class ABKeyboard
+000188ec  bl       #0x27b20 ; objc_msgSend sel=shared
+000188f0  mov      x29, x29
+000188f4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000188f8  mov      x21, x0
+000188fc  mov      x2, x20
+00018900  mov      x3, x19
+00018904  bl       #0x25da0 ; objc_msgSend sel=key:pressed:
+00018908  mov      x0, x21
+0001890c  bl       #0x2480c ; call _objc_release
+00018910  ldp      x29, x30, [sp, #0x60]
+00018914  ldp      x20, x19, [sp, #0x50]
+00018918  ldp      x22, x21, [sp, #0x40]
+0001891c  add      sp, sp, #0x70
+00018920  ret      
+00018924  b        #0x18928 ; call sub_18928
+00018928  mov      x19, x0
+0001892c  mov      x0, x21
+00018930  bl       #0x2480c ; call _objc_release
+00018934  b        #0x18944 ; call sub_18944
+00018938  b        #0x18940 ; call sub_18940
+0001893c  b        #0x18940 ; call sub_18940
+00018940  mov      x19, x0
+00018944  mov      x0, x19
+00018948  bl       #0x24470 ; call __Unwind_Resume

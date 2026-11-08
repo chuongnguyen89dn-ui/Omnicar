@@ -1,0 +1,37 @@
+; ==== SCPCarSplit__panelOpen  @0x26394..0x26424 (144 bytes) ====
+00026394  stp      x22, x21, [sp, #-0x30]!                      
+00026398  stp      x20, x19, [sp, #0x10]                        
+0002639c  stp      x29, x30, [sp, #0x20]                        
+000263a0  add      x29, sp, #0x20                               
+000263a4  mov      x20, x0                                      
+000263a8  bl       #0x5c820                                     ; msgSend "tray"
+000263ac  mov      x29, x29                                     
+000263b0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000263b4  mov      x19, x0                                      
+000263b8  cbz      x0, #0x263c4                                 
+000263bc  mov      w20, #1                                      
+000263c0  b        #0x26408                                     
+000263c4  mov      x0, x20                                      
+000263c8  bl       #0x59f80                                     ; msgSend "ratioMenu"
+000263cc  mov      x29, x29                                     
+000263d0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000263d4  mov      x21, x0                                      
+000263d8  cbz      x0, #0x263e4                                 
+000263dc  mov      w20, #1                                      
+000263e0  b        #0x26400                                     
+000263e4  mov      x0, x20                                      
+000263e8  bl       #0x59a40                                     ; msgSend "pickerSheet"
+000263ec  mov      x29, x29                                     
+000263f0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000263f4  cmp      x0, #0                                       
+000263f8  cset     w20, ne                                      
+000263fc  bl       #0x567b8                                     ; call _objc_release
+00026400  mov      x0, x21                                      
+00026404  bl       #0x567b8                                     ; call _objc_release
+00026408  mov      x0, x19                                      
+0002640c  bl       #0x567b8                                     ; call _objc_release
+00026410  mov      x0, x20                                      
+00026414  ldp      x29, x30, [sp, #0x20]                        
+00026418  ldp      x20, x19, [sp, #0x10]                        
+0002641c  ldp      x22, x21, [sp], #0x30                        
+00026420  ret                                                   

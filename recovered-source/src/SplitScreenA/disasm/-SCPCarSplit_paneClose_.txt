@@ -1,0 +1,67 @@
+; -[SCPCarSplit paneClose:]
+0x02a0e0  sub      sp, sp, #0x40
+0x02a0e4  stp      x22, x21, [sp, #0x10]
+0x02a0e8  stp      x20, x19, [sp, #0x20]
+0x02a0ec  stp      x29, x30, [sp, #0x30]
+0x02a0f0  add      x29, sp, #0x30
+0x02a0f4  mov      x19, x2
+0x02a0f8  mov      x20, x0
+0x02a0fc  mov      x0, x2
+0x02a100  bl       #0x567c4 ; call _objc_retain
+0x02a104  mov      x0, x20
+0x02a108  mov      x2, x19
+0x02a10c  bl       #0x59840 ; objc_msgSend$paneForView:
+0x02a110  mov      x29, x29
+0x02a114  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x02a118  mov      x22, x0
+0x02a11c  cbz      x0, #0x2a12c
+0x02a120  mov      x0, x20
+0x02a124  mov      x2, x22
+0x02a128  bl       #0x5a520 ; objc_msgSend$runCloseForPane:
+0x02a12c  mov      x0, x22
+0x02a130  bl       #0x567b8 ; call _objc_release
+0x02a134  mov      x0, x19
+0x02a138  ldp      x29, x30, [sp, #0x30]
+0x02a13c  ldp      x20, x19, [sp, #0x20]
+0x02a140  ldp      x22, x21, [sp, #0x10]
+0x02a144  add      sp, sp, #0x40
+0x02a148  b        #0x567b8 ; call _objc_release
+0x02a14c  mov      x21, x1
+0x02a150  mov      x20, x0
+0x02a154  mov      x0, x22
+0x02a158  bl       #0x567b8 ; call _objc_release
+0x02a15c  b        #0x2a168
+0x02a160  mov      x21, x1
+0x02a164  mov      x20, x0
+0x02a168  cmp      w21, #1
+0x02a16c  b.ne     #0x2a1d8
+0x02a170  mov      x0, x20
+0x02a174  bl       #0x566ec ; call _objc_begin_catch
+0x02a178  adrp     x8, #0x87000
+0x02a17c  ldr      x8, [x8, #0x678] ; [0x87678] class:NSString
+0x02a180  str      x0, [sp]
+0x02a184  adrp     x2, #0x7c000
+0x02a188  add      x2, x2, #0x3c0 ; -> 0x7c3c0 @"CarSplit: loi nut dong %@"
+0x02a18c  mov      x0, x8
+0x02a190  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x02a194  mov      x29, x29
+0x02a198  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x02a19c  mov      x21, x0
+0x02a1a0  adrp     x0, #0x79000
+0x02a1a4  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x02a1a8  mov      x1, x21
+0x02a1ac  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x02a1b0  mov      x0, x21
+0x02a1b4  bl       #0x567b8 ; call _objc_release
+0x02a1b8  bl       #0x56710 ; call _objc_end_catch
+0x02a1bc  b        #0x2a134
+0x02a1c0  mov      x20, x0
+0x02a1c4  mov      x0, x21
+0x02a1c8  bl       #0x567b8 ; call _objc_release
+0x02a1cc  b        #0x2a1d4
+0x02a1d0  mov      x20, x0
+0x02a1d4  bl       #0x56710 ; call _objc_end_catch
+0x02a1d8  mov      x0, x19
+0x02a1dc  bl       #0x567b8 ; call _objc_release
+0x02a1e0  mov      x0, x20
+0x02a1e4  bl       #0x563e0 ; call __Unwind_Resume

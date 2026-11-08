@@ -1,0 +1,100 @@
+# -[SPPBubble hideMenu]
+# addr 0x1bebc .. 0x1c040  (388 bytes)
+
+0001bebc  sub      sp, sp, #0x90                               
+0001bec0  stp      d9, d8, [sp, #0x50]                         
+0001bec4  stp      x22, x21, [sp, #0x60]                       
+0001bec8  stp      x20, x19, [sp, #0x70]                       
+0001becc  stp      x29, x30, [sp, #0x80]                       
+0001bed0  add      x29, sp, #0x80                              
+0001bed4  mov      x20, x0                                     
+0001bed8  bl       #0x29e60                                    ; objc_msgSend$menuTimer
+0001bedc  mov      x29, x29                                    
+0001bee0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001bee4  mov      x19, x0                                     
+0001bee8  bl       #0x29980                                    ; objc_msgSend$invalidate
+0001beec  mov      x0, x19                                     
+0001bef0  bl       #0x27ff8                                    ; _objc_release
+0001bef4  mov      x0, x20                                     
+0001bef8  mov      x2, #0                                      
+0001befc  bl       #0x2b3a0                                    ; objc_msgSend$setMenuTimer:
+0001bf00  mov      x0, x20                                     
+0001bf04  bl       #0x29e40                                    ; objc_msgSend$menuShield
+0001bf08  mov      x29, x29                                    
+0001bf0c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001bf10  mov      x19, x0                                     
+0001bf14  bl       #0x2a5c0                                    ; objc_msgSend$removeFromSuperview
+0001bf18  mov      x0, x19                                     
+0001bf1c  bl       #0x27ff8                                    ; _objc_release
+0001bf20  mov      x0, x20                                     
+0001bf24  mov      x2, #0                                      
+0001bf28  bl       #0x2b380                                    ; objc_msgSend$setMenuShield:
+0001bf2c  mov      x0, x20                                     
+0001bf30  bl       #0x29e00                                    ; objc_msgSend$menu
+0001bf34  mov      x29, x29                                    
+0001bf38  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001bf3c  mov      x19, x0                                     
+0001bf40  cbz      x0, #0x1bfec                                
+0001bf44  mov      x0, x20                                     
+0001bf48  mov      x2, #0                                      
+0001bf4c  bl       #0x2b340                                    ; objc_msgSend$setMenu:
+0001bf50  adrp     x8, #0x43000                                
+0001bf54  ldr      x20, [x8, #0x18]                            ; [0x43018] classref -> UIView (= import _OBJC_CLASS_$_UIView)
+0001bf58  adrp     x21, #0x38000                               
+0001bf5c  ldr      x21, [x21, #0x318]                          ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+0001bf60  str      x21, [sp, #0x28]                            
+0001bf64  adrp     x8, #0x32000                                
+0001bf68  ldr      d8, [x8, #0x780]                            ; [0x32780] __const[0x32780] double=1.6080749353e-314 float=-32.0
+0001bf6c  str      d8, [sp, #0x30]                             
+0001bf70  adrp     x8, #0x1c000                                
+0001bf74  add      x8, x8, #0x40                               ; __TEXT,__text+0x18040
+0001bf78  adrp     x9, #0x38000                                
+0001bf7c  add      x9, x9, #0xab8                              ; __const[0x38ab8] double=0.0 float=0.0
+0001bf80  stp      x8, x9, [sp, #0x38]                         
+0001bf84  mov      x0, x19                                     
+0001bf88  bl       #0x28004                                    ; _objc_retain
+0001bf8c  str      x19, [sp, #0x48]                            
+0001bf90  str      x21, [sp]                                   
+0001bf94  str      d8, [sp, #8]                                
+0001bf98  adrp     x8, #0x1c000                                
+0001bf9c  add      x8, x8, #0xa0                               ; __TEXT,__text+0x180a0
+0001bfa0  adrp     x9, #0x38000                                
+0001bfa4  add      x9, x9, #0xb78                              ; __const[0x38b78] double=0.0 float=0.0
+0001bfa8  stp      x8, x9, [sp, #0x10]                         
+0001bfac  mov      x0, x19                                     
+0001bfb0  bl       #0x28004                                    ; _objc_retain
+0001bfb4  str      x19, [sp, #0x20]                            
+0001bfb8  adrp     x8, #0x32000                                
+0001bfbc  ldr      d0, [x8, #0x9c0]                            ; [0x329c0] __const[0x329c0] double=0.18 float=4.0564818300608976e+29
+0001bfc0  fmov     d1, xzr                                     
+0001bfc4  add      x3, sp, #0x28                               
+0001bfc8  mov      x4, sp                                      
+0001bfcc  mov      x0, x20                                     
+0001bfd0  mov      w2, #4                                      
+0001bfd4  movk     w2, #1, lsl #16                             
+0001bfd8  bl       #0x285a0                                    ; objc_msgSend$animateWithDuration:delay:options:animations:completion:
+0001bfdc  ldr      x0, [sp, #0x20]                             
+0001bfe0  bl       #0x27ff8                                    ; _objc_release
+0001bfe4  ldr      x0, [sp, #0x48]                             
+0001bfe8  bl       #0x27ff8                                    ; _objc_release
+0001bfec  mov      x0, x19                                     
+0001bff0  bl       #0x27ff8                                    ; _objc_release
+0001bff4  ldp      x29, x30, [sp, #0x80]                       
+0001bff8  ldp      x20, x19, [sp, #0x70]                       
+0001bffc  ldp      x22, x21, [sp, #0x60]                       
+0001c000  ldp      d9, d8, [sp, #0x50]                         
+0001c004  add      sp, sp, #0x90                               
+0001c008  ret                                                  
+0001c00c  mov      x20, x0                                     
+0001c010  ldr      x0, [sp, #0x20]                             
+0001c014  bl       #0x27ff8                                    ; _objc_release
+0001c018  ldr      x0, [sp, #0x48]                             
+0001c01c  bl       #0x27ff8                                    ; _objc_release
+0001c020  b        #0x1c030                                    ; sub_1c030
+0001c024  b        #0x1c02c                                    ; sub_1c02c
+0001c028  b        #0x1c02c                                    ; sub_1c02c
+0001c02c  mov      x20, x0                                     
+0001c030  mov      x0, x19                                     
+0001c034  bl       #0x27ff8                                    ; _objc_release
+0001c038  mov      x0, x20                                     
+0001c03c  bl       #0x27c80                                    ; __Unwind_Resume

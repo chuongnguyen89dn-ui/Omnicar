@@ -1,0 +1,244 @@
+; ==== SCPCarSplit__showSoloCoverForBundle_  @0x20d8c..0x21158 (972 bytes) ====
+00020d8c  sub      sp, sp, #0xa0                                
+00020d90  stp      d9, d8, [sp, #0x40]                          
+00020d94  stp      x26, x25, [sp, #0x50]                        
+00020d98  stp      x24, x23, [sp, #0x60]                        
+00020d9c  stp      x22, x21, [sp, #0x70]                        
+00020da0  stp      x20, x19, [sp, #0x80]                        
+00020da4  stp      x29, x30, [sp, #0x90]                        
+00020da8  add      x29, sp, #0x90                               
+00020dac  mov      x19, x2                                      
+00020db0  mov      x22, x0                                      
+00020db4  mov      x0, x2                                       
+00020db8  bl       #0x567c4                                     ; call _objc_retain
+00020dbc  mov      x0, x22                                      
+00020dc0  bl       #0x5c600                                     ; msgSend "tabParent"
+00020dc4  mov      x29, x29                                     
+00020dc8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00020dcc  mov      x20, x0                                      
+00020dd0  cbz      x0, #0x21088                                 
+00020dd4  mov      x0, x22                                      
+00020dd8  bl       #0x5c1c0                                     ; msgSend "soloCover"
+00020ddc  mov      x29, x29                                     
+00020de0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00020de4  mov      x21, x0                                      
+00020de8  bl       #0x5a2c0                                     ; msgSend "removeFromSuperview"
+00020dec  mov      x0, x21                                      
+00020df0  bl       #0x567b8                                     ; call _objc_release
+00020df4  adrp     x8, #0x87000                                 
+00020df8  ldr      x0, [x8, #0x710]                             ; classref UIView
+00020dfc  bl       #0x566bc                                     ; call _objc_alloc
+00020e00  mov      x21, x0                                      
+00020e04  mov      x0, x22                                      
+00020e08  mov      x2, x20                                      
+00020e0c  bl       #0x56f60                                     ; msgSend "appAreaInParent:"
+00020e10  mov      x0, x21                                      
+00020e14  bl       #0x589c0                                     ; msgSend "initWithFrame:"
+00020e18  mov      x21, x0                                      
+00020e1c  adrp     x25, #0x87000                                
+00020e20  ldr      x0, [x25, #0x730]                            ; classref UIColor
+00020e24  adrp     x8, #0x6f000                                 
+00020e28  ldr      d0, [x8, #0xd8]                              ; double 0.9333333333333333
+00020e2c  adrp     x8, #0x6f000                                 
+00020e30  ldr      d1, [x8, #0xe0]                              ; double 0.9411764705882353
+00020e34  adrp     x8, #0x6f000                                 
+00020e38  ldr      d2, [x8, #0xe8]                              ; double 0.984313725490196
+00020e3c  fmov     d3, #1.00000000                              
+00020e40  bl       #0x576e0                                     ; msgSend "colorWithRed:green:blue:alpha:"
+00020e44  mov      x29, x29                                     
+00020e48  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00020e4c  mov      x23, x0                                      
+00020e50  mov      x0, x21                                      
+00020e54  mov      x2, x23                                      
+00020e58  bl       #0x5a860                                     ; msgSend "setBackgroundColor:"
+00020e5c  mov      x0, x23                                      
+00020e60  bl       #0x567b8                                     ; call _objc_release
+00020e64  mov      x0, x21                                      
+00020e68  mov      w2, #0                                       
+00020e6c  bl       #0x5bd60                                     ; msgSend "setUserInteractionEnabled:"
+00020e70  adrp     x8, #0x87000                                 
+00020e74  ldr      x0, [x8, #0x758]                             ; classref UIImageView
+00020e78  bl       #0x566bc                                     ; call _objc_alloc
+00020e7c  mov      x8, #0x404c000000000000                      
+00020e80  fmov     d2, x8                                       
+00020e84  fmov     d0, xzr                                      
+00020e88  fmov     d1, xzr                                      
+00020e8c  mov      v3.16b, v2.16b                               
+00020e90  bl       #0x589c0                                     ; msgSend "initWithFrame:"
+00020e94  mov      x23, x0                                      
+00020e98  mov      x0, x19                                      
+00020e9c  bl       #0xdec8                                      
+00020ea0  mov      x29, x29                                     
+00020ea4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00020ea8  mov      x24, x0                                      
+00020eac  mov      x0, x23                                      
+00020eb0  mov      x2, x24                                      
+00020eb4  bl       #0x5b000                                     ; msgSend "setImage:"
+00020eb8  mov      x0, x24                                      
+00020ebc  bl       #0x567b8                                     ; call _objc_release
+00020ec0  mov      x0, x23                                      
+00020ec4  bl       #0x21158                                     
+00020ec8  mov      x0, x21                                      
+00020ecc  bl       #0x57320                                     ; msgSend "bounds"
+00020ed0  mov      v8.16b, v2.16b                               
+00020ed4  mov      x0, x21                                      
+00020ed8  bl       #0x57320                                     ; msgSend "bounds"
+00020edc  fmov     d1, #0.50000000                              
+00020ee0  fmul     d0, d8, d1                                   
+00020ee4  fmul     d1, d3, d1                                   
+00020ee8  fmov     d2, #-6.00000000                             
+00020eec  fadd     d1, d1, d2                                   
+00020ef0  mov      x0, x23                                      
+00020ef4  bl       #0x5a9a0                                     ; msgSend "setCenter:"
+00020ef8  mov      x0, x21                                      
+00020efc  mov      x2, x23                                      
+00020f00  bl       #0x56d40                                     ; msgSend "addSubview:"
+00020f04  adrp     x8, #0x87000                                 
+00020f08  ldr      x0, [x8, #0x760]                             ; classref UIActivityIndicatorView
+00020f0c  bl       #0x566bc                                     ; call _objc_alloc
+00020f10  mov      w2, #0x64                                    
+00020f14  bl       #0x58980                                     ; msgSend "initWithActivityIndicatorStyle:"
+00020f18  mov      x24, x0                                      
+00020f1c  ldr      x0, [x25, #0x730]                            ; classref UIColor
+00020f20  adrp     x8, #0x6f000                                 
+00020f24  ldr      d0, [x8, #0x30]                              ; double 0.6078431372549019
+00020f28  adrp     x8, #0x6f000                                 
+00020f2c  ldr      d1, [x8, #0x38]                              ; double 0.5294117647058824
+00020f30  adrp     x8, #0x6f000                                 
+00020f34  ldr      d2, [x8, #0x40]                              ; double 0.9725490196078431
+00020f38  fmov     d3, #1.00000000                              
+00020f3c  bl       #0x576e0                                     ; msgSend "colorWithRed:green:blue:alpha:"
+00020f40  mov      x29, x29                                     
+00020f44  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00020f48  mov      x25, x0                                      
+00020f4c  mov      x0, x24                                      
+00020f50  mov      x2, x25                                      
+00020f54  bl       #0x5a9e0                                     ; msgSend "setColor:"
+00020f58  mov      x0, x25                                      
+00020f5c  bl       #0x567b8                                     ; call _objc_release
+00020f60  mov      x0, x21                                      
+00020f64  bl       #0x57320                                     ; msgSend "bounds"
+00020f68  mov      v8.16b, v2.16b                               
+00020f6c  mov      x0, x23                                      
+00020f70  bl       #0x58340                                     ; msgSend "frame"
+00020f74  bl       #0x562c0                                     ; call _CGRectGetMaxY
+00020f78  fmov     d1, #0.50000000                              
+00020f7c  fmul     d2, d8, d1                                   
+00020f80  fmov     d1, #18.00000000                             
+00020f84  fadd     d1, d0, d1                                   
+00020f88  mov      x0, x24                                      
+00020f8c  mov      v0.16b, v2.16b                               
+00020f90  bl       #0x5a9a0                                     ; msgSend "setCenter:"
+00020f94  mov      x0, x24                                      
+00020f98  bl       #0x5c2e0                                     ; msgSend "startAnimating"
+00020f9c  mov      x0, x21                                      
+00020fa0  mov      x2, x24                                      
+00020fa4  bl       #0x56d40                                     ; msgSend "addSubview:"
+00020fa8  mov      x0, x20                                      
+00020fac  mov      x2, x21                                      
+00020fb0  bl       #0x56d40                                     ; msgSend "addSubview:"
+00020fb4  mov      x0, x22                                      
+00020fb8  mov      x2, x21                                      
+00020fbc  bl       #0x59ea0                                     ; msgSend "raiseView:"
+00020fc0  mov      x0, x22                                      
+00020fc4  mov      x2, x21                                      
+00020fc8  bl       #0x5b9c0                                     ; msgSend "setSoloCover:"
+00020fcc  add      x0, sp, #0x38                                
+00020fd0  mov      x1, x22                                      
+00020fd4  bl       #0x56740                                     ; call _objc_initWeak
+00020fd8  add      x0, sp, #0x30                                
+00020fdc  mov      x1, x21                                      
+00020fe0  bl       #0x56740                                     ; call _objc_initWeak
+00020fe4  mov      x0, x19                                      
+00020fe8  bl       #0x101bc                                     
+00020fec  cmp      w0, #0                                       
+00020ff0  fmov     d0, #3.00000000                              
+00020ff4  fmov     d1, #6.00000000                              
+00020ff8  adrp     x8, #0x78000                                 
+00020ffc  ldr      x8, [x8, #0x338]                             
+00021000  fcsel    d8, d1, d0, ne                               
+00021004  str      x8, [sp]                                     
+00021008  adrp     x8, #0x6e000                                 
+0002100c  ldr      d0, [x8, #0xff8]                             ; double 1.6080749353e-314
+00021010  adrp     x8, #0x21000                                 
+00021014  add      x8, x8, #0x2bc                               
+00021018  str      d0, [sp, #8]                                 
+0002101c  adrp     x9, #0x78000                                 
+00021020  add      x9, x9, #0x840                               
+00021024  stp      x8, x9, [sp, #0x10]                          
+00021028  mov      x22, sp                                      
+0002102c  add      x0, x22, #0x20                               
+00021030  add      x1, sp, #0x30                                
+00021034  bl       #0x566f8                                     ; call _objc_copyWeak
+00021038  add      x0, x22, #0x28                               
+0002103c  add      x1, sp, #0x38                                
+00021040  bl       #0x566f8                                     ; call _objc_copyWeak
+00021044  mov      x0, sp                                       
+00021048  mov      v0.16b, v8.16b                               
+0002104c  bl       #0x12efc                                     
+00021050  add      x0, x22, #0x28                               
+00021054  bl       #0x56704                                     ; call _objc_destroyWeak
+00021058  add      x0, x22, #0x20                               
+0002105c  bl       #0x56704                                     ; call _objc_destroyWeak
+00021060  add      x0, sp, #0x30                                
+00021064  bl       #0x56704                                     ; call _objc_destroyWeak
+00021068  add      x0, sp, #0x38                                
+0002106c  bl       #0x56704                                     ; call _objc_destroyWeak
+00021070  mov      x0, x24                                      
+00021074  bl       #0x567b8                                     ; call _objc_release
+00021078  mov      x0, x23                                      
+0002107c  bl       #0x567b8                                     ; call _objc_release
+00021080  mov      x0, x21                                      
+00021084  bl       #0x567b8                                     ; call _objc_release
+00021088  mov      x0, x20                                      
+0002108c  bl       #0x567b8                                     ; call _objc_release
+00021090  mov      x0, x19                                      
+00021094  bl       #0x567b8                                     ; call _objc_release
+00021098  ldp      x29, x30, [sp, #0x90]                        
+0002109c  ldp      x20, x19, [sp, #0x80]                        
+000210a0  ldp      x22, x21, [sp, #0x70]                        
+000210a4  ldp      x24, x23, [sp, #0x60]                        
+000210a8  ldp      x26, x25, [sp, #0x50]                        
+000210ac  ldp      d9, d8, [sp, #0x40]                          
+000210b0  add      sp, sp, #0xa0                                
+000210b4  ret                                                   
+000210b8  mov      x22, x0                                      
+000210bc  add      x0, sp, #0x30                                
+000210c0  bl       #0x56704                                     ; call _objc_destroyWeak
+000210c4  add      x0, sp, #0x38                                
+000210c8  bl       #0x56704                                     ; call _objc_destroyWeak
+000210cc  b        #0x21128                                     
+000210d0  mov      x22, x0                                      
+000210d4  mov      x0, x25                                      
+000210d8  bl       #0x567b8                                     ; call _objc_release
+000210dc  b        #0x21128                                     
+000210e0  b        #0x21110                                     
+000210e4  b        #0x21124                                     
+000210e8  b        #0x21110                                     
+000210ec  b        #0x21108                                     
+000210f0  b        #0x21118                                     
+000210f4  mov      x22, x0                                      
+000210f8  b        #0x21148                                     
+000210fc  b        #0x21110                                     
+00021100  b        #0x21110                                     
+00021104  b        #0x21108                                     
+00021108  mov      x22, x0                                      
+0002110c  b        #0x21138                                     
+00021110  mov      x22, x0                                      
+00021114  b        #0x21130                                     
+00021118  mov      x22, x0                                      
+0002111c  b        #0x21140                                     
+00021120  b        #0x21124                                     
+00021124  mov      x22, x0                                      
+00021128  mov      x0, x24                                      
+0002112c  bl       #0x567b8                                     ; call _objc_release
+00021130  mov      x0, x23                                      
+00021134  bl       #0x567b8                                     ; call _objc_release
+00021138  mov      x0, x21                                      
+0002113c  bl       #0x567b8                                     ; call _objc_release
+00021140  mov      x0, x20                                      
+00021144  bl       #0x567b8                                     ; call _objc_release
+00021148  mov      x0, x19                                      
+0002114c  bl       #0x567b8                                     ; call _objc_release
+00021150  mov      x0, x22                                      
+00021154  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,34 @@
+; sub_48da0
+0x048da0  stp      x20, x19, [sp, #-0x20]!
+0x048da4  stp      x29, x30, [sp, #0x10]
+0x048da8  add      x29, sp, #0x10
+0x048dac  mov      x19, x1
+0x048db0  mov      x0, x1
+0x048db4  bl       #0x567c4 ; call _objc_retain
+0x048db8  mov      x0, x19
+0x048dbc  bl       #0x5ca40 ; objc_msgSend$userInterfaceStyle
+0x048dc0  mov      x8, x0
+0x048dc4  adrp     x9, #0x87000
+0x048dc8  ldr      x0, [x9, #0x730] ; [0x87730] class:UIColor
+0x048dcc  cmp      x8, #2
+0x048dd0  b.ne     #0x48de4
+0x048dd4  bl       #0x5cbe0 ; objc_msgSend$whiteColor
+0x048dd8  mov      x29, x29
+0x048ddc  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x048de0  b        #0x48df0
+0x048de4  bl       #0x572c0 ; objc_msgSend$blackColor
+0x048de8  mov      x29, x29
+0x048dec  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x048df0  mov      x20, x0
+0x048df4  mov      x0, x19
+0x048df8  bl       #0x567b8 ; call _objc_release
+0x048dfc  mov      x0, x20
+0x048e00  ldp      x29, x30, [sp, #0x10]
+0x048e04  ldp      x20, x19, [sp], #0x20
+0x048e08  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x048e0c  b        #0x48e10
+0x048e10  mov      x20, x0
+0x048e14  mov      x0, x19
+0x048e18  bl       #0x567b8 ; call _objc_release
+0x048e1c  mov      x0, x20
+0x048e20  bl       #0x563e0 ; call __Unwind_Resume

@@ -1,0 +1,234 @@
+; -[SSSplash refreshWeather]
+; VA 0x6434  size 924
+
+0x00006434:  sub      sp, sp, #0x1c0
+0x00006438:  stp      d9, d8, [sp, #0x150]
+0x0000643c:  stp      x28, x27, [sp, #0x160]
+0x00006440:  stp      x26, x25, [sp, #0x170]
+0x00006444:  stp      x24, x23, [sp, #0x180]
+0x00006448:  stp      x22, x21, [sp, #0x190]
+0x0000644c:  stp      x20, x19, [sp, #0x1a0]
+0x00006450:  stp      x29, x30, [sp, #0x1b0]
+0x00006454:  add      x29, sp, #0x1b0
+0x00006458:  mov      x1, x0
+0x0000645c:  adrp     x8, #0x30000
+0x00006460:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x00006464:  ldr      x8, [x8]
+0x00006468:  stur     x8, [x29, #-0x70]
+0x0000646c:  add      x0, sp, #0x28
+0x00006470:  bl       #0x220b4    ; -> _objc_initWeak
+0x00006474:  adrp     x24, #0x30000
+0x00006478:  ldr      x24, [x24, #0x350]    ; got(__NSConcreteStackBlock)
+0x0000647c:  str      x24, [sp]
+0x00006480:  adrp     x8, #0x28000
+0x00006484:  ldr      d0, [x8, #0xdd0]
+0x00006488:  adrp     x8, #0x6000
+0x0000648c:  add      x8, x8, #0x7d0    ; func sub_67d0
+0x00006490:  str      d0, [sp, #8]
+0x00006494:  adrp     x9, #0x30000
+0x00006498:  add      x9, x9, #0x7b8
+0x0000649c:  stp      x8, x9, [sp, #0x10]
+0x000064a0:  mov      x8, sp
+0x000064a4:  add      x0, x8, #0x20
+0x000064a8:  add      x1, sp, #0x28
+0x000064ac:  bl       #0x2206c    ; -> _objc_copyWeak
+0x000064b0:  mov      x0, sp
+0x000064b4:  bl       #0x2212c    ; -> _objc_retain
+0x000064b8:  adrp     x8, #0x3a000
+0x000064bc:  ldr      x0, [x8, #0xaa0]    ; class(CLLocationManager)
+0x000064c0:  bl       #0x220fc    ; -> _objc_opt_new
+0x000064c4:  mov      x19, x0
+0x000064c8:  bl       #0x22740    ; -> _objc_msgSend(authorizationStatus)
+0x000064cc:  sub      w8, w0, #5
+0x000064d0:  cmn      w8, #3
+0x000064d4:  b.hi     #0x66b0
+0x000064d8:  mov      x0, sp
+0x000064dc:  bl       #0x2212c    ; -> _objc_retain
+0x000064e0:  adrp     x8, #0x3b000
+0x000064e4:  ldr      w8, [x8, #0x198]
+0x000064e8:  cbnz     w8, #0x6510
+0x000064ec:  adrp     x0, #0x27000
+0x000064f0:  add      x0, x0, #0x2fc    ; "com.anlai.omnicar/startupscreen.weather.ready"
+0x000064f4:  adrp     x1, #0x3b000
+0x000064f8:  add      x1, x1, #0x198
+0x000064fc:  adrp     x2, #0x30000
+0x00006500:  ldr      x2, [x2, #0x388]    ; got(__dispatch_main_q)
+0x00006504:  adrp     x3, #0x30000
+0x00006508:  add      x3, x3, #0x9a8    ; block_lit(invoke=0x8aa4 sub_8aa4, sig=v12@?0i8)
+0x0000650c:  bl       #0x2200c    ; -> _notify_register_dispatch
+0x00006510:  adrp     x8, #0x3b000
+0x00006514:  ldr      w9, [x8, #0x19c]
+0x00006518:  add      w25, w9, #1
+0x0000651c:  str      w25, [x8, #0x19c]
+0x00006520:  mov      x0, sp
+0x00006524:  bl       #0x22150    ; -> _objc_retainBlock
+0x00006528:  adrp     x9, #0x3b000
+0x0000652c:  ldr      x8, [x9, #0x188]
+0x00006530:  str      x0, [x9, #0x188]
+0x00006534:  mov      x0, x8
+0x00006538:  bl       #0x22120    ; -> _objc_release
+0x0000653c:  adrp     x8, #0x3a000
+0x00006540:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x00006544:  adrp     x2, #0x31000
+0x00006548:  add      x2, x2, #0xa08    ; @"weather: no location access here, asking SpringBoard"
+0x0000654c:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00006550:  mov      x29, x29
+0x00006554:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006558:  mov      x20, x0
+0x0000655c:  adrp     x0, #0x30000
+0x00006560:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00006564:  mov      x1, x20
+0x00006568:  bl       #0x1b620    ; -> OMCLogWrite
+0x0000656c:  mov      x0, x20
+0x00006570:  bl       #0x22120    ; -> _objc_release
+0x00006574:  adrp     x0, #0x26000
+0x00006578:  add      x0, x0, #0xf91    ; "com.anlai.omnicar/startupscreen.weather.request"
+0x0000657c:  bl       #0x21ff4    ; -> _notify_post
+0x00006580:  movi     v0.16b, #0
+0x00006584:  stp      q0, q0, [sp, #0xa0]
+0x00006588:  stp      q0, q0, [sp, #0x80]
+0x0000658c:  adrp     x0, #0x35000
+0x00006590:  add      x0, x0, #0x488
+0x00006594:  add      x2, sp, #0x80
+0x00006598:  add      x3, sp, #0xc0
+0x0000659c:  mov      w4, #0x10
+0x000065a0:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x000065a4:  mov      x20, x0
+0x000065a8:  adrp     x26, #0x30000
+0x000065ac:  add      x26, x26, #0x9c8
+0x000065b0:  cbz      x0, #0x6660
+0x000065b4:  ldr      x8, [sp, #0x90]
+0x000065b8:  ldr      x28, [x8]
+0x000065bc:  adrp     x8, #0x28000
+0x000065c0:  ldr      d8, [x8, #0xdd8]
+0x000065c4:  adrp     x8, #0x28000
+0x000065c8:  ldr      d9, [x8, #0xde0]
+0x000065cc:  adrp     x23, #0x8000
+0x000065d0:  add      x23, x23, #0xb74    ; func sub_8b74
+0x000065d4:  adrp     x21, #0x30000
+0x000065d8:  ldr      x21, [x21, #0x388]    ; got(__dispatch_main_q)
+0x000065dc:  adrp     x22, #0x35000
+0x000065e0:  add      x22, x22, #0x488
+0x000065e4:  mov      x27, #0
+0x000065e8:  ldr      x8, [sp, #0x90]
+0x000065ec:  ldr      x8, [x8]
+0x000065f0:  cmp      x8, x28
+0x000065f4:  b.eq     #0x6600
+0x000065f8:  mov      x0, x22
+0x000065fc:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x00006600:  ldr      x8, [sp, #0x88]
+0x00006604:  ldr      x0, [x8, x27, lsl #3]
+0x00006608:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x0000660c:  fmul     d0, d0, d8
+0x00006610:  fcvtzs   x1, d0
+0x00006614:  mov      x0, #0
+0x00006618:  bl       #0x21ef8    ; -> _dispatch_time
+0x0000661c:  str      x24, [sp, #0x58]
+0x00006620:  str      d9, [sp, #0x60]
+0x00006624:  stp      x23, x26, [sp, #0x68]
+0x00006628:  str      w25, [sp, #0x78]
+0x0000662c:  add      x2, sp, #0x58
+0x00006630:  mov      x1, x21
+0x00006634:  bl       #0x21e8c    ; -> _dispatch_after
+0x00006638:  add      x27, x27, #1
+0x0000663c:  cmp      x20, x27
+0x00006640:  b.ne     #0x65e8
+0x00006644:  add      x2, sp, #0x80
+0x00006648:  add      x3, sp, #0xc0
+0x0000664c:  mov      x0, x22
+0x00006650:  mov      w4, #0x10
+0x00006654:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00006658:  mov      x20, x0
+0x0000665c:  cbnz     x0, #0x65e4
+0x00006660:  mov      x1, #0xe400
+0x00006664:  movk     x1, #0x540b, lsl #16
+0x00006668:  movk     x1, #2, lsl #32
+0x0000666c:  mov      x0, #0
+0x00006670:  bl       #0x21ef8    ; -> _dispatch_time
+0x00006674:  str      x24, [sp, #0x30]
+0x00006678:  adrp     x8, #0x28000
+0x0000667c:  ldr      d0, [x8, #0xde0]
+0x00006680:  str      d0, [sp, #0x38]
+0x00006684:  adrp     x8, #0x8000
+0x00006688:  add      x8, x8, #0xbf0
+0x0000668c:  stp      x8, x26, [sp, #0x40]
+0x00006690:  str      w25, [sp, #0x50]
+0x00006694:  adrp     x1, #0x30000
+0x00006698:  ldr      x1, [x1, #0x388]    ; got(__dispatch_main_q)
+0x0000669c:  add      x2, sp, #0x30
+0x000066a0:  bl       #0x21e8c    ; -> _dispatch_after
+0x000066a4:  mov      x0, sp
+0x000066a8:  bl       #0x22120    ; -> _objc_release
+0x000066ac:  b        #0x673c    ; -> sub_673c
+0x000066b0:  mov      x0, x19
+0x000066b4:  bl       #0x23ac0    ; -> _objc_msgSend(location)
+0x000066b8:  mov      x29, x29
+0x000066bc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000066c0:  mov      x20, x0
+0x000066c4:  cbz      x0, #0x66ec
+0x000066c8:  mov      x0, x20
+0x000066cc:  bl       #0x22dc0    ; -> _objc_msgSend(coordinate)
+0x000066d0:  mov      v8.16b, v0.16b
+0x000066d4:  mov      x0, x20
+0x000066d8:  bl       #0x22dc0    ; -> _objc_msgSend(coordinate)
+0x000066dc:  mov      x0, sp
+0x000066e0:  mov      v0.16b, v8.16b
+0x000066e4:  bl       #0x88e4    ; -> sub_88e4
+0x000066e8:  b        #0x6734    ; -> sub_6734
+0x000066ec:  adrp     x8, #0x3a000
+0x000066f0:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x000066f4:  adrp     x2, #0x31000
+0x000066f8:  add      x2, x2, #0x988    ; @"weather: no last known location, using the cache"
+0x000066fc:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00006700:  mov      x29, x29
+0x00006704:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006708:  mov      x21, x0
+0x0000670c:  adrp     x0, #0x30000
+0x00006710:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00006714:  mov      x1, x21
+0x00006718:  bl       #0x1b620    ; -> OMCLogWrite
+0x0000671c:  mov      x0, x21
+0x00006720:  bl       #0x22120    ; -> _objc_release
+0x00006724:  ldr      x8, [sp, #0x10]
+0x00006728:  mov      x0, sp
+0x0000672c:  mov      x1, #0
+0x00006730:  blr      x8
+0x00006734:  mov      x0, x20
+0x00006738:  bl       #0x22120    ; -> _objc_release
+0x0000673c:  mov      x0, x19
+0x00006740:  bl       #0x22120    ; -> _objc_release
+0x00006744:  mov      x0, sp
+0x00006748:  bl       #0x22120    ; -> _objc_release
+0x0000674c:  mov      x8, sp
+0x00006750:  add      x0, x8, #0x20
+0x00006754:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00006758:  add      x0, sp, #0x28
+0x0000675c:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00006760:  ldur     x8, [x29, #-0x70]
+0x00006764:  adrp     x9, #0x30000
+0x00006768:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0000676c:  ldr      x9, [x9]
+0x00006770:  cmp      x9, x8
+0x00006774:  b.ne     #0x679c
+0x00006778:  ldp      x29, x30, [sp, #0x1b0]
+0x0000677c:  ldp      x20, x19, [sp, #0x1a0]
+0x00006780:  ldp      x22, x21, [sp, #0x190]
+0x00006784:  ldp      x24, x23, [sp, #0x180]
+0x00006788:  ldp      x26, x25, [sp, #0x170]
+0x0000678c:  ldp      x28, x27, [sp, #0x160]
+0x00006790:  ldp      d9, d8, [sp, #0x150]
+0x00006794:  add      sp, sp, #0x1c0
+0x00006798:  ret      
+0x0000679c:  bl       #0x21dd8    ; -> ___stack_chk_fail
+0x000067a0:  b        #0x67a8    ; -> sub_67a8
+0x000067a4:  b        #0x67a8
+0x000067a8:  mov      x19, x0
+0x000067ac:  mov      x8, sp
+0x000067b0:  add      x0, x8, #0x20
+0x000067b4:  bl       #0x22078    ; -> _objc_destroyWeak
+0x000067b8:  add      x0, sp, #0x28
+0x000067bc:  bl       #0x22078    ; -> _objc_destroyWeak
+0x000067c0:  b        #0x67c8    ; -> sub_67c8
+0x000067c4:  mov      x19, x0
+0x000067c8:  mov      x0, x19
+0x000067cc:  bl       #0x21db4    ; -> __Unwind_Resume

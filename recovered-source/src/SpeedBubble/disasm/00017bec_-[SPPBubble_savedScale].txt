@@ -1,0 +1,21 @@
+# -[SPPBubble savedScale]
+# addr 0x17bec .. 0x17c34  (72 bytes)
+
+00017bec  stp      x20, x19, [sp, #-0x20]!                     
+00017bf0  stp      x29, x30, [sp, #0x10]                       
+00017bf4  add      x29, sp, #0x10                              
+00017bf8  adrp     x8, #0x43000                                
+00017bfc  ldr      x19, [x8, #0x38]                            ; [0x43038] classref -> SPPPrefs
+00017c00  bl       #0x2a160                                    ; objc_msgSend$onPhone
+00017c04  eor      w2, w0, #1                                  
+00017c08  mov      x0, x19                                     
+00017c0c  bl       #0x2bee0                                    ; objc_msgSend$sizePercentForCar:
+00017c10  adrp     x8, #0x32000                                
+00017c14  ldr      d1, [x8, #0x7e8]                            ; [0x327e8] __const[0x327e8] double=0.9 float=-107374184.0
+00017c18  fmul     d0, d0, d1                                  
+00017c1c  mov      x8, #0x4059000000000000                     
+00017c20  fmov     d1, x8                                      
+00017c24  fdiv     d0, d0, d1                                  
+00017c28  ldp      x29, x30, [sp, #0x10]                       
+00017c2c  ldp      x20, x19, [sp], #0x20                       
+00017c30  ret                                                  

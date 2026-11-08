@@ -1,0 +1,111 @@
+; ==== SCPCarSplit__hostPassInsetsForPane_  @0x3d1e4..0x3d39c (440 bytes) ====
+0003d1e4  sub      sp, sp, #0x80                                
+0003d1e8  stp      d15, d14, [sp, #0x10]                        
+0003d1ec  stp      d13, d12, [sp, #0x20]                        
+0003d1f0  stp      d11, d10, [sp, #0x30]                        
+0003d1f4  stp      d9, d8, [sp, #0x40]                          
+0003d1f8  stp      x22, x21, [sp, #0x50]                        
+0003d1fc  stp      x20, x19, [sp, #0x60]                        
+0003d200  stp      x29, x30, [sp, #0x70]                        
+0003d204  add      x29, sp, #0x70                               
+0003d208  mov      x19, x2                                      
+0003d20c  mov      x0, x2                                       
+0003d210  bl       #0x567c4                                     ; call _objc_retain
+0003d214  mov      x0, x19                                      
+0003d218  bl       #0x5cb60                                     ; msgSend "view"
+0003d21c  mov      x29, x29                                     
+0003d220  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003d224  mov      x20, x0                                      
+0003d228  bl       #0x58340                                     ; msgSend "frame"
+0003d22c  mov      v8.16b, v0.16b                               
+0003d230  mov      v9.16b, v1.16b                               
+0003d234  mov      v10.16b, v2.16b                              
+0003d238  mov      v11.16b, v3.16b                              
+0003d23c  mov      x0, x20                                      
+0003d240  bl       #0x567b8                                     ; call _objc_release
+0003d244  mov      x0, x19                                      
+0003d248  bl       #0x5cb60                                     ; msgSend "view"
+0003d24c  mov      x29, x29                                     
+0003d250  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003d254  mov      x20, x0                                      
+0003d258  bl       #0x5c520                                     ; msgSend "superview"
+0003d25c  mov      x29, x29                                     
+0003d260  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003d264  mov      x21, x0                                      
+0003d268  bl       #0x57320                                     ; msgSend "bounds"
+0003d26c  str      d2, [sp, #8]                                 
+0003d270  mov      v13.16b, v3.16b                              
+0003d274  mov      x0, x21                                      
+0003d278  bl       #0x567b8                                     ; call _objc_release
+0003d27c  mov      x0, x20                                      
+0003d280  bl       #0x567b8                                     ; call _objc_release
+0003d284  mov      v0.16b, v8.16b                               
+0003d288  mov      v1.16b, v9.16b                               
+0003d28c  mov      v2.16b, v10.16b                              
+0003d290  mov      v3.16b, v11.16b                              
+0003d294  bl       #0x562f0                                     ; call _CGRectGetMinY
+0003d298  mov      v14.16b, v0.16b                              
+0003d29c  mov      v0.16b, v8.16b                               
+0003d2a0  mov      v1.16b, v9.16b                               
+0003d2a4  mov      v2.16b, v10.16b                              
+0003d2a8  mov      v3.16b, v11.16b                              
+0003d2ac  bl       #0x562e4                                     ; call _CGRectGetMinX
+0003d2b0  mov      v15.16b, v0.16b                              
+0003d2b4  mov      v0.16b, v8.16b                               
+0003d2b8  mov      v1.16b, v9.16b                               
+0003d2bc  mov      v2.16b, v10.16b                              
+0003d2c0  mov      v3.16b, v11.16b                              
+0003d2c4  bl       #0x562c0                                     ; call _CGRectGetMaxY
+0003d2c8  mov      v12.16b, v0.16b                              
+0003d2cc  mov      v0.16b, v8.16b                               
+0003d2d0  mov      v1.16b, v9.16b                               
+0003d2d4  mov      v2.16b, v10.16b                              
+0003d2d8  mov      v3.16b, v11.16b                              
+0003d2dc  bl       #0x562b4                                     ; call _CGRectGetMaxX
+0003d2e0  fmov     d1, #-1.00000000                             
+0003d2e4  fadd     d2, d13, d1                                  
+0003d2e8  fcmp     d12, d2                                      
+0003d2ec  fmov     d2, xzr                                      
+0003d2f0  fmov     d3, #10.00000000                             
+0003d2f4  fcsel    d8, d3, d2, mi                               
+0003d2f8  fmov     d4, #1.00000000                              
+0003d2fc  fcmp     d15, d4                                      
+0003d300  fcsel    d9, d3, d2, gt                               
+0003d304  fcmp     d14, d4                                      
+0003d308  fcsel    d10, d3, d2, gt                              
+0003d30c  ldr      d4, [sp, #8]                                 
+0003d310  fadd     d1, d4, d1                                   
+0003d314  fcmp     d0, d1                                       
+0003d318  fcsel    d11, d3, d2, mi                              
+0003d31c  mov      x0, x19                                      
+0003d320  bl       #0x567b8                                     ; call _objc_release
+0003d324  mov      v0.16b, v10.16b                              
+0003d328  mov      v1.16b, v9.16b                               
+0003d32c  mov      v2.16b, v8.16b                               
+0003d330  mov      v3.16b, v11.16b                              
+0003d334  ldp      x29, x30, [sp, #0x70]                        
+0003d338  ldp      x20, x19, [sp, #0x60]                        
+0003d33c  ldp      x22, x21, [sp, #0x50]                        
+0003d340  ldp      d9, d8, [sp, #0x40]                          
+0003d344  ldp      d11, d10, [sp, #0x30]                        
+0003d348  ldp      d13, d12, [sp, #0x20]                        
+0003d34c  ldp      d15, d14, [sp, #0x10]                        
+0003d350  add      sp, sp, #0x80                                
+0003d354  ret                                                   
+0003d358  mov      x1, x21                                      
+0003d35c  mov      x21, x0                                      
+0003d360  mov      x0, x1                                       
+0003d364  bl       #0x567b8                                     ; call _objc_release
+0003d368  b        #0x3d378                                     
+0003d36c  b        #0x3d374                                     
+0003d370  b        #0x3d388                                     
+0003d374  mov      x21, x0                                      
+0003d378  mov      x0, x20                                      
+0003d37c  bl       #0x567b8                                     ; call _objc_release
+0003d380  b        #0x3d38c                                     
+0003d384  b        #0x3d388                                     
+0003d388  mov      x21, x0                                      
+0003d38c  mov      x0, x19                                      
+0003d390  bl       #0x567b8                                     ; call _objc_release
+0003d394  mov      x0, x21                                      
+0003d398  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,167 @@
+; sub_1f9ac
+; VA 0x1f9ac  size 656
+
+0x0001f9ac:  stp      d11, d10, [sp, #-0x60]!
+0x0001f9b0:  stp      d9, d8, [sp, #0x10]
+0x0001f9b4:  stp      x28, x27, [sp, #0x20]
+0x0001f9b8:  stp      x22, x21, [sp, #0x30]
+0x0001f9bc:  stp      x20, x19, [sp, #0x40]
+0x0001f9c0:  stp      x29, x30, [sp, #0x50]
+0x0001f9c4:  add      x29, sp, #0x50
+0x0001f9c8:  sub      sp, sp, #0x1a0
+0x0001f9cc:  bl       #0x1fc3c    ; -> sub_1fc3c
+0x0001f9d0:  adrp     x8, #0x3b000
+0x0001f9d4:  add      x8, x8, #0x341
+0x0001f9d8:  mov      w9, #1
+0x0001f9dc:  ldaxrb   w10, [x8]
+0x0001f9e0:  cbnz     w10, #0x1fa30
+0x0001f9e4:  stlxrb   w10, w9, [x8]
+0x0001f9e8:  cbnz     w10, #0x1f9dc
+0x0001f9ec:  adrp     x8, #0x30000
+0x0001f9f0:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x0001f9f4:  str      x8, [sp]
+0x0001f9f8:  adrp     x8, #0x28000
+0x0001f9fc:  ldr      d1, [x8, #0xde0]
+0x0001fa00:  adrp     x8, #0x1f000
+0x0001fa04:  add      x8, x8, #0xc94    ; func sub_1fc94
+0x0001fa08:  str      d1, [sp, #8]
+0x0001fa0c:  adrp     x9, #0x30000
+0x0001fa10:  add      x9, x9, #0xe28
+0x0001fa14:  stp      x8, x9, [sp, #0x10]
+0x0001fa18:  str      d0, [sp, #0x20]
+0x0001fa1c:  adrp     x0, #0x30000
+0x0001fa20:  ldr      x0, [x0, #0x388]    ; got(__dispatch_main_q)
+0x0001fa24:  mov      x1, sp
+0x0001fa28:  bl       #0x21e98    ; -> _dispatch_async
+0x0001fa2c:  b        #0x1fa34    ; -> sub_1fa34
+0x0001fa30:  clrex    
+0x0001fa34:  adrp     x8, #0x3b000
+0x0001fa38:  ldr      w9, [x8, #0x344]
+0x0001fa3c:  add      w9, w9, #1
+0x0001fa40:  str      w9, [x8, #0x344]
+0x0001fa44:  mov      w8, #0xcccd
+0x0001fa48:  movk     w8, #0xcccc, lsl #16
+0x0001fa4c:  mul      w8, w9, w8
+0x0001fa50:  ror      w8, w8, #2
+0x0001fa54:  mov      w9, #0xcccc
+0x0001fa58:  movk     w9, #0xccc, lsl #16
+0x0001fa5c:  cmp      w8, w9
+0x0001fa60:  b.hi     #0x1fc1c
+0x0001fa64:  str      wzr, [sp, #0x2c]
+0x0001fa68:  adrp     x19, #0x30000
+0x0001fa6c:  ldr      x19, [x19, #0x4a8]    ; got(_mach_task_self_)
+0x0001fa70:  ldr      w0, [x19]
+0x0001fa74:  add      x1, sp, #0x30
+0x0001fa78:  add      x2, sp, #0x2c
+0x0001fa7c:  bl       #0x222ac    ; -> _task_threads
+0x0001fa80:  fmov     d9, #-1.00000000
+0x0001fa84:  fmov     d8, #-1.00000000
+0x0001fa88:  cbnz     w0, #0x1fb28
+0x0001fa8c:  ldr      w8, [sp, #0x2c]
+0x0001fa90:  cbz      w8, #0x1fb14
+0x0001fa94:  mov      x20, #0
+0x0001fa98:  fmov     d8, xzr
+0x0001fa9c:  mov      w21, #0xa
+0x0001faa0:  mov      x22, #0x4059000000000000
+0x0001faa4:  adrp     x8, #0x28000
+0x0001faa8:  ldr      d10, [x8, #0xdc8]
+0x0001faac:  str      w21, [sp, #0x28]
+0x0001fab0:  ldr      x8, [sp, #0x30]
+0x0001fab4:  ldr      w0, [x8, x20, lsl #2]
+0x0001fab8:  add      x2, sp, #0x38
+0x0001fabc:  add      x3, sp, #0x28
+0x0001fac0:  mov      w1, #3
+0x0001fac4:  bl       #0x222b8    ; -> _thread_info
+0x0001fac8:  cbnz     w0, #0x1faec
+0x0001facc:  ldrb     w8, [sp, #0x54]
+0x0001fad0:  tbnz     w8, #1, #0x1faec
+0x0001fad4:  ldr      w8, [sp, #0x48]
+0x0001fad8:  scvtf    d0, w8
+0x0001fadc:  fmov     d1, x22
+0x0001fae0:  fmul     d0, d0, d1
+0x0001fae4:  fdiv     d0, d0, d10
+0x0001fae8:  fadd     d8, d8, d0
+0x0001faec:  ldr      w0, [x19]
+0x0001faf0:  ldr      x8, [sp, #0x30]
+0x0001faf4:  ldr      w1, [x8, x20, lsl #2]
+0x0001faf8:  bl       #0x21fc4    ; -> _mach_port_deallocate
+0x0001fafc:  add      x20, x20, #1
+0x0001fb00:  ldr      w8, [sp, #0x2c]
+0x0001fb04:  cmp      x20, x8
+0x0001fb08:  b.lo     #0x1faac
+0x0001fb0c:  lsl      x2, x8, #2
+0x0001fb10:  b        #0x1fb1c    ; -> sub_1fb1c
+0x0001fb14:  mov      x2, #0
+0x0001fb18:  fmov     d8, xzr
+0x0001fb1c:  ldr      w0, [x19]
+0x0001fb20:  ldr      x1, [sp, #0x30]
+0x0001fb24:  bl       #0x222dc    ; -> _vm_deallocate
+0x0001fb28:  mov      w8, #0x59
+0x0001fb2c:  str      w8, [sp, #0x30]
+0x0001fb30:  ldr      w0, [x19]
+0x0001fb34:  add      x2, sp, #0x38
+0x0001fb38:  add      x3, sp, #0x30
+0x0001fb3c:  mov      w1, #0x16
+0x0001fb40:  bl       #0x222a0    ; -> _task_info
+0x0001fb44:  ldr      d0, [sp, #0xc8]
+0x0001fb48:  ucvtf    d0, d0
+0x0001fb4c:  mov      x8, #0x3eb0000000000000
+0x0001fb50:  fmov     d1, x8
+0x0001fb54:  fmul     d0, d0, d1
+0x0001fb58:  cmp      w0, #0
+0x0001fb5c:  fcsel    d9, d0, d9, eq
+0x0001fb60:  adrp     x19, #0x3b000
+0x0001fb64:  ldr      w0, [x19, #0x350]
+0x0001fb68:  cbnz     w0, #0x1fb84
+0x0001fb6c:  bl       #0x21fb8    ; -> _mach_host_self
+0x0001fb70:  str      w0, [x19, #0x350]
+0x0001fb74:  adrp     x1, #0x3b000
+0x0001fb78:  add      x1, x1, #0x358
+0x0001fb7c:  bl       #0x21f88    ; -> _host_page_size
+0x0001fb80:  ldr      w0, [x19, #0x350]
+0x0001fb84:  mov      w8, #0x26
+0x0001fb88:  str      w8, [sp, #0x30]
+0x0001fb8c:  add      x2, sp, #0x38
+0x0001fb90:  add      x3, sp, #0x30
+0x0001fb94:  mov      w1, #4
+0x0001fb98:  bl       #0x21f94    ; -> _host_statistics64
+0x0001fb9c:  fmov     d10, #-1.00000000
+0x0001fba0:  cbnz     w0, #0x1fbd0
+0x0001fba4:  ldr      w8, [sp, #0x38]
+0x0001fba8:  ldr      w9, [sp, #0x40]
+0x0001fbac:  add      w8, w9, w8
+0x0001fbb0:  ucvtf    d0, w8
+0x0001fbb4:  adrp     x8, #0x3b000
+0x0001fbb8:  ldr      d1, [x8, #0x358]
+0x0001fbbc:  ucvtf    d1, d1
+0x0001fbc0:  fmul     d0, d0, d1
+0x0001fbc4:  mov      x8, #0x3eb0000000000000
+0x0001fbc8:  fmov     d1, x8
+0x0001fbcc:  fmul     d10, d0, d1
+0x0001fbd0:  bl       #0x221bc    ; -> _os_proc_available_memory
+0x0001fbd4:  ucvtf    d0, x0, #0x14
+0x0001fbd8:  adrp     x8, #0x30000
+0x0001fbdc:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x0001fbe0:  str      x8, [sp, #0x38]
+0x0001fbe4:  adrp     x8, #0x28000
+0x0001fbe8:  ldr      d1, [x8, #0xde0]
+0x0001fbec:  str      d1, [sp, #0x40]
+0x0001fbf0:  adrp     x8, #0x1f000
+0x0001fbf4:  add      x8, x8, #0xe64    ; func sub_1fe64
+0x0001fbf8:  adrp     x9, #0x30000
+0x0001fbfc:  add      x9, x9, #0xe48
+0x0001fc00:  stp      x8, x9, [sp, #0x48]
+0x0001fc04:  stp      d8, d9, [sp, #0x58]
+0x0001fc08:  stp      d0, d10, [sp, #0x68]
+0x0001fc0c:  adrp     x0, #0x30000
+0x0001fc10:  ldr      x0, [x0, #0x388]    ; got(__dispatch_main_q)
+0x0001fc14:  add      x1, sp, #0x38
+0x0001fc18:  bl       #0x21e98    ; -> _dispatch_async
+0x0001fc1c:  add      sp, sp, #0x1a0
+0x0001fc20:  ldp      x29, x30, [sp, #0x50]
+0x0001fc24:  ldp      x20, x19, [sp, #0x40]
+0x0001fc28:  ldp      x22, x21, [sp, #0x30]
+0x0001fc2c:  ldp      x28, x27, [sp, #0x20]
+0x0001fc30:  ldp      d9, d8, [sp, #0x10]
+0x0001fc34:  ldp      d11, d10, [sp], #0x60
+0x0001fc38:  ret      

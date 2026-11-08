@@ -1,0 +1,102 @@
+=== -[ABHost hostsApp:] @ 0xaaf0 (size 404) ===
+0000aaf0  sub      sp, sp, #0x120
+0000aaf4  stp      x26, x25, [sp, #0xd0]
+0000aaf8  stp      x24, x23, [sp, #0xe0]
+0000aafc  stp      x22, x21, [sp, #0xf0]
+0000ab00  stp      x20, x19, [sp, #0x100]
+0000ab04  stp      x29, x30, [sp, #0x110]
+0000ab08  add      x29, sp, #0x110
+0000ab0c  mov      x19, x2
+0000ab10  mov      x20, x0
+0000ab14  adrp     x8, #0x34000
+0000ab18  ldr      x8, [x8, #0x278] ; -> ___stack_chk_guard
+0000ab1c  ldr      x8, [x8]
+0000ab20  stur     x8, [x29, #-0x48]
+0000ab24  mov      x0, x2
+0000ab28  bl       #0x24818 ; call _objc_retain
+0000ab2c  cbz      x19, #0xabf8
+0000ab30  movi     v0.16b, #0
+0000ab34  stp      q0, q0, [sp, #0x20]
+0000ab38  stp      q0, q0, [sp]
+0000ab3c  mov      x0, x20
+0000ab40  bl       #0x26580 ; objc_msgSend sel=panes
+0000ab44  mov      x29, x29
+0000ab48  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000ab4c  mov      x20, x0
+0000ab50  mov      x2, sp
+0000ab54  add      x3, sp, #0x48
+0000ab58  mov      w4, #0x10
+0000ab5c  bl       #0x25440 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+0000ab60  mov      x21, x0
+0000ab64  cbz      x0, #0xabec
+0000ab68  ldr      x8, [sp, #0x10]
+0000ab6c  ldr      x24, [x8]
+0000ab70  mov      x25, #0
+0000ab74  ldr      x8, [sp, #0x10]
+0000ab78  ldr      x8, [x8]
+0000ab7c  cmp      x8, x24
+0000ab80  b.eq     #0xab8c
+0000ab84  mov      x0, x20
+0000ab88  bl       #0x24770 ; call _objc_enumerationMutation
+0000ab8c  ldr      x8, [sp, #8]
+0000ab90  ldr      x0, [x8, x25, lsl #3]
+0000ab94  bl       #0x25020 ; objc_msgSend sel=bundleID
+0000ab98  mov      x29, x29
+0000ab9c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000aba0  mov      x22, x0
+0000aba4  mov      x2, x19
+0000aba8  bl       #0x25cc0 ; objc_msgSend sel=isEqualToString:
+0000abac  mov      x23, x0
+0000abb0  mov      x0, x22
+0000abb4  bl       #0x2480c ; call _objc_release
+0000abb8  tbnz     w23, #0, #0xabe8
+0000abbc  add      x25, x25, #1
+0000abc0  cmp      x21, x25
+0000abc4  b.ne     #0xab74
+0000abc8  mov      x2, sp
+0000abcc  add      x3, sp, #0x48
+0000abd0  mov      x0, x20
+0000abd4  mov      w4, #0x10
+0000abd8  bl       #0x25440 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+0000abdc  mov      x21, x0
+0000abe0  cbnz     x0, #0xab70
+0000abe4  b        #0xabec ; call sub_abec
+0000abe8  mov      w21, #1
+0000abec  mov      x0, x20
+0000abf0  bl       #0x2480c ; call _objc_release
+0000abf4  b        #0xabfc ; call sub_abfc
+0000abf8  mov      w21, #0
+0000abfc  mov      x0, x19
+0000ac00  bl       #0x2480c ; call _objc_release
+0000ac04  ldur     x8, [x29, #-0x48]
+0000ac08  adrp     x9, #0x34000
+0000ac0c  ldr      x9, [x9, #0x278] ; -> ___stack_chk_guard
+0000ac10  ldr      x9, [x9]
+0000ac14  cmp      x9, x8
+0000ac18  b.ne     #0xac3c
+0000ac1c  mov      x0, x21
+0000ac20  ldp      x29, x30, [sp, #0x110]
+0000ac24  ldp      x20, x19, [sp, #0x100]
+0000ac28  ldp      x22, x21, [sp, #0xf0]
+0000ac2c  ldp      x24, x23, [sp, #0xe0]
+0000ac30  ldp      x26, x25, [sp, #0xd0]
+0000ac34  add      sp, sp, #0x120
+0000ac38  ret      
+0000ac3c  bl       #0x24488 ; call ___stack_chk_fail
+0000ac40  b        #0xac60 ; call sub_ac60
+0000ac44  b        #0xac60 ; call sub_ac60
+0000ac48  mov      x21, x0
+0000ac4c  b        #0xac6c ; call sub_ac6c
+0000ac50  mov      x21, x0
+0000ac54  mov      x0, x22
+0000ac58  bl       #0x2480c ; call _objc_release
+0000ac5c  b        #0xac64 ; call sub_ac64
+0000ac60  mov      x21, x0
+0000ac64  mov      x0, x20
+0000ac68  bl       #0x2480c ; call _objc_release
+0000ac6c  mov      x0, x19
+0000ac70  bl       #0x2480c ; call _objc_release
+0000ac74  b        #0xac7c ; call sub_ac7c
+0000ac78  mov      x21, x0
+0000ac7c  mov      x0, x21
+0000ac80  bl       #0x24470 ; call __Unwind_Resume

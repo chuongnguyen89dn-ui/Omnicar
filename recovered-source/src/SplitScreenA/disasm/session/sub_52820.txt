@@ -1,0 +1,13 @@
+; sub_52820
+0x052820  stp      x29, x30, [sp, #-0x10]!
+0x052824  mov      x29, sp
+0x052828  mov      x0, #0
+0x05282c  mov      w1, #0x2800
+0x052830  movk     w1, #0xee6b, lsl #16
+0x052834  bl       #0x56548 ; call _dispatch_time
+0x052838  adrp     x1, #0x78000
+0x05283c  ldr      x1, [x1, #0x370] ; [0x78370] __dispatch_main_q
+0x052840  adrp     x2, #0x79000
+0x052844  add      x2, x2, #0x460 ; -> 0x79460
+0x052848  ldp      x29, x30, [sp], #0x10
+0x05284c  b        #0x564d0 ; call _dispatch_after

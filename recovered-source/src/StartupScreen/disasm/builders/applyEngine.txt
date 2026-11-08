@@ -1,0 +1,140 @@
+; bdump 0x14158..0x14384 (own dump, macho_truth ground truth)
+0x00014158:  stp      d11, d10, [sp, #-0x50]!
+0x0001415c:  stp      d9, d8, [sp, #0x10]
+0x00014160:  stp      x22, x21, [sp, #0x20]
+0x00014164:  stp      x20, x19, [sp, #0x30]
+0x00014168:  stp      x29, x30, [sp, #0x40]
+0x0001416c:  add      x29, sp, #0x40
+0x00014170:  mov      v8.16b, v0.16b
+0x00014174:  mov      x19, x0
+0x00014178:  adrp     x8, #0x3a000
+0x0001417c:  ldrsw    x21, [x8, #0xd40]  ; [0x3ad40] -> 0x148
+0x00014180:  ldr      x0, [x0, x21]
+0x00014184:  bl       #0x22e00  ; -> msgSend$count
+0x00014188:  cmp      x0, #2
+0x0001418c:  b.hs     #0x141a8
+0x00014190:  ldp      x29, x30, [sp, #0x40]
+0x00014194:  ldp      x20, x19, [sp, #0x30]
+0x00014198:  ldp      x22, x21, [sp, #0x20]
+0x0001419c:  ldp      d9, d8, [sp, #0x10]
+0x000141a0:  ldp      d11, d10, [sp], #0x50
+0x000141a4:  ret      
+0x000141a8:  fmov     d10, xzr
+0x000141ac:  adrp     x8, #0x28000
+0x000141b0:  ldr      d0, [x8, #0xdf0]  ; [0x28df0] dbl=0.4 flt=-1.5881868392106856e-23
+0x000141b4:  fcmp     d8, d0
+0x000141b8:  adrp     x20, #0x29000
+0x000141bc:  fmov     d9, xzr
+0x000141c0:  b.pl     #0x14268
+0x000141c4:  ldr      d0, [x20, #0x108]  ; [0x29108] dbl=2.3 flt=2.7200830220753216e+23
+0x000141c8:  fcmp     d8, d0
+0x000141cc:  b.le     #0x141f0
+0x000141d0:  fmov     d0, #9.00000000
+0x000141d4:  fmul     d0, d8, d0
+0x000141d8:  bl       #0x22228  ; -> _sin
+0x000141dc:  adrp     x8, #0x29000
+0x000141e0:  ldr      d1, [x8, #0x128]  ; [0x29128] dbl=0.08 flt=89128.9609375
+0x000141e4:  adrp     x8, #0x29000
+0x000141e8:  ldr      d2, [x8, #0x130]  ; [0x29130] dbl=0.004 flt=-518969491456.0
+0x000141ec:  fmadd    d10, d0, d2, d1
+0x000141f0:  ldr      x0, [x19, x21]
+0x000141f4:  mov      x2, #0
+0x000141f8:  bl       #0x23e80  ; -> msgSend$objectAtIndexedSubscript:
+0x000141fc:  mov      x29, x29
+0x00014200:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00014204:  mov      x20, x0
+0x00014208:  fcmp     d9, d10
+0x0001420c:  fcsel    d0, d10, d9, mi
+0x00014210:  mov      x0, x19
+0x00014214:  mov      x2, x20
+0x00014218:  bl       #0x25980  ; -> msgSend$ss_setGauge:value:
+0x0001421c:  mov      x0, x20
+0x00014220:  bl       #0x22120  ; -> _objc_release
+0x00014224:  ldr      x0, [x19, x21]
+0x00014228:  mov      w2, #1
+0x0001422c:  bl       #0x23e80  ; -> msgSend$objectAtIndexedSubscript:
+0x00014230:  mov      x29, x29
+0x00014234:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00014238:  mov      x20, x0
+0x0001423c:  mov      x0, x19
+0x00014240:  mov      x2, x20
+0x00014244:  mov      v0.16b, v9.16b
+0x00014248:  bl       #0x25980  ; -> msgSend$ss_setGauge:value:
+0x0001424c:  mov      x0, x20
+0x00014250:  ldp      x29, x30, [sp, #0x40]
+0x00014254:  ldp      x20, x19, [sp, #0x30]
+0x00014258:  ldp      x22, x21, [sp, #0x20]
+0x0001425c:  ldp      d9, d8, [sp, #0x10]
+0x00014260:  ldp      d11, d10, [sp], #0x50
+0x00014264:  b        #0x22120  ; -> _objc_release
+0x00014268:  adrp     x8, #0x29000
+0x0001426c:  ldr      d0, [x8, #0x100]  ; [0x29100] dbl=1.3 flt=-107374184.0
+0x00014270:  fcmp     d8, d0
+0x00014274:  b.pl     #0x142d0
+0x00014278:  adrp     x8, #0x29000
+0x0001427c:  ldr      d0, [x8, #0x120]  ; [0x29120] dbl=-0.4 flt=-1.5881868392106856e-23
+0x00014280:  fadd     d0, d8, d0
+0x00014284:  adrp     x8, #0x28000
+0x00014288:  ldr      d1, [x8, #0xe70]  ; [0x28e70] dbl=0.9 flt=-107374184.0
+0x0001428c:  fdiv     d0, d0, d1
+0x00014290:  fmov     d9, #1.00000000
+0x00014294:  fcmp     d0, d9
+0x00014298:  fcsel    d1, d9, d0, gt
+0x0001429c:  fcmp     d0, #0.0
+0x000142a0:  fmov     d0, xzr
+0x000142a4:  fcsel    d1, d0, d1, mi
+0x000142a8:  fcmp     d1, #0.0
+0x000142ac:  fcsel    d0, d0, d1, mi
+0x000142b0:  fmov     d1, #0.50000000
+0x000142b4:  fcmp     d0, d1
+0x000142b8:  b.pl     #0x14334
+0x000142bc:  fmov     d1, #4.00000000
+0x000142c0:  fmul     d1, d0, d1
+0x000142c4:  fmul     d1, d0, d1
+0x000142c8:  fmul     d9, d0, d1
+0x000142cc:  b        #0x141c4  ; -> loc_141c4
+0x000142d0:  ldr      d0, [x20, #0x108]  ; [0x29108] dbl=2.3 flt=2.7200830220753216e+23
+0x000142d4:  fcmp     d8, d0
+0x000142d8:  b.pl     #0x141c4
+0x000142dc:  adrp     x8, #0x29000
+0x000142e0:  ldr      d0, [x8, #0x110]  ; [0x29110] dbl=-1.3 flt=-107374184.0
+0x000142e4:  fadd     d0, d8, d0
+0x000142e8:  adrp     x8, #0x29000
+0x000142ec:  ldr      d1, [x8, #0x118]  ; [0x29118] dbl=0.9999999999999998 flt=nan
+0x000142f0:  fdiv     d0, d0, d1
+0x000142f4:  fmov     d9, #1.00000000
+0x000142f8:  fcmp     d0, d9
+0x000142fc:  fcsel    d1, d9, d0, gt
+0x00014300:  fcmp     d0, #0.0
+0x00014304:  fmov     d0, xzr
+0x00014308:  fcsel    d1, d0, d1, mi
+0x0001430c:  fcmp     d1, #0.0
+0x00014310:  fcsel    d0, d0, d1, mi
+0x00014314:  fmov     d1, #0.50000000
+0x00014318:  fcmp     d0, d1
+0x0001431c:  b.pl     #0x14358
+0x00014320:  fmov     d1, #4.00000000
+0x00014324:  fmul     d1, d0, d1
+0x00014328:  fmul     d1, d0, d1
+0x0001432c:  fmul     d0, d0, d1
+0x00014330:  b        #0x14378  ; -> loc_14378
+0x00014334:  fmov     d1, #2.00000000
+0x00014338:  fmov     d2, #-2.00000000
+0x0001433c:  fmadd    d0, d0, d2, d1
+0x00014340:  fmov     d1, #3.00000000
+0x00014344:  bl       #0x221c8  ; -> _pow
+0x00014348:  fmov     d1, #-0.50000000
+0x0001434c:  fmul     d0, d0, d1
+0x00014350:  fadd     d9, d0, d9
+0x00014354:  b        #0x141c4  ; -> loc_141c4
+0x00014358:  fmov     d1, #2.00000000
+0x0001435c:  fmov     d2, #-2.00000000
+0x00014360:  fmadd    d0, d0, d2, d1
+0x00014364:  fmov     d1, #3.00000000
+0x00014368:  bl       #0x221c8  ; -> _pow
+0x0001436c:  fmov     d1, #-0.50000000
+0x00014370:  fmul     d0, d0, d1
+0x00014374:  fadd     d0, d0, d9
+0x00014378:  fmov     d1, #1.00000000
+0x0001437c:  fsub     d9, d1, d0
+0x00014380:  b        #0x141c4  ; -> loc_141c4

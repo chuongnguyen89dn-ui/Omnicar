@@ -1,0 +1,60 @@
+; sub_75cc
+; VA 0x75cc  size 228
+
+0x000075cc:  movk     x1, #0x7e11, lsl #16
+0x000075d0:  movk     x1, #3, lsl #32
+0x000075d4:  mov      x0, #0
+0x000075d8:  bl       #0x21ef8    ; -> _dispatch_time
+0x000075dc:  adrp     x21, #0x30000
+0x000075e0:  ldr      x21, [x21, #0x388]    ; got(__dispatch_main_q)
+0x000075e4:  adrp     x2, #0x30000
+0x000075e8:  add      x2, x2, #0x8a8    ; block_lit(invoke=0x7cc0 sub_7cc0, sig=v8@?0)
+0x000075ec:  mov      x1, x21
+0x000075f0:  bl       #0x21e8c    ; -> _dispatch_after
+0x000075f4:  mov      x0, x21
+0x000075f8:  bl       #0x22120    ; -> _objc_release
+0x000075fc:  mov      x1, #0xe400
+0x00007600:  movk     x1, #0x540b, lsl #16
+0x00007604:  movk     x1, #2, lsl #32
+0x00007608:  mov      x0, #0
+0x0000760c:  bl       #0x21ef8    ; -> _dispatch_time
+0x00007610:  adrp     x2, #0x30000
+0x00007614:  add      x2, x2, #0x8c8    ; block_lit(invoke=0x800c sub_800c, sig=v8@?0)
+0x00007618:  mov      x1, x21
+0x0000761c:  bl       #0x21e8c    ; -> _dispatch_after
+0x00007620:  mov      x0, x21
+0x00007624:  bl       #0x22120    ; -> _objc_release
+0x00007628:  b        #0x77b8    ; -> sub_77b8
+0x0000762c:  adrp     x2, #0x31000
+0x00007630:  add      x2, x2, #0x2e8    ; @"com.apple.CarPlayApp"
+0x00007634:  mov      x0, x20
+0x00007638:  bl       #0x23920    ; -> _objc_msgSend(isEqualToString:)
+0x0000763c:  cbz      w0, #0x77b8
+0x00007640:  adrp     x0, #0x31000
+0x00007644:  add      x0, x0, #0x308    ; @"startupScreen"
+0x00007648:  bl       #0x1c840    ; -> OMCCrashGuard
+0x0000764c:  cbz      w0, #0x77b8
+0x00007650:  str      x19, [sp, #0x18]
+0x00007654:  adrp     x8, #0x3b000
+0x00007658:  mov      w9, #1
+0x0000765c:  strb     w9, [x8, #0x168]
+0x00007660:  adrp     x0, #0x27000
+0x00007664:  add      x0, x0, #0x2e    ; "UIWindow"
+0x00007668:  bl       #0x220a8    ; -> _objc_getClass
+0x0000766c:  adrp     x8, #0x3a000
+0x00007670:  ldr      x1, [x8, #0x248]    ; selref(setHidden:)
+0x00007674:  adrp     x2, #0x8000
+0x00007678:  add      x2, x2, #0x54    ; func sub_8054
+0x0000767c:  adrp     x3, #0x3b000
+0x00007680:  add      x3, x3, #0x170
+0x00007684:  bl       #0x21d18    ; -> _MSHookMessageEx
+0x00007688:  movi     v0.16b, #0
+0x0000768c:  stp      q0, q0, [sp, #0x40]
+0x00007690:  stp      q0, q0, [sp, #0x20]
+0x00007694:  adrp     x8, #0x3a000
+0x00007698:  ldr      x0, [x8, #0xa28]    ; class(UIScreen)
+0x0000769c:  bl       #0x24300    ; -> _objc_msgSend(screens)
+0x000076a0:  mov      x29, x29
+0x000076a4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000076a8:  mov      x21, x0
+0x000076ac:  add      x2, sp, #0x20

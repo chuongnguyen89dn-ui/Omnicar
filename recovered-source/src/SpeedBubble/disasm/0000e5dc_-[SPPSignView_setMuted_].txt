@@ -1,0 +1,37 @@
+# -[SPPSignView setMuted:]
+# addr 0xe5dc .. 0xe664  (136 bytes)
+
+0000e5dc  stp      x24, x23, [sp, #-0x40]!                     
+0000e5e0  stp      x22, x21, [sp, #0x10]                       
+0000e5e4  stp      x20, x19, [sp, #0x20]                       
+0000e5e8  stp      x29, x30, [sp, #0x30]                       
+0000e5ec  add      x29, sp, #0x30                              
+0000e5f0  mov      x19, x2                                     
+0000e5f4  mov      x20, x0                                     
+0000e5f8  adrp     x8, #0x43000                                
+0000e5fc  ldrsw    x23, [x8, #0x1f8]                           
+0000e600  ldrb     w8, [x0, x23]                               
+0000e604  cmp      w8, w2                                      
+0000e608  b.ne     #0xe648                                     
+0000e60c  mov      x0, x20                                     
+0000e610  bl       #0x29b80                                    ; objc_msgSend$layer
+0000e614  mov      x29, x29                                    
+0000e618  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000e61c  mov      x21, x0                                     
+0000e620  bl       #0x28a80                                    ; objc_msgSend$borderColor
+0000e624  mov      x22, x0                                     
+0000e628  mov      x0, x21                                     
+0000e62c  bl       #0x27ff8                                    ; _objc_release
+0000e630  cbz      x22, #0xe648                                
+0000e634  ldp      x29, x30, [sp, #0x30]                       
+0000e638  ldp      x20, x19, [sp, #0x20]                       
+0000e63c  ldp      x22, x21, [sp, #0x10]                       
+0000e640  ldp      x24, x23, [sp], #0x40                       
+0000e644  ret                                                  
+0000e648  strb     w19, [x20, x23]                             
+0000e64c  mov      x0, x20                                     
+0000e650  ldp      x29, x30, [sp, #0x30]                       
+0000e654  ldp      x20, x19, [sp, #0x20]                       
+0000e658  ldp      x22, x21, [sp, #0x10]                       
+0000e65c  ldp      x24, x23, [sp], #0x40                       
+0000e660  b        #0x28760                                    ; objc_msgSend$applyColors

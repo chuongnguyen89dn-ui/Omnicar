@@ -1,0 +1,106 @@
+; _SCPCarLaunchApp
+0x00e410  sub      sp, sp, #0x50
+0x00e414  stp      x22, x21, [sp, #0x20]
+0x00e418  stp      x20, x19, [sp, #0x30]
+0x00e41c  stp      x29, x30, [sp, #0x40]
+0x00e420  add      x29, sp, #0x40
+0x00e424  mov      x19, x0
+0x00e428  bl       #0x567c4 ; call _objc_retain
+0x00e42c  mov      x0, x19
+0x00e430  bl       #0x590c0 ; objc_msgSend$length
+0x00e434  cbz      x0, #0xe540
+0x00e438  adrp     x8, #0x87000
+0x00e43c  ldr      x0, [x8, #0x688] ; [0x87688] class:SCPCarSplit
+0x00e440  bl       #0x5bea0 ; objc_msgSend$shared
+0x00e444  mov      x29, x29
+0x00e448  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00e44c  mov      x20, x0
+0x00e450  mov      x2, x19
+0x00e454  bl       #0x58f00 ; objc_msgSend$launchPhoneAppIfNeeded:
+0x00e458  mov      x21, x0
+0x00e45c  mov      x0, x20
+0x00e460  bl       #0x567b8 ; call _objc_release
+0x00e464  tbnz     w21, #0, #0xe540
+0x00e468  mov      x0, x19
+0x00e46c  bl       #0xe324 ; -> sub_e324
+0x00e470  mov      x29, x29
+0x00e474  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00e478  mov      x20, x0
+0x00e47c  bl       #0xe5b4 ; -> sub_e5b4
+0x00e480  mov      x29, x29
+0x00e484  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00e488  mov      x21, x0
+0x00e48c  cbz      x20, #0xe4d8
+0x00e490  cbz      x21, #0xe4d8
+0x00e494  mov      x0, x21
+0x00e498  bl       #0x567c4 ; call _objc_retain
+0x00e49c  adrp     x0, #0x7b000
+0x00e4a0  add      x0, x0, #0xc0 ; -> 0x7b0c0 @"_launchAppWithInfo:forURL:"
+0x00e4a4  bl       #0x56374 ; call _NSSelectorFromString
+0x00e4a8  mov      x22, x0
+0x00e4ac  mov      x0, x21
+0x00e4b0  mov      x1, x22
+0x00e4b4  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x00e4b8  tbz      w0, #0, #0xe514
+0x00e4bc  mov      x0, x21
+0x00e4c0  mov      x1, x22
+0x00e4c4  mov      x2, x20
+0x00e4c8  mov      x3, #0
+0x00e4cc  bl       #0x56758 ; call _objc_msgSend
+0x00e4d0  mov      x22, x21
+0x00e4d4  b        #0xe528
+0x00e4d8  adrp     x8, #0x87000
+0x00e4dc  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x00e4e0  stp      x20, x21, [sp, #8]
+0x00e4e4  str      x19, [sp]
+0x00e4e8  adrp     x2, #0x7b000
+0x00e4ec  add      x2, x2, #0xe0 ; -> 0x7b0e0 @"HomeScreen: khong mo duoc %@ (info %@, dashboard %@)"
+0x00e4f0  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x00e4f4  mov      x29, x29
+0x00e4f8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00e4fc  mov      x22, x0
+0x00e500  adrp     x0, #0x79000
+0x00e504  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x00e508  mov      x1, x22
+0x00e50c  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00e510  b        #0xe528
+0x00e514  adrp     x1, #0x7b000
+0x00e518  add      x1, x1, #0xc0 ; -> 0x7b0c0 @"_launchAppWithInfo:forURL:"
+0x00e51c  mov      x0, x21
+0x00e520  bl       #0x4f330 ; -> _SCPMissingSelector
+0x00e524  mov      x22, x21
+0x00e528  mov      x0, x22
+0x00e52c  bl       #0x567b8 ; call _objc_release
+0x00e530  mov      x0, x21
+0x00e534  bl       #0x567b8 ; call _objc_release
+0x00e538  mov      x0, x20
+0x00e53c  bl       #0x567b8 ; call _objc_release
+0x00e540  mov      x0, x19
+0x00e544  ldp      x29, x30, [sp, #0x40]
+0x00e548  ldp      x20, x19, [sp, #0x30]
+0x00e54c  ldp      x22, x21, [sp, #0x20]
+0x00e550  add      sp, sp, #0x50
+0x00e554  b        #0x567b8 ; call _objc_release
+0x00e558  mov      x1, x22
+0x00e55c  mov      x22, x0
+0x00e560  mov      x0, x1
+0x00e564  b        #0xe580
+0x00e568  mov      x22, x0
+0x00e56c  b        #0xe584
+0x00e570  b        #0xe590
+0x00e574  b        #0xe5a0
+0x00e578  mov      x22, x0
+0x00e57c  mov      x0, x21
+0x00e580  bl       #0x567b8 ; call _objc_release
+0x00e584  mov      x0, x21
+0x00e588  bl       #0x567b8 ; call _objc_release
+0x00e58c  b        #0xe594
+0x00e590  mov      x22, x0
+0x00e594  mov      x0, x20
+0x00e598  bl       #0x567b8 ; call _objc_release
+0x00e59c  b        #0xe5a4
+0x00e5a0  mov      x22, x0
+0x00e5a4  mov      x0, x19
+0x00e5a8  bl       #0x567b8 ; call _objc_release
+0x00e5ac  mov      x0, x22
+0x00e5b0  bl       #0x563e0 ; call __Unwind_Resume

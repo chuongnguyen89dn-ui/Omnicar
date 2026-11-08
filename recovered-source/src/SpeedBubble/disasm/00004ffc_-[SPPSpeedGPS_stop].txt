@@ -1,0 +1,52 @@
+# -[SPPSpeedGPS stop]
+# addr 0x4ffc .. 0x50c0  (196 bytes)
+
+00004ffc  stp      x20, x19, [sp, #-0x20]!                     
+00005000  stp      x29, x30, [sp, #0x10]                       
+00005004  add      x29, sp, #0x10                              
+00005008  mov      x20, x0                                     
+0000500c  bl       #0x29e80                                    ; objc_msgSend$mgr
+00005010  mov      x29, x29                                    
+00005014  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005018  mov      x19, x0                                     
+0000501c  bl       #0x2c1e0                                    ; objc_msgSend$stopUpdatingLocation
+00005020  mov      x0, x19                                     
+00005024  bl       #0x27ff8                                    ; _objc_release
+00005028  mov      x0, x20                                     
+0000502c  bl       #0x29e80                                    ; objc_msgSend$mgr
+00005030  mov      x29, x29                                    
+00005034  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005038  mov      x19, x0                                     
+0000503c  mov      x2, #0                                      
+00005040  bl       #0x2ade0                                    ; objc_msgSend$setDelegate:
+00005044  mov      x0, x19                                     
+00005048  bl       #0x27ff8                                    ; _objc_release
+0000504c  mov      x0, x20                                     
+00005050  mov      x2, #0                                      
+00005054  bl       #0x2b3c0                                    ; objc_msgSend$setMgr:
+00005058  mov      x0, x20                                     
+0000505c  mov      x2, #0                                      
+00005060  bl       #0x2b180                                    ; objc_msgSend$setLast:
+00005064  adrp     x8, #0x42000                                
+00005068  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0000506c  adrp     x2, #0x39000                                
+00005070  add      x2, x2, #0x198                              ; @"speed gps: app tat GPS -> tat GPS rieng"
+00005074  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00005078  mov      x29, x29                                    
+0000507c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005080  mov      x19, x0                                     
+00005084  adrp     x0, #0x38000                                
+00005088  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0000508c  mov      x1, x19                                     
+00005090  bl       #0x2155c                                    ; _OMCLogWrite
+00005094  mov      x0, x19                                     
+00005098  ldp      x29, x30, [sp, #0x10]                       
+0000509c  ldp      x20, x19, [sp], #0x20                       
+000050a0  b        #0x27ff8                                    ; _objc_release
+000050a4  b        #0x50ac                                     ; sub_50ac
+000050a8  b        #0x50ac                                     ; sub_50ac
+000050ac  mov      x20, x0                                     
+000050b0  mov      x0, x19                                     
+000050b4  bl       #0x27ff8                                    ; _objc_release
+000050b8  mov      x0, x20                                     
+000050bc  bl       #0x27c80                                    ; __Unwind_Resume

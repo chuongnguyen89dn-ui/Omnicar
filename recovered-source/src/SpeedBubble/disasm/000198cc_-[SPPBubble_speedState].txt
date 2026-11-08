@@ -1,0 +1,23 @@
+# -[SPPBubble speedState]
+# addr 0x198cc .. 0x1991c  (80 bytes)
+
+000198cc  stp      x20, x19, [sp, #-0x20]!                     
+000198d0  stp      x29, x30, [sp, #0x10]                       
+000198d4  add      x29, sp, #0x10                              
+000198d8  bl       #0x28ae0                                    ; objc_msgSend$bubbleView
+000198dc  mov      x29, x29                                    
+000198e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000198e4  mov      x19, x0                                     
+000198e8  bl       #0x2c040                                    ; objc_msgSend$speedState
+000198ec  mov      x20, x0                                     
+000198f0  mov      x0, x19                                     
+000198f4  bl       #0x27ff8                                    ; _objc_release
+000198f8  mov      x0, x20                                     
+000198fc  ldp      x29, x30, [sp, #0x10]                       
+00019900  ldp      x20, x19, [sp], #0x20                       
+00019904  ret                                                  
+00019908  mov      x20, x0                                     
+0001990c  mov      x0, x19                                     
+00019910  bl       #0x27ff8                                    ; _objc_release
+00019914  mov      x0, x20                                     
+00019918  bl       #0x27c80                                    ; __Unwind_Resume

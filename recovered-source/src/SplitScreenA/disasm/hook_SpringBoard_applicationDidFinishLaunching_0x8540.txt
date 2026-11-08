@@ -1,0 +1,132 @@
+; sub_8540
+0x008540  stp      x22, x21, [sp, #-0x30]!
+0x008544  stp      x20, x19, [sp, #0x10]
+0x008548  stp      x29, x30, [sp, #0x20]
+0x00854c  add      x29, sp, #0x20
+0x008550  mov      x19, x2
+0x008554  mov      x20, x1
+0x008558  mov      x21, x0
+0x00855c  mov      x0, x2
+0x008560  bl       #0x567c4 ; call _objc_retain
+0x008564  adrp     x8, #0x88000
+0x008568  ldr      x8, [x8, #0xb0]
+0x00856c  mov      x0, x21
+0x008570  mov      x1, x20
+0x008574  mov      x2, x19
+0x008578  blr      x8
+0x00857c  adrp     x8, #0x87000
+0x008580  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x008584  adrp     x2, #0x7a000
+0x008588  add      x2, x2, #0x20 ; -> 0x7a020 @"SpringBoard ready, dang ky notification"
+0x00858c  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x008590  mov      x29, x29
+0x008594  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008598  mov      x20, x0
+0x00859c  adrp     x0, #0x79000
+0x0085a0  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x0085a4  mov      x1, x20
+0x0085a8  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x0085ac  mov      x0, x20
+0x0085b0  bl       #0x567b8 ; call _objc_release
+0x0085b4  adrp     x0, #0x5e000
+0x0085b8  add      x0, x0, #0xebf ; -> 0x5eebf "NSDistributedNotificationCenter"
+0x0085bc  bl       #0x56734 ; call _objc_getClass
+0x0085c0  bl       #0x57ae0 ; objc_msgSend$defaultCenter
+0x0085c4  mov      x29, x29
+0x0085c8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0085cc  mov      x20, x0
+0x0085d0  adrp     x22, #0x87000
+0x0085d4  ldr      x0, [x22, #0x698] ; [0x87698] class:NSOperationQueue
+0x0085d8  bl       #0x591e0 ; objc_msgSend$mainQueue
+0x0085dc  mov      x29, x29
+0x0085e0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0085e4  mov      x21, x0
+0x0085e8  adrp     x2, #0x79000
+0x0085ec  add      x2, x2, #0xec0 ; -> 0x79ec0 @"com.anlai.omnicar/splitscreen.ack"
+0x0085f0  adrp     x5, #0x78000
+0x0085f4  add      x5, x5, #0x8d0 ; -> 0x788d0
+0x0085f8  mov      x0, x20
+0x0085fc  mov      x3, #0
+0x008600  mov      x4, x21
+0x008604  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x008608  mov      x29, x29
+0x00860c  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x008610  mov      x0, x21
+0x008614  bl       #0x567b8 ; call _objc_release
+0x008618  ldr      x0, [x22, #0x698] ; [0x87698] class:NSOperationQueue
+0x00861c  bl       #0x591e0 ; objc_msgSend$mainQueue
+0x008620  mov      x29, x29
+0x008624  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008628  mov      x21, x0
+0x00862c  adrp     x2, #0x7a000
+0x008630  add      x2, x2, #0x40 ; -> 0x7a040 @"com.anlai.omnicar/splitscreen.ready"
+0x008634  adrp     x5, #0x78000
+0x008638  add      x5, x5, #0x8f0 ; -> 0x788f0
+0x00863c  mov      x0, x20
+0x008640  mov      x3, #0
+0x008644  mov      x4, x21
+0x008648  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x00864c  mov      x29, x29
+0x008650  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x008654  mov      x0, x21
+0x008658  bl       #0x567b8 ; call _objc_release
+0x00865c  ldr      x0, [x22, #0x698] ; [0x87698] class:NSOperationQueue
+0x008660  bl       #0x591e0 ; objc_msgSend$mainQueue
+0x008664  mov      x29, x29
+0x008668  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00866c  mov      x21, x0
+0x008670  adrp     x2, #0x7a000
+0x008674  add      x2, x2, #0x80 ; -> 0x7a080 @"com.anlai.omnicar/splitscreen.kill"
+0x008678  adrp     x5, #0x78000
+0x00867c  add      x5, x5, #0x940 ; -> 0x78940
+0x008680  mov      x0, x20
+0x008684  mov      x3, #0
+0x008688  mov      x4, x21
+0x00868c  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x008690  mov      x29, x29
+0x008694  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x008698  mov      x0, x21
+0x00869c  bl       #0x567b8 ; call _objc_release
+0x0086a0  ldr      x0, [x22, #0x698] ; [0x87698] class:NSOperationQueue
+0x0086a4  bl       #0x591e0 ; objc_msgSend$mainQueue
+0x0086a8  mov      x29, x29
+0x0086ac  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0086b0  mov      x21, x0
+0x0086b4  adrp     x2, #0x7a000
+0x0086b8  add      x2, x2, #0xa0 ; -> 0x7a0a0 @"com.anlai.omnicar/url"
+0x0086bc  adrp     x5, #0x78000
+0x0086c0  add      x5, x5, #0x960 ; -> 0x78960
+0x0086c4  mov      x0, x20
+0x0086c8  mov      x3, #0
+0x0086cc  mov      x4, x21
+0x0086d0  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x0086d4  mov      x29, x29
+0x0086d8  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x0086dc  mov      x0, x21
+0x0086e0  bl       #0x567b8 ; call _objc_release
+0x0086e4  mov      x0, x20
+0x0086e8  bl       #0x567b8 ; call _objc_release
+0x0086ec  mov      x0, x19
+0x0086f0  ldp      x29, x30, [sp, #0x20]
+0x0086f4  ldp      x20, x19, [sp, #0x10]
+0x0086f8  ldp      x22, x21, [sp], #0x30
+0x0086fc  b        #0x567b8 ; call _objc_release
+0x008700  b        #0x870c
+0x008704  b        #0x870c
+0x008708  b        #0x870c
+0x00870c  mov      x1, x21
+0x008710  mov      x21, x0
+0x008714  mov      x0, x1
+0x008718  bl       #0x567b8 ; call _objc_release
+0x00871c  b        #0x8734
+0x008720  b        #0x8730
+0x008724  b        #0x8728
+0x008728  mov      x21, x0
+0x00872c  b        #0x873c
+0x008730  mov      x21, x0
+0x008734  mov      x0, x20
+0x008738  bl       #0x567b8 ; call _objc_release
+0x00873c  mov      x0, x19
+0x008740  bl       #0x567b8 ; call _objc_release
+0x008744  mov      x0, x21
+0x008748  bl       #0x563e0 ; call __Unwind_Resume

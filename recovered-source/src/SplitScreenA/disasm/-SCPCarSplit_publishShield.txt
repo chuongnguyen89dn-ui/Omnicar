@@ -1,0 +1,72 @@
+; -[SCPCarSplit publishShield]
+0x03e374  sub      sp, sp, #0x50
+0x03e378  stp      x22, x21, [sp, #0x20]
+0x03e37c  stp      x20, x19, [sp, #0x30]
+0x03e380  stp      x29, x30, [sp, #0x40]
+0x03e384  add      x29, sp, #0x40
+0x03e388  mov      x20, x0
+0x03e38c  adrp     x8, #0x78000
+0x03e390  ldr      x8, [x8, #0x360] ; [0x78360] ___stack_chk_guard
+0x03e394  ldr      x8, [x8] ; [0x78000] <ordinal 0>
+0x03e398  str      x8, [sp, #0x18]
+0x03e39c  bl       #0x59c20 ; objc_msgSend$popupOpen
+0x03e3a0  mov      x19, x0
+0x03e3a4  mov      x0, x20
+0x03e3a8  bl       #0x5bf20 ; objc_msgSend$shieldPosted
+0x03e3ac  cmp      w19, w0
+0x03e3b0  b.eq     #0x3e434
+0x03e3b4  mov      x0, x20
+0x03e3b8  mov      x2, x19
+0x03e3bc  bl       #0x5b900 ; objc_msgSend$setShieldPosted:
+0x03e3c0  adrp     x8, #0x7d000
+0x03e3c4  add      x8, x8, #0x3c0 ; -> 0x7d3c0 @"on"
+0x03e3c8  str      x8, [sp, #8]
+0x03e3cc  adrp     x8, #0x87000
+0x03e3d0  ldr      x0, [x8, #0x6e8] ; [0x876e8] class:NSNumber
+0x03e3d4  mov      x2, x19
+0x03e3d8  bl       #0x59520 ; objc_msgSend$numberWithBool:
+0x03e3dc  mov      x29, x29
+0x03e3e0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03e3e4  mov      x19, x0
+0x03e3e8  str      x0, [sp, #0x10]
+0x03e3ec  adrp     x8, #0x87000
+0x03e3f0  ldr      x0, [x8, #0x6b8] ; [0x876b8] class:NSDictionary
+0x03e3f4  add      x2, sp, #0x10
+0x03e3f8  add      x3, sp, #8
+0x03e3fc  mov      w4, #1
+0x03e400  bl       #0x57bc0 ; objc_msgSend$dictionaryWithObjects:forKeys:count:
+0x03e404  mov      x29, x29
+0x03e408  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03e40c  mov      x21, x0
+0x03e410  adrp     x2, #0x7d000
+0x03e414  add      x2, x2, #0x3a0 ; -> 0x7d3a0 @"com.anlai.omnicar/appbridge.shield"
+0x03e418  mov      x0, x20
+0x03e41c  mov      x3, x21
+0x03e420  bl       #0x58720 ; objc_msgSend$hostPost:info:
+0x03e424  mov      x0, x21
+0x03e428  bl       #0x567b8 ; call _objc_release
+0x03e42c  mov      x0, x19
+0x03e430  bl       #0x567b8 ; call _objc_release
+0x03e434  ldr      x8, [sp, #0x18]
+0x03e438  adrp     x9, #0x78000
+0x03e43c  ldr      x9, [x9, #0x360] ; [0x78360] ___stack_chk_guard
+0x03e440  ldr      x9, [x9] ; [0x78000] <ordinal 0>
+0x03e444  cmp      x9, x8
+0x03e448  b.ne     #0x3e460
+0x03e44c  ldp      x29, x30, [sp, #0x40]
+0x03e450  ldp      x20, x19, [sp, #0x30]
+0x03e454  ldp      x22, x21, [sp, #0x20]
+0x03e458  add      sp, sp, #0x50
+0x03e45c  ret      
+0x03e460  bl       #0x56404 ; call ___stack_chk_fail
+0x03e464  mov      x20, x0
+0x03e468  mov      x0, x21
+0x03e46c  bl       #0x567b8 ; call _objc_release
+0x03e470  b        #0x3e478
+0x03e474  mov      x20, x0
+0x03e478  mov      x0, x19
+0x03e47c  bl       #0x567b8 ; call _objc_release
+0x03e480  b        #0x3e488
+0x03e484  mov      x20, x0
+0x03e488  mov      x0, x20
+0x03e48c  bl       #0x563e0 ; call __Unwind_Resume

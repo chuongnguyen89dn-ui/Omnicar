@@ -1,0 +1,679 @@
+# OmniCarPrefs — binary metadata (OmniCar 1.0.3)
+
+- Payload path: `var/jb/Library/PreferenceBundles/OmniCarPrefs.bundle/OmniCarPrefs`
+- Kind: prefs; filetype: DYLIB; fat size: 1303344 bytes
+- Parser warnings (arm64 slice): none
+- arm64/arm64e ObjC surfaces identical: True (verified: names, method counts, superclasses, ivars, categories, protocols, selrefs, classrefs compared programmatically)
+
+## Load commands
+
+| slice | size | UUID | min iOS | SDK |
+|---|---|---|---|---|
+| arm64 | 631360 | 27A4D561-54A7-31EB-8B0C-C287A366F51C | 15.0.0 | 16.4.0 |
+| arm64e | 647984 | B88B8C6C-ECDB-3E69-8F7B-1769521FEA44 | 15.0.0 | 16.4.0 |
+
+- Install name (LC_ID_DYLIB): `/var/jb/Library/PreferenceBundles/OmniCarPrefs.bundle/OmniCarPrefs` (current 0.0.0, compat 0.0.0)
+- Encryption (LC_ENCRYPTION_INFO_64): cryptid=0 cryptoff=16384 cryptsize=458752 → not encrypted
+- Code signature (LC_CODE_SIGNATURE): present, dataoff=622864 datasize=8496
+- Chained fixups: True; classic dyld info: False
+- Linked libraries (LC_LOAD_DYLIB, arm64 slice; identical in arm64e unless noted):
+  - `/usr/lib/libobjc.A.dylib` (current 228.0.0, compat 1.0.0)
+  - `/System/Library/Frameworks/Foundation.framework/Foundation` (current 1971.0.0, compat 300.0.0)
+  - `/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation` (current 1971.0.0, compat 150.0.0)
+  - `/System/Library/Frameworks/UIKit.framework/UIKit` (current 6441.1.101, compat 1.0.0)
+  - `/System/Library/Frameworks/AVFoundation.framework/AVFoundation` (current 2.0.0, compat 1.0.0)
+  - `/System/Library/Frameworks/AVKit.framework/AVKit` (current 1.0.0, compat 1.0.0)
+  - `/System/Library/Frameworks/UniformTypeIdentifiers.framework/UniformTypeIdentifiers` (current 709.0.0, compat 1.0.0)
+  - `/System/Library/Frameworks/CoreImage.framework/CoreImage` (current 5.0.0, compat 1.0.0)
+  - `/System/Library/Frameworks/CoreMedia.framework/CoreMedia` (current 1.0.0, compat 1.0.0)
+  - `/System/Library/Frameworks/CoreVideo.framework/CoreVideo` (current 1.5.0, compat 1.2.0)
+  - `/System/Library/Frameworks/ImageIO.framework/ImageIO` (current 1.0.0, compat 1.0.0)
+  - `/System/Library/PrivateFrameworks/Preferences.framework/Preferences` (current 0.0.0, compat 0.0.0)
+  - `/usr/lib/libSystem.B.dylib` (current 1319.100.3, compat 1.0.0)
+  - `/System/Library/Frameworks/AVFAudio.framework/AVFAudio` (current 1.0.0, compat 1.0.0)
+  - `/System/Library/Frameworks/AudioToolbox.framework/AudioToolbox` (current 1000.0.0, compat 1.0.0)
+  - `/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics` (current 1690.5.4, compat 64.0.0)
+  - `/System/Library/Frameworks/QuartzCore.framework/QuartzCore` (current 1.11.0, compat 1.2.0)
+- Rpaths (LC_RPATH):
+  - `/var/jb/Library/Frameworks`
+  - `/var/jb/usr/lib`
+  - `@loader_path/.jbroot/Library/Frameworks`
+  - `@loader_path/.jbroot/usr/lib`
+- Info.plist (selected keys; full JSON in raw/):
+  - CFBundleIdentifier: `"com.anlai.omnicar.prefs"`
+  - CFBundleExecutable: `"OmniCarPrefs"`
+  - CFBundleShortVersionString: `"1.0.3"`
+  - CFBundleVersion: `"1.0"`
+  - NSPrincipalClass: `"OMCRootListController"`
+
+## Objective-C surface (arm64 slice; arm64e identical)
+
+Classes: 29; methods on classes: 743; categories: 0; protocols defined: 15; classrefs: 129; selrefs (unique): 1388
+
+Full class/ivar/property/method listing: see `objc_dump.txt` in this binary's raw/ folder. Class summary:
+
+- `OMCCardPage` : `__objc_empty_cache` (ivars 1, properties 5, instance methods 28, class methods 0, protocols <UITableViewDataSource, UITableViewDelegate>)
+- `OMCCarProfilesController` : `__objc_empty_cache` (ivars 3, properties 7, instance methods 21, class methods 0, protocols <UITableViewDataSource, UITableViewDelegate>)
+- `OMCFeatureListController` : `NSURL` (ivars 0, properties 0, instance methods 8, class methods 0)
+- `OMCOnboardingController` : `UIFontMetrics` (ivars 9, properties 13, instance methods 41, class methods 2, protocols <UIScrollViewDelegate, UIAdaptivePresentationControllerDelegate>)
+- `OMCHeaderCard` : `UIColor` (ivars 12, properties 12, instance methods 28, class methods 0)
+- `OMCFeatureStatusCell` : `UIGraphicsImageRenderer` (ivars 0, properties 0, instance methods 2, class methods 0)
+- `OMCRootListController` : `NSURL` (ivars 2, properties 2, instance methods 30, class methods 0)
+- `OMCWhatsNewController` : `UIFontMetrics` (ivars 2, properties 2, instance methods 11, class methods 3)
+- `OMCAppBridgeAppsLinkCell` : `UIGraphicsImageRenderer` (ivars 0, properties 0, instance methods 2, class methods 0)
+- `OMCHSPreview` : `UIColor` (ivars 9, properties 9, instance methods 22, class methods 0)
+- `OMCAppBridgeAppsController` : `__objc_empty_cache` (ivars 18, properties 22, instance methods 105, class methods 0, protocols <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>)
+- `OMCHomeScreenController` : `OMCAppBridgeAppsController` (ivars 0, properties 0, instance methods 1, class methods 0)
+- `OMCSpeedBubbleController` : `OMCCardPage` (ivars 7, properties 11, instance methods 67, class methods 0, protocols <UITextFieldDelegate>)
+- `SPPGlassView` : `UIColor` (ivars 3, properties 3, instance methods 10, class methods 0)
+- `SPPIconView` : `UIColor` (ivars 4, properties 4, instance methods 11, class methods 0)
+- `SPPSignView` : `UIColor` (ivars 2, properties 2, instance methods 8, class methods 0)
+- `SPPBubbleView` : `UIColor` (ivars 21, properties 21, instance methods 59, class methods 0)
+- `SPPSoundDelegate` : `NSSortDescriptor` (ivars 0, properties 4, instance methods 4, class methods 0, protocols <AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate>)
+- `OMCSplitScreenAppLinkCell` : `UIGraphicsImageRenderer` (ivars 0, properties 0, instance methods 2, class methods 0)
+- `OMCSplitScreenAppPickerController` : `__objc_empty_cache` (ivars 4, properties 8, instance methods 19, class methods 0, protocols <UITableViewDataSource, UITableViewDelegate>)
+- `OMCSplitPreview` : `UIColor` (ivars 4, properties 4, instance methods 11, class methods 0)
+- `OMCSplitScreenController` : `OMCCardPage` (ivars 4, properties 8, instance methods 37, class methods 0, protocols <UITextFieldDelegate>)
+- `OMCSSStyleTileCell` : `_OBJC_METACLASS_$_PSTableCell` (ivars 5, properties 5, instance methods 14, class methods 0)
+- `OMCStartupScreenController` : `OMCFeatureListController` (ivars 13, properties 17, instance methods 83, class methods 0, protocols <UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIDocumentPickerDelegate, UICollectionViewDataSource, UICollectionViewDelegate>)
+- `SSFade` : `NSSortDescriptor` (ivars 8, properties 8, instance methods 18, class methods 0)
+- `SSGauge` : `NSSortDescriptor` (ivars 8, properties 8, instance methods 17, class methods 0)
+- `SSLinkTarget` : `NSSortDescriptor` (ivars 1, properties 1, instance methods 4, class methods 0)
+- `SSCanvasView` : `UIColor` (ivars 1, properties 1, instance methods 4, class methods 0)
+- `SSStartupView` : `UIColor` (ivars 72, properties 14, instance methods 70, class methods 1)
+- protocol `NSObject` (instance methods 19, class methods 0)
+- protocol `UITableViewDataSource` (instance methods 2, class methods 0)
+- protocol `UIScrollViewDelegate` (instance methods 0, class methods 0)
+- protocol `UITableViewDelegate` (instance methods 0, class methods 0)
+- protocol `UIAdaptivePresentationControllerDelegate` (instance methods 0, class methods 0)
+- protocol `UIBarPositioningDelegate` (instance methods 0, class methods 0)
+- protocol `UISearchBarDelegate` (instance methods 0, class methods 0)
+- protocol `UIImagePickerControllerDelegate` (instance methods 0, class methods 0)
+- protocol `UINavigationControllerDelegate` (instance methods 0, class methods 0)
+- protocol `UITextFieldDelegate` (instance methods 0, class methods 0)
+- protocol `AVAudioPlayerDelegate` (instance methods 0, class methods 0)
+- protocol `AVSpeechSynthesizerDelegate` (instance methods 0, class methods 0)
+- protocol `UIDocumentPickerDelegate` (instance methods 0, class methods 0)
+- protocol `UICollectionViewDataSource` (instance methods 2, class methods 0)
+- protocol `UICollectionViewDelegate` (instance methods 0, class methods 0)
+
+## Symbols
+
+Defined (external): 100; defined (local): 0; stab entries: 1; undefined (imports): 339; exports (trie): 100
+
+Defined symbols:
+- `_L`
+- `_OBJC_CLASS_$_OMCAppBridgeAppsController`
+- `_OBJC_CLASS_$_OMCAppBridgeAppsLinkCell`
+- `_OBJC_CLASS_$_OMCCarProfilesController`
+- `_OBJC_CLASS_$_OMCCardPage`
+- `_OBJC_CLASS_$_OMCFeatureListController`
+- `_OBJC_CLASS_$_OMCFeatureStatusCell`
+- `_OBJC_CLASS_$_OMCHSPreview`
+- `_OBJC_CLASS_$_OMCHeaderCard`
+- `_OBJC_CLASS_$_OMCHomeScreenController`
+- `_OBJC_CLASS_$_OMCOnboardingController`
+- `_OBJC_CLASS_$_OMCRootListController`
+- `_OBJC_CLASS_$_OMCSSStyleTileCell`
+- `_OBJC_CLASS_$_OMCSpeedBubbleController`
+- `_OBJC_CLASS_$_OMCSplitPreview`
+- `_OBJC_CLASS_$_OMCSplitScreenAppLinkCell`
+- `_OBJC_CLASS_$_OMCSplitScreenAppPickerController`
+- `_OBJC_CLASS_$_OMCSplitScreenController`
+- `_OBJC_CLASS_$_OMCStartupScreenController`
+- `_OBJC_CLASS_$_OMCWhatsNewController`
+- `_OBJC_CLASS_$_SPPBubbleView`
+- `_OBJC_CLASS_$_SPPGlassView`
+- `_OBJC_CLASS_$_SPPIconView`
+- `_OBJC_CLASS_$_SPPSignView`
+- `_OBJC_CLASS_$_SPPSoundDelegate`
+- `_OBJC_CLASS_$_SSCanvasView`
+- `_OBJC_CLASS_$_SSFade`
+- `_OBJC_CLASS_$_SSGauge`
+- `_OBJC_CLASS_$_SSLinkTarget`
+- `_OBJC_CLASS_$_SSStartupView`
+- `_OBJC_METACLASS_$_OMCAppBridgeAppsController`
+- `_OBJC_METACLASS_$_OMCAppBridgeAppsLinkCell`
+- `_OBJC_METACLASS_$_OMCCarProfilesController`
+- `_OBJC_METACLASS_$_OMCCardPage`
+- `_OBJC_METACLASS_$_OMCFeatureListController`
+- `_OBJC_METACLASS_$_OMCFeatureStatusCell`
+- `_OBJC_METACLASS_$_OMCHSPreview`
+- `_OBJC_METACLASS_$_OMCHeaderCard`
+- `_OBJC_METACLASS_$_OMCHomeScreenController`
+- `_OBJC_METACLASS_$_OMCOnboardingController`
+- `_OBJC_METACLASS_$_OMCRootListController`
+- `_OBJC_METACLASS_$_OMCSSStyleTileCell`
+- `_OBJC_METACLASS_$_OMCSpeedBubbleController`
+- `_OBJC_METACLASS_$_OMCSplitPreview`
+- `_OBJC_METACLASS_$_OMCSplitScreenAppLinkCell`
+- `_OBJC_METACLASS_$_OMCSplitScreenAppPickerController`
+- `_OBJC_METACLASS_$_OMCSplitScreenController`
+- `_OBJC_METACLASS_$_OMCStartupScreenController`
+- `_OBJC_METACLASS_$_OMCWhatsNewController`
+- `_OBJC_METACLASS_$_SPPBubbleView`
+- `_OBJC_METACLASS_$_SPPGlassView`
+- `_OBJC_METACLASS_$_SPPIconView`
+- `_OBJC_METACLASS_$_SPPSignView`
+- `_OBJC_METACLASS_$_SPPSoundDelegate`
+- `_OBJC_METACLASS_$_SSCanvasView`
+- `_OBJC_METACLASS_$_SSFade`
+- `_OBJC_METACLASS_$_SSGauge`
+- `_OBJC_METACLASS_$_SSLinkTarget`
+- `_OBJC_METACLASS_$_SSStartupView`
+- `_OMCAccentColor`
+- `_OMCBackgroundColor`
+- `_OMCCardColor`
+- `_OMCColorFromHex`
+- `_OMCConflictingTweaks`
+- `_OMCCurrentLanguage`
+- `_OMCDiagChecks`
+- `_OMCDiagSections`
+- `_OMCDiagSummary`
+- `_OMCEnabled`
+- `_OMCExpired`
+- `_OMCFeatureDisplayName`
+- `_OMCIcon`
+- `_OMCLanguage`
+- `_OMCLanguageName`
+- `_OMCLanguages`
+- `_OMCLoadStrings`
+- `_OMCLocalizeSpecifiers`
+- `_OMCLogoMeshImage`
+- `_OMCProfileKeys`
+- `_OMCRescueFeatures`
+- `_OMCRescueRestore`
+- `_OMCRespring`
+- `_OMCShareReport`
+- `_OMCStyleCell`
+- `_OMCStyleGlassCard`
+- `_OMCStyleHeaderFooter`
+- `_OMCStyleTable`
+- `_OMCSupportedLanguages`
+- `_OMCSwitchColor`
+- `_OMCTr`
+- `_SPPPlayTone`
+- `_SPPSpeak`
+- `_SPPVoiceIsFun`
+- `_SPPVoiceLine`
+- `_SPPVoiceTemplate`
+- `_SSApplySampleData`
+- `_SSPeriodForDate`
+- `_SSWeatherLoadCache`
+- `_SSWeatherParse`
+- `_SSWeatherSaveCache`
+
+Stab (debug) entries: ['radr://5614542']
+
+Infrastructure / hook / IPC imports check (against undefined symbols):
+- `MSHookMessageEx`: absent
+- `MSHookFunction`: absent
+- `MSHookClassPair`: absent
+- `MSFindSymbol`: absent
+- `MSGetMessageEx`: absent
+- `notify_register_dispatch`: absent
+- `notify_post`: PRESENT
+- `notify_get_state`: absent
+- `notify_set_state`: absent
+- `notify_register_check`: absent
+- `notify_cancel`: absent
+- `CFNotificationCenterAddObserver`: absent
+- `CFNotificationCenterPostNotification`: PRESENT
+- `CFNotificationCenterGetDarwinNotifyCenter`: PRESENT
+- `CFNotificationCenterGetLocalNotifyCenter`: absent
+- `xpc_connection_create`: absent
+- `xpc_connection_create_mach_service`: absent
+- `rocketbootstrap_distributedmessagingcenter_apply`: absent
+- Logos-generated symbols (name contains 'logos'): none found
+- Swift sections: none
+
+Undefined symbols (full list):
+- `_AVAssetExportPreset1280x720`
+- `_AVAssetExportPresetAppleM4A`
+- `_AVAssetExportPresetPassthrough`
+- `_AVAudioSessionCategoryPlayback`
+- `_AVFileTypeAppleM4A`
+- `_AVFileTypeMPEG4`
+- `_AVFileTypeWAVE`
+- `_AVMediaTypeAudio`
+- `_AVMediaTypeVideo`
+- `_AudioServicesCreateSystemSoundID`
+- `_AudioServicesPlaySystemSound`
+- `_CACurrentMediaTime`
+- `_CAFrameRateRangeMake`
+- `_CATransform3DMakeRotation`
+- `_CATransform3DScale`
+- `_CFNotificationCenterGetDarwinNotifyCenter`
+- `_CFNotificationCenterPostNotification`
+- `_CFPreferencesAppSynchronize`
+- `_CFPreferencesCopyAppValue`
+- `_CFPreferencesCopyKeyList`
+- `_CFPreferencesSetAppValue`
+- `_CFRelease`
+- `_CGAffineTransformIdentity`
+- `_CGAffineTransformMakeScale`
+- `_CGAffineTransformMakeTranslation`
+- `_CGAffineTransformScale`
+- `_CGBitmapContextCreate`
+- `_CGBitmapContextGetBytesPerRow`
+- `_CGBitmapContextGetData`
+- `_CGColorSpaceCreateDeviceRGB`
+- `_CGColorSpaceCreateWithName`
+- `_CGColorSpaceRelease`
+- `_CGContextAddEllipseInRect`
+- `_CGContextClip`
+- `_CGContextClipToRect`
+- `_CGContextDrawLinearGradient`
+- `_CGContextDrawRadialGradient`
+- `_CGContextFillEllipseInRect`
+- `_CGContextFillRect`
+- `_CGContextRelease`
+- `_CGContextRestoreGState`
+- `_CGContextRotateCTM`
+- `_CGContextSaveGState`
+- `_CGContextScaleCTM`
+- `_CGContextSetBlendMode`
+- `_CGContextSetFillColorWithColor`
+- `_CGContextSetLineCap`
+- `_CGContextSetRGBFillColor`
+- `_CGContextSetShadowWithColor`
+- `_CGContextTranslateCTM`
+- `_CGGradientCreateWithColorComponents`
+- `_CGGradientCreateWithColors`
+- `_CGGradientRelease`
+- `_CGImageRelease`
+- `_CGPathAddArc`
+- `_CGPathAddRect`
+- `_CGPathCloseSubpath`
+- `_CGPathCreateMutable`
+- `_CGPathMoveToPoint`
+- `_CGPathRelease`
+- `_CGPointZero`
+- `_CGRectGetMaxX`
+- `_CGRectGetMaxY`
+- `_CGRectGetMidX`
+- `_CGRectGetMidY`
+- `_CGRectGetMinX`
+- `_CGRectGetMinY`
+- `_CGRectInset`
+- `_CGRectOffset`
+- `_CGRectZero`
+- `_CGSizeZero`
+- `_CMSampleBufferGetImageBuffer`
+- `_CMSampleBufferGetPresentationTimeStamp`
+- `_CMTimeGetSeconds`
+- `_CMTimeMakeWithSeconds`
+- `_CMTimeMinimum`
+- `_CMTimeRangeMake`
+- `_NSCalendarIdentifierChinese`
+- `_NSCalendarIdentifierGregorian`
+- `_NSClassFromString`
+- `_NSFilePosixPermissions`
+- `_NSFileSystemFreeSize`
+- `_NSFontAttributeName`
+- `_NSForegroundColorAttributeName`
+- `_NSLog`
+- `_NSParagraphStyleAttributeName`
+- `_NSRunLoopCommonModes`
+- `_NSSelectorFromString`
+- `_NSTemporaryDirectory`
+- `_OBJC_CLASS_$_AVAssetExportSession`
+- `_OBJC_CLASS_$_AVAssetImageGenerator`
+- `_OBJC_CLASS_$_AVAssetReader`
+- `_OBJC_CLASS_$_AVAssetReaderTrackOutput`
+- `_OBJC_CLASS_$_AVAudioPlayer`
+- `_OBJC_CLASS_$_AVAudioSession`
+- `_OBJC_CLASS_$_AVMutableComposition`
+- `_OBJC_CLASS_$_AVPlayer`
+- `_OBJC_CLASS_$_AVPlayerViewController`
+- `_OBJC_CLASS_$_AVSpeechSynthesisVoice`
+- `_OBJC_CLASS_$_AVSpeechSynthesizer`
+- `_OBJC_CLASS_$_AVSpeechUtterance`
+- `_OBJC_CLASS_$_AVURLAsset`
+- `_OBJC_CLASS_$_CABasicAnimation`
+- `_OBJC_CLASS_$_CADisplayLink`
+- `_OBJC_CLASS_$_CAGradientLayer`
+- `_OBJC_CLASS_$_CALayer`
+- `_OBJC_CLASS_$_CAMediaTimingFunction`
+- `_OBJC_CLASS_$_CAShapeLayer`
+- `_OBJC_CLASS_$_CATransaction`
+- `_OBJC_CLASS_$_CIContext`
+- `_OBJC_CLASS_$_CIImage`
+- `_OBJC_CLASS_$_NSArray`
+- `_OBJC_CLASS_$_NSAttributedString`
+- `_OBJC_CLASS_$_NSBundle`
+- `_OBJC_CLASS_$_NSCache`
+- `_OBJC_CLASS_$_NSCalendar`
+- `_OBJC_CLASS_$_NSCharacterSet`
+- `_OBJC_CLASS_$_NSConstantArray`
+- `_OBJC_CLASS_$_NSConstantDictionary`
+- `_OBJC_CLASS_$_NSConstantDoubleNumber`
+- `_OBJC_CLASS_$_NSConstantIntegerNumber`
+- `_OBJC_CLASS_$_NSData`
+- `_OBJC_CLASS_$_NSDate`
+- `_OBJC_CLASS_$_NSDateFormatter`
+- `_OBJC_CLASS_$_NSDictionary`
+- `_OBJC_CLASS_$_NSFileManager`
+- `_OBJC_CLASS_$_NSIndexPath`
+- `_OBJC_CLASS_$_NSIndexSet`
+- `_OBJC_CLASS_$_NSLayoutConstraint`
+- `_OBJC_CLASS_$_NSLocale`
+- `_OBJC_CLASS_$_NSMeasurement`
+- `_OBJC_CLASS_$_NSMeasurementFormatter`
+- `_OBJC_CLASS_$_NSMutableArray`
+- `_OBJC_CLASS_$_NSMutableAttributedString`
+- `_OBJC_CLASS_$_NSMutableData`
+- `_OBJC_CLASS_$_NSMutableDictionary`
+- `_OBJC_CLASS_$_NSMutableParagraphStyle`
+- `_OBJC_CLASS_$_NSMutableSet`
+- `_OBJC_CLASS_$_NSMutableString`
+- `_OBJC_CLASS_$_NSNumber`
+- `_OBJC_CLASS_$_NSNumberFormatter`
+- `_OBJC_CLASS_$_NSObject`
+- `_OBJC_CLASS_$_NSProcessInfo`
+- `_OBJC_CLASS_$_NSPropertyListSerialization`
+- `_OBJC_CLASS_$_NSRunLoop`
+- `_OBJC_CLASS_$_NSScanner`
+- `_OBJC_CLASS_$_NSSet`
+- `_OBJC_CLASS_$_NSSortDescriptor`
+- `_OBJC_CLASS_$_NSString`
+- `_OBJC_CLASS_$_NSTimeZone`
+- `_OBJC_CLASS_$_NSTimer`
+- `_OBJC_CLASS_$_NSURL`
+- `_OBJC_CLASS_$_NSUnitTemperature`
+- `_OBJC_CLASS_$_NSValue`
+- `_OBJC_CLASS_$_PSListController`
+- `_OBJC_CLASS_$_PSSpecifier`
+- `_OBJC_CLASS_$_PSTableCell`
+- `_OBJC_CLASS_$_PSViewController`
+- `_OBJC_CLASS_$_UIAction`
+- `_OBJC_CLASS_$_UIActivityViewController`
+- `_OBJC_CLASS_$_UIAlertAction`
+- `_OBJC_CLASS_$_UIAlertController`
+- `_OBJC_CLASS_$_UIBarButtonItem`
+- `_OBJC_CLASS_$_UIBezierPath`
+- `_OBJC_CLASS_$_UIBlurEffect`
+- `_OBJC_CLASS_$_UIButton`
+- `_OBJC_CLASS_$_UIButtonConfiguration`
+- `_OBJC_CLASS_$_UICollectionView`
+- `_OBJC_CLASS_$_UICollectionViewCell`
+- `_OBJC_CLASS_$_UICollectionViewFlowLayout`
+- `_OBJC_CLASS_$_UIColor`
+- `_OBJC_CLASS_$_UIControl`
+- `_OBJC_CLASS_$_UIDatePicker`
+- `_OBJC_CLASS_$_UIDevice`
+- `_OBJC_CLASS_$_UIDocumentPickerViewController`
+- `_OBJC_CLASS_$_UIFont`
+- `_OBJC_CLASS_$_UIFontMetrics`
+- `_OBJC_CLASS_$_UIGraphicsImageRenderer`
+- `_OBJC_CLASS_$_UIGraphicsImageRendererFormat`
+- `_OBJC_CLASS_$_UIImage`
+- `_OBJC_CLASS_$_UIImagePickerController`
+- `_OBJC_CLASS_$_UIImageSymbolConfiguration`
+- `_OBJC_CLASS_$_UIImageView`
+- `_OBJC_CLASS_$_UIImpactFeedbackGenerator`
+- `_OBJC_CLASS_$_UILabel`
+- `_OBJC_CLASS_$_UIMenu`
+- `_OBJC_CLASS_$_UINavigationController`
+- `_OBJC_CLASS_$_UINotificationFeedbackGenerator`
+- `_OBJC_CLASS_$_UIPageControl`
+- `_OBJC_CLASS_$_UIPasteboard`
+- `_OBJC_CLASS_$_UIScreen`
+- `_OBJC_CLASS_$_UIScrollView`
+- `_OBJC_CLASS_$_UISearchBar`
+- `_OBJC_CLASS_$_UISegmentedControl`
+- `_OBJC_CLASS_$_UISelectionFeedbackGenerator`
+- `_OBJC_CLASS_$_UISlider`
+- `_OBJC_CLASS_$_UIStackView`
+- `_OBJC_CLASS_$_UIStepper`
+- `_OBJC_CLASS_$_UISwitch`
+- `_OBJC_CLASS_$_UITableView`
+- `_OBJC_CLASS_$_UITableViewCell`
+- `_OBJC_CLASS_$_UITableViewHeaderFooterView`
+- `_OBJC_CLASS_$_UITapGestureRecognizer`
+- `_OBJC_CLASS_$_UITextField`
+- `_OBJC_CLASS_$_UIView`
+- `_OBJC_CLASS_$_UIViewController`
+- `_OBJC_CLASS_$_UIVisualEffectView`
+- `_OBJC_EHTYPE_$_NSException`
+- `_OBJC_IVAR_$_PSListController._specifiers`
+- `_OBJC_METACLASS_$_NSObject`
+- `_OBJC_METACLASS_$_PSListController`
+- `_OBJC_METACLASS_$_PSTableCell`
+- `_OBJC_METACLASS_$_PSViewController`
+- `_OBJC_METACLASS_$_UICollectionViewCell`
+- `_OBJC_METACLASS_$_UIView`
+- `_OBJC_METACLASS_$_UIViewController`
+- `_UIAccessibilityTraitButton`
+- `_UIAccessibilityTraitSelected`
+- `_UIFontDescriptorFeatureSettingsAttribute`
+- `_UIFontDescriptorSystemDesignRounded`
+- `_UIFontTextStyleBody`
+- `_UIFontTextStyleFootnote`
+- `_UIFontTextStyleHeadline`
+- `_UIFontTextStyleSubheadline`
+- `_UIFontTextStyleTitle1`
+- `_UIFontWeightBold`
+- `_UIFontWeightHeavy`
+- `_UIFontWeightLight`
+- `_UIFontWeightMedium`
+- `_UIFontWeightRegular`
+- `_UIFontWeightSemibold`
+- `_UIGraphicsGetCurrentContext`
+- `_UIGraphicsPopContext`
+- `_UIGraphicsPushContext`
+- `_UIImageJPEGRepresentation`
+- `_UIImagePNGRepresentation`
+- `_UIImagePickerControllerImageURL`
+- `_UIImagePickerControllerMediaURL`
+- `_UIImagePickerControllerOriginalImage`
+- `_UILayoutFittingCompressedSize`
+- `_UIRectFill`
+- `_UIRectFillUsingBlendMode`
+- `_UITableViewAutomaticDimension`
+- `_UTTypeAudio`
+- `_UTTypeImage`
+- `_UTTypeMovie`
+- `__Block_object_assign`
+- `__NSConcreteGlobalBlock`
+- `__NSConcreteStackBlock`
+- `__Unwind_Resume`
+- `___CFConstantStringClassReference`
+- `___NSArray0__struct`
+- `___NSDictionary0__struct`
+- `___kCFBooleanFalse`
+- `___kCFBooleanTrue`
+- `___objc_personality_v0`
+- `___sincos_stret`
+- `___stack_chk_fail`
+- `___stack_chk_guard`
+- `__dispatch_main_q`
+- `__objc_empty_cache`
+- `_arc4random_uniform`
+- `_asin`
+- `_calloc`
+- `_cos`
+- `_dispatch_after`
+- `_dispatch_async`
+- `_dispatch_get_global_queue`
+- `_dispatch_once`
+- `_dispatch_semaphore_create`
+- `_dispatch_semaphore_signal`
+- `_dispatch_semaphore_wait`
+- `_dispatch_time`
+- `_dlopen`
+- `_dlsym`
+- `_free`
+- `_hypot`
+- `_kCACornerCurveContinuous`
+- `_kCAFillRuleEvenOdd`
+- `_kCAFilterTrilinear`
+- `_kCAGradientLayerAxial`
+- `_kCAGradientLayerConic`
+- `_kCAGradientLayerRadial`
+- `_kCAGravityResizeAspect`
+- `_kCALineCapButt`
+- `_kCALineCapRound`
+- `_kCALineJoinRound`
+- `_kCAMediaTimingFunctionEaseInEaseOut`
+- `_kCFBooleanTrue`
+- `_kCFPreferencesAnyHost`
+- `_kCFPreferencesCurrentUser`
+- `_kCGColorSpaceSRGB`
+- `_kCGImageDestinationLossyCompressionQuality`
+- `_kCMTimeZero`
+- `_kCVPixelBufferPixelFormatTypeKey`
+- `_malloc`
+- `_notify_post`
+- `_objc_alloc`
+- `_objc_alloc_init`
+- `_objc_autorelease`
+- `_objc_autoreleasePoolPop`
+- `_objc_autoreleasePoolPush`
+- `_objc_autoreleaseReturnValue`
+- `_objc_begin_catch`
+- `_objc_copyWeak`
+- `_objc_destroyWeak`
+- `_objc_end_catch`
+- `_objc_enumerationMutation`
+- `_objc_getAssociatedObject`
+- `_objc_getClass`
+- `_objc_initWeak`
+- `_objc_loadWeakRetained`
+- `_objc_msgSend`
+- `_objc_msgSendSuper2`
+- `_objc_opt_class`
+- `_objc_opt_isKindOfClass`
+- `_objc_opt_new`
+- `_objc_opt_respondsToSelector`
+- `_objc_release`
+- `_objc_retain`
+- `_objc_retainAutorelease`
+- `_objc_retainAutoreleasedReturnValue`
+- `_objc_retainBlock`
+- `_objc_setAssociatedObject`
+- `_objc_setProperty_nonatomic_copy`
+- `_objc_storeStrong`
+- `_objc_storeWeak`
+- `_objc_sync_enter`
+- `_objc_sync_exit`
+- `_objc_unsafeClaimAutoreleasedReturnValue`
+- `_posix_spawn`
+- `_pow`
+- `_sin`
+- `_strlcat`
+- `_strlcpy`
+- `_strlen`
+- `_strncmp`
+- `_sysctlbyname`
+- `_uname`
+
+## Strings triage (pattern-based; raw dump in raw/strings.txt)
+
+Total string lines: 8523; unique: 3931
+
+### com.anlai.* identifiers (2)
+- `com.anlai.omnicar`
+- `com.anlai.omnicar.app`
+
+### Other reverse-DNS identifiers (35) — heuristic, may include bundle IDs / notification names
+- `com.apple.CarPlay`
+- `com.apple.CarPlayApp`
+- `com.apple.CarPlaySettings`
+- `com.apple.CarPlayTemplateUIHost`
+- `com.apple.InCallService`
+- `com.apple.Maps`
+- `com.apple.MobileSMS`
+- `com.apple.Music`
+- `com.apple.developer.carplay`
+- `com.apple.developer.carplay-audio`
+- `com.apple.developer.carplay-calling`
+- `com.apple.developer.carplay-charging`
+- `com.apple.developer.carplay-communication`
+- `com.apple.developer.carplay-driving-task`
+- `com.apple.developer.carplay-fueling`
+- `com.apple.developer.carplay-maps`
+- `com.apple.developer.carplay-messaging`
+- `com.apple.developer.carplay-parking`
+- `com.apple.developer.carplay-public-safety`
+- `com.apple.developer.carplay-quick-ordering`
+- `com.apple.developer.playable-content`
+- `com.apple.iBooks`
+- `com.apple.mobilecal`
+- `com.apple.mobilephone`
+- `com.apple.news`
+- `com.apple.podcasts`
+- `com.apple.springboard`
+- `com.apple.webapp`
+- `com.ex.substitute`
+- `com.lumi.GOFA`
+- `com.opa334.libhooker`
+- `com.waze.iphone`
+- `com.wynauto.wyn`
+- `org.coolstar.libhooker`
+- `vn.vietmap.live`
+
+### Preference domain / keys
+- Declared prefs domain(s) in OmniCarPrefs bundle plists: ['com.anlai.omnicar']
+- Domain strings present in this binary: ['com.anlai.omnicar']
+- Strings matching keys declared in the prefs bundle plists (10 of 16 declared): ['speedBubbleEnabled', 'splitScreenEnabled', 'startupScreenCarName', 'startupScreenDuration', 'startupScreenGreetingName', 'startupScreenLogoEffect', 'startupScreenScaleMode', 'startupScreenSoundVolume', 'startupScreenTempo', 'startupScreenVideoName']
+- Key-shaped candidate strings (pattern guess, NOT corroborated): ['accessoryName', 'appBridgeEnabled', 'applicationType', 'builtStyle', 'carName', 'carProfilesEnabled', 'cellType', 'chooseSound', 'contentMode', 'currentSound', 'currentStyle', 'deleteSound', 'displayScale', 'featureKey', 'homeScreenWallpaperStyle', 'isLowPowerModeEnabled', 'localizedName', 'logoEffect', 'manufacturerName', 'modelName', 'portType', 'previewSound', 'randomPreviewStyle', 'renderStyle', 'speedBubbleWarnMode', 'speedBubbleWarnSound', 'ssRandomStyle', 'startupScreenStyle', 'textKey', 'titleKey', 'userInterfaceStyle', 'vehicleName', 'videoName', 'voiceSound', 'wallStyle', 'warnMode']
+
+### URLs / schemes (1)
+- `radr://5614542`
+
+### Log tags (0 unique; 0 format strings carry a tag)
+
+### File paths (48)
+- `/%@.lproj`
+- `/Library/MobileSubstrate/DynamicLibraries`
+- `/Library/PreferenceBundles/OmniCarPrefs.bundle`
+- `/Library/PreferenceBundles/OmniCarPrefs.bundle/PackageIcon.png`
+- `/Library/PreferenceBundles/OmniCarPrefs.bundle/logo@3x.png`
+- `/System/Library/Frameworks/AVFAudio.framework/AVFAudio`
+- `/System/Library/Frameworks/AVFoundation.framework/AVFoundation`
+- `/System/Library/Frameworks/AVKit.framework/AVKit`
+- `/System/Library/Frameworks/AudioToolbox.framework/AudioToolbox`
+- `/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation`
+- `/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics`
+- `/System/Library/Frameworks/CoreImage.framework/CoreImage`
+- `/System/Library/Frameworks/CoreMedia.framework/CoreMedia`
+- `/System/Library/Frameworks/CoreVideo.framework/CoreVideo`
+- `/System/Library/Frameworks/Foundation.framework/Foundation`
+- `/System/Library/Frameworks/ImageIO.framework/ImageIO`
+- `/System/Library/Frameworks/QuartzCore.framework/QuartzCore`
+- `/System/Library/Frameworks/UIKit.framework/UIKit`
+- `/System/Library/Frameworks/UniformTypeIdentifiers.framework/UniformTypeIdentifiers`
+- `/System/Library/PrivateFrameworks/FrontBoardServices.framework/FrontBoardServices`
+- `/System/Library/PrivateFrameworks/Preferences.framework/Preferences`
+- `/System/Library/PrivateFrameworks/SpringBoardServices.framework/SpringBoardServices`
+- `/cores/binpack`
+- `/en.lproj`
+- `/usr/bin/killall`
+- `/usr/lib/TweakInject`
+- `/usr/lib/TweakInject.dylib`
+- `/usr/lib/ellekit/libinjector.dylib`
+- `/usr/lib/libSystem.B.dylib`
+- `/usr/lib/libellekit.dylib`
+- `/usr/lib/libobjc.A.dylib`
+- `/usr/lib/libsubstrate.dylib`
+- `/var`
+- `/var/jb`
+- `/var/jb/.installed_dopamine`
+- `/var/jb/.installed_palera1n`
+- `/var/jb/Library/Frameworks`
+- `/var/jb/Library/PreferenceBundles/OmniCarPrefs.bundle/OmniCarPrefs`
+- `/var/jb/basebin`
+- `/var/jb/usr/bin/killall`
+- `/var/jb/usr/lib`
+- `/var/lib/dpkg/status`
+- `/var/mobile/Documents/OmniCar.log`
+- `/var/mobile/Library/OmniCar`
+- `/var/mobile/Library/OmniCar/StartupScreen/Logo/logo.png`
+- `/var/mobile/Library/OmniCar/StartupScreen/Sounds`
+- `/var/mobile/Library/OmniCar/StartupScreen/Videos`
+- `/var/mobile/Library/OmniCar/StartupScreen/weather.plist`
+
+## Counts
+
+- classes 29; class methods total 743; categories 0; protocols 15; defined symbols 100 (external 100 + local 0); undefined 339; strings 8523 lines / 3931 unique

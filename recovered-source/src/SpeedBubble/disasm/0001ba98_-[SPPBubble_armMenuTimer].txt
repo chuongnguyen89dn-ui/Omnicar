@@ -1,0 +1,73 @@
+# -[SPPBubble armMenuTimer]
+# addr 0x1ba98 .. 0x1bbb0  (280 bytes)
+
+0001ba98  sub      sp, sp, #0x60                               
+0001ba9c  stp      x22, x21, [sp, #0x30]                       
+0001baa0  stp      x20, x19, [sp, #0x40]                       
+0001baa4  stp      x29, x30, [sp, #0x50]                       
+0001baa8  add      x29, sp, #0x50                              
+0001baac  mov      x19, x0                                     
+0001bab0  bl       #0x29e60                                    ; objc_msgSend$menuTimer
+0001bab4  mov      x29, x29                                    
+0001bab8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001babc  mov      x20, x0                                     
+0001bac0  bl       #0x29980                                    ; objc_msgSend$invalidate
+0001bac4  mov      x0, x20                                     
+0001bac8  bl       #0x27ff8                                    ; _objc_release
+0001bacc  add      x0, sp, #0x28                               
+0001bad0  mov      x1, x19                                     
+0001bad4  bl       #0x27f80                                    ; _objc_initWeak
+0001bad8  adrp     x8, #0x42000                                
+0001badc  adrp     x9, #0x38000                                
+0001bae0  ldr      x9, [x9, #0x318]                            ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+0001bae4  ldr      x20, [x8, #0xf88]                           ; [0x42f88] classref -> NSTimer (= import _OBJC_CLASS_$_NSTimer)
+0001bae8  str      x9, [sp]                                    
+0001baec  adrp     x8, #0x32000                                
+0001baf0  ldr      d0, [x8, #0x780]                            ; [0x32780] __const[0x32780] double=1.6080749353e-314 float=-32.0
+0001baf4  adrp     x8, #0x1b000                                
+0001baf8  add      x8, x8, #0xbb0                              ; __TEXT,__text+0x17bb0
+0001bafc  str      d0, [sp, #8]                                
+0001bb00  adrp     x9, #0x38000                                
+0001bb04  add      x9, x9, #0xa88                              ; __const[0x38a88] double=0.0 float=0.0
+0001bb08  stp      x8, x9, [sp, #0x10]                         
+0001bb0c  mov      x21, sp                                     
+0001bb10  add      x0, x21, #0x20                              
+0001bb14  add      x1, sp, #0x28                               
+0001bb18  bl       #0x27f44                                    ; _objc_copyWeak
+0001bb1c  fmov     d0, #4.00000000                             
+0001bb20  mov      x3, sp                                      
+0001bb24  mov      x0, x20                                     
+0001bb28  mov      w2, #0                                      
+0001bb2c  bl       #0x2a820                                    ; objc_msgSend$scheduledTimerWithTimeInterval:repeats:block:
+0001bb30  mov      x29, x29                                    
+0001bb34  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001bb38  mov      x20, x0                                     
+0001bb3c  mov      x0, x19                                     
+0001bb40  mov      x2, x20                                     
+0001bb44  bl       #0x2b3a0                                    ; objc_msgSend$setMenuTimer:
+0001bb48  mov      x0, x20                                     
+0001bb4c  bl       #0x27ff8                                    ; _objc_release
+0001bb50  add      x0, x21, #0x20                              
+0001bb54  bl       #0x27f50                                    ; _objc_destroyWeak
+0001bb58  add      x0, sp, #0x28                               
+0001bb5c  bl       #0x27f50                                    ; _objc_destroyWeak
+0001bb60  ldp      x29, x30, [sp, #0x50]                       
+0001bb64  ldp      x20, x19, [sp, #0x40]                       
+0001bb68  ldp      x22, x21, [sp, #0x30]                       
+0001bb6c  add      sp, sp, #0x60                               
+0001bb70  ret                                                  
+0001bb74  mov      x19, x0                                     
+0001bb78  mov      x0, x20                                     
+0001bb7c  bl       #0x27ff8                                    ; _objc_release
+0001bb80  b        #0x1bb88                                    ; sub_1bb88
+0001bb84  mov      x19, x0                                     
+0001bb88  add      x0, x21, #0x20                              
+0001bb8c  bl       #0x27f50                                    ; _objc_destroyWeak
+0001bb90  add      x0, sp, #0x28                               
+0001bb94  bl       #0x27f50                                    ; _objc_destroyWeak
+0001bb98  b        #0x1bba8                                    ; sub_1bba8
+0001bb9c  mov      x19, x0                                     
+0001bba0  mov      x0, x20                                     
+0001bba4  bl       #0x27ff8                                    ; _objc_release
+0001bba8  mov      x0, x19                                     
+0001bbac  bl       #0x27c80                                    ; __Unwind_Resume

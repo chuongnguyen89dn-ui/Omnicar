@@ -1,0 +1,34 @@
+# sub_18070
+# addr 0x18070 .. 0x180ec  (124 bytes)
+
+00018070  stp      x22, x21, [sp, #-0x30]!                     
+00018074  stp      x20, x19, [sp, #0x10]                       
+00018078  stp      x29, x30, [sp, #0x20]                       
+0001807c  add      x29, sp, #0x20                              
+00018080  mov      x19, x1                                     
+00018084  mov      x20, x0                                     
+00018088  mov      x0, x1                                      
+0001808c  bl       #0x28004                                    ; _objc_retain
+00018090  add      x0, x20, #0x20                              
+00018094  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+00018098  mov      x20, x0                                     
+0001809c  cbz      x0, #0x180ac                                
+000180a0  mov      x0, x20                                     
+000180a4  bl       #0x29380                                    ; objc_msgSend$feedWarning
+000180a8  b        #0x180b4                                    ; sub_180b4
+000180ac  mov      x0, x19                                     
+000180b0  bl       #0x29980                                    ; objc_msgSend$invalidate
+000180b4  mov      x0, x20                                     
+000180b8  bl       #0x27ff8                                    ; _objc_release
+000180bc  mov      x0, x19                                     
+000180c0  ldp      x29, x30, [sp, #0x20]                       
+000180c4  ldp      x20, x19, [sp, #0x10]                       
+000180c8  ldp      x22, x21, [sp], #0x30                       
+000180cc  b        #0x27ff8                                    ; _objc_release
+000180d0  mov      x21, x0                                     
+000180d4  mov      x0, x20                                     
+000180d8  bl       #0x27ff8                                    ; _objc_release
+000180dc  mov      x0, x19                                     
+000180e0  bl       #0x27ff8                                    ; _objc_release
+000180e4  mov      x0, x21                                     
+000180e8  bl       #0x27c80                                    ; __Unwind_Resume

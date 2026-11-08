@@ -1,0 +1,60 @@
+; sub_e324
+0x00e324  stp      x22, x21, [sp, #-0x30]!
+0x00e328  stp      x20, x19, [sp, #0x10]
+0x00e32c  stp      x29, x30, [sp, #0x20]
+0x00e330  add      x29, sp, #0x20
+0x00e334  mov      x19, x0
+0x00e338  bl       #0x567c4 ; call _objc_retain
+0x00e33c  bl       #0x4672c ; -> sub_4672c
+0x00e340  mov      x29, x29
+0x00e344  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00e348  mov      x20, x0
+0x00e34c  mov      x21, #0
+0x00e350  cbz      x19, #0xe3bc
+0x00e354  cbz      x20, #0xe3bc
+0x00e358  mov      x0, x20
+0x00e35c  bl       #0x567c4 ; call _objc_retain
+0x00e360  adrp     x0, #0x7a000
+0x00e364  add      x0, x0, #0x5e0 ; -> 0x7a5e0 @"applicationInfoForBundleIdentifier:"
+0x00e368  bl       #0x56374 ; call _NSSelectorFromString
+0x00e36c  mov      x21, x0
+0x00e370  mov      x0, x20
+0x00e374  mov      x1, x21
+0x00e378  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x00e37c  tbz      w0, #0, #0xe3a0
+0x00e380  mov      x0, x20
+0x00e384  mov      x1, x21
+0x00e388  mov      x2, x19
+0x00e38c  bl       #0x56758 ; call _objc_msgSend
+0x00e390  mov      x29, x29
+0x00e394  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00e398  mov      x21, x0
+0x00e39c  b        #0xe3b4
+0x00e3a0  adrp     x1, #0x7a000
+0x00e3a4  add      x1, x1, #0x5e0 ; -> 0x7a5e0 @"applicationInfoForBundleIdentifier:"
+0x00e3a8  mov      x0, x20
+0x00e3ac  bl       #0x4f330 ; -> _SCPMissingSelector
+0x00e3b0  mov      x21, #0
+0x00e3b4  mov      x0, x20
+0x00e3b8  bl       #0x567b8 ; call _objc_release
+0x00e3bc  mov      x0, x20
+0x00e3c0  bl       #0x567b8 ; call _objc_release
+0x00e3c4  mov      x0, x19
+0x00e3c8  bl       #0x567b8 ; call _objc_release
+0x00e3cc  mov      x0, x21
+0x00e3d0  ldp      x29, x30, [sp, #0x20]
+0x00e3d4  ldp      x20, x19, [sp, #0x10]
+0x00e3d8  ldp      x22, x21, [sp], #0x30
+0x00e3dc  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x00e3e0  b        #0xe3e4
+0x00e3e4  mov      x21, x0
+0x00e3e8  mov      x0, x20
+0x00e3ec  bl       #0x567b8 ; call _objc_release
+0x00e3f0  mov      x0, x20
+0x00e3f4  bl       #0x567b8 ; call _objc_release
+0x00e3f8  b        #0xe400
+0x00e3fc  mov      x21, x0
+0x00e400  mov      x0, x19
+0x00e404  bl       #0x567b8 ; call _objc_release
+0x00e408  mov      x0, x21
+0x00e40c  bl       #0x563e0 ; call __Unwind_Resume

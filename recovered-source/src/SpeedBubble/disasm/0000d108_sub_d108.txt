@@ -1,0 +1,32 @@
+# sub_d108
+# addr 0xd108 .. 0xd17c  (116 bytes)
+
+0000d108  sub      sp, sp, #0x30                               
+0000d10c  stp      x20, x19, [sp, #0x10]                       
+0000d110  stp      x29, x30, [sp, #0x20]                       
+0000d114  add      x29, sp, #0x20                              
+0000d118  mov      x0, x1                                      
+0000d11c  str      xzr, [sp, #8]                               
+0000d120  add      x1, sp, #8                                  
+0000d124  bl       #0x27ecc                                    ; _notify_get_state
+0000d128  adrp     x8, #0x43000                                
+0000d12c  ldr      x0, [x8, #0x40]                             ; [0x43040] classref -> SPPBubble
+0000d130  bl       #0x2bd80                                    ; objc_msgSend$shared
+0000d134  mov      x29, x29                                    
+0000d138  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000d13c  mov      x19, x0                                     
+0000d140  ldr      x8, [sp, #8]                                
+0000d144  cmp      x8, #0                                      
+0000d148  cset     w2, ne                                      
+0000d14c  bl       #0x2abc0                                    ; objc_msgSend$setCarBusy:
+0000d150  mov      x0, x19                                     
+0000d154  bl       #0x27ff8                                    ; _objc_release
+0000d158  ldp      x29, x30, [sp, #0x20]                       
+0000d15c  ldp      x20, x19, [sp, #0x10]                       
+0000d160  add      sp, sp, #0x30                               
+0000d164  ret                                                  
+0000d168  mov      x20, x0                                     
+0000d16c  mov      x0, x19                                     
+0000d170  bl       #0x27ff8                                    ; _objc_release
+0000d174  mov      x0, x20                                     
+0000d178  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,55 @@
+; ==== SCPCButton__setHighlighted_  @0xe738..0xe810 (216 bytes) ====
+0000e738  sub      sp, sp, #0x70                                
+0000e73c  stp      x22, x21, [sp, #0x40]                        
+0000e740  stp      x20, x19, [sp, #0x50]                        
+0000e744  stp      x29, x30, [sp, #0x60]                        
+0000e748  add      x29, sp, #0x60                               
+0000e74c  mov      x19, x2                                      
+0000e750  mov      x20, x0                                      
+0000e754  bl       #0x58d40                                     ; msgSend "isHighlighted"
+0000e758  mov      x21, x0                                      
+0000e75c  adrp     x8, #0x87000                                 
+0000e760  ldr      x8, [x8, #0x8d8]                             
+0000e764  stp      x20, x8, [sp, #0x30]                         
+0000e768  adrp     x8, #0x85000                                 
+0000e76c  ldr      x1, [x8, #0xb30]                             ; selref @"setHighlighted:"
+0000e770  add      x0, sp, #0x30                                
+0000e774  mov      x2, x19                                      
+0000e778  bl       #0x56770                                     ; call _objc_msgSendSuper2
+0000e77c  cmp      w19, w21                                     
+0000e780  b.eq     #0xe7f8                                      
+0000e784  adrp     x8, #0x87000                                 
+0000e788  ldr      x0, [x8, #0x710]                             ; classref UIView
+0000e78c  cmp      w19, #0                                      
+0000e790  adrp     x8, #0x6f000                                 
+0000e794  ldr      d0, [x8, #0x10]                              ; double 0.3
+0000e798  adrp     x8, #0x6f000                                 
+0000e79c  ldr      d1, [x8, #0x18]                              ; double 0.12
+0000e7a0  fcsel    d0, d1, d0, ne                               
+0000e7a4  adrp     x8, #0x78000                                 
+0000e7a8  ldr      x8, [x8, #0x338]                             
+0000e7ac  str      x8, [sp]                                     
+0000e7b0  adrp     x8, #0x6e000                                 
+0000e7b4  ldr      d1, [x8, #0xff8]                             ; double 1.6080749353e-314
+0000e7b8  str      d1, [sp, #8]                                 
+0000e7bc  adrp     x8, #0xe000                                  
+0000e7c0  add      x8, x8, #0x810                               
+0000e7c4  adrp     x9, #0x78000                                 
+0000e7c8  add      x9, x9, #0xa00                               
+0000e7cc  stp      x8, x9, [sp, #0x10]                          
+0000e7d0  str      x20, [sp, #0x20]                             
+0000e7d4  strb     w19, [sp, #0x28]                             
+0000e7d8  adrp     x8, #0x6f000                                 
+0000e7dc  ldr      d2, [x8, #0x20]                              ; double 0.7
+0000e7e0  fmov     d1, xzr                                      
+0000e7e4  fmov     d3, xzr                                      
+0000e7e8  mov      x3, sp                                       
+0000e7ec  mov      w2, #6                                       
+0000e7f0  mov      x4, #0                                       
+0000e7f4  bl       #0x56f00                                     ; msgSend "animateWithDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:"
+0000e7f8  ldp      x29, x30, [sp, #0x60]                        
+0000e7fc  ldp      x20, x19, [sp, #0x50]                        
+0000e800  ldp      x22, x21, [sp, #0x40]                        
+0000e804  add      sp, sp, #0x70                                
+0000e808  ret                                                   
+0000e80c  bl       #0x563e0                                     ; call __Unwind_Resume

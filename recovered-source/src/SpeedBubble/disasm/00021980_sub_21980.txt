@@ -1,0 +1,31 @@
+# sub_21980
+# addr 0x21980 .. 0x219f0  (112 bytes)
+
+00021980  stp      x20, x19, [sp, #-0x20]!                     
+00021984  stp      x29, x30, [sp, #0x10]                       
+00021988  add      x29, sp, #0x10                              
+0002198c  mov      x19, x0                                     
+00021990  bl       #0x28004                                    ; _objc_retain
+00021994  adrp     x0, #0x3b000                                
+00021998  add      x0, x0, #0x598                              ; @"/var/mobile/Documents/OmniCar.log"
+0002199c  bl       #0x293e0                                    ; objc_msgSend$fileSystemRepresentation
+000219a0  adrp     x1, #0x2f000                                
+000219a4  add      x1, x1, #0x545                              ; "a"
+000219a8  bl       #0x27e0c                                    ; _fopen
+000219ac  mov      x20, x0                                     
+000219b0  cbz      x0, #0x219d0                                
+000219b4  mov      x0, x19                                     
+000219b8  bl       #0x28010                                    ; _objc_retainAutorelease
+000219bc  bl       #0x28280                                    ; objc_msgSend$UTF8String
+000219c0  mov      x1, x20                                     
+000219c4  bl       #0x27e18                                    ; _fputs
+000219c8  mov      x0, x20                                     
+000219cc  bl       #0x27e00                                    ; _fclose
+000219d0  cmp      x20, #0                                     
+000219d4  cset     w20, ne                                     
+000219d8  mov      x0, x19                                     
+000219dc  bl       #0x27ff8                                    ; _objc_release
+000219e0  mov      x0, x20                                     
+000219e4  ldp      x29, x30, [sp, #0x10]                       
+000219e8  ldp      x20, x19, [sp], #0x20                       
+000219ec  ret                                                  

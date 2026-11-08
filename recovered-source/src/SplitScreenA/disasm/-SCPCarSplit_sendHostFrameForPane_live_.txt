@@ -1,0 +1,164 @@
+; -[SCPCarSplit sendHostFrameForPane:live:]
+0x03dfac  stp      d15, d14, [sp, #-0x80]!
+0x03dfb0  stp      d13, d12, [sp, #0x10]
+0x03dfb4  stp      d11, d10, [sp, #0x20]
+0x03dfb8  stp      d9, d8, [sp, #0x30]
+0x03dfbc  stp      x24, x23, [sp, #0x40]
+0x03dfc0  stp      x22, x21, [sp, #0x50]
+0x03dfc4  stp      x20, x19, [sp, #0x60]
+0x03dfc8  stp      x29, x30, [sp, #0x70]
+0x03dfcc  add      x29, sp, #0x70
+0x03dfd0  mov      x21, x3
+0x03dfd4  mov      x19, x2
+0x03dfd8  mov      x20, x0
+0x03dfdc  mov      x0, x2
+0x03dfe0  bl       #0x567c4 ; call _objc_retain
+0x03dfe4  mov      x0, x19
+0x03dfe8  bl       #0x5cae0 ; objc_msgSend$vc
+0x03dfec  mov      x29, x29
+0x03dff0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03dff4  mov      x22, x0
+0x03dff8  bl       #0x14fa4 ; -> sub_14fa4
+0x03dffc  tbz      w0, #0, #0x3e1bc
+0x03e000  mov      x0, x19
+0x03e004  bl       #0x57420 ; objc_msgSend$bundleID
+0x03e008  mov      x29, x29
+0x03e00c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03e010  mov      x23, x0
+0x03e014  bl       #0x567b8 ; call _objc_release
+0x03e018  mov      x0, x22
+0x03e01c  bl       #0x567b8 ; call _objc_release
+0x03e020  cbz      x23, #0x3e1c4
+0x03e024  mov      x0, x20
+0x03e028  mov      x2, x19
+0x03e02c  bl       #0x58680 ; objc_msgSend$hostFrameForPane:
+0x03e030  mov      v9.16b, v0.16b
+0x03e034  mov      v10.16b, v1.16b
+0x03e038  mov      v11.16b, v2.16b
+0x03e03c  mov      v8.16b, v3.16b
+0x03e040  mov      x0, x20
+0x03e044  mov      x2, x19
+0x03e048  bl       #0x584e0 ; objc_msgSend$holeForPane:
+0x03e04c  mov      v12.16b, v0.16b
+0x03e050  mov      v13.16b, v1.16b
+0x03e054  mov      v14.16b, v2.16b
+0x03e058  mov      v15.16b, v3.16b
+0x03e05c  mov      v0.16b, v9.16b
+0x03e060  mov      v1.16b, v10.16b
+0x03e064  mov      v2.16b, v11.16b
+0x03e068  mov      v3.16b, v8.16b
+0x03e06c  bl       #0x56320 ; call _CGRectIsEmpty
+0x03e070  mov      x22, x0
+0x03e074  mov      x0, x19
+0x03e078  bl       #0x57160 ; objc_msgSend$bar
+0x03e07c  mov      x29, x29
+0x03e080  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03e084  mov      x24, x0
+0x03e088  bl       #0x58d20 ; objc_msgSend$isHidden
+0x03e08c  mov      x23, x0
+0x03e090  mov      x0, x24
+0x03e094  bl       #0x567b8 ; call _objc_release
+0x03e098  tbnz     w21, #0, #0x3e11c
+0x03e09c  mov      x0, x19
+0x03e0a0  bl       #0x58660 ; objc_msgSend$hostFrame
+0x03e0a4  mov      v4.16b, v0.16b
+0x03e0a8  mov      v5.16b, v1.16b
+0x03e0ac  mov      v6.16b, v2.16b
+0x03e0b0  mov      v7.16b, v3.16b
+0x03e0b4  mov      v0.16b, v9.16b
+0x03e0b8  mov      v1.16b, v10.16b
+0x03e0bc  mov      v2.16b, v11.16b
+0x03e0c0  mov      v3.16b, v8.16b
+0x03e0c4  bl       #0x562a8 ; call _CGRectEqualToRect
+0x03e0c8  cbz      w0, #0x3e11c
+0x03e0cc  mov      x0, x19
+0x03e0d0  bl       #0x586c0 ; objc_msgSend$hostHandle
+0x03e0d4  cmp      w22, w0
+0x03e0d8  b.eq     #0x3e11c
+0x03e0dc  mov      x0, x19
+0x03e0e0  bl       #0x585e0 ; objc_msgSend$hostBar
+0x03e0e4  cmp      w23, w0
+0x03e0e8  b.eq     #0x3e11c
+0x03e0ec  mov      x0, x19
+0x03e0f0  bl       #0x586e0 ; objc_msgSend$hostHole
+0x03e0f4  mov      v4.16b, v0.16b
+0x03e0f8  mov      v5.16b, v1.16b
+0x03e0fc  mov      v6.16b, v2.16b
+0x03e100  mov      v7.16b, v3.16b
+0x03e104  mov      v0.16b, v12.16b
+0x03e108  mov      v1.16b, v13.16b
+0x03e10c  mov      v2.16b, v14.16b
+0x03e110  mov      v3.16b, v15.16b
+0x03e114  bl       #0x562a8 ; call _CGRectEqualToRect
+0x03e118  tbnz     w0, #0, #0x3e1c4
+0x03e11c  mov      x0, x19
+0x03e120  mov      v0.16b, v9.16b
+0x03e124  mov      v1.16b, v10.16b
+0x03e128  mov      v2.16b, v11.16b
+0x03e12c  mov      v3.16b, v8.16b
+0x03e130  bl       #0x5af80 ; objc_msgSend$setHostFrame:
+0x03e134  eor      w2, w22, #1
+0x03e138  mov      x0, x19
+0x03e13c  bl       #0x5afa0 ; objc_msgSend$setHostHandle:
+0x03e140  eor      w2, w23, #1
+0x03e144  mov      x0, x19
+0x03e148  bl       #0x5af60 ; objc_msgSend$setHostBar:
+0x03e14c  mov      x0, x19
+0x03e150  mov      v0.16b, v12.16b
+0x03e154  mov      v1.16b, v13.16b
+0x03e158  mov      v2.16b, v14.16b
+0x03e15c  mov      v3.16b, v15.16b
+0x03e160  bl       #0x5afc0 ; objc_msgSend$setHostHole:
+0x03e164  eor      w4, w22, #1
+0x03e168  mov      x0, x20
+0x03e16c  mov      v0.16b, v9.16b
+0x03e170  mov      v1.16b, v10.16b
+0x03e174  mov      v2.16b, v11.16b
+0x03e178  mov      x2, x19
+0x03e17c  mov      v3.16b, v8.16b
+0x03e180  mov      x3, x21
+0x03e184  bl       #0x586a0 ; objc_msgSend$hostFrameInfo:pane:live:handle:
+0x03e188  mov      x29, x29
+0x03e18c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03e190  mov      x21, x0
+0x03e194  adrp     x2, #0x7d000
+0x03e198  add      x2, x2, #0x60 ; -> 0x7d060 @"com.anlai.omnicar/appbridge.frame"
+0x03e19c  mov      x0, x20
+0x03e1a0  mov      x3, x21
+0x03e1a4  bl       #0x58720 ; objc_msgSend$hostPost:info:
+0x03e1a8  mov      x0, x21
+0x03e1ac  bl       #0x567b8 ; call _objc_release
+0x03e1b0  mov      x0, x20
+0x03e1b4  bl       #0x59d80 ; objc_msgSend$publishKnobsSoon
+0x03e1b8  b        #0x3e1c4
+0x03e1bc  mov      x0, x22
+0x03e1c0  bl       #0x567b8 ; call _objc_release
+0x03e1c4  mov      x0, x19
+0x03e1c8  ldp      x29, x30, [sp, #0x70]
+0x03e1cc  ldp      x20, x19, [sp, #0x60]
+0x03e1d0  ldp      x22, x21, [sp, #0x50]
+0x03e1d4  ldp      x24, x23, [sp, #0x40]
+0x03e1d8  ldp      d9, d8, [sp, #0x30]
+0x03e1dc  ldp      d11, d10, [sp, #0x20]
+0x03e1e0  ldp      d13, d12, [sp, #0x10]
+0x03e1e4  ldp      d15, d14, [sp], #0x80
+0x03e1e8  b        #0x567b8 ; call _objc_release
+0x03e1ec  mov      x20, x0
+0x03e1f0  mov      x0, x21
+0x03e1f4  b        #0x3e21c
+0x03e1f8  mov      x20, x0
+0x03e1fc  mov      x0, x24
+0x03e200  b        #0x3e21c
+0x03e204  b        #0x3e224
+0x03e208  b        #0x3e224
+0x03e20c  b        #0x3e224
+0x03e210  b        #0x3e224
+0x03e214  mov      x20, x0
+0x03e218  mov      x0, x22
+0x03e21c  bl       #0x567b8 ; call _objc_release
+0x03e220  b        #0x3e228
+0x03e224  mov      x20, x0
+0x03e228  mov      x0, x19
+0x03e22c  bl       #0x567b8 ; call _objc_release
+0x03e230  mov      x0, x20
+0x03e234  bl       #0x563e0 ; call __Unwind_Resume

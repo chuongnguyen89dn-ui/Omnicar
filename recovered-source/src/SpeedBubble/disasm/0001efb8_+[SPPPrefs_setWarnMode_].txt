@@ -1,0 +1,34 @@
+# +[SPPPrefs setWarnMode:]
+# addr 0x1efb8 .. 0x1f034  (124 bytes)
+
+0001efb8  stp      x20, x19, [sp, #-0x20]!                     
+0001efbc  stp      x29, x30, [sp, #0x10]                       
+0001efc0  add      x29, sp, #0x10                              
+0001efc4  bic      x8, x2, x2, asr #63                         
+0001efc8  cmp      x8, #3                                      
+0001efcc  mov      w9, #3                                      
+0001efd0  csel     x2, x8, x9, lt                              
+0001efd4  adrp     x8, #0x42000                                
+0001efd8  ldr      x0, [x8, #0xfc0]                            ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+0001efdc  bl       #0x2a080                                    ; objc_msgSend$numberWithInteger:
+0001efe0  mov      x1, x0                                      
+0001efe4  adrp     x0, #0x3b000                                
+0001efe8  add      x0, x0, #0x158                              ; @"speedBubbleWarnMode"
+0001efec  adrp     x19, #0x3b000                               
+0001eff0  add      x19, x19, #0x138                            ; @"com.anlai.omnicar"
+0001eff4  mov      x2, x19                                     
+0001eff8  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+0001effc  adrp     x8, #0x38000                                
+0001f000  ldr      x8, [x8, #0x1f0]                            ; [0x381f0] __DATA_CONST,__got+0x1f0 (= import _kCFBooleanTrue)
+0001f004  ldr      x1, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0001f008  adrp     x0, #0x3b000                                
+0001f00c  add      x0, x0, #0x178                              ; @"speedBubbleWarnModeV2"
+0001f010  mov      x2, x19                                     
+0001f014  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+0001f018  mov      x0, x19                                     
+0001f01c  bl       #0x27adc                                    ; _CFPreferencesAppSynchronize
+0001f020  adrp     x0, #0x2e000                                
+0001f024  add      x0, x0, #0x474                              ; "com.anlai.omnicar/prefschanged"
+0001f028  ldp      x29, x30, [sp, #0x10]                       
+0001f02c  ldp      x20, x19, [sp], #0x20                       
+0001f030  b        #0x27ed8                                    ; _notify_post

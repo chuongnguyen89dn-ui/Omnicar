@@ -1,0 +1,30 @@
+; -[SSStartupView didMoveToWindow]
+; VA 0xfe88  size 108
+
+0x0000fe88:  sub      sp, sp, #0x30
+0x0000fe8c:  stp      x20, x19, [sp, #0x10]
+0x0000fe90:  stp      x29, x30, [sp, #0x20]
+0x0000fe94:  add      x29, sp, #0x20
+0x0000fe98:  mov      x19, x0
+0x0000fe9c:  adrp     x8, #0x3a000
+0x0000fea0:  ldr      x8, [x8, #0xc00]
+0x0000fea4:  stp      x0, x8, [sp]
+0x0000fea8:  adrp     x8, #0x39000
+0x0000feac:  ldr      x1, [x8, #0x878]    ; selref(didMoveToWindow)
+0x0000feb0:  mov      x0, sp
+0x0000feb4:  bl       #0x220d8    ; -> _objc_msgSendSuper2
+0x0000feb8:  mov      x0, x19
+0x0000febc:  bl       #0x260a0    ; -> _objc_msgSend(window)
+0x0000fec0:  mov      x29, x29
+0x0000fec4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000fec8:  mov      x20, x0
+0x0000fecc:  bl       #0x22120    ; -> _objc_release
+0x0000fed0:  mov      x0, x19
+0x0000fed4:  cbz      x20, #0xfee0
+0x0000fed8:  bl       #0x259a0    ; -> _objc_msgSend(ss_startLink)
+0x0000fedc:  b        #0xfee4    ; -> sub_fee4
+0x0000fee0:  bl       #0x259e0    ; -> _objc_msgSend(ss_stopLink)
+0x0000fee4:  ldp      x29, x30, [sp, #0x20]
+0x0000fee8:  ldp      x20, x19, [sp, #0x10]
+0x0000feec:  add      sp, sp, #0x30
+0x0000fef0:  ret      

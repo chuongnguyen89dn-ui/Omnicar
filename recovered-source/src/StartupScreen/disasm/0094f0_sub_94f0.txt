@@ -1,0 +1,39 @@
+; sub_94f0
+; VA 0x94f0  size 144
+
+0x000094f0:  ldr      x0, [x26, #0x178]
+0x000094f4:  cbz      x0, #0x94fc
+0x000094f8:  bl       #0x25ae0    ; -> _objc_msgSend(stop)
+0x000094fc:  adrp     x8, #0x3a000
+0x00009500:  ldr      x0, [x8, #0xac8]    ; class(AVAudioSession)
+0x00009504:  bl       #0x25500    ; -> _objc_msgSend(sharedInstance)
+0x00009508:  mov      x29, x29
+0x0000950c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009510:  mov      x21, x0
+0x00009514:  adrp     x22, #0x3b000
+0x00009518:  ldr      x8, [x22, #0x180]
+0x0000951c:  cbnz     x8, #0x9550
+0x00009520:  mov      x0, x21
+0x00009524:  bl       #0x22a20    ; -> _objc_msgSend(category)
+0x00009528:  mov      x29, x29
+0x0000952c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009530:  ldr      x8, [x22, #0x180]
+0x00009534:  str      x0, [x22, #0x180]
+0x00009538:  mov      x0, x8
+0x0000953c:  bl       #0x22120    ; -> _objc_release
+0x00009540:  mov      x0, x21
+0x00009544:  bl       #0x22a40    ; -> _objc_msgSend(categoryOptions)
+0x00009548:  adrp     x8, #0x3b000
+0x0000954c:  str      x0, [x8, #0x1a0]
+0x00009550:  adrp     x8, #0x30000
+0x00009554:  ldr      x8, [x8, #0x5a0]    ; got(_AVAudioSessionCategoryPlayback)
+0x00009558:  ldr      x2, [x8]
+0x0000955c:  mov      x0, x21
+0x00009560:  mov      w3, #1
+0x00009564:  mov      x4, #0
+0x00009568:  bl       #0x24600    ; -> _objc_msgSend(setCategory:withOptions:error:)
+0x0000956c:  mov      x0, x21
+0x00009570:  mov      w2, #1
+0x00009574:  mov      x3, #0
+0x00009578:  bl       #0x24380    ; -> _objc_msgSend(setActive:error:)
+0x0000957c:  adrp     x8, #0x3a000

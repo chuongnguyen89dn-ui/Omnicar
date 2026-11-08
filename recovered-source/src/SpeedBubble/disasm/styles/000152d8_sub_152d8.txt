@@ -1,0 +1,60 @@
+# sub_152d8
+# addr 0x152d8 .. 0x153bc  (228 bytes)
+
+000152d8  stp      d11, d10, [sp, #-0x50]!                     
+000152dc  stp      d9, d8, [sp, #0x10]                         
+000152e0  stp      x22, x21, [sp, #0x20]                       
+000152e4  stp      x20, x19, [sp, #0x30]                       
+000152e8  stp      x29, x30, [sp, #0x40]                       
+000152ec  add      x29, sp, #0x40                              
+000152f0  mov      x19, x1                                     
+000152f4  mov      v8.16b, v3.16b                              
+000152f8  mov      v9.16b, v2.16b                              
+000152fc  mov      v10.16b, v1.16b                             
+00015300  mov      v11.16b, v0.16b                             
+00015304  mov      x20, x0                                     
+00015308  mov      x0, x1                                      
+0001530c  bl       #0x28004                                    ; _objc_retain
+00015310  mov      x0, x20                                     
+00015314  bl       #0x28004                                    ; _objc_retain
+00015318  mov      x0, x20                                     
+0001531c  mov      v0.16b, v11.16b                             
+00015320  mov      v1.16b, v10.16b                             
+00015324  mov      v2.16b, v9.16b                              
+00015328  mov      v3.16b, v8.16b                              
+0001532c  bl       #0x2afc0                                    ; objc_msgSend$setFrame:
+00015330  mov      x0, x20                                     
+00015334  bl       #0x29dc0                                    ; objc_msgSend$mask
+00015338  mov      x29, x29                                    
+0001533c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00015340  mov      x21, x0                                     
+00015344  mov      x0, x20                                     
+00015348  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0001534c  mov      v8.16b, v0.16b                              
+00015350  mov      v9.16b, v1.16b                              
+00015354  mov      v10.16b, v2.16b                             
+00015358  mov      v11.16b, v3.16b                             
+0001535c  mov      x0, x20                                     
+00015360  bl       #0x27ff8                                    ; _objc_release
+00015364  mov      x0, x21                                     
+00015368  mov      v0.16b, v8.16b                              
+0001536c  mov      v1.16b, v9.16b                              
+00015370  mov      v2.16b, v10.16b                             
+00015374  mov      v3.16b, v11.16b                             
+00015378  bl       #0x2afc0                                    ; objc_msgSend$setFrame:
+0001537c  mov      x0, x19                                     
+00015380  bl       #0x28010                                    ; _objc_retainAutorelease
+00015384  bl       #0x28220                                    ; objc_msgSend$CGPath
+00015388  mov      x20, x0                                     
+0001538c  mov      x0, x19                                     
+00015390  bl       #0x27ff8                                    ; _objc_release
+00015394  mov      x0, x21                                     
+00015398  mov      x2, x20                                     
+0001539c  bl       #0x2b600                                    ; objc_msgSend$setPath:
+000153a0  mov      x0, x21                                     
+000153a4  ldp      x29, x30, [sp, #0x40]                       
+000153a8  ldp      x20, x19, [sp, #0x30]                       
+000153ac  ldp      x22, x21, [sp, #0x20]                       
+000153b0  ldp      d9, d8, [sp, #0x10]                         
+000153b4  ldp      d11, d10, [sp], #0x50                       
+000153b8  b        #0x27ff8                                    ; _objc_release

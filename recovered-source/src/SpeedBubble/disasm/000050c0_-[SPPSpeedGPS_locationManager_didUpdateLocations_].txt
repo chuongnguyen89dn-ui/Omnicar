@@ -1,0 +1,182 @@
+# -[SPPSpeedGPS locationManager:didUpdateLocations:]
+# addr 0x50c0 .. 0x538c  (716 bytes)
+
+000050c0  sub      sp, sp, #0x60                               
+000050c4  stp      d9, d8, [sp, #0x10]                         
+000050c8  stp      x24, x23, [sp, #0x20]                       
+000050cc  stp      x22, x21, [sp, #0x30]                       
+000050d0  stp      x20, x19, [sp, #0x40]                       
+000050d4  stp      x29, x30, [sp, #0x50]                       
+000050d8  add      x29, sp, #0x50                              
+000050dc  mov      x20, x3                                     
+000050e0  mov      x19, x2                                     
+000050e4  mov      x21, x0                                     
+000050e8  mov      x0, x2                                      
+000050ec  bl       #0x28004                                    ; _objc_retain
+000050f0  mov      x0, x20                                     
+000050f4  bl       #0x29b00                                    ; objc_msgSend$lastObject
+000050f8  mov      x29, x29                                    
+000050fc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005100  mov      x20, x0                                     
+00005104  cbz      x0, #0x52f8                                 
+00005108  mov      x0, x21                                     
+0000510c  bl       #0x29e80                                    ; objc_msgSend$mgr
+00005110  mov      x29, x29                                    
+00005114  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005118  mov      x22, x0                                     
+0000511c  bl       #0x27ff8                                    ; _objc_release
+00005120  cmp      x19, x22                                    
+00005124  b.ne     #0x52f8                                     
+00005128  mov      x0, x21                                     
+0000512c  bl       #0x286a0                                    ; objc_msgSend$appManagers
+00005130  mov      x29, x29                                    
+00005134  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005138  mov      x22, x0                                     
+0000513c  bl       #0x28520                                    ; objc_msgSend$allObjects
+00005140  mov      x29, x29                                    
+00005144  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005148  mov      x23, x0                                     
+0000514c  bl       #0x29000                                    ; objc_msgSend$count
+00005150  cbz      x0, #0x5168                                 
+00005154  mov      x0, x23                                     
+00005158  bl       #0x27ff8                                    ; _objc_release
+0000515c  mov      x0, x22                                     
+00005160  bl       #0x27ff8                                    ; _objc_release
+00005164  b        #0x5190                                     ; sub_5190
+00005168  mov      x0, x21                                     
+0000516c  bl       #0x2c180                                    ; objc_msgSend$stopPending
+00005170  mov      x24, x0                                     
+00005174  mov      x0, x23                                     
+00005178  bl       #0x27ff8                                    ; _objc_release
+0000517c  mov      x0, x22                                     
+00005180  bl       #0x27ff8                                    ; _objc_release
+00005184  tbnz     w24, #0, #0x5190                            
+00005188  mov      x0, x21                                     
+0000518c  bl       #0x2a800                                    ; objc_msgSend$scheduleStop
+00005190  mov      x0, x21                                     
+00005194  mov      x2, x20                                     
+00005198  bl       #0x2b180                                    ; objc_msgSend$setLast:
+0000519c  mov      x0, x20                                     
+000051a0  mov      x1, #0                                      
+000051a4  bl       #0x538c                                     ; sub_538c
+000051a8  mov      x22, x0                                     
+000051ac  mov      x0, x21                                     
+000051b0  bl       #0x29ce0                                    ; objc_msgSend$loggedFirst
+000051b4  tbnz     w0, #0, #0x5210                             
+000051b8  mov      x0, x21                                     
+000051bc  mov      w2, #1                                      
+000051c0  bl       #0x2b2a0                                    ; objc_msgSend$setLoggedFirst:
+000051c4  adrp     x8, #0x42000                                
+000051c8  ldr      x21, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000051cc  mov      x0, x20                                     
+000051d0  bl       #0x296a0                                    ; objc_msgSend$horizontalAccuracy
+000051d4  str      d0, [sp, #8]                                
+000051d8  str      x22, [sp]                                   
+000051dc  adrp     x2, #0x39000                                
+000051e0  add      x2, x2, #0x1b8                              ; @"speed gps: vi tri dau tien, %d km/h (sai so %.0fm)"
+000051e4  mov      x0, x21                                     
+000051e8  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000051ec  mov      x29, x29                                    
+000051f0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000051f4  mov      x23, x0                                     
+000051f8  adrp     x0, #0x38000                                
+000051fc  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00005200  mov      x1, x23                                     
+00005204  bl       #0x2155c                                    ; _OMCLogWrite
+00005208  mov      x0, x23                                     
+0000520c  bl       #0x27ff8                                    ; _objc_release
+00005210  tbnz     w22, #0x1f, #0x5224                         
+00005214  bl       #0x5734                                     ; sub_5734
+00005218  mov      x1, x0                                      
+0000521c  mov      x0, x22                                     
+00005220  bl       #0x5498                                     ; sub_5498
+00005224  mov      x0, x20                                     
+00005228  bl       #0x28004                                    ; _objc_retain
+0000522c  mov      x0, x20                                     
+00005230  bl       #0x296a0                                    ; objc_msgSend$horizontalAccuracy
+00005234  fcmp     d0, #0.0                                    
+00005238  b.mi     #0x52f0                                     
+0000523c  mov      x0, x20                                     
+00005240  bl       #0x296a0                                    ; objc_msgSend$horizontalAccuracy
+00005244  adrp     x8, #0x32000                                
+00005248  ldr      d1, [x8, #0x788]                            ; [0x32788] __const[0x32788] double=5000.0 float=0.0
+0000524c  fcmp     d0, d1                                      
+00005250  b.gt     #0x52f0                                     
+00005254  bl       #0x27ad0                                    ; _CFAbsoluteTimeGetCurrent
+00005258  mov      v8.16b, v0.16b                              
+0000525c  adrp     x22, #0x43000                               
+00005260  ldr      d0, [x22, #0x838]                           ; [0x43838] __DATA,__bss+0x98
+00005264  fcmp     d0, #0.0                                    
+00005268  b.le     #0x5280                                     
+0000526c  fsub     d0, d8, d0                                  
+00005270  mov      x8, #0x404e000000000000                     
+00005274  fmov     d1, x8                                      
+00005278  fcmp     d0, d1                                      
+0000527c  b.mi     #0x52f0                                     
+00005280  adrp     x23, #0x43000                               
+00005284  ldr      w21, [x23, #0x830]                          ; [0x43830] __DATA,__bss+0x90
+00005288  cbnz     w21, #0x52a8                                
+0000528c  adrp     x0, #0x2d000                                
+00005290  add      x0, x0, #0xdaf                              ; "com.anlai.omnicar/location"
+00005294  adrp     x1, #0x43000                                
+00005298  add      x1, x1, #0x830                              ; __DATA,__bss+0x90
+0000529c  bl       #0x27ee4                                    ; _notify_register_check
+000052a0  ldr      w21, [x23, #0x830]                          ; [0x43830] __DATA,__bss+0x90
+000052a4  cbz      w21, #0x52f0                                
+000052a8  str      d8, [x22, #0x838]                           
+000052ac  mov      x0, x20                                     
+000052b0  bl       #0x28f80                                    ; objc_msgSend$coordinate
+000052b4  mov      v8.16b, v0.16b                              
+000052b8  mov      x0, x20                                     
+000052bc  bl       #0x28f80                                    ; objc_msgSend$coordinate
+000052c0  mov      x8, #0x4059000000000000                     
+000052c4  fmov     d0, x8                                      
+000052c8  fmul     d2, d8, d0                                  
+000052cc  fcvtas   x8, d2                                      
+000052d0  fmul     d0, d1, d0                                  
+000052d4  fcvtas   x1, d0                                      
+000052d8  bfi      x1, x8, #0x20, #0x20                        
+000052dc  mov      x0, x21                                     
+000052e0  bl       #0x27efc                                    ; _notify_set_state
+000052e4  adrp     x0, #0x2d000                                
+000052e8  add      x0, x0, #0xdaf                              ; "com.anlai.omnicar/location"
+000052ec  bl       #0x27ed8                                    ; _notify_post
+000052f0  mov      x0, x20                                     
+000052f4  bl       #0x27ff8                                    ; _objc_release
+000052f8  mov      x0, x20                                     
+000052fc  bl       #0x27ff8                                    ; _objc_release
+00005300  mov      x0, x19                                     
+00005304  ldp      x29, x30, [sp, #0x50]                       
+00005308  ldp      x20, x19, [sp, #0x40]                       
+0000530c  ldp      x22, x21, [sp, #0x30]                       
+00005310  ldp      x24, x23, [sp, #0x20]                       
+00005314  ldp      d9, d8, [sp, #0x10]                         
+00005318  add      sp, sp, #0x60                               
+0000531c  b        #0x27ff8                                    ; _objc_release
+00005320  b        #0x5354                                     ; sub_5354
+00005324  b        #0x5354                                     ; sub_5354
+00005328  b        #0x5354                                     ; sub_5354
+0000532c  mov      x21, x0                                     
+00005330  mov      x0, x23                                     
+00005334  b        #0x535c                                     ; sub_535c
+00005338  mov      x21, x0                                     
+0000533c  b        #0x534c                                     ; sub_534c
+00005340  mov      x21, x0                                     
+00005344  mov      x0, x23                                     
+00005348  bl       #0x27ff8                                    ; _objc_release
+0000534c  mov      x0, x22                                     
+00005350  b        #0x535c                                     ; sub_535c
+00005354  mov      x21, x0                                     
+00005358  mov      x0, x20                                     
+0000535c  bl       #0x27ff8                                    ; _objc_release
+00005360  b        #0x5374                                     ; sub_5374
+00005364  mov      x21, x0                                     
+00005368  b        #0x537c                                     ; sub_537c
+0000536c  b        #0x5370                                     ; sub_5370
+00005370  mov      x21, x0                                     
+00005374  mov      x0, x20                                     
+00005378  bl       #0x27ff8                                    ; _objc_release
+0000537c  mov      x0, x19                                     
+00005380  bl       #0x27ff8                                    ; _objc_release
+00005384  mov      x0, x21                                     
+00005388  bl       #0x27c80                                    ; __Unwind_Resume

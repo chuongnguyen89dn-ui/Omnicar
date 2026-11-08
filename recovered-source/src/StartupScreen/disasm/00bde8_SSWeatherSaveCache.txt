@@ -1,0 +1,158 @@
+; SSWeatherSaveCache
+; VA 0xbde8  size 620
+
+0x0000bde8:  stp      x26, x25, [sp, #-0x50]!
+0x0000bdec:  stp      x24, x23, [sp, #0x10]
+0x0000bdf0:  stp      x22, x21, [sp, #0x20]
+0x0000bdf4:  stp      x20, x19, [sp, #0x30]
+0x0000bdf8:  stp      x29, x30, [sp, #0x40]
+0x0000bdfc:  add      x29, sp, #0x40
+0x0000be00:  sub      sp, sp, #0x420
+0x0000be04:  mov      x19, x0
+0x0000be08:  adrp     x8, #0x30000
+0x0000be0c:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0000be10:  ldr      x8, [x8]
+0x0000be14:  stur     x8, [x29, #-0x48]
+0x0000be18:  bl       #0x2212c    ; -> _objc_retain
+0x0000be1c:  cbz      x19, #0xc014
+0x0000be20:  adrp     x8, #0x3a000
+0x0000be24:  ldr      x0, [x8, #0xa30]    ; class(NSFileManager)
+0x0000be28:  bl       #0x23080    ; -> _objc_msgSend(defaultManager)
+0x0000be2c:  mov      x29, x29
+0x0000be30:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000be34:  mov      x20, x0
+0x0000be38:  adrp     x0, #0x32000
+0x0000be3c:  add      x0, x0, #0x4a8    ; @"/var/mobile/Library/OmniCar/StartupScreen/weather.plist"
+0x0000be40:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x0000be44:  add      x1, sp, #0x18
+0x0000be48:  bl       #0x4118    ; -> sub_4118
+0x0000be4c:  adrp     x24, #0x3a000
+0x0000be50:  cbz      x0, #0xbe70
+0x0000be54:  mov      x2, x0
+0x0000be58:  ldr      x0, [x24, #0x9c0]    ; class(NSString)
+0x0000be5c:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x0000be60:  mov      x29, x29
+0x0000be64:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000be68:  mov      x21, x0
+0x0000be6c:  b        #0xbe74    ; -> sub_be74
+0x0000be70:  mov      x21, #0
+0x0000be74:  mov      x0, x21
+0x0000be78:  bl       #0x25b60    ; -> _objc_msgSend(stringByDeletingLastPathComponent)
+0x0000be7c:  mov      x29, x29
+0x0000be80:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000be84:  mov      x22, x0
+0x0000be88:  mov      x0, x20
+0x0000be8c:  mov      x2, x22
+0x0000be90:  mov      w3, #1
+0x0000be94:  mov      x4, #0
+0x0000be98:  mov      x5, #0
+0x0000be9c:  bl       #0x22e40    ; -> _objc_msgSend(createDirectoryAtPath:withIntermediateDirectories:attributes:error:)
+0x0000bea0:  mov      x0, x22
+0x0000bea4:  bl       #0x22120    ; -> _objc_release
+0x0000bea8:  mov      x0, x21
+0x0000beac:  bl       #0x22120    ; -> _objc_release
+0x0000beb0:  adrp     x25, #0x3a000
+0x0000beb4:  ldr      x21, [x25, #0xa60]    ; class(NSURL)
+0x0000beb8:  adrp     x0, #0x32000
+0x0000bebc:  add      x0, x0, #0x4a8    ; @"/var/mobile/Library/OmniCar/StartupScreen/weather.plist"
+0x0000bec0:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x0000bec4:  add      x1, sp, #0x18
+0x0000bec8:  bl       #0x4118    ; -> sub_4118
+0x0000becc:  cbz      x0, #0xbeec
+0x0000bed0:  mov      x2, x0
+0x0000bed4:  ldr      x0, [x24, #0x9c0]
+0x0000bed8:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x0000bedc:  mov      x29, x29
+0x0000bee0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bee4:  mov      x22, x0
+0x0000bee8:  b        #0xbef0    ; -> sub_bef0
+0x0000beec:  mov      x22, #0
+0x0000bef0:  mov      x0, x21
+0x0000bef4:  mov      x2, x22
+0x0000bef8:  bl       #0x23340    ; -> _objc_msgSend(fileURLWithPath:)
+0x0000befc:  mov      x29, x29
+0x0000bf00:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bf04:  mov      x21, x0
+0x0000bf08:  str      xzr, [sp]
+0x0000bf0c:  mov      x3, sp
+0x0000bf10:  mov      x0, x19
+0x0000bf14:  mov      x2, x21
+0x0000bf18:  bl       #0x26120    ; -> _objc_msgSend(writeToURL:error:)
+0x0000bf1c:  mov      x23, x0
+0x0000bf20:  mov      x0, x21
+0x0000bf24:  bl       #0x22120    ; -> _objc_release
+0x0000bf28:  mov      x0, x22
+0x0000bf2c:  bl       #0x22120    ; -> _objc_release
+0x0000bf30:  cbz      w23, #0xbfa4
+0x0000bf34:  adrp     x8, #0x30000
+0x0000bf38:  ldr      x8, [x8, #0x168]    ; got(_NSFilePosixPermissions)
+0x0000bf3c:  ldr      x9, [x8]
+0x0000bf40:  adrp     x8, #0x34000
+0x0000bf44:  add      x8, x8, #0xe88
+0x0000bf48:  stp      x9, x8, [sp, #8]
+0x0000bf4c:  adrp     x8, #0x3a000
+0x0000bf50:  ldr      x0, [x8, #0xa58]    ; class(NSDictionary)
+0x0000bf54:  add      x2, sp, #0x10
+0x0000bf58:  add      x3, sp, #8
+0x0000bf5c:  mov      w4, #1
+0x0000bf60:  bl       #0x23100    ; -> _objc_msgSend(dictionaryWithObjects:forKeys:count:)
+0x0000bf64:  mov      x29, x29
+0x0000bf68:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bf6c:  mov      x21, x0
+0x0000bf70:  adrp     x0, #0x32000
+0x0000bf74:  add      x0, x0, #0x4a8    ; @"/var/mobile/Library/OmniCar/StartupScreen/weather.plist"
+0x0000bf78:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x0000bf7c:  add      x1, sp, #0x18
+0x0000bf80:  bl       #0x4118    ; -> sub_4118
+0x0000bf84:  cbz      x0, #0xbfe4
+0x0000bf88:  mov      x2, x0
+0x0000bf8c:  ldr      x0, [x24, #0x9c0]
+0x0000bf90:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x0000bf94:  mov      x29, x29
+0x0000bf98:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bf9c:  mov      x22, x0
+0x0000bfa0:  b        #0xbfe8    ; -> sub_bfe8
+0x0000bfa4:  ldr      x22, [x25, #0xa60]
+0x0000bfa8:  bl       #0xbd9c    ; -> sub_bd9c
+0x0000bfac:  mov      x29, x29
+0x0000bfb0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bfb4:  mov      x21, x0
+0x0000bfb8:  mov      x0, x22
+0x0000bfbc:  mov      x2, x21
+0x0000bfc0:  bl       #0x23340    ; -> _objc_msgSend(fileURLWithPath:)
+0x0000bfc4:  mov      x29, x29
+0x0000bfc8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bfcc:  mov      x22, x0
+0x0000bfd0:  mov      x0, x19
+0x0000bfd4:  mov      x2, x22
+0x0000bfd8:  mov      x3, #0
+0x0000bfdc:  bl       #0x26120    ; -> _objc_msgSend(writeToURL:error:)
+0x0000bfe0:  b        #0xbffc    ; -> sub_bffc
+0x0000bfe4:  mov      x22, #0
+0x0000bfe8:  mov      x0, x20
+0x0000bfec:  mov      x2, x21
+0x0000bff0:  mov      x3, x22
+0x0000bff4:  mov      x4, #0
+0x0000bff8:  bl       #0x24480    ; -> _objc_msgSend(setAttributes:ofItemAtPath:error:)
+0x0000bffc:  mov      x0, x22
+0x0000c000:  bl       #0x22120    ; -> _objc_release
+0x0000c004:  mov      x0, x21
+0x0000c008:  bl       #0x22120    ; -> _objc_release
+0x0000c00c:  mov      x0, x20
+0x0000c010:  bl       #0x22120    ; -> _objc_release
+0x0000c014:  mov      x0, x19
+0x0000c018:  bl       #0x22120    ; -> _objc_release
+0x0000c01c:  ldur     x8, [x29, #-0x48]
+0x0000c020:  adrp     x9, #0x30000
+0x0000c024:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0000c028:  ldr      x9, [x9]
+0x0000c02c:  cmp      x9, x8
+0x0000c030:  b.ne     #0xc050
+0x0000c034:  add      sp, sp, #0x420
+0x0000c038:  ldp      x29, x30, [sp, #0x40]
+0x0000c03c:  ldp      x20, x19, [sp, #0x30]
+0x0000c040:  ldp      x22, x21, [sp, #0x20]
+0x0000c044:  ldp      x24, x23, [sp, #0x10]
+0x0000c048:  ldp      x26, x25, [sp], #0x50
+0x0000c04c:  ret      
+0x0000c050:  bl       #0x21dd8    ; -> ___stack_chk_fail

@@ -1,0 +1,44 @@
+; OMCCheckHooks
+; VA 0x53b4  size 164
+
+0x000053b4:  sub      sp, sp, #0x190
+0x000053b8:  stp      x28, x27, [sp, #0x130]
+0x000053bc:  stp      x26, x25, [sp, #0x140]
+0x000053c0:  stp      x24, x23, [sp, #0x150]
+0x000053c4:  stp      x22, x21, [sp, #0x160]
+0x000053c8:  stp      x20, x19, [sp, #0x170]
+0x000053cc:  stp      x29, x30, [sp, #0x180]
+0x000053d0:  add      x29, sp, #0x180
+0x000053d4:  mov      x26, x1
+0x000053d8:  adrp     x8, #0x10000
+0x000053dc:  ldr      x8, [x8, #0x1b0]    ; got(___stack_chk_guard)
+0x000053e0:  ldr      x8, [x8]
+0x000053e4:  stur     x8, [x29, #-0x60]
+0x000053e8:  str      x0, [sp, #0x20]
+0x000053ec:  bl       #0xb41c    ; -> _objc_retain
+0x000053f0:  mov      x0, x26
+0x000053f4:  bl       #0xb41c    ; -> _objc_retain
+0x000053f8:  adrp     x8, #0x14000
+0x000053fc:  ldr      x0, [x8, #0x390]    ; class(NSMutableArray)
+0x00005400:  bl       #0xb660    ; -> _objc_msgSend(array)
+0x00005404:  mov      x29, x29
+0x00005408:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x0000540c:  str      x0, [sp, #0x30]
+0x00005410:  adrp     x8, #0x14000
+0x00005414:  ldr      x0, [x8, #0x398]    ; class(NSMutableOrderedSet)
+0x00005418:  bl       #0xbe40    ; -> _objc_msgSend(orderedSet)
+0x0000541c:  mov      x29, x29
+0x00005420:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00005424:  str      x0, [sp, #0x28]
+0x00005428:  movi     v0.16b, #0
+0x0000542c:  stp      q0, q0, [sp, #0x40]
+0x00005430:  stp      q0, q0, [sp, #0x60]
+0x00005434:  mov      x0, x26
+0x00005438:  bl       #0xb41c    ; -> _objc_retain
+0x0000543c:  add      x2, sp, #0x40
+0x00005440:  add      x3, sp, #0xa0
+0x00005444:  mov      x0, x26
+0x00005448:  mov      w4, #0x10
+0x0000544c:  bl       #0xb880    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00005450:  str      x26, [sp, #0x38]
+0x00005454:  cbz      x0, #0x567c

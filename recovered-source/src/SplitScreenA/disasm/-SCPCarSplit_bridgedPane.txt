@@ -1,0 +1,23 @@
+; -[SCPCarSplit bridgedPane]
+0x03c910  stp      x20, x19, [sp, #-0x20]!
+0x03c914  stp      x29, x30, [sp, #0x10]
+0x03c918  add      x29, sp, #0x10
+0x03c91c  bl       #0x58780 ; objc_msgSend$hostedPanes
+0x03c920  mov      x29, x29
+0x03c924  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03c928  mov      x19, x0
+0x03c92c  bl       #0x58100 ; objc_msgSend$firstObject
+0x03c930  mov      x29, x29
+0x03c934  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03c938  mov      x20, x0
+0x03c93c  mov      x0, x19
+0x03c940  bl       #0x567b8 ; call _objc_release
+0x03c944  mov      x0, x20
+0x03c948  ldp      x29, x30, [sp, #0x10]
+0x03c94c  ldp      x20, x19, [sp], #0x20
+0x03c950  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x03c954  mov      x20, x0
+0x03c958  mov      x0, x19
+0x03c95c  bl       #0x567b8 ; call _objc_release
+0x03c960  mov      x0, x20
+0x03c964  bl       #0x563e0 ; call __Unwind_Resume

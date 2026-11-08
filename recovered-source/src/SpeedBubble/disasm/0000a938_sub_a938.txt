@@ -1,0 +1,72 @@
+# sub_a938
+# addr 0xa938 .. 0xaa4c  (276 bytes)
+
+0000a938  stp      x24, x23, [sp, #-0x40]!                     
+0000a93c  stp      x22, x21, [sp, #0x10]                       
+0000a940  stp      x20, x19, [sp, #0x20]                       
+0000a944  stp      x29, x30, [sp, #0x30]                       
+0000a948  add      x29, sp, #0x30                              
+0000a94c  mov      x19, x1                                     
+0000a950  mov      x20, x0                                     
+0000a954  mov      x0, x1                                      
+0000a958  bl       #0x28004                                    ; _objc_retain
+0000a95c  mov      x0, x20                                     
+0000a960  bl       #0x2c440                                    ; objc_msgSend$superview
+0000a964  mov      x29, x29                                    
+0000a968  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000a96c  mov      x20, x0                                     
+0000a970  cbz      x0, #0xa9f0                                 
+0000a974  mov      w23, #0                                     
+0000a978  mov      x24, #0x7fffffffffffffff                    
+0000a97c  mov      x0, x20                                     
+0000a980  bl       #0x27fbc                                    ; _objc_opt_class
+0000a984  bl       #0x27c44                                    ; _NSStringFromClass
+0000a988  mov      x29, x29                                    
+0000a98c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000a990  mov      x21, x0                                     
+0000a994  mov      x2, x19                                     
+0000a998  mov      w3, #1                                      
+0000a99c  bl       #0x2a480                                    ; objc_msgSend$rangeOfString:options:
+0000a9a0  mov      x22, x0                                     
+0000a9a4  mov      x0, x21                                     
+0000a9a8  bl       #0x27ff8                                    ; _objc_release
+0000a9ac  cmp      x22, x24                                    
+0000a9b0  b.ne     #0xa9f0                                     
+0000a9b4  mov      x0, x20                                     
+0000a9b8  bl       #0x2c440                                    ; objc_msgSend$superview
+0000a9bc  mov      x29, x29                                    
+0000a9c0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000a9c4  mov      x21, x0                                     
+0000a9c8  mov      x0, x20                                     
+0000a9cc  bl       #0x27ff8                                    ; _objc_release
+0000a9d0  cbz      x21, #0xa9e4                                
+0000a9d4  mov      x20, x21                                    
+0000a9d8  cmp      w23, #4                                     
+0000a9dc  add      w23, w23, #1                                
+0000a9e0  b.ls     #0xa97c                                     
+0000a9e4  mov      x0, x21                                     
+0000a9e8  bl       #0x27ff8                                    ; _objc_release
+0000a9ec  mov      x20, #0                                     
+0000a9f0  mov      x0, x19                                     
+0000a9f4  bl       #0x27ff8                                    ; _objc_release
+0000a9f8  mov      x0, x20                                     
+0000a9fc  ldp      x29, x30, [sp, #0x30]                       
+0000aa00  ldp      x20, x19, [sp, #0x20]                       
+0000aa04  ldp      x22, x21, [sp, #0x10]                       
+0000aa08  ldp      x24, x23, [sp], #0x40                       
+0000aa0c  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+0000aa10  mov      x21, x0                                     
+0000aa14  b        #0xaa3c                                     ; sub_aa3c
+0000aa18  b        #0xaa30                                     ; sub_aa30
+0000aa1c  mov      x1, x21                                     
+0000aa20  mov      x21, x0                                     
+0000aa24  mov      x0, x1                                      
+0000aa28  bl       #0x27ff8                                    ; _objc_release
+0000aa2c  b        #0xaa34                                     ; sub_aa34
+0000aa30  mov      x21, x0                                     
+0000aa34  mov      x0, x20                                     
+0000aa38  bl       #0x27ff8                                    ; _objc_release
+0000aa3c  mov      x0, x19                                     
+0000aa40  bl       #0x27ff8                                    ; _objc_release
+0000aa44  mov      x0, x21                                     
+0000aa48  bl       #0x27c80                                    ; __Unwind_Resume

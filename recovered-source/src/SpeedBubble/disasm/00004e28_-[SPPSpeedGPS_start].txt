@@ -1,0 +1,120 @@
+# -[SPPSpeedGPS start]
+# addr 0x4e28 .. 0x4ffc  (468 bytes)
+
+00004e28  sub      sp, sp, #0x40                               
+00004e2c  stp      x22, x21, [sp, #0x10]                       
+00004e30  stp      x20, x19, [sp, #0x20]                       
+00004e34  stp      x29, x30, [sp, #0x30]                       
+00004e38  add      x29, sp, #0x30                              
+00004e3c  mov      x20, x0                                     
+00004e40  adrp     x8, #0x42000                                
+00004e44  ldr      x0, [x8, #0xf78]                            ; [0x42f78] classref -> CLLocationManager (= import _OBJC_CLASS_$_CLLocationManager)
+00004e48  bl       #0x27fd4                                    ; _objc_opt_new
+00004e4c  mov      x19, x0                                     
+00004e50  mov      x2, x20                                     
+00004e54  bl       #0x2ade0                                    ; objc_msgSend$setDelegate:
+00004e58  adrp     x8, #0x38000                                
+00004e5c  ldr      x8, [x8, #0x2e0]                            ; [0x382e0] __DATA_CONST,__got+0x2e0 (= import _kCLLocationAccuracyBestForNavigation)
+00004e60  ldr      d0, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00004e64  mov      x0, x19                                     
+00004e68  bl       #0x2ae20                                    ; objc_msgSend$setDesiredAccuracy:
+00004e6c  adrp     x8, #0x38000                                
+00004e70  ldr      x8, [x8, #0x2d8]                            ; [0x382d8] __DATA_CONST,__got+0x2d8 (= import _kCLDistanceFilterNone)
+00004e74  ldr      d0, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00004e78  mov      x0, x19                                     
+00004e7c  bl       #0x2aea0                                    ; objc_msgSend$setDistanceFilter:
+00004e80  mov      x0, x19                                     
+00004e84  mov      w2, #2                                      
+00004e88  bl       #0x2a900                                    ; objc_msgSend$setActivityType:
+00004e8c  mov      x0, x19                                     
+00004e90  mov      w2, #0                                      
+00004e94  bl       #0x2b620                                    ; objc_msgSend$setPausesLocationUpdatesAutomatically:
+00004e98  adrp     x8, #0x42000                                
+00004e9c  ldr      x0, [x8, #0xf50]                            ; [0x42f50] classref -> NSBundle (= import _OBJC_CLASS_$_NSBundle)
+00004ea0  bl       #0x29d20                                    ; objc_msgSend$mainBundle
+00004ea4  mov      x29, x29                                    
+00004ea8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00004eac  mov      x22, x0                                     
+00004eb0  adrp     x2, #0x39000                                
+00004eb4  add      x2, x2, #0x138                              ; @"UIBackgroundModes"
+00004eb8  bl       #0x2a120                                    ; objc_msgSend$objectForInfoDictionaryKey:
+00004ebc  mov      x29, x29                                    
+00004ec0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00004ec4  mov      x21, x0                                     
+00004ec8  mov      x0, x22                                     
+00004ecc  bl       #0x27ff8                                    ; _objc_release
+00004ed0  adrp     x8, #0x42000                                
+00004ed4  ldr      x0, [x8, #0xf80]                            ; [0x42f80] classref -> NSArray (= import _OBJC_CLASS_$_NSArray)
+00004ed8  bl       #0x27fbc                                    ; _objc_opt_class
+00004edc  mov      x1, x0                                      
+00004ee0  mov      x0, x21                                     
+00004ee4  bl       #0x27fc8                                    ; _objc_opt_isKindOfClass
+00004ee8  tbz      w0, #0, #0x4f14                             
+00004eec  adrp     x2, #0x39000                                
+00004ef0  add      x2, x2, #0x158                              ; @"location"
+00004ef4  mov      x0, x21                                     
+00004ef8  bl       #0x28ee0                                    ; objc_msgSend$containsObject:
+00004efc  cbz      w0, #0x4f14                                 
+00004f00  mov      w22, #1                                     
+00004f04  mov      x0, x19                                     
+00004f08  mov      w2, #1                                      
+00004f0c  bl       #0x2a960                                    ; objc_msgSend$setAllowsBackgroundLocationUpdates:
+00004f10  b        #0x4f18                                     ; sub_4f18
+00004f14  mov      w22, #0                                     
+00004f18  mov      x0, x20                                     
+00004f1c  mov      x2, x19                                     
+00004f20  bl       #0x2b3c0                                    ; objc_msgSend$setMgr:
+00004f24  mov      x0, x20                                     
+00004f28  mov      w2, #0                                      
+00004f2c  bl       #0x2b2a0                                    ; objc_msgSend$setLoggedFirst:
+00004f30  mov      x0, x19                                     
+00004f34  bl       #0x2c100                                    ; objc_msgSend$startUpdatingLocation
+00004f38  adrp     x8, #0x42000                                
+00004f3c  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00004f40  str      x22, [sp]                                   
+00004f44  adrp     x2, #0x39000                                
+00004f48  add      x2, x2, #0x178                              ; @"speed gps: bat GPS rieng (nen=%d)"
+00004f4c  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00004f50  mov      x29, x29                                    
+00004f54  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00004f58  mov      x20, x0                                     
+00004f5c  adrp     x0, #0x38000                                
+00004f60  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00004f64  mov      x1, x20                                     
+00004f68  bl       #0x2155c                                    ; _OMCLogWrite
+00004f6c  mov      x0, x20                                     
+00004f70  bl       #0x27ff8                                    ; _objc_release
+00004f74  mov      x0, x21                                     
+00004f78  bl       #0x27ff8                                    ; _objc_release
+00004f7c  mov      x0, x19                                     
+00004f80  ldp      x29, x30, [sp, #0x30]                       
+00004f84  ldp      x20, x19, [sp, #0x20]                       
+00004f88  ldp      x22, x21, [sp, #0x10]                       
+00004f8c  add      sp, sp, #0x40                               
+00004f90  b        #0x27ff8                                    ; _objc_release
+00004f94  mov      x22, x0                                     
+00004f98  cmp      w1, #1                                      
+00004f9c  b.ne     #0x4fe4                                     
+00004fa0  mov      x0, x22                                     
+00004fa4  bl       #0x27f38                                    ; _objc_begin_catch
+00004fa8  bl       #0x27f5c                                    ; _objc_end_catch
+00004fac  mov      w22, #1                                     
+00004fb0  b        #0x4f18                                     ; sub_4f18
+00004fb4  mov      x22, x0                                     
+00004fb8  mov      x0, x20                                     
+00004fbc  bl       #0x27ff8                                    ; _objc_release
+00004fc0  b        #0x4fe4                                     ; sub_4fe4
+00004fc4  mov      x1, x22                                     
+00004fc8  mov      x22, x0                                     
+00004fcc  mov      x0, x1                                      
+00004fd0  b        #0x4fe8                                     ; sub_4fe8
+00004fd4  b        #0x4fd8                                     ; sub_4fd8
+00004fd8  mov      x22, x0                                     
+00004fdc  b        #0x4fec                                     ; sub_4fec
+00004fe0  mov      x22, x0                                     
+00004fe4  mov      x0, x21                                     
+00004fe8  bl       #0x27ff8                                    ; _objc_release
+00004fec  mov      x0, x19                                     
+00004ff0  bl       #0x27ff8                                    ; _objc_release
+00004ff4  mov      x0, x22                                     
+00004ff8  bl       #0x27c80                                    ; __Unwind_Resume

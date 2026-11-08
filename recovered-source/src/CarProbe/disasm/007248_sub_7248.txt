@@ -1,0 +1,27 @@
+; sub_7248
+; VA 0x7248  size 96
+
+0x00007248:  stp      x20, x19, [sp, #-0x20]!
+0x0000724c:  stp      x29, x30, [sp, #0x10]
+0x00007250:  add      x29, sp, #0x10
+0x00007254:  adrp     x8, #0x14000
+0x00007258:  ldr      x0, [x8, #0x3c8]    ; class(NSBundle)
+0x0000725c:  bl       #0xbc00    ; -> _objc_msgSend(mainBundle)
+0x00007260:  mov      x29, x29
+0x00007264:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00007268:  mov      x19, x0
+0x0000726c:  bl       #0xb720    ; -> _objc_msgSend(bundleIdentifier)
+0x00007270:  mov      x29, x29
+0x00007274:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00007278:  mov      x20, x0
+0x0000727c:  adrp     x2, #0x10000
+0x00007280:  add      x2, x2, #0xe58    ; @"com.apple.springboard"
+0x00007284:  bl       #0xbb40    ; -> _objc_msgSend(isEqualToString:)
+0x00007288:  adrp     x8, #0x14000
+0x0000728c:  strb     w0, [x8, #0x4f0]
+0x00007290:  mov      x0, x20
+0x00007294:  bl       #0xb410    ; -> _objc_release
+0x00007298:  mov      x0, x19
+0x0000729c:  ldp      x29, x30, [sp, #0x10]
+0x000072a0:  ldp      x20, x19, [sp], #0x20
+0x000072a4:  b        #0xb410    ; -> _objc_release

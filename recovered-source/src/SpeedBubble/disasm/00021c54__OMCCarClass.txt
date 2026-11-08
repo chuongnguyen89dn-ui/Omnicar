@@ -1,0 +1,85 @@
+# _OMCCarClass
+# addr 0x21c54 .. 0x21d9c  (328 bytes)
+
+00021c54  stp      x22, x21, [sp, #-0x30]!                     
+00021c58  stp      x20, x19, [sp, #0x10]                       
+00021c5c  stp      x29, x30, [sp, #0x20]                       
+00021c60  add      x29, sp, #0x20                              
+00021c64  mov      x19, x0                                     
+00021c68  bl       #0x27f74                                    ; _objc_getClass
+00021c6c  cbz      x0, #0x21c7c                                
+00021c70  mov      x21, x0                                     
+00021c74  bl       #0x28004                                    ; _objc_retain
+00021c78  b        #0x21d88                                    ; sub_21d88
+00021c7c  adrp     x8, #0x42000                                
+00021c80  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00021c84  mov      x2, x19                                     
+00021c88  bl       #0x2c320                                    ; objc_msgSend$stringWithUTF8String:
+00021c8c  mov      x29, x29                                    
+00021c90  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021c94  mov      x19, x0                                     
+00021c98  adrp     x2, #0x3b000                                
+00021c9c  add      x2, x2, #0x7f8                              ; @"DashBoard"
+00021ca0  bl       #0x29a00                                    ; objc_msgSend$isEqualToString:
+00021ca4  cbz      w0, #0x21cc4                                
+00021ca8  adrp     x0, #0x2f000                                
+00021cac  add      x0, x0, #0x3a4                              ; "CARApplication"
+00021cb0  bl       #0x27f74                                    ; _objc_getClass
+00021cb4  mov      x29, x29                                    
+00021cb8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021cbc  mov      x21, x0                                     
+00021cc0  b        #0x21d80                                    ; sub_21d80
+00021cc4  adrp     x2, #0x3b000                                
+00021cc8  add      x2, x2, #0x818                              ; @"DB"
+00021ccc  mov      x0, x19                                     
+00021cd0  bl       #0x29600                                    ; objc_msgSend$hasPrefix:
+00021cd4  cbz      w0, #0x21d38                                
+00021cd8  mov      x0, x19                                     
+00021cdc  mov      w2, #2                                      
+00021ce0  bl       #0x2c3c0                                    ; objc_msgSend$substringFromIndex:
+00021ce4  mov      x29, x29                                    
+00021ce8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021cec  cbz      x0, #0x21d38                                
+00021cf0  mov      x20, x0                                     
+00021cf4  adrp     x0, #0x3b000                                
+00021cf8  add      x0, x0, #0x838                              ; @"CAR"
+00021cfc  mov      x2, x20                                     
+00021d00  bl       #0x2c240                                    ; objc_msgSend$stringByAppendingString:
+00021d04  mov      x29, x29                                    
+00021d08  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021d0c  mov      x22, x0                                     
+00021d10  bl       #0x28010                                    ; _objc_retainAutorelease
+00021d14  bl       #0x28280                                    ; objc_msgSend$UTF8String
+00021d18  bl       #0x27f74                                    ; _objc_getClass
+00021d1c  mov      x21, x0                                     
+00021d20  mov      x0, x22                                     
+00021d24  bl       #0x27ff8                                    ; _objc_release
+00021d28  cbz      x21, #0x21d40                               
+00021d2c  mov      x0, x21                                     
+00021d30  bl       #0x28004                                    ; _objc_retain
+00021d34  b        #0x21d78                                    ; sub_21d78
+00021d38  mov      x21, #0                                     
+00021d3c  b        #0x21d80                                    ; sub_21d80
+00021d40  adrp     x0, #0x3b000                                
+00021d44  add      x0, x0, #0x858                              ; @"_CAR"
+00021d48  mov      x2, x20                                     
+00021d4c  bl       #0x2c240                                    ; objc_msgSend$stringByAppendingString:
+00021d50  mov      x29, x29                                    
+00021d54  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021d58  mov      x22, x0                                     
+00021d5c  bl       #0x28010                                    ; _objc_retainAutorelease
+00021d60  bl       #0x28280                                    ; objc_msgSend$UTF8String
+00021d64  bl       #0x27f74                                    ; _objc_getClass
+00021d68  mov      x21, x0                                     
+00021d6c  bl       #0x28004                                    ; _objc_retain
+00021d70  mov      x0, x22                                     
+00021d74  bl       #0x27ff8                                    ; _objc_release
+00021d78  mov      x0, x20                                     
+00021d7c  bl       #0x27ff8                                    ; _objc_release
+00021d80  mov      x0, x19                                     
+00021d84  bl       #0x27ff8                                    ; _objc_release
+00021d88  mov      x0, x21                                     
+00021d8c  ldp      x29, x30, [sp, #0x20]                       
+00021d90  ldp      x20, x19, [sp, #0x10]                       
+00021d94  ldp      x22, x21, [sp], #0x30                       
+00021d98  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

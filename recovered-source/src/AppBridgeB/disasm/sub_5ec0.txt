@@ -1,0 +1,77 @@
+=== sub_5ec0 @ 0x5ec0 (size 304) ===
+00005ec0  stp      x24, x23, [sp, #-0x40]!
+00005ec4  stp      x22, x21, [sp, #0x10]
+00005ec8  stp      x20, x19, [sp, #0x20]
+00005ecc  stp      x29, x30, [sp, #0x30]
+00005ed0  add      x29, sp, #0x30
+00005ed4  mov      x19, x0
+00005ed8  bl       #0x24818 ; call _objc_retain
+00005edc  mov      x0, x19
+00005ee0  bl       #0x269c0 ; objc_msgSend sel=rootViewController
+00005ee4  mov      x29, x29
+00005ee8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00005eec  mov      x20, x0
+00005ef0  cbz      x0, #0x5f80
+00005ef4  mov      x0, x20
+00005ef8  bl       #0x26680 ; objc_msgSend sel=presentedViewController
+00005efc  mov      x29, x29
+00005f00  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00005f04  mov      x21, x0
+00005f08  cbz      x0, #0x5f60
+00005f0c  mov      x0, x20
+00005f10  bl       #0x26680 ; objc_msgSend sel=presentedViewController
+00005f14  mov      x29, x29
+00005f18  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00005f1c  mov      x22, x0
+00005f20  bl       #0x25c40 ; objc_msgSend sel=isBeingDismissed
+00005f24  mov      x23, x0
+00005f28  mov      x0, x22
+00005f2c  bl       #0x2480c ; call _objc_release
+00005f30  mov      x0, x21
+00005f34  bl       #0x2480c ; call _objc_release
+00005f38  tbnz     w23, #0, #0x5f60
+00005f3c  mov      x0, x20
+00005f40  bl       #0x26680 ; objc_msgSend sel=presentedViewController
+00005f44  mov      x29, x29
+00005f48  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00005f4c  mov      x21, x0
+00005f50  mov      x0, x20
+00005f54  bl       #0x2480c ; call _objc_release
+00005f58  mov      x20, x21
+00005f5c  b        #0x5ef4 ; call sub_5ef4
+00005f60  mov      x0, x20
+00005f64  bl       #0x27e40 ; objc_msgSend sel=supportedInterfaceOrientations
+00005f68  cmp      x0, #0
+00005f6c  mov      w8, #0x1e
+00005f70  csel     x21, x8, x0, eq
+00005f74  mov      x0, x20
+00005f78  bl       #0x2480c ; call _objc_release
+00005f7c  b        #0x5f84 ; call sub_5f84
+00005f80  mov      w21, #0x1e
+00005f84  mov      x0, x19
+00005f88  bl       #0x2480c ; call _objc_release
+00005f8c  mov      x0, x21
+00005f90  ldp      x29, x30, [sp, #0x30]
+00005f94  ldp      x20, x19, [sp, #0x20]
+00005f98  ldp      x22, x21, [sp, #0x10]
+00005f9c  ldp      x24, x23, [sp], #0x40
+00005fa0  ret      
+00005fa4  b        #0x5fd4 ; call sub_5fd4
+00005fa8  mov      x22, x0
+00005fac  b        #0x5fe0 ; call sub_5fe0
+00005fb0  mov      x1, x22
+00005fb4  mov      x22, x0
+00005fb8  mov      x0, x1
+00005fbc  bl       #0x2480c ; call _objc_release
+00005fc0  b        #0x5fc8 ; call sub_5fc8
+00005fc4  mov      x22, x0
+00005fc8  mov      x0, x21
+00005fcc  bl       #0x2480c ; call _objc_release
+00005fd0  b        #0x5fd8 ; call sub_5fd8
+00005fd4  mov      x22, x0
+00005fd8  mov      x0, x20
+00005fdc  bl       #0x2480c ; call _objc_release
+00005fe0  mov      x0, x19
+00005fe4  bl       #0x2480c ; call _objc_release
+00005fe8  mov      x0, x22
+00005fec  bl       #0x24470 ; call __Unwind_Resume

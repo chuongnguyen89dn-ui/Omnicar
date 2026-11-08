@@ -1,0 +1,27 @@
+; -[SSLinkTarget step:]
+; VA 0xc4f8  size 96
+
+0x0000c4f8:  stp      x20, x19, [sp, #-0x20]!
+0x0000c4fc:  stp      x29, x30, [sp, #0x10]
+0x0000c500:  add      x29, sp, #0x10
+0x0000c504:  mov      x19, x2
+0x0000c508:  mov      x20, x0
+0x0000c50c:  mov      x0, x2
+0x0000c510:  bl       #0x2212c    ; -> _objc_retain
+0x0000c514:  mov      x0, x20
+0x0000c518:  bl       #0x23fa0    ; -> _objc_msgSend(owner)
+0x0000c51c:  mov      x29, x29
+0x0000c520:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000c524:  mov      x20, x0
+0x0000c528:  cbz      x0, #0xc538
+0x0000c52c:  mov      x0, x20
+0x0000c530:  bl       #0x259c0    ; -> _objc_msgSend(ss_step)
+0x0000c534:  b        #0xc540    ; -> sub_c540
+0x0000c538:  mov      x0, x19
+0x0000c53c:  bl       #0x23880    ; -> _objc_msgSend(invalidate)
+0x0000c540:  mov      x0, x20
+0x0000c544:  bl       #0x22120    ; -> _objc_release
+0x0000c548:  mov      x0, x19
+0x0000c54c:  ldp      x29, x30, [sp, #0x10]
+0x0000c550:  ldp      x20, x19, [sp], #0x20
+0x0000c554:  b        #0x22120    ; -> _objc_release

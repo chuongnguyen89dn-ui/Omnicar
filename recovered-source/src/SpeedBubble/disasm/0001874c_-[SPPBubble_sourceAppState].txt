@@ -1,0 +1,249 @@
+# -[SPPBubble sourceAppState]
+# addr 0x1874c .. 0x18b24  (984 bytes)
+
+0001874c  stp      x24, x23, [sp, #-0x40]!                     
+00018750  stp      x22, x21, [sp, #0x10]                       
+00018754  stp      x20, x19, [sp, #0x20]                       
+00018758  stp      x29, x30, [sp, #0x30]                       
+0001875c  add      x29, sp, #0x30                              
+00018760  bl       #0x28640                                    ; objc_msgSend$app
+00018764  mov      x20, x0                                     
+00018768  adrp     x0, #0x2e000                                
+0001876c  add      x0, x0, #0xaf7                              ; "SBApplicationController"
+00018770  bl       #0x27f74                                    ; _objc_getClass
+00018774  mov      x29, x29                                    
+00018778  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001877c  mov      x21, x0                                     
+00018780  adrp     x0, #0x39000                                
+00018784  add      x0, x0, #0x418                              ; @"sharedInstance"
+00018788  bl       #0x27c2c                                    ; _NSSelectorFromString
+0001878c  mov      x19, x0                                     
+00018790  mov      x0, x21                                     
+00018794  mov      x1, x19                                     
+00018798  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001879c  tbz      w0, #0, #0x187bc                            
+000187a0  mov      x0, x21                                     
+000187a4  mov      x1, x19                                     
+000187a8  bl       #0x27f98                                    ; _objc_msgSend
+000187ac  mov      x29, x29                                    
+000187b0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000187b4  mov      x19, x0                                     
+000187b8  b        #0x187d8                                    ; sub_187d8
+000187bc  adrp     x0, #0x38000                                
+000187c0  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+000187c4  adrp     x2, #0x39000                                
+000187c8  add      x2, x2, #0x418                              ; @"sharedInstance"
+000187cc  mov      x1, x21                                     
+000187d0  bl       #0x2248c                                    ; _OMCMissingSelector
+000187d4  mov      x19, #0                                     
+000187d8  mov      x0, x21                                     
+000187dc  bl       #0x27ff8                                    ; _objc_release
+000187e0  cbz      x19, #0x18838                               
+000187e4  mov      x0, x19                                     
+000187e8  bl       #0x28004                                    ; _objc_retain
+000187ec  adrp     x0, #0x3a000                                
+000187f0  add      x0, x0, #0xb98                              ; @"applicationWithBundleIdentifier:"
+000187f4  bl       #0x27c2c                                    ; _NSSelectorFromString
+000187f8  mov      x21, x0                                     
+000187fc  mov      x0, x19                                     
+00018800  mov      x1, x21                                     
+00018804  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00018808  and      x23, x20, #7                                
+0001880c  tbz      w0, #0, #0x18840                            
+00018810  cmp      w23, #3                                     
+00018814  b.hi     #0x18860                                    
+00018818  mov      w2, w23                                     
+0001881c  adrp     x0, #0x3c000                                
+00018820  add      x0, x0, #0xec0                              ; __DATA_CONST,__objc_arrayobj+0x180
+00018824  bl       #0x2a100                                    ; objc_msgSend$objectAtIndexedSubscript:
+00018828  mov      x29, x29                                    
+0001882c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00018830  mov      x22, x0                                     
+00018834  b        #0x18868                                    ; sub_18868
+00018838  mov      x20, #0                                     
+0001883c  b        #0x1895c                                    ; sub_1895c
+00018840  adrp     x0, #0x38000                                
+00018844  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00018848  adrp     x2, #0x3a000                                
+0001884c  add      x2, x2, #0xb98                              ; @"applicationWithBundleIdentifier:"
+00018850  mov      x1, x19                                     
+00018854  bl       #0x2248c                                    ; _OMCMissingSelector
+00018858  mov      x20, #0                                     
+0001885c  b        #0x1888c                                    ; sub_1888c
+00018860  adrp     x22, #0x39000                               
+00018864  add      x22, x22, #0xb8                             ; @"vn.vietmap.live"
+00018868  mov      x0, x19                                     
+0001886c  mov      x1, x21                                     
+00018870  mov      x2, x22                                     
+00018874  bl       #0x27f98                                    ; _objc_msgSend
+00018878  mov      x29, x29                                    
+0001887c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00018880  mov      x20, x0                                     
+00018884  mov      x0, x22                                     
+00018888  bl       #0x27ff8                                    ; _objc_release
+0001888c  mov      x0, x19                                     
+00018890  bl       #0x27ff8                                    ; _objc_release
+00018894  cbz      x20, #0x1895c                               
+00018898  adrp     x0, #0x3a000                                
+0001889c  add      x0, x0, #0xbb8                              ; @"isRunning"
+000188a0  bl       #0x27c2c                                    ; _NSSelectorFromString
+000188a4  mov      x1, x0                                      
+000188a8  mov      x0, x20                                     
+000188ac  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+000188b0  tbz      w0, #0, #0x188fc                            
+000188b4  mov      x0, x20                                     
+000188b8  bl       #0x28004                                    ; _objc_retain
+000188bc  adrp     x0, #0x3a000                                
+000188c0  add      x0, x0, #0xbb8                              ; @"isRunning"
+000188c4  bl       #0x27c2c                                    ; _NSSelectorFromString
+000188c8  mov      x21, x0                                     
+000188cc  mov      x0, x20                                     
+000188d0  mov      x1, x21                                     
+000188d4  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+000188d8  tbz      w0, #0, #0x18964                            
+000188dc  mov      x0, x20                                     
+000188e0  mov      x1, x21                                     
+000188e4  bl       #0x27f98                                    ; _objc_msgSend
+000188e8  mov      x21, x0                                     
+000188ec  mov      x0, x20                                     
+000188f0  bl       #0x27ff8                                    ; _objc_release
+000188f4  cbz      w21, #0x18a1c                               
+000188f8  b        #0x18a3c                                    ; sub_18a3c
+000188fc  adrp     x0, #0x3a000                                
+00018900  add      x0, x0, #0xbd8                              ; @"processState"
+00018904  bl       #0x27c2c                                    ; _NSSelectorFromString
+00018908  mov      x1, x0                                      
+0001890c  mov      x0, x20                                     
+00018910  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00018914  tbz      w0, #0, #0x1895c                            
+00018918  mov      x0, x20                                     
+0001891c  bl       #0x28004                                    ; _objc_retain
+00018920  adrp     x0, #0x3a000                                
+00018924  add      x0, x0, #0xbd8                              ; @"processState"
+00018928  bl       #0x27c2c                                    ; _NSSelectorFromString
+0001892c  mov      x21, x0                                     
+00018930  mov      x0, x20                                     
+00018934  mov      x1, x21                                     
+00018938  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001893c  tbz      w0, #0, #0x1898c                            
+00018940  mov      x0, x20                                     
+00018944  mov      x1, x21                                     
+00018948  bl       #0x27f98                                    ; _objc_msgSend
+0001894c  mov      x29, x29                                    
+00018950  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00018954  mov      x21, x0                                     
+00018958  b        #0x189a8                                    ; sub_189a8
+0001895c  mov      w21, #-1                                    
+00018960  b        #0x18a4c                                    ; sub_18a4c
+00018964  adrp     x0, #0x38000                                
+00018968  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001896c  adrp     x2, #0x3a000                                
+00018970  add      x2, x2, #0xbb8                              ; @"isRunning"
+00018974  mov      x1, x20                                     
+00018978  bl       #0x2248c                                    ; _OMCMissingSelector
+0001897c  mov      x21, x20                                    
+00018980  mov      x0, x21                                     
+00018984  bl       #0x27ff8                                    ; _objc_release
+00018988  b        #0x18a1c                                    ; sub_18a1c
+0001898c  adrp     x0, #0x38000                                
+00018990  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00018994  adrp     x2, #0x3a000                                
+00018998  add      x2, x2, #0xbd8                              ; @"processState"
+0001899c  mov      x1, x20                                     
+000189a0  bl       #0x2248c                                    ; _OMCMissingSelector
+000189a4  mov      x21, #0                                     
+000189a8  mov      x0, x20                                     
+000189ac  bl       #0x27ff8                                    ; _objc_release
+000189b0  cbz      x21, #0x18a1c                               
+000189b4  adrp     x0, #0x3a000                                
+000189b8  add      x0, x0, #0xbb8                              ; @"isRunning"
+000189bc  bl       #0x27c2c                                    ; _NSSelectorFromString
+000189c0  mov      x1, x0                                      
+000189c4  mov      x0, x21                                     
+000189c8  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+000189cc  tbz      w0, #0, #0x18a34                            
+000189d0  mov      x0, x21                                     
+000189d4  bl       #0x28004                                    ; _objc_retain
+000189d8  adrp     x0, #0x3a000                                
+000189dc  add      x0, x0, #0xbb8                              ; @"isRunning"
+000189e0  bl       #0x27c2c                                    ; _NSSelectorFromString
+000189e4  mov      x22, x0                                     
+000189e8  mov      x0, x21                                     
+000189ec  mov      x1, x22                                     
+000189f0  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+000189f4  tbz      w0, #0, #0x18a74                            
+000189f8  mov      x0, x21                                     
+000189fc  mov      x1, x22                                     
+00018a00  bl       #0x27f98                                    ; _objc_msgSend
+00018a04  mov      x22, x0                                     
+00018a08  mov      x0, x21                                     
+00018a0c  bl       #0x27ff8                                    ; _objc_release
+00018a10  mov      x0, x21                                     
+00018a14  bl       #0x27ff8                                    ; _objc_release
+00018a18  tbnz     w22, #0, #0x18a3c                           
+00018a1c  adrp     x8, #0x43000                                
+00018a20  add      x8, x8, #0x9d0                              ; __DATA,__bss+0x230
+00018a24  ldrb     w8, [x8, x23]                               
+00018a28  eor      w8, w8, #1                                  
+00018a2c  neg      w21, w8                                     
+00018a30  b        #0x18a4c                                    ; sub_18a4c
+00018a34  mov      x0, x21                                     
+00018a38  bl       #0x27ff8                                    ; _objc_release
+00018a3c  adrp     x8, #0x43000                                
+00018a40  add      x8, x8, #0x9d0                              ; __DATA,__bss+0x230
+00018a44  mov      w21, #1                                     
+00018a48  strb     w21, [x8, x23]                              
+00018a4c  mov      x0, x20                                     
+00018a50  bl       #0x27ff8                                    ; _objc_release
+00018a54  mov      x0, x19                                     
+00018a58  bl       #0x27ff8                                    ; _objc_release
+00018a5c  mov      x0, x21                                     
+00018a60  ldp      x29, x30, [sp, #0x30]                       
+00018a64  ldp      x20, x19, [sp, #0x20]                       
+00018a68  ldp      x22, x21, [sp, #0x10]                       
+00018a6c  ldp      x24, x23, [sp], #0x40                       
+00018a70  ret                                                  
+00018a74  adrp     x0, #0x38000                                
+00018a78  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00018a7c  adrp     x2, #0x3a000                                
+00018a80  add      x2, x2, #0xbb8                              ; @"isRunning"
+00018a84  mov      x1, x21                                     
+00018a88  bl       #0x2248c                                    ; _OMCMissingSelector
+00018a8c  mov      x0, x21                                     
+00018a90  bl       #0x27ff8                                    ; _objc_release
+00018a94  b        #0x18980                                    ; sub_18980
+00018a98  b        #0x18a9c                                    ; sub_18a9c
+00018a9c  mov      x22, x0                                     
+00018aa0  mov      x0, x21                                     
+00018aa4  bl       #0x27ff8                                    ; _objc_release
+00018aa8  b        #0x18ab4                                    ; sub_18ab4
+00018aac  b        #0x18ad8                                    ; sub_18ad8
+00018ab0  mov      x22, x0                                     
+00018ab4  mov      x0, x21                                     
+00018ab8  b        #0x18ae0                                    ; sub_18ae0
+00018abc  b        #0x18ad8                                    ; sub_18ad8
+00018ac0  b        #0x18ad8                                    ; sub_18ad8
+00018ac4  mov      x8, x22                                     
+00018ac8  mov      x22, x0                                     
+00018acc  mov      x0, x8                                      
+00018ad0  bl       #0x27ff8                                    ; _objc_release
+00018ad4  b        #0x18af4                                    ; sub_18af4
+00018ad8  mov      x22, x0                                     
+00018adc  mov      x0, x20                                     
+00018ae0  bl       #0x27ff8                                    ; _objc_release
+00018ae4  b        #0x18b00                                    ; sub_18b00
+00018ae8  b        #0x18af0                                    ; sub_18af0
+00018aec  b        #0x18b0c                                    ; sub_18b0c
+00018af0  mov      x22, x0                                     
+00018af4  mov      x20, x19                                    
+00018af8  b        #0x18b00                                    ; sub_18b00
+00018afc  mov      x22, x0                                     
+00018b00  mov      x0, x20                                     
+00018b04  bl       #0x27ff8                                    ; _objc_release
+00018b08  b        #0x18b14                                    ; sub_18b14
+00018b0c  mov      x22, x0                                     
+00018b10  mov      x19, x21                                    
+00018b14  mov      x0, x19                                     
+00018b18  bl       #0x27ff8                                    ; _objc_release
+00018b1c  mov      x0, x22                                     
+00018b20  bl       #0x27c80                                    ; __Unwind_Resume

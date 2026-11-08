@@ -1,0 +1,117 @@
+; OMCLogWrite
+; VA 0x1b620  size 452
+
+0x0001b620:  sub      sp, sp, #0xa0
+0x0001b624:  stp      x26, x25, [sp, #0x50]
+0x0001b628:  stp      x24, x23, [sp, #0x60]
+0x0001b62c:  stp      x22, x21, [sp, #0x70]
+0x0001b630:  stp      x20, x19, [sp, #0x80]
+0x0001b634:  stp      x29, x30, [sp, #0x90]
+0x0001b638:  add      x29, sp, #0x90
+0x0001b63c:  mov      x20, x1
+0x0001b640:  mov      x19, x0
+0x0001b644:  bl       #0x2212c    ; -> _objc_retain
+0x0001b648:  mov      x0, x20
+0x0001b64c:  bl       #0x2212c    ; -> _objc_retain
+0x0001b650:  bl       #0x1d9d4    ; -> sub_1d9d4
+0x0001b654:  cbz      x0, #0x1b670
+0x0001b658:  adrp     x1, #0x26000
+0x0001b65c:  add      x1, x1, #0xc63    ; "StartupScreen"
+0x0001b660:  add      x0, x0, #0x400
+0x0001b664:  mov      w2, #0x40
+0x0001b668:  mov      w3, #0x40
+0x0001b66c:  bl       #0x21de4    ; -> ___strlcpy_chk
+0x0001b670:  stp      x19, x20, [sp]
+0x0001b674:  adrp     x0, #0x33000
+0x0001b678:  add      x0, x0, #0xb08    ; @"[OmniCar/%@] %@"
+0x0001b67c:  bl       #0x21d3c    ; -> _NSLog
+0x0001b680:  adrp     x8, #0x3b000
+0x0001b684:  ldr      x8, [x8, #0x1d8]
+0x0001b688:  cmn      x8, #1
+0x0001b68c:  b.ne     #0x1b7dc
+0x0001b690:  adrp     x8, #0x3a000
+0x0001b694:  ldr      x21, [x8, #0x9c0]    ; class(NSString)
+0x0001b698:  adrp     x8, #0x3b000
+0x0001b69c:  ldr      x22, [x8, #0x1d0]
+0x0001b6a0:  adrp     x8, #0x3a000
+0x0001b6a4:  ldr      x0, [x8, #0xa90]    ; class(NSDate)
+0x0001b6a8:  bl       #0x22f40    ; -> _objc_msgSend(date)
+0x0001b6ac:  mov      x29, x29
+0x0001b6b0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b6b4:  mov      x23, x0
+0x0001b6b8:  mov      x0, x22
+0x0001b6bc:  mov      x2, x23
+0x0001b6c0:  bl       #0x25bc0    ; -> _objc_msgSend(stringFromDate:)
+0x0001b6c4:  mov      x29, x29
+0x0001b6c8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b6cc:  mov      x22, x0
+0x0001b6d0:  adrp     x8, #0x3a000
+0x0001b6d4:  ldr      x0, [x8, #0xa78]    ; class(NSProcessInfo)
+0x0001b6d8:  bl       #0x240c0    ; -> _objc_msgSend(processInfo)
+0x0001b6dc:  mov      x29, x29
+0x0001b6e0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b6e4:  mov      x24, x0
+0x0001b6e8:  bl       #0x240e0    ; -> _objc_msgSend(?)
+0x0001b6ec:  mov      x29, x29
+0x0001b6f0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b6f4:  mov      x25, x0
+0x0001b6f8:  bl       #0x21f70    ; -> _getpid
+0x0001b6fc:  stp      x19, x20, [sp, #0x18]
+0x0001b700:  stp      x25, x0, [sp, #8]
+0x0001b704:  str      x22, [sp]
+0x0001b708:  adrp     x2, #0x33000
+0x0001b70c:  add      x2, x2, #0xb48    ; @"%@ [%@:%d] %@: %@
+"
+0x0001b710:  mov      x0, x21
+0x0001b714:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x0001b718:  mov      x29, x29
+0x0001b71c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b720:  mov      x21, x0
+0x0001b724:  mov      x0, x25
+0x0001b728:  bl       #0x22120    ; -> _objc_release
+0x0001b72c:  mov      x0, x24
+0x0001b730:  bl       #0x22120    ; -> _objc_release
+0x0001b734:  mov      x0, x22
+0x0001b738:  bl       #0x22120    ; -> _objc_release
+0x0001b73c:  mov      x0, x23
+0x0001b740:  bl       #0x22120    ; -> _objc_release
+0x0001b744:  bl       #0x1b828    ; -> sub_1b828
+0x0001b748:  mov      x29, x29
+0x0001b74c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b750:  mov      x22, x0
+0x0001b754:  adrp     x8, #0x30000
+0x0001b758:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x0001b75c:  str      x8, [sp, #0x28]
+0x0001b760:  adrp     x8, #0x28000
+0x0001b764:  ldr      d0, [x8, #0xdd0]
+0x0001b768:  adrp     x8, #0x1b000
+0x0001b76c:  add      x8, x8, #0x86c    ; func sub_1b86c
+0x0001b770:  str      d0, [sp, #0x30]
+0x0001b774:  adrp     x9, #0x30000
+0x0001b778:  add      x9, x9, #0x788
+0x0001b77c:  stp      x8, x9, [sp, #0x38]
+0x0001b780:  str      x21, [sp, #0x48]
+0x0001b784:  mov      x0, x21
+0x0001b788:  bl       #0x2212c    ; -> _objc_retain
+0x0001b78c:  add      x1, sp, #0x28
+0x0001b790:  mov      x0, x22
+0x0001b794:  bl       #0x21e98    ; -> _dispatch_async
+0x0001b798:  mov      x0, x22
+0x0001b79c:  bl       #0x22120    ; -> _objc_release
+0x0001b7a0:  ldr      x0, [sp, #0x48]
+0x0001b7a4:  bl       #0x22120    ; -> _objc_release
+0x0001b7a8:  mov      x0, x21
+0x0001b7ac:  bl       #0x22120    ; -> _objc_release
+0x0001b7b0:  mov      x0, x20
+0x0001b7b4:  bl       #0x22120    ; -> _objc_release
+0x0001b7b8:  mov      x0, x19
+0x0001b7bc:  bl       #0x22120    ; -> _objc_release
+0x0001b7c0:  ldp      x29, x30, [sp, #0x90]
+0x0001b7c4:  ldp      x20, x19, [sp, #0x80]
+0x0001b7c8:  ldp      x22, x21, [sp, #0x70]
+0x0001b7cc:  ldp      x24, x23, [sp, #0x60]
+0x0001b7d0:  ldp      x26, x25, [sp, #0x50]
+0x0001b7d4:  add      sp, sp, #0xa0
+0x0001b7d8:  ret      
+0x0001b7dc:  bl       #0x21a84    ; -> sub_21a84
+0x0001b7e0:  b        #0x1b690    ; -> sub_1b690

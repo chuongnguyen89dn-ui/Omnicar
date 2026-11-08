@@ -1,0 +1,175 @@
+=== sub_7004 @ 0x7004 (size 696) ===
+00007004  stp      x22, x21, [sp, #-0x30]!
+00007008  stp      x20, x19, [sp, #0x10]
+0000700c  stp      x29, x30, [sp, #0x20]
+00007010  add      x29, sp, #0x20
+00007014  mov      x19, x2
+00007018  mov      x20, x1
+0000701c  mov      x21, x0
+00007020  mov      x0, x2
+00007024  bl       #0x24818 ; call _objc_retain
+00007028  adrp     x8, #0x3e000
+0000702c  ldr      x8, [x8, #0x9f0]
+00007030  mov      x0, x21
+00007034  mov      x1, x20
+00007038  mov      x2, x19
+0000703c  blr      x8
+00007040  adrp     x8, #0x3e000
+00007044  ldr      x0, [x8, #0x290] ; bind _OBJC_CLASS_$_NSString
+00007048  adrp     x2, #0x35000
+0000704c  add      x2, x2, #0x2f0 = @"SpringBoard ready"
+00007050  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00007054  mov      x29, x29
+00007058  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000705c  mov      x20, x0
+00007060  adrp     x0, #0x34000
+00007064  add      x0, x0, #0xef0 = @"AppBridge"
+00007068  mov      x1, x20
+0000706c  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00007070  mov      x0, x20
+00007074  bl       #0x2480c ; call _objc_release
+00007078  adrp     x0, #0x28000
+0000707c  add      x0, x0, #0xfc3 ; "NSDistributedNotificationCenter"
+00007080  bl       #0x24788 ; call _objc_getClass
+00007084  bl       #0x254c0 ; objc_msgSend sel=defaultCenter
+00007088  mov      x29, x29
+0000708c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00007090  mov      x20, x0
+00007094  adrp     x8, #0x3e000
+00007098  ldr      x0, [x8, #0x288] ; bind _OBJC_CLASS_$_NSOperationQueue
+0000709c  bl       #0x260a0 ; objc_msgSend sel=mainQueue
+000070a0  mov      x29, x29
+000070a4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000070a8  mov      x21, x0
+000070ac  adrp     x2, #0x35000
+000070b0  add      x2, x2, #0x310 = @"com.anlai.omnicar/appbridge.open"
+000070b4  adrp     x5, #0x34000
+000070b8  add      x5, x5, #0x690
+000070bc  mov      x0, x20
+000070c0  mov      x3, #0
+000070c4  mov      x4, x21
+000070c8  bl       #0x24b60 ; objc_msgSend sel=addObserverForName:object:queue:usingBlock:
+000070cc  mov      x29, x29
+000070d0  bl       #0x24890 ; call _objc_unsafeClaimAutoreleasedReturnValue
+000070d4  adrp     x2, #0x35000
+000070d8  add      x2, x2, #0x670 = @"com.anlai.omnicar/appbridge.frame"
+000070dc  adrp     x5, #0x34000
+000070e0  add      x5, x5, #0x6b0
+000070e4  mov      x0, x20
+000070e8  mov      x3, #0
+000070ec  mov      x4, x21
+000070f0  bl       #0x24b60 ; objc_msgSend sel=addObserverForName:object:queue:usingBlock:
+000070f4  mov      x29, x29
+000070f8  bl       #0x24890 ; call _objc_unsafeClaimAutoreleasedReturnValue
+000070fc  adrp     x2, #0x35000
+00007100  add      x2, x2, #0x6f0 = @"com.anlai.omnicar/appbridge.shield"
+00007104  adrp     x5, #0x34000
+00007108  add      x5, x5, #0x6d0
+0000710c  mov      x0, x20
+00007110  mov      x3, #0
+00007114  mov      x4, x21
+00007118  bl       #0x24b60 ; objc_msgSend sel=addObserverForName:object:queue:usingBlock:
+0000711c  mov      x29, x29
+00007120  bl       #0x24890 ; call _objc_unsafeClaimAutoreleasedReturnValue
+00007124  adrp     x2, #0x35000
+00007128  add      x2, x2, #0x750 = @"com.anlai.omnicar/appbridge.close"
+0000712c  adrp     x5, #0x34000
+00007130  add      x5, x5, #0x6f0
+00007134  mov      x0, x20
+00007138  mov      x3, #0
+0000713c  mov      x4, x21
+00007140  bl       #0x24b60 ; objc_msgSend sel=addObserverForName:object:queue:usingBlock:
+00007144  mov      x29, x29
+00007148  bl       #0x24890 ; call _objc_unsafeClaimAutoreleasedReturnValue
+0000714c  adrp     x2, #0x35000
+00007150  add      x2, x2, #0x7b0 = @"com.anlai.omnicar/appbridge.closeall"
+00007154  adrp     x5, #0x34000
+00007158  add      x5, x5, #0x710
+0000715c  mov      x0, x20
+00007160  mov      x3, #0
+00007164  mov      x4, x21
+00007168  bl       #0x24b60 ; objc_msgSend sel=addObserverForName:object:queue:usingBlock:
+0000716c  mov      x29, x29
+00007170  bl       #0x24890 ; call _objc_unsafeClaimAutoreleasedReturnValue
+00007174  adrp     x2, #0x35000
+00007178  add      x2, x2, #0x810 = @"com.anlai.omnicar/appbridge.knobs"
+0000717c  adrp     x5, #0x34000
+00007180  add      x5, x5, #0x730
+00007184  mov      x0, x20
+00007188  mov      x3, #0
+0000718c  mov      x4, x21
+00007190  bl       #0x24b60 ; objc_msgSend sel=addObserverForName:object:queue:usingBlock:
+00007194  mov      x29, x29
+00007198  bl       #0x24890 ; call _objc_unsafeClaimAutoreleasedReturnValue
+0000719c  adrp     x0, #0x29000
+000071a0  add      x0, x0, #0x173 ; "com.anlai.omnicar/appbridge.apporient"
+000071a4  adrp     x1, #0x3e000
+000071a8  add      x1, x1, #0xa18
+000071ac  adrp     x2, #0x34000
+000071b0  ldr      x2, [x2, #0x290] ; -> __dispatch_main_q
+000071b4  adrp     x3, #0x34000
+000071b8  add      x3, x3, #0x770
+000071bc  bl       #0x24704 ; call _notify_register_dispatch
+000071c0  adrp     x0, #0x29000
+000071c4  add      x0, x0, #0x1bc ; "com.anlai.omnicar/appbridge.keyboard"
+000071c8  adrp     x1, #0x3e000
+000071cc  add      x1, x1, #0xa1c
+000071d0  adrp     x2, #0x34000
+000071d4  ldr      x2, [x2, #0x290] ; -> __dispatch_main_q
+000071d8  adrp     x3, #0x34000
+000071dc  add      x3, x3, #0x790
+000071e0  bl       #0x24704 ; call _notify_register_dispatch
+000071e4  adrp     x0, #0x34000
+000071e8  ldr      x0, [x0, #0x290] ; -> __dispatch_main_q
+000071ec  bl       #0x2480c ; call _objc_release
+000071f0  adrp     x8, #0x3e000
+000071f4  ldr      x0, [x8, #0x2b0] ; bind _OBJC_CLASS_$_NSNotificationCenter
+000071f8  bl       #0x254c0 ; objc_msgSend sel=defaultCenter
+000071fc  mov      x29, x29
+00007200  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00007204  mov      x22, x0
+00007208  adrp     x2, #0x35000
+0000720c  add      x2, x2, #0x8d0 = @"CarPlayIsConnectedDidChange"
+00007210  adrp     x5, #0x34000
+00007214  add      x5, x5, #0x7b0
+00007218  mov      x3, #0
+0000721c  mov      x4, x21
+00007220  bl       #0x24b60 ; objc_msgSend sel=addObserverForName:object:queue:usingBlock:
+00007224  mov      x29, x29
+00007228  bl       #0x24890 ; call _objc_unsafeClaimAutoreleasedReturnValue
+0000722c  mov      x0, x22
+00007230  bl       #0x2480c ; call _objc_release
+00007234  mov      x0, x21
+00007238  bl       #0x2480c ; call _objc_release
+0000723c  mov      x0, x20
+00007240  bl       #0x2480c ; call _objc_release
+00007244  mov      x0, x19
+00007248  ldp      x29, x30, [sp, #0x20]
+0000724c  ldp      x20, x19, [sp, #0x10]
+00007250  ldp      x22, x21, [sp], #0x30
+00007254  b        #0x2480c ; call _objc_release
+00007258  mov      x1, x22
+0000725c  mov      x22, x0
+00007260  mov      x0, x1
+00007264  b        #0x7274 ; call sub_7274
+00007268  mov      x22, x0
+0000726c  adrp     x0, #0x34000
+00007270  ldr      x0, [x0, #0x290] ; -> __dispatch_main_q
+00007274  bl       #0x2480c ; call _objc_release
+00007278  b        #0x729c ; call sub_729c
+0000727c  b        #0x7298 ; call sub_7298
+00007280  b        #0x7284 ; call sub_7284
+00007284  mov      x22, x0
+00007288  b        #0x72a4 ; call sub_72a4
+0000728c  b        #0x7290 ; call sub_7290
+00007290  mov      x22, x0
+00007294  b        #0x72ac ; call sub_72ac
+00007298  mov      x22, x0
+0000729c  mov      x0, x21
+000072a0  bl       #0x2480c ; call _objc_release
+000072a4  mov      x0, x20
+000072a8  bl       #0x2480c ; call _objc_release
+000072ac  mov      x0, x19
+000072b0  bl       #0x2480c ; call _objc_release
+000072b4  mov      x0, x22
+000072b8  bl       #0x24470 ; call __Unwind_Resume

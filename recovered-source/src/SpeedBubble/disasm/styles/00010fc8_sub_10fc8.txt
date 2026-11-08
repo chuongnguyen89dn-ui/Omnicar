@@ -1,0 +1,101 @@
+# sub_10fc8
+# addr 0x10fc8 .. 0x11150  (392 bytes)
+
+00010fc8  stp      d9, d8, [sp, #-0x40]!                       
+00010fcc  stp      x22, x21, [sp, #0x10]                       
+00010fd0  stp      x20, x19, [sp, #0x20]                       
+00010fd4  stp      x29, x30, [sp, #0x30]                       
+00010fd8  add      x29, sp, #0x30                              
+00010fdc  mov      v8.16b, v0.16b                              
+00010fe0  mov      x20, x0                                     
+00010fe4  adrp     x8, #0x43000                                
+00010fe8  ldr      x0, [x8, #0x50]                             ; [0x43050] classref -> CAGradientLayer (= import _OBJC_CLASS_$_CAGradientLayer)
+00010fec  bl       #0x29b80                                    ; objc_msgSend$layer
+00010ff0  mov      x29, x29                                    
+00010ff4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00010ff8  mov      x19, x0                                     
+00010ffc  cbz      w20, #0x11044                               
+00011000  adrp     x8, #0x38000                                
+00011004  ldr      x8, [x8, #0x2b0]                            ; [0x382b0] __DATA_CONST,__got+0x2b0 (= import _kCAGradientLayerConic)
+00011008  ldr      x2, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0001100c  mov      x0, x19                                     
+00011010  bl       #0x2bb80                                    ; objc_msgSend$setType:
+00011014  fmov     d0, #0.50000000                             
+00011018  fmov     d1, #0.50000000                             
+0001101c  mov      x0, x19                                     
+00011020  bl       #0x2b8c0                                    ; objc_msgSend$setStartPoint:
+00011024  fmov     d0, #0.50000000                             
+00011028  fmov     d1, xzr                                     
+0001102c  mov      x0, x19                                     
+00011030  bl       #0x2af00                                    ; objc_msgSend$setEndPoint:
+00011034  bl       #0x155f8                                    ; sub_155f8
+00011038  mov      x29, x29                                    
+0001103c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011040  b        #0x11070                                    ; sub_11070
+00011044  fmov     d0, xzr                                     
+00011048  fmov     d1, xzr                                     
+0001104c  mov      x0, x19                                     
+00011050  bl       #0x2b8c0                                    ; objc_msgSend$setStartPoint:
+00011054  fmov     d0, #1.00000000                             
+00011058  fmov     d1, #1.00000000                             
+0001105c  mov      x0, x19                                     
+00011060  bl       #0x2af00                                    ; objc_msgSend$setEndPoint:
+00011064  bl       #0x11150                                    ; sub_11150
+00011068  mov      x29, x29                                    
+0001106c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011070  mov      x20, x0                                     
+00011074  mov      x0, x19                                     
+00011078  mov      x2, x20                                     
+0001107c  bl       #0x2acc0                                    ; objc_msgSend$setColors:
+00011080  mov      x0, x20                                     
+00011084  bl       #0x27ff8                                    ; _objc_release
+00011088  adrp     x8, #0x43000                                
+0001108c  ldr      x0, [x8, #0x30]                             ; [0x43030] classref -> CAShapeLayer (= import _OBJC_CLASS_$_CAShapeLayer)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+00011090  bl       #0x29b80                                    ; objc_msgSend$layer
+00011094  mov      x29, x29                                    
+00011098  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001109c  mov      x20, x0                                     
+000110a0  adrp     x22, #0x43000                               
+000110a4  ldr      x0, [x22, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+000110a8  bl       #0x28d40                                    ; objc_msgSend$clearColor
+000110ac  mov      x29, x29                                    
+000110b0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000110b4  mov      x21, x0                                     
+000110b8  bl       #0x28010                                    ; _objc_retainAutorelease
+000110bc  bl       #0x281e0                                    ; objc_msgSend$CGColor
+000110c0  mov      x2, x0                                      
+000110c4  mov      x0, x20                                     
+000110c8  bl       #0x2af40                                    ; objc_msgSend$setFillColor:
+000110cc  mov      x0, x21                                     
+000110d0  bl       #0x27ff8                                    ; _objc_release
+000110d4  ldr      x0, [x22, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+000110d8  bl       #0x28a40                                    ; objc_msgSend$blackColor
+000110dc  mov      x29, x29                                    
+000110e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000110e4  mov      x21, x0                                     
+000110e8  bl       #0x28010                                    ; _objc_retainAutorelease
+000110ec  bl       #0x281e0                                    ; objc_msgSend$CGColor
+000110f0  mov      x2, x0                                      
+000110f4  mov      x0, x20                                     
+000110f8  bl       #0x2b940                                    ; objc_msgSend$setStrokeColor:
+000110fc  mov      x0, x21                                     
+00011100  bl       #0x27ff8                                    ; _objc_release
+00011104  mov      x0, x20                                     
+00011108  mov      v0.16b, v8.16b                              
+0001110c  bl       #0x2b220                                    ; objc_msgSend$setLineWidth:
+00011110  adrp     x8, #0x38000                                
+00011114  ldr      x8, [x8, #0x2c8]                            ; [0x382c8] __DATA_CONST,__got+0x2c8 (= import _kCALineCapRound)
+00011118  ldr      x2, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0001111c  mov      x0, x20                                     
+00011120  bl       #0x2b200                                    ; objc_msgSend$setLineCap:
+00011124  mov      x0, x19                                     
+00011128  mov      x2, x20                                     
+0001112c  bl       #0x2b2e0                                    ; objc_msgSend$setMask:
+00011130  mov      x0, x20                                     
+00011134  bl       #0x27ff8                                    ; _objc_release
+00011138  mov      x0, x19                                     
+0001113c  ldp      x29, x30, [sp, #0x30]                       
+00011140  ldp      x20, x19, [sp, #0x20]                       
+00011144  ldp      x22, x21, [sp, #0x10]                       
+00011148  ldp      d9, d8, [sp], #0x40                         
+0001114c  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

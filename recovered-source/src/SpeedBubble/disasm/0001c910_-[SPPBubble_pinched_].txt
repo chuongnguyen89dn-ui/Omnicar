@@ -1,0 +1,144 @@
+# -[SPPBubble pinched:]
+# addr 0x1c910 .. 0x1cb44  (564 bytes)
+
+0001c910  sub      sp, sp, #0x130                              
+0001c914  stp      d9, d8, [sp, #0xf0]                         
+0001c918  stp      x22, x21, [sp, #0x100]                      
+0001c91c  stp      x20, x19, [sp, #0x110]                      
+0001c920  stp      x29, x30, [sp, #0x120]                      
+0001c924  add      x29, sp, #0x120                             
+0001c928  mov      x19, x2                                     
+0001c92c  mov      x20, x0                                     
+0001c930  mov      x0, x2                                      
+0001c934  bl       #0x28004                                    ; _objc_retain
+0001c938  mov      x0, x19                                     
+0001c93c  bl       #0x2c120                                    ; objc_msgSend$state
+0001c940  adrp     x21, #0x43000                               
+0001c944  cmp      x0, #1                                      
+0001c948  b.ne     #0x1c96c                                    
+0001c94c  mov      x0, x20                                     
+0001c950  bl       #0x2a780                                    ; objc_msgSend$scale
+0001c954  str      d0, [x21, #0x788]                           
+0001c958  mov      x0, x20                                     
+0001c95c  mov      w2, #1                                      
+0001c960  bl       #0x2b660                                    ; objc_msgSend$setPinching:
+0001c964  mov      x0, x20                                     
+0001c968  bl       #0x29640                                    ; objc_msgSend$hideMenu
+0001c96c  mov      x0, x19                                     
+0001c970  bl       #0x2c120                                    ; objc_msgSend$state
+0001c974  cmp      x0, #1                                      
+0001c978  b.eq     #0x1c98c                                    
+0001c97c  mov      x0, x19                                     
+0001c980  bl       #0x2c120                                    ; objc_msgSend$state
+0001c984  cmp      x0, #2                                      
+0001c988  b.ne     #0x1ca18                                    
+0001c98c  ldr      d8, [x21, #0x788]                           ; [0x43788] __DATA,__data+0x1a0
+0001c990  mov      x0, x19                                     
+0001c994  bl       #0x2a780                                    ; objc_msgSend$scale
+0001c998  fmul     d0, d8, d0                                  
+0001c99c  adrp     x8, #0x32000                                
+0001c9a0  ldr      d1, [x8, #0xd90]                            ; [0x32d90] __const[0x32d90] double=0.54 float=1.2666203376237269e-26
+0001c9a4  fmaxnm   d0, d0, d1                                  
+0001c9a8  adrp     x8, #0x32000                                
+0001c9ac  ldr      d1, [x8, #0xd98]                            ; [0x32d98] __const[0x32d98] double=1.98 float=5.848603149762365e+35
+0001c9b0  fcmp     d0, d1                                      
+0001c9b4  fcsel    d0, d1, d0, gt                              
+0001c9b8  mov      x0, x20                                     
+0001c9bc  bl       #0x2b6e0                                    ; objc_msgSend$setScale:
+0001c9c0  add      x8, sp, #0x90                               
+0001c9c4  mov      x0, x20                                     
+0001c9c8  bl       #0x28900                                    ; objc_msgSend$baseTransform
+0001c9cc  ldp      q0, q1, [sp, #0x90]                         
+0001c9d0  stp      q0, q1, [x29, #-0x60]                       
+0001c9d4  ldr      q0, [sp, #0xb0]                             
+0001c9d8  stur     q0, [x29, #-0x40]                           
+0001c9dc  mov      x0, x20                                     
+0001c9e0  bl       #0x28c60                                    ; objc_msgSend$card
+0001c9e4  mov      x29, x29                                    
+0001c9e8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001c9ec  mov      x21, x0                                     
+0001c9f0  ldp      q0, q1, [x29, #-0x60]                       
+0001c9f4  stp      q0, q1, [sp, #0x60]                         
+0001c9f8  ldur     q0, [x29, #-0x40]                           
+0001c9fc  str      q0, [sp, #0x80]                             
+0001ca00  add      x2, sp, #0x60                               
+0001ca04  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+0001ca08  mov      x0, x21                                     
+0001ca0c  bl       #0x27ff8                                    ; _objc_release
+0001ca10  mov      x0, x20                                     
+0001ca14  bl       #0x28d20                                    ; objc_msgSend$clampCard
+0001ca18  mov      x0, x19                                     
+0001ca1c  bl       #0x2c120                                    ; objc_msgSend$state
+0001ca20  cmp      x0, #3                                      
+0001ca24  b.eq     #0x1ca38                                    
+0001ca28  mov      x0, x19                                     
+0001ca2c  bl       #0x2c120                                    ; objc_msgSend$state
+0001ca30  cmp      x0, #4                                      
+0001ca34  b.ne     #0x1caf4                                    
+0001ca38  mov      x0, x20                                     
+0001ca3c  mov      w2, #0                                      
+0001ca40  bl       #0x2b660                                    ; objc_msgSend$setPinching:
+0001ca44  mov      x0, x20                                     
+0001ca48  bl       #0x2a740                                    ; objc_msgSend$saveCardPosition
+0001ca4c  adrp     x8, #0x43000                                
+0001ca50  ldr      x21, [x8, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001ca54  mov      x0, x20                                     
+0001ca58  bl       #0x2a780                                    ; objc_msgSend$scale
+0001ca5c  mov      v8.16b, v0.16b                              
+0001ca60  mov      x0, x20                                     
+0001ca64  bl       #0x2a160                                    ; objc_msgSend$onPhone
+0001ca68  adrp     x8, #0x32000                                
+0001ca6c  ldr      d0, [x8, #0x7e8]                            ; [0x327e8] __const[0x327e8] double=0.9 float=-107374184.0
+0001ca70  fdiv     d0, d8, d0                                  
+0001ca74  mov      x8, #0x4059000000000000                     
+0001ca78  fmov     d1, x8                                      
+0001ca7c  fmul     d0, d0, d1                                  
+0001ca80  eor      w2, w0, #1                                  
+0001ca84  mov      x0, x21                                     
+0001ca88  bl       #0x2b820                                    ; objc_msgSend$setSizePercent:forCar:
+0001ca8c  mov      x0, x20                                     
+0001ca90  bl       #0x2a760                                    ; objc_msgSend$savedScale
+0001ca94  mov      x0, x20                                     
+0001ca98  bl       #0x2b6e0                                    ; objc_msgSend$setScale:
+0001ca9c  mov      x8, sp                                      
+0001caa0  mov      x0, x20                                     
+0001caa4  bl       #0x28900                                    ; objc_msgSend$baseTransform
+0001caa8  ldp      q0, q1, [sp]                                
+0001caac  stp      q0, q1, [sp, #0x30]                         
+0001cab0  ldr      q0, [sp, #0x20]                             
+0001cab4  str      q0, [sp, #0x50]                             
+0001cab8  mov      x0, x20                                     
+0001cabc  bl       #0x28c60                                    ; objc_msgSend$card
+0001cac0  mov      x29, x29                                    
+0001cac4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001cac8  mov      x21, x0                                     
+0001cacc  ldp      q0, q1, [sp, #0x30]                         
+0001cad0  stp      q0, q1, [sp, #0x60]                         
+0001cad4  ldr      q0, [sp, #0x50]                             
+0001cad8  str      q0, [sp, #0x80]                             
+0001cadc  add      x2, sp, #0x60                               
+0001cae0  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+0001cae4  mov      x0, x21                                     
+0001cae8  bl       #0x27ff8                                    ; _objc_release
+0001caec  mov      x0, x20                                     
+0001caf0  bl       #0x28780                                    ; objc_msgSend$applyCrispScale
+0001caf4  mov      x0, x19                                     
+0001caf8  bl       #0x27ff8                                    ; _objc_release
+0001cafc  ldp      x29, x30, [sp, #0x120]                      
+0001cb00  ldp      x20, x19, [sp, #0x110]                      
+0001cb04  ldp      x22, x21, [sp, #0x100]                      
+0001cb08  ldp      d9, d8, [sp, #0xf0]                         
+0001cb0c  add      sp, sp, #0x130                              
+0001cb10  ret                                                  
+0001cb14  b        #0x1cb18                                    ; sub_1cb18
+0001cb18  mov      x20, x0                                     
+0001cb1c  mov      x0, x21                                     
+0001cb20  bl       #0x27ff8                                    ; _objc_release
+0001cb24  b        #0x1cb34                                    ; sub_1cb34
+0001cb28  b        #0x1cb30                                    ; sub_1cb30
+0001cb2c  b        #0x1cb30                                    ; sub_1cb30
+0001cb30  mov      x20, x0                                     
+0001cb34  mov      x0, x19                                     
+0001cb38  bl       #0x27ff8                                    ; _objc_release
+0001cb3c  mov      x0, x20                                     
+0001cb40  bl       #0x27c80                                    ; __Unwind_Resume

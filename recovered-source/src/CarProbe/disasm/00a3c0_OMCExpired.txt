@@ -1,0 +1,66 @@
+; OMCExpired
+; VA 0xa3c0  size 252
+
+0x0000a3c0:  stp      d9, d8, [sp, #-0x40]!
+0x0000a3c4:  stp      x22, x21, [sp, #0x10]
+0x0000a3c8:  stp      x20, x19, [sp, #0x20]
+0x0000a3cc:  stp      x29, x30, [sp, #0x30]
+0x0000a3d0:  add      x29, sp, #0x30
+0x0000a3d4:  adrp     x21, #0x14000
+0x0000a3d8:  ldrb     w8, [x21, #0x620]
+0x0000a3dc:  tbz      w8, #0, #0xa3e8
+0x0000a3e0:  mov      w20, #1
+0x0000a3e4:  b        #0xa49c    ; -> sub_a49c
+0x0000a3e8:  adrp     x8, #0x14000
+0x0000a3ec:  ldr      x8, [x8, #0x650]
+0x0000a3f0:  cmn      x8, #1
+0x0000a3f4:  b.ne     #0xa4b4
+0x0000a3f8:  adrp     x8, #0x14000
+0x0000a3fc:  ldr      d9, [x8, #0x648]
+0x0000a400:  fcmp     d9, #0.0
+0x0000a404:  b.ls     #0xa484
+0x0000a408:  adrp     x8, #0x14000
+0x0000a40c:  ldr      x0, [x8, #0x388]    ; class(NSDate)
+0x0000a410:  bl       #0xb8c0    ; -> _objc_msgSend(date)
+0x0000a414:  mov      x29, x29
+0x0000a418:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x0000a41c:  mov      x19, x0
+0x0000a420:  bl       #0xc240    ; -> _objc_msgSend(timeIntervalSince1970)
+0x0000a424:  mov      v8.16b, v0.16b
+0x0000a428:  mov      x0, x19
+0x0000a42c:  bl       #0xb410    ; -> _objc_release
+0x0000a430:  adrp     x0, #0x11000
+0x0000a434:  add      x0, x0, #0xa18    ; @"trustedTime"
+0x0000a438:  adrp     x1, #0x10000
+0x0000a43c:  add      x1, x1, #0x6d8    ; @"com.anlai.omnicar"
+0x0000a440:  bl       #0xb074    ; -> _CFPreferencesCopyAppValue
+0x0000a444:  mov      x19, x0
+0x0000a448:  adrp     x8, #0x14000
+0x0000a44c:  ldr      x0, [x8, #0x3b0]    ; class(NSNumber)
+0x0000a450:  bl       #0xb3d4    ; -> _objc_opt_class
+0x0000a454:  mov      x1, x0
+0x0000a458:  mov      x0, x19
+0x0000a45c:  bl       #0xb3e0    ; -> _objc_opt_isKindOfClass
+0x0000a460:  tbz      w0, #0, #0xa474
+0x0000a464:  mov      x0, x19
+0x0000a468:  bl       #0xb9e0    ; -> _objc_msgSend(doubleValue)
+0x0000a46c:  fcmp     d8, d0
+0x0000a470:  fcsel    d8, d0, d8, mi
+0x0000a474:  fcmp     d8, d9
+0x0000a478:  b.ge     #0xa48c
+0x0000a47c:  ldrb     w20, [x21, #0x620]
+0x0000a480:  b        #0xa494    ; -> sub_a494
+0x0000a484:  mov      w20, #0
+0x0000a488:  b        #0xa49c    ; -> sub_a49c
+0x0000a48c:  mov      w20, #1
+0x0000a490:  strb     w20, [x21, #0x620]
+0x0000a494:  mov      x0, x19
+0x0000a498:  bl       #0xb410    ; -> _objc_release
+0x0000a49c:  mov      x0, x20
+0x0000a4a0:  ldp      x29, x30, [sp, #0x30]
+0x0000a4a4:  ldp      x20, x19, [sp, #0x20]
+0x0000a4a8:  ldp      x22, x21, [sp, #0x10]
+0x0000a4ac:  ldp      d9, d8, [sp], #0x40
+0x0000a4b0:  ret      
+0x0000a4b4:  bl       #0xb034    ; -> sub_b034
+0x0000a4b8:  b        #0xa3f8    ; -> sub_a3f8

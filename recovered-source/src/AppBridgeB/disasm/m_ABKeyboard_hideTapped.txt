@@ -1,0 +1,15 @@
+=== -[ABKeyboard hideTapped] @ 0x1d244 (size 56) ===
+0001d244  stp      x20, x19, [sp, #-0x20]!
+0001d248  stp      x29, x30, [sp, #0x10]
+0001d24c  add      x29, sp, #0x10
+0001d250  mov      x19, x0
+0001d254  adrp     x2, #0x35000
+0001d258  add      x2, x2, #0x230 = @"dismiss"
+0001d25c  mov      x3, #0
+0001d260  mov      x4, #0
+0001d264  bl       #0x26a80 ; objc_msgSend sel=send:del:text:
+0001d268  mov      x0, x19
+0001d26c  mov      x2, #0
+0001d270  ldp      x29, x30, [sp, #0x10]
+0001d274  ldp      x20, x19, [sp], #0x20
+0001d278  b        #0x25900 ; objc_msgSend sel=hideForApp:

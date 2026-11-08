@@ -1,0 +1,28 @@
+# sub_208a0
+# addr 0x208a0 .. 0x20904  (100 bytes)
+
+000208a0  stp      d9, d8, [sp, #-0x30]!                       
+000208a4  stp      x20, x19, [sp, #0x10]                       
+000208a8  stp      x29, x30, [sp, #0x20]                       
+000208ac  add      x29, sp, #0x20                              
+000208b0  mov      x19, x0                                     
+000208b4  ldr      x0, [x0, #0x20]                             
+000208b8  bl       #0x28540                                    ; objc_msgSend$alpha
+000208bc  adrp     x8, #0x32000                                
+000208c0  ldr      d8, [x8, #0xd20]                            ; [0x32d20] __const[0x32d20] double=0.01 float=89128.9609375
+000208c4  fcmp     d0, d8                                      
+000208c8  b.pl     #0x208f4                                    
+000208cc  ldr      x0, [x19, #0x28]                            
+000208d0  bl       #0x28540                                    ; objc_msgSend$alpha
+000208d4  fcmp     d0, d8                                      
+000208d8  b.pl     #0x208f4                                    
+000208dc  ldr      x0, [x19, #0x30]                            
+000208e0  mov      w2, #1                                      
+000208e4  ldp      x29, x30, [sp, #0x20]                       
+000208e8  ldp      x20, x19, [sp, #0x10]                       
+000208ec  ldp      d9, d8, [sp], #0x30                         
+000208f0  b        #0x2b060                                    ; objc_msgSend$setHidden:
+000208f4  ldp      x29, x30, [sp, #0x20]                       
+000208f8  ldp      x20, x19, [sp, #0x10]                       
+000208fc  ldp      d9, d8, [sp], #0x30                         
+00020900  ret                                                  

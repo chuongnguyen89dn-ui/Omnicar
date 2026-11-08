@@ -1,0 +1,38 @@
+; +[SCPPrefs setCarPlayApps:]
+0x04e0a4  stp      x22, x21, [sp, #-0x30]!
+0x04e0a8  stp      x20, x19, [sp, #0x10]
+0x04e0ac  stp      x29, x30, [sp, #0x20]
+0x04e0b0  add      x29, sp, #0x20
+0x04e0b4  mov      x19, x2
+0x04e0b8  mov      x20, x0
+0x04e0bc  mov      x0, x2
+0x04e0c0  bl       #0x567c4 ; call _objc_retain
+0x04e0c4  mov      x0, x20
+0x04e0c8  bl       #0x57520 ; objc_msgSend$carPlayApps
+0x04e0cc  mov      x29, x29
+0x04e0d0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04e0d4  mov      x20, x0
+0x04e0d8  mov      x2, x19
+0x04e0dc  bl       #0x58ca0 ; objc_msgSend$isEqualToArray:
+0x04e0e0  mov      x21, x0
+0x04e0e4  mov      x0, x20
+0x04e0e8  bl       #0x567b8 ; call _objc_release
+0x04e0ec  tbnz     w21, #0, #0x4e100
+0x04e0f0  adrp     x0, #0x7e000
+0x04e0f4  add      x0, x0, #0x5a0 ; -> 0x7e5a0 @"splitScreenCarPlayApps"
+0x04e0f8  mov      x1, x19
+0x04e0fc  bl       #0x4db84 ; -> sub_4db84
+0x04e100  mov      x0, x19
+0x04e104  ldp      x29, x30, [sp, #0x20]
+0x04e108  ldp      x20, x19, [sp, #0x10]
+0x04e10c  ldp      x22, x21, [sp], #0x30
+0x04e110  b        #0x567b8 ; call _objc_release
+0x04e114  mov      x21, x0
+0x04e118  mov      x0, x20
+0x04e11c  bl       #0x567b8 ; call _objc_release
+0x04e120  b        #0x4e128
+0x04e124  mov      x21, x0
+0x04e128  mov      x0, x19
+0x04e12c  bl       #0x567b8 ; call _objc_release
+0x04e130  mov      x0, x21
+0x04e134  bl       #0x563e0 ; call __Unwind_Resume

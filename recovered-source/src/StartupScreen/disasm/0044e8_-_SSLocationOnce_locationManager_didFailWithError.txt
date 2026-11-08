@@ -1,0 +1,52 @@
+; -[SSLocationOnce locationManager:didFailWithError:]
+; VA 0x44e8  size 196
+
+0x000044e8:  sub      sp, sp, #0x40
+0x000044ec:  stp      x22, x21, [sp, #0x10]
+0x000044f0:  stp      x20, x19, [sp, #0x20]
+0x000044f4:  stp      x29, x30, [sp, #0x30]
+0x000044f8:  add      x29, sp, #0x30
+0x000044fc:  mov      x19, x3
+0x00004500:  mov      x20, x2
+0x00004504:  mov      x21, x0
+0x00004508:  adrp     x8, #0x3a000
+0x0000450c:  ldr      x22, [x8, #0x9c0]    ; class(NSString)
+0x00004510:  mov      x0, x2
+0x00004514:  bl       #0x2212c    ; -> _objc_retain
+0x00004518:  mov      x0, x19
+0x0000451c:  bl       #0x23a80    ; -> _objc_msgSend(localizedDescription)
+0x00004520:  mov      x29, x29
+0x00004524:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00004528:  mov      x19, x0
+0x0000452c:  str      x0, [sp]
+0x00004530:  adrp     x2, #0x30000
+0x00004534:  add      x2, x2, #0xf48    ; @"weather: location failed: %@"
+0x00004538:  mov      x0, x22
+0x0000453c:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00004540:  mov      x29, x29
+0x00004544:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00004548:  mov      x22, x0
+0x0000454c:  adrp     x0, #0x30000
+0x00004550:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00004554:  mov      x1, x22
+0x00004558:  bl       #0x1b620    ; -> OMCLogWrite
+0x0000455c:  mov      x0, x22
+0x00004560:  bl       #0x22120    ; -> _objc_release
+0x00004564:  mov      x0, x19
+0x00004568:  bl       #0x22120    ; -> _objc_release
+0x0000456c:  mov      x0, x20
+0x00004570:  bl       #0x23ac0    ; -> _objc_msgSend(location)
+0x00004574:  mov      x29, x29
+0x00004578:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000457c:  mov      x19, x0
+0x00004580:  mov      x0, x20
+0x00004584:  bl       #0x22120    ; -> _objc_release
+0x00004588:  mov      x0, x21
+0x0000458c:  mov      x2, x19
+0x00004590:  bl       #0x23380    ; -> _objc_msgSend(finish:)
+0x00004594:  mov      x0, x19
+0x00004598:  ldp      x29, x30, [sp, #0x30]
+0x0000459c:  ldp      x20, x19, [sp, #0x20]
+0x000045a0:  ldp      x22, x21, [sp, #0x10]
+0x000045a4:  add      sp, sp, #0x40
+0x000045a8:  b        #0x22120    ; -> _objc_release

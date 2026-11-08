@@ -1,0 +1,53 @@
+; sub_c268
+0x00c268  stp      x22, x21, [sp, #-0x30]!
+0x00c26c  stp      x20, x19, [sp, #0x10]
+0x00c270  stp      x29, x30, [sp, #0x20]
+0x00c274  add      x29, sp, #0x20
+0x00c278  mov      x19, x0
+0x00c27c  bl       #0x567c4 ; call _objc_retain
+0x00c280  bl       #0x4f538 ; -> _OMCPrefsSync
+0x00c284  mov      x0, x19
+0x00c288  mov      x1, #0
+0x00c28c  bl       #0x4f544 ; -> _OMCPref
+0x00c290  mov      x29, x29
+0x00c294  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00c298  mov      x20, x0
+0x00c29c  adrp     x8, #0x87000
+0x00c2a0  ldr      x0, [x8, #0x680] ; [0x87680] class:NSArray
+0x00c2a4  bl       #0x5677c ; call _objc_opt_class
+0x00c2a8  mov      x1, x0
+0x00c2ac  mov      x0, x20
+0x00c2b0  bl       #0x56788 ; call _objc_opt_isKindOfClass
+0x00c2b4  mov      x8, x0
+0x00c2b8  adrp     x9, #0x87000
+0x00c2bc  ldr      x0, [x9, #0x6f0] ; [0x876f0] class:NSSet
+0x00c2c0  tbz      w8, #0, #0xc2d8
+0x00c2c4  mov      x2, x20
+0x00c2c8  bl       #0x5be40 ; objc_msgSend$setWithArray:
+0x00c2cc  mov      x29, x29
+0x00c2d0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00c2d4  b        #0xc2e4
+0x00c2d8  bl       #0x5a6e0 ; objc_msgSend$set
+0x00c2dc  mov      x29, x29
+0x00c2e0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00c2e4  mov      x21, x0
+0x00c2e8  mov      x0, x20
+0x00c2ec  bl       #0x567b8 ; call _objc_release
+0x00c2f0  mov      x0, x19
+0x00c2f4  bl       #0x567b8 ; call _objc_release
+0x00c2f8  mov      x0, x21
+0x00c2fc  ldp      x29, x30, [sp, #0x20]
+0x00c300  ldp      x20, x19, [sp, #0x10]
+0x00c304  ldp      x22, x21, [sp], #0x30
+0x00c308  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x00c30c  b        #0xc31c
+0x00c310  b        #0xc314
+0x00c314  mov      x21, x0
+0x00c318  b        #0xc328
+0x00c31c  mov      x21, x0
+0x00c320  mov      x0, x20
+0x00c324  bl       #0x567b8 ; call _objc_release
+0x00c328  mov      x0, x19
+0x00c32c  bl       #0x567b8 ; call _objc_release
+0x00c330  mov      x0, x21
+0x00c334  bl       #0x563e0 ; call __Unwind_Resume

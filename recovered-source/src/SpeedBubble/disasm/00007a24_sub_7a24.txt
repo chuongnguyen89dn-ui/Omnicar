@@ -1,0 +1,23 @@
+# sub_7a24
+# addr 0x7a24 .. 0x7a74  (80 bytes)
+
+00007a24  stp      x20, x19, [sp, #-0x20]!                     
+00007a28  stp      x29, x30, [sp, #0x10]                       
+00007a2c  add      x29, sp, #0x10                              
+00007a30  mov      x19, x0                                     
+00007a34  ldr      x1, [x0, #0x20]                             
+00007a38  adrp     x20, #0x38000                               
+00007a3c  ldr      x20, [x20, #0x350]                          ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+00007a40  mov      x0, x20                                     
+00007a44  bl       #0x27d64                                    ; _dispatch_async
+00007a48  mov      x0, #0                                      
+00007a4c  mov      w1, #0x6500                                 
+00007a50  movk     w1, #0x1dcd, lsl #16                        
+00007a54  bl       #0x27dc4                                    ; _dispatch_time
+00007a58  ldr      x2, [x19, #0x20]                            
+00007a5c  mov      x1, x20                                     
+00007a60  bl       #0x27d58                                    ; _dispatch_after
+00007a64  mov      x0, x20                                     
+00007a68  ldp      x29, x30, [sp, #0x10]                       
+00007a6c  ldp      x20, x19, [sp], #0x20                       
+00007a70  b        #0x27ff8                                    ; _objc_release

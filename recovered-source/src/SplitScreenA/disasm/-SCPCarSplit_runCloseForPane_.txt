@@ -1,0 +1,65 @@
+; -[SCPCarSplit runCloseForPane:]
+0x02a1e8  sub      sp, sp, #0x40
+0x02a1ec  stp      x22, x21, [sp, #0x10]
+0x02a1f0  stp      x20, x19, [sp, #0x20]
+0x02a1f4  stp      x29, x30, [sp, #0x30]
+0x02a1f8  add      x29, sp, #0x30
+0x02a1fc  mov      x19, x2
+0x02a200  mov      x21, x0
+0x02a204  mov      x0, x2
+0x02a208  bl       #0x567c4 ; call _objc_retain
+0x02a20c  mov      x0, x19
+0x02a210  bl       #0x57420 ; objc_msgSend$bundleID
+0x02a214  mov      x29, x29
+0x02a218  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x02a21c  mov      x20, x0
+0x02a220  mov      x0, x21
+0x02a224  mov      w2, #0
+0x02a228  mov      x3, x19
+0x02a22c  bl       #0x5a8c0 ; objc_msgSend$setBarVisible:forPane:
+0x02a230  mov      x0, x19
+0x02a234  bl       #0x5c100 ; objc_msgSend$slot
+0x02a238  mov      x2, x0
+0x02a23c  mov      x0, x21
+0x02a240  mov      w3, #1
+0x02a244  bl       #0x57660 ; objc_msgSend$closeSlot:background:
+0x02a248  adrp     x8, #0x87000
+0x02a24c  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x02a250  str      x20, [sp]
+0x02a254  adrp     x2, #0x7c000
+0x02a258  add      x2, x2, #0x3e0 ; -> 0x7c3e0 @"CarSplit: [tat han app] %@"
+0x02a25c  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x02a260  mov      x29, x29
+0x02a264  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x02a268  mov      x22, x0
+0x02a26c  adrp     x0, #0x79000
+0x02a270  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x02a274  mov      x1, x22
+0x02a278  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x02a27c  mov      x0, x22
+0x02a280  bl       #0x567b8 ; call _objc_release
+0x02a284  cbz      x20, #0x2a294
+0x02a288  mov      x0, x21
+0x02a28c  mov      x2, x20
+0x02a290  bl       #0x58de0 ; objc_msgSend$killAppSoon:
+0x02a294  mov      x0, x20
+0x02a298  bl       #0x567b8 ; call _objc_release
+0x02a29c  mov      x0, x19
+0x02a2a0  ldp      x29, x30, [sp, #0x30]
+0x02a2a4  ldp      x20, x19, [sp, #0x20]
+0x02a2a8  ldp      x22, x21, [sp, #0x10]
+0x02a2ac  add      sp, sp, #0x40
+0x02a2b0  b        #0x567b8 ; call _objc_release
+0x02a2b4  mov      x21, x0
+0x02a2b8  mov      x0, x22
+0x02a2bc  bl       #0x567b8 ; call _objc_release
+0x02a2c0  b        #0x2a2d0
+0x02a2c4  mov      x21, x0
+0x02a2c8  b        #0x2a2d8
+0x02a2cc  mov      x21, x0
+0x02a2d0  mov      x0, x20
+0x02a2d4  bl       #0x567b8 ; call _objc_release
+0x02a2d8  mov      x0, x19
+0x02a2dc  bl       #0x567b8 ; call _objc_release
+0x02a2e0  mov      x0, x21
+0x02a2e4  bl       #0x563e0 ; call __Unwind_Resume

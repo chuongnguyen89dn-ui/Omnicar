@@ -1,0 +1,80 @@
+# -[SPPBubble saveCardPosition]
+# addr 0x1df64 .. 0x1e098  (308 bytes)
+
+0001df64  stp      d11, d10, [sp, #-0x50]!                     
+0001df68  stp      d9, d8, [sp, #0x10]                         
+0001df6c  stp      x22, x21, [sp, #0x20]                       
+0001df70  stp      x20, x19, [sp, #0x30]                       
+0001df74  stp      x29, x30, [sp, #0x40]                       
+0001df78  add      x29, sp, #0x40                              
+0001df7c  mov      x20, x0                                     
+0001df80  bl       #0x2c9a0                                    ; objc_msgSend$window
+0001df84  mov      x29, x29                                    
+0001df88  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001df8c  mov      x19, x0                                     
+0001df90  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0001df94  mov      v9.16b, v2.16b                              
+0001df98  mov      v8.16b, v3.16b                              
+0001df9c  mov      x0, x19                                     
+0001dfa0  bl       #0x27ff8                                    ; _objc_release
+0001dfa4  fmov     d0, #1.00000000                             
+0001dfa8  fcmp     d9, d0                                      
+0001dfac  fccmp    d8, d0, #8, pl                              
+0001dfb0  b.pl     #0x1dfcc                                    
+0001dfb4  ldp      x29, x30, [sp, #0x40]                       
+0001dfb8  ldp      x20, x19, [sp, #0x30]                       
+0001dfbc  ldp      x22, x21, [sp, #0x20]                       
+0001dfc0  ldp      d9, d8, [sp, #0x10]                         
+0001dfc4  ldp      d11, d10, [sp], #0x50                       
+0001dfc8  ret                                                  
+0001dfcc  mov      x0, x20                                     
+0001dfd0  bl       #0x28c60                                    ; objc_msgSend$card
+0001dfd4  mov      x29, x29                                    
+0001dfd8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001dfdc  mov      x19, x0                                     
+0001dfe0  bl       #0x28cc0                                    ; objc_msgSend$center
+0001dfe4  mov      v10.16b, v0.16b                             
+0001dfe8  mov      x0, x20                                     
+0001dfec  bl       #0x28c60                                    ; objc_msgSend$card
+0001dff0  mov      x29, x29                                    
+0001dff4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001dff8  mov      x21, x0                                     
+0001dffc  bl       #0x28cc0                                    ; objc_msgSend$center
+0001e000  fdiv     d9, d10, d9                                 
+0001e004  fdiv     d8, d1, d8                                  
+0001e008  mov      x0, x21                                     
+0001e00c  bl       #0x27ff8                                    ; _objc_release
+0001e010  mov      x0, x19                                     
+0001e014  bl       #0x27ff8                                    ; _objc_release
+0001e018  mov      x0, x20                                     
+0001e01c  bl       #0x2a160                                    ; objc_msgSend$onPhone
+0001e020  cbz      w0, #0x1e048                                
+0001e024  mov      x0, x20                                     
+0001e028  mov      v0.16b, v9.16b                              
+0001e02c  mov      v1.16b, v8.16b                              
+0001e030  ldp      x29, x30, [sp, #0x40]                       
+0001e034  ldp      x20, x19, [sp, #0x30]                       
+0001e038  ldp      x22, x21, [sp, #0x20]                       
+0001e03c  ldp      d9, d8, [sp, #0x10]                         
+0001e040  ldp      d11, d10, [sp], #0x50                       
+0001e044  b        #0x2b640                                    ; objc_msgSend$setPhoneFraction:
+0001e048  mov      x0, x20                                     
+0001e04c  mov      v0.16b, v9.16b                              
+0001e050  mov      v1.16b, v8.16b                              
+0001e054  ldp      x29, x30, [sp, #0x40]                       
+0001e058  ldp      x20, x19, [sp, #0x30]                       
+0001e05c  ldp      x22, x21, [sp, #0x20]                       
+0001e060  ldp      d9, d8, [sp, #0x10]                         
+0001e064  ldp      d11, d10, [sp], #0x50                       
+0001e068  b        #0x2abe0                                    ; objc_msgSend$setCarFraction:
+0001e06c  mov      x20, x0                                     
+0001e070  mov      x0, x21                                     
+0001e074  bl       #0x27ff8                                    ; _objc_release
+0001e078  b        #0x1e088                                    ; sub_1e088
+0001e07c  b        #0x1e084                                    ; sub_1e084
+0001e080  b        #0x1e084                                    ; sub_1e084
+0001e084  mov      x20, x0                                     
+0001e088  mov      x0, x19                                     
+0001e08c  bl       #0x27ff8                                    ; _objc_release
+0001e090  mov      x0, x20                                     
+0001e094  bl       #0x27c80                                    ; __Unwind_Resume

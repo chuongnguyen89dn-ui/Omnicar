@@ -1,0 +1,40 @@
+; sub_a61c
+; VA 0xa61c  size 148
+
+0x0000a61c:  stp      x22, x21, [sp, #-0x30]!
+0x0000a620:  stp      x20, x19, [sp, #0x10]
+0x0000a624:  stp      x29, x30, [sp, #0x20]
+0x0000a628:  add      x29, sp, #0x20
+0x0000a62c:  mov      x19, x0
+0x0000a630:  bl       #0x2212c    ; -> _objc_retain
+0x0000a634:  cbz      x19, #0xa66c
+0x0000a638:  mov      x0, x19
+0x0000a63c:  bl       #0x25ec0    ; -> _objc_msgSend(traitCollection)
+0x0000a640:  mov      x29, x29
+0x0000a644:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000a648:  mov      x20, x0
+0x0000a64c:  bl       #0x25f80    ; -> _objc_msgSend(userInterfaceIdiom)
+0x0000a650:  mov      x21, x0
+0x0000a654:  mov      x0, x20
+0x0000a658:  bl       #0x22120    ; -> _objc_release
+0x0000a65c:  cmp      x21, #3
+0x0000a660:  b.ne     #0xa674
+0x0000a664:  mov      w20, #1
+0x0000a668:  b        #0xa694    ; -> sub_a694
+0x0000a66c:  mov      w20, #0
+0x0000a670:  b        #0xa694    ; -> sub_a694
+0x0000a674:  adrp     x8, #0x3a000
+0x0000a678:  ldr      x0, [x8, #0xa28]    ; class(UIScreen)
+0x0000a67c:  bl       #0x23ba0    ; -> _objc_msgSend(mainScreen)
+0x0000a680:  mov      x29, x29
+0x0000a684:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000a688:  cmp      x19, x0
+0x0000a68c:  cset     w20, ne
+0x0000a690:  bl       #0x22120    ; -> _objc_release
+0x0000a694:  mov      x0, x19
+0x0000a698:  bl       #0x22120    ; -> _objc_release
+0x0000a69c:  mov      x0, x20
+0x0000a6a0:  ldp      x29, x30, [sp, #0x20]
+0x0000a6a4:  ldp      x20, x19, [sp, #0x10]
+0x0000a6a8:  ldp      x22, x21, [sp], #0x30
+0x0000a6ac:  ret      

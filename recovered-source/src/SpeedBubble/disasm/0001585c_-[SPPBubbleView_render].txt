@@ -1,0 +1,31 @@
+# -[SPPBubbleView render]
+# addr 0x1585c .. 0x158cc  (112 bytes)
+
+0001585c  stp      x20, x19, [sp, #-0x20]!                     
+00015860  stp      x29, x30, [sp, #0x10]                       
+00015864  add      x29, sp, #0x10                              
+00015868  mov      x19, x0                                     
+0001586c  bl       #0x2c380                                    ; objc_msgSend$style
+00015870  tbnz     x0, #0x3f, #0x15894                         
+00015874  mov      x0, x19                                     
+00015878  bl       #0x2c380                                    ; objc_msgSend$style
+0001587c  cmp      x0, #8                                      
+00015880  b.gt     #0x15894                                    
+00015884  mov      x0, x19                                     
+00015888  bl       #0x2c380                                    ; objc_msgSend$style
+0001588c  mov      x20, x0                                     
+00015890  b        #0x15898                                    ; sub_15898
+00015894  mov      x20, #0                                     
+00015898  mov      x0, x19                                     
+0001589c  bl       #0x28b40                                    ; objc_msgSend$builtStyle
+000158a0  cmp      x20, x0                                     
+000158a4  b.eq     #0x158b4                                    
+000158a8  mov      x0, x19                                     
+000158ac  mov      x2, x20                                     
+000158b0  bl       #0x28b00                                    ; objc_msgSend$buildStyle:
+000158b4  mov      x0, x19                                     
+000158b8  bl       #0x2a660                                    ; objc_msgSend$renderStyle
+000158bc  mov      x0, x19                                     
+000158c0  ldp      x29, x30, [sp, #0x10]                       
+000158c4  ldp      x20, x19, [sp], #0x20                       
+000158c8  b        #0x28f20                                    ; objc_msgSend$contentSize

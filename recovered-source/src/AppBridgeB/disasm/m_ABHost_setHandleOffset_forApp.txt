@@ -1,0 +1,47 @@
+=== -[ABHost setHandleOffset:forApp:] @ 0x14c7c (size 184) ===
+00014c7c  stp      d9, d8, [sp, #-0x40]!
+00014c80  stp      x22, x21, [sp, #0x10]
+00014c84  stp      x20, x19, [sp, #0x20]
+00014c88  stp      x29, x30, [sp, #0x30]
+00014c8c  add      x29, sp, #0x30
+00014c90  mov      v8.16b, v0.16b
+00014c94  mov      x20, x0
+00014c98  bl       #0x26520 ; objc_msgSend sel=paneFor:
+00014c9c  mov      x29, x29
+00014ca0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00014ca4  mov      x19, x0
+00014ca8  cbz      x0, #0x14cf8
+00014cac  mov      x0, x19
+00014cb0  bl       #0x25880 ; objc_msgSend sel=handleOffset
+00014cb4  fcmp     d0, d8
+00014cb8  b.eq     #0x14cf8
+00014cbc  mov      x0, x19
+00014cc0  mov      v0.16b, v8.16b
+00014cc4  bl       #0x27040 ; objc_msgSend sel=setHandleOffset:
+00014cc8  mov      x0, x19
+00014ccc  bl       #0x25860 ; objc_msgSend sel=handleHit
+00014cd0  mov      x29, x29
+00014cd4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00014cd8  mov      x21, x0
+00014cdc  bl       #0x25d00 ; objc_msgSend sel=isHidden
+00014ce0  eor      w2, w0, #1
+00014ce4  mov      x0, x20
+00014ce8  mov      x3, x19
+00014cec  bl       #0x27080 ; objc_msgSend sel=setHandleVisible:forPane:
+00014cf0  mov      x0, x21
+00014cf4  bl       #0x2480c ; call _objc_release
+00014cf8  mov      x0, x19
+00014cfc  ldp      x29, x30, [sp, #0x30]
+00014d00  ldp      x20, x19, [sp, #0x20]
+00014d04  ldp      x22, x21, [sp, #0x10]
+00014d08  ldp      d9, d8, [sp], #0x40
+00014d0c  b        #0x2480c ; call _objc_release
+00014d10  mov      x20, x0
+00014d14  mov      x0, x21
+00014d18  bl       #0x2480c ; call _objc_release
+00014d1c  b        #0x14d24 ; call sub_14d24
+00014d20  mov      x20, x0
+00014d24  mov      x0, x19
+00014d28  bl       #0x2480c ; call _objc_release
+00014d2c  mov      x0, x20
+00014d30  bl       #0x24470 ; call __Unwind_Resume

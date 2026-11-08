@@ -1,0 +1,19 @@
+; -[SSSplash tapped:]
+; VA 0x6e18  size 64
+
+0x00006e18:  stp      x20, x19, [sp, #-0x20]!
+0x00006e1c:  stp      x29, x30, [sp, #0x10]
+0x00006e20:  add      x29, sp, #0x10
+0x00006e24:  mov      x19, x0
+0x00006e28:  mov      x0, x2
+0x00006e2c:  bl       #0x23d80    ; -> _objc_msgSend(numberOfTouches)
+0x00006e30:  adrp     x8, #0x31000
+0x00006e34:  add      x8, x8, #0x188    ; @"tap"
+0x00006e38:  adrp     x9, #0x31000
+0x00006e3c:  add      x9, x9, #0x1a8    ; @"press (knob / button)"
+0x00006e40:  cmp      x0, #0
+0x00006e44:  csel     x2, x9, x8, eq
+0x00006e48:  mov      x0, x19
+0x00006e4c:  ldp      x29, x30, [sp, #0x10]
+0x00006e50:  ldp      x20, x19, [sp], #0x20
+0x00006e54:  b        #0x23120    ; -> _objc_msgSend(dismissBecause:)

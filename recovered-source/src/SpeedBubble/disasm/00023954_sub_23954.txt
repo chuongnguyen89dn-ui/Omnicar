@@ -1,0 +1,22 @@
+# sub_23954
+# addr 0x23954 .. 0x239a0  (76 bytes)
+
+00023954  stp      x20, x19, [sp, #-0x20]!                     
+00023958  stp      x29, x30, [sp, #0x10]                       
+0002395c  add      x29, sp, #0x10                              
+00023960  bl       #0x27c50                                    ; _NSTemporaryDirectory
+00023964  mov      x29, x29                                    
+00023968  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002396c  mov      x19, x0                                     
+00023970  adrp     x2, #0x3c000                                
+00023974  add      x2, x2, #0x578                              ; @"OmniCar-crashguard.plist"
+00023978  bl       #0x2c220                                    ; objc_msgSend$stringByAppendingPathComponent:
+0002397c  mov      x29, x29                                    
+00023980  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023984  mov      x20, x0                                     
+00023988  mov      x0, x19                                     
+0002398c  bl       #0x27ff8                                    ; _objc_release
+00023990  mov      x0, x20                                     
+00023994  ldp      x29, x30, [sp, #0x10]                       
+00023998  ldp      x20, x19, [sp], #0x20                       
+0002399c  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

@@ -1,0 +1,98 @@
+# _SPPVoiceLine
+# addr 0x16028 .. 0x161a4  (380 bytes)
+
+00016028  sub      sp, sp, #0x50                               
+0001602c  stp      x24, x23, [sp, #0x10]                       
+00016030  stp      x22, x21, [sp, #0x20]                       
+00016034  stp      x20, x19, [sp, #0x30]                       
+00016038  stp      x29, x30, [sp, #0x40]                       
+0001603c  add      x29, sp, #0x40                              
+00016040  mov      x20, x2                                     
+00016044  mov      x19, x1                                     
+00016048  mov      x22, x0                                     
+0001604c  mov      x0, x1                                      
+00016050  bl       #0x28004                                    ; _objc_retain
+00016054  adrp     x24, #0x42000                               
+00016058  cmp      x22, #8                                     
+0001605c  b.ne     #0x16098                                    
+00016060  ldr      x0, [x24, #0xfc8]                           ; [0x42fc8] classref -> NSCharacterSet (= import _OBJC_CLASS_$_NSCharacterSet)
+00016064  bl       #0x2c980                                    ; objc_msgSend$whitespaceAndNewlineCharacterSet
+00016068  mov      x29, x29                                    
+0001606c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016070  mov      x23, x0                                     
+00016074  mov      x0, x19                                     
+00016078  mov      x2, x23                                     
+0001607c  bl       #0x2c2a0                                    ; objc_msgSend$stringByTrimmingCharactersInSet:
+00016080  mov      x29, x29                                    
+00016084  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016088  mov      x21, x0                                     
+0001608c  mov      x0, x23                                     
+00016090  bl       #0x27ff8                                    ; _objc_release
+00016094  b        #0x1609c                                    ; sub_1609c
+00016098  mov      x21, #0                                     
+0001609c  mov      x0, x21                                     
+000160a0  bl       #0x29ba0                                    ; objc_msgSend$length
+000160a4  cbnz     x0, #0x160cc                                
+000160a8  cmp      x22, #8                                     
+000160ac  csel     x0, xzr, x22, eq                            
+000160b0  bl       #0x15f18                                    ; _SPPVoiceTemplate
+000160b4  mov      x29, x29                                    
+000160b8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000160bc  mov      x22, x0                                     
+000160c0  mov      x0, x21                                     
+000160c4  bl       #0x27ff8                                    ; _objc_release
+000160c8  mov      x21, x22                                    
+000160cc  cmp      w20, #1                                     
+000160d0  b.lt     #0x160fc                                    
+000160d4  adrp     x8, #0x42000                                
+000160d8  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000160dc  str      x20, [sp]                                   
+000160e0  adrp     x2, #0x3a000                                
+000160e4  add      x2, x2, #0x1f8                              ; @"%d"
+000160e8  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000160ec  mov      x29, x29                                    
+000160f0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000160f4  mov      x23, x0                                     
+000160f8  b        #0x16104                                    ; sub_16104
+000160fc  adrp     x23, #0x39000                               
+00016100  add      x23, x23, #0x8d8                            ; @""
+00016104  adrp     x2, #0x3a000                                
+00016108  add      x2, x2, #0x478                              ; @"{L}"
+0001610c  mov      x0, x21                                     
+00016110  mov      x3, x23                                     
+00016114  bl       #0x2c280                                    ; objc_msgSend$stringByReplacingOccurrencesOfString:withString:
+00016118  mov      x29, x29                                    
+0001611c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016120  mov      x22, x0                                     
+00016124  mov      x0, x21                                     
+00016128  bl       #0x27ff8                                    ; _objc_release
+0001612c  cmp      w20, #1                                     
+00016130  b.lt     #0x1613c                                    
+00016134  mov      x0, x23                                     
+00016138  bl       #0x27ff8                                    ; _objc_release
+0001613c  ldr      x0, [x24, #0xfc8]                           ; [0x42fc8] classref -> NSCharacterSet (= import _OBJC_CLASS_$_NSCharacterSet)
+00016140  adrp     x2, #0x3a000                                
+00016144  add      x2, x2, #0x498                              ; @" ,"
+00016148  bl       #0x28d00                                    ; objc_msgSend$characterSetWithCharactersInString:
+0001614c  mov      x29, x29                                    
+00016150  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016154  mov      x20, x0                                     
+00016158  mov      x0, x22                                     
+0001615c  mov      x2, x20                                     
+00016160  bl       #0x2c2a0                                    ; objc_msgSend$stringByTrimmingCharactersInSet:
+00016164  mov      x29, x29                                    
+00016168  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001616c  mov      x21, x0                                     
+00016170  mov      x0, x20                                     
+00016174  bl       #0x27ff8                                    ; _objc_release
+00016178  mov      x0, x22                                     
+0001617c  bl       #0x27ff8                                    ; _objc_release
+00016180  mov      x0, x19                                     
+00016184  bl       #0x27ff8                                    ; _objc_release
+00016188  mov      x0, x21                                     
+0001618c  ldp      x29, x30, [sp, #0x40]                       
+00016190  ldp      x20, x19, [sp, #0x30]                       
+00016194  ldp      x22, x21, [sp, #0x20]                       
+00016198  ldp      x24, x23, [sp, #0x10]                       
+0001619c  add      sp, sp, #0x50                               
+000161a0  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

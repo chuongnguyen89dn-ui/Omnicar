@@ -1,0 +1,23 @@
+=== -[ABBoxView layoutSubviews] @ 0x9e50 (size 88) ===
+00009e50  sub      sp, sp, #0x30
+00009e54  stp      x20, x19, [sp, #0x10]
+00009e58  stp      x29, x30, [sp, #0x20]
+00009e5c  add      x29, sp, #0x20
+00009e60  mov      x19, x0
+00009e64  adrp     x8, #0x3e000
+00009e68  ldr      x8, [x8, #0x460] ; -> class ABBoxView
+00009e6c  stp      x0, x8, [sp]
+00009e70  adrp     x8, #0x3d000
+00009e74  ldr      x1, [x8, #0x258] ; selref @layoutSubviews
+00009e78  mov      x0, sp
+00009e7c  bl       #0x247c4 ; call _objc_msgSendSuper2
+00009e80  mov      x0, x19
+00009e84  bl       #0x25940 ; objc_msgSend sel=hole
+00009e88  bl       #0x243c8 ; call _CGRectIsEmpty
+00009e8c  tbnz     w0, #0, #0x9e98
+00009e90  mov      x0, x19
+00009e94  bl       #0x24da0 ; objc_msgSend sel=applyHole
+00009e98  ldp      x29, x30, [sp, #0x20]
+00009e9c  ldp      x20, x19, [sp, #0x10]
+00009ea0  add      sp, sp, #0x30
+00009ea4  ret      

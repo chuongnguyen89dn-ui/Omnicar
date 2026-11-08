@@ -1,0 +1,125 @@
+; sub_1ab70
+; VA 0x1ab70  size 488
+
+0x0001ab70:  sub      sp, sp, #0x120
+0x0001ab74:  stp      x28, x27, [sp, #0xd0]
+0x0001ab78:  stp      x24, x23, [sp, #0xe0]
+0x0001ab7c:  stp      x22, x21, [sp, #0xf0]
+0x0001ab80:  stp      x20, x19, [sp, #0x100]
+0x0001ab84:  stp      x29, x30, [sp, #0x110]
+0x0001ab88:  add      x29, sp, #0x110
+0x0001ab8c:  mov      x19, x0
+0x0001ab90:  adrp     x8, #0x78000
+0x0001ab94:  ldr      x8, [x8, #0x360]    ; got(___stack_chk_guard)
+0x0001ab98:  ldr      x8, [x8]
+0x0001ab9c:  stur     x8, [x29, #-0x48]
+0x0001aba0:  bl       #0x567c4    ; -> _objc_retain
+0x0001aba4:  movi     v0.16b, #0
+0x0001aba8:  stp      q0, q0, [sp]
+0x0001abac:  stp      q0, q0, [sp, #0x20]
+0x0001abb0:  adrp     x0, #0x80000
+0x0001abb4:  add      x0, x0, #0x530
+0x0001abb8:  mov      x2, sp
+0x0001abbc:  add      x3, sp, #0x48
+0x0001abc0:  mov      w4, #0x10
+0x0001abc4:  bl       #0x57a00    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001abc8:  mov      x21, x0
+0x0001abcc:  cbz      x0, #0x1ac64
+0x0001abd0:  ldr      x8, [sp, #0x10]
+0x0001abd4:  ldr      x23, [x8]
+0x0001abd8:  adrp     x20, #0x80000
+0x0001abdc:  add      x20, x20, #0x530
+0x0001abe0:  mov      x24, #0
+0x0001abe4:  ldr      x8, [sp, #0x10]
+0x0001abe8:  ldr      x8, [x8]
+0x0001abec:  cmp      x8, x23
+0x0001abf0:  b.eq     #0x1abfc
+0x0001abf4:  mov      x0, x20
+0x0001abf8:  bl       #0x5671c    ; -> _objc_enumerationMutation
+0x0001abfc:  ldr      x8, [sp, #8]
+0x0001ac00:  ldr      x2, [x8, x24, lsl #3]
+0x0001ac04:  mov      x0, x19
+0x0001ac08:  bl       #0x5caa0    ; -> _objc_msgSend(valueForKey:)
+0x0001ac0c:  mov      x29, x29
+0x0001ac10:  bl       #0x567dc    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ac14:  mov      x22, x0
+0x0001ac18:  cbnz     x0, #0x1acbc
+0x0001ac1c:  add      x24, x24, #1
+0x0001ac20:  cmp      x21, x24
+0x0001ac24:  b.ne     #0x1abe4
+0x0001ac28:  b        #0x1ac48    ; -> sub_1ac48
+0x0001ac2c:  mov      x22, x0
+0x0001ac30:  cmp      w1, #1
+0x0001ac34:  b.ne     #0x1ad40
+0x0001ac38:  mov      x0, x22
+0x0001ac3c:  bl       #0x566ec    ; -> _objc_begin_catch
+0x0001ac40:  bl       #0x56710    ; -> _objc_end_catch
+0x0001ac44:  b        #0x1ac1c    ; -> sub_1ac1c
+0x0001ac48:  mov      x2, sp
+0x0001ac4c:  add      x3, sp, #0x48
+0x0001ac50:  mov      x0, x20
+0x0001ac54:  mov      w4, #0x10
+0x0001ac58:  bl       #0x57a00    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001ac5c:  mov      x21, x0
+0x0001ac60:  cbnz     x0, #0x1abe0
+0x0001ac64:  adrp     x2, #0x7d000
+0x0001ac68:  add      x2, x2, #0xbe0    ; @"sceneHandle"
+0x0001ac6c:  mov      x0, x19
+0x0001ac70:  bl       #0x5caa0    ; -> _objc_msgSend(valueForKey:)
+0x0001ac74:  mov      x29, x29
+0x0001ac78:  bl       #0x567dc    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ac7c:  mov      x20, x0
+0x0001ac80:  cbz      x0, #0x1acb0
+0x0001ac84:  adrp     x2, #0x7d000
+0x0001ac88:  add      x2, x2, #0xba0    ; @"scene"
+0x0001ac8c:  mov      x0, x20
+0x0001ac90:  bl       #0x5caa0    ; -> _objc_msgSend(valueForKey:)
+0x0001ac94:  mov      x29, x29
+0x0001ac98:  bl       #0x567dc    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ac9c:  mov      x22, x0
+0x0001aca0:  cbz      x0, #0x1acb0
+0x0001aca4:  mov      x0, x20
+0x0001aca8:  bl       #0x567b8    ; -> _objc_release
+0x0001acac:  b        #0x1acbc    ; -> sub_1acbc
+0x0001acb0:  mov      x0, x20
+0x0001acb4:  bl       #0x567b8    ; -> _objc_release
+0x0001acb8:  mov      x22, #0
+0x0001acbc:  mov      x0, x19
+0x0001acc0:  bl       #0x567b8    ; -> _objc_release
+0x0001acc4:  ldur     x8, [x29, #-0x48]
+0x0001acc8:  adrp     x9, #0x78000
+0x0001accc:  ldr      x9, [x9, #0x360]    ; got(___stack_chk_guard)
+0x0001acd0:  ldr      x9, [x9]
+0x0001acd4:  cmp      x9, x8
+0x0001acd8:  b.ne     #0x1acfc
+0x0001acdc:  mov      x0, x22
+0x0001ace0:  ldp      x29, x30, [sp, #0x110]
+0x0001ace4:  ldp      x20, x19, [sp, #0x100]
+0x0001ace8:  ldp      x22, x21, [sp, #0xf0]
+0x0001acec:  ldp      x24, x23, [sp, #0xe0]
+0x0001acf0:  ldp      x28, x27, [sp, #0xd0]
+0x0001acf4:  add      sp, sp, #0x120
+0x0001acf8:  b        #0x566e0    ; -> _objc_autoreleaseReturnValue
+0x0001acfc:  bl       #0x56404    ; -> ___stack_chk_fail
+0x0001ad00:  mov      x21, x1
+0x0001ad04:  mov      x22, x0
+0x0001ad08:  mov      x0, x20
+0x0001ad0c:  bl       #0x567b8    ; -> _objc_release
+0x0001ad10:  b        #0x1ad1c    ; -> sub_1ad1c
+0x0001ad14:  mov      x21, x1
+0x0001ad18:  mov      x22, x0
+0x0001ad1c:  cmp      w21, #1
+0x0001ad20:  b.ne     #0x1ad40
+0x0001ad24:  mov      x0, x22
+0x0001ad28:  bl       #0x566ec    ; -> _objc_begin_catch
+0x0001ad2c:  bl       #0x56710    ; -> _objc_end_catch
+0x0001ad30:  b        #0x1acb8    ; -> sub_1acb8
+0x0001ad34:  b        #0x1ad3c    ; -> sub_1ad3c
+0x0001ad38:  b        #0x1ad3c
+0x0001ad3c:  mov      x22, x0
+0x0001ad40:  mov      x0, x19
+0x0001ad44:  bl       #0x567b8    ; -> _objc_release
+0x0001ad48:  b        #0x1ad50    ; -> sub_1ad50
+0x0001ad4c:  mov      x22, x0
+0x0001ad50:  mov      x0, x22
+0x0001ad54:  bl       #0x563e0    ; -> __Unwind_Resume

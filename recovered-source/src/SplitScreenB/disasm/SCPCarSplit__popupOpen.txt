@@ -1,0 +1,43 @@
+; ==== SCPCarSplit__popupOpen  @0x257ec..0x25894 (168 bytes) ====
+000257ec  stp      x22, x21, [sp, #-0x30]!                      
+000257f0  stp      x20, x19, [sp, #0x10]                        
+000257f4  stp      x29, x30, [sp, #0x20]                        
+000257f8  add      x29, sp, #0x20                               
+000257fc  mov      x21, x0                                      
+00025800  bl       #0x5c820                                     ; msgSend "tray"
+00025804  mov      x29, x29                                     
+00025808  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002580c  mov      x19, x0                                      
+00025810  cbz      x0, #0x2581c                                 
+00025814  mov      w21, #1                                      
+00025818  b        #0x25878                                     
+0002581c  mov      x0, x21                                      
+00025820  bl       #0x59f80                                     ; msgSend "ratioMenu"
+00025824  mov      x29, x29                                     
+00025828  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002582c  mov      x20, x0                                      
+00025830  cbz      x0, #0x2583c                                 
+00025834  mov      w21, #1                                      
+00025838  b        #0x25870                                     
+0002583c  mov      x0, x21                                      
+00025840  bl       #0x59a40                                     ; msgSend "pickerSheet"
+00025844  mov      x29, x29                                     
+00025848  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002584c  mov      x22, x0                                      
+00025850  cbz      x0, #0x2585c                                 
+00025854  mov      w21, #1                                      
+00025858  b        #0x25868                                     
+0002585c  mov      x0, x21                                      
+00025860  bl       #0x56f40                                     ; msgSend "anyBarVisible"
+00025864  mov      x21, x0                                      
+00025868  mov      x0, x22                                      
+0002586c  bl       #0x567b8                                     ; call _objc_release
+00025870  mov      x0, x20                                      
+00025874  bl       #0x567b8                                     ; call _objc_release
+00025878  mov      x0, x19                                      
+0002587c  bl       #0x567b8                                     ; call _objc_release
+00025880  mov      x0, x21                                      
+00025884  ldp      x29, x30, [sp, #0x20]                        
+00025888  ldp      x20, x19, [sp, #0x10]                        
+0002588c  ldp      x22, x21, [sp], #0x30                        
+00025890  ret                                                   

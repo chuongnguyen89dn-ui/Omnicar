@@ -1,0 +1,152 @@
+; ==== SCPCarSplit__dividerFrameAt_  @0x11ba0..0x11dfc (604 bytes) ====
+00011ba0  sub      sp, sp, #0xc0                                
+00011ba4  stp      d15, d14, [sp, #0x50]                        
+00011ba8  stp      d13, d12, [sp, #0x60]                        
+00011bac  stp      d11, d10, [sp, #0x70]                        
+00011bb0  stp      d9, d8, [sp, #0x80]                          
+00011bb4  stp      x22, x21, [sp, #0x90]                        
+00011bb8  stp      x20, x19, [sp, #0xa0]                        
+00011bbc  stp      x29, x30, [sp, #0xb0]                        
+00011bc0  add      x29, sp, #0xb0                               
+00011bc4  mov      x20, x2                                      
+00011bc8  mov      x19, x0                                      
+00011bcc  bl       #0x57800                                     ; msgSend "container"
+00011bd0  mov      x29, x29                                     
+00011bd4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00011bd8  mov      x21, x0                                      
+00011bdc  bl       #0x57320                                     ; msgSend "bounds"
+00011be0  fmov     d4, xzr                                      
+00011be4  fmov     d5, xzr                                      
+00011be8  bl       #0x562fc                                     ; call _CGRectInset
+00011bec  mov      v8.16b, v0.16b                               
+00011bf0  mov      v9.16b, v1.16b                               
+00011bf4  mov      v10.16b, v2.16b                              
+00011bf8  mov      v11.16b, v3.16b                              
+00011bfc  mov      x0, x21                                      
+00011c00  bl       #0x567b8                                     ; call _objc_release
+00011c04  mov      x0, x19                                      
+00011c08  bl       #0x59260                                     ; msgSend "mainStack"
+00011c0c  cmp      w20, #1                                      
+00011c10  b.ne     #0x11c58                                     
+00011c14  cbz      w0, #0x11c58                                 
+00011c18  mov      x0, x19                                      
+00011c1c  mov      w2, #1                                       
+00011c20  bl       #0x58360                                     ; msgSend "frameForSlot:"
+00011c24  mov      v8.16b, v0.16b                               
+00011c28  mov      v9.16b, v1.16b                               
+00011c2c  mov      v10.16b, v2.16b                              
+00011c30  mov      v11.16b, v3.16b                              
+00011c34  mov      x0, x19                                      
+00011c38  mov      w2, #1                                       
+00011c3c  bl       #0x57d20                                     ; msgSend "dividerRunsHorizontally:"
+00011c40  cbz      w0, #0x11d30                                 
+00011c44  mov      v0.16b, v8.16b                               
+00011c48  mov      v1.16b, v9.16b                               
+00011c4c  mov      v2.16b, v10.16b                              
+00011c50  mov      v3.16b, v11.16b                              
+00011c54  b        #0x11d98                                     
+00011c58  mov      x0, x19                                      
+00011c5c  mov      x2, x20                                      
+00011c60  bl       #0x58360                                     ; msgSend "frameForSlot:"
+00011c64  mov      v13.16b, v0.16b                              
+00011c68  mov      v14.16b, v1.16b                              
+00011c6c  mov      v15.16b, v2.16b                              
+00011c70  mov      v12.16b, v3.16b                              
+00011c74  mov      x0, x19                                      
+00011c78  bl       #0x59260                                     ; msgSend "mainStack"
+00011c7c  cbz      w0, #0x11d7c                                 
+00011c80  stp      d12, d15, [sp, #0x30]                        
+00011c84  stp      d14, d13, [sp, #0x40]                        
+00011c88  mov      x0, x19                                      
+00011c8c  mov      w2, #1                                       
+00011c90  bl       #0x58360                                     ; msgSend "frameForSlot:"
+00011c94  mov      v12.16b, v0.16b                              
+00011c98  mov      v13.16b, v1.16b                              
+00011c9c  mov      v14.16b, v2.16b                              
+00011ca0  mov      v15.16b, v3.16b                              
+00011ca4  mov      x0, x19                                      
+00011ca8  mov      w2, #2                                       
+00011cac  bl       #0x58360                                     ; msgSend "frameForSlot:"
+00011cb0  mov      v4.16b, v0.16b                               
+00011cb4  mov      v5.16b, v1.16b                               
+00011cb8  mov      v6.16b, v2.16b                               
+00011cbc  mov      v7.16b, v3.16b                               
+00011cc0  mov      v0.16b, v12.16b                              
+00011cc4  mov      v1.16b, v13.16b                              
+00011cc8  mov      v2.16b, v14.16b                              
+00011ccc  mov      v3.16b, v15.16b                              
+00011cd0  bl       #0x56338                                     ; call _CGRectUnion
+00011cd4  mov      v12.16b, v0.16b                              
+00011cd8  mov      v13.16b, v1.16b                              
+00011cdc  mov      v14.16b, v2.16b                              
+00011ce0  mov      v15.16b, v3.16b                              
+00011ce4  mov      x0, x19                                      
+00011ce8  bl       #0x5cb20                                     ; msgSend "vertical"
+00011cec  stp      d13, d12, [sp, #0x20]                        
+00011cf0  stp      d15, d14, [sp, #0x10]                        
+00011cf4  mov      v0.16b, v12.16b                              
+00011cf8  mov      v1.16b, v13.16b                              
+00011cfc  mov      v2.16b, v14.16b                              
+00011d00  mov      v3.16b, v15.16b                              
+00011d04  cbz      w0, #0x11d44                                 
+00011d08  bl       #0x562f0                                     ; call _CGRectGetMinY
+00011d0c  str      d0, [sp, #8]                                 
+00011d10  ldp      d14, d13, [sp, #0x40]                        
+00011d14  mov      v0.16b, v13.16b                              
+00011d18  mov      v1.16b, v14.16b                              
+00011d1c  ldp      d12, d15, [sp, #0x30]                        
+00011d20  mov      v2.16b, v15.16b                              
+00011d24  mov      v3.16b, v12.16b                              
+00011d28  bl       #0x562f0                                     ; call _CGRectGetMinY
+00011d2c  b        #0x11d68                                     
+00011d30  mov      v0.16b, v8.16b                               
+00011d34  mov      v1.16b, v9.16b                               
+00011d38  mov      v2.16b, v10.16b                              
+00011d3c  mov      v3.16b, v11.16b                              
+00011d40  b        #0x11da8                                     
+00011d44  bl       #0x562e4                                     ; call _CGRectGetMinX
+00011d48  str      d0, [sp, #8]                                 
+00011d4c  ldp      d14, d13, [sp, #0x40]                        
+00011d50  mov      v0.16b, v13.16b                              
+00011d54  mov      v1.16b, v14.16b                              
+00011d58  ldp      d12, d15, [sp, #0x30]                        
+00011d5c  mov      v2.16b, v15.16b                              
+00011d60  mov      v3.16b, v12.16b                              
+00011d64  bl       #0x562e4                                     ; call _CGRectGetMinX
+00011d68  ldr      d1, [sp, #8]                                 
+00011d6c  fcmp     d1, d0                                       
+00011d70  b.pl     #0x11d7c                                     
+00011d74  ldp      d14, d13, [sp, #0x20]                        
+00011d78  ldp      d12, d15, [sp, #0x10]                        
+00011d7c  mov      x0, x19                                      
+00011d80  bl       #0x5cb20                                     ; msgSend "vertical"
+00011d84  mov      v0.16b, v13.16b                              
+00011d88  mov      v1.16b, v14.16b                              
+00011d8c  mov      v2.16b, v15.16b                              
+00011d90  mov      v3.16b, v12.16b                              
+00011d94  cbz      w0, #0x11da8                                 
+00011d98  bl       #0x562c0                                     ; call _CGRectGetMaxY
+00011d9c  mov      v9.16b, v0.16b                               
+00011da0  fmov     d11, #1.00000000                             
+00011da4  b        #0x11db4                                     
+00011da8  bl       #0x562b4                                     ; call _CGRectGetMaxX
+00011dac  mov      v8.16b, v0.16b                               
+00011db0  fmov     d10, #1.00000000                             
+00011db4  mov      v0.16b, v8.16b                               
+00011db8  mov      v1.16b, v9.16b                               
+00011dbc  mov      v2.16b, v10.16b                              
+00011dc0  mov      v3.16b, v11.16b                              
+00011dc4  ldp      x29, x30, [sp, #0xb0]                        
+00011dc8  ldp      x20, x19, [sp, #0xa0]                        
+00011dcc  ldp      x22, x21, [sp, #0x90]                        
+00011dd0  ldp      d9, d8, [sp, #0x80]                          
+00011dd4  ldp      d11, d10, [sp, #0x70]                        
+00011dd8  ldp      d13, d12, [sp, #0x60]                        
+00011ddc  ldp      d15, d14, [sp, #0x50]                        
+00011de0  add      sp, sp, #0xc0                                
+00011de4  ret                                                   
+00011de8  mov      x19, x0                                      
+00011dec  mov      x0, x21                                      
+00011df0  bl       #0x567b8                                     ; call _objc_release
+00011df4  mov      x0, x19                                      
+00011df8  bl       #0x563e0                                     ; call __Unwind_Resume

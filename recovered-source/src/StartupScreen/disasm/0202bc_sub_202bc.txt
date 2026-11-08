@@ -1,0 +1,354 @@
+; sub_202bc
+; VA 0x202bc  size 1404
+
+0x000202bc:  stp      d9, d8, [sp, #-0x40]!
+0x000202c0:  stp      x22, x21, [sp, #0x10]
+0x000202c4:  stp      x20, x19, [sp, #0x20]
+0x000202c8:  stp      x29, x30, [sp, #0x30]
+0x000202cc:  add      x29, sp, #0x30
+0x000202d0:  adrp     x20, #0x3b000
+0x000202d4:  ldr      x0, [x20, #0x210]
+0x000202d8:  cbz      x0, #0x202ec
+0x000202dc:  bl       #0x25e00    ; -> _objc_msgSend(timeIntervalSinceNow)
+0x000202e0:  fmov     d1, #-30.00000000
+0x000202e4:  fcmp     d0, d1
+0x000202e8:  b.le     #0x20300
+0x000202ec:  ldp      x29, x30, [sp, #0x30]
+0x000202f0:  ldp      x20, x19, [sp, #0x20]
+0x000202f4:  ldp      x22, x21, [sp, #0x10]
+0x000202f8:  ldp      d9, d8, [sp], #0x40
+0x000202fc:  ret      
+0x00020300:  fneg     d8, d0
+0x00020304:  adrp     x8, #0x3a000
+0x00020308:  ldr      x0, [x8, #0xa98]    ; class(NSMutableDictionary)
+0x0002030c:  bl       #0x230c0    ; -> _objc_msgSend(dictionary)
+0x00020310:  mov      x29, x29
+0x00020314:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020318:  mov      x19, x0
+0x0002031c:  ldr      x2, [x20, #0x210]
+0x00020320:  adrp     x3, #0x34000
+0x00020324:  add      x3, x3, #0x488    ; @"start"
+0x00020328:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x0002032c:  adrp     x8, #0x3a000
+0x00020330:  ldr      x0, [x8, #0xa90]    ; class(NSDate)
+0x00020334:  bl       #0x22f40    ; -> _objc_msgSend(date)
+0x00020338:  mov      x29, x29
+0x0002033c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020340:  mov      x20, x0
+0x00020344:  adrp     x3, #0x31000
+0x00020348:  add      x3, x3, #0xaa8    ; @"updated"
+0x0002034c:  mov      x0, x19
+0x00020350:  mov      x2, x20
+0x00020354:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020358:  mov      x0, x20
+0x0002035c:  bl       #0x22120    ; -> _objc_release
+0x00020360:  adrp     x21, #0x3a000
+0x00020364:  ldr      x0, [x21, #0xa70]    ; class(NSNumber)
+0x00020368:  fcvtas   x2, d8
+0x0002036c:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x00020370:  mov      x29, x29
+0x00020374:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020378:  mov      x20, x0
+0x0002037c:  adrp     x3, #0x34000
+0x00020380:  add      x3, x3, #0x4a8    ; @"seconds"
+0x00020384:  mov      x0, x19
+0x00020388:  mov      x2, x20
+0x0002038c:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020390:  mov      x0, x20
+0x00020394:  bl       #0x22120    ; -> _objc_release
+0x00020398:  ldr      x0, [x21, #0xa70]
+0x0002039c:  adrp     x8, #0x3b000
+0x000203a0:  ldr      d0, [x8, #0x280]
+0x000203a4:  fmov     d1, #1.00000000
+0x000203a8:  fdiv     d0, d1, d0
+0x000203ac:  fcvtas   x2, d0
+0x000203b0:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x000203b4:  mov      x29, x29
+0x000203b8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000203bc:  mov      x20, x0
+0x000203c0:  adrp     x3, #0x32000
+0x000203c4:  add      x3, x3, #0xc8    ; @"fps"
+0x000203c8:  mov      x0, x19
+0x000203cc:  mov      x2, x20
+0x000203d0:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x000203d4:  mov      x0, x20
+0x000203d8:  bl       #0x22120    ; -> _objc_release
+0x000203dc:  ldr      x0, [x21, #0xa70]
+0x000203e0:  adrp     x8, #0x3b000
+0x000203e4:  ldr      d0, [x8, #0x298]
+0x000203e8:  fcvtas   x2, d0
+0x000203ec:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x000203f0:  mov      x29, x29
+0x000203f4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000203f8:  mov      x20, x0
+0x000203fc:  adrp     x3, #0x34000
+0x00020400:  add      x3, x3, #0x3e8    ; @"frames"
+0x00020404:  mov      x0, x19
+0x00020408:  mov      x2, x20
+0x0002040c:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020410:  mov      x0, x20
+0x00020414:  bl       #0x22120    ; -> _objc_release
+0x00020418:  ldr      x0, [x21, #0xa70]
+0x0002041c:  adrp     x8, #0x3b000
+0x00020420:  ldr      d0, [x8, #0x290]
+0x00020424:  fcvtas   x2, d0
+0x00020428:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x0002042c:  mov      x29, x29
+0x00020430:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020434:  mov      x20, x0
+0x00020438:  adrp     x3, #0x34000
+0x0002043c:  add      x3, x3, #0x4c8    ; @"late"
+0x00020440:  mov      x0, x19
+0x00020444:  mov      x2, x20
+0x00020448:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x0002044c:  mov      x0, x20
+0x00020450:  bl       #0x22120    ; -> _objc_release
+0x00020454:  ldr      x0, [x21, #0xa70]
+0x00020458:  adrp     x8, #0x3b000
+0x0002045c:  ldr      d0, [x8, #0x288]
+0x00020460:  fcvtas   x2, d0
+0x00020464:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x00020468:  mov      x29, x29
+0x0002046c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020470:  mov      x20, x0
+0x00020474:  adrp     x3, #0x34000
+0x00020478:  add      x3, x3, #0x4e8    ; @"worstMs"
+0x0002047c:  mov      x0, x19
+0x00020480:  mov      x2, x20
+0x00020484:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020488:  mov      x0, x20
+0x0002048c:  bl       #0x22120    ; -> _objc_release
+0x00020490:  ldr      x0, [x21, #0xa70]
+0x00020494:  adrp     x8, #0x3b000
+0x00020498:  ldr      d0, [x8, #0x2b8]
+0x0002049c:  fcvtas   x2, d0
+0x000204a0:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x000204a4:  mov      x29, x29
+0x000204a8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000204ac:  mov      x20, x0
+0x000204b0:  adrp     x3, #0x34000
+0x000204b4:  add      x3, x3, #0x3c8    ; @"hangs"
+0x000204b8:  mov      x0, x19
+0x000204bc:  mov      x2, x20
+0x000204c0:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x000204c4:  mov      x0, x20
+0x000204c8:  bl       #0x22120    ; -> _objc_release
+0x000204cc:  ldr      x0, [x21, #0xa70]
+0x000204d0:  adrp     x8, #0x3b000
+0x000204d4:  ldr      d0, [x8, #0x2b0]
+0x000204d8:  fcvtas   x2, d0
+0x000204dc:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x000204e0:  mov      x29, x29
+0x000204e4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000204e8:  mov      x20, x0
+0x000204ec:  adrp     x3, #0x34000
+0x000204f0:  add      x3, x3, #0x508    ; @"freezes"
+0x000204f4:  mov      x0, x19
+0x000204f8:  mov      x2, x20
+0x000204fc:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020500:  mov      x0, x20
+0x00020504:  bl       #0x22120    ; -> _objc_release
+0x00020508:  ldr      x0, [x21, #0xa70]
+0x0002050c:  adrp     x8, #0x3b000
+0x00020510:  ldr      d0, [x8, #0x2a8]
+0x00020514:  fcvtas   x2, d0
+0x00020518:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x0002051c:  mov      x29, x29
+0x00020520:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020524:  mov      x20, x0
+0x00020528:  adrp     x3, #0x34000
+0x0002052c:  add      x3, x3, #0x528    ; @"hangMaxMs"
+0x00020530:  mov      x0, x19
+0x00020534:  mov      x2, x20
+0x00020538:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x0002053c:  mov      x0, x20
+0x00020540:  bl       #0x22120    ; -> _objc_release
+0x00020544:  adrp     x20, #0x3b000
+0x00020548:  ldr      x0, [x20, #0x220]
+0x0002054c:  bl       #0x22e00    ; -> _objc_msgSend(count)
+0x00020550:  cbz      x0, #0x2057c
+0x00020554:  ldr      x0, [x20, #0x220]
+0x00020558:  bl       #0x22de0    ; -> _objc_msgSend(copy)
+0x0002055c:  mov      x20, x0
+0x00020560:  adrp     x3, #0x34000
+0x00020564:  add      x3, x3, #0x548    ; @"hangWho"
+0x00020568:  mov      x0, x19
+0x0002056c:  mov      x2, x20
+0x00020570:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020574:  mov      x0, x20
+0x00020578:  bl       #0x22120    ; -> _objc_release
+0x0002057c:  adrp     x8, #0x3b000
+0x00020580:  ldr      x8, [x8, #0x2f0]
+0x00020584:  cbz      x8, #0x20710
+0x00020588:  ldr      x0, [x21, #0xa70]
+0x0002058c:  adrp     x9, #0x3b000
+0x00020590:  ldr      d0, [x9, #0x2d8]
+0x00020594:  ucvtf    d1, x8
+0x00020598:  fdiv     d0, d0, d1
+0x0002059c:  fcvtas   x2, d0
+0x000205a0:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x000205a4:  mov      x29, x29
+0x000205a8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000205ac:  mov      x20, x0
+0x000205b0:  adrp     x3, #0x34000
+0x000205b4:  add      x3, x3, #0x568    ; @"cpuAvg"
+0x000205b8:  mov      x0, x19
+0x000205bc:  mov      x2, x20
+0x000205c0:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x000205c4:  mov      x0, x20
+0x000205c8:  bl       #0x22120    ; -> _objc_release
+0x000205cc:  ldr      x0, [x21, #0xa70]
+0x000205d0:  adrp     x8, #0x3b000
+0x000205d4:  ldr      d0, [x8, #0x2d0]
+0x000205d8:  fcvtas   x2, d0
+0x000205dc:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x000205e0:  mov      x29, x29
+0x000205e4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000205e8:  mov      x20, x0
+0x000205ec:  adrp     x3, #0x34000
+0x000205f0:  add      x3, x3, #0x588    ; @"cpuMax"
+0x000205f4:  mov      x0, x19
+0x000205f8:  mov      x2, x20
+0x000205fc:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020600:  mov      x0, x20
+0x00020604:  bl       #0x22120    ; -> _objc_release
+0x00020608:  ldr      x0, [x21, #0xa70]
+0x0002060c:  adrp     x8, #0x3b000
+0x00020610:  ldr      d0, [x8, #0x2c8]
+0x00020614:  fcvtas   x2, d0
+0x00020618:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x0002061c:  mov      x29, x29
+0x00020620:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020624:  mov      x20, x0
+0x00020628:  adrp     x3, #0x34000
+0x0002062c:  add      x3, x3, #0x5a8    ; @"memMB"
+0x00020630:  mov      x0, x19
+0x00020634:  mov      x2, x20
+0x00020638:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x0002063c:  mov      x0, x20
+0x00020640:  bl       #0x22120    ; -> _objc_release
+0x00020644:  ldr      x0, [x21, #0xa70]
+0x00020648:  adrp     x8, #0x3b000
+0x0002064c:  ldr      d0, [x8, #0x2c0]
+0x00020650:  fcvtas   x2, d0
+0x00020654:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x00020658:  mov      x29, x29
+0x0002065c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020660:  mov      x20, x0
+0x00020664:  adrp     x3, #0x34000
+0x00020668:  add      x3, x3, #0x5c8    ; @"memMaxMB"
+0x0002066c:  mov      x0, x19
+0x00020670:  mov      x2, x20
+0x00020674:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020678:  mov      x0, x20
+0x0002067c:  bl       #0x22120    ; -> _objc_release
+0x00020680:  ldr      x0, [x21, #0xa70]
+0x00020684:  adrp     x8, #0x3b000
+0x00020688:  ldr      d0, [x8, #0x2e8]
+0x0002068c:  fcvtas   x8, d0
+0x00020690:  mov      x9, #0x7fefffffffffffff
+0x00020694:  fmov     d8, x9
+0x00020698:  fcmp     d0, d8
+0x0002069c:  csel     x2, x8, xzr, mi
+0x000206a0:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x000206a4:  mov      x29, x29
+0x000206a8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000206ac:  mov      x20, x0
+0x000206b0:  adrp     x3, #0x34000
+0x000206b4:  add      x3, x3, #0x5e8    ; @"availMinMB"
+0x000206b8:  mov      x0, x19
+0x000206bc:  mov      x2, x20
+0x000206c0:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x000206c4:  mov      x0, x20
+0x000206c8:  bl       #0x22120    ; -> _objc_release
+0x000206cc:  ldr      x0, [x21, #0xa70]
+0x000206d0:  adrp     x8, #0x3b000
+0x000206d4:  ldr      d0, [x8, #0x2e0]
+0x000206d8:  fcvtas   x8, d0
+0x000206dc:  fcmp     d0, d8
+0x000206e0:  csel     x2, x8, xzr, mi
+0x000206e4:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x000206e8:  mov      x29, x29
+0x000206ec:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000206f0:  mov      x20, x0
+0x000206f4:  adrp     x3, #0x34000
+0x000206f8:  add      x3, x3, #0x608    ; @"sysFreeMinMB"
+0x000206fc:  mov      x0, x19
+0x00020700:  mov      x2, x20
+0x00020704:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020708:  mov      x0, x20
+0x0002070c:  bl       #0x22120    ; -> _objc_release
+0x00020710:  ldr      x0, [x21, #0xa70]
+0x00020714:  adrp     x8, #0x3b000
+0x00020718:  ldr      x2, [x8, #0x2f8]
+0x0002071c:  bl       #0x23e00    ; -> _objc_msgSend(numberWithInteger:)
+0x00020720:  mov      x29, x29
+0x00020724:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020728:  mov      x20, x0
+0x0002072c:  adrp     x3, #0x34000
+0x00020730:  add      x3, x3, #0x628    ; @"thermalMax"
+0x00020734:  mov      x0, x19
+0x00020738:  mov      x2, x20
+0x0002073c:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020740:  mov      x0, x20
+0x00020744:  bl       #0x22120    ; -> _objc_release
+0x00020748:  ldr      x0, [x21, #0xa70]
+0x0002074c:  adrp     x8, #0x3b000
+0x00020750:  ldrb     w2, [x8, #0x300]
+0x00020754:  bl       #0x23da0    ; -> _objc_msgSend(numberWithBool:)
+0x00020758:  mov      x29, x29
+0x0002075c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00020760:  mov      x20, x0
+0x00020764:  adrp     x3, #0x34000
+0x00020768:  add      x3, x3, #0x648    ; @"lowPower"
+0x0002076c:  mov      x0, x19
+0x00020770:  mov      x2, x20
+0x00020774:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00020778:  mov      x0, x20
+0x0002077c:  bl       #0x22120    ; -> _objc_release
+0x00020780:  adrp     x8, #0x3b000
+0x00020784:  ldr      x8, [x8, #0x218]
+0x00020788:  adrp     x9, #0x30000
+0x0002078c:  ldr      x9, [x9, #0x208]    ; got(___NSArray0__struct)
+0x00020790:  cmp      x8, #0
+0x00020794:  csel     x2, x9, x8, eq
+0x00020798:  adrp     x3, #0x34000
+0x0002079c:  add      x3, x3, #0x668    ; @"tweaks"
+0x000207a0:  mov      x0, x19
+0x000207a4:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x000207a8:  ldr      x0, [x21, #0xa70]
+0x000207ac:  adrp     x8, #0x3b000
+0x000207b0:  ldr      x2, [x8, #0x338]
+0x000207b4:  bl       #0x23e40    ; -> _objc_msgSend(numberWithUnsignedInteger:)
+0x000207b8:  mov      x29, x29
+0x000207bc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000207c0:  mov      x20, x0
+0x000207c4:  adrp     x3, #0x34000
+0x000207c8:  add      x3, x3, #0x688    ; @"liteCount"
+0x000207cc:  mov      x0, x19
+0x000207d0:  mov      x2, x20
+0x000207d4:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x000207d8:  mov      x0, x20
+0x000207dc:  bl       #0x22120    ; -> _objc_release
+0x000207e0:  adrp     x8, #0x3b000
+0x000207e4:  ldr      x2, [x8, #0x228]
+0x000207e8:  cbz      x2, #0x207fc
+0x000207ec:  adrp     x3, #0x34000
+0x000207f0:  add      x3, x3, #0x6a8    ; @"liteReason"
+0x000207f4:  mov      x0, x19
+0x000207f8:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x000207fc:  adrp     x0, #0x34000
+0x00020800:  add      x0, x0, #0x6c8    ; @"diagPerf"
+0x00020804:  adrp     x20, #0x32000
+0x00020808:  add      x20, x20, #0x1c8    ; @"com.anlai.omnicar"
+0x0002080c:  mov      x1, x19
+0x00020810:  mov      x2, x20
+0x00020814:  bl       #0x21b80    ; -> _CFPreferencesSetAppValue
+0x00020818:  mov      x0, x20
+0x0002081c:  bl       #0x21b68    ; -> _CFPreferencesAppSynchronize
+0x00020820:  mov      x0, x19
+0x00020824:  ldp      x29, x30, [sp, #0x30]
+0x00020828:  ldp      x20, x19, [sp, #0x20]
+0x0002082c:  ldp      x22, x21, [sp, #0x10]
+0x00020830:  ldp      d9, d8, [sp], #0x40
+0x00020834:  b        #0x22120    ; -> _objc_release

@@ -1,0 +1,140 @@
+; sub_8c94
+; VA 0x8c94  size 548
+
+0x00008c94:  sub      sp, sp, #0xc0
+0x00008c98:  stp      d9, d8, [sp, #0x50]
+0x00008c9c:  stp      x28, x27, [sp, #0x60]
+0x00008ca0:  stp      x26, x25, [sp, #0x70]
+0x00008ca4:  stp      x24, x23, [sp, #0x80]
+0x00008ca8:  stp      x22, x21, [sp, #0x90]
+0x00008cac:  stp      x20, x19, [sp, #0xa0]
+0x00008cb0:  stp      x29, x30, [sp, #0xb0]
+0x00008cb4:  add      x29, sp, #0xb0
+0x00008cb8:  mov      x23, x3
+0x00008cbc:  mov      x20, x2
+0x00008cc0:  mov      x19, x1
+0x00008cc4:  mov      x21, x0
+0x00008cc8:  mov      x0, x1
+0x00008ccc:  bl       #0x2212c    ; -> _objc_retain
+0x00008cd0:  mov      x0, x20
+0x00008cd4:  bl       #0x2212c    ; -> _objc_retain
+0x00008cd8:  adrp     x8, #0x3a000
+0x00008cdc:  ldr      x22, [x8, #0xab8]    ; class(NSHTTPURLResponse)
+0x00008ce0:  mov      x0, x23
+0x00008ce4:  bl       #0x2212c    ; -> _objc_retain
+0x00008ce8:  mov      x0, x22
+0x00008cec:  bl       #0x220e4    ; -> _objc_opt_class
+0x00008cf0:  mov      x1, x0
+0x00008cf4:  mov      x0, x20
+0x00008cf8:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x00008cfc:  tbz      w0, #0, #0x8d70
+0x00008d00:  mov      x0, x20
+0x00008d04:  bl       #0x25ac0    ; -> _objc_msgSend(statusCode)
+0x00008d08:  mov      x24, x0
+0x00008d0c:  mov      x22, #0
+0x00008d10:  cbz      x19, #0x8d78
+0x00008d14:  cbnz     x23, #0x8d78
+0x00008d18:  cmp      x24, #0xc8
+0x00008d1c:  b.ne     #0x8d78
+0x00008d20:  adrp     x8, #0x3a000
+0x00008d24:  ldr      x0, [x8, #0xac0]    ; class(NSJSONSerialization)
+0x00008d28:  mov      x2, x19
+0x00008d2c:  mov      x3, #0
+0x00008d30:  mov      x4, #0
+0x00008d34:  bl       #0x22380    ; -> _objc_msgSend(JSONObjectWithData:options:error:)
+0x00008d38:  mov      x29, x29
+0x00008d3c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008d40:  mov      x24, x0
+0x00008d44:  bl       #0xb6b0    ; -> SSWeatherParse
+0x00008d48:  mov      x29, x29
+0x00008d4c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008d50:  mov      x22, x0
+0x00008d54:  mov      x0, x24
+0x00008d58:  bl       #0x22120    ; -> _objc_release
+0x00008d5c:  cbz      x22, #0x8d68
+0x00008d60:  mov      x0, x22
+0x00008d64:  bl       #0xbde8    ; -> SSWeatherSaveCache
+0x00008d68:  mov      w24, #0xc8
+0x00008d6c:  b        #0x8d78    ; -> sub_8d78
+0x00008d70:  mov      x24, #0
+0x00008d74:  mov      x22, #0
+0x00008d78:  adrp     x8, #0x3a000
+0x00008d7c:  ldr      x25, [x8, #0x9c0]    ; class(NSString)
+0x00008d80:  adrp     x8, #0x31000
+0x00008d84:  add      x8, x8, #0xaa8    ; @"updated"
+0x00008d88:  adrp     x9, #0x31000
+0x00008d8c:  add      x9, x9, #0xac8    ; @"failed"
+0x00008d90:  cmp      x22, #0
+0x00008d94:  csel     x27, x9, x8, eq
+0x00008d98:  bl       #0x21b08    ; -> _CACurrentMediaTime
+0x00008d9c:  ldr      d1, [x21, #0x28]
+0x00008da0:  fsub     d8, d0, d1
+0x00008da4:  mov      x0, x23
+0x00008da8:  bl       #0x23a80    ; -> _objc_msgSend(localizedDescription)
+0x00008dac:  mov      x29, x29
+0x00008db0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008db4:  mov      x26, x0
+0x00008db8:  mov      x0, x23
+0x00008dbc:  bl       #0x22120    ; -> _objc_release
+0x00008dc0:  adrp     x8, #0x31000
+0x00008dc4:  add      x8, x8, #0xae8    ; @"no error"
+0x00008dc8:  cmp      x26, #0
+0x00008dcc:  csel     x8, x8, x26, eq
+0x00008dd0:  stp      x24, x8, [sp, #0x10]
+0x00008dd4:  str      d8, [sp, #8]
+0x00008dd8:  str      x27, [sp]
+0x00008ddc:  adrp     x2, #0x31000
+0x00008de0:  add      x2, x2, #0xa88    ; @"weather: %@ in %.1fs (http %ld, %@)"
+0x00008de4:  mov      x0, x25
+0x00008de8:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00008dec:  mov      x29, x29
+0x00008df0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008df4:  mov      x23, x0
+0x00008df8:  adrp     x0, #0x30000
+0x00008dfc:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00008e00:  mov      x1, x23
+0x00008e04:  bl       #0x1b620    ; -> OMCLogWrite
+0x00008e08:  mov      x0, x23
+0x00008e0c:  bl       #0x22120    ; -> _objc_release
+0x00008e10:  mov      x0, x26
+0x00008e14:  bl       #0x22120    ; -> _objc_release
+0x00008e18:  adrp     x8, #0x30000
+0x00008e1c:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x00008e20:  str      x8, [sp, #0x20]
+0x00008e24:  adrp     x8, #0x28000
+0x00008e28:  ldr      d0, [x8, #0xdd0]
+0x00008e2c:  adrp     x8, #0x8000
+0x00008e30:  add      x8, x8, #0xeb8    ; func sub_8eb8
+0x00008e34:  str      d0, [sp, #0x28]
+0x00008e38:  adrp     x9, #0x30000
+0x00008e3c:  add      x9, x9, #0x9e8
+0x00008e40:  stp      x8, x9, [sp, #0x30]
+0x00008e44:  ldr      x21, [x21, #0x20]
+0x00008e48:  mov      x0, x21
+0x00008e4c:  bl       #0x2212c    ; -> _objc_retain
+0x00008e50:  stp      x22, x21, [sp, #0x40]
+0x00008e54:  mov      x0, x22
+0x00008e58:  bl       #0x2212c    ; -> _objc_retain
+0x00008e5c:  adrp     x0, #0x30000
+0x00008e60:  ldr      x0, [x0, #0x388]    ; got(__dispatch_main_q)
+0x00008e64:  add      x1, sp, #0x20
+0x00008e68:  bl       #0x21e98    ; -> _dispatch_async
+0x00008e6c:  ldr      x0, [sp, #0x40]
+0x00008e70:  bl       #0x22120    ; -> _objc_release
+0x00008e74:  ldr      x0, [sp, #0x48]
+0x00008e78:  bl       #0x22120    ; -> _objc_release
+0x00008e7c:  mov      x0, x22
+0x00008e80:  bl       #0x22120    ; -> _objc_release
+0x00008e84:  mov      x0, x20
+0x00008e88:  bl       #0x22120    ; -> _objc_release
+0x00008e8c:  mov      x0, x19
+0x00008e90:  bl       #0x22120    ; -> _objc_release
+0x00008e94:  ldp      x29, x30, [sp, #0xb0]
+0x00008e98:  ldp      x20, x19, [sp, #0xa0]
+0x00008e9c:  ldp      x22, x21, [sp, #0x90]
+0x00008ea0:  ldp      x24, x23, [sp, #0x80]
+0x00008ea4:  ldp      x26, x25, [sp, #0x70]
+0x00008ea8:  ldp      x28, x27, [sp, #0x60]
+0x00008eac:  ldp      d9, d8, [sp, #0x50]
+0x00008eb0:  add      sp, sp, #0xc0
+0x00008eb4:  ret      

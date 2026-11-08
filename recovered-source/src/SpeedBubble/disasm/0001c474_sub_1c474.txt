@@ -1,0 +1,40 @@
+# sub_1c474
+# addr 0x1c474 .. 0x1c508  (148 bytes)
+
+0001c474  sub      sp, sp, #0x50                               
+0001c478  stp      x20, x19, [sp, #0x30]                       
+0001c47c  stp      x29, x30, [sp, #0x40]                       
+0001c480  add      x29, sp, #0x40                              
+0001c484  adrp     x8, #0x43000                                
+0001c488  adrp     x9, #0x38000                                
+0001c48c  ldr      x9, [x9, #0x318]                            ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+0001c490  ldr      x19, [x8, #0x18]                            ; [0x43018] classref -> UIView (= import _OBJC_CLASS_$_UIView)
+0001c494  str      x9, [sp, #8]                                
+0001c498  adrp     x8, #0x32000                                
+0001c49c  ldr      d0, [x8, #0x780]                            ; [0x32780] __const[0x32780] double=1.6080749353e-314 float=-32.0
+0001c4a0  adrp     x8, #0x1c000                                
+0001c4a4  add      x8, x8, #0x508                              ; __TEXT,__text+0x18508
+0001c4a8  str      d0, [sp, #0x10]                             
+0001c4ac  adrp     x9, #0x38000                                
+0001c4b0  add      x9, x9, #0xab8                              ; __const[0x38ab8] double=0.0 float=0.0
+0001c4b4  stp      x8, x9, [sp, #0x18]                         
+0001c4b8  ldr      x20, [x0, #0x20]                            
+0001c4bc  mov      x0, x20                                     
+0001c4c0  bl       #0x28004                                    ; _objc_retain
+0001c4c4  str      x20, [sp, #0x28]                            
+0001c4c8  adrp     x8, #0x32000                                
+0001c4cc  ldr      d0, [x8, #0xc88]                            ; [0x32c88] __const[0x32c88] double=0.2 float=-1.5881868392106856e-23
+0001c4d0  add      x2, sp, #8                                  
+0001c4d4  mov      x0, x19                                     
+0001c4d8  bl       #0x28560                                    ; objc_msgSend$animateWithDuration:animations:
+0001c4dc  ldr      x0, [sp, #0x28]                             
+0001c4e0  bl       #0x27ff8                                    ; _objc_release
+0001c4e4  ldp      x29, x30, [sp, #0x40]                       
+0001c4e8  ldp      x20, x19, [sp, #0x30]                       
+0001c4ec  add      sp, sp, #0x50                               
+0001c4f0  ret                                                  
+0001c4f4  mov      x19, x0                                     
+0001c4f8  ldr      x0, [sp, #0x28]                             
+0001c4fc  bl       #0x27ff8                                    ; _objc_release
+0001c500  mov      x0, x19                                     
+0001c504  bl       #0x27c80                                    ; __Unwind_Resume

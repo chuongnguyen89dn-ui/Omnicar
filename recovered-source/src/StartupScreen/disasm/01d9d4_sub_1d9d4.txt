@@ -1,0 +1,20 @@
+; sub_1d9d4
+; VA 0x1d9d4  size 68
+
+0x0001d9d4:  stp      x20, x19, [sp, #-0x20]!
+0x0001d9d8:  stp      x29, x30, [sp, #0x10]
+0x0001d9dc:  add      x29, sp, #0x10
+0x0001d9e0:  adrp     x19, #0x3b000
+0x0001d9e4:  ldr      x0, [x19, #0x260]
+0x0001d9e8:  cbnz     x0, #0x1da0c
+0x0001d9ec:  adrp     x0, #0x28000
+0x0001d9f0:  add      x0, x0, #0x68d    ; "OMC_CRASHGUARD"
+0x0001d9f4:  bl       #0x21f64    ; -> _getenv
+0x0001d9f8:  cbz      x0, #0x1da0c
+0x0001d9fc:  mov      x1, #0
+0x0001da00:  mov      w2, #0x10
+0x0001da04:  bl       #0x22294    ; -> _strtoull
+0x0001da08:  str      x0, [x19, #0x260]
+0x0001da0c:  ldp      x29, x30, [sp, #0x10]
+0x0001da10:  ldp      x20, x19, [sp], #0x20
+0x0001da14:  ret      

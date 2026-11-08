@@ -1,0 +1,99 @@
+; +[SCPPrefs setRatio:forPairLeft:right:]
+0x04ecc4  stp      d9, d8, [sp, #-0x50]!
+0x04ecc8  stp      x24, x23, [sp, #0x10]
+0x04eccc  stp      x22, x21, [sp, #0x20]
+0x04ecd0  stp      x20, x19, [sp, #0x30]
+0x04ecd4  stp      x29, x30, [sp, #0x40]
+0x04ecd8  add      x29, sp, #0x40
+0x04ecdc  mov      x20, x3
+0x04ece0  mov      x19, x2
+0x04ece4  mov      v8.16b, v0.16b
+0x04ece8  mov      x0, x2
+0x04ecec  bl       #0x567c4 ; call _objc_retain
+0x04ecf0  mov      x0, x20
+0x04ecf4  bl       #0x567c4 ; call _objc_retain
+0x04ecf8  adrp     x0, #0x7e000
+0x04ecfc  add      x0, x0, #0x6c0 ; -> 0x7e6c0 @"splitScreenPairRatios"
+0x04ed00  bl       #0x4dab8 ; -> sub_4dab8
+0x04ed04  mov      x29, x29
+0x04ed08  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04ed0c  mov      x21, x0
+0x04ed10  adrp     x8, #0x87000
+0x04ed14  ldr      x0, [x8, #0x6b8] ; [0x876b8] class:NSDictionary
+0x04ed18  bl       #0x5677c ; call _objc_opt_class
+0x04ed1c  mov      x1, x0
+0x04ed20  mov      x0, x21
+0x04ed24  bl       #0x56788 ; call _objc_opt_isKindOfClass
+0x04ed28  tbz      w0, #0, #0x4ed38
+0x04ed2c  mov      x0, x21
+0x04ed30  bl       #0x593e0 ; objc_msgSend$mutableCopy
+0x04ed34  b        #0x4ed4c
+0x04ed38  adrp     x8, #0x87000
+0x04ed3c  ldr      x0, [x8, #0x6d8] ; [0x876d8] class:NSMutableDictionary
+0x04ed40  bl       #0x57b60 ; objc_msgSend$dictionary
+0x04ed44  mov      x29, x29
+0x04ed48  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04ed4c  mov      x22, x0
+0x04ed50  adrp     x8, #0x87000
+0x04ed54  ldr      x0, [x8, #0x6e8] ; [0x876e8] class:NSNumber
+0x04ed58  mov      v0.16b, v8.16b
+0x04ed5c  bl       #0x59540 ; objc_msgSend$numberWithDouble:
+0x04ed60  mov      x29, x29
+0x04ed64  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04ed68  mov      x24, x0
+0x04ed6c  mov      x0, x19
+0x04ed70  mov      x1, x20
+0x04ed74  bl       #0x4ec70 ; -> sub_4ec70
+0x04ed78  mov      x29, x29
+0x04ed7c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04ed80  mov      x23, x0
+0x04ed84  mov      x0, x22
+0x04ed88  mov      x2, x24
+0x04ed8c  mov      x3, x23
+0x04ed90  bl       #0x5b480 ; objc_msgSend$setObject:forKeyedSubscript:
+0x04ed94  mov      x0, x23
+0x04ed98  bl       #0x567b8 ; call _objc_release
+0x04ed9c  mov      x0, x24
+0x04eda0  bl       #0x567b8 ; call _objc_release
+0x04eda4  adrp     x0, #0x7e000
+0x04eda8  add      x0, x0, #0x6c0 ; -> 0x7e6c0 @"splitScreenPairRatios"
+0x04edac  mov      x1, x22
+0x04edb0  bl       #0x4db84 ; -> sub_4db84
+0x04edb4  mov      x0, x22
+0x04edb8  bl       #0x567b8 ; call _objc_release
+0x04edbc  mov      x0, x21
+0x04edc0  bl       #0x567b8 ; call _objc_release
+0x04edc4  mov      x0, x20
+0x04edc8  bl       #0x567b8 ; call _objc_release
+0x04edcc  mov      x0, x19
+0x04edd0  ldp      x29, x30, [sp, #0x40]
+0x04edd4  ldp      x20, x19, [sp, #0x30]
+0x04edd8  ldp      x22, x21, [sp, #0x20]
+0x04eddc  ldp      x24, x23, [sp, #0x10]
+0x04ede0  ldp      d9, d8, [sp], #0x50
+0x04ede4  b        #0x567b8 ; call _objc_release
+0x04ede8  b        #0x4ee28
+0x04edec  mov      x1, x23
+0x04edf0  mov      x23, x0
+0x04edf4  mov      x0, x1
+0x04edf8  bl       #0x567b8 ; call _objc_release
+0x04edfc  b        #0x4ee04
+0x04ee00  mov      x23, x0
+0x04ee04  mov      x0, x24
+0x04ee08  bl       #0x567b8 ; call _objc_release
+0x04ee0c  b        #0x4ee1c
+0x04ee10  mov      x23, x0
+0x04ee14  b        #0x4ee34
+0x04ee18  mov      x23, x0
+0x04ee1c  mov      x0, x22
+0x04ee20  bl       #0x567b8 ; call _objc_release
+0x04ee24  b        #0x4ee2c
+0x04ee28  mov      x23, x0
+0x04ee2c  mov      x0, x21
+0x04ee30  bl       #0x567b8 ; call _objc_release
+0x04ee34  mov      x0, x20
+0x04ee38  bl       #0x567b8 ; call _objc_release
+0x04ee3c  mov      x0, x19
+0x04ee40  bl       #0x567b8 ; call _objc_release
+0x04ee44  mov      x0, x23
+0x04ee48  bl       #0x563e0 ; call __Unwind_Resume

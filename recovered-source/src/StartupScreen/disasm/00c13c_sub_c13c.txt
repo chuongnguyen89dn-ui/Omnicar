@@ -1,0 +1,107 @@
+; sub_c13c
+; VA 0xc13c  size 416
+
+0x0000c13c:  stp      d9, d8, [sp, #0x80]
+0x0000c140:  stp      x20, x19, [sp, #0x90]
+0x0000c144:  stp      x29, x30, [sp, #0xa0]
+0x0000c148:  add      x29, sp, #0xa0
+0x0000c14c:  mov      v8.16b, v0.16b
+0x0000c150:  mov      x19, x0
+0x0000c154:  bl       #0x236c0    ; -> _objc_msgSend(inA)
+0x0000c158:  mov      v9.16b, v0.16b
+0x0000c15c:  mov      x0, x19
+0x0000c160:  bl       #0x236e0    ; -> _objc_msgSend(inB)
+0x0000c164:  fsub     d1, d8, d9
+0x0000c168:  fsub     d0, d0, d9
+0x0000c16c:  fdiv     d0, d1, d0
+0x0000c170:  fmov     d10, #1.00000000
+0x0000c174:  fcmp     d0, d10
+0x0000c178:  fcsel    d1, d10, d0, gt
+0x0000c17c:  fcmp     d0, #0.0
+0x0000c180:  fmov     d12, xzr
+0x0000c184:  fcsel    d11, d12, d1, mi
+0x0000c188:  mov      x0, x19
+0x0000c18c:  bl       #0x22560    ; -> _objc_msgSend(alpha)
+0x0000c190:  mov      v9.16b, v0.16b
+0x0000c194:  mov      x0, x19
+0x0000c198:  bl       #0x23f60    ; -> _objc_msgSend(outEase)
+0x0000c19c:  mov      v0.16b, v11.16b
+0x0000c1a0:  cbz      w0, #0xc1bc
+0x0000c1a4:  fsub     d0, d10, d11
+0x0000c1a8:  fmov     d1, #3.00000000
+0x0000c1ac:  bl       #0x221c8    ; -> _pow
+0x0000c1b0:  fsub     d0, d10, d0
+0x0000c1b4:  fcmp     d11, #0.0
+0x0000c1b8:  fcsel    d0, d12, d0, mi
+0x0000c1bc:  fmul     d9, d9, d0
+0x0000c1c0:  mov      x0, x19
+0x0000c1c4:  bl       #0x23f40    ; -> _objc_msgSend(outB)
+0x0000c1c8:  mov      v10.16b, v0.16b
+0x0000c1cc:  mov      x0, x19
+0x0000c1d0:  bl       #0x23f20    ; -> _objc_msgSend(outA)
+0x0000c1d4:  fcmp     d10, d0
+0x0000c1d8:  b.le     #0xc218
+0x0000c1dc:  mov      x0, x19
+0x0000c1e0:  bl       #0x23f20    ; -> _objc_msgSend(outA)
+0x0000c1e4:  mov      v10.16b, v0.16b
+0x0000c1e8:  mov      x0, x19
+0x0000c1ec:  bl       #0x23f40    ; -> _objc_msgSend(outB)
+0x0000c1f0:  fsub     d1, d8, d10
+0x0000c1f4:  fsub     d0, d0, d10
+0x0000c1f8:  fdiv     d0, d1, d0
+0x0000c1fc:  fmov     d1, #1.00000000
+0x0000c200:  fcmp     d0, d1
+0x0000c204:  fcsel    d2, d1, d0, gt
+0x0000c208:  fsub     d2, d1, d2
+0x0000c20c:  fcmp     d0, #0.0
+0x0000c210:  fcsel    d0, d1, d2, mi
+0x0000c214:  fmul     d9, d9, d0
+0x0000c218:  mov      x0, x19
+0x0000c21c:  bl       #0x26000    ; -> _objc_msgSend(view)
+0x0000c220:  mov      x29, x29
+0x0000c224:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000c228:  mov      x20, x0
+0x0000c22c:  mov      v0.16b, v9.16b
+0x0000c230:  bl       #0x24420    ; -> _objc_msgSend(setAlpha:)
+0x0000c234:  mov      x0, x20
+0x0000c238:  bl       #0x22120    ; -> _objc_release
+0x0000c23c:  mov      x0, x19
+0x0000c240:  bl       #0x24280    ; -> _objc_msgSend(rise)
+0x0000c244:  fcmp     d0, #0.0
+0x0000c248:  b.eq     #0xc2c0
+0x0000c24c:  mov      x0, x19
+0x0000c250:  bl       #0x24280    ; -> _objc_msgSend(rise)
+0x0000c254:  mov      v8.16b, v0.16b
+0x0000c258:  fmov     d9, #1.00000000
+0x0000c25c:  fsub     d0, d9, d11
+0x0000c260:  fmov     d1, #3.00000000
+0x0000c264:  bl       #0x221c8    ; -> _pow
+0x0000c268:  fmov     d1, #-1.00000000
+0x0000c26c:  fadd     d0, d0, d1
+0x0000c270:  fadd     d0, d0, d9
+0x0000c274:  fcmp     d11, #0.0
+0x0000c278:  fcsel    d0, d9, d0, mi
+0x0000c27c:  fmul     d1, d0, d8
+0x0000c280:  add      x8, sp, #0x30
+0x0000c284:  fmov     d0, xzr
+0x0000c288:  bl       #0x21bb0    ; -> _CGAffineTransformMakeTranslation
+0x0000c28c:  mov      x0, x19
+0x0000c290:  bl       #0x26000    ; -> _objc_msgSend(view)
+0x0000c294:  mov      x29, x29
+0x0000c298:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000c29c:  mov      x19, x0
+0x0000c2a0:  ldp      q0, q1, [sp, #0x30]
+0x0000c2a4:  stp      q0, q1, [sp]
+0x0000c2a8:  ldr      q0, [sp, #0x50]
+0x0000c2ac:  str      q0, [sp, #0x20]
+0x0000c2b0:  mov      x2, sp
+0x0000c2b4:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x0000c2b8:  mov      x0, x19
+0x0000c2bc:  bl       #0x22120    ; -> _objc_release
+0x0000c2c0:  ldp      x29, x30, [sp, #0xa0]
+0x0000c2c4:  ldp      x20, x19, [sp, #0x90]
+0x0000c2c8:  ldp      d9, d8, [sp, #0x80]
+0x0000c2cc:  ldp      d11, d10, [sp, #0x70]
+0x0000c2d0:  ldp      d13, d12, [sp, #0x60]
+0x0000c2d4:  add      sp, sp, #0xb0
+0x0000c2d8:  ret      

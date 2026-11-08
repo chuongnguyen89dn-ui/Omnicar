@@ -1,0 +1,103 @@
+; sub_19b34
+; VA 0x19b34  size 400
+
+0x00019b34:  mov      x0, x23
+0x00019b38:  bl       #0x24700    ; -> _objc_msgSend(setContents:)
+0x00019b3c:  ldr      d0, [sp, #0x60]
+0x00019b40:  fmul     d2, d12, d0
+0x00019b44:  fmov     d0, xzr
+0x00019b48:  fmov     d1, xzr
+0x00019b4c:  mov      x0, x23
+0x00019b50:  mov      v3.16b, v2.16b
+0x00019b54:  bl       #0x245a0    ; -> _objc_msgSend(setBounds:)
+0x00019b58:  mov      w0, #0x4241
+0x00019b5c:  movk     w0, #0xf, lsl #16
+0x00019b60:  bl       #0x21e14    ; -> _arc4random_uniform
+0x00019b64:  ucvtf    d0, w0
+0x00019b68:  fmul     d0, d11, d0
+0x00019b6c:  fdiv     d0, d0, d8
+0x00019b70:  fmov     d15, xzr
+0x00019b74:  fadd     d11, d0, d15
+0x00019b78:  mov      w0, #0x4241
+0x00019b7c:  movk     w0, #0xf, lsl #16
+0x00019b80:  bl       #0x21e14    ; -> _arc4random_uniform
+0x00019b84:  ucvtf    d0, w0
+0x00019b88:  ldr      d1, [sp, #0x68]
+0x00019b8c:  fmul     d0, d1, d0
+0x00019b90:  fdiv     d0, d0, d8
+0x00019b94:  fsub     d13, d0, d10
+0x00019b98:  mov      w0, #0x4241
+0x00019b9c:  movk     w0, #0xf, lsl #16
+0x00019ba0:  bl       #0x21e14    ; -> _arc4random_uniform
+0x00019ba4:  ucvtf    d0, w0
+0x00019ba8:  ldr      d1, [sp, #0x58]
+0x00019bac:  fmul     d0, d0, d1
+0x00019bb0:  fdiv     d0, d0, d8
+0x00019bb4:  fadd     d0, d0, d1
+0x00019bb8:  fmul     d9, d14, d0
+0x00019bbc:  mov      w0, #0x4241
+0x00019bc0:  movk     w0, #0xf, lsl #16
+0x00019bc4:  bl       #0x21e14    ; -> _arc4random_uniform
+0x00019bc8:  ucvtf    d0, w0
+0x00019bcc:  fadd     d0, d0, d0
+0x00019bd0:  fdiv     d0, d0, d8
+0x00019bd4:  fmov     d1, #1.00000000
+0x00019bd8:  fadd     d10, d0, d1
+0x00019bdc:  mov      w0, #0x4241
+0x00019be0:  movk     w0, #0xf, lsl #16
+0x00019be4:  bl       #0x21e14    ; -> _arc4random_uniform
+0x00019be8:  ucvtf    d0, w0
+0x00019bec:  fmov     d1, #6.00000000
+0x00019bf0:  fmul     d0, d0, d1
+0x00019bf4:  fdiv     d0, d0, d8
+0x00019bf8:  fadd     d14, d0, d15
+0x00019bfc:  mov      x0, x27
+0x00019c00:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x00019c04:  mov      x29, x29
+0x00019c08:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00019c0c:  mov      x24, x0
+0x00019c10:  str      x22, [sp, #0x90]
+0x00019c14:  stp      d11, d13, [sp, #0x98]
+0x00019c18:  stp      d9, d12, [sp, #0xa8]
+0x00019c1c:  stp      d10, d14, [sp, #0xb8]
+0x00019c20:  ldp      d10, d11, [sp, #0x80]
+0x00019c24:  ldr      d14, [sp, #0x70]
+0x00019c28:  add      x2, sp, #0x90
+0x00019c2c:  mov      x0, x21
+0x00019c30:  mov      x3, x23
+0x00019c34:  mov      x4, x24
+0x00019c38:  bl       #0x25640    ; -> _objc_msgSend(ss_addMote:layer:to:)
+0x00019c3c:  mov      x0, x24
+0x00019c40:  bl       #0x22120    ; -> _objc_release
+0x00019c44:  mov      x0, x23
+0x00019c48:  bl       #0x22120    ; -> _objc_release
+0x00019c4c:  subs     w19, w19, #1
+0x00019c50:  b.ne     #0x19ae8
+0x00019c54:  adrp     x0, #0x32000
+0x00019c58:  add      x0, x0, #0xf68    ; @"b'C\x00h\x00\xfa\x00c\x00 \x00M\x00\xeb\x1en\x00g'"
+0x00019c5c:  adrp     x1, #0x32000
+0x00019c60:  add      x1, x1, #0xf88    ; @"Happy Lunar New Year"
+0x00019c64:  bl       #0x21318    ; -> OMCTr
+0x00019c68:  mov      x29, x29
+0x00019c6c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00019c70:  str      x0, [sp, #0x88]
+0x00019c74:  adrp     x0, #0x32000
+0x00019c78:  add      x0, x0, #0xfa8    ; @"b'A\x00n\x00 \x00k\x00h\x00a\x00n\x00g\x00 \x00t\x00h\x00\xcb\x1en\x00h\x00 \x00v\x00\xb0\x01\xe3\x1en\x00g\x00 \x00\xb7\x00'"
+0x00019c7c:  adrp     x1, #0x32000
+0x00019c80:  add      x1, x1, #0xfc8    ; @"Health, luck and safe travels, %@"
+0x00019c84:  bl       #0x21318    ; -> OMCTr
+0x00019c88:  mov      x29, x29
+0x00019c8c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00019c90:  mov      x25, x0
+0x00019c94:  adrp     x0, #0x32000
+0x00019c98:  add      x0, x0, #0xfe8    ; @"b'A\x00n\x00 \x00k\x00h\x00a\x00n\x00g\x00 \x00t\x00h\x00\xcb\x1en\x00h\x00 \x00v\x00\xb0\x01\xe3\x1en\x00g\x00'"
+0x00019c9c:  adrp     x1, #0x33000
+0x00019ca0:  add      x1, x1, #8    ; @"Health, luck and safe travels"
+0x00019ca4:  bl       #0x21318    ; -> OMCTr
+0x00019ca8:  mov      x29, x29
+0x00019cac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00019cb0:  mov      x26, x0
+0x00019cb4:  mov      x0, x25
+0x00019cb8:  mov      x1, x26
+0x00019cbc:  ldr      x2, [sp, #0x18]
+0x00019cc0:  bl       #0x13eb8    ; -> sub_13eb8

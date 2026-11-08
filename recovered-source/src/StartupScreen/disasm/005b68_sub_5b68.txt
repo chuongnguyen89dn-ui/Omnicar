@@ -1,0 +1,50 @@
+; sub_5b68
+; VA 0x5b68  size 188
+
+0x00005b68:  stp      d9, d8, [sp, #-0x40]!
+0x00005b6c:  stp      x22, x21, [sp, #0x10]
+0x00005b70:  stp      x20, x19, [sp, #0x20]
+0x00005b74:  stp      x29, x30, [sp, #0x30]
+0x00005b78:  add      x29, sp, #0x30
+0x00005b7c:  mov      x20, x0
+0x00005b80:  adrp     x8, #0x3a000
+0x00005b84:  ldr      x0, [x8, #0xa80]    ; class(UIDevice)
+0x00005b88:  bl       #0x22e80    ; -> _objc_msgSend(currentDevice)
+0x00005b8c:  mov      x29, x29
+0x00005b90:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005b94:  mov      x19, x0
+0x00005b98:  bl       #0x238c0    ; -> _objc_msgSend(isBatteryMonitoringEnabled)
+0x00005b9c:  mov      x21, x0
+0x00005ba0:  tbnz     w0, #0, #0x5bb0
+0x00005ba4:  mov      x0, x19
+0x00005ba8:  mov      w2, #1
+0x00005bac:  bl       #0x24520    ; -> _objc_msgSend(setBatteryMonitoringEnabled:)
+0x00005bb0:  mov      x0, x19
+0x00005bb4:  bl       #0x22780    ; -> _objc_msgSend(batteryLevel)
+0x00005bb8:  mov      v8.16b, v0.16b
+0x00005bbc:  mov      x0, x19
+0x00005bc0:  bl       #0x227c0    ; -> _objc_msgSend(batteryState)
+0x00005bc4:  mov      x22, x0
+0x00005bc8:  tbnz     w21, #0, #0x5bd8
+0x00005bcc:  mov      x0, x19
+0x00005bd0:  mov      w2, #0
+0x00005bd4:  bl       #0x24520    ; -> _objc_msgSend(setBatteryMonitoringEnabled:)
+0x00005bd8:  cbz      x20, #0x5bec
+0x00005bdc:  and      x8, x22, #0xfffffffffffffffe
+0x00005be0:  cmp      x8, #2
+0x00005be4:  cset     w8, eq
+0x00005be8:  strb     w8, [x20]
+0x00005bec:  mov      w8, #0x42c80000
+0x00005bf0:  fmov     s0, w8
+0x00005bf4:  fmul     s0, s8, s0
+0x00005bf8:  fcvtas   x8, s0
+0x00005bfc:  fcmp     s8, #0.0
+0x00005c00:  csinv    x20, x8, xzr, pl
+0x00005c04:  mov      x0, x19
+0x00005c08:  bl       #0x22120    ; -> _objc_release
+0x00005c0c:  mov      x0, x20
+0x00005c10:  ldp      x29, x30, [sp, #0x30]
+0x00005c14:  ldp      x20, x19, [sp, #0x20]
+0x00005c18:  ldp      x22, x21, [sp, #0x10]
+0x00005c1c:  ldp      d9, d8, [sp], #0x40
+0x00005c20:  ret      

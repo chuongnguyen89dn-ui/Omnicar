@@ -1,0 +1,89 @@
+# sub_20d48
+# addr 0x20d48 .. 0x20ea0  (344 bytes)
+
+00020d48  stp      d15, d14, [sp, #-0x80]!                     
+00020d4c  stp      d13, d12, [sp, #0x10]                       
+00020d50  stp      d11, d10, [sp, #0x20]                       
+00020d54  stp      d9, d8, [sp, #0x30]                         
+00020d58  stp      x24, x23, [sp, #0x40]                       
+00020d5c  stp      x22, x21, [sp, #0x50]                       
+00020d60  stp      x20, x19, [sp, #0x60]                       
+00020d64  stp      x29, x30, [sp, #0x70]                       
+00020d68  add      x29, sp, #0x70                              
+00020d6c  ldr      d14, [x0, #0x20]                            
+00020d70  fcmp     d14, #0.0                                   
+00020d74  b.le     #0x20e58                                    
+00020d78  mov      x19, x0                                     
+00020d7c  fmov     d11, xzr                                    
+00020d80  adrp     x22, #0x43000                               
+00020d84  fmov     d12, #0.50000000                            
+00020d88  adrp     x8, #0x32000                                
+00020d8c  ldr      d8, [x8, #0x7d0]                            ; [0x327d0] __const[0x327d0] double=1.2 float=4.17232506322307e-08
+00020d90  fmov     d15, #1.00000000                            
+00020d94  adrp     x23, #0x43000                               
+00020d98  adrp     x8, #0x32000                                
+00020d9c  ldr      d13, [x8, #0x848]                           ; [0x32848] __const[0x32848] double=0.6 float=4.17232506322307e-08
+00020da0  adrp     x8, #0x32000                                
+00020da4  ldr      d9, [x8, #0xd40]                            ; [0x32d40] __const[0x32d40] double=0.23 float=-151996493463552.0
+00020da8  adrp     x8, #0x32000                                
+00020dac  ldr      d10, [x8, #0xd48]                           ; [0x32d48] __const[0x32d48] double=0.19 float=-7.462978591897724e-36
+00020db0  ldr      x20, [x22, #0x60]                           ; [0x43060] classref -> UIBezierPath (= import _OBJC_CLASS_$_UIBezierPath)
+00020db4  ldr      d2, [x19, #0x28]                            
+00020db8  fadd     d4, d11, d12                                
+00020dbc  fmov     d0, xzr                                     
+00020dc0  fmov     d1, xzr                                     
+00020dc4  mov      v3.16b, v2.16b                              
+00020dc8  mov      v5.16b, v4.16b                              
+00020dcc  bl       #0x27bd8                                    ; _CGRectInset
+00020dd0  fmov     d4, #30.00000000                            
+00020dd4  fmsub    d4, d11, d12, d4                            
+00020dd8  fmov     d5, #2.00000000                             
+00020ddc  fmaxnm   d4, d4, d5                                  
+00020de0  mov      x0, x20                                     
+00020de4  bl       #0x289e0                                    ; objc_msgSend$bezierPathWithRoundedRect:cornerRadius:
+00020de8  mov      x29, x29                                    
+00020dec  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00020df0  mov      x20, x0                                     
+00020df4  mov      v0.16b, v8.16b                              
+00020df8  bl       #0x2b220                                    ; objc_msgSend$setLineWidth:
+00020dfc  fdiv     d0, d11, d14                                
+00020e00  fsub     d0, d15, d0                                 
+00020e04  ldr      x0, [x23, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+00020e08  fmul     d1, d0, d13                                 
+00020e0c  fmul     d3, d0, d1                                  
+00020e10  fmov     d0, #1.00000000                             
+00020e14  mov      v1.16b, v9.16b                              
+00020e18  mov      v2.16b, v10.16b                             
+00020e1c  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+00020e20  mov      x29, x29                                    
+00020e24  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00020e28  mov      x21, x0                                     
+00020e2c  bl       #0x2b920                                    ; objc_msgSend$setStroke
+00020e30  mov      x0, x21                                     
+00020e34  bl       #0x27ff8                                    ; _objc_release
+00020e38  mov      x0, x20                                     
+00020e3c  bl       #0x2c340                                    ; objc_msgSend$stroke
+00020e40  mov      x0, x20                                     
+00020e44  bl       #0x27ff8                                    ; _objc_release
+00020e48  fadd     d11, d11, d15                               
+00020e4c  ldr      d14, [x19, #0x20]                           
+00020e50  fcmp     d11, d14                                    
+00020e54  b.mi     #0x20db0                                    
+00020e58  ldp      x29, x30, [sp, #0x70]                       
+00020e5c  ldp      x20, x19, [sp, #0x60]                       
+00020e60  ldp      x22, x21, [sp, #0x50]                       
+00020e64  ldp      x24, x23, [sp, #0x40]                       
+00020e68  ldp      d9, d8, [sp, #0x30]                         
+00020e6c  ldp      d11, d10, [sp, #0x20]                       
+00020e70  ldp      d13, d12, [sp, #0x10]                       
+00020e74  ldp      d15, d14, [sp], #0x80                       
+00020e78  ret                                                  
+00020e7c  mov      x19, x0                                     
+00020e80  mov      x0, x21                                     
+00020e84  bl       #0x27ff8                                    ; _objc_release
+00020e88  b        #0x20e90                                    ; sub_20e90
+00020e8c  mov      x19, x0                                     
+00020e90  mov      x0, x20                                     
+00020e94  bl       #0x27ff8                                    ; _objc_release
+00020e98  mov      x0, x19                                     
+00020e9c  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,15 @@
+; -[SSSplash setDisplayLink:]
+; VA 0x73c8  size 48
+
+0x000073c8:  stp      x20, x19, [sp, #-0x20]!
+0x000073cc:  stp      x29, x30, [sp, #0x10]
+0x000073d0:  add      x29, sp, #0x10
+0x000073d4:  mov      x19, x2
+0x000073d8:  mov      x20, x0
+0x000073dc:  mov      x0, x2
+0x000073e0:  bl       #0x2212c    ; -> _objc_retain
+0x000073e4:  ldr      x0, [x20, #0x80]
+0x000073e8:  str      x19, [x20, #0x80]
+0x000073ec:  ldp      x29, x30, [sp, #0x10]
+0x000073f0:  ldp      x20, x19, [sp], #0x20
+0x000073f4:  b        #0x22120    ; -> _objc_release

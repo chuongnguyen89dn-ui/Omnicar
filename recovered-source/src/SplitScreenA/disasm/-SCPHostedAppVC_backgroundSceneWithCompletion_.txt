@@ -1,0 +1,20 @@
+; -[SCPHostedAppVC backgroundSceneWithCompletion:]
+0x00fd14  stp      x20, x19, [sp, #-0x20]!
+0x00fd18  stp      x29, x30, [sp, #0x10]
+0x00fd1c  add      x29, sp, #0x10
+0x00fd20  mov      x19, x2
+0x00fd24  mov      x0, x2
+0x00fd28  bl       #0x567c4 ; call _objc_retain
+0x00fd2c  cbz      x19, #0xfd3c
+0x00fd30  ldr      x8, [x19, #0x10]
+0x00fd34  mov      x0, x19
+0x00fd38  blr      x8
+0x00fd3c  mov      x0, x19
+0x00fd40  ldp      x29, x30, [sp, #0x10]
+0x00fd44  ldp      x20, x19, [sp], #0x20
+0x00fd48  b        #0x567b8 ; call _objc_release
+0x00fd4c  mov      x20, x0
+0x00fd50  mov      x0, x19
+0x00fd54  bl       #0x567b8 ; call _objc_release
+0x00fd58  mov      x0, x20
+0x00fd5c  bl       #0x563e0 ; call __Unwind_Resume

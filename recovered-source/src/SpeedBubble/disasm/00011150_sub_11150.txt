@@ -1,0 +1,87 @@
+# sub_11150
+# addr 0x11150 .. 0x112a0  (336 bytes)
+
+00011150  sub      sp, sp, #0x60                               
+00011154  stp      d9, d8, [sp, #0x20]                         
+00011158  stp      x22, x21, [sp, #0x30]                       
+0001115c  stp      x20, x19, [sp, #0x40]                       
+00011160  stp      x29, x30, [sp, #0x50]                       
+00011164  add      x29, sp, #0x50                              
+00011168  adrp     x8, #0x38000                                
+0001116c  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00011170  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00011174  str      x8, [sp, #0x18]                             
+00011178  adrp     x21, #0x43000                               
+0001117c  ldr      x0, [x21, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+00011180  adrp     x8, #0x32000                                
+00011184  ldr      d0, [x8, #0x930]                            ; [0x32930] __const[0x32930] double=0.6549019607843137 float=-1.552598574616217e+32
+00011188  adrp     x8, #0x32000                                
+0001118c  ldr      d1, [x8, #0x938]                            ; [0x32938] __const[0x32938] double=0.5450980392156862 float=1.1955684737915709e+30
+00011190  adrp     x8, #0x32000                                
+00011194  ldr      d8, [x8, #0x940]                            ; [0x32940] __const[0x32940] double=0.9803921568627451 float=1.609568804685008e+19
+00011198  fmov     d3, #1.00000000                             
+0001119c  mov      v2.16b, v8.16b                              
+000111a0  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+000111a4  mov      x29, x29                                    
+000111a8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000111ac  mov      x19, x0                                     
+000111b0  bl       #0x28010                                    ; _objc_retainAutorelease
+000111b4  bl       #0x281e0                                    ; objc_msgSend$CGColor
+000111b8  str      x0, [sp]                                    
+000111bc  ldr      x0, [x21, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+000111c0  adrp     x8, #0x32000                                
+000111c4  ldr      d0, [x8, #0x9d8]                            ; [0x329d8] __const[0x329d8] double=0.3764705882352941 float=1.9657703783292915e-24
+000111c8  adrp     x8, #0x32000                                
+000111cc  ldr      d1, [x8, #0x9e0]                            ; [0x329e0] __const[0x329e0] double=0.7725490196078432 float=-8.808210986899212e-05
+000111d0  fmov     d3, #1.00000000                             
+000111d4  mov      v2.16b, v8.16b                              
+000111d8  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+000111dc  mov      x29, x29                                    
+000111e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000111e4  mov      x20, x0                                     
+000111e8  bl       #0x28010                                    ; _objc_retainAutorelease
+000111ec  bl       #0x281e0                                    ; objc_msgSend$CGColor
+000111f0  str      x0, [sp, #8]                                
+000111f4  ldr      x0, [x21, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+000111f8  adrp     x8, #0x32000                                
+000111fc  ldr      d0, [x8, #0x9e8]                            ; [0x329e8] __const[0x329e8] double=0.3686274509803922 float=-9.79641393122377e-25
+00011200  adrp     x8, #0x32000                                
+00011204  ldr      d1, [x8, #0x958]                            ; [0x32958] __const[0x32958] double=0.8666666666666667 float=-0.00572916679084301
+00011208  adrp     x8, #0x32000                                
+0001120c  ldr      d2, [x8, #0x9f0]                            ; [0x329f0] __const[0x329f0] double=0.7137254901960784 float=-118109109223424.0
+00011210  fmov     d3, #1.00000000                             
+00011214  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+00011218  mov      x29, x29                                    
+0001121c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011220  mov      x22, x0                                     
+00011224  bl       #0x28010                                    ; _objc_retainAutorelease
+00011228  bl       #0x281e0                                    ; objc_msgSend$CGColor
+0001122c  str      x0, [sp, #0x10]                             
+00011230  adrp     x8, #0x42000                                
+00011234  ldr      x0, [x8, #0xf80]                            ; [0x42f80] classref -> NSArray (= import _OBJC_CLASS_$_NSArray)
+00011238  mov      x2, sp                                      
+0001123c  mov      w3, #3                                      
+00011240  bl       #0x28880                                    ; objc_msgSend$arrayWithObjects:count:
+00011244  mov      x29, x29                                    
+00011248  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001124c  mov      x21, x0                                     
+00011250  mov      x0, x22                                     
+00011254  bl       #0x27ff8                                    ; _objc_release
+00011258  mov      x0, x20                                     
+0001125c  bl       #0x27ff8                                    ; _objc_release
+00011260  mov      x0, x19                                     
+00011264  bl       #0x27ff8                                    ; _objc_release
+00011268  ldr      x8, [sp, #0x18]                             
+0001126c  adrp     x9, #0x38000                                
+00011270  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00011274  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00011278  cmp      x9, x8                                      
+0001127c  b.ne     #0x1129c                                    
+00011280  mov      x0, x21                                     
+00011284  ldp      x29, x30, [sp, #0x50]                       
+00011288  ldp      x20, x19, [sp, #0x40]                       
+0001128c  ldp      x22, x21, [sp, #0x30]                       
+00011290  ldp      d9, d8, [sp, #0x20]                         
+00011294  add      sp, sp, #0x60                               
+00011298  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+0001129c  bl       #0x27ca4                                    ; ___stack_chk_fail

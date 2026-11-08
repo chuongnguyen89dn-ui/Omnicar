@@ -1,0 +1,56 @@
+# sub_179e0
+# addr 0x179e0 .. 0x17ab4  (212 bytes)
+
+000179e0  sub      sp, sp, #0x50                               
+000179e4  stp      d9, d8, [sp, #0x10]                         
+000179e8  stp      x22, x21, [sp, #0x20]                       
+000179ec  stp      x20, x19, [sp, #0x30]                       
+000179f0  stp      x29, x30, [sp, #0x40]                       
+000179f4  add      x29, sp, #0x40                              
+000179f8  mov      x20, x2                                     
+000179fc  mov      v8.16b, v1.16b                              
+00017a00  mov      v9.16b, v0.16b                              
+00017a04  mov      x21, x1                                     
+00017a08  mov      x19, x0                                     
+00017a0c  bl       #0x28004                                    ; _objc_retain
+00017a10  mov      x0, x20                                     
+00017a14  bl       #0x28004                                    ; _objc_retain
+00017a18  str      x19, [sp]                                   
+00017a1c  mov      x0, x19                                     
+00017a20  bl       #0x2807c                                    ; _object_getClass
+00017a24  bl       #0x27d40                                    ; _class_getSuperclass
+00017a28  str      x0, [sp, #8]                                
+00017a2c  mov      x0, sp                                      
+00017a30  mov      x1, x21                                     
+00017a34  mov      v0.16b, v9.16b                              
+00017a38  mov      v1.16b, v8.16b                              
+00017a3c  mov      x2, x20                                     
+00017a40  bl       #0x27fa4                                    ; _objc_msgSendSuper
+00017a44  mov      x29, x29                                    
+00017a48  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017a4c  mov      x21, x0                                     
+00017a50  cmp      x0, x19                                     
+00017a54  csel     x22, xzr, x0, eq                            
+00017a58  mov      x0, x22                                     
+00017a5c  bl       #0x28004                                    ; _objc_retain
+00017a60  mov      x0, x21                                     
+00017a64  bl       #0x27ff8                                    ; _objc_release
+00017a68  mov      x0, x20                                     
+00017a6c  bl       #0x27ff8                                    ; _objc_release
+00017a70  mov      x0, x19                                     
+00017a74  bl       #0x27ff8                                    ; _objc_release
+00017a78  mov      x0, x22                                     
+00017a7c  ldp      x29, x30, [sp, #0x40]                       
+00017a80  ldp      x20, x19, [sp, #0x30]                       
+00017a84  ldp      x22, x21, [sp, #0x20]                       
+00017a88  ldp      d9, d8, [sp, #0x10]                         
+00017a8c  add      sp, sp, #0x50                               
+00017a90  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+00017a94  b        #0x17a98                                    ; sub_17a98
+00017a98  mov      x21, x0                                     
+00017a9c  mov      x0, x20                                     
+00017aa0  bl       #0x27ff8                                    ; _objc_release
+00017aa4  mov      x0, x19                                     
+00017aa8  bl       #0x27ff8                                    ; _objc_release
+00017aac  mov      x0, x21                                     
+00017ab0  bl       #0x27c80                                    ; __Unwind_Resume

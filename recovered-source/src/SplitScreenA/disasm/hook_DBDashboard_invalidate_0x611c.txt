@@ -1,0 +1,46 @@
+; sub_611c
+0x00611c  stp      x22, x21, [sp, #-0x30]!
+0x006120  stp      x20, x19, [sp, #0x10]
+0x006124  stp      x29, x30, [sp, #0x20]
+0x006128  add      x29, sp, #0x20
+0x00612c  mov      x19, x1
+0x006130  mov      x20, x0
+0x006134  adrp     x8, #0x87000
+0x006138  ldr      x0, [x8, #0x688] ; [0x87688] class:SCPCarSplit
+0x00613c  bl       #0x5bea0 ; objc_msgSend$shared
+0x006140  mov      x29, x29
+0x006144  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x006148  mov      x21, x0
+0x00614c  bl       #0x57a80 ; objc_msgSend$dashboardInvalidated
+0x006150  mov      x0, x21
+0x006154  bl       #0x567b8 ; call _objc_release
+0x006158  adrp     x8, #0x88000
+0x00615c  ldr      x2, [x8, #0x58]
+0x006160  mov      x0, x20
+0x006164  mov      x1, x19
+0x006168  ldp      x29, x30, [sp, #0x20]
+0x00616c  ldp      x20, x19, [sp, #0x10]
+0x006170  ldp      x22, x21, [sp], #0x30
+0x006174  br       x2
+0x006178  mov      x22, x1
+0x00617c  mov      x1, x21
+0x006180  mov      x21, x0
+0x006184  mov      x0, x1
+0x006188  bl       #0x567b8 ; call _objc_release
+0x00618c  b        #0x6198
+0x006190  mov      x22, x1
+0x006194  mov      x21, x0
+0x006198  cmp      w22, #1
+0x00619c  b.ne     #0x61c8
+0x0061a0  mov      x0, x21
+0x0061a4  bl       #0x566ec ; call _objc_begin_catch
+0x0061a8  mov      x1, x0
+0x0061ac  adrp     x0, #0x5f000
+0x0061b0  add      x0, x0, #0x14e ; -> 0x5f14e "DBDashboard invalidate"
+0x0061b4  bl       #0x75cc ; -> sub_75cc
+0x0061b8  bl       #0x56710 ; call _objc_end_catch
+0x0061bc  b        #0x6158
+0x0061c0  mov      x21, x0
+0x0061c4  bl       #0x56710 ; call _objc_end_catch
+0x0061c8  mov      x0, x21
+0x0061cc  bl       #0x563e0 ; call __Unwind_Resume

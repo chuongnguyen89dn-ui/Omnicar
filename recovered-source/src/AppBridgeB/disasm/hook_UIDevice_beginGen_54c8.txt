@@ -1,0 +1,16 @@
+=== sub_54c8 @ 0x54c8 (size 60) ===
+000054c8  stp      x29, x30, [sp, #-0x10]!
+000054cc  mov      x29, sp
+000054d0  adrp     x8, #0x3e000
+000054d4  ldr      x8, [x8, #0x960]
+000054d8  blr      x8
+000054dc  adrp     x8, #0x3e000
+000054e0  ldr      w8, [x8, #0x9d0]
+000054e4  cmp      w8, #1
+000054e8  b.lt     #0x54fc
+000054ec  adrp     x8, #0x2b000
+000054f0  ldr      d0, [x8, #0x1d8] ; -> 0x99999999a
+000054f4  ldp      x29, x30, [sp], #0x10
+000054f8  b        #0x5ff0 ; call sub_5ff0
+000054fc  ldp      x29, x30, [sp], #0x10
+00005500  ret      

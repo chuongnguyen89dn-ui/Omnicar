@@ -1,0 +1,16 @@
+# sub_22638
+# addr 0x22638 .. 0x2266c  (52 bytes)
+
+00022638  stp      x29, x30, [sp, #-0x10]!                     
+0002263c  mov      x29, sp                                     
+00022640  adrp     x8, #0x42000                                
+00022644  ldr      x0, [x8, #0xfa0]                            ; [0x42fa0] classref -> NSMutableSet (= import _OBJC_CLASS_$_NSMutableSet)
+00022648  bl       #0x2a8a0                                    ; objc_msgSend$set
+0002264c  mov      x29, x29                                    
+00022650  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022654  adrp     x9, #0x43000                                
+00022658  ldr      x8, [x9, #0xa38]                            ; [0x43a38] __DATA,__bss+0x298
+0002265c  str      x0, [x9, #0xa38]                            
+00022660  mov      x0, x8                                      
+00022664  ldp      x29, x30, [sp], #0x10                       
+00022668  b        #0x27ff8                                    ; _objc_release

@@ -1,0 +1,24 @@
+; sub_bd2c
+; VA 0xbd2c  size 84
+
+0x0000bd2c:  ldr      x0, [sp, #0x18]
+0x0000bd30:  mov      w4, #0x10
+0x0000bd34:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0000bd38:  mov      x22, x0
+0x0000bd3c:  cbnz     x0, #0xbbf4
+0x0000bd40:  b        #0xbd48    ; -> sub_bd48
+0x0000bd44:  stp      xzr, xzr, [sp, #8]
+0x0000bd48:  ldr      x0, [sp, #0x18]
+0x0000bd4c:  bl       #0x22120    ; -> _objc_release
+0x0000bd50:  ldr      x0, [sp, #0x10]
+0x0000bd54:  bl       #0x22120    ; -> _objc_release
+0x0000bd58:  ldur     x8, [x29, #-0x70]
+0x0000bd5c:  adrp     x9, #0x30000
+0x0000bd60:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0000bd64:  ldr      x9, [x9]
+0x0000bd68:  cmp      x9, x8
+0x0000bd6c:  b.ne     #0xbd98
+0x0000bd70:  ldr      x0, [sp, #8]
+0x0000bd74:  add      sp, sp, #0x500
+0x0000bd78:  ldp      x29, x30, [sp, #0x60]
+0x0000bd7c:  ldp      x20, x19, [sp, #0x50]

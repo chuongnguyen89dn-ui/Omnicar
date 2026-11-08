@@ -1,0 +1,61 @@
+# -[SPPBubble applySavedScale]
+# addr 0x17c34 .. 0x17d1c  (232 bytes)
+
+00017c34  sub      sp, sp, #0x90                               
+00017c38  stp      d9, d8, [sp, #0x60]                         
+00017c3c  stp      x20, x19, [sp, #0x70]                       
+00017c40  stp      x29, x30, [sp, #0x80]                       
+00017c44  add      x29, sp, #0x80                              
+00017c48  mov      x19, x0                                     
+00017c4c  bl       #0x2a760                                    ; objc_msgSend$savedScale
+00017c50  mov      v8.16b, v0.16b                              
+00017c54  mov      x0, x19                                     
+00017c58  bl       #0x2a2c0                                    ; objc_msgSend$pinching
+00017c5c  tbnz     w0, #0, #0x17cf4                            
+00017c60  mov      x0, x19                                     
+00017c64  bl       #0x2a780                                    ; objc_msgSend$scale
+00017c68  fabd     d0, d8, d0                                  
+00017c6c  adrp     x8, #0x32000                                
+00017c70  ldr      d1, [x8, #0xd10]                            ; [0x32d10] __const[0x32d10] double=0.001 float=-518969491456.0
+00017c74  fcmp     d0, d1                                      
+00017c78  b.mi     #0x17cf4                                    
+00017c7c  mov      x0, x19                                     
+00017c80  mov      v0.16b, v8.16b                              
+00017c84  bl       #0x2b6e0                                    ; objc_msgSend$setScale:
+00017c88  mov      x0, x19                                     
+00017c8c  bl       #0x28c60                                    ; objc_msgSend$card
+00017c90  mov      x29, x29                                    
+00017c94  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017c98  mov      x20, x0                                     
+00017c9c  bl       #0x27ff8                                    ; _objc_release
+00017ca0  cbz      x20, #0x17cf4                               
+00017ca4  add      x8, sp, #0x30                               
+00017ca8  mov      x0, x19                                     
+00017cac  bl       #0x28900                                    ; objc_msgSend$baseTransform
+00017cb0  ldp      q0, q1, [sp, #0x30]                         
+00017cb4  stp      q0, q1, [sp]                                
+00017cb8  ldr      q0, [sp, #0x50]                             
+00017cbc  str      q0, [sp, #0x20]                             
+00017cc0  mov      x0, x19                                     
+00017cc4  bl       #0x28c60                                    ; objc_msgSend$card
+00017cc8  mov      x29, x29                                    
+00017ccc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017cd0  mov      x20, x0                                     
+00017cd4  mov      x2, sp                                      
+00017cd8  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+00017cdc  mov      x0, x20                                     
+00017ce0  bl       #0x27ff8                                    ; _objc_release
+00017ce4  mov      x0, x19                                     
+00017ce8  bl       #0x28d20                                    ; objc_msgSend$clampCard
+00017cec  mov      x0, x19                                     
+00017cf0  bl       #0x28780                                    ; objc_msgSend$applyCrispScale
+00017cf4  ldp      x29, x30, [sp, #0x80]                       
+00017cf8  ldp      x20, x19, [sp, #0x70]                       
+00017cfc  ldp      d9, d8, [sp, #0x60]                         
+00017d00  add      sp, sp, #0x90                               
+00017d04  ret                                                  
+00017d08  mov      x19, x0                                     
+00017d0c  mov      x0, x20                                     
+00017d10  bl       #0x27ff8                                    ; _objc_release
+00017d14  mov      x0, x19                                     
+00017d18  bl       #0x27c80                                    ; __Unwind_Resume

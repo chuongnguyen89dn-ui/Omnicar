@@ -1,0 +1,57 @@
+; ==== SCPCarSplit__hideTrayWindowIfIdle  @0x28180..0x28260 (224 bytes) ====
+00028180  stp      x20, x19, [sp, #-0x20]!                      
+00028184  stp      x29, x30, [sp, #0x10]                        
+00028188  add      x29, sp, #0x10                               
+0002818c  mov      x20, x0                                      
+00028190  bl       #0x5c8c0                                     ; msgSend "trayWindow"
+00028194  mov      x29, x29                                     
+00028198  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002819c  mov      x19, x0                                      
+000281a0  cbz      x0, #0x281e4                                 
+000281a4  mov      x0, x20                                      
+000281a8  bl       #0x5c820                                     ; msgSend "tray"
+000281ac  mov      x29, x29                                     
+000281b0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000281b4  cbnz     x0, #0x281e0                                 
+000281b8  mov      x0, x20                                      
+000281bc  bl       #0x59f80                                     ; msgSend "ratioMenu"
+000281c0  mov      x29, x29                                     
+000281c4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000281c8  cbnz     x0, #0x281e0                                 
+000281cc  mov      x0, x20                                      
+000281d0  bl       #0x59a40                                     ; msgSend "pickerSheet"
+000281d4  mov      x29, x29                                     
+000281d8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000281dc  cbz      x0, #0x281f4                                 
+000281e0  bl       #0x567b8                                     ; call _objc_release
+000281e4  mov      x0, x19                                      
+000281e8  ldp      x29, x30, [sp, #0x10]                        
+000281ec  ldp      x20, x19, [sp], #0x20                        
+000281f0  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+000281f4  mov      x0, x20                                      
+000281f8  bl       #0x57e20                                     ; msgSend "dragGhost"
+000281fc  mov      x29, x29                                     
+00028200  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00028204  mov      x20, x0                                      
+00028208  bl       #0x567b8                                     ; call _objc_release
+0002820c  cbnz     x20, #0x281e4                                
+00028210  mov      x0, x19                                      
+00028214  mov      w2, #0x5c9b                                  
+00028218  bl       #0x5cba0                                     ; msgSend "viewWithTag:"
+0002821c  mov      x29, x29                                     
+00028220  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00028224  mov      x20, x0                                      
+00028228  bl       #0x567b8                                     ; call _objc_release
+0002822c  cbnz     x20, #0x281e4                                
+00028230  mov      x0, x19                                      
+00028234  mov      w2, #1                                       
+00028238  bl       #0x5aea0                                     ; msgSend "setHidden:"
+0002823c  b        #0x281e4                                     
+00028240  b        #0x2824c                                     
+00028244  b        #0x2824c                                     
+00028248  b        #0x2824c                                     
+0002824c  mov      x20, x0                                      
+00028250  mov      x0, x19                                      
+00028254  bl       #0x567b8                                     ; call _objc_release
+00028258  mov      x0, x20                                      
+0002825c  bl       #0x563e0                                     ; call __Unwind_Resume

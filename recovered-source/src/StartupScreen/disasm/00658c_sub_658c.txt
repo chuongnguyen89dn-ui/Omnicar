@@ -1,0 +1,34 @@
+; sub_658c
+; VA 0x658c  size 124
+
+0x0000658c:  adrp     x0, #0x35000
+0x00006590:  add      x0, x0, #0x488
+0x00006594:  add      x2, sp, #0x80
+0x00006598:  add      x3, sp, #0xc0
+0x0000659c:  mov      w4, #0x10
+0x000065a0:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x000065a4:  mov      x20, x0
+0x000065a8:  adrp     x26, #0x30000
+0x000065ac:  add      x26, x26, #0x9c8
+0x000065b0:  cbz      x0, #0x6660
+0x000065b4:  ldr      x8, [sp, #0x90]
+0x000065b8:  ldr      x28, [x8]
+0x000065bc:  adrp     x8, #0x28000
+0x000065c0:  ldr      d8, [x8, #0xdd8]
+0x000065c4:  adrp     x8, #0x28000
+0x000065c8:  ldr      d9, [x8, #0xde0]
+0x000065cc:  adrp     x23, #0x8000
+0x000065d0:  add      x23, x23, #0xb74
+0x000065d4:  adrp     x21, #0x30000
+0x000065d8:  ldr      x21, [x21, #0x388]    ; got(__dispatch_main_q)
+0x000065dc:  adrp     x22, #0x35000
+0x000065e0:  add      x22, x22, #0x488
+0x000065e4:  mov      x27, #0
+0x000065e8:  ldr      x8, [sp, #0x90]
+0x000065ec:  ldr      x8, [x8]
+0x000065f0:  cmp      x8, x28
+0x000065f4:  b.eq     #0x6600
+0x000065f8:  mov      x0, x22
+0x000065fc:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x00006600:  ldr      x8, [sp, #0x88]
+0x00006604:  ldr      x0, [x8, x27, lsl #3]

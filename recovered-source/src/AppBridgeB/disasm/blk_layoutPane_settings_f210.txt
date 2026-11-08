@@ -1,0 +1,86 @@
+=== sub_f210 @ 0xf210 (size 340) ===
+0000f210  stp      x20, x19, [sp, #-0x20]!
+0000f214  stp      x29, x30, [sp, #0x10]
+0000f218  add      x29, sp, #0x10
+0000f21c  mov      x19, x1
+0000f220  mov      x20, x0
+0000f224  mov      x0, x1
+0000f228  bl       #0x24818 ; call _objc_retain
+0000f22c  adrp     x0, #0x36000
+0000f230  add      x0, x0, #0x190 = @"setFrame:"
+0000f234  bl       #0x2441c ; call _NSSelectorFromString
+0000f238  mov      x1, x0
+0000f23c  ldp      d0, d1, [x20, #0x20]
+0000f240  ldp      d2, d3, [x20, #0x30]
+0000f244  mov      x0, x19
+0000f248  bl       #0x247ac ; call _objc_msgSend
+0000f24c  adrp     x0, #0x36000
+0000f250  add      x0, x0, #0x1b0 = @"setInterfaceOrientation:"
+0000f254  bl       #0x2441c ; call _NSSelectorFromString
+0000f258  mov      x1, x0
+0000f25c  mov      x0, x19
+0000f260  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000f264  tbz      w0, #0, #0xf284
+0000f268  adrp     x0, #0x36000
+0000f26c  add      x0, x0, #0x1b0 = @"setInterfaceOrientation:"
+0000f270  bl       #0x2441c ; call _NSSelectorFromString
+0000f274  mov      x1, x0
+0000f278  ldr      x2, [x20, #0x40]
+0000f27c  mov      x0, x19
+0000f280  bl       #0x247ac ; call _objc_msgSend
+0000f284  mov      x0, x19
+0000f288  bl       #0x24818 ; call _objc_retain
+0000f28c  adrp     x0, #0x36000
+0000f290  add      x0, x0, #0x1d0 = @"setBackgrounded:"
+0000f294  bl       #0x2441c ; call _NSSelectorFromString
+0000f298  mov      x20, x0
+0000f29c  mov      x0, x19
+0000f2a0  mov      x1, x20
+0000f2a4  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000f2a8  tbz      w0, #0, #0xf2c0
+0000f2ac  mov      x0, x19
+0000f2b0  mov      x1, x20
+0000f2b4  mov      w2, #0
+0000f2b8  bl       #0x247ac ; call _objc_msgSend
+0000f2bc  b        #0xf2d0 ; call sub_f2d0
+0000f2c0  adrp     x1, #0x36000
+0000f2c4  add      x1, x1, #0x1d0 = @"setBackgrounded:"
+0000f2c8  mov      x0, x19
+0000f2cc  bl       #0x9698 ; call sym:_ABMissingSelector
+0000f2d0  mov      x0, x19
+0000f2d4  bl       #0x2480c ; call _objc_release
+0000f2d8  mov      x0, x19
+0000f2dc  bl       #0x24818 ; call _objc_retain
+0000f2e0  adrp     x0, #0x36000
+0000f2e4  add      x0, x0, #0x1f0 = @"setForeground:"
+0000f2e8  bl       #0x2441c ; call _NSSelectorFromString
+0000f2ec  mov      x20, x0
+0000f2f0  mov      x0, x19
+0000f2f4  mov      x1, x20
+0000f2f8  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000f2fc  tbz      w0, #0, #0xf314
+0000f300  mov      x0, x19
+0000f304  mov      x1, x20
+0000f308  mov      w2, #1
+0000f30c  bl       #0x247ac ; call _objc_msgSend
+0000f310  b        #0xf324 ; call sub_f324
+0000f314  adrp     x1, #0x36000
+0000f318  add      x1, x1, #0x1f0 = @"setForeground:"
+0000f31c  mov      x0, x19
+0000f320  bl       #0x9698 ; call sym:_ABMissingSelector
+0000f324  mov      x0, x19
+0000f328  bl       #0x2480c ; call _objc_release
+0000f32c  mov      x0, x19
+0000f330  ldp      x29, x30, [sp, #0x10]
+0000f334  ldp      x20, x19, [sp], #0x20
+0000f338  b        #0x2480c ; call _objc_release
+0000f33c  b        #0xf340 ; call sub_f340
+0000f340  mov      x20, x0
+0000f344  mov      x0, x19
+0000f348  bl       #0x2480c ; call _objc_release
+0000f34c  b        #0xf354 ; call sub_f354
+0000f350  mov      x20, x0
+0000f354  mov      x0, x19
+0000f358  bl       #0x2480c ; call _objc_release
+0000f35c  mov      x0, x20
+0000f360  bl       #0x24470 ; call __Unwind_Resume

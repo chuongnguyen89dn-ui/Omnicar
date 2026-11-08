@@ -1,0 +1,20 @@
+; sub_4d28
+; VA 0x4d28  size 68
+
+0x00004d28:  stp      x20, x19, [sp, #-0x20]!
+0x00004d2c:  stp      x29, x30, [sp, #0x10]
+0x00004d30:  add      x29, sp, #0x10
+0x00004d34:  adrp     x8, #0x14000
+0x00004d38:  ldr      x0, [x8, #0x380]    ; class(NSDateFormatter)
+0x00004d3c:  bl       #0xb3ec    ; -> _objc_opt_new
+0x00004d40:  adrp     x19, #0x14000
+0x00004d44:  ldr      x8, [x19, #0x480]
+0x00004d48:  str      x0, [x19, #0x480]
+0x00004d4c:  mov      x0, x8
+0x00004d50:  bl       #0xb410    ; -> _objc_release
+0x00004d54:  ldr      x0, [x19, #0x480]
+0x00004d58:  adrp     x2, #0x10000
+0x00004d5c:  add      x2, x2, #0x8f8    ; @"yyyy-MM-dd HH:mm:ss.SSS"
+0x00004d60:  ldp      x29, x30, [sp, #0x10]
+0x00004d64:  ldp      x20, x19, [sp], #0x20
+0x00004d68:  b        #0xc000    ; -> _objc_msgSend(setDateFormat:)

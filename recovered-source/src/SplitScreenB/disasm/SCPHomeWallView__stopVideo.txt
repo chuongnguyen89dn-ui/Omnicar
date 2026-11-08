@@ -1,0 +1,46 @@
+; ==== SCPHomeWallView__stopVideo  @0x4941c..0x494d0 (180 bytes) ====
+0004941c  stp      x20, x19, [sp, #-0x20]!                      
+00049420  stp      x29, x30, [sp, #0x10]                        
+00049424  add      x29, sp, #0x10                               
+00049428  mov      x19, x0                                      
+0004942c  bl       #0x59b20                                     ; msgSend "player"
+00049430  mov      x29, x29                                     
+00049434  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049438  mov      x20, x0                                      
+0004943c  bl       #0x59980                                     ; msgSend "pause"
+00049440  mov      x0, x20                                      
+00049444  bl       #0x567b8                                     ; call _objc_release
+00049448  mov      x0, x19                                      
+0004944c  bl       #0x59180                                     ; msgSend "looper"
+00049450  mov      x29, x29                                     
+00049454  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049458  mov      x20, x0                                      
+0004945c  bl       #0x57c20                                     ; msgSend "disableLooping"
+00049460  mov      x0, x20                                      
+00049464  bl       #0x567b8                                     ; call _objc_release
+00049468  mov      x0, x19                                      
+0004946c  bl       #0x5cb40                                     ; msgSend "videoLayer"
+00049470  mov      x29, x29                                     
+00049474  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00049478  mov      x20, x0                                      
+0004947c  bl       #0x5a2a0                                     ; msgSend "removeFromSuperlayer"
+00049480  mov      x0, x20                                      
+00049484  bl       #0x567b8                                     ; call _objc_release
+00049488  mov      x0, x19                                      
+0004948c  mov      x2, #0                                       
+00049490  bl       #0x5b680                                     ; msgSend "setPlayer:"
+00049494  mov      x0, x19                                      
+00049498  mov      x2, #0                                       
+0004949c  bl       #0x5b300                                     ; msgSend "setLooper:"
+000494a0  mov      x0, x19                                      
+000494a4  mov      x2, #0                                       
+000494a8  ldp      x29, x30, [sp, #0x10]                        
+000494ac  ldp      x20, x19, [sp], #0x20                        
+000494b0  b        #0x5bde0                                     ; msgSend "setVideoLayer:" | tail-msgSend "setVideoLayer:"
+000494b4  b        #0x494bc                                     
+000494b8  b        #0x494bc                                     
+000494bc  mov      x19, x0                                      
+000494c0  mov      x0, x20                                      
+000494c4  bl       #0x567b8                                     ; call _objc_release
+000494c8  mov      x0, x19                                      
+000494cc  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,179 @@
+0x0163e8: sub      sp, sp, #0x120                               
+0x0163ec: stp      x24, x23, [sp, #0xe0]                        
+0x0163f0: stp      x22, x21, [sp, #0xf0]                        
+0x0163f4: stp      x20, x19, [sp, #0x100]                       
+0x0163f8: stp      x29, x30, [sp, #0x110]                       
+0x0163fc: add      x29, sp, #0x110                              
+0x016400: mov      x19, x0                                      
+0x016404: adrp     x8, #0x34000                                 
+0x016408: ldr      x8, [x8, #0x278]                             ; [0x34278] got-sym:___stack_chk_guard -> bind ___stack_chk_guard
+0x01640c: ldr      x8, [x8]                                     
+0x016410: stur     x8, [x29, #-0x38]                            
+0x016414: bl       #0x25e60                                     ; call selstub knobViews
+0x016418: mov      x29, x29                                     
+0x01641c: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x016420: mov      x20, x0                                      
+0x016424: adrp     x8, #0x3d000                                 
+0x016428: ldr      x2, [x8, #0xa50]                             ; [0x3da50] sel:removeFromSuperview -> __objc_methname@0x31123
+0x01642c: bl       #0x26100                                     ; call selstub makeObjectsPerformSelector:
+0x016430: mov      x0, x20                                      
+0x016434: bl       #0x2480c                                     ; call stub _objc_release
+0x016438: mov      x0, x19                                      
+0x01643c: bl       #0x25e60                                     ; call selstub knobViews
+0x016440: mov      x29, x29                                     
+0x016444: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x016448: mov      x20, x0                                      
+0x01644c: bl       #0x26800                                     ; call selstub removeAllObjects
+0x016450: mov      x0, x20                                      
+0x016454: bl       #0x2480c                                     ; call stub _objc_release
+0x016458: mov      x0, x19                                      
+0x01645c: bl       #0x26580                                     ; call selstub panes
+0x016460: mov      x29, x29                                     
+0x016464: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x016468: mov      x20, x0                                      
+0x01646c: bl       #0x25420                                     ; call selstub count
+0x016470: cbz      x0, #0x16480                                 ; -> 0x16480
+0x016474: mov      x0, x20                                      
+0x016478: bl       #0x2480c                                     ; call stub _objc_release
+0x01647c: b        #0x164a4                                     ; call 0x164a4
+0x016480: mov      x0, x19                                      
+0x016484: bl       #0x281e0                                     ; call selstub window
+0x016488: mov      x29, x29                                     
+0x01648c: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x016490: mov      x21, x0                                      
+0x016494: bl       #0x2480c                                     ; call stub _objc_release
+0x016498: mov      x0, x20                                      
+0x01649c: bl       #0x2480c                                     ; call stub _objc_release
+0x0164a0: cbz      x21, #0x16604                                ; -> 0x16604
+0x0164a4: adrp     x8, #0x3e000                                 
+0x0164a8: ldr      x21, [x8, #0x290]                            ; [0x3e290] class:NSString -> bind _OBJC_CLASS_$_NSString
+0x0164ac: mov      x0, x19                                      
+0x0164b0: bl       #0x26580                                     ; call selstub panes
+0x0164b4: mov      x29, x29                                     
+0x0164b8: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x0164bc: mov      x20, x0                                      
+0x0164c0: bl       #0x25420                                     ; call selstub count
+0x0164c4: str      x0, [sp]                                     
+0x0164c8: adrp     x2, #0x36000                                 
+0x0164cc: add      x2, x2, #0x770                               ; = 0x36770 @"xe ngat -> bo %lu o"
+0x0164d0: mov      x0, x21                                      
+0x0164d4: bl       #0x27d20                                     ; call selstub stringWithFormat:
+0x0164d8: mov      x29, x29                                     
+0x0164dc: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x0164e0: mov      x21, x0                                      
+0x0164e4: adrp     x0, #0x34000                                 
+0x0164e8: add      x0, x0, #0xef0                               ; = 0x34ef0 @"AppBridge"
+0x0164ec: mov      x1, x21                                      
+0x0164f0: bl       #0x1dd30                                     ; call defined _OMCLogWrite (func @0x1dd30)
+0x0164f4: mov      x0, x21                                      
+0x0164f8: bl       #0x2480c                                     ; call stub _objc_release
+0x0164fc: mov      x0, x20                                      
+0x016500: bl       #0x2480c                                     ; call stub _objc_release
+0x016504: movi     v0.16b, #0                                   
+0x016508: stp      q0, q0, [sp, #0x30]                          
+0x01650c: stp      q0, q0, [sp, #0x10]                          
+0x016510: mov      x0, x19                                      
+0x016514: bl       #0x26580                                     ; call selstub panes
+0x016518: mov      x29, x29                                     
+0x01651c: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x016520: mov      x21, x0                                      
+0x016524: bl       #0x253e0                                     ; call selstub copy
+0x016528: mov      x20, x0                                      
+0x01652c: mov      x0, x21                                      
+0x016530: bl       #0x2480c                                     ; call stub _objc_release
+0x016534: add      x2, sp, #0x10                                
+0x016538: add      x3, sp, #0x58                                
+0x01653c: mov      x0, x20                                      
+0x016540: mov      w4, #0x10                                    
+0x016544: bl       #0x25440                                     ; call selstub countByEnumeratingWithState:objects:count:
+0x016548: mov      x21, x0                                      
+0x01654c: cbz      x0, #0x165ac                                 ; -> 0x165ac
+0x016550: ldr      x8, [sp, #0x20]                              
+0x016554: ldr      x22, [x8]                                    ; [0x3e000] sel:textFieldShouldReturn: -> __objc_methname@0x31d22
+0x016558: mov      x23, #0                                      
+0x01655c: ldr      x8, [sp, #0x20]                              
+0x016560: ldr      x8, [x8]                                     ; [0x3e000] sel:textFieldShouldReturn: -> __objc_methname@0x31d22
+0x016564: cmp      x8, x22                                      
+0x016568: b.eq     #0x16574                                     ; -> 0x16574
+0x01656c: mov      x0, x20                                      
+0x016570: bl       #0x24770                                     ; call stub _objc_enumerationMutation
+0x016574: ldr      x8, [sp, #0x18]                              
+0x016578: ldr      x2, [x8, x23, lsl #3]                        
+0x01657c: mov      x0, x19                                      
+0x016580: bl       #0x27ee0                                     ; call selstub teardownPane:
+0x016584: add      x23, x23, #1                                 
+0x016588: cmp      x21, x23                                     
+0x01658c: b.ne     #0x1655c                                     ; -> 0x1655c
+0x016590: add      x2, sp, #0x10                                
+0x016594: add      x3, sp, #0x58                                
+0x016598: mov      x0, x20                                      
+0x01659c: mov      w4, #0x10                                    
+0x0165a0: bl       #0x25440                                     ; call selstub countByEnumeratingWithState:objects:count:
+0x0165a4: mov      x21, x0                                      
+0x0165a8: cbnz     x0, #0x16558                                 ; -> 0x16558
+0x0165ac: mov      x0, x20                                      
+0x0165b0: bl       #0x2480c                                     ; call stub _objc_release
+0x0165b4: mov      x0, x19                                      
+0x0165b8: bl       #0x26580                                     ; call selstub panes
+0x0165bc: mov      x29, x29                                     
+0x0165c0: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x0165c4: mov      x20, x0                                      
+0x0165c8: bl       #0x26800                                     ; call selstub removeAllObjects
+0x0165cc: mov      x0, x20                                      
+0x0165d0: bl       #0x2480c                                     ; call stub _objc_release
+0x0165d4: mov      x0, x19                                      
+0x0165d8: bl       #0x281e0                                     ; call selstub window
+0x0165dc: mov      x29, x29                                     
+0x0165e0: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x0165e4: mov      x20, x0                                      
+0x0165e8: mov      w2, #1                                       
+0x0165ec: bl       #0x270a0                                     ; call selstub setHidden:
+0x0165f0: mov      x0, x20                                      
+0x0165f4: bl       #0x2480c                                     ; call stub _objc_release
+0x0165f8: mov      x0, x19                                      
+0x0165fc: mov      x2, #0                                       
+0x016600: bl       #0x27a80                                     ; call selstub setWindow:
+0x016604: ldur     x8, [x29, #-0x38]                            
+0x016608: adrp     x9, #0x34000                                 
+0x01660c: ldr      x9, [x9, #0x278]                             ; [0x34278] got-sym:___stack_chk_guard -> bind ___stack_chk_guard
+0x016610: ldr      x9, [x9]                                     
+0x016614: cmp      x9, x8                                       
+0x016618: b.ne     #0x16634                                     ; -> 0x16634
+0x01661c: ldp      x29, x30, [sp, #0x110]                       
+0x016620: ldp      x20, x19, [sp, #0x100]                       
+0x016624: ldp      x22, x21, [sp, #0xf0]                        
+0x016628: ldp      x24, x23, [sp, #0xe0]                        
+0x01662c: add      sp, sp, #0x120                               
+0x016630: ret                                                   
+0x016634: bl       #0x24488                                     ; call stub ___stack_chk_fail
+0x016638: mov      x19, x0                                      
+0x01663c: mov      x0, x20                                      
+0x016640: bl       #0x2480c                                     ; call stub _objc_release
+0x016644: b        #0x166ac                                     ; call 0x166ac
+0x016648: mov      x19, x0                                      
+0x01664c: mov      x0, x20                                      
+0x016650: bl       #0x2480c                                     ; call stub _objc_release
+0x016654: b        #0x166ac                                     ; call 0x166ac
+0x016658: b        #0x16698                                     ; call 0x16698
+0x01665c: mov      x19, x0                                      
+0x016660: mov      x0, x21                                      
+0x016664: b        #0x1668c                                     ; call 0x1668c
+0x016668: mov      x19, x0                                      
+0x01666c: mov      x0, x21                                      
+0x016670: bl       #0x2480c                                     ; call stub _objc_release
+0x016674: b        #0x16688                                     ; call 0x16688
+0x016678: b        #0x16684                                     ; call 0x16684
+0x01667c: b        #0x16684                                     ; call 0x16684
+0x016680: b        #0x16684                                     ; call 0x16684
+0x016684: mov      x19, x0                                      
+0x016688: mov      x0, x20                                      
+0x01668c: bl       #0x2480c                                     ; call stub _objc_release
+0x016690: b        #0x166ac                                     ; call 0x166ac
+0x016694: b        #0x16698                                     ; call 0x16698
+0x016698: mov      x19, x0                                      
+0x01669c: mov      x0, x20                                      
+0x0166a0: bl       #0x2480c                                     ; call stub _objc_release
+0x0166a4: b        #0x166ac                                     ; call 0x166ac
+0x0166a8: mov      x19, x0                                      
+0x0166ac: mov      x0, x19                                      
+0x0166b0: bl       #0x24470                                     ; call stub __Unwind_Resume

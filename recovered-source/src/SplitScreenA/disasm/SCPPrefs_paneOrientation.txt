@@ -1,0 +1,30 @@
+; +[SCPPrefs paneOrientation]
+0x04dec8  stp      x20, x19, [sp, #-0x20]!
+0x04decc  stp      x29, x30, [sp, #0x10]
+0x04ded0  add      x29, sp, #0x10
+0x04ded4  adrp     x0, #0x7e000
+0x04ded8  add      x0, x0, #0x540 ; -> 0x7e540 @"splitScreenPaneOrientation"
+0x04dedc  bl       #0x4dab8 ; -> sub_4dab8
+0x04dee0  mov      x29, x29
+0x04dee4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04dee8  mov      x19, x0
+0x04deec  cbz      x0, #0x4defc
+0x04def0  mov      x0, x19
+0x04def4  bl       #0x58be0 ; objc_msgSend$integerValue
+0x04def8  b        #0x4df00
+0x04defc  mov      w0, #1
+0x04df00  sub      x8, x0, #3
+0x04df04  cmp      x8, #2
+0x04df08  mov      w8, #3
+0x04df0c  csinc    x20, x8, xzr, lo
+0x04df10  mov      x0, x19
+0x04df14  bl       #0x567b8 ; call _objc_release
+0x04df18  mov      x0, x20
+0x04df1c  ldp      x29, x30, [sp, #0x10]
+0x04df20  ldp      x20, x19, [sp], #0x20
+0x04df24  ret      
+0x04df28  mov      x20, x0
+0x04df2c  mov      x0, x19
+0x04df30  bl       #0x567b8 ; call _objc_release
+0x04df34  mov      x0, x20
+0x04df38  bl       #0x563e0 ; call __Unwind_Resume

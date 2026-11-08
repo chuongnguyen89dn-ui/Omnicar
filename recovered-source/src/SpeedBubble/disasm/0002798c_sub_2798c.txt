@@ -1,0 +1,16 @@
+# sub_2798c
+# addr 0x2798c .. 0x279c0  (52 bytes)
+
+0002798c  stp      x29, x30, [sp, #-0x10]!                     
+00027990  mov      x29, sp                                     
+00027994  adrp     x8, #0x43000                                
+00027998  ldr      x0, [x8, #0x68]                             ; [0x43068] classref -> NSMutableDictionary (= import _OBJC_CLASS_$_NSMutableDictionary)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+0002799c  bl       #0x29200                                    ; objc_msgSend$dictionary
+000279a0  mov      x29, x29                                    
+000279a4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000279a8  adrp     x9, #0x43000                                
+000279ac  ldr      x8, [x9, #0xbf8]                            ; [0x43bf8] __DATA,__bss+0x458
+000279b0  str      x0, [x9, #0xbf8]                            
+000279b4  mov      x0, x8                                      
+000279b8  ldp      x29, x30, [sp], #0x10                       
+000279bc  b        #0x27ff8                                    ; _objc_release

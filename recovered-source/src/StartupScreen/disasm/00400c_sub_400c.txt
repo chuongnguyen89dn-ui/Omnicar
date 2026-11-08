@@ -1,0 +1,21 @@
+; sub_400c
+; VA 0x400c  size 72
+
+0x0000400c:  ldr      x8, [x8, #0x148]
+0x00004010:  cmn      x8, #1
+0x00004014:  b.ne     #0x4028
+0x00004018:  adrp     x8, #0x3b000
+0x0000401c:  ldr      x0, [x8, #0x120]
+0x00004020:  ldp      x29, x30, [sp], #0x10
+0x00004024:  br       x0
+0x00004028:  adrp     x0, #0x3b000
+0x0000402c:  add      x0, x0, #0x148
+0x00004030:  adrp     x1, #0x30000
+0x00004034:  add      x1, x1, #0x6d8    ; block_lit(invoke=0x4170 sub_4170, sig=v8@?0)
+0x00004038:  bl       #0x21ea4    ; -> _dispatch_once
+0x0000403c:  b        #0x4018    ; -> sub_4018
+0x00004040:  stp      x29, x30, [sp, #-0x10]!
+0x00004044:  mov      x29, sp
+0x00004048:  adrp     x8, #0x3b000
+0x0000404c:  ldr      x8, [x8, #0x148]
+0x00004050:  cmn      x8, #1

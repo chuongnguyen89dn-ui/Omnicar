@@ -1,0 +1,21 @@
+# sub_72f4
+# addr 0x72f4 .. 0x733c  (72 bytes)
+
+000072f4  sub      sp, sp, #0x20                               
+000072f8  stp      x29, x30, [sp, #0x10]                       
+000072fc  add      x29, sp, #0x10                              
+00007300  adrp     x8, #0x42000                                
+00007304  ldr      x0, [x8, #0xf98]                            ; [0x42f98] classref -> NSSet (= import _OBJC_CLASS_$_NSSet)
+00007308  str      xzr, [sp]                                   
+0000730c  adrp     x2, #0x39000                                
+00007310  add      x2, x2, #0x3b8                              ; @"vml_main_channel"
+00007314  bl       #0x2bd20                                    ; objc_msgSend$setWithObjects:
+00007318  mov      x29, x29                                    
+0000731c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00007320  adrp     x9, #0x43000                                
+00007324  ldr      x8, [x9, #0x858]                            ; [0x43858] __DATA,__bss+0xb8
+00007328  str      x0, [x9, #0x858]                            
+0000732c  mov      x0, x8                                      
+00007330  ldp      x29, x30, [sp, #0x10]                       
+00007334  add      sp, sp, #0x20                               
+00007338  b        #0x27ff8                                    ; _objc_release

@@ -1,0 +1,162 @@
+; ==== SCPCarSplit__normalizeFractions  @0x1437c..0x14600 (644 bytes) ====
+0001437c  sub      sp, sp, #0x130                               
+00014380  stp      d9, d8, [sp, #0xd0]                          
+00014384  stp      x26, x25, [sp, #0xe0]                        
+00014388  stp      x24, x23, [sp, #0xf0]                        
+0001438c  stp      x22, x21, [sp, #0x100]                       
+00014390  stp      x20, x19, [sp, #0x110]                       
+00014394  stp      x29, x30, [sp, #0x120]                       
+00014398  add      x29, sp, #0x120                              
+0001439c  mov      x20, x0                                      
+000143a0  adrp     x8, #0x78000                                 
+000143a4  ldr      x8, [x8, #0x360]                             
+000143a8  ldr      x8, [x8]                                     
+000143ac  stur     x8, [x29, #-0x58]                            
+000143b0  movi     v0.16b, #0                                   
+000143b4  stp      q0, q0, [sp]                                 
+000143b8  stp      q0, q0, [sp, #0x20]                          
+000143bc  bl       #0x58300                                     ; msgSend "fractions"
+000143c0  mov      x29, x29                                     
+000143c4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000143c8  mov      x19, x0                                      
+000143cc  mov      x2, sp                                       
+000143d0  add      x3, sp, #0x48                                
+000143d4  mov      w4, #0x10                                    
+000143d8  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+000143dc  mov      x21, x0                                      
+000143e0  cbz      x0, #0x14448                                 
+000143e4  ldr      x8, [sp, #0x10]                              
+000143e8  ldr      x22, [x8]                                    
+000143ec  fmov     d8, xzr                                      
+000143f0  mov      x23, #0                                      
+000143f4  ldr      x8, [sp, #0x10]                              
+000143f8  ldr      x8, [x8]                                     
+000143fc  cmp      x8, x22                                      
+00014400  b.eq     #0x1440c                                     
+00014404  mov      x0, x19                                      
+00014408  bl       #0x5671c                                     ; call _objc_enumerationMutation
+0001440c  ldr      x8, [sp, #8]                                 
+00014410  ldr      x0, [x8, x23, lsl #3]                        
+00014414  bl       #0x57e00                                     ; msgSend "doubleValue"
+00014418  fadd     d8, d8, d0                                   
+0001441c  add      x23, x23, #1                                 
+00014420  cmp      x21, x23                                     
+00014424  b.ne     #0x143f4                                     
+00014428  mov      x2, sp                                       
+0001442c  add      x3, sp, #0x48                                
+00014430  mov      x0, x19                                      
+00014434  mov      w4, #0x10                                    
+00014438  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+0001443c  mov      x21, x0                                      
+00014440  cbnz     x0, #0x143f0                                 
+00014444  b        #0x1444c                                     
+00014448  fmov     d8, xzr                                      
+0001444c  mov      x0, x19                                      
+00014450  bl       #0x567b8                                     ; call _objc_release
+00014454  mov      x0, x20                                      
+00014458  bl       #0x58300                                     ; msgSend "fractions"
+0001445c  mov      x29, x29                                     
+00014460  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00014464  mov      x19, x0                                      
+00014468  bl       #0x579e0                                     ; msgSend "count"
+0001446c  mov      x21, x0                                      
+00014470  mov      x0, x20                                      
+00014474  bl       #0x59800                                     ; msgSend "paneCount"
+00014478  adrp     x8, #0x6f000                                 
+0001447c  ldr      d0, [x8, #0x88]                              ; double 0.01
+00014480  fcmp     d8, d0                                       
+00014484  ccmp     w0, w21, #0, hi                              
+00014488  cset     w21, ne                                      
+0001448c  mov      x0, x19                                      
+00014490  bl       #0x567b8                                     ; call _objc_release
+00014494  tbz      w21, #0, #0x144d8                            
+00014498  mov      x0, x20                                      
+0001449c  bl       #0x5a460                                     ; msgSend "resetFractions"
+000144a0  ldur     x8, [x29, #-0x58]                            
+000144a4  adrp     x9, #0x78000                                 
+000144a8  ldr      x9, [x9, #0x360]                             
+000144ac  ldr      x9, [x9]                                     
+000144b0  cmp      x9, x8                                       
+000144b4  b.ne     #0x1459c                                     
+000144b8  ldp      x29, x30, [sp, #0x120]                       
+000144bc  ldp      x20, x19, [sp, #0x110]                       
+000144c0  ldp      x22, x21, [sp, #0x100]                       
+000144c4  ldp      x24, x23, [sp, #0xf0]                        
+000144c8  ldp      x26, x25, [sp, #0xe0]                        
+000144cc  ldp      d9, d8, [sp, #0xd0]                          
+000144d0  add      sp, sp, #0x130                               
+000144d4  ret                                                   
+000144d8  mov      x21, #0                                      
+000144dc  adrp     x25, #0x87000                                
+000144e0  mov      x0, x20                                      
+000144e4  bl       #0x58300                                     ; msgSend "fractions"
+000144e8  mov      x29, x29                                     
+000144ec  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000144f0  mov      x19, x0                                      
+000144f4  bl       #0x579e0                                     ; msgSend "count"
+000144f8  cmp      x21, x0                                      
+000144fc  cset     w22, lo                                      
+00014500  mov      x0, x19                                      
+00014504  bl       #0x567b8                                     ; call _objc_release
+00014508  tbz      w22, #0, #0x144a0                            
+0001450c  ldr      x23, [x25, #0x6e8]                           ; classref NSNumber
+00014510  mov      x0, x20                                      
+00014514  bl       #0x58300                                     ; msgSend "fractions"
+00014518  mov      x29, x29                                     
+0001451c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00014520  mov      x19, x0                                      
+00014524  mov      x2, x21                                      
+00014528  bl       #0x59620                                     ; msgSend "objectAtIndexedSubscript:"
+0001452c  mov      x29, x29                                     
+00014530  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00014534  mov      x22, x0                                      
+00014538  bl       #0x57e00                                     ; msgSend "doubleValue"
+0001453c  fdiv     d0, d0, d8                                   
+00014540  mov      x0, x23                                      
+00014544  bl       #0x59540                                     ; msgSend "numberWithDouble:"
+00014548  mov      x29, x29                                     
+0001454c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00014550  mov      x23, x0                                      
+00014554  mov      x0, x20                                      
+00014558  bl       #0x58300                                     ; msgSend "fractions"
+0001455c  mov      x29, x29                                     
+00014560  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00014564  mov      x24, x0                                      
+00014568  mov      x2, x23                                      
+0001456c  mov      x3, x21                                      
+00014570  bl       #0x5b460                                     ; msgSend "setObject:atIndexedSubscript:"
+00014574  mov      x0, x24                                      
+00014578  bl       #0x567b8                                     ; call _objc_release
+0001457c  mov      x0, x23                                      
+00014580  bl       #0x567b8                                     ; call _objc_release
+00014584  mov      x0, x22                                      
+00014588  bl       #0x567b8                                     ; call _objc_release
+0001458c  mov      x0, x19                                      
+00014590  bl       #0x567b8                                     ; call _objc_release
+00014594  add      x21, x21, #1                                 
+00014598  b        #0x144e0                                     
+0001459c  bl       #0x56404                                     ; call ___stack_chk_fail
+000145a0  b        #0x145e4                                     
+000145a4  b        #0x145e4                                     
+000145a8  mov      x20, x0                                      
+000145ac  b        #0x145bc                                     
+000145b0  mov      x20, x0                                      
+000145b4  mov      x0, x24                                      
+000145b8  bl       #0x567b8                                     ; call _objc_release
+000145bc  mov      x0, x23                                      
+000145c0  bl       #0x567b8                                     ; call _objc_release
+000145c4  b        #0x145d8                                     
+000145c8  b        #0x145e4                                     
+000145cc  b        #0x145e4                                     
+000145d0  b        #0x145e4                                     
+000145d4  mov      x20, x0                                      
+000145d8  mov      x0, x22                                      
+000145dc  bl       #0x567b8                                     ; call _objc_release
+000145e0  b        #0x145e8                                     
+000145e4  mov      x20, x0                                      
+000145e8  mov      x0, x19                                      
+000145ec  bl       #0x567b8                                     ; call _objc_release
+000145f0  b        #0x145f8                                     
+000145f4  mov      x20, x0                                      
+000145f8  mov      x0, x20                                      
+000145fc  bl       #0x563e0                                     ; call __Unwind_Resume

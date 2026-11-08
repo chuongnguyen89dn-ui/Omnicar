@@ -1,0 +1,47 @@
+# -[SPPBubble setCarBusy:]
+# addr 0x19580 .. 0x19630  (176 bytes)
+
+00019580  sub      sp, sp, #0x30                               
+00019584  stp      x20, x19, [sp, #0x10]                       
+00019588  stp      x29, x30, [sp, #0x20]                       
+0001958c  add      x29, sp, #0x20                              
+00019590  ldrb     w8, [x0, #0xa]                              
+00019594  cmp      w8, w2                                      
+00019598  b.ne     #0x195ac                                    
+0001959c  ldp      x29, x30, [sp, #0x20]                       
+000195a0  ldp      x20, x19, [sp, #0x10]                       
+000195a4  add      sp, sp, #0x30                               
+000195a8  ret                                                  
+000195ac  mov      x19, x0                                     
+000195b0  strb     w2, [x0, #0xa]                              
+000195b4  adrp     x8, #0x42000                                
+000195b8  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000195bc  adrp     x8, #0x3a000                                
+000195c0  add      x8, x8, #0xc78                              ; @"ranh"
+000195c4  adrp     x9, #0x3a000                                
+000195c8  add      x9, x9, #0xc58                              ; @"ban -> an tren xe"
+000195cc  cmp      w2, #0                                      
+000195d0  csel     x8, x9, x8, ne                              
+000195d4  str      x8, [sp]                                    
+000195d8  adrp     x2, #0x3a000                                
+000195dc  add      x2, x2, #0xc38                              ; @"bubble: man xe %@ (Split Screen)"
+000195e0  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000195e4  mov      x29, x29                                    
+000195e8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000195ec  mov      x20, x0                                     
+000195f0  adrp     x0, #0x38000                                
+000195f4  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+000195f8  mov      x1, x20                                     
+000195fc  bl       #0x2155c                                    ; _OMCLogWrite
+00019600  mov      x0, x20                                     
+00019604  bl       #0x27ff8                                    ; _objc_release
+00019608  mov      x0, x19                                     
+0001960c  ldp      x29, x30, [sp, #0x20]                       
+00019610  ldp      x20, x19, [sp, #0x10]                       
+00019614  add      sp, sp, #0x30                               
+00019618  b        #0x2a500                                    ; objc_msgSend$refresh
+0001961c  mov      x19, x0                                     
+00019620  mov      x0, x20                                     
+00019624  bl       #0x27ff8                                    ; _objc_release
+00019628  mov      x0, x19                                     
+0001962c  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,189 @@
+; -[SSSplash tick]
+; VA 0x68fc  size 744
+
+0x000068fc:  sub      sp, sp, #0x70
+0x00006900:  stp      d9, d8, [sp, #0x30]
+0x00006904:  stp      x22, x21, [sp, #0x40]
+0x00006908:  stp      x20, x19, [sp, #0x50]
+0x0000690c:  stp      x29, x30, [sp, #0x60]
+0x00006910:  add      x29, sp, #0x60
+0x00006914:  mov      x19, x0
+0x00006918:  bl       #0x233c0    ; -> _objc_msgSend(finished)
+0x0000691c:  tbz      w0, #0, #0x6938
+0x00006920:  ldp      x29, x30, [sp, #0x60]
+0x00006924:  ldp      x20, x19, [sp, #0x50]
+0x00006928:  ldp      x22, x21, [sp, #0x40]
+0x0000692c:  ldp      d9, d8, [sp, #0x30]
+0x00006930:  add      sp, sp, #0x70
+0x00006934:  ret      
+0x00006938:  mov      x0, x19
+0x0000693c:  bl       #0x25c60    ; -> _objc_msgSend(style)
+0x00006940:  cbz      x0, #0x69c4
+0x00006944:  mov      x0, x19
+0x00006948:  bl       #0x23140    ; -> _objc_msgSend(displayLink)
+0x0000694c:  mov      x29, x29
+0x00006950:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006954:  mov      x20, x0
+0x00006958:  bl       #0x23880    ; -> _objc_msgSend(invalidate)
+0x0000695c:  mov      x0, x20
+0x00006960:  bl       #0x22120    ; -> _objc_release
+0x00006964:  mov      x0, x19
+0x00006968:  mov      x2, #0
+0x0000696c:  bl       #0x24840    ; -> _objc_msgSend(setDisplayLink:)
+0x00006970:  bl       #0x21b08    ; -> _CACurrentMediaTime
+0x00006974:  mov      x0, x19
+0x00006978:  bl       #0x25180    ; -> _objc_msgSend(setStartTime:)
+0x0000697c:  mov      x0, x19
+0x00006980:  mov      w2, #1
+0x00006984:  bl       #0x25120    ; -> _objc_msgSend(setShownFrames:)
+0x00006988:  mov      x0, x19
+0x0000698c:  bl       #0x25aa0    ; -> _objc_msgSend(startView)
+0x00006990:  mov      x29, x29
+0x00006994:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006998:  mov      x20, x0
+0x0000699c:  bl       #0x24000    ; -> _objc_msgSend(playIntro)
+0x000069a0:  mov      x0, x20
+0x000069a4:  bl       #0x22120    ; -> _objc_release
+0x000069a8:  mov      x0, x19
+0x000069ac:  ldp      x29, x30, [sp, #0x60]
+0x000069b0:  ldp      x20, x19, [sp, #0x50]
+0x000069b4:  ldp      x22, x21, [sp, #0x40]
+0x000069b8:  ldp      d9, d8, [sp, #0x30]
+0x000069bc:  add      sp, sp, #0x70
+0x000069c0:  b        #0x25a20    ; -> _objc_msgSend(startCountdown)
+0x000069c4:  mov      x0, x19
+0x000069c8:  bl       #0x228e0    ; -> _objc_msgSend(buffer)
+0x000069cc:  mov      x29, x29
+0x000069d0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000069d4:  mov      x20, x0
+0x000069d8:  bl       #0x22e00    ; -> _objc_msgSend(count)
+0x000069dc:  mov      x21, x0
+0x000069e0:  mov      x0, x20
+0x000069e4:  bl       #0x22120    ; -> _objc_release
+0x000069e8:  cbz      x21, #0x6920
+0x000069ec:  bl       #0x21b08    ; -> _CACurrentMediaTime
+0x000069f0:  mov      v8.16b, v0.16b
+0x000069f4:  mov      x0, x19
+0x000069f8:  bl       #0x25560    ; -> _objc_msgSend(shownFrames)
+0x000069fc:  cbz      x0, #0x6a34
+0x00006a00:  mov      x0, x19
+0x00006a04:  bl       #0x25560    ; -> _objc_msgSend(shownFrames)
+0x00006a08:  mov      x20, x0
+0x00006a0c:  mov      x0, x19
+0x00006a10:  bl       #0x25a60    ; -> _objc_msgSend(startTime)
+0x00006a14:  fsub     d8, d8, d0
+0x00006a18:  mov      x0, x19
+0x00006a1c:  bl       #0x23460    ; -> _objc_msgSend(fps)
+0x00006a20:  fmul     d0, d8, d0
+0x00006a24:  fcvtzu   x8, d0
+0x00006a28:  cmp      x20, x8
+0x00006a2c:  b.hi     #0x6920
+0x00006a30:  b        #0x6a48    ; -> sub_6a48
+0x00006a34:  mov      x0, x19
+0x00006a38:  mov      v0.16b, v8.16b
+0x00006a3c:  bl       #0x25180    ; -> _objc_msgSend(setStartTime:)
+0x00006a40:  mov      x0, x19
+0x00006a44:  bl       #0x25a20    ; -> _objc_msgSend(startCountdown)
+0x00006a48:  mov      x0, x19
+0x00006a4c:  bl       #0x228e0    ; -> _objc_msgSend(buffer)
+0x00006a50:  mov      x29, x29
+0x00006a54:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006a58:  mov      x20, x0
+0x00006a5c:  bl       #0x233e0    ; -> _objc_msgSend(firstObject)
+0x00006a60:  mov      x29, x29
+0x00006a64:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006a68:  mov      x21, x0
+0x00006a6c:  mov      x0, x19
+0x00006a70:  bl       #0x23600    ; -> _objc_msgSend(imageView)
+0x00006a74:  mov      x29, x29
+0x00006a78:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006a7c:  mov      x22, x0
+0x00006a80:  mov      x2, x21
+0x00006a84:  bl       #0x24a60    ; -> _objc_msgSend(setImage:)
+0x00006a88:  mov      x0, x22
+0x00006a8c:  bl       #0x22120    ; -> _objc_release
+0x00006a90:  mov      x0, x21
+0x00006a94:  bl       #0x22120    ; -> _objc_release
+0x00006a98:  mov      x0, x20
+0x00006a9c:  bl       #0x22120    ; -> _objc_release
+0x00006aa0:  mov      x0, x19
+0x00006aa4:  bl       #0x228e0    ; -> _objc_msgSend(buffer)
+0x00006aa8:  mov      x29, x29
+0x00006aac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006ab0:  mov      x20, x0
+0x00006ab4:  mov      x2, #0
+0x00006ab8:  bl       #0x24240    ; -> _objc_msgSend(removeObjectAtIndex:)
+0x00006abc:  mov      x0, x20
+0x00006ac0:  bl       #0x22120    ; -> _objc_release
+0x00006ac4:  mov      x0, x19
+0x00006ac8:  bl       #0x25560    ; -> _objc_msgSend(shownFrames)
+0x00006acc:  add      x2, x0, #1
+0x00006ad0:  mov      x0, x19
+0x00006ad4:  bl       #0x25120    ; -> _objc_msgSend(setShownFrames:)
+0x00006ad8:  mov      x0, x19
+0x00006adc:  bl       #0x23b00    ; -> _objc_msgSend(loop)
+0x00006ae0:  tbnz     w0, #0, #0x6b00
+0x00006ae4:  mov      x0, x19
+0x00006ae8:  bl       #0x25560    ; -> _objc_msgSend(shownFrames)
+0x00006aec:  mov      x20, x0
+0x00006af0:  mov      x0, x19
+0x00006af4:  bl       #0x234a0    ; -> _objc_msgSend(frameCount)
+0x00006af8:  cmp      x20, x0
+0x00006afc:  b.hs     #0x6b1c
+0x00006b00:  mov      x0, x19
+0x00006b04:  ldp      x29, x30, [sp, #0x60]
+0x00006b08:  ldp      x20, x19, [sp, #0x50]
+0x00006b0c:  ldp      x22, x21, [sp, #0x40]
+0x00006b10:  ldp      d9, d8, [sp, #0x30]
+0x00006b14:  add      sp, sp, #0x70
+0x00006b18:  b        #0x23000    ; -> _objc_msgSend(decodeMore)
+0x00006b1c:  mov      x0, x19
+0x00006b20:  bl       #0x23140    ; -> _objc_msgSend(displayLink)
+0x00006b24:  mov      x29, x29
+0x00006b28:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006b2c:  mov      x20, x0
+0x00006b30:  bl       #0x23880    ; -> _objc_msgSend(invalidate)
+0x00006b34:  mov      x0, x20
+0x00006b38:  bl       #0x22120    ; -> _objc_release
+0x00006b3c:  add      x0, sp, #0x28
+0x00006b40:  mov      x1, x19
+0x00006b44:  bl       #0x220b4    ; -> _objc_initWeak
+0x00006b48:  mov      x0, x19
+0x00006b4c:  bl       #0x23460    ; -> _objc_msgSend(fps)
+0x00006b50:  adrp     x8, #0x28000
+0x00006b54:  ldr      d1, [x8, #0xdd8]
+0x00006b58:  fdiv     d0, d1, d0
+0x00006b5c:  fcvtzs   x1, d0
+0x00006b60:  mov      x0, #0
+0x00006b64:  bl       #0x21ef8    ; -> _dispatch_time
+0x00006b68:  mov      x19, x0
+0x00006b6c:  adrp     x8, #0x30000
+0x00006b70:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x00006b74:  str      x8, [sp]
+0x00006b78:  adrp     x8, #0x28000
+0x00006b7c:  ldr      d0, [x8, #0xdd0]
+0x00006b80:  adrp     x8, #0x6000
+0x00006b84:  add      x8, x8, #0xbe4    ; func sub_6be4
+0x00006b88:  str      d0, [sp, #8]
+0x00006b8c:  adrp     x9, #0x30000
+0x00006b90:  add      x9, x9, #0x6f8
+0x00006b94:  stp      x8, x9, [sp, #0x10]
+0x00006b98:  mov      x20, sp
+0x00006b9c:  add      x0, x20, #0x20
+0x00006ba0:  add      x1, sp, #0x28
+0x00006ba4:  bl       #0x2206c    ; -> _objc_copyWeak
+0x00006ba8:  adrp     x1, #0x30000
+0x00006bac:  ldr      x1, [x1, #0x388]    ; got(__dispatch_main_q)
+0x00006bb0:  mov      x2, sp
+0x00006bb4:  mov      x0, x19
+0x00006bb8:  bl       #0x21e8c    ; -> _dispatch_after
+0x00006bbc:  add      x0, x20, #0x20
+0x00006bc0:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00006bc4:  add      x0, sp, #0x28
+0x00006bc8:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00006bcc:  b        #0x6920    ; -> sub_6920
+0x00006bd0:  mov      x19, x0
+0x00006bd4:  add      x0, sp, #0x28
+0x00006bd8:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00006bdc:  mov      x0, x19
+0x00006be0:  bl       #0x21db4    ; -> __Unwind_Resume

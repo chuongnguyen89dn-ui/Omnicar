@@ -1,0 +1,83 @@
+; ==== SCPCarSplit__leftMainStackFrameForSlot_inArea_  @0x1122c..0x11374 (328 bytes) ====
+0001122c  stp      d13, d12, [sp, #-0x60]!                      
+00011230  stp      d11, d10, [sp, #0x10]                        
+00011234  stp      d9, d8, [sp, #0x20]                          
+00011238  stp      x22, x21, [sp, #0x30]                        
+0001123c  stp      x20, x19, [sp, #0x40]                        
+00011240  stp      x29, x30, [sp, #0x50]                        
+00011244  add      x29, sp, #0x50                               
+00011248  mov      v10.16b, v3.16b                              
+0001124c  mov      v12.16b, v2.16b                              
+00011250  mov      v8.16b, v1.16b                               
+00011254  mov      v9.16b, v0.16b                               
+00011258  mov      x19, x2                                      
+0001125c  mov      x20, x0                                      
+00011260  bl       #0x5cb20                                     ; msgSend "vertical"
+00011264  mov      x21, x0                                      
+00011268  cmp      w0, #0                                       
+0001126c  fcsel    d0, d10, d12, ne                             
+00011270  fmov     d1, #-1.00000000                             
+00011274  fadd     d11, d0, d1                                  
+00011278  mov      x0, x20                                      
+0001127c  mov      w2, #0                                       
+00011280  bl       #0x582e0                                     ; msgSend "fractionAt:"
+00011284  fmul     d0, d0, d11                                  
+00011288  frintm   d0, d0                                       
+0001128c  cbz      w21, #0x112b4                                
+00011290  cbz      w19, #0x11324                                
+00011294  fadd     d1, d8, d0                                   
+00011298  fmov     d2, #1.00000000                              
+0001129c  fadd     d8, d1, d2                                   
+000112a0  fsub     d0, d10, d0                                  
+000112a4  fmov     d1, #-1.00000000                             
+000112a8  fadd     d10, d0, d1                                  
+000112ac  mov      v11.16b, v12.16b                             
+000112b0  b        #0x112d4                                     
+000112b4  cbz      w19, #0x112fc                                
+000112b8  fadd     d1, d9, d0                                   
+000112bc  fmov     d2, #1.00000000                              
+000112c0  fadd     d9, d1, d2                                   
+000112c4  fsub     d0, d12, d0                                  
+000112c8  fmov     d1, #-1.00000000                             
+000112cc  fadd     d11, d0, d1                                  
+000112d0  mov      v12.16b, v10.16b                             
+000112d4  fmov     d0, #-1.00000000                             
+000112d8  fadd     d12, d12, d0                                 
+000112dc  mov      x0, x20                                      
+000112e0  mov      w2, #1                                       
+000112e4  bl       #0x582e0                                     ; msgSend "fractionAt:"
+000112e8  fmul     d0, d12, d0                                  
+000112ec  frintm   d0, d0                                       
+000112f0  cmp      w19, #1                                      
+000112f4  cbz      w21, #0x11304                                
+000112f8  b.ne     #0x11330                                     
+000112fc  mov      v11.16b, v0.16b                              
+00011300  b        #0x11348                                     
+00011304  b.eq     #0x11328                                     
+00011308  fadd     d1, d8, d0                                   
+0001130c  fmov     d2, #1.00000000                              
+00011310  fadd     d8, d1, d2                                   
+00011314  fsub     d0, d10, d0                                  
+00011318  fmov     d1, #-1.00000000                             
+0001131c  fadd     d10, d0, d1                                  
+00011320  b        #0x11348                                     
+00011324  mov      v11.16b, v12.16b                             
+00011328  mov      v10.16b, v0.16b                              
+0001132c  b        #0x11348                                     
+00011330  fadd     d1, d9, d0                                   
+00011334  fmov     d2, #1.00000000                              
+00011338  fadd     d9, d1, d2                                   
+0001133c  fsub     d0, d11, d0                                  
+00011340  fmov     d1, #-1.00000000                             
+00011344  fadd     d11, d0, d1                                  
+00011348  mov      v0.16b, v9.16b                               
+0001134c  mov      v1.16b, v8.16b                               
+00011350  mov      v2.16b, v11.16b                              
+00011354  mov      v3.16b, v10.16b                              
+00011358  ldp      x29, x30, [sp, #0x50]                        
+0001135c  ldp      x20, x19, [sp, #0x40]                        
+00011360  ldp      x22, x21, [sp, #0x30]                        
+00011364  ldp      d9, d8, [sp, #0x20]                          
+00011368  ldp      d11, d10, [sp, #0x10]                        
+0001136c  ldp      d13, d12, [sp], #0x60                        
+00011370  ret                                                   

@@ -1,0 +1,56 @@
+; _SCPHomeSetVisible
+0x04b4bc  stp      x22, x21, [sp, #-0x30]!
+0x04b4c0  stp      x20, x19, [sp, #0x10]
+0x04b4c4  stp      x29, x30, [sp, #0x20]
+0x04b4c8  add      x29, sp, #0x20
+0x04b4cc  adrp     x8, #0x87000
+0x04b4d0  ldrb     w9, [x8, #0xf51]
+0x04b4d4  cmp      w9, w0
+0x04b4d8  b.ne     #0x4b4ec
+0x04b4dc  ldp      x29, x30, [sp, #0x20]
+0x04b4e0  ldp      x20, x19, [sp, #0x10]
+0x04b4e4  ldp      x22, x21, [sp], #0x30
+0x04b4e8  ret      
+0x04b4ec  strb     w0, [x8, #0xf51]
+0x04b4f0  adrp     x0, #0x88000
+0x04b4f4  add      x0, x0, #0x1e0 ; -> 0x881e0
+0x04b4f8  bl       #0x5674c ; call _objc_loadWeakRetained
+0x04b4fc  mov      x19, x0
+0x04b500  bl       #0x58da0 ; objc_msgSend$isViewLoaded
+0x04b504  cbz      w0, #0x4b53c
+0x04b508  mov      x0, x19
+0x04b50c  bl       #0x5cb60 ; objc_msgSend$view
+0x04b510  mov      x29, x29
+0x04b514  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04b518  mov      x21, x0
+0x04b51c  mov      w2, #0x4857
+0x04b520  bl       #0x5cba0 ; objc_msgSend$viewWithTag:
+0x04b524  mov      x29, x29
+0x04b528  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04b52c  mov      x20, x0
+0x04b530  mov      x0, x21
+0x04b534  bl       #0x567b8 ; call _objc_release
+0x04b538  b        #0x4b540
+0x04b53c  mov      x20, #0
+0x04b540  mov      x0, x20
+0x04b544  bl       #0x5c960 ; objc_msgSend$updatePlayback
+0x04b548  mov      x0, x20
+0x04b54c  bl       #0x567b8 ; call _objc_release
+0x04b550  mov      x0, x19
+0x04b554  ldp      x29, x30, [sp, #0x20]
+0x04b558  ldp      x20, x19, [sp, #0x10]
+0x04b55c  ldp      x22, x21, [sp], #0x30
+0x04b560  b        #0x567b8 ; call _objc_release
+0x04b564  mov      x1, x21
+0x04b568  mov      x21, x0
+0x04b56c  mov      x0, x1
+0x04b570  b        #0x4b57c
+0x04b574  mov      x21, x0
+0x04b578  mov      x0, x20
+0x04b57c  bl       #0x567b8 ; call _objc_release
+0x04b580  b        #0x4b588
+0x04b584  mov      x21, x0
+0x04b588  mov      x0, x19
+0x04b58c  bl       #0x567b8 ; call _objc_release
+0x04b590  mov      x0, x21
+0x04b594  bl       #0x563e0 ; call __Unwind_Resume

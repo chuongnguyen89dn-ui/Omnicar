@@ -1,0 +1,336 @@
+0x00d9b0: sub      sp, sp, #0x180                               
+0x00d9b4: stp      x28, x27, [sp, #0x120]                       
+0x00d9b8: stp      x26, x25, [sp, #0x130]                       
+0x00d9bc: stp      x24, x23, [sp, #0x140]                       
+0x00d9c0: stp      x22, x21, [sp, #0x150]                       
+0x00d9c4: stp      x20, x19, [sp, #0x160]                       
+0x00d9c8: stp      x29, x30, [sp, #0x170]                       
+0x00d9cc: add      x29, sp, #0x170                              
+0x00d9d0: mov      x21, x2                                      
+0x00d9d4: mov      x20, x1                                      
+0x00d9d8: mov      x19, x0                                      
+0x00d9dc: adrp     x8, #0x34000                                 
+0x00d9e0: ldr      x8, [x8, #0x278]                             ; [0x34278] got-sym:___stack_chk_guard -> bind ___stack_chk_guard
+0x00d9e4: ldr      x8, [x8]                                     
+0x00d9e8: stur     x8, [x29, #-0x60]                            
+0x00d9ec: bl       #0x24818                                     ; call stub _objc_retain
+0x00d9f0: mov      x0, x20                                      
+0x00d9f4: bl       #0x24818                                     ; call stub _objc_retain
+0x00d9f8: mov      x0, x21                                      
+0x00d9fc: bl       #0x24818                                     ; call stub _objc_retain
+0x00da00: str      x20, [sp, #0x40]                             
+0x00da04: cbz      x19, #0xdba8                                 ; -> 0xdba8
+0x00da08: movi     v0.16b, #0                                   
+0x00da0c: stp      q0, q0, [sp, #0x70]                          
+0x00da10: stp      q0, q0, [sp, #0x50]                          
+0x00da14: mov      x0, x20                                      
+0x00da18: bl       #0x24818                                     ; call stub _objc_retain
+0x00da1c: add      x2, sp, #0x50                                
+0x00da20: add      x3, sp, #0x90                                
+0x00da24: mov      x0, x20                                      
+0x00da28: mov      w4, #0x10                                    
+0x00da2c: bl       #0x25440                                     ; call selstub countByEnumeratingWithState:objects:count:
+0x00da30: mov      x23, x0                                      
+0x00da34: cbz      x0, #0xdaa4                                  ; -> 0xdaa4
+0x00da38: ldr      x8, [sp, #0x60]                              
+0x00da3c: ldr      x20, [x8]                                    
+0x00da40: mov      x24, #0                                      
+0x00da44: ldr      x8, [sp, #0x60]                              
+0x00da48: ldr      x8, [x8]                                     
+0x00da4c: cmp      x8, x20                                      
+0x00da50: b.eq     #0xda5c                                      ; -> 0xda5c
+0x00da54: ldr      x0, [sp, #0x40]                              
+0x00da58: bl       #0x24770                                     ; call stub _objc_enumerationMutation
+0x00da5c: ldr      x8, [sp, #0x58]                              
+0x00da60: ldr      x22, [x8, x24, lsl #3]                       
+0x00da64: mov      x0, x22                                      
+0x00da68: bl       #0x2441c                                     ; call stub _NSSelectorFromString
+0x00da6c: mov      x1, x0                                       
+0x00da70: mov      x0, x19                                      
+0x00da74: bl       #0x247f4                                     ; call stub _objc_opt_respondsToSelector
+0x00da78: tbnz     w0, #0, #0xdb98                              ; -> 0xdb98
+0x00da7c: add      x24, x24, #1                                 
+0x00da80: cmp      x23, x24                                     
+0x00da84: b.ne     #0xda44                                      ; -> 0xda44
+0x00da88: add      x2, sp, #0x50                                
+0x00da8c: add      x3, sp, #0x90                                
+0x00da90: ldr      x0, [sp, #0x40]                              
+0x00da94: mov      w4, #0x10                                    
+0x00da98: bl       #0x25440                                     ; call selstub countByEnumeratingWithState:objects:count:
+0x00da9c: mov      x23, x0                                      
+0x00daa0: cbnz     x0, #0xda40                                  ; -> 0xda40
+0x00daa4: ldr      x0, [sp, #0x40]                              
+0x00daa8: bl       #0x2480c                                     ; call stub _objc_release
+0x00daac: adrp     x8, #0x3e000                                 
+0x00dab0: ldr      x0, [x8, #0x318]                             ; [0x3e318] class:NSMutableArray -> bind _OBJC_CLASS_$_NSMutableArray
+0x00dab4: bl       #0x24dc0                                     ; call selstub array
+0x00dab8: mov      x29, x29                                     
+0x00dabc: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dac0: mov      x22, x0                                      
+0x00dac4: mov      x0, x19                                      
+0x00dac8: bl       #0x247d0                                     ; call stub _objc_opt_class
+0x00dacc: mov      x24, x0                                      
+0x00dad0: mov      x23, #0                                      
+0x00dad4: mov      x28, #0x7fffffffffffffff                     
+0x00dad8: cbz      x24, #0xdbb0                                 ; -> 0xdbb0
+0x00dadc: str      wzr, [sp, #0x4c]                             
+0x00dae0: add      x1, sp, #0x4c                                
+0x00dae4: mov      x0, x24                                      
+0x00dae8: bl       #0x24500                                     ; call stub _class_copyMethodList
+0x00daec: mov      x25, x0                                      
+0x00daf0: ldr      w8, [sp, #0x4c]                              
+0x00daf4: cbz      w8, #0xdb80                                  ; -> 0xdb80
+0x00daf8: mov      x20, #0                                      
+0x00dafc: ldr      x0, [x25, x20, lsl #3]                       
+0x00db00: bl       #0x246c8                                     ; call stub _method_getName
+0x00db04: bl       #0x24458                                     ; call stub _NSStringFromSelector
+0x00db08: mov      x29, x29                                     
+0x00db0c: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00db10: mov      x26, x0                                      
+0x00db14: mov      x2, x21                                      
+0x00db18: mov      w3, #1                                       
+0x00db1c: bl       #0x26760                                     ; call selstub rangeOfString:options:
+0x00db20: cmp      x0, x28                                      
+0x00db24: b.eq     #0xdb68                                      ; -> 0xdb68
+0x00db28: mov      x0, x22                                      
+0x00db2c: mov      x2, x26                                      
+0x00db30: bl       #0x24b20                                     ; call selstub addObject:
+0x00db34: cbz      x23, #0xdb54                                 ; -> 0xdb54
+0x00db38: mov      x0, x26                                      
+0x00db3c: bl       #0x25fa0                                     ; call selstub length
+0x00db40: mov      x27, x0                                      
+0x00db44: mov      x0, x23                                      
+0x00db48: bl       #0x25fa0                                     ; call selstub length
+0x00db4c: cmp      x27, x0                                      
+0x00db50: b.hs     #0xdb68                                      ; -> 0xdb68
+0x00db54: mov      x0, x26                                      
+0x00db58: bl       #0x24818                                     ; call stub _objc_retain
+0x00db5c: mov      x0, x23                                      
+0x00db60: bl       #0x2480c                                     ; call stub _objc_release
+0x00db64: mov      x23, x26                                     
+0x00db68: mov      x0, x26                                      
+0x00db6c: bl       #0x2480c                                     ; call stub _objc_release
+0x00db70: add      x20, x20, #1                                 
+0x00db74: ldr      w8, [sp, #0x4c]                              
+0x00db78: cmp      x20, x8                                      
+0x00db7c: b.lo     #0xdafc                                      ; -> 0xdafc
+0x00db80: mov      x0, x25                                      
+0x00db84: bl       #0x2462c                                     ; call stub _free
+0x00db88: mov      x0, x24                                      
+0x00db8c: bl       #0x24530                                     ; call stub _class_getSuperclass
+0x00db90: mov      x24, x0                                      
+0x00db94: b        #0xdad8                                      ; call 0xdad8
+0x00db98: mov      x0, x22                                      
+0x00db9c: bl       #0x24818                                     ; call stub _objc_retain
+0x00dba0: ldr      x23, [sp, #0x40]                             
+0x00dba4: b        #0xdd80                                      ; call 0xdd80
+0x00dba8: mov      x22, #0                                      
+0x00dbac: b        #0xdd88                                      ; call 0xdd88
+0x00dbb0: adrp     x20, #0x3e000                                
+0x00dbb4: ldr      x8, [x20, #0xa40]                            ; [0x3ea40] __bss@0x3ea40 -> ?@0x0
+0x00dbb8: cbnz     x8, #0xdbe0                                  ; -> 0xdbe0
+0x00dbbc: adrp     x8, #0x3e000                                 
+0x00dbc0: ldr      x0, [x8, #0x2f0]                             ; [0x3e2f0] class:NSMutableSet -> bind _OBJC_CLASS_$_NSMutableSet
+0x00dbc4: bl       #0x26ac0                                     ; call selstub set
+0x00dbc8: mov      x29, x29                                     
+0x00dbcc: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dbd0: ldr      x8, [x20, #0xa40]                            ; [0x3ea40] __bss@0x3ea40 -> ?@0x0
+0x00dbd4: str      x0, [x20, #0xa40]                            ; addr 0x3ea40 __bss@0x3ea40
+0x00dbd8: mov      x0, x8                                       
+0x00dbdc: bl       #0x2480c                                     ; call stub _objc_release
+0x00dbe0: adrp     x26, #0x3e000                                
+0x00dbe4: ldr      x24, [x26, #0x290]                           ; [0x3e290] class:NSString -> bind _OBJC_CLASS_$_NSString
+0x00dbe8: mov      x0, x19                                      
+0x00dbec: bl       #0x247d0                                     ; call stub _objc_opt_class
+0x00dbf0: bl       #0x2444c                                     ; call stub _NSStringFromClass
+0x00dbf4: mov      x29, x29                                     
+0x00dbf8: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dbfc: mov      x25, x0                                      
+0x00dc00: stp      x0, x21, [sp]                                
+0x00dc04: adrp     x2, #0x35000                                 
+0x00dc08: add      x2, x2, #0x970                               ; = 0x35970 @"%@ %@"
+0x00dc0c: mov      x0, x24                                      
+0x00dc10: bl       #0x27d20                                     ; call selstub stringWithFormat:
+0x00dc14: mov      x29, x29                                     
+0x00dc18: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dc1c: mov      x24, x0                                      
+0x00dc20: mov      x0, x25                                      
+0x00dc24: bl       #0x2480c                                     ; call stub _objc_release
+0x00dc28: ldr      x0, [x20, #0xa40]                            ; [0x3ea40] __bss@0x3ea40 -> ?@0x0
+0x00dc2c: mov      x2, x24                                      
+0x00dc30: bl       #0x25360                                     ; call selstub containsObject:
+0x00dc34: tbnz     w0, #0, #0xdd64                              ; -> 0xdd64
+0x00dc38: ldr      x0, [x20, #0xa40]                            ; [0x3ea40] __bss@0x3ea40 -> ?@0x0
+0x00dc3c: mov      x2, x24                                      
+0x00dc40: bl       #0x24b20                                     ; call selstub addObject:
+0x00dc44: ldr      x25, [x26, #0x290]                           ; [0x3e290] class:NSString -> bind _OBJC_CLASS_$_NSString
+0x00dc48: adrp     x8, #0x3e000                                 
+0x00dc4c: ldr      x0, [x8, #0x2b8]                             ; [0x3e2b8] class:UIDevice -> bind _OBJC_CLASS_$_UIDevice
+0x00dc50: bl       #0x25460                                     ; call selstub currentDevice
+0x00dc54: mov      x29, x29                                     
+0x00dc58: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dc5c: str      x0, [sp, #0x28]                              
+0x00dc60: bl       #0x27ec0                                     ; call selstub systemVersion
+0x00dc64: mov      x29, x29                                     
+0x00dc68: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dc6c: str      x0, [sp, #0x38]                              
+0x00dc70: mov      x0, x19                                      
+0x00dc74: bl       #0x247d0                                     ; call stub _objc_opt_class
+0x00dc78: bl       #0x2444c                                     ; call stub _NSStringFromClass
+0x00dc7c: mov      x29, x29                                     
+0x00dc80: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dc84: str      x0, [sp, #0x30]                              
+0x00dc88: adrp     x2, #0x36000                                 
+0x00dc8c: add      x2, x2, #0x8f0                               ; = 0x368f0 @" / "
+0x00dc90: ldr      x0, [sp, #0x40]                              
+0x00dc94: bl       #0x252a0                                     ; call selstub componentsJoinedByString:
+0x00dc98: mov      x29, x29                                     
+0x00dc9c: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dca0: mov      x26, x0                                      
+0x00dca4: adrp     x8, #0x36000                                 
+0x00dca8: add      x8, x8, #0x910                               ; = 0x36910 @"(khong tim thay)"
+0x00dcac: cmp      x23, #0                                      
+0x00dcb0: csel     x20, x8, x23, eq                             
+0x00dcb4: mov      x0, x22                                      
+0x00dcb8: bl       #0x25420                                     ; call selstub count
+0x00dcbc: mov      x28, x0                                      
+0x00dcc0: cbz      x0, #0xdce4                                  ; -> 0xdce4
+0x00dcc4: adrp     x2, #0x36000                                 
+0x00dcc8: add      x2, x2, #0x930                               ; = 0x36930 @", "
+0x00dccc: mov      x0, x22                                      
+0x00dcd0: bl       #0x252a0                                     ; call selstub componentsJoinedByString:
+0x00dcd4: mov      x29, x29                                     
+0x00dcd8: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dcdc: mov      x27, x0                                      
+0x00dce0: b        #0xdcec                                      ; call 0xdcec
+0x00dce4: adrp     x27, #0x35000                                
+0x00dce8: add      x27, x27, #0x90                              ; = 0x35090 @"-"
+0x00dcec: stp      x20, x27, [sp, #0x18]                        
+0x00dcf0: ldp      x9, x8, [sp, #0x30]                          
+0x00dcf4: stp      x9, x26, [sp, #8]                            
+0x00dcf8: str      x8, [sp]                                     
+0x00dcfc: adrp     x2, #0x36000                                 
+0x00dd00: add      x2, x2, #0x8d0                               ; = 0x368d0 @"iOS %@: %@ khong co %@ -> dung %@ (co: %@)"
+0x00dd04: mov      x0, x25                                      
+0x00dd08: bl       #0x27d20                                     ; call selstub stringWithFormat:
+0x00dd0c: mov      x29, x29                                     
+0x00dd10: bl       #0x24830                                     ; call stub _objc_retainAutoreleasedReturnValue
+0x00dd14: mov      x25, x0                                      
+0x00dd18: adrp     x0, #0x34000                                 
+0x00dd1c: add      x0, x0, #0xef0                               ; = 0x34ef0 @"AppBridge"
+0x00dd20: mov      x1, x25                                      
+0x00dd24: bl       #0x1dd30                                     ; call defined _OMCLogWrite (func @0x1dd30)
+0x00dd28: cmp      x28, #0                                      
+0x00dd2c: cset     w20, eq                                      
+0x00dd30: mov      x0, x25                                      
+0x00dd34: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd38: tbnz     w20, #0, #0xdd44                             ; -> 0xdd44
+0x00dd3c: mov      x0, x27                                      
+0x00dd40: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd44: mov      x0, x26                                      
+0x00dd48: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd4c: ldr      x0, [sp, #0x30]                              
+0x00dd50: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd54: ldr      x0, [sp, #0x38]                              
+0x00dd58: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd5c: ldr      x0, [sp, #0x28]                              
+0x00dd60: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd64: mov      x0, x23                                      
+0x00dd68: bl       #0x24818                                     ; call stub _objc_retain
+0x00dd6c: mov      x0, x24                                      
+0x00dd70: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd74: mov      x0, x22                                      
+0x00dd78: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd7c: mov      x22, x23                                     
+0x00dd80: mov      x0, x23                                      
+0x00dd84: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd88: mov      x0, x21                                      
+0x00dd8c: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd90: ldr      x0, [sp, #0x40]                              
+0x00dd94: bl       #0x2480c                                     ; call stub _objc_release
+0x00dd98: mov      x0, x19                                      
+0x00dd9c: bl       #0x2480c                                     ; call stub _objc_release
+0x00dda0: ldur     x8, [x29, #-0x60]                            
+0x00dda4: adrp     x9, #0x34000                                 
+0x00dda8: ldr      x9, [x9, #0x278]                             ; [0x34278] got-sym:___stack_chk_guard -> bind ___stack_chk_guard
+0x00ddac: ldr      x9, [x9]                                     
+0x00ddb0: cmp      x9, x8                                       
+0x00ddb4: b.ne     #0xdddc                                      ; -> 0xdddc
+0x00ddb8: mov      x0, x22                                      
+0x00ddbc: ldp      x29, x30, [sp, #0x170]                       
+0x00ddc0: ldp      x20, x19, [sp, #0x160]                       
+0x00ddc4: ldp      x22, x21, [sp, #0x150]                       
+0x00ddc8: ldp      x24, x23, [sp, #0x140]                       
+0x00ddcc: ldp      x26, x25, [sp, #0x130]                       
+0x00ddd0: ldp      x28, x27, [sp, #0x120]                       
+0x00ddd4: add      sp, sp, #0x180                               
+0x00ddd8: b        #0x24734                                     ; call stub _objc_autoreleaseReturnValue
+0x00dddc: bl       #0x24488                                     ; call stub ___stack_chk_fail
+0x00dde0: b        #0xdeb4                                      ; call 0xdeb4
+0x00dde4: mov      x20, x0                                      
+0x00dde8: mov      x0, x25                                      
+0x00ddec: bl       #0x2480c                                     ; call stub _objc_release
+0x00ddf0: b        #0xddf8                                      ; call 0xddf8
+0x00ddf4: mov      x20, x0                                      
+0x00ddf8: cbz      x28, #0xde1c                                 ; -> 0xde1c
+0x00ddfc: mov      x0, x27                                      
+0x00de00: bl       #0x2480c                                     ; call stub _objc_release
+0x00de04: b        #0xde1c                                      ; call 0xde1c
+0x00de08: mov      x20, x0                                      
+0x00de0c: b        #0xde24                                      ; call 0xde24
+0x00de10: mov      x20, x0                                      
+0x00de14: b        #0xde3c                                      ; call 0xde3c
+0x00de18: mov      x20, x0                                      
+0x00de1c: mov      x0, x26                                      
+0x00de20: bl       #0x2480c                                     ; call stub _objc_release
+0x00de24: ldr      x0, [sp, #0x30]                              
+0x00de28: bl       #0x2480c                                     ; call stub _objc_release
+0x00de2c: b        #0xde34                                      ; call 0xde34
+0x00de30: mov      x20, x0                                      
+0x00de34: ldr      x0, [sp, #0x38]                              
+0x00de38: bl       #0x2480c                                     ; call stub _objc_release
+0x00de3c: ldr      x0, [sp, #0x28]                              
+0x00de40: bl       #0x2480c                                     ; call stub _objc_release
+0x00de44: b        #0xde74                                      ; call 0xde74
+0x00de48: mov      x20, x0                                      
+0x00de4c: mov      x0, x25                                      
+0x00de50: bl       #0x2480c                                     ; call stub _objc_release
+0x00de54: b        #0xdeb8                                      ; call 0xdeb8
+0x00de58: mov      x20, x0                                      
+0x00de5c: mov      x23, #0                                      
+0x00de60: b        #0xdeb8                                      ; call 0xdeb8
+0x00de64: mov      x20, x0                                      
+0x00de68: b        #0xdec8                                      ; call 0xdec8
+0x00de6c: b        #0xde90                                      ; call 0xde90
+0x00de70: mov      x20, x0                                      
+0x00de74: mov      x0, x24                                      
+0x00de78: bl       #0x2480c                                     ; call stub _objc_release
+0x00de7c: b        #0xdeb8                                      ; call 0xdeb8
+0x00de80: b        #0xdeb4                                      ; call 0xdeb4
+0x00de84: b        #0xde90                                      ; call 0xde90
+0x00de88: b        #0xdeb4                                      ; call 0xdeb4
+0x00de8c: b        #0xdeb4                                      ; call 0xdeb4
+0x00de90: mov      x20, x0                                      
+0x00de94: ldr      x0, [sp, #0x40]                              
+0x00de98: bl       #0x2480c                                     ; call stub _objc_release
+0x00de9c: b        #0xdec8                                      ; call 0xdec8
+0x00dea0: b        #0xdea4                                      ; call 0xdea4
+0x00dea4: mov      x20, x0                                      
+0x00dea8: mov      x0, x26                                      
+0x00deac: bl       #0x2480c                                     ; call stub _objc_release
+0x00deb0: b        #0xdeb8                                      ; call 0xdeb8
+0x00deb4: mov      x20, x0                                      
+0x00deb8: mov      x0, x22                                      
+0x00debc: bl       #0x2480c                                     ; call stub _objc_release
+0x00dec0: mov      x0, x23                                      
+0x00dec4: bl       #0x2480c                                     ; call stub _objc_release
+0x00dec8: mov      x0, x21                                      
+0x00decc: bl       #0x2480c                                     ; call stub _objc_release
+0x00ded0: ldr      x0, [sp, #0x40]                              
+0x00ded4: bl       #0x2480c                                     ; call stub _objc_release
+0x00ded8: mov      x0, x19                                      
+0x00dedc: bl       #0x2480c                                     ; call stub _objc_release
+0x00dee0: b        #0xdee8                                      ; call 0xdee8
+0x00dee4: mov      x20, x0                                      
+0x00dee8: mov      x0, x20                                      
+0x00deec: bl       #0x24470                                     ; call stub __Unwind_Resume

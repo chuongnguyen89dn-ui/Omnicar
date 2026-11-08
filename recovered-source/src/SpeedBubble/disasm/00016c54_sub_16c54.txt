@@ -1,0 +1,23 @@
+# sub_16c54
+# addr 0x16c54 .. 0x16ca4  (80 bytes)
+
+00016c54  stp      x20, x19, [sp, #-0x20]!                     
+00016c58  stp      x29, x30, [sp, #0x10]                       
+00016c5c  add      x29, sp, #0x10                              
+00016c60  adrp     x20, #0x43000                               
+00016c64  ldr      x19, [x20, #0x928]                          ; [0x43928] __DATA,__bss+0x188
+00016c68  cbnz     x19, #0x16c8c                               
+00016c6c  adrp     x8, #0x43000                                
+00016c70  ldr      x0, [x8, #0xd8]                             ; [0x430d8] classref -> SPPSoundDelegate
+00016c74  bl       #0x27fd4                                    ; _objc_opt_new
+00016c78  ldr      x8, [x20, #0x928]                           ; [0x43928] __DATA,__bss+0x188
+00016c7c  str      x0, [x20, #0x928]                           
+00016c80  mov      x0, x8                                      
+00016c84  bl       #0x27ff8                                    ; _objc_release
+00016c88  ldr      x19, [x20, #0x928]                          ; [0x43928] __DATA,__bss+0x188
+00016c8c  mov      x0, x19                                     
+00016c90  bl       #0x28004                                    ; _objc_retain
+00016c94  mov      x0, x19                                     
+00016c98  ldp      x29, x30, [sp, #0x10]                       
+00016c9c  ldp      x20, x19, [sp], #0x20                       
+00016ca0  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

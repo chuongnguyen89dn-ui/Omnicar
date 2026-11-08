@@ -1,0 +1,45 @@
+# sub_7904
+# addr 0x7904 .. 0x79ac  (168 bytes)
+
+00007904  stp      x22, x21, [sp, #-0x30]!                     
+00007908  stp      x20, x19, [sp, #0x10]                       
+0000790c  stp      x29, x30, [sp, #0x20]                       
+00007910  add      x29, sp, #0x20                              
+00007914  mov      x19, x0                                     
+00007918  bl       #0x28004                                    ; _objc_retain
+0000791c  mov      x0, x19                                     
+00007920  bl       #0x29ba0                                    ; objc_msgSend$length
+00007924  cbz      x0, #0x7938                                 
+00007928  mov      x0, x19                                     
+0000792c  bl       #0x29ba0                                    ; objc_msgSend$length
+00007930  cmp      x0, #3                                      
+00007934  b.ls     #0x7958                                     
+00007938  mov      w21, #0                                     
+0000793c  mov      x0, x19                                     
+00007940  bl       #0x27ff8                                    ; _objc_release
+00007944  mov      x0, x21                                     
+00007948  ldp      x29, x30, [sp, #0x20]                       
+0000794c  ldp      x20, x19, [sp, #0x10]                       
+00007950  ldp      x22, x21, [sp], #0x30                       
+00007954  ret                                                  
+00007958  mov      x20, #0                                     
+0000795c  mov      x0, x19                                     
+00007960  bl       #0x29ba0                                    ; objc_msgSend$length
+00007964  cmp      x20, x0                                     
+00007968  cset     w21, hs                                     
+0000796c  b.hs     #0x793c                                     
+00007970  mov      x0, x19                                     
+00007974  mov      x2, x20                                     
+00007978  bl       #0x28ce0                                    ; objc_msgSend$characterAtIndex:
+0000797c  sub      w8, w0, #0x30                               
+00007980  add      x20, x20, #1                                
+00007984  cmp      w8, #0xa                                    
+00007988  b.lo     #0x795c                                     
+0000798c  b        #0x793c                                     ; sub_793c
+00007990  b        #0x7998                                     ; sub_7998
+00007994  b        #0x7998                                     ; sub_7998
+00007998  mov      x20, x0                                     
+0000799c  mov      x0, x19                                     
+000079a0  bl       #0x27ff8                                    ; _objc_release
+000079a4  mov      x0, x20                                     
+000079a8  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,41 @@
+; sub_54fd4
+0x054fd4  stp      x29, x30, [sp, #-0x10]!
+0x054fd8  mov      x29, sp
+0x054fdc  bl       #0x54220 ; -> sub_54220
+0x054fe0  adrp     x8, #0x88000
+0x054fe4  ldr      d1, [x8, #0x300]
+0x054fe8  fcmp     d1, #0.0
+0x054fec  b.le     #0x55068
+0x054ff0  fsub     d1, d0, d1
+0x054ff4  adrp     x9, #0x88000
+0x054ff8  ldr      d3, [x9, #0x2e0]
+0x054ffc  fmov     d2, #1.50000000
+0x055000  fmul     d4, d3, d2
+0x055004  fmov     d2, xzr
+0x055008  fcmp     d1, d4
+0x05500c  b.le     #0x55020
+0x055010  fdiv     d2, d1, d3
+0x055014  frinta   d2, d2
+0x055018  fmov     d3, #-1.00000000
+0x05501c  fadd     d2, d2, d3
+0x055020  fmov     d3, #1.00000000
+0x055024  fadd     d3, d2, d3
+0x055028  adrp     x9, #0x88000
+0x05502c  ldr      d4, [x9, #0x2f8]
+0x055030  fadd     d3, d4, d3
+0x055034  str      d3, [x9, #0x2f8]
+0x055038  adrp     x9, #0x88000
+0x05503c  ldr      d3, [x9, #0x2f0]
+0x055040  fadd     d2, d2, d3
+0x055044  str      d2, [x9, #0x2f0]
+0x055048  adrp     x9, #0x88000
+0x05504c  ldr      d2, [x9, #0x2e8]
+0x055050  adrp     x10, #0x6f000
+0x055054  ldr      d3, [x10, #0x418]
+0x055058  fmul     d1, d1, d3
+0x05505c  fcmp     d2, d1
+0x055060  fcsel    d1, d1, d2, mi
+0x055064  str      d1, [x9, #0x2e8]
+0x055068  str      d0, [x8, #0x300]
+0x05506c  ldp      x29, x30, [sp], #0x10
+0x055070  ret      

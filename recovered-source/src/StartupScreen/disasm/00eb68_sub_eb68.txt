@@ -1,0 +1,165 @@
+; sub_eb68
+; VA 0xeb68  size 648
+
+0x0000eb68:  stp      x22, x21, [sp, #-0x30]!
+0x0000eb6c:  stp      x20, x19, [sp, #0x10]
+0x0000eb70:  stp      x29, x30, [sp, #0x20]
+0x0000eb74:  add      x29, sp, #0x20
+0x0000eb78:  mov      x19, x3
+0x0000eb7c:  mov      x20, x2
+0x0000eb80:  cbz      x0, #0xebc0
+0x0000eb84:  cmp      x0, #2
+0x0000eb88:  b.gt     #0xec34
+0x0000eb8c:  adrp     x8, #0x33000
+0x0000eb90:  add      x8, x8, #0x488    ; @"cloud.moon.fill"
+0x0000eb94:  adrp     x9, #0x33000
+0x0000eb98:  add      x9, x9, #0x468    ; @"cloud.sun.fill"
+0x0000eb9c:  cmp      w1, #0
+0x0000eba0:  csel     x21, x9, x8, ne
+0x0000eba4:  mov      x0, x21
+0x0000eba8:  bl       #0x2212c    ; -> _objc_retain
+0x0000ebac:  adrp     x0, #0x33000
+0x0000ebb0:  add      x0, x0, #0x4a8    ; @"b'\xcd\x00t\x00 \x00'"
+0x0000ebb4:  adrp     x1, #0x33000
+0x0000ebb8:  add      x1, x1, #0x4c8    ; @"Partly cloudy"
+0x0000ebbc:  b        #0xebf0    ; -> sub_ebf0
+0x0000ebc0:  adrp     x8, #0x33000
+0x0000ebc4:  add      x8, x8, #0x408    ; @"moon.stars.fill"
+0x0000ebc8:  adrp     x9, #0x33000
+0x0000ebcc:  add      x9, x9, #0x3e8    ; @"sun.max.fill"
+0x0000ebd0:  cmp      w1, #0
+0x0000ebd4:  csel     x21, x9, x8, ne
+0x0000ebd8:  mov      x0, x21
+0x0000ebdc:  bl       #0x2212c    ; -> _objc_retain
+0x0000ebe0:  adrp     x0, #0x33000
+0x0000ebe4:  add      x0, x0, #0x428    ; @"b'T\x00r\x00\xdd\x1ei\x00 \x00'"
+0x0000ebe8:  adrp     x1, #0x33000
+0x0000ebec:  add      x1, x1, #0x448    ; @"Clear"
+0x0000ebf0:  bl       #0x21318    ; -> OMCTr
+0x0000ebf4:  mov      x29, x29
+0x0000ebf8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000ebfc:  mov      x22, x0
+0x0000ec00:  cbz      x20, #0xec10
+0x0000ec04:  mov      x0, x21
+0x0000ec08:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0000ec0c:  str      x21, [x20]
+0x0000ec10:  mov      x0, x22
+0x0000ec14:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0000ec18:  str      x22, [x19]
+0x0000ec1c:  bl       #0x22120    ; -> _objc_release
+0x0000ec20:  mov      x0, x21
+0x0000ec24:  ldp      x29, x30, [sp, #0x20]
+0x0000ec28:  ldp      x20, x19, [sp, #0x10]
+0x0000ec2c:  ldp      x22, x21, [sp], #0x30
+0x0000ec30:  b        #0x22120    ; -> _objc_release
+0x0000ec34:  cmp      x0, #0x30
+0x0000ec38:  b.eq     #0xec78
+0x0000ec3c:  cmp      x0, #0x2d
+0x0000ec40:  b.eq     #0xec78
+0x0000ec44:  cmp      x0, #3
+0x0000ec48:  b.ne     #0xeca4
+0x0000ec4c:  adrp     x0, #0x33000
+0x0000ec50:  add      x0, x0, #0x4e8    ; @"b'N\x00h\x00i\x00\xc1\x1eu'"
+0x0000ec54:  adrp     x1, #0x33000
+0x0000ec58:  add      x1, x1, #0x508    ; @"Cloudy"
+0x0000ec5c:  bl       #0x21318    ; -> OMCTr
+0x0000ec60:  mov      x29, x29
+0x0000ec64:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000ec68:  mov      x22, x0
+0x0000ec6c:  adrp     x21, #0x32000
+0x0000ec70:  add      x21, x21, #0x508    ; @"cloud.fill"
+0x0000ec74:  b        #0xec00    ; -> sub_ec00
+0x0000ec78:  adrp     x0, #0x33000
+0x0000ec7c:  add      x0, x0, #0x548    ; @"b'S\x00\xb0\x01\xa1\x01n\x00'"
+0x0000ec80:  adrp     x1, #0x33000
+0x0000ec84:  add      x1, x1, #0x568    ; @"Fog"
+0x0000ec88:  bl       #0x21318    ; -> OMCTr
+0x0000ec8c:  mov      x29, x29
+0x0000ec90:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000ec94:  mov      x22, x0
+0x0000ec98:  adrp     x21, #0x33000
+0x0000ec9c:  add      x21, x21, #0x528    ; @"cloud.fog.fill"
+0x0000eca0:  b        #0xec00    ; -> sub_ec00
+0x0000eca4:  sub      x8, x0, #0x33
+0x0000eca8:  cmp      x8, #6
+0x0000ecac:  b.hi     #0xecdc
+0x0000ecb0:  adrp     x0, #0x33000
+0x0000ecb4:  add      x0, x0, #0x5a8    ; @"b'M\x00\xb0\x01a\x00 \x00'"
+0x0000ecb8:  adrp     x1, #0x33000
+0x0000ecbc:  add      x1, x1, #0x5c8    ; @"Drizzle"
+0x0000ecc0:  bl       #0x21318    ; -> OMCTr
+0x0000ecc4:  mov      x29, x29
+0x0000ecc8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000eccc:  mov      x22, x0
+0x0000ecd0:  adrp     x21, #0x33000
+0x0000ecd4:  add      x21, x21, #0x588    ; @"cloud.drizzle.fill"
+0x0000ecd8:  b        #0xec00    ; -> sub_ec00
+0x0000ecdc:  cmp      x0, #0x52
+0x0000ece0:  b.eq     #0xed4c
+0x0000ece4:  and      x8, x0, #0x7fffffffffffffff
+0x0000ece8:  and      x8, x8, #0xfffffffffffffffd
+0x0000ecec:  cmp      x8, #0x41
+0x0000ecf0:  b.eq     #0xed4c
+0x0000ecf4:  sub      x8, x0, #0x3d
+0x0000ecf8:  cmp      x8, #0x19
+0x0000ecfc:  b.hi     #0xedbc
+0x0000ed00:  mov      w9, #1
+0x0000ed04:  lsl      x9, x9, x8
+0x0000ed08:  mov      w10, #0x7f
+0x0000ed0c:  movk     w10, #0x38, lsl #16
+0x0000ed10:  tst      x9, x10
+0x0000ed14:  b.eq     #0xed78
+0x0000ed18:  adrp     x8, #0x33000
+0x0000ed1c:  add      x8, x8, #0x668    ; @"cloud.rain.fill"
+0x0000ed20:  adrp     x9, #0x33000
+0x0000ed24:  add      x9, x9, #0x648    ; @"cloud.sun.rain.fill"
+0x0000ed28:  cmp      w1, #0
+0x0000ed2c:  csel     x21, x9, x8, ne
+0x0000ed30:  mov      x0, x21
+0x0000ed34:  bl       #0x2212c    ; -> _objc_retain
+0x0000ed38:  adrp     x0, #0x33000
+0x0000ed3c:  add      x0, x0, #0x688    ; @"b'C\x00\xf3\x00 \x00'"
+0x0000ed40:  adrp     x1, #0x33000
+0x0000ed44:  add      x1, x1, #0x6a8    ; @"Rain"
+0x0000ed48:  b        #0xebf0    ; -> sub_ebf0
+0x0000ed4c:  adrp     x0, #0x33000
+0x0000ed50:  add      x0, x0, #0x608    ; @"b'M\x00\xb0\x01a\x00'"
+0x0000ed54:  adrp     x1, #0x33000
+0x0000ed58:  add      x1, x1, #0x628    ; @"Heavy rain"
+0x0000ed5c:  bl       #0x21318    ; -> OMCTr
+0x0000ed60:  mov      x29, x29
+0x0000ed64:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000ed68:  mov      x22, x0
+0x0000ed6c:  adrp     x21, #0x33000
+0x0000ed70:  add      x21, x21, #0x5e8    ; @"cloud.heavyrain.fill"
+0x0000ed74:  b        #0xec00    ; -> sub_ec00
+0x0000ed78:  mov      w9, #1
+0x0000ed7c:  lsl      x8, x9, x8
+0x0000ed80:  mov      w9, #0xfc00
+0x0000ed84:  movk     w9, #0x301, lsl #16
+0x0000ed88:  tst      x8, x9
+0x0000ed8c:  b.eq     #0xedbc
+0x0000ed90:  adrp     x0, #0x33000
+0x0000ed94:  add      x0, x0, #0x6e8    ; @"b'C\x00\xf3\x00 \x00t\x00'"
+0x0000ed98:  adrp     x1, #0x33000
+0x0000ed9c:  add      x1, x1, #0x708    ; @"Snow"
+0x0000eda0:  bl       #0x21318    ; -> OMCTr
+0x0000eda4:  mov      x29, x29
+0x0000eda8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000edac:  mov      x22, x0
+0x0000edb0:  adrp     x21, #0x33000
+0x0000edb4:  add      x21, x21, #0x6c8    ; @"cloud.snow.fill"
+0x0000edb8:  b        #0xec00    ; -> sub_ec00
+0x0000edbc:  cmp      x0, #0x5f
+0x0000edc0:  b.lo     #0xec4c
+0x0000edc4:  adrp     x0, #0x33000
+0x0000edc8:  add      x0, x0, #0x748    ; @"b'D\x00\xf4\x00'"
+0x0000edcc:  adrp     x1, #0x33000
+0x0000edd0:  add      x1, x1, #0x768    ; @"Thunderstorm"
+0x0000edd4:  bl       #0x21318    ; -> OMCTr
+0x0000edd8:  mov      x29, x29
+0x0000eddc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000ede0:  mov      x22, x0
+0x0000ede4:  adrp     x21, #0x33000
+0x0000ede8:  add      x21, x21, #0x728    ; @"cloud.bolt.rain.fill"
+0x0000edec:  b        #0xec00    ; -> sub_ec00

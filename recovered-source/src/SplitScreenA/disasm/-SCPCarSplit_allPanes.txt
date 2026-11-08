@@ -1,0 +1,60 @@
+; -[SCPCarSplit allPanes]
+0x010604  stp      x22, x21, [sp, #-0x30]!
+0x010608  stp      x20, x19, [sp, #0x10]
+0x01060c  stp      x29, x30, [sp, #0x20]
+0x010610  add      x29, sp, #0x20
+0x010614  mov      x20, x0
+0x010618  bl       #0x58200 ; objc_msgSend$floatPane
+0x01061c  mov      x29, x29
+0x010620  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x010624  mov      x21, x0
+0x010628  bl       #0x567b8 ; call _objc_release
+0x01062c  mov      x0, x20
+0x010630  bl       #0x5c160 ; objc_msgSend$slots
+0x010634  mov      x29, x29
+0x010638  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01063c  mov      x19, x0
+0x010640  cbz      x21, #0x10680
+0x010644  mov      x0, x20
+0x010648  bl       #0x58200 ; objc_msgSend$floatPane
+0x01064c  mov      x29, x29
+0x010650  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x010654  mov      x20, x0
+0x010658  adrp     x8, #0x78000
+0x01065c  ldr      x8, [x8, #0x238] ; [0x78238] ___NSArray0__struct
+0x010660  cmp      x19, #0
+0x010664  csel     x0, x8, x19, eq
+0x010668  mov      x2, x20
+0x01066c  bl       #0x57000 ; objc_msgSend$arrayByAddingObject:
+0x010670  mov      x29, x29
+0x010674  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x010678  mov      x21, x0
+0x01067c  b        #0x106a4
+0x010680  mov      x0, x19
+0x010684  bl       #0x579a0 ; objc_msgSend$copy
+0x010688  mov      x20, x0
+0x01068c  adrp     x8, #0x78000
+0x010690  ldr      x8, [x8, #0x238] ; [0x78238] ___NSArray0__struct
+0x010694  cmp      x0, #0
+0x010698  csel     x21, x8, x0, eq
+0x01069c  mov      x0, x21
+0x0106a0  bl       #0x567c4 ; call _objc_retain
+0x0106a4  mov      x0, x20
+0x0106a8  bl       #0x567b8 ; call _objc_release
+0x0106ac  mov      x0, x19
+0x0106b0  bl       #0x567b8 ; call _objc_release
+0x0106b4  mov      x0, x21
+0x0106b8  ldp      x29, x30, [sp, #0x20]
+0x0106bc  ldp      x20, x19, [sp, #0x10]
+0x0106c0  ldp      x22, x21, [sp], #0x30
+0x0106c4  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x0106c8  b        #0x106dc
+0x0106cc  mov      x21, x0
+0x0106d0  mov      x0, x20
+0x0106d4  bl       #0x567b8 ; call _objc_release
+0x0106d8  b        #0x106e0
+0x0106dc  mov      x21, x0
+0x0106e0  mov      x0, x19
+0x0106e4  bl       #0x567b8 ; call _objc_release
+0x0106e8  mov      x0, x21
+0x0106ec  bl       #0x563e0 ; call __Unwind_Resume

@@ -1,0 +1,12 @@
+0001c4f0  stp      x20, x19, [sp, #-0x20]!                      
+0001c4f4  stp      x29, x30, [sp, #0x10]                        
+0001c4f8  add      x29, sp, #0x10                               
+0001c4fc  mov      x19, x1                                      
+0001c500  ldr      x0, [x1, #0x20]                              
+0001c504  bl       #0x567c4                                     ; call _objc_retain
+0001c508  ldr      x0, [x19, #0x28]                             
+0001c50c  bl       #0x567c4                                     ; call _objc_retain
+0001c510  ldr      x0, [x19, #0x30]                             
+0001c514  ldp      x29, x30, [sp, #0x10]                        
+0001c518  ldp      x20, x19, [sp], #0x20                        
+0001c51c  b        #0x567c4                                     ; call _objc_retain | tail _objc_retain

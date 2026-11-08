@@ -1,0 +1,23 @@
+; -[SSStartupView dealloc]
+; VA 0xc6e4  size 80
+
+0x0000c6e4:  sub      sp, sp, #0x30
+0x0000c6e8:  stp      x20, x19, [sp, #0x10]
+0x0000c6ec:  stp      x29, x30, [sp, #0x20]
+0x0000c6f0:  add      x29, sp, #0x20
+0x0000c6f4:  mov      x19, x0
+0x0000c6f8:  adrp     x8, #0x3a000
+0x0000c6fc:  ldrsw    x8, [x8, #0xcb4]
+0x0000c700:  ldr      x0, [x0, x8]
+0x0000c704:  bl       #0x23880    ; -> _objc_msgSend(invalidate)
+0x0000c708:  adrp     x8, #0x3a000
+0x0000c70c:  ldr      x8, [x8, #0xc00]
+0x0000c710:  stp      x19, x8, [sp]
+0x0000c714:  adrp     x8, #0x39000
+0x0000c718:  ldr      x1, [x8, #0x868]    ; selref(dealloc)
+0x0000c71c:  mov      x0, sp
+0x0000c720:  bl       #0x220d8    ; -> _objc_msgSendSuper2
+0x0000c724:  ldp      x29, x30, [sp, #0x20]
+0x0000c728:  ldp      x20, x19, [sp, #0x10]
+0x0000c72c:  add      sp, sp, #0x30
+0x0000c730:  ret      

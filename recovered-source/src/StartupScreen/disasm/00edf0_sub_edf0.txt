@@ -1,0 +1,70 @@
+; sub_edf0
+; VA 0xedf0  size 268
+
+0x0000edf0:  stp      d9, d8, [sp, #-0x40]!
+0x0000edf4:  stp      x22, x21, [sp, #0x10]
+0x0000edf8:  stp      x20, x19, [sp, #0x20]
+0x0000edfc:  stp      x29, x30, [sp, #0x30]
+0x0000ee00:  add      x29, sp, #0x30
+0x0000ee04:  cbz      x0, #0xeedc
+0x0000ee08:  mov      x20, x0
+0x0000ee0c:  adrp     x8, #0x3a000
+0x0000ee10:  ldr      x19, [x8, #0xba0]    ; class(NSMeasurementFormatter)
+0x0000ee14:  bl       #0x2212c    ; -> _objc_retain
+0x0000ee18:  mov      x0, x19
+0x0000ee1c:  bl       #0x220fc    ; -> _objc_opt_new
+0x0000ee20:  mov      x19, x0
+0x0000ee24:  mov      w2, #1
+0x0000ee28:  bl       #0x253e0    ; -> _objc_msgSend(setUnitStyle:)
+0x0000ee2c:  adrp     x8, #0x3a000
+0x0000ee30:  ldr      x0, [x8, #0xba8]    ; class(NSNumberFormatter)
+0x0000ee34:  bl       #0x220fc    ; -> _objc_opt_new
+0x0000ee38:  mov      x21, x0
+0x0000ee3c:  mov      x2, #0
+0x0000ee40:  bl       #0x24c60    ; -> _objc_msgSend(setMaximumFractionDigits:)
+0x0000ee44:  mov      x0, x19
+0x0000ee48:  mov      x2, x21
+0x0000ee4c:  bl       #0x24d60    ; -> _objc_msgSend(setNumberFormatter:)
+0x0000ee50:  adrp     x8, #0x3a000
+0x0000ee54:  ldr      x0, [x8, #0xbb0]    ; class(NSMeasurement)
+0x0000ee58:  bl       #0x22024    ; -> _objc_alloc
+0x0000ee5c:  mov      x22, x0
+0x0000ee60:  mov      x0, x20
+0x0000ee64:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x0000ee68:  mov      v8.16b, v0.16b
+0x0000ee6c:  mov      x0, x20
+0x0000ee70:  bl       #0x22120    ; -> _objc_release
+0x0000ee74:  adrp     x8, #0x3a000
+0x0000ee78:  ldr      x0, [x8, #0xbb8]    ; class(NSUnitTemperature)
+0x0000ee7c:  bl       #0x22a60    ; -> _objc_msgSend(celsius)
+0x0000ee80:  mov      x29, x29
+0x0000ee84:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000ee88:  mov      x20, x0
+0x0000ee8c:  mov      x0, x22
+0x0000ee90:  mov      v0.16b, v8.16b
+0x0000ee94:  mov      x2, x20
+0x0000ee98:  bl       #0x23740    ; -> _objc_msgSend(initWithDoubleValue:unit:)
+0x0000ee9c:  mov      x22, x0
+0x0000eea0:  mov      x0, x20
+0x0000eea4:  bl       #0x22120    ; -> _objc_release
+0x0000eea8:  mov      x0, x19
+0x0000eeac:  mov      x2, x22
+0x0000eeb0:  bl       #0x25be0    ; -> _objc_msgSend(stringFromMeasurement:)
+0x0000eeb4:  mov      x29, x29
+0x0000eeb8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000eebc:  mov      x20, x0
+0x0000eec0:  mov      x0, x22
+0x0000eec4:  bl       #0x22120    ; -> _objc_release
+0x0000eec8:  mov      x0, x21
+0x0000eecc:  bl       #0x22120    ; -> _objc_release
+0x0000eed0:  mov      x0, x19
+0x0000eed4:  bl       #0x22120    ; -> _objc_release
+0x0000eed8:  b        #0xeee4    ; -> sub_eee4
+0x0000eedc:  adrp     x20, #0x33000
+0x0000eee0:  add      x20, x20, #0x788    ; @"--"
+0x0000eee4:  mov      x0, x20
+0x0000eee8:  ldp      x29, x30, [sp, #0x30]
+0x0000eeec:  ldp      x20, x19, [sp, #0x20]
+0x0000eef0:  ldp      x22, x21, [sp, #0x10]
+0x0000eef4:  ldp      d9, d8, [sp], #0x40
+0x0000eef8:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

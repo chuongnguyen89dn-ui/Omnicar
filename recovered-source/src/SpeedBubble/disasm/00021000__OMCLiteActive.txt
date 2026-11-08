@@ -1,0 +1,90 @@
+# _OMCLiteActive
+# addr 0x21000 .. 0x2115c  (348 bytes)
+
+00021000  sub      sp, sp, #0x30                               
+00021004  stp      x20, x19, [sp, #0x10]                       
+00021008  stp      x29, x30, [sp, #0x20]                       
+0002100c  add      x29, sp, #0x20                              
+00021010  bl       #0x27ad0                                    ; _CFAbsoluteTimeGetCurrent
+00021014  adrp     x8, #0x43000                                
+00021018  ldr      d1, [x8, #0xa18]                            ; [0x43a18] __DATA,__bss+0x278
+0002101c  fsub     d2, d0, d1                                  
+00021020  fcmp     d1, #0.0                                    
+00021024  fmov     d1, #3.00000000                             
+00021028  fccmp    d2, d1, #0, ne                              
+0002102c  b.mi     #0x210c4                                    
+00021030  str      d0, [x8, #0xa18]                            
+00021034  adrp     x0, #0x3b000                                
+00021038  add      x0, x0, #0x138                              ; @"com.anlai.omnicar"
+0002103c  bl       #0x27adc                                    ; _CFPreferencesAppSynchronize
+00021040  adrp     x0, #0x3b000                                
+00021044  add      x0, x0, #0x418                              ; @"liteMode"
+00021048  adrp     x1, #0x3d000                                
+0002104c  add      x1, x1, #0x110                              ; __DATA_CONST,__objc_intobj+0xa8
+00021050  bl       #0x20eac                                    ; _OMCPref
+00021054  mov      x29, x29                                    
+00021058  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002105c  mov      x20, x0                                     
+00021060  bl       #0x29960                                    ; objc_msgSend$integerValue
+00021064  mov      x19, x0                                     
+00021068  mov      x0, x20                                     
+0002106c  bl       #0x27ff8                                    ; _objc_release
+00021070  cmp      x19, #1                                     
+00021074  b.eq     #0x210d8                                    
+00021078  cmp      x19, #2                                     
+0002107c  b.ne     #0x210d0                                    
+00021080  bl       #0x20f14                                    ; _OMCEnabled
+00021084  tbz      w0, #0, #0x210d0                            
+00021088  adrp     x8, #0x43000                                
+0002108c  ldr      x0, [x8, #0x150]                            ; [0x43150] classref -> NSProcessInfo (= import _OBJC_CLASS_$_NSProcessInfo)
+00021090  bl       #0x2a3e0                                    ; objc_msgSend$processInfo
+00021094  mov      x29, x29                                    
+00021098  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002109c  mov      x19, x0                                     
+000210a0  bl       #0x2c500                                    ; objc_msgSend$thermalState
+000210a4  mov      x20, x0                                     
+000210a8  mov      x0, x19                                     
+000210ac  bl       #0x27ff8                                    ; _objc_release
+000210b0  cmp      x20, #2                                     
+000210b4  b.lt     #0x210f8                                    
+000210b8  adrp     x8, #0x43000                                
+000210bc  mov      w0, #1                                      
+000210c0  b        #0x210e0                                    ; sub_210e0
+000210c4  adrp     x8, #0x43000                                
+000210c8  ldrb     w0, [x8, #0xa10]                            
+000210cc  b        #0x210e4                                    ; sub_210e4
+000210d0  mov      w0, #0                                      
+000210d4  b        #0x210dc                                    ; sub_210dc
+000210d8  bl       #0x20f14                                    ; _OMCEnabled
+000210dc  adrp     x8, #0x43000                                
+000210e0  strb     w0, [x8, #0xa10]                            
+000210e4  and      w0, w0, #1                                  
+000210e8  ldp      x29, x30, [sp, #0x20]                       
+000210ec  ldp      x20, x19, [sp, #0x10]                       
+000210f0  add      sp, sp, #0x30                               
+000210f4  ret                                                  
+000210f8  adrp     x19, #0x43000                               
+000210fc  ldr      w0, [x19, #0x798]                           ; [0x43798] __DATA,__data+0x1b0 (= import <ordinal 65535>)
+00021100  cmn      w0, #1                                      
+00021104  b.eq     #0x21124                                    
+00021108  str      xzr, [sp, #8]                               
+0002110c  add      x1, sp, #8                                  
+00021110  bl       #0x27ecc                                    ; _notify_get_state
+00021114  ldr      x8, [sp, #8]                                
+00021118  cmp      x8, #0                                      
+0002111c  cset     w0, ne                                      
+00021120  b        #0x210dc                                    ; sub_210dc
+00021124  adrp     x0, #0x2f000                                
+00021128  add      x0, x0, #0x1e9                              ; "com.anlai.omnicar/lite"
+0002112c  adrp     x1, #0x43000                                
+00021130  add      x1, x1, #0x798                              ; __DATA,__data+0x1b0
+00021134  bl       #0x27ee4                                    ; _notify_register_check
+00021138  cbz      w0, #0x21154                                
+0002113c  mov      w0, #0                                      
+00021140  mov      w8, #-1                                     
+00021144  str      w8, [x19, #0x798]                           
+00021148  adrp     x8, #0x43000                                
+0002114c  strb     wzr, [x8, #0xa10]                           
+00021150  b        #0x210e4                                    ; sub_210e4
+00021154  ldr      w0, [x19, #0x798]                           ; [0x43798] __DATA,__data+0x1b0 (= import <ordinal 65535>)
+00021158  b        #0x21108                                    ; sub_21108

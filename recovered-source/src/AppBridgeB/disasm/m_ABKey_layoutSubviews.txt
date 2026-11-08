@@ -1,0 +1,78 @@
+=== -[ABKey layoutSubviews] @ 0x189c8 (size 308) ===
+000189c8  sub      sp, sp, #0x60
+000189cc  stp      d11, d10, [sp, #0x10]
+000189d0  stp      d9, d8, [sp, #0x20]
+000189d4  stp      x22, x21, [sp, #0x30]
+000189d8  stp      x20, x19, [sp, #0x40]
+000189dc  stp      x29, x30, [sp, #0x50]
+000189e0  add      x29, sp, #0x50
+000189e4  mov      x19, x0
+000189e8  adrp     x8, #0x3e000
+000189ec  ldr      x8, [x8, #0x470] ; -> class ABKey
+000189f0  stp      x0, x8, [sp]
+000189f4  adrp     x8, #0x3d000
+000189f8  ldr      x1, [x8, #0x258] ; selref @layoutSubviews
+000189fc  mov      x0, sp
+00018a00  bl       #0x247c4 ; call _objc_msgSendSuper2
+00018a04  adrp     x21, #0x3e000
+00018a08  ldr      x0, [x21, #0x308] ; bind _OBJC_CLASS_$_CATransaction
+00018a0c  bl       #0x24e80 ; objc_msgSend sel=begin
+00018a10  ldr      x0, [x21, #0x308] ; bind _OBJC_CLASS_$_CATransaction
+00018a14  mov      w2, #1
+00018a18  bl       #0x26e80 ; objc_msgSend sel=setDisableActions:
+00018a1c  mov      x0, x19
+00018a20  bl       #0x24f40 ; objc_msgSend sel=bounds
+00018a24  mov      v8.16b, v0.16b
+00018a28  mov      v9.16b, v1.16b
+00018a2c  mov      v10.16b, v2.16b
+00018a30  mov      v11.16b, v3.16b
+00018a34  mov      x0, x19
+00018a38  bl       #0x24a60 ; objc_msgSend sel=accent
+00018a3c  mov      x29, x29
+00018a40  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00018a44  mov      x20, x0
+00018a48  mov      v0.16b, v8.16b
+00018a4c  mov      v1.16b, v9.16b
+00018a50  mov      v2.16b, v10.16b
+00018a54  mov      v3.16b, v11.16b
+00018a58  bl       #0x26f80 ; objc_msgSend sel=setFrame:
+00018a5c  mov      x0, x20
+00018a60  bl       #0x2480c ; call _objc_release
+00018a64  ldr      x0, [x21, #0x308] ; bind _OBJC_CLASS_$_CATransaction
+00018a68  bl       #0x25280 ; objc_msgSend sel=commit
+00018a6c  mov      x0, x19
+00018a70  bl       #0x25920 ; objc_msgSend sel=hint
+00018a74  mov      x29, x29
+00018a78  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00018a7c  mov      x20, x0
+00018a80  bl       #0x2480c ; call _objc_release
+00018a84  cbz      x20, #0x18ac8
+00018a88  mov      x0, x19
+00018a8c  bl       #0x24f40 ; objc_msgSend sel=bounds
+00018a90  fmov     d0, #-13.00000000
+00018a94  fadd     d8, d2, d0
+00018a98  mov      x0, x19
+00018a9c  bl       #0x25920 ; objc_msgSend sel=hint
+00018aa0  mov      x29, x29
+00018aa4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00018aa8  mov      x20, x0
+00018aac  fmov     d1, xzr
+00018ab0  fmov     d2, #11.00000000
+00018ab4  fmov     d3, #11.00000000
+00018ab8  mov      v0.16b, v8.16b
+00018abc  bl       #0x26f80 ; objc_msgSend sel=setFrame:
+00018ac0  mov      x0, x20
+00018ac4  bl       #0x2480c ; call _objc_release
+00018ac8  ldp      x29, x30, [sp, #0x50]
+00018acc  ldp      x20, x19, [sp, #0x40]
+00018ad0  ldp      x22, x21, [sp, #0x30]
+00018ad4  ldp      d9, d8, [sp, #0x20]
+00018ad8  ldp      d11, d10, [sp, #0x10]
+00018adc  add      sp, sp, #0x60
+00018ae0  ret      
+00018ae4  b        #0x18ae8 ; call sub_18ae8
+00018ae8  mov      x19, x0
+00018aec  mov      x0, x20
+00018af0  bl       #0x2480c ; call _objc_release
+00018af4  mov      x0, x19
+00018af8  bl       #0x24470 ; call __Unwind_Resume

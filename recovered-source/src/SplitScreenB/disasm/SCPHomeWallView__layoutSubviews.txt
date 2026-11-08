@@ -1,0 +1,52 @@
+; ==== SCPHomeWallView__layoutSubviews  @0x49350..0x4941c (204 bytes) ====
+00049350  sub      sp, sp, #0x50                                
+00049354  stp      d11, d10, [sp, #0x10]                        
+00049358  stp      d9, d8, [sp, #0x20]                          
+0004935c  stp      x20, x19, [sp, #0x30]                        
+00049360  stp      x29, x30, [sp, #0x40]                        
+00049364  add      x29, sp, #0x40                               
+00049368  mov      x19, x0                                      
+0004936c  adrp     x8, #0x87000                                 
+00049370  ldr      x8, [x8, #0x900]                             
+00049374  stp      x0, x8, [sp]                                 
+00049378  adrp     x8, #0x85000                                 
+0004937c  ldr      x1, [x8, #0xc10]                             ; selref @"layoutSubviews"
+00049380  mov      x0, sp                                       
+00049384  bl       #0x56770                                     ; call _objc_msgSendSuper2
+00049388  adrp     x20, #0x87000                                
+0004938c  ldr      x0, [x20, #0x728]                            ; classref CATransaction
+00049390  bl       #0x571c0                                     ; msgSend "begin"
+00049394  ldr      x0, [x20, #0x728]                            ; classref CATransaction
+00049398  mov      w2, #1                                       
+0004939c  bl       #0x5ab20                                     ; msgSend "setDisableActions:"
+000493a0  mov      x0, x19                                      
+000493a4  bl       #0x57320                                     ; msgSend "bounds"
+000493a8  mov      v8.16b, v0.16b                               
+000493ac  mov      v9.16b, v1.16b                               
+000493b0  mov      v10.16b, v2.16b                              
+000493b4  mov      v11.16b, v3.16b                              
+000493b8  mov      x0, x19                                      
+000493bc  bl       #0x5cb40                                     ; msgSend "videoLayer"
+000493c0  mov      x29, x29                                     
+000493c4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000493c8  mov      x19, x0                                      
+000493cc  mov      v0.16b, v8.16b                               
+000493d0  mov      v1.16b, v9.16b                               
+000493d4  mov      v2.16b, v10.16b                              
+000493d8  mov      v3.16b, v11.16b                              
+000493dc  bl       #0x5ae20                                     ; msgSend "setFrame:"
+000493e0  mov      x0, x19                                      
+000493e4  bl       #0x567b8                                     ; call _objc_release
+000493e8  ldr      x0, [x20, #0x728]                            ; classref CATransaction
+000493ec  bl       #0x57720                                     ; msgSend "commit"
+000493f0  ldp      x29, x30, [sp, #0x40]                        
+000493f4  ldp      x20, x19, [sp, #0x30]                        
+000493f8  ldp      d9, d8, [sp, #0x20]                          
+000493fc  ldp      d11, d10, [sp, #0x10]                        
+00049400  add      sp, sp, #0x50                                
+00049404  ret                                                   
+00049408  mov      x20, x0                                      
+0004940c  mov      x0, x19                                      
+00049410  bl       #0x567b8                                     ; call _objc_release
+00049414  mov      x0, x20                                      
+00049418  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,31 @@
+; sub_1ba44
+; VA 0x1ba44  size 112
+
+0x0001ba44:  stp      x20, x19, [sp, #-0x20]!
+0x0001ba48:  stp      x29, x30, [sp, #0x10]
+0x0001ba4c:  add      x29, sp, #0x10
+0x0001ba50:  mov      x19, x0
+0x0001ba54:  bl       #0x2212c    ; -> _objc_retain
+0x0001ba58:  adrp     x0, #0x33000
+0x0001ba5c:  add      x0, x0, #0xae8    ; @"/var/mobile/Documents/OmniCar.log"
+0x0001ba60:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x0001ba64:  adrp     x1, #0x28000
+0x0001ba68:  add      x1, x1, #0x66b    ; "a"
+0x0001ba6c:  bl       #0x21f40    ; -> _fopen
+0x0001ba70:  mov      x20, x0
+0x0001ba74:  cbz      x0, #0x1ba94
+0x0001ba78:  mov      x0, x19
+0x0001ba7c:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0001ba80:  bl       #0x223c0    ; -> _objc_msgSend(UTF8String)
+0x0001ba84:  mov      x1, x20
+0x0001ba88:  bl       #0x21f4c    ; -> _fputs
+0x0001ba8c:  mov      x0, x20
+0x0001ba90:  bl       #0x21f34    ; -> _fclose
+0x0001ba94:  cmp      x20, #0
+0x0001ba98:  cset     w20, ne
+0x0001ba9c:  mov      x0, x19
+0x0001baa0:  bl       #0x22120    ; -> _objc_release
+0x0001baa4:  mov      x0, x20
+0x0001baa8:  ldp      x29, x30, [sp, #0x10]
+0x0001baac:  ldp      x20, x19, [sp], #0x20
+0x0001bab0:  ret      

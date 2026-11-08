@@ -1,0 +1,51 @@
+; ==== SCPCarSplit__scrollViewWillBeginDragging_  @0x3bb58..0x3bc20 (200 bytes) ====
+0003bb58  stp      x24, x23, [sp, #-0x40]!                      
+0003bb5c  stp      x22, x21, [sp, #0x10]                        
+0003bb60  stp      x20, x19, [sp, #0x20]                        
+0003bb64  stp      x29, x30, [sp, #0x30]                        
+0003bb68  add      x29, sp, #0x30                               
+0003bb6c  mov      x19, x2                                      
+0003bb70  mov      x21, x0                                      
+0003bb74  mov      x0, x2                                       
+0003bb78  bl       #0x567c4                                     ; call _objc_retain
+0003bb7c  mov      x0, x21                                      
+0003bb80  bl       #0x5c820                                     ; msgSend "tray"
+0003bb84  mov      x29, x29                                     
+0003bb88  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003bb8c  mov      x20, x0                                      
+0003bb90  cbz      x0, #0x3bbd4                                 
+0003bb94  mov      x0, x21                                      
+0003bb98  bl       #0x5c820                                     ; msgSend "tray"
+0003bb9c  mov      x29, x29                                     
+0003bba0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003bba4  mov      x22, x0                                      
+0003bba8  mov      x0, x19                                      
+0003bbac  mov      x2, x22                                      
+0003bbb0  bl       #0x58c60                                     ; msgSend "isDescendantOfView:"
+0003bbb4  mov      x23, x0                                      
+0003bbb8  mov      x0, x22                                      
+0003bbbc  bl       #0x567b8                                     ; call _objc_release
+0003bbc0  mov      x0, x20                                      
+0003bbc4  bl       #0x567b8                                     ; call _objc_release
+0003bbc8  cbz      w23, #0x3bbd4                                
+0003bbcc  mov      x0, x21                                      
+0003bbd0  bl       #0x5a4a0                                     ; msgSend "restartTrayTimer"
+0003bbd4  mov      x0, x19                                      
+0003bbd8  ldp      x29, x30, [sp, #0x30]                        
+0003bbdc  ldp      x20, x19, [sp, #0x20]                        
+0003bbe0  ldp      x22, x21, [sp, #0x10]                        
+0003bbe4  ldp      x24, x23, [sp], #0x40                        
+0003bbe8  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+0003bbec  mov      x21, x0                                      
+0003bbf0  mov      x0, x22                                      
+0003bbf4  bl       #0x567b8                                     ; call _objc_release
+0003bbf8  b        #0x3bc00                                     
+0003bbfc  mov      x21, x0                                      
+0003bc00  mov      x0, x20                                      
+0003bc04  bl       #0x567b8                                     ; call _objc_release
+0003bc08  b        #0x3bc10                                     
+0003bc0c  mov      x21, x0                                      
+0003bc10  mov      x0, x19                                      
+0003bc14  bl       #0x567b8                                     ; call _objc_release
+0003bc18  mov      x0, x21                                      
+0003bc1c  bl       #0x563e0                                     ; call __Unwind_Resume

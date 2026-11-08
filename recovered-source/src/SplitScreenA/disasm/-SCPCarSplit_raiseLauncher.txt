@@ -1,0 +1,90 @@
+; -[SCPCarSplit raiseLauncher]
+0x042900  stp      x24, x23, [sp, #-0x40]!
+0x042904  stp      x22, x21, [sp, #0x10]
+0x042908  stp      x20, x19, [sp, #0x20]
+0x04290c  stp      x29, x30, [sp, #0x30]
+0x042910  add      x29, sp, #0x30
+0x042914  mov      x20, x0
+0x042918  bl       #0x58500 ; objc_msgSend$homeButton
+0x04291c  mov      x29, x29
+0x042920  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x042924  mov      x21, x0
+0x042928  bl       #0x5c520 ; objc_msgSend$superview
+0x04292c  mov      x29, x29
+0x042930  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x042934  mov      x19, x0
+0x042938  mov      x0, x21
+0x04293c  bl       #0x567b8 ; call _objc_release
+0x042940  cbz      x19, #0x42a04
+0x042944  mov      x0, x20
+0x042948  bl       #0x5c600 ; objc_msgSend$tabParent
+0x04294c  mov      x29, x29
+0x042950  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x042954  mov      x21, x0
+0x042958  bl       #0x567b8 ; call _objc_release
+0x04295c  cmp      x19, x21
+0x042960  b.eq     #0x429dc
+0x042964  mov      x0, x19
+0x042968  bl       #0x5c500 ; objc_msgSend$subviews
+0x04296c  mov      x29, x29
+0x042970  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x042974  mov      x21, x0
+0x042978  bl       #0x58ea0 ; objc_msgSend$lastObject
+0x04297c  mov      x29, x29
+0x042980  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x042984  mov      x22, x0
+0x042988  mov      x0, x20
+0x04298c  bl       #0x58500 ; objc_msgSend$homeButton
+0x042990  mov      x29, x29
+0x042994  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x042998  mov      x23, x0
+0x04299c  bl       #0x567b8 ; call _objc_release
+0x0429a0  mov      x0, x22
+0x0429a4  bl       #0x567b8 ; call _objc_release
+0x0429a8  mov      x0, x21
+0x0429ac  bl       #0x567b8 ; call _objc_release
+0x0429b0  cmp      x22, x23
+0x0429b4  b.eq     #0x42a04
+0x0429b8  mov      x0, x20
+0x0429bc  bl       #0x58500 ; objc_msgSend$homeButton
+0x0429c0  mov      x29, x29
+0x0429c4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0429c8  mov      x21, x0
+0x0429cc  mov      x0, x19
+0x0429d0  mov      x2, x21
+0x0429d4  bl       #0x573e0 ; objc_msgSend$bringSubviewToFront:
+0x0429d8  b        #0x429fc
+0x0429dc  mov      x0, x20
+0x0429e0  bl       #0x58500 ; objc_msgSend$homeButton
+0x0429e4  mov      x29, x29
+0x0429e8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0429ec  mov      x21, x0
+0x0429f0  mov      x0, x20
+0x0429f4  mov      x2, x21
+0x0429f8  bl       #0x59ea0 ; objc_msgSend$raiseView:
+0x0429fc  mov      x0, x21
+0x042a00  bl       #0x567b8 ; call _objc_release
+0x042a04  mov      x0, x19
+0x042a08  ldp      x29, x30, [sp, #0x30]
+0x042a0c  ldp      x20, x19, [sp, #0x20]
+0x042a10  ldp      x22, x21, [sp, #0x10]
+0x042a14  ldp      x24, x23, [sp], #0x40
+0x042a18  b        #0x567b8 ; call _objc_release
+0x042a1c  b        #0x42a34
+0x042a20  b        #0x42a34
+0x042a24  mov      x20, x0
+0x042a28  mov      x0, x22
+0x042a2c  bl       #0x567b8 ; call _objc_release
+0x042a30  b        #0x42a38
+0x042a34  mov      x20, x0
+0x042a38  mov      x0, x21
+0x042a3c  bl       #0x567b8 ; call _objc_release
+0x042a40  b        #0x42a54
+0x042a44  mov      x20, x0
+0x042a48  mov      x19, x21
+0x042a4c  b        #0x42a54
+0x042a50  mov      x20, x0
+0x042a54  mov      x0, x19
+0x042a58  bl       #0x567b8 ; call _objc_release
+0x042a5c  mov      x0, x20
+0x042a60  bl       #0x563e0 ; call __Unwind_Resume

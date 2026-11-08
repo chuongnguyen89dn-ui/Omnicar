@@ -1,0 +1,33 @@
+# sub_16e44
+# addr 0x16e44 .. 0x16ebc  (120 bytes)
+
+00016e44  stp      x22, x21, [sp, #-0x30]!                     
+00016e48  stp      x20, x19, [sp, #0x10]                       
+00016e4c  stp      x29, x30, [sp, #0x20]                       
+00016e50  add      x29, sp, #0x20                              
+00016e54  bl       #0x26ebc                                    ; _OMCCurrentLanguage
+00016e58  mov      x29, x29                                    
+00016e5c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016e60  mov      x19, x0                                     
+00016e64  adrp     x0, #0x3d000                                
+00016e68  add      x0, x0, #0x168                              ; __DATA_CONST,__objc_dictobj+0x28
+00016e6c  mov      x2, x19                                     
+00016e70  bl       #0x2a140                                    ; objc_msgSend$objectForKeyedSubscript:
+00016e74  mov      x29, x29                                    
+00016e78  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016e7c  mov      x20, x0                                     
+00016e80  adrp     x8, #0x3a000                                
+00016e84  add      x8, x8, #0x618                              ; @"en-US"
+00016e88  cmp      x0, #0                                      
+00016e8c  csel     x21, x8, x0, eq                             
+00016e90  mov      x0, x21                                     
+00016e94  bl       #0x28004                                    ; _objc_retain
+00016e98  mov      x0, x20                                     
+00016e9c  bl       #0x27ff8                                    ; _objc_release
+00016ea0  mov      x0, x19                                     
+00016ea4  bl       #0x27ff8                                    ; _objc_release
+00016ea8  mov      x0, x21                                     
+00016eac  ldp      x29, x30, [sp, #0x20]                       
+00016eb0  ldp      x20, x19, [sp, #0x10]                       
+00016eb4  ldp      x22, x21, [sp], #0x30                       
+00016eb8  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

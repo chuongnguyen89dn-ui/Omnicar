@@ -1,0 +1,40 @@
+; sub_661c
+; VA 0x661c  size 148
+
+0x0000661c:  str      x24, [sp, #0x58]
+0x00006620:  str      d9, [sp, #0x60]
+0x00006624:  stp      x23, x26, [sp, #0x68]
+0x00006628:  str      w25, [sp, #0x78]
+0x0000662c:  add      x2, sp, #0x58
+0x00006630:  mov      x1, x21
+0x00006634:  bl       #0x21e8c    ; -> _dispatch_after
+0x00006638:  add      x27, x27, #1
+0x0000663c:  cmp      x20, x27
+0x00006640:  b.ne     #0x65e8
+0x00006644:  add      x2, sp, #0x80
+0x00006648:  add      x3, sp, #0xc0
+0x0000664c:  mov      x0, x22
+0x00006650:  mov      w4, #0x10
+0x00006654:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00006658:  mov      x20, x0
+0x0000665c:  cbnz     x0, #0x65e4
+0x00006660:  mov      x1, #0xe400
+0x00006664:  movk     x1, #0x540b, lsl #16
+0x00006668:  movk     x1, #2, lsl #32
+0x0000666c:  mov      x0, #0
+0x00006670:  bl       #0x21ef8    ; -> _dispatch_time
+0x00006674:  str      x24, [sp, #0x30]
+0x00006678:  adrp     x8, #0x28000
+0x0000667c:  ldr      d0, [x8, #0xde0]
+0x00006680:  str      d0, [sp, #0x38]
+0x00006684:  adrp     x8, #0x8000
+0x00006688:  add      x8, x8, #0xbf0
+0x0000668c:  stp      x8, x26, [sp, #0x40]
+0x00006690:  str      w25, [sp, #0x50]
+0x00006694:  adrp     x1, #0x30000
+0x00006698:  ldr      x1, [x1, #0x388]    ; got(__dispatch_main_q)
+0x0000669c:  add      x2, sp, #0x30
+0x000066a0:  bl       #0x21e8c    ; -> _dispatch_after
+0x000066a4:  mov      x0, sp
+0x000066a8:  bl       #0x22120    ; -> _objc_release
+0x000066ac:  b        #0x673c    ; -> sub_673c

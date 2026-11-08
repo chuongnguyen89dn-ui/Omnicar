@@ -1,0 +1,93 @@
+; sub_46d0
+; VA 0x46d0  size 360
+
+0x000046d0:  add      x29, sp, #0x60
+0x000046d4:  sub      sp, sp, #0x600
+0x000046d8:  mov      v8.16b, v0.16b
+0x000046dc:  mov      x19, x7
+0x000046e0:  mov      x23, x6
+0x000046e4:  mov      x20, x5
+0x000046e8:  str      x4, [sp, #0x50]
+0x000046ec:  mov      x22, x3
+0x000046f0:  mov      x21, x0
+0x000046f4:  adrp     x8, #0x30000
+0x000046f8:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x000046fc:  ldr      x8, [x8]
+0x00004700:  stur     x8, [x29, #-0x78]
+0x00004704:  str      x2, [sp, #0x58]
+0x00004708:  mov      x0, x2
+0x0000470c:  bl       #0x2212c    ; -> _objc_retain
+0x00004710:  str      x22, [sp, #0x48]
+0x00004714:  mov      x0, x22
+0x00004718:  bl       #0x2212c    ; -> _objc_retain
+0x0000471c:  str      x23, [sp, #0x40]
+0x00004720:  mov      x0, x23
+0x00004724:  bl       #0x2212c    ; -> _objc_retain
+0x00004728:  adrp     x8, #0x3a000
+0x0000472c:  ldr      x8, [x8, #0xbf8]
+0x00004730:  stp      x21, x8, [sp, #0x68]
+0x00004734:  adrp     x8, #0x39000
+0x00004738:  ldr      x1, [x8, #0x848]    ; selref(init)
+0x0000473c:  add      x0, sp, #0x68
+0x00004740:  bl       #0x220d8    ; -> _objc_msgSendSuper2
+0x00004744:  str      x0, [sp, #0x60]
+0x00004748:  ldr      x8, [sp, #0x60]
+0x0000474c:  cbz      x8, #0x590c
+0x00004750:  ldp      x1, x8, [sp, #0x58]
+0x00004754:  add      x0, x8, #0x30
+0x00004758:  bl       #0x22180    ; -> _objc_storeWeak
+0x0000475c:  ldr      x8, [sp, #0x60]
+0x00004760:  ldr      x9, [sp, #0x50]
+0x00004764:  str      x9, [x8, #0x18]
+0x00004768:  ldr      x0, [sp, #0x40]
+0x0000476c:  bl       #0x22de0    ; -> _objc_msgSend(copy)
+0x00004770:  ldr      x9, [sp, #0x60]
+0x00004774:  ldr      x8, [x9, #0x38]
+0x00004778:  str      x0, [x9, #0x38]
+0x0000477c:  mov      x0, x8
+0x00004780:  bl       #0x22120    ; -> _objc_release
+0x00004784:  ldr      x8, [sp, #0x60]
+0x00004788:  str      x19, [x8, #0x40]
+0x0000478c:  str      d8, [x8, #0x48]
+0x00004790:  adrp     x0, #0x30000
+0x00004794:  add      x0, x0, #0xf68    ; @"startupScreenPlayFull"
+0x00004798:  adrp     x1, #0x30000
+0x0000479c:  ldr      x1, [x1, #0x218]    ; got(___kCFBooleanFalse)
+0x000047a0:  bl       #0x1af70    ; -> OMCPref
+0x000047a4:  mov      x29, x29
+0x000047a8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000047ac:  mov      x19, x0
+0x000047b0:  bl       #0x22880    ; -> _objc_msgSend(boolValue)
+0x000047b4:  eor      w8, w0, #1
+0x000047b8:  ldr      x9, [sp, #0x60]
+0x000047bc:  strb     w8, [x9, #8]
+0x000047c0:  mov      x0, x19
+0x000047c4:  bl       #0x22120    ; -> _objc_release
+0x000047c8:  adrp     x8, #0x3a000
+0x000047cc:  ldr      x0, [x8, #0x9c8]    ; class(NSMutableArray)
+0x000047d0:  bl       #0x226a0    ; -> _objc_msgSend(array)
+0x000047d4:  mov      x29, x29
+0x000047d8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000047dc:  ldr      x9, [sp, #0x60]
+0x000047e0:  ldr      x8, [x9, #0x50]
+0x000047e4:  str      x0, [x9, #0x50]
+0x000047e8:  mov      x0, x8
+0x000047ec:  bl       #0x22120    ; -> _objc_release
+0x000047f0:  adrp     x0, #0x26000
+0x000047f4:  add      x0, x0, #0xca4    ; "com.anlai.omnicar.startupscreen.decode"
+0x000047f8:  mov      x1, #0
+0x000047fc:  bl       #0x21eb0    ; -> _dispatch_queue_create
+0x00004800:  ldr      x9, [sp, #0x60]
+0x00004804:  ldr      x8, [x9, #0x58]
+0x00004808:  str      x0, [x9, #0x58]
+0x0000480c:  mov      x0, x8
+0x00004810:  bl       #0x22120    ; -> _objc_release
+0x00004814:  adrp     x0, #0x30000
+0x00004818:  add      x0, x0, #0xf88    ; @"startupScreenTapToSkip"
+0x0000481c:  adrp     x1, #0x30000
+0x00004820:  ldr      x1, [x1, #0x220]    ; got(___kCFBooleanTrue)
+0x00004824:  bl       #0x1af70    ; -> OMCPref
+0x00004828:  mov      x29, x29
+0x0000482c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00004830:  mov      x19, x0
+0x00004834:  bl       #0x22880    ; -> _objc_msgSend(boolValue)

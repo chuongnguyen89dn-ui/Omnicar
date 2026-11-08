@@ -1,0 +1,97 @@
+; ==== SCP_helper_2d9e8  @0x2d9e8..0x2db68 (384 bytes) ====
+0002d9e8  sub      sp, sp, #0x120                               
+0002d9ec  stp      d9, d8, [sp, #0xd0]                          
+0002d9f0  stp      x24, x23, [sp, #0xe0]                        
+0002d9f4  stp      x22, x21, [sp, #0xf0]                        
+0002d9f8  stp      x20, x19, [sp, #0x100]                       
+0002d9fc  stp      x29, x30, [sp, #0x110]                       
+0002da00  add      x29, sp, #0x110                              
+0002da04  mov      v8.16b, v0.16b                               
+0002da08  adrp     x8, #0x78000                                 
+0002da0c  ldr      x8, [x8, #0x360]                             
+0002da10  ldr      x8, [x8]                                     
+0002da14  stur     x8, [x29, #-0x48]                            
+0002da18  cmp      w0, #2                                       
+0002da1c  b.ne     #0x2dad4                                     
+0002da20  movi     v0.16b, #0                                   
+0002da24  stp      q0, q0, [sp, #0x20]                          
+0002da28  stp      q0, q0, [sp]                                 
+0002da2c  adrp     x0, #0x80000                                 
+0002da30  add      x0, x0, #0x548                               
+0002da34  mov      x2, sp                                       
+0002da38  add      x3, sp, #0x48                                
+0002da3c  mov      w4, #0x10                                    
+0002da40  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+0002da44  mov      x20, x0                                      
+0002da48  cbz      x0, #0x2db24                                 
+0002da4c  ldr      x8, [sp, #0x10]                              
+0002da50  ldr      x22, [x8]                                    
+0002da54  fmov     d9, #0.50000000                              
+0002da58  adrp     x19, #0x80000                                
+0002da5c  add      x19, x19, #0x548                             
+0002da60  mov      x23, #0                                      
+0002da64  ldr      x8, [sp, #0x10]                              
+0002da68  ldr      x8, [x8]                                     
+0002da6c  cmp      x8, x22                                      
+0002da70  b.eq     #0x2da7c                                     
+0002da74  mov      x0, x19                                      
+0002da78  bl       #0x5671c                                     ; call _objc_enumerationMutation
+0002da7c  ldr      x8, [sp, #8]                                 
+0002da80  ldr      x21, [x8, x23, lsl #3]                       
+0002da84  mov      x0, x21                                      
+0002da88  bl       #0x57e00                                     ; msgSend "doubleValue"
+0002da8c  fabd     d0, d8, d0                                   
+0002da90  fabd     d1, d8, d9                                   
+0002da94  fcmp     d0, d1                                       
+0002da98  b.pl     #0x2daa8                                     
+0002da9c  mov      x0, x21                                      
+0002daa0  bl       #0x57e00                                     ; msgSend "doubleValue"
+0002daa4  mov      v9.16b, v0.16b                               
+0002daa8  add      x23, x23, #1                                 
+0002daac  cmp      x20, x23                                     
+0002dab0  b.ne     #0x2da64                                     
+0002dab4  mov      x2, sp                                       
+0002dab8  add      x3, sp, #0x48                                
+0002dabc  mov      x0, x19                                      
+0002dac0  mov      w4, #0x10                                    
+0002dac4  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+0002dac8  mov      x20, x0                                      
+0002dacc  cbnz     x0, #0x2da60                                 
+0002dad0  b        #0x2db28                                     
+0002dad4  adrp     x8, #0x6f000                                 
+0002dad8  ldr      d0, [x8, #0xc8]                              ; double 0.4
+0002dadc  fcmp     d1, d0                                       
+0002dae0  b.pl     #0x2daf0                                     
+0002dae4  fmov     d0, #0.50000000                              
+0002dae8  fmul     d9, d1, d0                                   
+0002daec  b        #0x2db28                                     
+0002daf0  fmov     d0, #12.00000000                             
+0002daf4  fmul     d2, d8, d0                                   
+0002daf8  frinta   d2, d2                                       
+0002dafc  fdiv     d0, d2, d0                                   
+0002db00  adrp     x8, #0x6f000                                 
+0002db04  ldr      d2, [x8, #0x1d0]                             ; double -0.2
+0002db08  fadd     d1, d1, d2                                   
+0002db0c  adrp     x8, #0x6f000                                 
+0002db10  ldr      d2, [x8, #0x78]                              ; double 0.2
+0002db14  fmaxnm   d0, d0, d2                                   
+0002db18  fcmp     d1, d0                                       
+0002db1c  fcsel    d9, d1, d0, mi                               
+0002db20  b        #0x2db28                                     
+0002db24  fmov     d9, #0.50000000                              
+0002db28  ldur     x8, [x29, #-0x48]                            
+0002db2c  adrp     x9, #0x78000                                 
+0002db30  ldr      x9, [x9, #0x360]                             
+0002db34  ldr      x9, [x9]                                     
+0002db38  cmp      x9, x8                                       
+0002db3c  b.ne     #0x2db60                                     
+0002db40  mov      v0.16b, v9.16b                               
+0002db44  ldp      x29, x30, [sp, #0x110]                       
+0002db48  ldp      x20, x19, [sp, #0x100]                       
+0002db4c  ldp      x22, x21, [sp, #0xf0]                        
+0002db50  ldp      x24, x23, [sp, #0xe0]                        
+0002db54  ldp      d9, d8, [sp, #0xd0]                          
+0002db58  add      sp, sp, #0x120                               
+0002db5c  ret                                                   
+0002db60  bl       #0x56404                                     ; call ___stack_chk_fail
+0002db64  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,254 @@
+# _SPPGetCarPlayCADisplay
+# addr 0x16ebc .. 0x172a8  (1004 bytes)
+
+00016ebc  sub      sp, sp, #0x140                              
+00016ec0  stp      x28, x27, [sp, #0xe0]                       
+00016ec4  stp      x26, x25, [sp, #0xf0]                       
+00016ec8  stp      x24, x23, [sp, #0x100]                      
+00016ecc  stp      x22, x21, [sp, #0x110]                      
+00016ed0  stp      x20, x19, [sp, #0x120]                      
+00016ed4  stp      x29, x30, [sp, #0x130]                      
+00016ed8  add      x29, sp, #0x130                             
+00016edc  adrp     x8, #0x38000                                
+00016ee0  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00016ee4  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00016ee8  stur     x8, [x29, #-0x60]                           
+00016eec  adrp     x0, #0x2e000                                
+00016ef0  add      x0, x0, #0x901                              ; "AVExternalDevice"
+00016ef4  bl       #0x27f74                                    ; _objc_getClass
+00016ef8  mov      x29, x29                                    
+00016efc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016f00  mov      x20, x0                                     
+00016f04  adrp     x0, #0x3a000                                
+00016f08  add      x0, x0, #0x918                              ; @"currentCarPlayExternalDevice"
+00016f0c  bl       #0x27c2c                                    ; _NSSelectorFromString
+00016f10  mov      x19, x0                                     
+00016f14  mov      x0, x20                                     
+00016f18  mov      x1, x19                                     
+00016f1c  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00016f20  tbz      w0, #0, #0x16f40                            
+00016f24  mov      x0, x20                                     
+00016f28  mov      x1, x19                                     
+00016f2c  bl       #0x27f98                                    ; _objc_msgSend
+00016f30  mov      x29, x29                                    
+00016f34  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016f38  mov      x19, x0                                     
+00016f3c  b        #0x16f5c                                    ; sub_16f5c
+00016f40  adrp     x0, #0x38000                                
+00016f44  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00016f48  adrp     x2, #0x3a000                                
+00016f4c  add      x2, x2, #0x918                              ; @"currentCarPlayExternalDevice"
+00016f50  mov      x1, x20                                     
+00016f54  bl       #0x2248c                                    ; _OMCMissingSelector
+00016f58  mov      x19, #0                                     
+00016f5c  mov      x0, x20                                     
+00016f60  bl       #0x27ff8                                    ; _objc_release
+00016f64  str      x19, [sp, #8]                               
+00016f68  cbz      x19, #0x16fb0                               
+00016f6c  mov      x0, x19                                     
+00016f70  bl       #0x28004                                    ; _objc_retain
+00016f74  adrp     x0, #0x3a000                                
+00016f78  add      x0, x0, #0x938                              ; @"screenIDs"
+00016f7c  bl       #0x27c2c                                    ; _NSSelectorFromString
+00016f80  mov      x20, x0                                     
+00016f84  mov      x0, x19                                     
+00016f88  mov      x1, x20                                     
+00016f8c  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00016f90  tbz      w0, #0, #0x16fb8                            
+00016f94  mov      x0, x19                                     
+00016f98  mov      x1, x20                                     
+00016f9c  bl       #0x27f98                                    ; _objc_msgSend
+00016fa0  mov      x29, x29                                    
+00016fa4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016fa8  mov      x20, x0                                     
+00016fac  b        #0x16fd4                                    ; sub_16fd4
+00016fb0  mov      x23, #0                                     
+00016fb4  b        #0x171b0                                    ; sub_171b0
+00016fb8  adrp     x0, #0x38000                                
+00016fbc  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00016fc0  adrp     x2, #0x3a000                                
+00016fc4  add      x2, x2, #0x938                              ; @"screenIDs"
+00016fc8  mov      x1, x19                                     
+00016fcc  bl       #0x2248c                                    ; _OMCMissingSelector
+00016fd0  mov      x20, #0                                     
+00016fd4  mov      x0, x19                                     
+00016fd8  bl       #0x27ff8                                    ; _objc_release
+00016fdc  mov      x0, x20                                     
+00016fe0  str      x20, [sp]                                   
+00016fe4  bl       #0x29000                                    ; objc_msgSend$count
+00016fe8  cbz      x0, #0x17064                                
+00016fec  mov      x0, x20                                     
+00016ff0  mov      x2, #0                                      
+00016ff4  bl       #0x2a100                                    ; objc_msgSend$objectAtIndexedSubscript:
+00016ff8  mov      x29, x29                                    
+00016ffc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017000  mov      x21, x0                                     
+00017004  movi     v0.16b, #0                                  
+00017008  stp      q0, q0, [sp, #0x30]                         
+0001700c  stp      q0, q0, [sp, #0x10]                         
+00017010  adrp     x0, #0x2e000                                
+00017014  add      x0, x0, #0x939                              ; "CADisplay"
+00017018  bl       #0x27f74                                    ; _objc_getClass
+0001701c  mov      x29, x29                                    
+00017020  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017024  mov      x23, x0                                     
+00017028  adrp     x0, #0x3a000                                
+0001702c  add      x0, x0, #0x958                              ; @"displays"
+00017030  bl       #0x27c2c                                    ; _NSSelectorFromString
+00017034  mov      x22, x0                                     
+00017038  mov      x0, x23                                     
+0001703c  mov      x1, x22                                     
+00017040  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00017044  tbz      w0, #0, #0x1706c                            
+00017048  mov      x0, x23                                     
+0001704c  mov      x1, x22                                     
+00017050  bl       #0x27f98                                    ; _objc_msgSend
+00017054  mov      x29, x29                                    
+00017058  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001705c  mov      x22, x0                                     
+00017060  b        #0x17088                                    ; sub_17088
+00017064  mov      x23, #0                                     
+00017068  b        #0x171a8                                    ; sub_171a8
+0001706c  adrp     x0, #0x38000                                
+00017070  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00017074  adrp     x2, #0x3a000                                
+00017078  add      x2, x2, #0x958                              ; @"displays"
+0001707c  mov      x1, x23                                     
+00017080  bl       #0x2248c                                    ; _OMCMissingSelector
+00017084  mov      x22, #0                                     
+00017088  mov      x0, x23                                     
+0001708c  bl       #0x27ff8                                    ; _objc_release
+00017090  add      x2, sp, #0x10                               
+00017094  add      x3, sp, #0x50                               
+00017098  mov      x0, x22                                     
+0001709c  mov      w4, #0x10                                   
+000170a0  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+000170a4  mov      x25, x0                                     
+000170a8  cbz      x0, #0x17188                                
+000170ac  ldr      x8, [sp, #0x20]                             
+000170b0  ldr      x20, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000170b4  adrp     x24, #0x3a000                               
+000170b8  add      x24, x24, #0x978                            ; @"uniqueId"
+000170bc  adrp     x26, #0x38000                               
+000170c0  add      x26, x26, #0xf78                            ; @"SpeedBubble"
+000170c4  mov      x19, #0                                     
+000170c8  ldr      x8, [sp, #0x20]                             
+000170cc  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000170d0  cmp      x8, x20                                     
+000170d4  b.eq     #0x170e0                                    
+000170d8  mov      x0, x22                                     
+000170dc  bl       #0x27f68                                    ; _objc_enumerationMutation
+000170e0  ldr      x8, [sp, #0x18]                             
+000170e4  ldr      x23, [x8, x19, lsl #3]                      ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000170e8  mov      x0, x23                                     
+000170ec  bl       #0x28004                                    ; _objc_retain
+000170f0  mov      x0, x24                                     
+000170f4  bl       #0x27c2c                                    ; _NSSelectorFromString
+000170f8  mov      x27, x0                                     
+000170fc  mov      x0, x23                                     
+00017100  mov      x1, x27                                     
+00017104  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00017108  tbz      w0, #0, #0x17128                            
+0001710c  mov      x0, x23                                     
+00017110  mov      x1, x27                                     
+00017114  bl       #0x27f98                                    ; _objc_msgSend
+00017118  mov      x29, x29                                    
+0001711c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017120  mov      x27, x0                                     
+00017124  b        #0x1713c                                    ; sub_1713c
+00017128  mov      x0, x26                                     
+0001712c  mov      x1, x23                                     
+00017130  mov      x2, x24                                     
+00017134  bl       #0x2248c                                    ; _OMCMissingSelector
+00017138  mov      x27, #0                                     
+0001713c  mov      x0, x23                                     
+00017140  bl       #0x27ff8                                    ; _objc_release
+00017144  mov      x0, x21                                     
+00017148  mov      x2, x27                                     
+0001714c  bl       #0x29a00                                    ; objc_msgSend$isEqualToString:
+00017150  mov      x28, x0                                     
+00017154  mov      x0, x27                                     
+00017158  bl       #0x27ff8                                    ; _objc_release
+0001715c  tbnz     w28, #0, #0x17190                           
+00017160  add      x19, x19, #1                                
+00017164  cmp      x25, x19                                    
+00017168  b.ne     #0x170c8                                    
+0001716c  add      x2, sp, #0x10                               
+00017170  add      x3, sp, #0x50                               
+00017174  mov      x0, x22                                     
+00017178  mov      w4, #0x10                                   
+0001717c  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00017180  mov      x25, x0                                     
+00017184  cbnz     x0, #0x170c4                                
+00017188  mov      x23, #0                                     
+0001718c  b        #0x17198                                    ; sub_17198
+00017190  mov      x0, x23                                     
+00017194  bl       #0x28004                                    ; _objc_retain
+00017198  mov      x0, x22                                     
+0001719c  bl       #0x27ff8                                    ; _objc_release
+000171a0  mov      x0, x21                                     
+000171a4  bl       #0x27ff8                                    ; _objc_release
+000171a8  ldr      x0, [sp]                                    
+000171ac  bl       #0x27ff8                                    ; _objc_release
+000171b0  ldr      x0, [sp, #8]                                
+000171b4  bl       #0x27ff8                                    ; _objc_release
+000171b8  ldur     x8, [x29, #-0x60]                           
+000171bc  adrp     x9, #0x38000                                
+000171c0  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+000171c4  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000171c8  cmp      x9, x8                                      
+000171cc  b.ne     #0x171f4                                    
+000171d0  mov      x0, x23                                     
+000171d4  ldp      x29, x30, [sp, #0x130]                      
+000171d8  ldp      x20, x19, [sp, #0x120]                      
+000171dc  ldp      x22, x21, [sp, #0x110]                      
+000171e0  ldp      x24, x23, [sp, #0x100]                      
+000171e4  ldp      x26, x25, [sp, #0xf0]                       
+000171e8  ldp      x28, x27, [sp, #0xe0]                       
+000171ec  add      sp, sp, #0x140                              
+000171f0  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+000171f4  bl       #0x27ca4                                    ; ___stack_chk_fail
+000171f8  b        #0x17250                                    ; sub_17250
+000171fc  b        #0x17250                                    ; sub_17250
+00017200  b        #0x1721c                                    ; sub_1721c
+00017204  mov      x24, x0                                     
+00017208  b        #0x17280                                    ; sub_17280
+0001720c  b        #0x17210                                    ; sub_17210
+00017210  mov      x24, x0                                     
+00017214  b        #0x17288                                    ; sub_17288
+00017218  b        #0x17230                                    ; sub_17230
+0001721c  mov      x24, x0                                     
+00017220  mov      x0, x23                                     
+00017224  bl       #0x27ff8                                    ; _objc_release
+00017228  b        #0x17280                                    ; sub_17280
+0001722c  b        #0x17240                                    ; sub_17240
+00017230  mov      x24, x0                                     
+00017234  ldr      x0, [sp, #8]                                
+00017238  bl       #0x27ff8                                    ; _objc_release
+0001723c  b        #0x17290                                    ; sub_17290
+00017240  mov      x24, x0                                     
+00017244  mov      x0, x20                                     
+00017248  bl       #0x27ff8                                    ; _objc_release
+0001724c  b        #0x172a0                                    ; sub_172a0
+00017250  mov      x24, x0                                     
+00017254  b        #0x17278                                    ; sub_17278
+00017258  b        #0x1726c                                    ; sub_1726c
+0001725c  mov      x24, x0                                     
+00017260  mov      x0, x27                                     
+00017264  bl       #0x27ff8                                    ; _objc_release
+00017268  b        #0x17278                                    ; sub_17278
+0001726c  mov      x24, x0                                     
+00017270  mov      x0, x23                                     
+00017274  bl       #0x27ff8                                    ; _objc_release
+00017278  mov      x0, x22                                     
+0001727c  bl       #0x27ff8                                    ; _objc_release
+00017280  mov      x0, x21                                     
+00017284  bl       #0x27ff8                                    ; _objc_release
+00017288  ldr      x0, [sp]                                    
+0001728c  bl       #0x27ff8                                    ; _objc_release
+00017290  ldr      x0, [sp, #8]                                
+00017294  bl       #0x27ff8                                    ; _objc_release
+00017298  b        #0x172a0                                    ; sub_172a0
+0001729c  mov      x24, x0                                     
+000172a0  mov      x0, x24                                     
+000172a4  bl       #0x27c80                                    ; __Unwind_Resume

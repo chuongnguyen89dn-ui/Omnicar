@@ -1,0 +1,55 @@
+; sub_8768
+; VA 0x8768  size 208
+
+0x00008768:  sub      sp, sp, #0x40
+0x0000876c:  stp      x22, x21, [sp, #0x10]
+0x00008770:  stp      x20, x19, [sp, #0x20]
+0x00008774:  stp      x29, x30, [sp, #0x30]
+0x00008778:  add      x29, sp, #0x30
+0x0000877c:  mov      x19, x1
+0x00008780:  adrp     x8, #0x3a000
+0x00008784:  ldr      x20, [x8, #0x9c0]    ; class(NSString)
+0x00008788:  mov      x0, x1
+0x0000878c:  bl       #0x2212c    ; -> _objc_retain
+0x00008790:  mov      x0, x19
+0x00008794:  bl       #0x23e60    ; -> _objc_msgSend(object)
+0x00008798:  mov      x29, x29
+0x0000879c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000087a0:  mov      x21, x0
+0x000087a4:  bl       #0x8308    ; -> sub_8308
+0x000087a8:  mov      x29, x29
+0x000087ac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000087b0:  mov      x22, x0
+0x000087b4:  str      x0, [sp]
+0x000087b8:  adrp     x2, #0x31000
+0x000087bc:  add      x2, x2, #0x3e8    ; @"screen disconnected: %@"
+0x000087c0:  mov      x0, x20
+0x000087c4:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x000087c8:  mov      x29, x29
+0x000087cc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000087d0:  mov      x20, x0
+0x000087d4:  adrp     x0, #0x30000
+0x000087d8:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x000087dc:  mov      x1, x20
+0x000087e0:  bl       #0x1b620    ; -> OMCLogWrite
+0x000087e4:  mov      x0, x20
+0x000087e8:  bl       #0x22120    ; -> _objc_release
+0x000087ec:  mov      x0, x22
+0x000087f0:  bl       #0x22120    ; -> _objc_release
+0x000087f4:  mov      x0, x21
+0x000087f8:  bl       #0x22120    ; -> _objc_release
+0x000087fc:  mov      x0, x19
+0x00008800:  bl       #0x23e60    ; -> _objc_msgSend(object)
+0x00008804:  mov      x29, x29
+0x00008808:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000880c:  mov      x20, x0
+0x00008810:  mov      x0, x19
+0x00008814:  bl       #0x22120    ; -> _objc_release
+0x00008818:  mov      x0, x20
+0x0000881c:  bl       #0x8838    ; -> sub_8838
+0x00008820:  mov      x0, x20
+0x00008824:  ldp      x29, x30, [sp, #0x30]
+0x00008828:  ldp      x20, x19, [sp, #0x20]
+0x0000882c:  ldp      x22, x21, [sp, #0x10]
+0x00008830:  add      sp, sp, #0x40
+0x00008834:  b        #0x22120    ; -> _objc_release

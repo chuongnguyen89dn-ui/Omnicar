@@ -1,0 +1,27 @@
+# -[SPPBubble anyAppForeground]
+# addr 0x182a4 .. 0x18304  (96 bytes)
+
+000182a4  stp      x29, x30, [sp, #-0x10]!                     
+000182a8  mov      x29, sp                                     
+000182ac  bl       #0x27ad0                                    ; _CFAbsoluteTimeGetCurrent
+000182b0  mov      x8, #0                                      
+000182b4  adrp     x9, #0x43000                                
+000182b8  add      x9, x9, #0x940                              ; __DATA,__bss+0x1a0
+000182bc  fmov     d1, #5.00000000                             
+000182c0  adrp     x10, #0x43000                               
+000182c4  add      x10, x10, #0x948                            ; __DATA,__bss+0x1a8
+000182c8  ldrb     w11, [x9, x8]                               
+000182cc  cmp      w11, #1                                     
+000182d0  b.ne     #0x182e4                                    
+000182d4  ldr      d2, [x10, x8, lsl #3]                       ; [0x43948] __DATA,__bss+0x1a8
+000182d8  fsub     d2, d0, d2                                  
+000182dc  fcmp     d2, d1                                      
+000182e0  b.mi     #0x182f8                                    
+000182e4  add      x8, x8, #1                                  
+000182e8  cmp      x8, #8                                      
+000182ec  b.ne     #0x182c8                                    
+000182f0  mov      w0, #0                                      
+000182f4  b        #0x182fc                                    ; sub_182fc
+000182f8  mov      w0, #1                                      
+000182fc  ldp      x29, x30, [sp], #0x10                       
+00018300  ret                                                  

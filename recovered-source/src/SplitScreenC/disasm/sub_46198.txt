@@ -1,0 +1,252 @@
+; sub_46198
+0x046198  stp      x28, x27, [sp, #-0x60]!
+0x04619c  stp      x26, x25, [sp, #0x10]
+0x0461a0  stp      x24, x23, [sp, #0x20]
+0x0461a4  stp      x22, x21, [sp, #0x30]
+0x0461a8  stp      x20, x19, [sp, #0x40]
+0x0461ac  stp      x29, x30, [sp, #0x50]
+0x0461b0  add      x29, sp, #0x50
+0x0461b4  sub      sp, sp, #0x1a0
+0x0461b8  mov      x20, x2
+0x0461bc  mov      x21, x1
+0x0461c0  mov      x19, x0
+0x0461c4  adrp     x8, #0x78000
+0x0461c8  ldr      x8, [x8, #0x360] ; [0x78360] ___stack_chk_guard
+0x0461cc  ldr      x8, [x8] ; [0x78000] <ordinal 0>
+0x0461d0  stur     x8, [x29, #-0x60]
+0x0461d4  bl       #0x567c4 ; call _objc_retain
+0x0461d8  cbz      x19, #0x4647c
+0x0461dc  cmp      w20, #0xe
+0x0461e0  b.gt     #0x4647c
+0x0461e4  mov      x0, x19
+0x0461e8  bl       #0x5677c ; call _objc_opt_class
+0x0461ec  bl       #0x563b0 ; call _NSStringFromClass
+0x0461f0  mov      x29, x29
+0x0461f4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0461f8  mov      x22, x0
+0x0461fc  adrp     x2, #0x7a000
+0x046200  add      x2, x2, #0xf80 ; -> 0x7af80 @"IconListView"
+0x046204  bl       #0x58420 ; objc_msgSend$hasSuffix:
+0x046208  mov      x23, x0
+0x04620c  mov      x0, x22
+0x046210  bl       #0x567b8 ; call _objc_release
+0x046214  cbz      w23, #0x463dc
+0x046218  adrp     x8, #0x87000
+0x04621c  ldr      x0, [x8, #0x800] ; [0x87800] class:NSMutableOrderedSet
+0x046220  bl       #0x59760 ; objc_msgSend$orderedSet
+0x046224  mov      x29, x29
+0x046228  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04622c  mov      x22, x0
+0x046230  adrp     x1, #0x7a000
+0x046234  add      x1, x1, #0xfa0 ; -> 0x7afa0 @"model"
+0x046238  mov      x0, x19
+0x04623c  bl       #0x44a54 ; -> sub_44a54
+0x046240  mov      x29, x29
+0x046244  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x046248  adrp     x1, #0x7a000
+0x04624c  add      x1, x1, #0xfc0 ; -> 0x7afc0 @"folder"
+0x046250  str      x0, [sp, #8]
+0x046254  bl       #0x44a54 ; -> sub_44a54
+0x046258  mov      x29, x29
+0x04625c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x046260  mov      x25, x0
+0x046264  adrp     x1, #0x7a000
+0x046268  add      x1, x1, #0xfe0 ; -> 0x7afe0 @"lists"
+0x04626c  bl       #0x44a54 ; -> sub_44a54
+0x046270  mov      x29, x29
+0x046274  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x046278  mov      x24, x0
+0x04627c  mov      x0, x25
+0x046280  bl       #0x567b8 ; call _objc_release
+0x046284  adrp     x8, #0x87000
+0x046288  ldr      x0, [x8, #0x680] ; [0x87680] class:NSArray
+0x04628c  bl       #0x5677c ; call _objc_opt_class
+0x046290  mov      x1, x0
+0x046294  mov      x0, x24
+0x046298  bl       #0x56788 ; call _objc_opt_isKindOfClass
+0x04629c  tbz      w0, #0, #0x46368
+0x0462a0  mov      x0, x24
+0x0462a4  bl       #0x579e0 ; objc_msgSend$count
+0x0462a8  cbz      x0, #0x46368
+0x0462ac  movi     v0.16b, #0
+0x0462b0  stp      q0, q0, [sp, #0x70]
+0x0462b4  stp      q0, q0, [sp, #0x50]
+0x0462b8  mov      x0, x24
+0x0462bc  bl       #0x567c4 ; call _objc_retain
+0x0462c0  add      x2, sp, #0x50
+0x0462c4  sub      x3, x29, #0xe0
+0x0462c8  mov      x0, x24
+0x0462cc  mov      w4, #0x10
+0x0462d0  bl       #0x57a00 ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0x0462d4  mov      x26, x0
+0x0462d8  cbz      x0, #0x4635c
+0x0462dc  ldr      x8, [sp, #0x60]
+0x0462e0  ldr      x28, [x8] ; [0x87000] sel:setShowsHorizontalScrollIndicator:
+0x0462e4  adrp     x25, #0x7b000
+0x0462e8  add      x25, x25, #0 ; -> 0x7b000 @"icons"
+0x0462ec  mov      x23, #0
+0x0462f0  ldr      x8, [sp, #0x60]
+0x0462f4  ldr      x8, [x8] ; [0x87000] sel:setShowsHorizontalScrollIndicator:
+0x0462f8  cmp      x8, x28
+0x0462fc  b.eq     #0x46308
+0x046300  mov      x0, x24
+0x046304  bl       #0x5671c ; call _objc_enumerationMutation
+0x046308  ldr      x8, [sp, #0x58]
+0x04630c  ldr      x0, [x8, x23, lsl #3] ; [0x87000] sel:setShowsHorizontalScrollIndicator:
+0x046310  mov      x1, x25
+0x046314  bl       #0x44a54 ; -> sub_44a54
+0x046318  mov      x29, x29
+0x04631c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x046320  mov      x27, x0
+0x046324  mov      x1, x22
+0x046328  bl       #0x46584 ; -> sub_46584
+0x04632c  mov      x0, x27
+0x046330  bl       #0x567b8 ; call _objc_release
+0x046334  add      x23, x23, #1
+0x046338  cmp      x26, x23
+0x04633c  b.ne     #0x462f0
+0x046340  add      x2, sp, #0x50
+0x046344  sub      x3, x29, #0xe0
+0x046348  mov      x0, x24
+0x04634c  mov      w4, #0x10
+0x046350  bl       #0x57a00 ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0x046354  mov      x26, x0
+0x046358  cbnz     x0, #0x462ec
+0x04635c  mov      x0, x24
+0x046360  bl       #0x567b8 ; call _objc_release
+0x046364  b        #0x46394
+0x046368  adrp     x1, #0x7b000
+0x04636c  add      x1, x1, #0 ; -> 0x7b000 @"icons"
+0x046370  ldr      x0, [sp, #8]
+0x046374  bl       #0x44a54 ; -> sub_44a54
+0x046378  mov      x29, x29
+0x04637c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x046380  mov      x25, x0
+0x046384  mov      x1, x22
+0x046388  bl       #0x46584 ; -> sub_46584
+0x04638c  mov      x0, x25
+0x046390  bl       #0x567b8 ; call _objc_release
+0x046394  mov      x0, x22
+0x046398  bl       #0x579e0 ; objc_msgSend$count
+0x04639c  mov      x25, x0
+0x0463a0  ldr      x0, [x21]
+0x0463a4  bl       #0x579e0 ; objc_msgSend$count
+0x0463a8  cmp      x25, x0
+0x0463ac  b.ls     #0x463c4
+0x0463b0  mov      x0, x22
+0x0463b4  bl       #0x567c4 ; call _objc_retain
+0x0463b8  ldr      x0, [x21]
+0x0463bc  str      x22, [x21]
+0x0463c0  bl       #0x567b8 ; call _objc_release
+0x0463c4  mov      x0, x24
+0x0463c8  bl       #0x567b8 ; call _objc_release
+0x0463cc  ldr      x0, [sp, #8]
+0x0463d0  bl       #0x567b8 ; call _objc_release
+0x0463d4  mov      x0, x22
+0x0463d8  bl       #0x567b8 ; call _objc_release
+0x0463dc  movi     v0.16b, #0
+0x0463e0  stp      q0, q0, [sp, #0x30]
+0x0463e4  stp      q0, q0, [sp, #0x10]
+0x0463e8  mov      x0, x19
+0x0463ec  bl       #0x5c500 ; objc_msgSend$subviews
+0x0463f0  mov      x29, x29
+0x0463f4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0463f8  mov      x22, x0
+0x0463fc  add      x2, sp, #0x10
+0x046400  add      x3, sp, #0x90
+0x046404  mov      w4, #0x10
+0x046408  bl       #0x57a00 ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0x04640c  mov      x23, x0
+0x046410  cbz      x0, #0x46474
+0x046414  ldr      x8, [sp, #0x20]
+0x046418  ldr      x24, [x8] ; [0x87000] sel:setShowsHorizontalScrollIndicator:
+0x04641c  mov      x25, #0
+0x046420  ldr      x8, [sp, #0x20]
+0x046424  ldr      x8, [x8] ; [0x87000] sel:setShowsHorizontalScrollIndicator:
+0x046428  cmp      x8, x24
+0x04642c  b.eq     #0x46438
+0x046430  mov      x0, x22
+0x046434  bl       #0x5671c ; call _objc_enumerationMutation
+0x046438  ldr      x8, [sp, #0x18]
+0x04643c  ldr      x0, [x8, x25, lsl #3] ; [0x87000] sel:setShowsHorizontalScrollIndicator:
+0x046440  add      w2, w20, #1
+0x046444  mov      x1, x21
+0x046448  bl       #0x46198 ; -> sub_46198
+0x04644c  add      x25, x25, #1 ; -> 0x7b001 @""
+0x046450  cmp      x23, x25
+0x046454  b.ne     #0x46420
+0x046458  add      x2, sp, #0x10
+0x04645c  add      x3, sp, #0x90
+0x046460  mov      x0, x22
+0x046464  mov      w4, #0x10
+0x046468  bl       #0x57a00 ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0x04646c  mov      x23, x0
+0x046470  cbnz     x0, #0x4641c
+0x046474  mov      x0, x22
+0x046478  bl       #0x567b8 ; call _objc_release
+0x04647c  mov      x0, x19
+0x046480  bl       #0x567b8 ; call _objc_release
+0x046484  ldur     x8, [x29, #-0x60]
+0x046488  adrp     x9, #0x78000
+0x04648c  ldr      x9, [x9, #0x360] ; [0x78360] ___stack_chk_guard
+0x046490  ldr      x9, [x9] ; [0x78000] <ordinal 0>
+0x046494  cmp      x9, x8
+0x046498  b.ne     #0x464bc
+0x04649c  add      sp, sp, #0x1a0
+0x0464a0  ldp      x29, x30, [sp, #0x50]
+0x0464a4  ldp      x20, x19, [sp, #0x40]
+0x0464a8  ldp      x22, x21, [sp, #0x30]
+0x0464ac  ldp      x24, x23, [sp, #0x20]
+0x0464b0  ldp      x26, x25, [sp, #0x10]
+0x0464b4  ldp      x28, x27, [sp], #0x60
+0x0464b8  ret      
+0x0464bc  bl       #0x56404 ; call ___stack_chk_fail
+0x0464c0  b        #0x46538
+0x0464c4  mov      x20, x0
+0x0464c8  mov      x0, x25
+0x0464cc  bl       #0x567b8 ; call _objc_release
+0x0464d0  b        #0x46544
+0x0464d4  mov      x20, x0
+0x0464d8  mov      x0, x25
+0x0464dc  bl       #0x567b8 ; call _objc_release
+0x0464e0  b        #0x4654c
+0x0464e4  mov      x20, x0
+0x0464e8  b        #0x4654c
+0x0464ec  mov      x20, x0
+0x0464f0  b        #0x46554
+0x0464f4  b        #0x46510
+0x0464f8  b        #0x46560
+0x0464fc  b        #0x46510
+0x046500  mov      x20, x0
+0x046504  mov      x0, x22
+0x046508  bl       #0x567b8 ; call _objc_release
+0x04650c  b        #0x4656c
+0x046510  mov      x20, x0
+0x046514  b        #0x4656c
+0x046518  mov      x20, x0
+0x04651c  b        #0x46544
+0x046520  b        #0x46538
+0x046524  b        #0x46560
+0x046528  mov      x20, x0
+0x04652c  mov      x0, x27
+0x046530  bl       #0x567b8 ; call _objc_release
+0x046534  b        #0x4653c
+0x046538  mov      x20, x0
+0x04653c  mov      x0, x24
+0x046540  bl       #0x567b8 ; call _objc_release
+0x046544  mov      x0, x24
+0x046548  bl       #0x567b8 ; call _objc_release
+0x04654c  ldr      x0, [sp, #8]
+0x046550  bl       #0x567b8 ; call _objc_release
+0x046554  mov      x0, x22
+0x046558  bl       #0x567b8 ; call _objc_release
+0x04655c  b        #0x4656c
+0x046560  mov      x20, x0
+0x046564  mov      x0, x22
+0x046568  bl       #0x567b8 ; call _objc_release
+0x04656c  mov      x0, x19
+0x046570  bl       #0x567b8 ; call _objc_release
+0x046574  b        #0x4657c
+0x046578  mov      x20, x0
+0x04657c  mov      x0, x20
+0x046580  bl       #0x563e0 ; call __Unwind_Resume

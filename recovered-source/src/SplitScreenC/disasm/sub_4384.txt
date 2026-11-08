@@ -1,0 +1,74 @@
+; sub_4384
+0x004384  stp      x24, x23, [sp, #-0x40]!
+0x004388  stp      x22, x21, [sp, #0x10]
+0x00438c  stp      x20, x19, [sp, #0x20]
+0x004390  stp      x29, x30, [sp, #0x30]
+0x004394  add      x29, sp, #0x30
+0x004398  cbz      x0, #0x443c
+0x00439c  mov      x19, x1
+0x0043a0  mov      x20, x0
+0x0043a4  cbnz     x1, #0x43b4
+0x0043a8  mov      w0, #0x400
+0x0043ac  bl       #0x5665c ; call _malloc
+0x0043b0  mov      x19, x0
+0x0043b4  adrp     x22, #0x87000
+0x0043b8  ldr      x8, [x22, #0xfa8]
+0x0043bc  cmn      x8, #1
+0x0043c0  b.ne     #0x4478
+0x0043c4  adrp     x8, #0x87000
+0x0043c8  ldr      x8, [x8, #0xf80]
+0x0043cc  blr      x8
+0x0043d0  mov      x21, x0
+0x0043d4  ldr      x8, [x22, #0xfa8]
+0x0043d8  cmn      x8, #1
+0x0043dc  b.ne     #0x4490
+0x0043e0  adrp     x8, #0x87000
+0x0043e4  ldr      x8, [x8, #0xf88]
+0x0043e8  blr      x8
+0x0043ec  mov      x23, x0
+0x0043f0  bl       #0x56908 ; call _strlen
+0x0043f4  ldrb     w8, [x20]
+0x0043f8  cmp      w8, #0x2f
+0x0043fc  b.ne     #0x4444
+0x004400  mov      x22, x0
+0x004404  mov      x0, x20
+0x004408  mov      x1, x23
+0x00440c  mov      x2, x22
+0x004410  bl       #0x56914 ; call _strncmp
+0x004414  cbz      w0, #0x4450
+0x004418  mov      x0, x19
+0x00441c  mov      x1, x21
+0x004420  mov      w2, #0x400
+0x004424  bl       #0x568fc ; call _strlcpy
+0x004428  mov      x0, x19
+0x00442c  mov      x1, x20
+0x004430  mov      w2, #0x400
+0x004434  bl       #0x568f0 ; call _strlcat
+0x004438  b        #0x4460
+0x00443c  mov      x19, #0
+0x004440  b        #0x4460
+0x004444  mov      x0, x19
+0x004448  mov      x1, x20
+0x00444c  b        #0x4458
+0x004450  add      x1, x20, x22
+0x004454  mov      x0, x19
+0x004458  mov      w2, #0x400
+0x00445c  bl       #0x568fc ; call _strlcpy
+0x004460  mov      x0, x19
+0x004464  ldp      x29, x30, [sp, #0x30]
+0x004468  ldp      x20, x19, [sp, #0x20]
+0x00446c  ldp      x22, x21, [sp, #0x10]
+0x004470  ldp      x24, x23, [sp], #0x40
+0x004474  ret      
+0x004478  adrp     x0, #0x87000
+0x00447c  add      x0, x0, #0xfa8 ; -> 0x87fa8
+0x004480  adrp     x1, #0x78000
+0x004484  add      x1, x1, #0x6e0 ; -> 0x786e0
+0x004488  bl       #0x564f4 ; call _dispatch_once
+0x00448c  b        #0x43c4
+0x004490  adrp     x0, #0x87000
+0x004494  add      x0, x0, #0xfa8 ; -> 0x87fa8
+0x004498  adrp     x1, #0x78000
+0x00449c  add      x1, x1, #0x6e0 ; -> 0x786e0
+0x0044a0  bl       #0x564f4 ; call _dispatch_once
+0x0044a4  b        #0x43e0

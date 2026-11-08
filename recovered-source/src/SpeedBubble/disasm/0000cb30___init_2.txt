@@ -1,0 +1,68 @@
+# __init_2
+# addr 0xcb30 .. 0xcc34  (260 bytes)
+
+0000cb30  stp      x22, x21, [sp, #-0x30]!                     
+0000cb34  stp      x20, x19, [sp, #0x10]                       
+0000cb38  stp      x29, x30, [sp, #0x20]                       
+0000cb3c  add      x29, sp, #0x20                              
+0000cb40  adrp     x8, #0x42000                                
+0000cb44  ldr      x0, [x8, #0xf50]                            ; [0x42f50] classref -> NSBundle (= import _OBJC_CLASS_$_NSBundle)
+0000cb48  bl       #0x29d20                                    ; objc_msgSend$mainBundle
+0000cb4c  mov      x29, x29                                    
+0000cb50  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000cb54  mov      x19, x0                                     
+0000cb58  bl       #0x28b60                                    ; objc_msgSend$bundleIdentifier
+0000cb5c  mov      x29, x29                                    
+0000cb60  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000cb64  mov      x20, x0                                     
+0000cb68  adrp     x2, #0x39000                                
+0000cb6c  add      x2, x2, #0xe18                              ; @"com.apple.springboard"
+0000cb70  bl       #0x29a00                                    ; objc_msgSend$isEqualToString:
+0000cb74  mov      x21, x0                                     
+0000cb78  mov      x0, x20                                     
+0000cb7c  bl       #0x27ff8                                    ; _objc_release
+0000cb80  mov      x0, x19                                     
+0000cb84  bl       #0x27ff8                                    ; _objc_release
+0000cb88  tbz      w21, #0, #0xcbf8                            
+0000cb8c  adrp     x8, #0x42000                                
+0000cb90  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0000cb94  adrp     x2, #0x39000                                
+0000cb98  add      x2, x2, #0xe38                              ; @"loaded into SpringBoard"
+0000cb9c  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0000cba0  mov      x29, x29                                    
+0000cba4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000cba8  mov      x19, x0                                     
+0000cbac  adrp     x0, #0x38000                                
+0000cbb0  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0000cbb4  mov      x1, x19                                     
+0000cbb8  bl       #0x2155c                                    ; _OMCLogWrite
+0000cbbc  mov      x0, x19                                     
+0000cbc0  bl       #0x27ff8                                    ; _objc_release
+0000cbc4  adrp     x0, #0x2e000                                
+0000cbc8  add      x0, x0, #0x409                              ; "SpringBoard"
+0000cbcc  bl       #0x27f74                                    ; _objc_getClass
+0000cbd0  adrp     x8, #0x41000                                
+0000cbd4  ldr      x1, [x8, #0xb38]                            ; [0x41b38] selref -> @applicationDidFinishLaunching:
+0000cbd8  adrp     x2, #0xc000                                 
+0000cbdc  add      x2, x2, #0xc34                              ; __TEXT,__text+0x8c34
+0000cbe0  adrp     x3, #0x43000                                
+0000cbe4  add      x3, x3, #0x8a0                              ; __DATA,__bss+0x100
+0000cbe8  ldp      x29, x30, [sp, #0x20]                       
+0000cbec  ldp      x20, x19, [sp, #0x10]                       
+0000cbf0  ldp      x22, x21, [sp], #0x30                       
+0000cbf4  b        #0x27bfc                                    ; _MSHookMessageEx
+0000cbf8  ldp      x29, x30, [sp, #0x20]                       
+0000cbfc  ldp      x20, x19, [sp, #0x10]                       
+0000cc00  ldp      x22, x21, [sp], #0x30                       
+0000cc04  ret                                                  
+0000cc08  b        #0xcc20                                     ; sub_cc20
+0000cc0c  mov      x1, x20                                     
+0000cc10  mov      x20, x0                                     
+0000cc14  mov      x0, x1                                      
+0000cc18  bl       #0x27ff8                                    ; _objc_release
+0000cc1c  b        #0xcc24                                     ; sub_cc24
+0000cc20  mov      x20, x0                                     
+0000cc24  mov      x0, x19                                     
+0000cc28  bl       #0x27ff8                                    ; _objc_release
+0000cc2c  mov      x0, x20                                     
+0000cc30  bl       #0x27c80                                    ; __Unwind_Resume

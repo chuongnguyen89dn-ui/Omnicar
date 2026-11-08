@@ -1,0 +1,40 @@
+; ==== SCPCButton__pointInside_withEvent_  @0xe69c..0xe738 (156 bytes) ====
+0000e69c  stp      d15, d14, [sp, #-0x60]!                      
+0000e6a0  stp      d13, d12, [sp, #0x10]                        
+0000e6a4  stp      d11, d10, [sp, #0x20]                        
+0000e6a8  stp      d9, d8, [sp, #0x30]                          
+0000e6ac  stp      x20, x19, [sp, #0x40]                        
+0000e6b0  stp      x29, x30, [sp, #0x50]                        
+0000e6b4  add      x29, sp, #0x50                               
+0000e6b8  mov      v8.16b, v1.16b                               
+0000e6bc  mov      v9.16b, v0.16b                               
+0000e6c0  mov      x19, x0                                      
+0000e6c4  bl       #0x57320                                     ; msgSend "bounds"
+0000e6c8  mov      x8, #-0x3fba000000000000                     
+0000e6cc  fmov     d12, x8                                      
+0000e6d0  fadd     d0, d2, d12                                  
+0000e6d4  fmov     d13, #0.50000000                             
+0000e6d8  fmul     d0, d0, d13                                  
+0000e6dc  fcmp     d0, #0.0                                     
+0000e6e0  fmov     d14, xzr                                     
+0000e6e4  fcsel    d10, d14, d0, gt                             
+0000e6e8  mov      x0, x19                                      
+0000e6ec  bl       #0x57320                                     ; msgSend "bounds"
+0000e6f0  mov      v11.16b, v3.16b                              
+0000e6f4  mov      x0, x19                                      
+0000e6f8  bl       #0x57320                                     ; msgSend "bounds"
+0000e6fc  fadd     d4, d11, d12                                 
+0000e700  fmul     d4, d4, d13                                  
+0000e704  fcmp     d4, #0.0                                     
+0000e708  fcsel    d5, d14, d4, gt                              
+0000e70c  mov      v4.16b, v10.16b                              
+0000e710  bl       #0x562fc                                     ; call _CGRectInset
+0000e714  mov      v4.16b, v9.16b                               
+0000e718  mov      v5.16b, v8.16b                               
+0000e71c  ldp      x29, x30, [sp, #0x50]                        
+0000e720  ldp      x20, x19, [sp, #0x40]                        
+0000e724  ldp      d9, d8, [sp, #0x30]                          
+0000e728  ldp      d11, d10, [sp, #0x20]                        
+0000e72c  ldp      d13, d12, [sp, #0x10]                        
+0000e730  ldp      d15, d14, [sp], #0x60                        
+0000e734  b        #0x56290                                     ; call _CGRectContainsPoint | tail _CGRectContainsPoint

@@ -1,0 +1,1293 @@
+; bdump 0x11124..0x12554 (own dump, macho_truth ground truth)
+0x00011124:  stp      d15, d14, [sp, #-0xa0]!
+0x00011128:  stp      d13, d12, [sp, #0x10]
+0x0001112c:  stp      d11, d10, [sp, #0x20]
+0x00011130:  stp      d9, d8, [sp, #0x30]
+0x00011134:  stp      x28, x27, [sp, #0x40]
+0x00011138:  stp      x26, x25, [sp, #0x50]
+0x0001113c:  stp      x24, x23, [sp, #0x60]
+0x00011140:  stp      x22, x21, [sp, #0x70]
+0x00011144:  stp      x20, x19, [sp, #0x80]
+0x00011148:  stp      x29, x30, [sp, #0x90]
+0x0001114c:  add      x29, sp, #0x90
+0x00011150:  sub      sp, sp, #0x170
+0x00011154:  mov      x19, x0
+0x00011158:  adrp     x8, #0x30000
+0x0001115c:  ldr      x8, [x8, #0x378]  ; [0x30378] got-sym:___stack_chk_guard
+0x00011160:  ldr      x8, [x8]  ; [0x30000] got-sym:___objc_personality_v0
+0x00011164:  stur     x8, [x29, #-0xa0]
+0x00011168:  adrp     x8, #0x3a000
+0x0001116c:  ldrsw    x21, [x8, #0xd80]  ; [0x3ad80] -> 0x8000000d0
+0x00011170:  ldr      d9, [x0, x21]
+0x00011174:  adrp     x8, #0x3a000
+0x00011178:  ldrsw    x8, [x8, #0xd08]  ; [0x3ad08] -> 0x8000000b8
+0x0001117c:  add      x8, x0, x8
+0x00011180:  ldp      d14, d15, [x8]
+0x00011184:  adrp     x8, #0x3a000
+0x00011188:  ldrsw    x8, [x8, #0xd18]  ; [0x3ad18] -> 0xb0
+0x0001118c:  ldr      x25, [x0, x8]  ; [0x3a000] sel:processName
+0x00011190:  bl       #0x26020  ; -> msgSend$weather
+0x00011194:  mov      x29, x29
+0x00011198:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x0001119c:  mov      x20, x0
+0x000111a0:  adrp     x2, #0x32000
+0x000111a4:  add      x2, x2, #0x3c8  ; [0x323c8] @"isDay"
+0x000111a8:  bl       #0x23ea0  ; -> msgSend$objectForKeyedSubscript:
+0x000111ac:  mov      x29, x29
+0x000111b0:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000111b4:  mov      x22, x0
+0x000111b8:  bl       #0x22880  ; -> msgSend$boolValue
+0x000111bc:  mov      x23, x0
+0x000111c0:  mov      x0, x22
+0x000111c4:  bl       #0x22120  ; -> _objc_release
+0x000111c8:  mov      x0, x20
+0x000111cc:  bl       #0x22120  ; -> _objc_release
+0x000111d0:  mov      x0, x19
+0x000111d4:  bl       #0x25900  ; -> msgSend$ss_host
+0x000111d8:  mov      x29, x29
+0x000111dc:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000111e0:  mov      x22, x0
+0x000111e4:  bl       #0x239e0  ; -> msgSend$layer
+0x000111e8:  mov      x29, x29
+0x000111ec:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000111f0:  mov      x28, x0
+0x000111f4:  mov      x0, x22
+0x000111f8:  bl       #0x22120  ; -> _objc_release
+0x000111fc:  ands     x8, x25, #-3
+0x00011200:  stp      d15, d9, [sp, #0x30]
+0x00011204:  str      d14, [sp, #0x28]
+0x00011208:  b.eq     #0x11454
+0x0001120c:  cmp      x8, #1
+0x00011210:  b.ne     #0x11708
+0x00011214:  str      w23, [sp, #0x20]
+0x00011218:  str      x21, [sp, #0x18]
+0x0001121c:  adrp     x8, #0x28000
+0x00011220:  ldr      d0, [x8, #0xe10]  ; [0x28e10] dbl=0.7 flt=2.7200830220753216e+23
+0x00011224:  fmul     d10, d15, d0
+0x00011228:  add      x24, sp, #0x40
+0x0001122c:  mov      w26, #0x6e
+0x00011230:  adrp     x8, #0x28000
+0x00011234:  ldr      d11, [x8, #0xe08]  ; [0x28e08] dbl=1.4 flt=2.7200830220753216e+23
+0x00011238:  adrp     x8, #0x28000
+0x0001123c:  ldr      d12, [x8, #0xf00]  ; [0x28f00] dbl=1000000.0 flt=0.0
+0x00011240:  adrp     x8, #0x28000
+0x00011244:  ldr      d13, [x8, #0xef8]  ; [0x28ef8] dbl=0.6 flt=4.17232506322307e-08
+0x00011248:  adrp     x27, #0x3a000
+0x0001124c:  adrp     x20, #0x3a000
+0x00011250:  fmov     d15, xzr
+0x00011254:  mov      w21, #1
+0x00011258:  mov      w0, #0x4241
+0x0001125c:  movk     w0, #0xf, lsl #16
+0x00011260:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011264:  ucvtf    d0, w0
+0x00011268:  fmul     d0, d0, d11
+0x0001126c:  fdiv     d0, d0, d12
+0x00011270:  fadd     d0, d0, d13
+0x00011274:  ldr      d1, [sp, #0x38]
+0x00011278:  fmul     d0, d1, d0
+0x0001127c:  fmov     d1, #0.50000000
+0x00011280:  fmaxnm   d8, d0, d1
+0x00011284:  ldr      x0, [x27, #0xb70]  ; [0x3ab70] class:CALayer
+0x00011288:  bl       #0x239e0  ; -> msgSend$layer
+0x0001128c:  mov      x29, x29
+0x00011290:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011294:  mov      x22, x0
+0x00011298:  ldr      x0, [x20, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x0001129c:  bl       #0x26040  ; -> msgSend$whiteColor
+0x000112a0:  mov      x29, x29
+0x000112a4:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000112a8:  mov      x23, x0
+0x000112ac:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x000112b0:  bl       #0x22300  ; -> msgSend$CGColor
+0x000112b4:  mov      x2, x0
+0x000112b8:  mov      x0, x22
+0x000112bc:  bl       #0x24500  ; -> msgSend$setBackgroundColor:
+0x000112c0:  mov      x0, x23
+0x000112c4:  bl       #0x22120  ; -> _objc_release
+0x000112c8:  fadd     d2, d8, d8
+0x000112cc:  fmov     d0, xzr
+0x000112d0:  fmov     d1, xzr
+0x000112d4:  mov      x0, x22
+0x000112d8:  mov      v3.16b, v2.16b
+0x000112dc:  bl       #0x245a0  ; -> msgSend$setBounds:
+0x000112e0:  mov      x0, x22
+0x000112e4:  mov      v0.16b, v8.16b
+0x000112e8:  bl       #0x24760  ; -> msgSend$setCornerRadius:
+0x000112ec:  mov      w0, #0x4241
+0x000112f0:  movk     w0, #0xf, lsl #16
+0x000112f4:  bl       #0x21e14  ; -> _arc4random_uniform
+0x000112f8:  ucvtf    d0, w0
+0x000112fc:  fmul     d0, d14, d0
+0x00011300:  fdiv     d0, d0, d12
+0x00011304:  fadd     d9, d0, d15
+0x00011308:  mov      w0, #0x4241
+0x0001130c:  movk     w0, #0xf, lsl #16
+0x00011310:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011314:  ucvtf    d0, w0
+0x00011318:  fmul     d0, d10, d0
+0x0001131c:  fdiv     d0, d0, d12
+0x00011320:  fadd     d1, d0, d15
+0x00011324:  mov      x0, x22
+0x00011328:  mov      v0.16b, v9.16b
+0x0001132c:  bl       #0x24ee0  ; -> msgSend$setPosition:
+0x00011330:  mov      w0, #0x4241
+0x00011334:  movk     w0, #0xf, lsl #16
+0x00011338:  bl       #0x21e14  ; -> _arc4random_uniform
+0x0001133c:  ucvtf    d0, w0
+0x00011340:  fmov     d1, #6.00000000
+0x00011344:  fmul     d0, d0, d1
+0x00011348:  fdiv     d0, d0, d12
+0x0001134c:  str      x21, [sp, #0x40]
+0x00011350:  stp      xzr, xzr, [x24, #0x10]
+0x00011354:  stur     xzr, [x24, #8]
+0x00011358:  str      d8, [sp, #0x60]
+0x0001135c:  fadd     d0, d0, d15
+0x00011360:  str      xzr, [sp, #0x68]
+0x00011364:  str      d0, [sp, #0x70]
+0x00011368:  add      x2, sp, #0x40
+0x0001136c:  mov      x0, x19
+0x00011370:  mov      x3, x22
+0x00011374:  mov      x4, x28
+0x00011378:  bl       #0x25640  ; -> msgSend$ss_addMote:layer:to:
+0x0001137c:  mov      x0, x22
+0x00011380:  bl       #0x22120  ; -> _objc_release
+0x00011384:  subs     w26, w26, #1
+0x00011388:  b.ne     #0x11258
+0x0001138c:  adrp     x8, #0x3a000
+0x00011390:  ldrsw    x8, [x8, #0xd84]  ; [0x3ad84] -> 0xd8
+0x00011394:  ldr      d0, [x19, x8]  ; [0x3a000] sel:processName
+0x00011398:  ldr      x21, [sp, #0x18]
+0x0001139c:  ldr      d1, [x19, x21]
+0x000113a0:  adrp     x8, #0x28000
+0x000113a4:  ldr      d2, [x8, #0xf08]  ; [0x28f08] dbl=1340.0 flt=0.0
+0x000113a8:  fmadd    d8, d1, d2, d0
+0x000113ac:  adrp     x8, #0x3a000
+0x000113b0:  ldrsw    x8, [x8, #0xd88]  ; [0x3ad88] -> 0xe0
+0x000113b4:  ldr      d0, [x19, x8]  ; [0x3a000] sel:processName
+0x000113b8:  adrp     x8, #0x28000
+0x000113bc:  ldr      d2, [x8, #0xf10]  ; [0x28f10] dbl=140.0 flt=0.0
+0x000113c0:  fmadd    d9, d1, d2, d0
+0x000113c4:  mov      x8, #0x405e000000000000
+0x000113c8:  fmov     d0, x8
+0x000113cc:  ldr      d12, [sp, #0x38]
+0x000113d0:  fmul     d10, d12, d0
+0x000113d4:  ldr      x0, [x20, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x000113d8:  adrp     x8, #0x28000
+0x000113dc:  ldr      d11, [x8, #0xf18]  ; [0x28f18] dbl=0.9019607843137255 flt=-4.9733869297781965e+17
+0x000113e0:  adrp     x8, #0x28000
+0x000113e4:  ldr      d3, [x8, #0xf20]  ; [0x28f20] dbl=0.95 flt=2.7200830220753216e+23
+0x000113e8:  fmov     d0, #1.00000000
+0x000113ec:  fmov     d1, #1.00000000
+0x000113f0:  mov      v2.16b, v11.16b
+0x000113f4:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x000113f8:  mov      x29, x29
+0x000113fc:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011400:  mov      x22, x0
+0x00011404:  ldr      x0, [x20, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011408:  fmov     d0, #1.00000000
+0x0001140c:  fmov     d1, #1.00000000
+0x00011410:  fmov     d3, xzr
+0x00011414:  mov      v2.16b, v11.16b
+0x00011418:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x0001141c:  mov      x29, x29
+0x00011420:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011424:  mov      x23, x0
+0x00011428:  mov      v0.16b, v8.16b
+0x0001142c:  mov      v1.16b, v9.16b
+0x00011430:  mov      v2.16b, v10.16b
+0x00011434:  mov      x0, x22
+0x00011438:  mov      x1, x23
+0x0001143c:  bl       #0x12554  ; -> sub_12554
+0x00011440:  mov      x29, x29
+0x00011444:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011448:  mov      x24, x0
+0x0001144c:  mov      v9.16b, v12.16b
+0x00011450:  b        #0x116dc  ; -> loc_116dc
+0x00011454:  str      w23, [sp, #0x20]
+0x00011458:  adrp     x8, #0x3a000
+0x0001145c:  ldrsw    x8, [x8, #0xd84]  ; [0x3ad84] -> 0xd8
+0x00011460:  ldr      d0, [x19, x8]  ; [0x3a000] sel:processName
+0x00011464:  ldr      d1, [x19, x21]
+0x00011468:  adrp     x8, #0x28000
+0x0001146c:  ldr      d2, [x8, #0xf08]  ; [0x28f08] dbl=1340.0 flt=0.0
+0x00011470:  adrp     x8, #0x3a000
+0x00011474:  ldrsw    x8, [x8, #0xd88]  ; [0x3ad88] -> 0xe0
+0x00011478:  ldr      d3, [x19, x8]  ; [0x3a000] sel:processName
+0x0001147c:  fmadd    d8, d1, d2, d0
+0x00011480:  adrp     x8, #0x28000
+0x00011484:  ldr      d0, [x8, #0xf28]  ; [0x28f28] dbl=150.0 flt=0.0
+0x00011488:  fmadd    d10, d1, d0, d3
+0x0001148c:  adrp     x20, #0x3a000
+0x00011490:  ldr      x0, [x20, #0xb70]  ; [0x3ab70] class:CALayer
+0x00011494:  bl       #0x239e0  ; -> msgSend$layer
+0x00011498:  mov      x29, x29
+0x0001149c:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000114a0:  adrp     x8, #0x3a000
+0x000114a4:  ldrsw    x24, [x8, #0xd64]  ; [0x3ad64] -> 0x188
+0x000114a8:  ldr      x8, [x19, x24]
+0x000114ac:  str      x0, [x19, x24]
+0x000114b0:  mov      x0, x8
+0x000114b4:  bl       #0x22120  ; -> _objc_release
+0x000114b8:  adrp     x8, #0x30000
+0x000114bc:  ldr      x8, [x8, #0x6a0]  ; [0x306a0] got-sym:_CGRectZero
+0x000114c0:  ldp      d0, d1, [x8]
+0x000114c4:  ldp      d2, d3, [x8, #0x10]
+0x000114c8:  ldr      x0, [x19, x24]
+0x000114cc:  bl       #0x245a0  ; -> msgSend$setBounds:
+0x000114d0:  ldr      x0, [x19, x24]
+0x000114d4:  stp      d10, d8, [sp]
+0x000114d8:  mov      v0.16b, v8.16b
+0x000114dc:  mov      v1.16b, v10.16b
+0x000114e0:  bl       #0x24ee0  ; -> msgSend$setPosition:
+0x000114e4:  adrp     x8, #0x28000
+0x000114e8:  ldr      d0, [x8, #0xf30]  ; [0x28f30] dbl=520.0 flt=0.0
+0x000114ec:  fmul     d10, d9, d0
+0x000114f0:  fmov     d0, #28.00000000
+0x000114f4:  fmul     d11, d9, d0
+0x000114f8:  adrp     x8, #0x30000
+0x000114fc:  ldr      x8, [x8, #0x698]  ; [0x30698] got-sym:_CGPointZero
+0x00011500:  ldp      d12, d13, [x8]
+0x00011504:  mov      w27, #1
+0x00011508:  adrp     x26, #0x3a000
+0x0001150c:  adrp     x8, #0x28000
+0x00011510:  ldr      d14, [x8, #0xf38]  ; [0x28f38] dbl=0.9411764705882353 flt=8.370678442537372e-21
+0x00011514:  adrp     x8, #0x28000
+0x00011518:  ldr      d15, [x8, #0xf40]  ; [0x28f40] dbl=0.7058823529411765 flt=-2.4328842560755655e-25
+0x0001151c:  adrp     x8, #0x28000
+0x00011520:  ldr      d8, [x8, #0xe80]  ; [0x28e80] dbl=0.18 flt=4.0564818300608976e+29
+0x00011524:  adrp     x8, #0x28000
+0x00011528:  ldr      d9, [x8, #0xf48]  ; [0x28f48] dbl=3.141592653589793 flt=3370280550400.0
+0x0001152c:  ldr      x0, [x20, #0xb70]  ; [0x3ab70] class:CALayer
+0x00011530:  bl       #0x239e0  ; -> msgSend$layer
+0x00011534:  mov      x29, x29
+0x00011538:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x0001153c:  mov      x22, x0
+0x00011540:  ldr      x0, [x26, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011544:  fmov     d0, #1.00000000
+0x00011548:  mov      v1.16b, v14.16b
+0x0001154c:  mov      v2.16b, v15.16b
+0x00011550:  mov      v3.16b, v8.16b
+0x00011554:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00011558:  mov      x29, x29
+0x0001155c:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011560:  mov      x23, x0
+0x00011564:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00011568:  bl       #0x22300  ; -> msgSend$CGColor
+0x0001156c:  mov      x2, x0
+0x00011570:  mov      x0, x22
+0x00011574:  bl       #0x24500  ; -> msgSend$setBackgroundColor:
+0x00011578:  mov      x0, x23
+0x0001157c:  bl       #0x22120  ; -> _objc_release
+0x00011580:  fmov     d0, xzr
+0x00011584:  fmov     d1, #0.50000000
+0x00011588:  mov      x0, x22
+0x0001158c:  bl       #0x24440  ; -> msgSend$setAnchorPoint:
+0x00011590:  fmov     d0, xzr
+0x00011594:  fmov     d1, xzr
+0x00011598:  mov      x0, x22
+0x0001159c:  mov      v2.16b, v10.16b
+0x000115a0:  mov      v3.16b, v11.16b
+0x000115a4:  bl       #0x245a0  ; -> msgSend$setBounds:
+0x000115a8:  mov      x0, x22
+0x000115ac:  mov      v0.16b, v12.16b
+0x000115b0:  mov      v1.16b, v13.16b
+0x000115b4:  bl       #0x24ee0  ; -> msgSend$setPosition:
+0x000115b8:  ucvtf    d0, w27
+0x000115bc:  fmul     d0, d0, d9
+0x000115c0:  fmov     d1, #6.00000000
+0x000115c4:  fdiv     d0, d0, d1
+0x000115c8:  add      x8, sp, #0xc8
+0x000115cc:  fmov     d1, xzr
+0x000115d0:  fmov     d2, xzr
+0x000115d4:  fmov     d3, #1.00000000
+0x000115d8:  bl       #0x21b20  ; -> _CATransform3DMakeRotation
+0x000115dc:  add      x8, sp, #9
+0x000115e0:  ldur     q0, [x8, #0xff]  ; [0x280ff] "n Festival"
+0x000115e4:  add      x8, sp, #0x19
+0x000115e8:  ldur     q1, [x8, #0xff]  ; [0x280ff] "n Festival"
+0x000115ec:  stp      q0, q1, [sp, #0x80]
+0x000115f0:  add      x8, sp, #0x29
+0x000115f4:  ldur     q0, [x8, #0xff]  ; [0x280ff] "n Festival"
+0x000115f8:  add      x8, sp, #0x39
+0x000115fc:  ldur     q1, [x8, #0xff]  ; [0x280ff] "n Festival"
+0x00011600:  stp      q0, q1, [sp, #0xa0]
+0x00011604:  ldur     q0, [sp, #0xc8]
+0x00011608:  ldur     q1, [sp, #0xd8]
+0x0001160c:  stp      q0, q1, [sp, #0x40]
+0x00011610:  ldur     q0, [sp, #0xe8]
+0x00011614:  ldur     q1, [sp, #0xf8]
+0x00011618:  stp      q0, q1, [sp, #0x60]
+0x0001161c:  add      x2, sp, #0x40
+0x00011620:  mov      x0, x22
+0x00011624:  bl       #0x25380  ; -> msgSend$setTransform:
+0x00011628:  ldr      x0, [x19, x24]
+0x0001162c:  mov      x2, x22
+0x00011630:  bl       #0x22500  ; -> msgSend$addSublayer:
+0x00011634:  mov      x0, x22
+0x00011638:  bl       #0x22120  ; -> _objc_release
+0x0001163c:  add      w27, w27, #1
+0x00011640:  cmp      w27, #0xd
+0x00011644:  b.ne     #0x1152c
+0x00011648:  ldr      x2, [x19, x24]
+0x0001164c:  mov      x0, x28
+0x00011650:  bl       #0x22500  ; -> msgSend$addSublayer:
+0x00011654:  adrp     x8, #0x28000
+0x00011658:  ldr      d0, [x8, #0xf50]  ; [0x28f50] dbl=180.0 flt=0.0
+0x0001165c:  ldr      d9, [sp, #0x38]
+0x00011660:  fmul     d8, d9, d0
+0x00011664:  ldr      x0, [x26, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011668:  adrp     x8, #0x28000
+0x0001166c:  ldr      d1, [x8, #0xf58]  ; [0x28f58] dbl=0.9803921568627451 flt=1.609568804685008e+19
+0x00011670:  adrp     x8, #0x28000
+0x00011674:  ldr      d10, [x8, #0xf60]  ; [0x28f60] dbl=0.8627450980392157 flt=-2.5743159190809087e-22
+0x00011678:  fmov     d0, #1.00000000
+0x0001167c:  fmov     d3, #1.00000000
+0x00011680:  mov      v2.16b, v10.16b
+0x00011684:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00011688:  mov      x29, x29
+0x0001168c:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011690:  mov      x22, x0
+0x00011694:  ldr      x0, [x26, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011698:  adrp     x8, #0x28000
+0x0001169c:  ldr      d2, [x8, #0xf68]  ; [0x28f68] dbl=0.47058823529411764 flt=8.370678442537372e-21
+0x000116a0:  fmov     d0, #1.00000000
+0x000116a4:  fmov     d3, xzr
+0x000116a8:  mov      v1.16b, v10.16b
+0x000116ac:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x000116b0:  mov      x29, x29
+0x000116b4:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000116b8:  mov      x23, x0
+0x000116bc:  ldp      d1, d0, [sp]
+0x000116c0:  mov      v2.16b, v8.16b
+0x000116c4:  mov      x0, x22
+0x000116c8:  mov      x1, x23
+0x000116cc:  bl       #0x12554  ; -> sub_12554
+0x000116d0:  mov      x29, x29
+0x000116d4:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000116d8:  mov      x24, x0
+0x000116dc:  mov      x0, x28
+0x000116e0:  mov      x2, x24
+0x000116e4:  bl       #0x22500  ; -> msgSend$addSublayer:
+0x000116e8:  mov      x0, x24
+0x000116ec:  bl       #0x22120  ; -> _objc_release
+0x000116f0:  mov      x0, x23
+0x000116f4:  bl       #0x22120  ; -> _objc_release
+0x000116f8:  mov      x0, x22
+0x000116fc:  bl       #0x22120  ; -> _objc_release
+0x00011700:  ldp      d14, d15, [sp, #0x28]
+0x00011704:  ldr      w23, [sp, #0x20]
+0x00011708:  cmp      x25, #5
+0x0001170c:  b.gt     #0x11730
+0x00011710:  sub      x8, x25, #2
+0x00011714:  cmp      x8, #3
+0x00011718:  b.lo     #0x1174c
+0x0001171c:  mov      v8.16b, v9.16b
+0x00011720:  mov      v9.16b, v14.16b
+0x00011724:  cmp      x25, #5
+0x00011728:  b.eq     #0x11ab0
+0x0001172c:  b        #0x12500  ; -> loc_12500
+0x00011730:  sub      x8, x25, #6
+0x00011734:  cmp      x8, #2
+0x00011738:  b.lo     #0x11f3c
+0x0001173c:  cmp      x25, #8
+0x00011740:  b.eq     #0x11e94
+0x00011744:  cmp      x25, #9
+0x00011748:  b.ne     #0x12500
+0x0001174c:  str      x21, [sp, #0x18]
+0x00011750:  adrp     x26, #0x3a000
+0x00011754:  ldr      x0, [x26, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011758:  cbz      w23, #0x1176c
+0x0001175c:  bl       #0x26040  ; -> msgSend$whiteColor
+0x00011760:  mov      x29, x29
+0x00011764:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011768:  b        #0x11794  ; -> loc_11794
+0x0001176c:  adrp     x8, #0x28000
+0x00011770:  ldr      d0, [x8, #0xf40]  ; [0x28f40] dbl=0.7058823529411765 flt=-2.4328842560755655e-25
+0x00011774:  adrp     x8, #0x28000
+0x00011778:  ldr      d1, [x8, #0xf70]  ; [0x28f70] dbl=0.7450980392156863 flt=-474644083638272.0
+0x0001177c:  adrp     x8, #0x28000
+0x00011780:  ldr      d2, [x8, #0xf78]  ; [0x28f78] dbl=0.8235294117647058 flt=1.5365221879119872e+16
+0x00011784:  fmov     d3, #1.00000000
+0x00011788:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x0001178c:  mov      x29, x29
+0x00011790:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011794:  mov      x22, x0
+0x00011798:  ldr      d13, [sp, #0x38]
+0x0001179c:  adrp     x8, #0x3a000
+0x000117a0:  ldr      x21, [x8, #0xa68]  ; [0x3aa68] class:UIImage
+0x000117a4:  adrp     x8, #0x3a000
+0x000117a8:  ldr      x23, [x8, #0xb20]  ; [0x3ab20] class:UIImageSymbolConfiguration
+0x000117ac:  bl       #0x2212c  ; -> _objc_retain
+0x000117b0:  mov      x8, #0x405e000000000000
+0x000117b4:  fmov     d0, x8
+0x000117b8:  mov      x0, x23
+0x000117bc:  bl       #0x22c60  ; -> msgSend$configurationWithPointSize:
+0x000117c0:  mov      x29, x29
+0x000117c4:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000117c8:  mov      x24, x0
+0x000117cc:  adrp     x2, #0x32000
+0x000117d0:  add      x2, x2, #0x508  ; [0x32508] @"cloud.fill"
+0x000117d4:  mov      x0, x21
+0x000117d8:  mov      x3, x24
+0x000117dc:  bl       #0x25d20  ; -> msgSend$systemImageNamed:withConfiguration:
+0x000117e0:  mov      x29, x29
+0x000117e4:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000117e8:  mov      x21, x0
+0x000117ec:  mov      x2, x22
+0x000117f0:  mov      w3, #1
+0x000117f4:  bl       #0x236a0  ; -> msgSend$imageWithTintColor:renderingMode:
+0x000117f8:  mov      x29, x29
+0x000117fc:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011800:  mov      x23, x0
+0x00011804:  mov      x0, x22
+0x00011808:  bl       #0x22120  ; -> _objc_release
+0x0001180c:  mov      x0, x21
+0x00011810:  bl       #0x22120  ; -> _objc_release
+0x00011814:  mov      x0, x24
+0x00011818:  bl       #0x22120  ; -> _objc_release
+0x0001181c:  cbz      x23, #0x11894
+0x00011820:  mov      x0, x23
+0x00011824:  bl       #0x25580  ; -> msgSend$size
+0x00011828:  mov      v8.16b, v0.16b
+0x0001182c:  mov      v9.16b, v1.16b
+0x00011830:  adrp     x8, #0x30000
+0x00011834:  ldr      x8, [x8, #0x350]  ; [0x30350] got-sym:__NSConcreteStackBlock
+0x00011838:  str      x8, [sp, #0x40]
+0x0001183c:  adrp     x8, #0x28000
+0x00011840:  ldr      d0, [x8, #0xdd0]  ; [0x28dd0] dbl=1.6080749353e-314 flt=-32.0
+0x00011844:  str      d0, [sp, #0x48]
+0x00011848:  adrp     x8, #0x1a000
+0x0001184c:  add      x8, x8, #0xd00  ; [0x1ad00] -> 0x2f9401008
+0x00011850:  adrp     x9, #0x30000
+0x00011854:  add      x9, x9, #0xbd8  ; [0x30bd8] -> 0x0
+0x00011858:  stp      x8, x9, [sp, #0x50]
+0x0001185c:  mov      x0, x23
+0x00011860:  bl       #0x2212c  ; -> _objc_retain
+0x00011864:  str      x23, [sp, #0x60]
+0x00011868:  stp      d8, d9, [sp, #0x68]
+0x0001186c:  add      x0, sp, #0x40
+0x00011870:  mov      v0.16b, v8.16b
+0x00011874:  mov      v1.16b, v9.16b
+0x00011878:  bl       #0x1ac0c  ; -> sub_1ac0c
+0x0001187c:  mov      x29, x29
+0x00011880:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011884:  mov      x21, x0
+0x00011888:  ldr      x0, [sp, #0x60]
+0x0001188c:  bl       #0x22120  ; -> _objc_release
+0x00011890:  b        #0x11898  ; -> loc_11898
+0x00011894:  mov      x21, #0
+0x00011898:  mov      x0, x23
+0x0001189c:  bl       #0x22120  ; -> _objc_release
+0x000118a0:  mov      x0, x22
+0x000118a4:  bl       #0x22120  ; -> _objc_release
+0x000118a8:  cmp      x25, #4
+0x000118ac:  mov      w8, #3
+0x000118b0:  mov      w9, #5
+0x000118b4:  csel     x20, x9, x8, eq
+0x000118b8:  cbz      x21, #0x11a7c
+0x000118bc:  adrp     x8, #0x30000
+0x000118c0:  ldr      x8, [x8, #0x320]  ; [0x30320] got-sym:_kCAGravityResizeAspect
+0x000118c4:  ldr      x22, [x8]  ; [0x30000] got-sym:___objc_personality_v0
+0x000118c8:  mov      x8, #0x4064000000000000
+0x000118cc:  str      x8, [sp, #0x20]
+0x000118d0:  adrp     x8, #0x28000
+0x000118d4:  ldr      d11, [x8, #0xf00]  ; [0x28f00] dbl=1000000.0 flt=0.0
+0x000118d8:  adrp     x8, #0x28000
+0x000118dc:  ldr      d12, [x8, #0xe90]  ; [0x28e90] dbl=260.0 flt=0.0
+0x000118e0:  adrp     x24, #0x3a000
+0x000118e4:  adrp     x8, #0x28000
+0x000118e8:  ldr      d15, [x8, #0xde8]  ; [0x28de8] dbl=0.35 flt=2.7200830220753216e+23
+0x000118ec:  adrp     x8, #0x28000
+0x000118f0:  ldr      d14, [x8, #0xdf0]  ; [0x28df0] dbl=0.4 flt=-1.5881868392106856e-23
+0x000118f4:  adrp     x8, #0x28000
+0x000118f8:  ldr      d10, [x8, #0xed0]  ; [0x28ed0] dbl=0.1 flt=-1.5881868392106856e-23
+0x000118fc:  mov      w27, #3
+0x00011900:  mov      w0, #0x4241
+0x00011904:  movk     w0, #0xf, lsl #16
+0x00011908:  bl       #0x21e14  ; -> _arc4random_uniform
+0x0001190c:  ucvtf    d0, w0
+0x00011910:  ldr      d1, [sp, #0x20]
+0x00011914:  fmul     d0, d0, d1
+0x00011918:  fdiv     d0, d0, d11
+0x0001191c:  fadd     d0, d0, d12
+0x00011920:  fmul     d8, d13, d0
+0x00011924:  ldr      x0, [x24, #0xb70]  ; [0x3ab70] class:CALayer
+0x00011928:  bl       #0x239e0  ; -> msgSend$layer
+0x0001192c:  mov      x29, x29
+0x00011930:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011934:  mov      x23, x0
+0x00011938:  mov      x0, x21
+0x0001193c:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00011940:  bl       #0x22340  ; -> msgSend$CGImage
+0x00011944:  mov      x2, x0
+0x00011948:  mov      x0, x23
+0x0001194c:  bl       #0x24700  ; -> msgSend$setContents:
+0x00011950:  mov      x0, x23
+0x00011954:  mov      x2, x22
+0x00011958:  bl       #0x24720  ; -> msgSend$setContentsGravity:
+0x0001195c:  mov      x0, x21
+0x00011960:  bl       #0x25580  ; -> msgSend$size
+0x00011964:  fmul     d9, d8, d1
+0x00011968:  mov      x0, x21
+0x0001196c:  bl       #0x25580  ; -> msgSend$size
+0x00011970:  fmov     d1, #1.00000000
+0x00011974:  fcmp     d0, d1
+0x00011978:  fcsel    d0, d1, d0, mi
+0x0001197c:  fdiv     d3, d9, d0
+0x00011980:  fmov     d0, xzr
+0x00011984:  fmov     d1, xzr
+0x00011988:  mov      x0, x23
+0x0001198c:  mov      v2.16b, v8.16b
+0x00011990:  bl       #0x245a0  ; -> msgSend$setBounds:
+0x00011994:  mov      w0, #0x4241
+0x00011998:  movk     w0, #0xf, lsl #16
+0x0001199c:  bl       #0x21e14  ; -> _arc4random_uniform
+0x000119a0:  ucvtf    d0, w0, #2
+0x000119a4:  fdiv     d0, d0, d11
+0x000119a8:  fadd     d0, d0, d15
+0x000119ac:  fcvt     s0, d0
+0x000119b0:  mov      x0, x23
+0x000119b4:  bl       #0x24e00  ; -> msgSend$setOpacity:
+0x000119b8:  mov      w0, #0x4241
+0x000119bc:  movk     w0, #0xf, lsl #16
+0x000119c0:  bl       #0x21e14  ; -> _arc4random_uniform
+0x000119c4:  ucvtf    d0, w0
+0x000119c8:  fmul     d0, d0, d14
+0x000119cc:  fdiv     d0, d0, d11
+0x000119d0:  fadd     d0, d0, d10
+0x000119d4:  ldr      d1, [sp, #0x30]
+0x000119d8:  fmul     d9, d1, d0
+0x000119dc:  fmov     d0, xzr
+0x000119e0:  mov      x0, x23
+0x000119e4:  mov      v1.16b, v9.16b
+0x000119e8:  bl       #0x24ee0  ; -> msgSend$setPosition:
+0x000119ec:  ldr      d0, [sp, #0x28]
+0x000119f0:  fadd     d13, d0, d8
+0x000119f4:  mov      w0, #0x4241
+0x000119f8:  movk     w0, #0xf, lsl #16
+0x000119fc:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011a00:  ucvtf    d0, w0
+0x00011a04:  fmul     d0, d13, d0
+0x00011a08:  fdiv     d0, d0, d11
+0x00011a0c:  fmov     d1, xzr
+0x00011a10:  fadd     d13, d0, d1
+0x00011a14:  mov      w0, #0x4241
+0x00011a18:  movk     w0, #0xf, lsl #16
+0x00011a1c:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011a20:  ucvtf    d0, w0
+0x00011a24:  fmov     d1, #14.00000000
+0x00011a28:  fmul     d0, d0, d1
+0x00011a2c:  fdiv     d0, d0, d11
+0x00011a30:  fmov     d1, #8.00000000
+0x00011a34:  fadd     d0, d0, d1
+0x00011a38:  str      x27, [sp, #0x40]
+0x00011a3c:  stp      d13, d9, [sp, #0x48]
+0x00011a40:  ldr      d13, [sp, #0x38]
+0x00011a44:  fmul     d0, d13, d0
+0x00011a48:  str      d0, [sp, #0x58]
+0x00011a4c:  str      xzr, [sp, #0x60]
+0x00011a50:  str      d8, [sp, #0x68]
+0x00011a54:  str      xzr, [sp, #0x70]
+0x00011a58:  add      x2, sp, #0x40
+0x00011a5c:  mov      x0, x19
+0x00011a60:  mov      x3, x23
+0x00011a64:  mov      x4, x28
+0x00011a68:  bl       #0x25640  ; -> msgSend$ss_addMote:layer:to:
+0x00011a6c:  mov      x0, x23
+0x00011a70:  bl       #0x22120  ; -> _objc_release
+0x00011a74:  subs     x20, x20, #1
+0x00011a78:  b.ne     #0x11900
+0x00011a7c:  mov      x0, x21
+0x00011a80:  bl       #0x22120  ; -> _objc_release
+0x00011a84:  cmp      x25, #7
+0x00011a88:  b.gt     #0x11cf4
+0x00011a8c:  sub      x8, x25, #6
+0x00011a90:  cmp      x8, #2
+0x00011a94:  ldp      d14, d15, [sp, #0x28]
+0x00011a98:  ldr      x21, [sp, #0x18]
+0x00011a9c:  b.lo     #0x11f3c
+0x00011aa0:  cmp      x25, #5
+0x00011aa4:  mov      v8.16b, v13.16b
+0x00011aa8:  mov      v9.16b, v14.16b
+0x00011aac:  b.ne     #0x12500
+0x00011ab0:  adrp     x8, #0x30000
+0x00011ab4:  ldr      x8, [x8, #0x318]  ; [0x30318] got-sym:_kCAGradientLayerRadial
+0x00011ab8:  ldr      x8, [x8]  ; [0x30000] got-sym:___objc_personality_v0
+0x00011abc:  str      x8, [sp, #0x30]
+0x00011ac0:  adrp     x8, #0x28000
+0x00011ac4:  ldr      d0, [x8, #0xfc8]  ; [0x28fc8] dbl=840.0 flt=0.0
+0x00011ac8:  fmul     d0, d8, d0
+0x00011acc:  str      d0, [sp, #0x28]
+0x00011ad0:  adrp     x8, #0x28000
+0x00011ad4:  ldr      d0, [x8, #0xfd0]  ; [0x28fd0] dbl=110.0 flt=0.0
+0x00011ad8:  fmul     d0, d8, d0
+0x00011adc:  str      d0, [sp, #0x20]
+0x00011ae0:  mov      w22, #0x78
+0x00011ae4:  adrp     x20, #0x3a000
+0x00011ae8:  adrp     x8, #0x28000
+0x00011aec:  ldr      d10, [x8, #0xfd8]  ; [0x28fd8] dbl=0.3 flt=4.17232506322307e-08
+0x00011af0:  adrp     x8, #0x28000
+0x00011af4:  ldr      d11, [x8, #0xfe0]  ; [0x28fe0] dbl=0.14 flt=1.9515639880220904e-20
+0x00011af8:  adrp     x8, #0x28000
+0x00011afc:  ldr      d13, [x8, #0xf00]  ; [0x28f00] dbl=1000000.0 flt=0.0
+0x00011b00:  mov      x8, #0x4044000000000000
+0x00011b04:  fmov     d14, x8
+0x00011b08:  adrp     x8, #0x3a000
+0x00011b0c:  ldr      x0, [x8, #0xb08]  ; [0x3ab08] class:CAGradientLayer
+0x00011b10:  bl       #0x239e0  ; -> msgSend$layer
+0x00011b14:  mov      x29, x29
+0x00011b18:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011b1c:  mov      x23, x0
+0x00011b20:  ldr      x2, [sp, #0x30]
+0x00011b24:  bl       #0x253c0  ; -> msgSend$setType:
+0x00011b28:  ldr      x0, [x20, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011b2c:  fmov     d0, #1.00000000
+0x00011b30:  fmov     d1, #1.00000000
+0x00011b34:  fmov     d2, #1.00000000
+0x00011b38:  mov      v3.16b, v10.16b
+0x00011b3c:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00011b40:  mov      x29, x29
+0x00011b44:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011b48:  mov      x24, x0
+0x00011b4c:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00011b50:  bl       #0x22300  ; -> msgSend$CGColor
+0x00011b54:  stur     x0, [x29, #-0xb8]
+0x00011b58:  ldr      x0, [x20, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011b5c:  fmov     d0, #1.00000000
+0x00011b60:  fmov     d1, #1.00000000
+0x00011b64:  fmov     d2, #1.00000000
+0x00011b68:  mov      v3.16b, v11.16b
+0x00011b6c:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00011b70:  mov      x29, x29
+0x00011b74:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011b78:  mov      x25, x0
+0x00011b7c:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00011b80:  bl       #0x22300  ; -> msgSend$CGColor
+0x00011b84:  stur     x0, [x29, #-0xb0]
+0x00011b88:  ldr      x0, [x20, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011b8c:  fmov     d0, #1.00000000
+0x00011b90:  fmov     d1, #1.00000000
+0x00011b94:  fmov     d2, #1.00000000
+0x00011b98:  fmov     d3, xzr
+0x00011b9c:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00011ba0:  mov      x29, x29
+0x00011ba4:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011ba8:  mov      x26, x0
+0x00011bac:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00011bb0:  bl       #0x22300  ; -> msgSend$CGColor
+0x00011bb4:  stur     x0, [x29, #-0xa8]
+0x00011bb8:  adrp     x8, #0x3a000
+0x00011bbc:  ldr      x0, [x8, #0xb00]  ; [0x3ab00] class:NSArray
+0x00011bc0:  sub      x2, x29, #0xb8
+0x00011bc4:  mov      w3, #3
+0x00011bc8:  bl       #0x22700  ; -> msgSend$arrayWithObjects:count:
+0x00011bcc:  mov      x29, x29
+0x00011bd0:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011bd4:  mov      x27, x0
+0x00011bd8:  mov      x0, x23
+0x00011bdc:  mov      x2, x27
+0x00011be0:  bl       #0x24660  ; -> msgSend$setColors:
+0x00011be4:  mov      x0, x27
+0x00011be8:  bl       #0x22120  ; -> _objc_release
+0x00011bec:  mov      x0, x26
+0x00011bf0:  bl       #0x22120  ; -> _objc_release
+0x00011bf4:  mov      x0, x25
+0x00011bf8:  bl       #0x22120  ; -> _objc_release
+0x00011bfc:  mov      x0, x24
+0x00011c00:  bl       #0x22120  ; -> _objc_release
+0x00011c04:  mov      x0, x23
+0x00011c08:  adrp     x2, #0x35000
+0x00011c0c:  add      x2, x2, #0x4a0  ; [0x354a0] bind:_OBJC_CLASS_$_NSConstantArray
+0x00011c10:  bl       #0x24b80  ; -> msgSend$setLocations:
+0x00011c14:  fmov     d0, #0.50000000
+0x00011c18:  fmov     d1, #0.50000000
+0x00011c1c:  mov      x0, x23
+0x00011c20:  bl       #0x25160  ; -> msgSend$setStartPoint:
+0x00011c24:  fmov     d0, #1.00000000
+0x00011c28:  fmov     d1, #1.00000000
+0x00011c2c:  mov      x0, x23
+0x00011c30:  bl       #0x248a0  ; -> msgSend$setEndPoint:
+0x00011c34:  fmov     d0, xzr
+0x00011c38:  fmov     d1, xzr
+0x00011c3c:  mov      x0, x23
+0x00011c40:  ldp      d3, d2, [sp, #0x20]
+0x00011c44:  bl       #0x245a0  ; -> msgSend$setBounds:
+0x00011c48:  ldr      d0, [x19, x21]
+0x00011c4c:  adrp     x8, #0x3a000
+0x00011c50:  ldrsw    x8, [x8, #0xd88]  ; [0x3ad88] -> 0xe0
+0x00011c54:  ldr      d1, [x19, x8]  ; [0x3a000] sel:processName
+0x00011c58:  ucvtf    d2, w22
+0x00011c5c:  fmadd    d15, d2, d0, d1
+0x00011c60:  mov      w0, #0x4241
+0x00011c64:  movk     w0, #0xf, lsl #16
+0x00011c68:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011c6c:  ucvtf    d0, w0
+0x00011c70:  fmul     d0, d9, d0
+0x00011c74:  fdiv     d0, d0, d13
+0x00011c78:  fmov     d1, xzr
+0x00011c7c:  fadd     d12, d0, d1
+0x00011c80:  mov      w0, #0x4241
+0x00011c84:  movk     w0, #0xf, lsl #16
+0x00011c88:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011c8c:  ucvtf    d0, w0
+0x00011c90:  fmul     d0, d0, d14
+0x00011c94:  fdiv     d0, d0, d13
+0x00011c98:  fmov     d1, #20.00000000
+0x00011c9c:  fadd     d0, d0, d1
+0x00011ca0:  fmov     d1, #3.00000000
+0x00011ca4:  fmul     d0, d0, d1
+0x00011ca8:  mov      w8, #2
+0x00011cac:  str      x8, [sp, #0x40]
+0x00011cb0:  stp      d12, d15, [sp, #0x48]
+0x00011cb4:  fmul     d0, d8, d0
+0x00011cb8:  str      d0, [sp, #0x58]
+0x00011cbc:  add      x8, sp, #0x40
+0x00011cc0:  stp      xzr, xzr, [x8, #0x28]
+0x00011cc4:  stur     xzr, [x8, #0x20]
+0x00011cc8:  add      x2, sp, #0x40
+0x00011ccc:  mov      x0, x19
+0x00011cd0:  mov      x3, x23
+0x00011cd4:  mov      x4, x28
+0x00011cd8:  bl       #0x25640  ; -> msgSend$ss_addMote:layer:to:
+0x00011cdc:  mov      x0, x23
+0x00011ce0:  bl       #0x22120  ; -> _objc_release
+0x00011ce4:  add      w22, w22, #0x50
+0x00011ce8:  cmp      w22, #0x258
+0x00011cec:  b.ne     #0x11b08
+0x00011cf0:  b        #0x12500  ; -> loc_12500
+0x00011cf4:  cmp      x25, #8
+0x00011cf8:  ldp      d14, d15, [sp, #0x28]
+0x00011cfc:  b.eq     #0x11e94
+0x00011d00:  cmp      x25, #9
+0x00011d04:  b.ne     #0x12500
+0x00011d08:  mov      w20, #0x64
+0x00011d0c:  adrp     x8, #0x28000
+0x00011d10:  ldr      d11, [x8, #0xf00]  ; [0x28f00] dbl=1000000.0 flt=0.0
+0x00011d14:  adrp     x23, #0x3a000
+0x00011d18:  adrp     x8, #0x28000
+0x00011d1c:  ldr      d0, [x8, #0xe58]  ; [0x28e58] dbl=0.85 flt=4.17232506322307e-08
+0x00011d20:  str      d0, [sp, #0x20]
+0x00011d24:  fmov     d8, xzr
+0x00011d28:  mov      x8, #0x4044000000000000
+0x00011d2c:  str      x8, [sp, #0x18]
+0x00011d30:  mov      w24, #4
+0x00011d34:  mov      w0, #0x4241
+0x00011d38:  movk     w0, #0xf, lsl #16
+0x00011d3c:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011d40:  ucvtf    d0, w0
+0x00011d44:  fmov     d1, #3.00000000
+0x00011d48:  fmul     d0, d0, d1
+0x00011d4c:  fdiv     d0, d0, d11
+0x00011d50:  fmov     d1, #1.50000000
+0x00011d54:  fadd     d0, d0, d1
+0x00011d58:  fmul     d9, d13, d0
+0x00011d5c:  ldr      x0, [x23, #0xb70]  ; [0x3ab70] class:CALayer
+0x00011d60:  bl       #0x239e0  ; -> msgSend$layer
+0x00011d64:  mov      x29, x29
+0x00011d68:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011d6c:  mov      x21, x0
+0x00011d70:  ldr      x0, [x26, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011d74:  fmov     d0, #1.00000000
+0x00011d78:  fmov     d1, #1.00000000
+0x00011d7c:  fmov     d2, #1.00000000
+0x00011d80:  ldr      d3, [sp, #0x20]
+0x00011d84:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00011d88:  mov      x29, x29
+0x00011d8c:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011d90:  mov      x22, x0
+0x00011d94:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00011d98:  bl       #0x22300  ; -> msgSend$CGColor
+0x00011d9c:  mov      x2, x0
+0x00011da0:  mov      x0, x21
+0x00011da4:  bl       #0x24500  ; -> msgSend$setBackgroundColor:
+0x00011da8:  mov      x0, x22
+0x00011dac:  bl       #0x22120  ; -> _objc_release
+0x00011db0:  fadd     d2, d9, d9
+0x00011db4:  fmov     d0, xzr
+0x00011db8:  fmov     d1, xzr
+0x00011dbc:  mov      x0, x21
+0x00011dc0:  mov      v3.16b, v2.16b
+0x00011dc4:  bl       #0x245a0  ; -> msgSend$setBounds:
+0x00011dc8:  mov      x0, x21
+0x00011dcc:  mov      v0.16b, v9.16b
+0x00011dd0:  bl       #0x24760  ; -> msgSend$setCornerRadius:
+0x00011dd4:  mov      w0, #0x4241
+0x00011dd8:  movk     w0, #0xf, lsl #16
+0x00011ddc:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011de0:  ucvtf    d0, w0
+0x00011de4:  fmul     d0, d14, d0
+0x00011de8:  fdiv     d0, d0, d11
+0x00011dec:  fadd     d12, d0, d8
+0x00011df0:  mov      w0, #0x4241
+0x00011df4:  movk     w0, #0xf, lsl #16
+0x00011df8:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011dfc:  ucvtf    d0, w0
+0x00011e00:  fmul     d0, d15, d0
+0x00011e04:  fdiv     d0, d0, d11
+0x00011e08:  fadd     d15, d0, d8
+0x00011e0c:  mov      w0, #0x4241
+0x00011e10:  movk     w0, #0xf, lsl #16
+0x00011e14:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011e18:  ucvtf    d0, w0
+0x00011e1c:  ldr      d1, [sp, #0x18]
+0x00011e20:  fmul     d0, d0, d1
+0x00011e24:  fdiv     d0, d0, d11
+0x00011e28:  fmov     d1, #30.00000000
+0x00011e2c:  fadd     d0, d0, d1
+0x00011e30:  fmul     d10, d13, d0
+0x00011e34:  mov      w0, #0x4241
+0x00011e38:  movk     w0, #0xf, lsl #16
+0x00011e3c:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00011e40:  ucvtf    d0, w0
+0x00011e44:  fmov     d1, #6.00000000
+0x00011e48:  fmul     d0, d0, d1
+0x00011e4c:  fdiv     d0, d0, d11
+0x00011e50:  str      x24, [sp, #0x40]
+0x00011e54:  stp      d12, d15, [sp, #0x48]
+0x00011e58:  ldr      d15, [sp, #0x30]
+0x00011e5c:  stp      d10, d9, [sp, #0x58]
+0x00011e60:  fadd     d0, d0, d8
+0x00011e64:  str      xzr, [sp, #0x68]
+0x00011e68:  str      d0, [sp, #0x70]
+0x00011e6c:  add      x2, sp, #0x40
+0x00011e70:  mov      x0, x19
+0x00011e74:  mov      x3, x21
+0x00011e78:  mov      x4, x28
+0x00011e7c:  bl       #0x25640  ; -> msgSend$ss_addMote:layer:to:
+0x00011e80:  mov      x0, x21
+0x00011e84:  bl       #0x22120  ; -> _objc_release
+0x00011e88:  subs     w20, w20, #1
+0x00011e8c:  b.ne     #0x11d34
+0x00011e90:  b        #0x12500  ; -> loc_12500
+0x00011e94:  adrp     x8, #0x3a000
+0x00011e98:  ldr      x0, [x8, #0xb70]  ; [0x3ab70] class:CALayer
+0x00011e9c:  bl       #0x239e0  ; -> msgSend$layer
+0x00011ea0:  mov      x29, x29
+0x00011ea4:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011ea8:  adrp     x8, #0x3a000
+0x00011eac:  ldrsw    x20, [x8, #0xd5c]  ; [0x3ad5c] -> 0x198
+0x00011eb0:  ldr      x8, [x19, x20]  ; [0x3a000] sel:processName
+0x00011eb4:  str      x0, [x19, x20]
+0x00011eb8:  mov      x0, x8
+0x00011ebc:  bl       #0x22120  ; -> _objc_release
+0x00011ec0:  adrp     x8, #0x3a000
+0x00011ec4:  ldrsw    x8, [x8, #0xd30]  ; [0x3ad30] -> 0x118
+0x00011ec8:  ldr      x0, [x19, x8]  ; [0x3a000] sel:processName
+0x00011ecc:  bl       #0x228c0  ; -> msgSend$bounds
+0x00011ed0:  ldr      x0, [x19, x20]  ; [0x3a000] sel:processName
+0x00011ed4:  bl       #0x249c0  ; -> msgSend$setFrame:
+0x00011ed8:  adrp     x8, #0x3a000
+0x00011edc:  ldr      x0, [x8, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011ee0:  adrp     x8, #0x28000
+0x00011ee4:  ldr      d0, [x8, #0xf80]  ; [0x28f80] dbl=0.8666666666666667 flt=-0.00572916679084301
+0x00011ee8:  adrp     x8, #0x28000
+0x00011eec:  ldr      d1, [x8, #0xf18]  ; [0x28f18] dbl=0.9019607843137255 flt=-4.9733869297781965e+17
+0x00011ef0:  fmov     d2, #1.00000000
+0x00011ef4:  fmov     d3, #1.00000000
+0x00011ef8:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00011efc:  mov      x29, x29
+0x00011f00:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011f04:  mov      x21, x0
+0x00011f08:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00011f0c:  bl       #0x22300  ; -> msgSend$CGColor
+0x00011f10:  mov      x2, x0
+0x00011f14:  ldr      x0, [x19, x20]  ; [0x3a000] sel:processName
+0x00011f18:  bl       #0x24500  ; -> msgSend$setBackgroundColor:
+0x00011f1c:  mov      x0, x21
+0x00011f20:  bl       #0x22120  ; -> _objc_release
+0x00011f24:  ldr      x0, [x19, x20]  ; [0x3a000] sel:processName
+0x00011f28:  fmov     s0, wzr
+0x00011f2c:  bl       #0x24e00  ; -> msgSend$setOpacity:
+0x00011f30:  ldr      x2, [x19, x20]  ; [0x3a000] sel:processName
+0x00011f34:  mov      x0, x28
+0x00011f38:  bl       #0x22500  ; -> msgSend$addSublayer:
+0x00011f3c:  str      x28, [sp, #0x10]
+0x00011f40:  adrp     x8, #0x3a000
+0x00011f44:  ldr      x0, [x8, #0xa10]  ; [0x3aa10] class:UIView
+0x00011f48:  bl       #0x22024  ; -> _objc_alloc
+0x00011f4c:  mov      x21, x0
+0x00011f50:  mov      x0, x19
+0x00011f54:  bl       #0x228c0  ; -> msgSend$bounds
+0x00011f58:  mov      x0, x21
+0x00011f5c:  bl       #0x23780  ; -> msgSend$initWithFrame:
+0x00011f60:  adrp     x8, #0x3a000
+0x00011f64:  ldrsw    x28, [x8, #0xd34]  ; [0x3ad34] -> 0x800000120
+0x00011f68:  ldr      x8, [x19, x28]
+0x00011f6c:  str      x0, [x19, x28]
+0x00011f70:  mov      x0, x8
+0x00011f74:  bl       #0x22120  ; -> _objc_release
+0x00011f78:  ldr      x0, [x19, x28]
+0x00011f7c:  mov      w2, #0
+0x00011f80:  bl       #0x25400  ; -> msgSend$setUserInteractionEnabled:
+0x00011f84:  ldr      x2, [x19, x28]
+0x00011f88:  mov      x0, x19
+0x00011f8c:  bl       #0x22520  ; -> msgSend$addSubview:
+0x00011f90:  adrp     x26, #0x3a000
+0x00011f94:  ldr      x0, [x26, #0xb70]  ; [0x3ab70] class:CALayer
+0x00011f98:  bl       #0x239e0  ; -> msgSend$layer
+0x00011f9c:  mov      x29, x29
+0x00011fa0:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011fa4:  mov      x21, x0
+0x00011fa8:  ldr      x0, [x19, x28]
+0x00011fac:  bl       #0x228c0  ; -> msgSend$bounds
+0x00011fb0:  mov      x0, x21
+0x00011fb4:  bl       #0x249c0  ; -> msgSend$setFrame:
+0x00011fb8:  ldr      x0, [x26, #0xb70]  ; [0x3ab70] class:CALayer
+0x00011fbc:  bl       #0x239e0  ; -> msgSend$layer
+0x00011fc0:  mov      x29, x29
+0x00011fc4:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00011fc8:  mov      x20, x0
+0x00011fcc:  mov      x0, x21
+0x00011fd0:  bl       #0x228c0  ; -> msgSend$bounds
+0x00011fd4:  mov      x0, x20
+0x00011fd8:  bl       #0x249c0  ; -> msgSend$setFrame:
+0x00011fdc:  adrp     x8, #0x3a000
+0x00011fe0:  ldr      x0, [x8, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00011fe4:  adrp     x8, #0x28000
+0x00011fe8:  ldr      d0, [x8, #0xe20]  ; [0x28e20] dbl=0.11764705882352941 flt=8.370678442537372e-21
+0x00011fec:  adrp     x8, #0x28000
+0x00011ff0:  ldr      d1, [x8, #0xf88]  ; [0x28f88] dbl=0.1568627450980392 flt=7.476050206219084e-27
+0x00011ff4:  adrp     x8, #0x28000
+0x00011ff8:  ldr      d2, [x8, #0xf90]  ; [0x28f90] dbl=0.21568627450980393 flt=-2.5743159190809087e-22
+0x00011ffc:  adrp     x8, #0x28000
+0x00012000:  ldr      d3, [x8, #0xf98]  ; [0x28f98] dbl=0.55 flt=-1.5881868392106856e-23
+0x00012004:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00012008:  mov      x29, x29
+0x0001200c:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00012010:  mov      x23, x0
+0x00012014:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00012018:  bl       #0x22300  ; -> msgSend$CGColor
+0x0001201c:  mov      x2, x0
+0x00012020:  mov      x0, x20
+0x00012024:  bl       #0x24500  ; -> msgSend$setBackgroundColor:
+0x00012028:  mov      x0, x23
+0x0001202c:  bl       #0x22120  ; -> _objc_release
+0x00012030:  mov      x0, x21
+0x00012034:  str      x20, [sp, #0x20]
+0x00012038:  mov      x2, x20
+0x0001203c:  bl       #0x22500  ; -> msgSend$addSublayer:
+0x00012040:  adrp     x0, #0x30000
+0x00012044:  add      x0, x0, #0xc58  ; [0x30c58] bind:__NSConcreteGlobalBlock
+0x00012048:  mov      x8, #0x4040000000000000
+0x0001204c:  fmov     d0, x8
+0x00012050:  mov      x8, #0x4044000000000000
+0x00012054:  fmov     d1, x8
+0x00012058:  bl       #0x1ac0c  ; -> sub_1ac0c
+0x0001205c:  mov      x29, x29
+0x00012060:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00012064:  mov      x23, x0
+0x00012068:  cmp      x25, #6
+0x0001206c:  mov      w8, #0x78
+0x00012070:  mov      w9, #0x46
+0x00012074:  csel     x20, x9, x8, eq
+0x00012078:  add      x22, sp, #0x40
+0x0001207c:  fmov     d8, #6.00000000
+0x00012080:  adrp     x8, #0x28000
+0x00012084:  ldr      d9, [x8, #0xf00]  ; [0x28f00] dbl=1000000.0 flt=0.0
+0x00012088:  fmov     d10, #3.00000000
+0x0001208c:  adrp     x8, #0x28000
+0x00012090:  ldr      d11, [x8, #0xfa0]  ; [0x28fa0] dbl=1.6 flt=-1.5881868392106856e-23
+0x00012094:  fmov     d12, xzr
+0x00012098:  mov      w0, #0x4241
+0x0001209c:  movk     w0, #0xf, lsl #16
+0x000120a0:  bl       #0x21e14  ; -> _arc4random_uniform
+0x000120a4:  ucvtf    d0, w0
+0x000120a8:  fmul     d0, d0, d8
+0x000120ac:  fdiv     d0, d0, d9
+0x000120b0:  fadd     d0, d0, d10
+0x000120b4:  ldr      d1, [sp, #0x38]
+0x000120b8:  fmul     d13, d1, d0
+0x000120bc:  ldr      x0, [x26, #0xb70]  ; [0x3ab70] class:CALayer
+0x000120c0:  bl       #0x239e0  ; -> msgSend$layer
+0x000120c4:  mov      x29, x29
+0x000120c8:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000120cc:  mov      x24, x0
+0x000120d0:  mov      x0, x23
+0x000120d4:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x000120d8:  bl       #0x22340  ; -> msgSend$CGImage
+0x000120dc:  mov      x2, x0
+0x000120e0:  mov      x0, x24
+0x000120e4:  bl       #0x24700  ; -> msgSend$setContents:
+0x000120e8:  fmul     d2, d13, d11
+0x000120ec:  fadd     d3, d13, d13
+0x000120f0:  fmov     d0, xzr
+0x000120f4:  fmov     d1, xzr
+0x000120f8:  mov      x0, x24
+0x000120fc:  bl       #0x245a0  ; -> msgSend$setBounds:
+0x00012100:  mov      w0, #0x4241
+0x00012104:  movk     w0, #0xf, lsl #16
+0x00012108:  bl       #0x21e14  ; -> _arc4random_uniform
+0x0001210c:  ucvtf    d0, w0
+0x00012110:  fmul     d0, d14, d0
+0x00012114:  fdiv     d0, d0, d9
+0x00012118:  fadd     d14, d0, d12
+0x0001211c:  mov      w0, #0x4241
+0x00012120:  movk     w0, #0xf, lsl #16
+0x00012124:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00012128:  ucvtf    d0, w0
+0x0001212c:  fmul     d0, d15, d0
+0x00012130:  fdiv     d0, d0, d9
+0x00012134:  fadd     d15, d0, d12
+0x00012138:  mov      w0, #0x4241
+0x0001213c:  movk     w0, #0xf, lsl #16
+0x00012140:  bl       #0x21e14  ; -> _arc4random_uniform
+0x00012144:  ucvtf    d0, w0
+0x00012148:  str      xzr, [sp, #0x40]
+0x0001214c:  stp      d14, d15, [sp, #0x48]
+0x00012150:  ldp      d14, d15, [sp, #0x28]
+0x00012154:  fdiv     d0, d0, d9
+0x00012158:  stp      d0, d13, [sp, #0x58]
+0x0001215c:  ldr      d13, [sp, #0x38]
+0x00012160:  stp      xzr, xzr, [x22, #0x28]
+0x00012164:  add      x2, sp, #0x40
+0x00012168:  mov      x0, x19
+0x0001216c:  mov      x3, x24
+0x00012170:  mov      x4, x21
+0x00012174:  bl       #0x25640  ; -> msgSend$ss_addMote:layer:to:
+0x00012178:  mov      x0, x24
+0x0001217c:  bl       #0x22120  ; -> _objc_release
+0x00012180:  subs     x20, x20, #1
+0x00012184:  b.ne     #0x12098
+0x00012188:  adrp     x25, #0x3a000
+0x0001218c:  ldr      x0, [x25, #0xb78]  ; [0x3ab78] class:CAShapeLayer
+0x00012190:  bl       #0x239e0  ; -> msgSend$layer
+0x00012194:  mov      x29, x29
+0x00012198:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x0001219c:  adrp     x8, #0x3a000
+0x000121a0:  ldrsw    x20, [x8, #0xd70]  ; [0x3ad70] -> 0x8000001a8
+0x000121a4:  ldr      x8, [x19, x20]  ; [0x3a000] sel:processName
+0x000121a8:  str      x0, [x19, x20]
+0x000121ac:  mov      x0, x8
+0x000121b0:  bl       #0x22120  ; -> _objc_release
+0x000121b4:  mov      x0, x21
+0x000121b8:  bl       #0x228c0  ; -> msgSend$bounds
+0x000121bc:  ldr      x0, [x19, x20]  ; [0x3a000] sel:processName
+0x000121c0:  bl       #0x249c0  ; -> msgSend$setFrame:
+0x000121c4:  adrp     x8, #0x30000
+0x000121c8:  ldr      x8, [x8, #0x300]  ; [0x30300] got-sym:_kCAFillRuleEvenOdd
+0x000121cc:  ldr      x2, [x8]  ; [0x30000] got-sym:___objc_personality_v0
+0x000121d0:  ldr      x0, [x19, x20]  ; [0x3a000] sel:processName
+0x000121d4:  bl       #0x24960  ; -> msgSend$setFillRule:
+0x000121d8:  adrp     x8, #0x3a000
+0x000121dc:  ldr      x0, [x8, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x000121e0:  bl       #0x22860  ; -> msgSend$blackColor
+0x000121e4:  mov      x29, x29
+0x000121e8:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000121ec:  mov      x24, x0
+0x000121f0:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x000121f4:  bl       #0x22300  ; -> msgSend$CGColor
+0x000121f8:  mov      x2, x0
+0x000121fc:  ldr      x0, [x19, x20]  ; [0x3a000] sel:processName
+0x00012200:  bl       #0x24940  ; -> msgSend$setFillColor:
+0x00012204:  mov      x0, x24
+0x00012208:  bl       #0x22120  ; -> _objc_release
+0x0001220c:  ldr      x2, [x19, x20]  ; [0x3a000] sel:processName
+0x00012210:  mov      x0, x21
+0x00012214:  bl       #0x24be0  ; -> msgSend$setMask:
+0x00012218:  ldr      x0, [x19, x28]
+0x0001221c:  bl       #0x239e0  ; -> msgSend$layer
+0x00012220:  mov      x29, x29
+0x00012224:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00012228:  mov      x24, x0
+0x0001222c:  mov      x2, x21
+0x00012230:  bl       #0x22500  ; -> msgSend$addSublayer:
+0x00012234:  mov      x0, x24
+0x00012238:  bl       #0x22120  ; -> _objc_release
+0x0001223c:  adrp     x8, #0x3a000
+0x00012240:  ldrsw    x8, [x8, #0xd8c]  ; [0x3ad8c] -> 0x1c0
+0x00012244:  add      x24, x19, x8
+0x00012248:  fmov     d0, #0.50000000
+0x0001224c:  fmul     d0, d14, d0
+0x00012250:  mov      x8, #0x4054000000000000
+0x00012254:  fmov     d1, x8
+0x00012258:  fmadd    d1, d13, d1, d15
+0x0001225c:  stp      d0, d1, [x24]
+0x00012260:  adrp     x8, #0x28000
+0x00012264:  ldr      d0, [x8, #0xfa8]  ; [0x28fa8] dbl=980.0 flt=0.0
+0x00012268:  fmul     d0, d13, d0
+0x0001226c:  adrp     x8, #0x28000
+0x00012270:  ldr      d1, [x8, #0xfb0]  ; [0x28fb0] dbl=0.6125 flt=-1.5881868392106856e-23
+0x00012274:  fmul     d1, d14, d1
+0x00012278:  fcmp     d0, d1
+0x0001227c:  fcsel    d0, d1, d0, mi
+0x00012280:  adrp     x8, #0x3a000
+0x00012284:  ldrsw    x20, [x8, #0xd90]  ; [0x3ad90] -> 0x8000001b0
+0x00012288:  str      d0, [x19, x20]
+0x0001228c:  ldr      x0, [x26, #0xb70]  ; [0x3ab70] class:CALayer
+0x00012290:  bl       #0x239e0  ; -> msgSend$layer
+0x00012294:  mov      x29, x29
+0x00012298:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x0001229c:  adrp     x8, #0x3a000
+0x000122a0:  ldrsw    x22, [x8, #0xd60]  ; [0x3ad60] -> 0x800000190
+0x000122a4:  ldr      x8, [x19, x22]
+0x000122a8:  str      x0, [x19, x22]
+0x000122ac:  mov      x0, x8
+0x000122b0:  bl       #0x22120  ; -> _objc_release
+0x000122b4:  adrp     x8, #0x30000
+0x000122b8:  ldr      x8, [x8, #0x6a0]  ; [0x306a0] got-sym:_CGRectZero
+0x000122bc:  ldp      d0, d1, [x8]
+0x000122c0:  ldp      d2, d3, [x8, #0x10]
+0x000122c4:  ldr      x0, [x19, x22]
+0x000122c8:  bl       #0x245a0  ; -> msgSend$setBounds:
+0x000122cc:  ldp      d0, d1, [x24]
+0x000122d0:  ldr      x0, [x19, x22]
+0x000122d4:  bl       #0x24ee0  ; -> msgSend$setPosition:
+0x000122d8:  ldr      x0, [x25, #0xb78]  ; [0x3ab78] class:CAShapeLayer
+0x000122dc:  bl       #0x239e0  ; -> msgSend$layer
+0x000122e0:  mov      x29, x29
+0x000122e4:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000122e8:  mov      x24, x0
+0x000122ec:  str      x28, [sp, #0x30]
+0x000122f0:  adrp     x27, #0x3a000
+0x000122f4:  ldr      x0, [x27, #0xb80]  ; [0x3ab80] class:UIBezierPath
+0x000122f8:  bl       #0x22800  ; -> msgSend$bezierPath
+0x000122fc:  mov      x29, x29
+0x00012300:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00012304:  mov      x25, x0
+0x00012308:  adrp     x8, #0x30000
+0x0001230c:  ldr      x8, [x8, #0x698]  ; [0x30698] got-sym:_CGPointZero
+0x00012310:  ldp      d0, d1, [x8]
+0x00012314:  bl       #0x23c60  ; -> msgSend$moveToPoint:
+0x00012318:  ldr      d0, [x19, x20]  ; [0x3a000] sel:processName
+0x0001231c:  fmov     d1, xzr
+0x00012320:  mov      x0, x25
+0x00012324:  bl       #0x22460  ; -> msgSend$addLineToPoint:
+0x00012328:  mov      x0, x25
+0x0001232c:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00012330:  bl       #0x22360  ; -> msgSend$CGPath
+0x00012334:  mov      x2, x0
+0x00012338:  mov      x0, x24
+0x0001233c:  bl       #0x24ec0  ; -> msgSend$setPath:
+0x00012340:  adrp     x28, #0x3a000
+0x00012344:  ldr      x0, [x28, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x00012348:  adrp     x8, #0x28000
+0x0001234c:  ldr      d0, [x8, #0xe48]  ; [0x28e48] dbl=0.043137254901960784 flt=1.2123872597254303e-25
+0x00012350:  adrp     x8, #0x28000
+0x00012354:  ldr      d2, [x8, #0xfb8]  ; [0x28fb8] dbl=0.050980392156862744 flt=3.186753825756631e-23
+0x00012358:  fmov     d9, #1.00000000
+0x0001235c:  fmov     d3, #1.00000000
+0x00012360:  mov      v1.16b, v0.16b
+0x00012364:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00012368:  mov      x29, x29
+0x0001236c:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x00012370:  mov      x26, x0
+0x00012374:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00012378:  bl       #0x22300  ; -> msgSend$CGColor
+0x0001237c:  mov      x2, x0
+0x00012380:  mov      x0, x24
+0x00012384:  bl       #0x251a0  ; -> msgSend$setStrokeColor:
+0x00012388:  mov      x0, x26
+0x0001238c:  bl       #0x22120  ; -> _objc_release
+0x00012390:  fmov     d0, #16.00000000
+0x00012394:  fmul     d0, d13, d0
+0x00012398:  fmov     d1, #2.00000000
+0x0001239c:  fmaxnm   d0, d0, d1
+0x000123a0:  mov      x0, x24
+0x000123a4:  bl       #0x24b20  ; -> msgSend$setLineWidth:
+0x000123a8:  adrp     x8, #0x30000
+0x000123ac:  ldr      x8, [x8, #0x328]  ; [0x30328] got-sym:_kCALineCapRound
+0x000123b0:  ldr      x2, [x8]  ; [0x30000] got-sym:___objc_personality_v0
+0x000123b4:  mov      x0, x24
+0x000123b8:  bl       #0x24ac0  ; -> msgSend$setLineCap:
+0x000123bc:  ldr      x0, [x19, x22]
+0x000123c0:  mov      x2, x24
+0x000123c4:  bl       #0x22500  ; -> msgSend$addSublayer:
+0x000123c8:  adrp     x8, #0x3a000
+0x000123cc:  ldr      x0, [x8, #0xb78]  ; [0x3ab78] class:CAShapeLayer
+0x000123d0:  bl       #0x239e0  ; -> msgSend$layer
+0x000123d4:  mov      x29, x29
+0x000123d8:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000123dc:  mov      x26, x0
+0x000123e0:  ldr      x0, [x27, #0xb80]  ; [0x3ab80] class:UIBezierPath
+0x000123e4:  bl       #0x22800  ; -> msgSend$bezierPath
+0x000123e8:  mov      x29, x29
+0x000123ec:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000123f0:  mov      x27, x0
+0x000123f4:  mov      x8, #0x404e000000000000
+0x000123f8:  fmov     d0, x8
+0x000123fc:  fmul     d0, d13, d0
+0x00012400:  fmov     d1, #-6.00000000
+0x00012404:  fmul     d8, d13, d1
+0x00012408:  mov      v1.16b, v8.16b
+0x0001240c:  bl       #0x23c60  ; -> msgSend$moveToPoint:
+0x00012410:  ldr      d0, [x19, x20]  ; [0x3a000] sel:processName
+0x00012414:  mov      x0, x27
+0x00012418:  mov      v1.16b, v8.16b
+0x0001241c:  bl       #0x22460  ; -> msgSend$addLineToPoint:
+0x00012420:  mov      x0, x27
+0x00012424:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00012428:  bl       #0x22360  ; -> msgSend$CGPath
+0x0001242c:  mov      x2, x0
+0x00012430:  mov      x0, x26
+0x00012434:  bl       #0x24ec0  ; -> msgSend$setPath:
+0x00012438:  ldr      x0, [x28, #0x9d8]  ; [0x3a9d8] class:UIColor
+0x0001243c:  adrp     x8, #0x28000
+0x00012440:  ldr      d3, [x8, #0xfc0]  ; [0x28fc0] dbl=0.15 flt=4.17232506322307e-08
+0x00012444:  fmov     d0, #1.00000000
+0x00012448:  fmov     d1, #1.00000000
+0x0001244c:  fmov     d2, #1.00000000
+0x00012450:  bl       #0x22b00  ; -> msgSend$colorWithRed:green:blue:alpha:
+0x00012454:  mov      x29, x29
+0x00012458:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x0001245c:  mov      x28, x0
+0x00012460:  bl       #0x22138  ; -> _objc_retainAutorelease
+0x00012464:  bl       #0x22300  ; -> msgSend$CGColor
+0x00012468:  mov      x2, x0
+0x0001246c:  mov      x0, x26
+0x00012470:  bl       #0x251a0  ; -> msgSend$setStrokeColor:
+0x00012474:  mov      x0, x28
+0x00012478:  bl       #0x22120  ; -> _objc_release
+0x0001247c:  fmov     d0, #3.00000000
+0x00012480:  fmul     d0, d13, d0
+0x00012484:  fmaxnm   d0, d0, d9
+0x00012488:  mov      x0, x26
+0x0001248c:  bl       #0x24b20  ; -> msgSend$setLineWidth:
+0x00012490:  ldr      x0, [x19, x22]
+0x00012494:  mov      x2, x26
+0x00012498:  bl       #0x22500  ; -> msgSend$addSublayer:
+0x0001249c:  ldr      x8, [sp, #0x30]
+0x000124a0:  ldr      x0, [x19, x8]  ; [0x28000] "form.translation.x"
+0x000124a4:  bl       #0x239e0  ; -> msgSend$layer
+0x000124a8:  mov      x29, x29
+0x000124ac:  bl       #0x22144  ; -> _objc_retainAutoreleasedReturnValue
+0x000124b0:  mov      x28, x0
+0x000124b4:  ldr      x2, [x19, x22]
+0x000124b8:  bl       #0x22500  ; -> msgSend$addSublayer:
+0x000124bc:  mov      x0, x28
+0x000124c0:  bl       #0x22120  ; -> _objc_release
+0x000124c4:  mov      x0, x27
+0x000124c8:  bl       #0x22120  ; -> _objc_release
+0x000124cc:  mov      x0, x26
+0x000124d0:  bl       #0x22120  ; -> _objc_release
+0x000124d4:  mov      x0, x25
+0x000124d8:  bl       #0x22120  ; -> _objc_release
+0x000124dc:  mov      x0, x24
+0x000124e0:  bl       #0x22120  ; -> _objc_release
+0x000124e4:  mov      x0, x23
+0x000124e8:  bl       #0x22120  ; -> _objc_release
+0x000124ec:  ldr      x0, [sp, #0x20]
+0x000124f0:  bl       #0x22120  ; -> _objc_release
+0x000124f4:  mov      x0, x21
+0x000124f8:  bl       #0x22120  ; -> _objc_release
+0x000124fc:  ldr      x28, [sp, #0x10]
+0x00012500:  mov      x0, x28
+0x00012504:  bl       #0x22120  ; -> _objc_release
+0x00012508:  ldur     x8, [x29, #-0xa0]
+0x0001250c:  adrp     x9, #0x30000
+0x00012510:  ldr      x9, [x9, #0x378]  ; [0x30378] got-sym:___stack_chk_guard
+0x00012514:  ldr      x9, [x9]  ; [0x30000] got-sym:___objc_personality_v0
+0x00012518:  cmp      x9, x8
+0x0001251c:  b.ne     #0x12550
+0x00012520:  add      sp, sp, #0x170
+0x00012524:  ldp      x29, x30, [sp, #0x90]
+0x00012528:  ldp      x20, x19, [sp, #0x80]
+0x0001252c:  ldp      x22, x21, [sp, #0x70]
+0x00012530:  ldp      x24, x23, [sp, #0x60]
+0x00012534:  ldp      x26, x25, [sp, #0x50]
+0x00012538:  ldp      x28, x27, [sp, #0x40]
+0x0001253c:  ldp      d9, d8, [sp, #0x30]
+0x00012540:  ldp      d11, d10, [sp, #0x20]
+0x00012544:  ldp      d13, d12, [sp, #0x10]
+0x00012548:  ldp      d15, d14, [sp], #0xa0
+0x0001254c:  ret      
+0x00012550:  bl       #0x21dd8  ; -> ___stack_chk_fail

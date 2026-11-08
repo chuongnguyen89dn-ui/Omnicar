@@ -1,0 +1,25 @@
+; sub_5a04
+; VA 0x5a04  size 88
+
+0x00005a04:  stp      d9, d8, [sp, #-0x30]!
+0x00005a08:  stp      x20, x19, [sp, #0x10]
+0x00005a0c:  stp      x29, x30, [sp, #0x20]
+0x00005a10:  add      x29, sp, #0x20
+0x00005a14:  adrp     x0, #0x31000
+0x00005a18:  add      x0, x0, #0x548    ; @"startupScreenDuration"
+0x00005a1c:  adrp     x1, #0x34000
+0x00005a20:  add      x1, x1, #0xe10
+0x00005a24:  bl       #0x1af70    ; -> OMCPref
+0x00005a28:  mov      x29, x29
+0x00005a2c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005a30:  mov      x19, x0
+0x00005a34:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x00005a38:  mov      v8.16b, v0.16b
+0x00005a3c:  mov      x0, x19
+0x00005a40:  bl       #0x22120    ; -> _objc_release
+0x00005a44:  fmov     d0, #1.00000000
+0x00005a48:  fmaxnm   d0, d8, d0
+0x00005a4c:  ldp      x29, x30, [sp, #0x20]
+0x00005a50:  ldp      x20, x19, [sp, #0x10]
+0x00005a54:  ldp      d9, d8, [sp], #0x30
+0x00005a58:  ret      

@@ -1,0 +1,52 @@
+# +[SPPPrefs warnMode]
+# addr 0x1f034 .. 0x1f0f8  (196 bytes)
+
+0001f034  stp      x22, x21, [sp, #-0x30]!                     
+0001f038  stp      x20, x19, [sp, #0x10]                       
+0001f03c  stp      x29, x30, [sp, #0x20]                       
+0001f040  add      x29, sp, #0x20                              
+0001f044  adrp     x0, #0x3b000                                
+0001f048  add      x0, x0, #0x158                              ; @"speedBubbleWarnMode"
+0001f04c  bl       #0x1edb0                                    ; sub_1edb0
+0001f050  mov      x29, x29                                    
+0001f054  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f058  mov      x19, x0                                     
+0001f05c  cbz      x0, #0x1f0a8                                
+0001f060  mov      x0, x19                                     
+0001f064  bl       #0x29960                                    ; objc_msgSend$integerValue
+0001f068  cmp      x0, #2                                      
+0001f06c  b.ne     #0x1f0ac                                    
+0001f070  adrp     x0, #0x3b000                                
+0001f074  add      x0, x0, #0x178                              ; @"speedBubbleWarnModeV2"
+0001f078  bl       #0x1edb0                                    ; sub_1edb0
+0001f07c  mov      x29, x29                                    
+0001f080  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f084  mov      x20, x0                                     
+0001f088  bl       #0x28a60                                    ; objc_msgSend$boolValue
+0001f08c  mov      x21, x0                                     
+0001f090  mov      x0, x20                                     
+0001f094  bl       #0x27ff8                                    ; _objc_release
+0001f098  tst      w21, #1                                     
+0001f09c  mov      w8, #2                                      
+0001f0a0  cinc     x0, x8, eq                                  
+0001f0a4  b        #0x1f0ac                                    ; sub_1f0ac
+0001f0a8  mov      w0, #3                                      
+0001f0ac  cmp      x0, #3                                      
+0001f0b0  mov      w8, #3                                      
+0001f0b4  csel     x20, x0, x8, lo                             
+0001f0b8  mov      x0, x19                                     
+0001f0bc  bl       #0x27ff8                                    ; _objc_release
+0001f0c0  mov      x0, x20                                     
+0001f0c4  ldp      x29, x30, [sp, #0x20]                       
+0001f0c8  ldp      x20, x19, [sp, #0x10]                       
+0001f0cc  ldp      x22, x21, [sp], #0x30                       
+0001f0d0  ret                                                  
+0001f0d4  mov      x21, x0                                     
+0001f0d8  mov      x0, x20                                     
+0001f0dc  bl       #0x27ff8                                    ; _objc_release
+0001f0e0  b        #0x1f0e8                                    ; sub_1f0e8
+0001f0e4  mov      x21, x0                                     
+0001f0e8  mov      x0, x19                                     
+0001f0ec  bl       #0x27ff8                                    ; _objc_release
+0001f0f0  mov      x0, x21                                     
+0001f0f4  bl       #0x27c80                                    ; __Unwind_Resume

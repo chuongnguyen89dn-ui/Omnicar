@@ -1,0 +1,272 @@
+; __init_1 (0x58b4)
+0x0058b4  stp      x22, x21, [sp, #-0x30]!
+0x0058b8  stp      x20, x19, [sp, #0x10]
+0x0058bc  stp      x29, x30, [sp, #0x20]
+0x0058c0  add      x29, sp, #0x20
+0x0058c4  adrp     x8, #0x87000
+0x0058c8  ldr      x0, [x8, #0x670] ; [0x87670] class:NSBundle
+0x0058cc  bl       #0x591c0 ; objc_msgSend$mainBundle
+0x0058d0  mov      x29, x29
+0x0058d4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0058d8  mov      x19, x0
+0x0058dc  bl       #0x57440 ; objc_msgSend$bundleIdentifier
+0x0058e0  mov      x29, x29
+0x0058e4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0058e8  mov      x20, x0
+0x0058ec  adrp     x2, #0x79000
+0x0058f0  add      x2, x2, #0x580 ; -> 0x79580 @"com.apple.CarPlayApp"
+0x0058f4  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x0058f8  mov      x21, x0
+0x0058fc  mov      x0, x20
+0x005900  bl       #0x567b8 ; call _objc_release
+0x005904  mov      x0, x19
+0x005908  bl       #0x567b8 ; call _objc_release
+0x00590c  tbz      w21, #0, #0x5cb0
+0x005910  adrp     x0, #0x79000
+0x005914  add      x0, x0, #0x5a0 ; -> 0x795a0 @"splitScreen"
+0x005918  bl       #0x50e24 ; -> _OMCCrashGuard
+0x00591c  cbz      w0, #0x5cb0
+0x005920  adrp     x8, #0x87000
+0x005924  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x005928  adrp     x2, #0x79000
+0x00592c  add      x2, x2, #0xa00 ; -> 0x79a00 @"loaded into CarPlay"
+0x005930  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x005934  mov      x29, x29
+0x005938  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00593c  mov      x19, x0
+0x005940  adrp     x0, #0x79000
+0x005944  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x005948  mov      x1, x19
+0x00594c  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x005950  mov      x0, x19
+0x005954  bl       #0x567b8 ; call _objc_release
+0x005958  adrp     x19, #0x5e000
+0x00595c  add      x19, x19, #0xc2d ; -> 0x5ec2d "DBDashboard"
+0x005960  mov      x0, x19
+0x005964  bl       #0x502fc ; -> _OMCCarClass
+0x005968  mov      x20, x0
+0x00596c  adrp     x8, #0x85000
+0x005970  ldr      x1, [x8, #0xac0] ; [0x85ac0] sel:sceneFrameForAppInfo:proxyAppInfo:
+0x005974  adrp     x2, #0x5000
+0x005978  add      x2, x2, #0xcf0 ; -> 0x5cf0 sub_5cf0
+0x00597c  adrp     x3, #0x88000
+0x005980  add      x3, x3, #0x40 ; -> 0x88040
+0x005984  bl       #0x56344 ; call _MSHookMessageEx
+0x005988  adrp     x8, #0x85000
+0x00598c  ldr      x1, [x8, #0xac8] ; [0x85ac8] sel:safeAreaInsetsForAppInfo:proxyAppInfo:
+0x005990  adrp     x2, #0x5000
+0x005994  add      x2, x2, #0xe84 ; -> 0x5e84 sub_5e84
+0x005998  adrp     x3, #0x88000
+0x00599c  add      x3, x3, #0x48 ; -> 0x88048
+0x0059a0  mov      x0, x20
+0x0059a4  bl       #0x56344 ; call _MSHookMessageEx
+0x0059a8  adrp     x8, #0x85000
+0x0059ac  ldr      x1, [x8, #0xad0] ; [0x85ad0] sel:_handleHomeEvent:
+0x0059b0  adrp     x2, #0x6000
+0x0059b4  add      x2, x2, #0x1c ; -> 0x601c sub_601c
+0x0059b8  adrp     x3, #0x88000
+0x0059bc  add      x3, x3, #0x50 ; -> 0x88050
+0x0059c0  mov      x0, x20
+0x0059c4  bl       #0x56344 ; call _MSHookMessageEx
+0x0059c8  adrp     x8, #0x86000
+0x0059cc  ldr      x1, [x8, #0x4b8] ; [0x864b8] sel:invalidate
+0x0059d0  adrp     x2, #0x6000
+0x0059d4  add      x2, x2, #0x11c ; -> 0x611c sub_611c
+0x0059d8  adrp     x3, #0x88000
+0x0059dc  add      x3, x3, #0x58 ; -> 0x88058
+0x0059e0  mov      x0, x20
+0x0059e4  bl       #0x56344 ; call _MSHookMessageEx
+0x0059e8  adrp     x8, #0x85000
+0x0059ec  ldr      x1, [x8, #0xad8] ; [0x85ad8] sel:_launchAppWithInfo:forURL:
+0x0059f0  adrp     x2, #0x6000
+0x0059f4  add      x2, x2, #0x1d0 ; -> 0x61d0 sub_61d0
+0x0059f8  adrp     x3, #0x88000
+0x0059fc  add      x3, x3, #0x60 ; -> 0x88060
+0x005a00  mov      x0, x20
+0x005a04  bl       #0x56344 ; call _MSHookMessageEx
+0x005a08  adrp     x0, #0x5e000
+0x005a0c  add      x0, x0, #0xc39 ; -> 0x5ec39 "DBDashboardRootViewController"
+0x005a10  bl       #0x502fc ; -> _OMCCarClass
+0x005a14  mov      x20, x0
+0x005a18  adrp     x8, #0x85000
+0x005a1c  ldr      x1, [x8, #0xae0] ; [0x85ae0] sel:presentBaseViewController:animated:launchSource:completion:
+0x005a20  adrp     x2, #0x6000
+0x005a24  add      x2, x2, #0x36c ; -> 0x636c sub_636c
+0x005a28  adrp     x3, #0x88000
+0x005a2c  add      x3, x3, #0x68 ; -> 0x88068
+0x005a30  bl       #0x56344 ; call _MSHookMessageEx
+0x005a34  adrp     x8, #0x85000
+0x005a38  ldr      x1, [x8, #0xae8] ; [0x85ae8] sel:dismissBaseViewControllerAnimated:completion:
+0x005a3c  adrp     x2, #0x6000
+0x005a40  add      x2, x2, #0x6dc ; -> 0x66dc sub_66dc
+0x005a44  adrp     x3, #0x88000
+0x005a48  add      x3, x3, #0x70 ; -> 0x88070
+0x005a4c  mov      x0, x20
+0x005a50  bl       #0x56344 ; call _MSHookMessageEx
+0x005a54  adrp     x8, #0x85000
+0x005a58  ldr      x1, [x8, #0xa58] ; [0x85a58] sel:viewDidLayoutSubviews
+0x005a5c  adrp     x2, #0x6000
+0x005a60  add      x2, x2, #0x8e8 ; -> 0x68e8 sub_68e8
+0x005a64  adrp     x3, #0x88000
+0x005a68  add      x3, x3, #0x78 ; -> 0x88078
+0x005a6c  mov      x0, x20
+0x005a70  bl       #0x56344 ; call _MSHookMessageEx
+0x005a74  adrp     x8, #0x85000
+0x005a78  ldr      x1, [x8, #0xa60] ; [0x85a60] sel:viewDidAppear:
+0x005a7c  adrp     x2, #0x6000
+0x005a80  add      x2, x2, #0x988 ; -> 0x6988 sub_6988
+0x005a84  adrp     x3, #0x88000
+0x005a88  add      x3, x3, #0x80 ; -> 0x88080
+0x005a8c  mov      x0, x20
+0x005a90  bl       #0x56344 ; call _MSHookMessageEx
+0x005a94  adrp     x0, #0x5e000
+0x005a98  add      x0, x0, #0xc57 ; -> 0x5ec57 "DBApplicationSceneViewController"
+0x005a9c  bl       #0x502fc ; -> _OMCCarClass
+0x005aa0  mov      x20, x0
+0x005aa4  adrp     x8, #0x85000
+0x005aa8  ldr      x1, [x8, #0xaf0] ; [0x85af0] sel:backgroundSceneWithCompletion:
+0x005aac  adrp     x2, #0x6000
+0x005ab0  add      x2, x2, #0x9fc ; -> 0x69fc sub_69fc
+0x005ab4  adrp     x3, #0x88000
+0x005ab8  add      x3, x3, #0x88 ; -> 0x88088
+0x005abc  bl       #0x56344 ; call _MSHookMessageEx
+0x005ac0  adrp     x8, #0x85000
+0x005ac4  ldr      x1, [x8, #0xaf8] ; [0x85af8] sel:deactivateSceneWithReasonMask:
+0x005ac8  adrp     x2, #0x6000
+0x005acc  add      x2, x2, #0xb44 ; -> 0x6b44 sub_6b44
+0x005ad0  adrp     x3, #0x88000
+0x005ad4  add      x3, x3, #0x90 ; -> 0x88090
+0x005ad8  mov      x0, x20
+0x005adc  bl       #0x56344 ; call _MSHookMessageEx
+0x005ae0  adrp     x8, #0x85000
+0x005ae4  ldr      x1, [x8, #0xb00] ; [0x85b00] sel:sceneManager:didDestroyScene:
+0x005ae8  adrp     x2, #0x6000
+0x005aec  add      x2, x2, #0xc78 ; -> 0x6c78 sub_6c78
+0x005af0  adrp     x3, #0x88000
+0x005af4  add      x3, x3, #0x98 ; -> 0x88098
+0x005af8  mov      x0, x20
+0x005afc  bl       #0x56344 ; call _MSHookMessageEx
+0x005b00  mov      x0, x19
+0x005b04  bl       #0x56734 ; call _objc_getClass
+0x005b08  cbnz     x0, #0x5b34
+0x005b0c  adrp     x0, #0x5e000
+0x005b10  add      x0, x0, #0xc78 ; -> 0x5ec78 "FBSDisplayLayoutPublisher"
+0x005b14  bl       #0x56734 ; call _objc_getClass
+0x005b18  adrp     x8, #0x85000
+0x005b1c  ldr      x1, [x8, #0xb08] ; [0x85b08] sel:addElement:
+0x005b20  adrp     x2, #0x6000
+0x005b24  add      x2, x2, #0xe10 ; -> 0x6e10 sub_6e10
+0x005b28  adrp     x3, #0x88000
+0x005b2c  add      x3, x3, #0xa0 ; -> 0x880a0
+0x005b30  bl       #0x56344 ; call _MSHookMessageEx
+0x005b34  adrp     x0, #0x79000
+0x005b38  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x005b3c  adrp     x1, #0x80000
+0x005b40  add      x1, x1, #0x338 ; -> 0x80338
+0x005b44  bl       #0x50444 ; -> _OMCCheckHooks
+0x005b48  adrp     x0, #0x5e000
+0x005b4c  add      x0, x0, #0xebf ; -> 0x5eebf "NSDistributedNotificationCenter"
+0x005b50  bl       #0x56734 ; call _objc_getClass
+0x005b54  bl       #0x57ae0 ; objc_msgSend$defaultCenter
+0x005b58  mov      x29, x29
+0x005b5c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x005b60  mov      x19, x0
+0x005b64  adrp     x8, #0x87000
+0x005b68  ldr      x0, [x8, #0x698] ; [0x87698] class:NSOperationQueue
+0x005b6c  bl       #0x591e0 ; objc_msgSend$mainQueue
+0x005b70  mov      x29, x29
+0x005b74  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x005b78  mov      x20, x0
+0x005b7c  adrp     x2, #0x79000
+0x005b80  add      x2, x2, #0xb60 ; -> 0x79b60 @"com.anlai.omnicar/appbridge.state"
+0x005b84  adrp     x5, #0x78000
+0x005b88  add      x5, x5, #0x760 ; -> 0x78760
+0x005b8c  mov      x0, x19
+0x005b90  mov      x3, #0
+0x005b94  mov      x4, x20
+0x005b98  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x005b9c  mov      x29, x29
+0x005ba0  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x005ba4  adrp     x2, #0x79000
+0x005ba8  add      x2, x2, #0xbc0 ; -> 0x79bc0 @"com.anlai.omnicar/appbridge.handletap"
+0x005bac  adrp     x5, #0x78000
+0x005bb0  add      x5, x5, #0x780 ; -> 0x78780
+0x005bb4  mov      x0, x19
+0x005bb8  mov      x3, #0
+0x005bbc  mov      x4, x20
+0x005bc0  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x005bc4  mov      x29, x29
+0x005bc8  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x005bcc  adrp     x2, #0x79000
+0x005bd0  add      x2, x2, #0xbe0 ; -> 0x79be0 @"com.anlai.omnicar/appbridge.handledrag"
+0x005bd4  adrp     x5, #0x78000
+0x005bd8  add      x5, x5, #0x7a0 ; -> 0x787a0
+0x005bdc  mov      x0, x19
+0x005be0  mov      x3, #0
+0x005be4  mov      x4, x20
+0x005be8  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x005bec  mov      x29, x29
+0x005bf0  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x005bf4  adrp     x2, #0x79000
+0x005bf8  add      x2, x2, #0xc00 ; -> 0x79c00 @"com.anlai.omnicar/appbridge.baraction"
+0x005bfc  adrp     x5, #0x78000
+0x005c00  add      x5, x5, #0x7c0 ; -> 0x787c0
+0x005c04  mov      x0, x19
+0x005c08  mov      x3, #0
+0x005c0c  mov      x4, x20
+0x005c10  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x005c14  mov      x29, x29
+0x005c18  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x005c1c  adrp     x2, #0x79000
+0x005c20  add      x2, x2, #0xc40 ; -> 0x79c40 @"com.anlai.omnicar/appbridge.bardismiss"
+0x005c24  adrp     x5, #0x78000
+0x005c28  add      x5, x5, #0x7e0 ; -> 0x787e0
+0x005c2c  mov      x0, x19
+0x005c30  mov      x3, #0
+0x005c34  mov      x4, x20
+0x005c38  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x005c3c  mov      x29, x29
+0x005c40  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x005c44  adrp     x2, #0x79000
+0x005c48  add      x2, x2, #0xc60 ; -> 0x79c60 @"com.anlai.omnicar/appbridge.knobtouch"
+0x005c4c  adrp     x5, #0x78000
+0x005c50  add      x5, x5, #0x800 ; -> 0x78800
+0x005c54  mov      x0, x19
+0x005c58  mov      x3, #0
+0x005c5c  mov      x4, x20
+0x005c60  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x005c64  mov      x29, x29
+0x005c68  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x005c6c  adrp     x2, #0x79000
+0x005c70  add      x2, x2, #0xc80 ; -> 0x79c80 @"com.anlai.omnicar/splitscreen.native"
+0x005c74  adrp     x5, #0x78000
+0x005c78  add      x5, x5, #0x820 ; -> 0x78820
+0x005c7c  mov      x0, x19
+0x005c80  mov      x3, #0
+0x005c84  mov      x4, x20
+0x005c88  bl       #0x56ce0 ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0x005c8c  mov      x29, x29
+0x005c90  bl       #0x5683c ; call _objc_unsafeClaimAutoreleasedReturnValue
+0x005c94  mov      x0, x20
+0x005c98  bl       #0x567b8 ; call _objc_release
+0x005c9c  mov      x0, x19
+0x005ca0  ldp      x29, x30, [sp, #0x20]
+0x005ca4  ldp      x20, x19, [sp, #0x10]
+0x005ca8  ldp      x22, x21, [sp], #0x30
+0x005cac  b        #0x567b8 ; call _objc_release
+0x005cb0  ldp      x29, x30, [sp, #0x20]
+0x005cb4  ldp      x20, x19, [sp, #0x10]
+0x005cb8  ldp      x22, x21, [sp], #0x30
+0x005cbc  ret      
+0x005cc0  b        #0x5ccc
+0x005cc4  b        #0x5ccc
+0x005cc8  b        #0x5cd4
+0x005ccc  mov      x21, x0
+0x005cd0  b        #0x5ce0
+0x005cd4  mov      x21, x0
+0x005cd8  mov      x0, x20
+0x005cdc  bl       #0x567b8 ; call _objc_release
+0x005ce0  mov      x0, x19
+0x005ce4  bl       #0x567b8 ; call _objc_release
+0x005ce8  mov      x0, x21
+0x005cec  bl       #0x563e0 ; call __Unwind_Resume

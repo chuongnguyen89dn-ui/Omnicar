@@ -1,0 +1,20 @@
+# +[SPPBubble shared]
+# addr 0x17ab4 .. 0x17af8  (68 bytes)
+
+00017ab4  stp      x20, x19, [sp, #-0x20]!                     
+00017ab8  stp      x29, x30, [sp, #0x10]                       
+00017abc  add      x29, sp, #0x10                              
+00017ac0  adrp     x8, #0x43000                                
+00017ac4  ldr      x8, [x8, #0x938]                            ; [0x43938] __DATA,__bss+0x198
+00017ac8  cmn      x8, #1                                      
+00017acc  b.ne     #0x17af0                                    
+00017ad0  adrp     x8, #0x43000                                
+00017ad4  ldr      x19, [x8, #0x930]                           ; [0x43930] __DATA,__bss+0x190
+00017ad8  mov      x0, x19                                     
+00017adc  bl       #0x28004                                    ; _objc_retain
+00017ae0  mov      x0, x19                                     
+00017ae4  ldp      x29, x30, [sp, #0x10]                       
+00017ae8  ldp      x20, x19, [sp], #0x20                       
+00017aec  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+00017af0  bl       #0x279e8                                    ; sub_279e8
+00017af4  b        #0x17ad0                                    ; sub_17ad0

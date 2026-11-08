@@ -1,0 +1,19 @@
+# -[SPPBubbleView setSign:]
+# addr 0x15b88 .. 0x15bc8  (64 bytes)
+
+00015b88  stp      x22, x21, [sp, #-0x30]!                     
+00015b8c  stp      x20, x19, [sp, #0x10]                       
+00015b90  stp      x29, x30, [sp, #0x20]                       
+00015b94  add      x29, sp, #0x20                              
+00015b98  mov      x19, x2                                     
+00015b9c  mov      x20, x0                                     
+00015ba0  adrp     x8, #0x43000                                
+00015ba4  ldrsw    x21, [x8, #0x234]                           
+00015ba8  mov      x0, x2                                      
+00015bac  bl       #0x28004                                    ; _objc_retain
+00015bb0  ldr      x0, [x20, x21]                              
+00015bb4  str      x19, [x20, x21]                             
+00015bb8  ldp      x29, x30, [sp, #0x20]                       
+00015bbc  ldp      x20, x19, [sp, #0x10]                       
+00015bc0  ldp      x22, x21, [sp], #0x30                       
+00015bc4  b        #0x27ff8                                    ; _objc_release

@@ -1,0 +1,90 @@
+; sub_170c4
+; VA 0x170c4  size 348
+
+0x000170c4:  adrp     x8, #0x3a000
+0x000170c8:  ldr      x23, [x8, #0x9c0]    ; class(NSString)
+0x000170cc:  adrp     x0, #0x31000
+0x000170d0:  add      x0, x0, #0x628    ; @"Pin iPhone %ld%%"
+0x000170d4:  adrp     x1, #0x31000
+0x000170d8:  add      x1, x1, #0x648    ; @"iPhone battery %ld%%"
+0x000170dc:  bl       #0x21318    ; -> OMCTr
+0x000170e0:  mov      x29, x29
+0x000170e4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000170e8:  mov      x24, x0
+0x000170ec:  mov      x0, x20
+0x000170f0:  bl       #0x227a0    ; -> _objc_msgSend(batteryPercent)
+0x000170f4:  str      x0, [sp]
+0x000170f8:  mov      x0, x23
+0x000170fc:  mov      x2, x24
+0x00017100:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00017104:  mov      x29, x29
+0x00017108:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001710c:  mov      x25, x0
+0x00017110:  stur     x0, [x29, #-0xe8]
+0x00017114:  cmp      x21, #0x13
+0x00017118:  b.gt     #0x171cc
+0x0001711c:  adrp     x0, #0x32000
+0x00017120:  add      x0, x0, #0xb88    ; @"b'N\x00h\x00\xdb\x1e \x00c\x00\xaf\x1em\x00 \x00s\x00\xa1'"
+0x00017124:  adrp     x1, #0x32000
+0x00017128:  add      x1, x1, #0xba8    ; @"Plug it in on the way"
+0x0001712c:  bl       #0x21318    ; -> OMCTr
+0x00017130:  mov      x29, x29
+0x00017134:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017138:  mov      x27, x0
+0x0001713c:  adrp     x8, #0x32000
+0x00017140:  add      x8, x8, #0xc08    ; @"b'>\xd8'"
+0x00017144:  b        #0x171f4    ; -> sub_171f4
+0x00017148:  adrp     x0, #0x32000
+0x0001714c:  add      x0, x0, #0xb48    ; @"b'T\x00h\x00\xdd\x1ei\x00 \x00t\x00i\x00\xbf\x1et'"
+0x00017150:  adrp     x1, #0x32000
+0x00017154:  add      x1, x1, #0xb68    ; @"Today's weather"
+0x00017158:  bl       #0x21318    ; -> OMCTr
+0x0001715c:  mov      x29, x29
+0x00017160:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017164:  mov      x21, x0
+0x00017168:  stur     x0, [x29, #-0xc8]
+0x0001716c:  ldr      x0, [sp, #0xf0]
+0x00017170:  ldr      w1, [sp, #0xe8]
+0x00017174:  bl       #0xd4f0    ; -> sub_d4f0
+0x00017178:  adrp     x8, #0x30000
+0x0001717c:  add      x8, x8, #0xc98
+0x00017180:  ldr      x8, [x8, x0, lsl #3]
+0x00017184:  stur     x8, [x29, #-0xc0]
+0x00017188:  ldr      x0, [x19, #0xb00]
+0x0001718c:  sub      x2, x29, #0xd0
+0x00017190:  mov      w3, #3
+0x00017194:  bl       #0x22700    ; -> _objc_msgSend(arrayWithObjects:count:)
+0x00017198:  mov      x29, x29
+0x0001719c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000171a0:  mov      x26, x0
+0x000171a4:  mov      x0, x22
+0x000171a8:  mov      x2, x26
+0x000171ac:  bl       #0x22480    ; -> _objc_msgSend(addObject:)
+0x000171b0:  mov      x0, x26
+0x000171b4:  bl       #0x22120    ; -> _objc_release
+0x000171b8:  mov      x0, x21
+0x000171bc:  bl       #0x22120    ; -> _objc_release
+0x000171c0:  mov      x0, x23
+0x000171c4:  bl       #0x22120    ; -> _objc_release
+0x000171c8:  b        #0x17220    ; -> sub_17220
+0x000171cc:  adrp     x0, #0x32000
+0x000171d0:  add      x0, x0, #0xbc8    ; @"b'\x10\x01\xe7\x1e \x00p\x00i\x00n\x00 \x00c\x00h\x00o\x00'"
+0x000171d4:  adrp     x1, #0x32000
+0x000171d8:  add      x1, x1, #0xbe8    ; @"Enough for the trip"
+0x000171dc:  bl       #0x21318    ; -> OMCTr
+0x000171e0:  mov      x29, x29
+0x000171e4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000171e8:  mov      x27, x0
+0x000171ec:  adrp     x8, #0x32000
+0x000171f0:  add      x8, x8, #0xc28    ; @"b'=\xd8'"
+0x000171f4:  stp      x27, x8, [x29, #-0xe0]
+0x000171f8:  ldr      x0, [x19, #0xb00]
+0x000171fc:  sub      x2, x29, #0xe8
+0x00017200:  mov      w3, #3
+0x00017204:  bl       #0x22700    ; -> _objc_msgSend(arrayWithObjects:count:)
+0x00017208:  mov      x29, x29
+0x0001720c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00017210:  mov      x28, x0
+0x00017214:  mov      x0, x22
+0x00017218:  mov      x2, x28
+0x0001721c:  bl       #0x22480    ; -> _objc_msgSend(addObject:)

@@ -1,0 +1,28 @@
+; -[SCPCarSplit removeHomeButton]
+0x0434a8  stp      x20, x19, [sp, #-0x20]!
+0x0434ac  stp      x29, x30, [sp, #0x10]
+0x0434b0  add      x29, sp, #0x10
+0x0434b4  mov      x19, x0
+0x0434b8  bl       #0x58500 ; objc_msgSend$homeButton
+0x0434bc  mov      x29, x29
+0x0434c0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0434c4  mov      x20, x0
+0x0434c8  bl       #0x5a2c0 ; objc_msgSend$removeFromSuperview
+0x0434cc  mov      x0, x20
+0x0434d0  bl       #0x567b8 ; call _objc_release
+0x0434d4  mov      x0, x19
+0x0434d8  mov      x2, #0
+0x0434dc  bl       #0x5aee0 ; objc_msgSend$setHomeButton:
+0x0434e0  fmov     d0, xzr
+0x0434e4  mov      x0, x19
+0x0434e8  bl       #0x5b0e0 ; objc_msgSend$setLastLauncherCalc:
+0x0434ec  fmov     d0, xzr
+0x0434f0  mov      x0, x19
+0x0434f4  ldp      x29, x30, [sp, #0x10]
+0x0434f8  ldp      x20, x19, [sp], #0x20
+0x0434fc  b        #0x5ab80 ; objc_msgSend$setDockShift:
+0x043500  mov      x19, x0
+0x043504  mov      x0, x20
+0x043508  bl       #0x567b8 ; call _objc_release
+0x04350c  mov      x0, x19
+0x043510  bl       #0x563e0 ; call __Unwind_Resume

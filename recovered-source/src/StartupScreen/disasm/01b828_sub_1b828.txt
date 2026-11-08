@@ -1,0 +1,20 @@
+; sub_1b828
+; VA 0x1b828  size 68
+
+0x0001b828:  stp      x20, x19, [sp, #-0x20]!
+0x0001b82c:  stp      x29, x30, [sp, #0x10]
+0x0001b830:  add      x29, sp, #0x10
+0x0001b834:  adrp     x8, #0x3b000
+0x0001b838:  ldr      x8, [x8, #0x238]
+0x0001b83c:  cmn      x8, #1
+0x0001b840:  b.ne     #0x1b864
+0x0001b844:  adrp     x8, #0x3b000
+0x0001b848:  ldr      x19, [x8, #0x230]
+0x0001b84c:  mov      x0, x19
+0x0001b850:  bl       #0x2212c    ; -> _objc_retain
+0x0001b854:  mov      x0, x19
+0x0001b858:  ldp      x29, x30, [sp, #0x10]
+0x0001b85c:  ldp      x20, x19, [sp], #0x20
+0x0001b860:  b        #0x22054    ; -> _objc_autoreleaseReturnValue
+0x0001b864:  bl       #0x21a98    ; -> sub_21a98
+0x0001b868:  b        #0x1b844    ; -> sub_1b844

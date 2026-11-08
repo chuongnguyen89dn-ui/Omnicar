@@ -1,0 +1,28 @@
+; sub_4d90
+0x004d90  stp      x20, x19, [sp, #-0x20]!
+0x004d94  stp      x29, x30, [sp, #0x10]
+0x004d98  add      x29, sp, #0x10
+0x004d9c  adrp     x8, #0x87000
+0x004da0  ldr      x8, [x8, #0xfd8]
+0x004da4  blr      x8
+0x004da8  mov      w0, #0
+0x004dac  bl       #0x4b4bc ; -> _SCPHomeSetVisible
+0x004db0  ldp      x29, x30, [sp, #0x10]
+0x004db4  ldp      x20, x19, [sp], #0x20
+0x004db8  ret      
+0x004dbc  mov      x19, x0
+0x004dc0  cmp      w1, #1
+0x004dc4  b.ne     #0x4df4
+0x004dc8  mov      x0, x19
+0x004dcc  bl       #0x566ec ; call _objc_begin_catch
+0x004dd0  mov      x1, x0
+0x004dd4  adrp     x0, #0x5e000
+0x004dd8  add      x0, x0, #0xaf1 ; -> 0x5eaf1 "SCPHomeSetVisible"
+0x004ddc  bl       #0x5520 ; -> sub_5520
+0x004de0  ldp      x29, x30, [sp, #0x10]
+0x004de4  ldp      x20, x19, [sp], #0x20
+0x004de8  b        #0x56710 ; call _objc_end_catch
+0x004dec  mov      x19, x0
+0x004df0  bl       #0x56710 ; call _objc_end_catch
+0x004df4  mov      x0, x19
+0x004df8  bl       #0x563e0 ; call __Unwind_Resume

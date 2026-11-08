@@ -1,0 +1,21 @@
+; sub_52e8
+0x0052e8  stp      x20, x19, [sp, #-0x20]!
+0x0052ec  stp      x29, x30, [sp, #0x10]
+0x0052f0  add      x29, sp, #0x10
+0x0052f4  adrp     x0, #0x5e000
+0x0052f8  add      x0, x0, #0xbd2 ; -> 0x5ebd2 "DBIconModel"
+0x0052fc  bl       #0x502fc ; -> _OMCCarClass
+0x005300  cbnz     x0, #0x5320
+0x005304  adrp     x0, #0x5e000
+0x005308  add      x0, x0, #0xbde ; -> 0x5ebde "SBHIconModel"
+0x00530c  bl       #0x56734 ; call _objc_getClass
+0x005310  cbnz     x0, #0x5320
+0x005314  adrp     x0, #0x5e000
+0x005318  add      x0, x0, #0xbeb ; -> 0x5ebeb "SBIconModel"
+0x00531c  bl       #0x56734 ; call _objc_getClass
+0x005320  mov      x19, x0
+0x005324  bl       #0x567c4 ; call _objc_retain
+0x005328  mov      x0, x19
+0x00532c  ldp      x29, x30, [sp, #0x10]
+0x005330  ldp      x20, x19, [sp], #0x20
+0x005334  b        #0x566e0 ; call _objc_autoreleaseReturnValue

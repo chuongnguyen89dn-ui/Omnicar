@@ -1,0 +1,97 @@
+=== -[ABHost setCornerRadius:corners:forApp:] @ 0x10438 (size 384) ===
+00010438  stp      d9, d8, [sp, #-0x40]!
+0001043c  stp      x22, x21, [sp, #0x10]
+00010440  stp      x20, x19, [sp, #0x20]
+00010444  stp      x29, x30, [sp, #0x30]
+00010448  add      x29, sp, #0x30
+0001044c  mov      x20, x2
+00010450  mov      v8.16b, v0.16b
+00010454  mov      x2, x3
+00010458  bl       #0x26520 ; objc_msgSend sel=paneFor:
+0001045c  mov      x29, x29
+00010460  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00010464  mov      x19, x0
+00010468  cbz      x0, #0x1054c
+0001046c  mov      x0, x19
+00010470  bl       #0x24f60 ; objc_msgSend sel=box
+00010474  mov      x29, x29
+00010478  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001047c  mov      x21, x0
+00010480  bl       #0x25f00 ; objc_msgSend sel=layer
+00010484  mov      x29, x29
+00010488  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001048c  mov      x22, x0
+00010490  mov      v0.16b, v8.16b
+00010494  bl       #0x26e20 ; objc_msgSend sel=setCornerRadius:
+00010498  mov      x0, x22
+0001049c  bl       #0x2480c ; call _objc_release
+000104a0  mov      x0, x21
+000104a4  bl       #0x2480c ; call _objc_release
+000104a8  mov      x0, x19
+000104ac  bl       #0x24f60 ; objc_msgSend sel=box
+000104b0  mov      x29, x29
+000104b4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000104b8  mov      x21, x0
+000104bc  bl       #0x25f00 ; objc_msgSend sel=layer
+000104c0  mov      x29, x29
+000104c4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000104c8  mov      x22, x0
+000104cc  mov      x2, x20
+000104d0  bl       #0x27340 ; objc_msgSend sel=setMaskedCorners:
+000104d4  mov      x0, x22
+000104d8  bl       #0x2480c ; call _objc_release
+000104dc  mov      x0, x21
+000104e0  bl       #0x2480c ; call _objc_release
+000104e4  mov      x0, x19
+000104e8  bl       #0x24f60 ; objc_msgSend sel=box
+000104ec  mov      x29, x29
+000104f0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000104f4  mov      x21, x0
+000104f8  bl       #0x25f00 ; objc_msgSend sel=layer
+000104fc  mov      x29, x29
+00010500  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00010504  mov      x20, x0
+00010508  adrp     x8, #0x34000
+0001050c  ldr      x8, [x8, #0x580] ; -> _kCACornerCurveContinuous
+00010510  ldr      x2, [x8]
+00010514  bl       #0x26e00 ; objc_msgSend sel=setCornerCurve:
+00010518  mov      x0, x20
+0001051c  bl       #0x2480c ; call _objc_release
+00010520  mov      x0, x21
+00010524  bl       #0x2480c ; call _objc_release
+00010528  mov      x0, x19
+0001052c  bl       #0x24f60 ; objc_msgSend sel=box
+00010530  mov      x29, x29
+00010534  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00010538  mov      x21, x0
+0001053c  mov      w2, #1
+00010540  bl       #0x26d80 ; objc_msgSend sel=setClipsToBounds:
+00010544  mov      x0, x21
+00010548  bl       #0x2480c ; call _objc_release
+0001054c  mov      x0, x19
+00010550  ldp      x29, x30, [sp, #0x30]
+00010554  ldp      x20, x19, [sp, #0x20]
+00010558  ldp      x22, x21, [sp, #0x10]
+0001055c  ldp      d9, d8, [sp], #0x40
+00010560  b        #0x2480c ; call _objc_release
+00010564  b        #0x10594 ; call sub_10594
+00010568  mov      x1, x20
+0001056c  mov      x20, x0
+00010570  mov      x0, x1
+00010574  b        #0x1058c ; call sub_1058c
+00010578  b        #0x10594 ; call sub_10594
+0001057c  b        #0x10584 ; call sub_10584
+00010580  b        #0x10594 ; call sub_10594
+00010584  mov      x20, x0
+00010588  mov      x0, x22
+0001058c  bl       #0x2480c ; call _objc_release
+00010590  b        #0x10598 ; call sub_10598
+00010594  mov      x20, x0
+00010598  mov      x0, x21
+0001059c  bl       #0x2480c ; call _objc_release
+000105a0  b        #0x105a8 ; call sub_105a8
+000105a4  mov      x20, x0
+000105a8  mov      x0, x19
+000105ac  bl       #0x2480c ; call _objc_release
+000105b0  mov      x0, x20
+000105b4  bl       #0x24470 ; call __Unwind_Resume

@@ -1,0 +1,139 @@
+# sub_2766c
+# addr 0x2766c .. 0x2788c  (544 bytes)
+
+0002766c  sub      sp, sp, #0x140                              
+00027670  stp      d11, d10, [sp, #0xc0]                       
+00027674  stp      d9, d8, [sp, #0xd0]                         
+00027678  stp      x28, x27, [sp, #0xe0]                       
+0002767c  stp      x26, x25, [sp, #0xf0]                       
+00027680  stp      x24, x23, [sp, #0x100]                      
+00027684  stp      x22, x21, [sp, #0x110]                      
+00027688  stp      x20, x19, [sp, #0x120]                      
+0002768c  stp      x29, x30, [sp, #0x130]                      
+00027690  add      x29, sp, #0x130                             
+00027694  mov      x19, x0                                     
+00027698  adrp     x8, #0x38000                                
+0002769c  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+000276a0  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000276a4  stur     x8, [x29, #-0x78]                           
+000276a8  mov      x0, x1                                      
+000276ac  bl       #0x28200                                    ; objc_msgSend$CGContext
+000276b0  mov      x20, x0                                     
+000276b4  movi     v0.16b, #0                                  
+000276b8  stp      q0, q0, [sp, #0x90]                         
+000276bc  mov      x8, #0x4058000000000000                     
+000276c0  dup      v1.2d, x8                                   
+000276c4  stp      q1, q0, [sp, #0x70]                         
+000276c8  stur     q1, [sp, #0x88]                             
+000276cc  ldrb     w8, [x19, #0x28]                            
+000276d0  adrp     x9, #0x43000                                
+000276d4  ldr      x0, [x9, #0x28]                             ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+000276d8  tbz      w8, #0, #0x276fc                            
+000276dc  adrp     x8, #0x32000                                
+000276e0  ldr      d0, [x8, #0xe48]                            ; [0x32e48] __const[0x32e48] double=0.8862745098039215 float=2.4810418033236378e+17
+000276e4  adrp     x8, #0x32000                                
+000276e8  ldr      d1, [x8, #0xe50]                            ; [0x32e50] __const[0x32e50] double=0.8941176470588236 float=-1.0363697629011259e-21
+000276ec  adrp     x8, #0x32000                                
+000276f0  ldr      d2, [x8, #0x9b8]                            ; [0x329b8] __const[0x329b8] double=0.9647058823529412 float=-8.029759256171381e+18
+000276f4  fmov     d3, #1.00000000                             
+000276f8  b        #0x2771c                                    ; sub_2771c
+000276fc  adrp     x8, #0x32000                                
+00027700  ldr      d0, [x8, #0xe38]                            ; [0x32e38] __const[0x32e38] double=0.9098039215686274 float=2.0793828200968182e-21
+00027704  adrp     x8, #0x32000                                
+00027708  ldr      d1, [x8, #0xe40]                            ; [0x32e40] __const[0x32e40] double=0.9176470588235294 float=9.969379818623468e+17
+0002770c  adrp     x8, #0x32000                                
+00027710  ldr      d2, [x8, #0x940]                            ; [0x32940] __const[0x32940] double=0.9803921568627451 float=1.609568804685008e+19
+00027714  adrp     x8, #0x32000                                
+00027718  ldr      d3, [x8, #0x948]                            ; [0x32948] __const[0x32948] double=0.8 float=-1.5881868392106856e-23
+0002771c  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+00027720  mov      x29, x29                                    
+00027724  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00027728  mov      x21, x0                                     
+0002772c  bl       #0x2af20                                    ; objc_msgSend$setFill
+00027730  mov      x8, #0x4058000000000000                     
+00027734  fmov     d2, x8                                      
+00027738  fmov     d0, xzr                                     
+0002773c  fmov     d1, xzr                                     
+00027740  mov      x0, x20                                     
+00027744  mov      v3.16b, v2.16b                              
+00027748  bl       #0x27b54                                    ; _CGContextFillRect
+0002774c  adrp     x24, #0x32000                               
+00027750  add      x24, x24, #0xe70                            ; __const[0x32e70] double=7.010623654806434e-304 float=1.4780437977100336e-38
+00027754  bl       #0x27b30                                    ; _CGColorSpaceCreateDeviceRGB
+00027758  mov      x22, x0                                     
+0002775c  mov      x25, #0                                     
+00027760  adrp     x8, #0x32000                                
+00027764  ldr      d9, [x8, #0xa20]                            ; [0x32a20] __const[0x32a20] double=255.0 float=0.0
+00027768  adrp     x8, #0x32000                                
+0002776c  ldr      d10, [x8, #0xe58]                           ; [0x32e58] __const[0x32e58] double=nan float=nan (= import <ordinal 65520>)
+00027770  movi     d11, #0x0000ff000000ff                      
+00027774  mov      x8, #0xe00000000000                         
+00027778  movk     x8, #0x406f, lsl #48                        
+0002777c  dup      v4.2d, x8                                   
+00027780  adrp     x8, #0x32000                                
+00027784  add      x8, x8, #0xe80                              ; __const[0x32e80] double=0.0 float=0.0
+00027788  ldr      q0, [x8]                                    ; [0x32e80] __const[0x32e80] double=0.0 float=0.0
+0002778c  stp      q0, q4, [sp]                                
+00027790  add      x26, sp, #0x70                              
+00027794  adrp     x8, #0x32000                                
+00027798  ldr      d8, [x8, #0xe60]                            ; [0x32e60] __const[0x32e60] double=95.035151391472 float=-3.8491057349876275e+26
+0002779c  ldr      w8, [x24], #4                               
+000277a0  and      w9, w8, #0xff                               
+000277a4  ucvtf    d0, w9                                      
+000277a8  dup      v1.2s, w8                                   
+000277ac  ushl     v1.2s, v1.2s, v10.2s                        
+000277b0  and      v1.8b, v1.8b, v11.8b                        
+000277b4  ushll    v1.2d, v1.2s, #0                            
+000277b8  ucvtf    v1.2d, v1.2d                                
+000277bc  ldr      q2, [sp, #0x10]                             
+000277c0  fdiv     v1.2d, v1.2d, v2.2d                         
+000277c4  ldr      d2, [x19, #0x20]                            
+000277c8  fdiv     d0, d0, d9                                  
+000277cc  stp      d0, d2, [sp, #0x40]                         
+000277d0  str      q1, [sp, #0x50]                             
+000277d4  str      d0, [sp, #0x60]                             
+000277d8  str      xzr, [sp, #0x68]                            
+000277dc  ldr      q0, [sp]                                    
+000277e0  stp      q0, q1, [sp, #0x20]                         
+000277e4  add      x1, sp, #0x30                               
+000277e8  add      x2, sp, #0x20                               
+000277ec  mov      x0, x22                                     
+000277f0  mov      w3, #2                                      
+000277f4  bl       #0x27b84                                    ; _CGGradientCreateWithColorComponents
+000277f8  mov      x23, x0                                     
+000277fc  add      x8, x26, x25                                
+00027800  ldp      d0, d1, [x8]                                
+00027804  fmov     d2, xzr                                     
+00027808  mov      x0, x20                                     
+0002780c  mov      x1, x23                                     
+00027810  mov      v3.16b, v0.16b                              
+00027814  mov      v4.16b, v1.16b                              
+00027818  mov      v5.16b, v8.16b                              
+0002781c  mov      w2, #0                                      
+00027820  bl       #0x27b48                                    ; _CGContextDrawRadialGradient
+00027824  mov      x0, x23                                     
+00027828  bl       #0x27b90                                    ; _CGGradientRelease
+0002782c  add      x25, x25, #0x10                             
+00027830  cmp      x25, #0x40                                  
+00027834  b.ne     #0x2779c                                    
+00027838  mov      x0, x22                                     
+0002783c  bl       #0x27b3c                                    ; _CGColorSpaceRelease
+00027840  mov      x0, x21                                     
+00027844  bl       #0x27ff8                                    ; _objc_release
+00027848  ldur     x8, [x29, #-0x78]                           
+0002784c  adrp     x9, #0x38000                                
+00027850  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00027854  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00027858  cmp      x9, x8                                      
+0002785c  b.ne     #0x27888                                    
+00027860  ldp      x29, x30, [sp, #0x130]                      
+00027864  ldp      x20, x19, [sp, #0x120]                      
+00027868  ldp      x22, x21, [sp, #0x110]                      
+0002786c  ldp      x24, x23, [sp, #0x100]                      
+00027870  ldp      x26, x25, [sp, #0xf0]                       
+00027874  ldp      x28, x27, [sp, #0xe0]                       
+00027878  ldp      d9, d8, [sp, #0xd0]                         
+0002787c  ldp      d11, d10, [sp, #0xc0]                       
+00027880  add      sp, sp, #0x140                              
+00027884  ret                                                  
+00027888  bl       #0x27ca4                                    ; ___stack_chk_fail

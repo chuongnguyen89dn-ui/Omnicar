@@ -1,0 +1,115 @@
+; sub_48e4
+; VA 0x48e4  size 448
+
+0x000048e4:  add      x0, x0, #0xfe8
+0x000048e8:  adrp     x1, #0x34000
+0x000048ec:  add      x1, x1, #0xde0
+0x000048f0:  bl       #0x1af70    ; -> OMCPref
+0x000048f4:  mov      x29, x29
+0x000048f8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000048fc:  mov      x19, x0
+0x00004900:  bl       #0x23860    ; -> _objc_msgSend(integerValue)
+0x00004904:  mov      x2, x0
+0x00004908:  ldr      x0, [x21]
+0x0000490c:  bl       #0x24ba0    ; -> _objc_msgSend(setLogoEffect:)
+0x00004910:  mov      x0, x19
+0x00004914:  bl       #0x22120    ; -> _objc_release
+0x00004918:  adrp     x8, #0x3a000
+0x0000491c:  ldr      x0, [x8, #0xa50]    ; class(NSCharacterSet)
+0x00004920:  bl       #0x26060    ; -> _objc_msgSend(whitespaceAndNewlineCharacterSet)
+0x00004924:  mov      x29, x29
+0x00004928:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000492c:  mov      x27, x0
+0x00004930:  adrp     x0, #0x31000
+0x00004934:  add      x0, x0, #0x408    ; @"startupScreenCarName"
+0x00004938:  mov      x1, #0
+0x0000493c:  bl       #0x1af70    ; -> OMCPref
+0x00004940:  mov      x29, x29
+0x00004944:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00004948:  str      x0, [sp, #0x30]
+0x0000494c:  adrp     x8, #0x3a000
+0x00004950:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x00004954:  bl       #0x220e4    ; -> _objc_opt_class
+0x00004958:  mov      x1, x0
+0x0000495c:  ldr      x0, [sp, #0x30]
+0x00004960:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x00004964:  tbz      w0, #0, #0x49b4
+0x00004968:  ldr      x0, [sp, #0x30]
+0x0000496c:  mov      x2, x27
+0x00004970:  bl       #0x25ba0    ; -> _objc_msgSend(stringByTrimmingCharactersInSet:)
+0x00004974:  mov      x29, x29
+0x00004978:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000497c:  mov      x19, x0
+0x00004980:  bl       #0x23a40    ; -> _objc_msgSend(length)
+0x00004984:  cmp      x0, #0
+0x00004988:  cset     w20, eq
+0x0000498c:  mov      x0, x19
+0x00004990:  bl       #0x22120    ; -> _objc_release
+0x00004994:  tbnz     w20, #0, #0x49b4
+0x00004998:  ldr      x0, [sp, #0x30]
+0x0000499c:  mov      x2, x27
+0x000049a0:  bl       #0x25ba0    ; -> _objc_msgSend(stringByTrimmingCharactersInSet:)
+0x000049a4:  mov      x29, x29
+0x000049a8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000049ac:  mov      x23, x0
+0x000049b0:  b        #0x4cbc    ; -> sub_4cbc
+0x000049b4:  adrp     x0, #0x31000
+0x000049b8:  add      x0, x0, #0x428    ; @"diagCar"
+0x000049bc:  mov      x1, #0
+0x000049c0:  bl       #0x1af70    ; -> OMCPref
+0x000049c4:  mov      x29, x29
+0x000049c8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000049cc:  str      x0, [sp, #0x20]
+0x000049d0:  adrp     x8, #0x3a000
+0x000049d4:  ldr      x0, [x8, #0xa58]    ; class(NSDictionary)
+0x000049d8:  bl       #0x220e4    ; -> _objc_opt_class
+0x000049dc:  mov      x1, x0
+0x000049e0:  ldr      x0, [sp, #0x20]
+0x000049e4:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x000049e8:  tbz      w0, #0, #0x4be0
+0x000049ec:  movi     v0.16b, #0
+0x000049f0:  add      x8, sp, #0x480
+0x000049f4:  stp      q0, q0, [x8, #0xe0]
+0x000049f8:  stp      q0, q0, [x8, #0xc0]
+0x000049fc:  adrp     x0, #0x35000
+0x00004a00:  add      x0, x0, #0x458
+0x00004a04:  add      x2, sp, #0x540
+0x00004a08:  add      x3, sp, #0x80
+0x00004a0c:  mov      w4, #0x10
+0x00004a10:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x00004a14:  str      x0, [sp, #0x18]
+0x00004a18:  ldr      x8, [sp, #0x18]
+0x00004a1c:  cbz      x8, #0x4be0
+0x00004a20:  ldr      x8, [sp, #0x550]
+0x00004a24:  ldr      x8, [x8]
+0x00004a28:  str      x8, [sp, #0x10]
+0x00004a2c:  adrp     x26, #0x35000
+0x00004a30:  add      x26, x26, #0x470
+0x00004a34:  adrp     x21, #0x31000
+0x00004a38:  add      x21, x21, #0x508    ; @"nil"
+0x00004a3c:  mov      x28, #0
+0x00004a40:  ldr      x8, [sp, #0x550]
+0x00004a44:  ldr      x8, [x8]
+0x00004a48:  ldr      x9, [sp, #0x10]
+0x00004a4c:  cmp      x8, x9
+0x00004a50:  b.eq     #0x4a60
+0x00004a54:  adrp     x0, #0x35000
+0x00004a58:  add      x0, x0, #0x458
+0x00004a5c:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x00004a60:  ldr      x8, [sp, #0x548]
+0x00004a64:  ldr      x2, [x8, x28, lsl #3]
+0x00004a68:  ldr      x0, [sp, #0x20]
+0x00004a6c:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x00004a70:  mov      x29, x29
+0x00004a74:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00004a78:  mov      x19, x0
+0x00004a7c:  adrp     x8, #0x3a000
+0x00004a80:  ldr      x0, [x8, #0xa58]    ; class(NSDictionary)
+0x00004a84:  bl       #0x220e4    ; -> _objc_opt_class
+0x00004a88:  mov      x1, x0
+0x00004a8c:  mov      x0, x19
+0x00004a90:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x00004a94:  tbz      w0, #0, #0x4ba4
+0x00004a98:  add      x8, sp, #0x480
+0x00004a9c:  movi     v0.16b, #0
+0x00004aa0:  stp      q0, q0, [x8, #0xa0]

@@ -1,0 +1,19 @@
+# -[SPPBubbleView setBits:]
+# addr 0x15cc8 .. 0x15d08  (64 bytes)
+
+00015cc8  stp      x22, x21, [sp, #-0x30]!                     
+00015ccc  stp      x20, x19, [sp, #0x10]                       
+00015cd0  stp      x29, x30, [sp, #0x20]                       
+00015cd4  add      x29, sp, #0x20                              
+00015cd8  mov      x19, x2                                     
+00015cdc  mov      x20, x0                                     
+00015ce0  adrp     x8, #0x43000                                
+00015ce4  ldrsw    x21, [x8, #0x244]                           
+00015ce8  mov      x0, x2                                      
+00015cec  bl       #0x28004                                    ; _objc_retain
+00015cf0  ldr      x0, [x20, x21]                              
+00015cf4  str      x19, [x20, x21]                             
+00015cf8  ldp      x29, x30, [sp, #0x20]                       
+00015cfc  ldp      x20, x19, [sp, #0x10]                       
+00015d00  ldp      x22, x21, [sp], #0x30                       
+00015d04  b        #0x27ff8                                    ; _objc_release

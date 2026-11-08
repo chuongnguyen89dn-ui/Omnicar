@@ -1,0 +1,360 @@
+; sub_89d0
+0x0089d0  sub      sp, sp, #0x70
+0x0089d4  stp      x28, x27, [sp, #0x10]
+0x0089d8  stp      x26, x25, [sp, #0x20]
+0x0089dc  stp      x24, x23, [sp, #0x30]
+0x0089e0  stp      x22, x21, [sp, #0x40]
+0x0089e4  stp      x20, x19, [sp, #0x50]
+0x0089e8  stp      x29, x30, [sp, #0x60]
+0x0089ec  add      x29, sp, #0x60
+0x0089f0  mov      x19, x1
+0x0089f4  mov      x0, x1
+0x0089f8  bl       #0x567c4 ; call _objc_retain
+0x0089fc  mov      x0, x19
+0x008a00  bl       #0x5ca20 ; objc_msgSend$userInfo
+0x008a04  mov      x29, x29
+0x008a08  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008a0c  mov      x20, x0
+0x008a10  adrp     x2, #0x79000
+0x008a14  add      x2, x2, #0xb80 ; -> 0x79b80 @"identifier"
+0x008a18  bl       #0x59660 ; objc_msgSend$objectForKeyedSubscript:
+0x008a1c  mov      x29, x29
+0x008a20  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008a24  mov      x21, x0
+0x008a28  bl       #0x567c4 ; call _objc_retain
+0x008a2c  adrp     x27, #0x87000
+0x008a30  ldr      x0, [x27, #0x678] ; [0x87678] class:NSString
+0x008a34  bl       #0x5677c ; call _objc_opt_class
+0x008a38  mov      x1, x0
+0x008a3c  mov      x0, x21
+0x008a40  bl       #0x56788 ; call _objc_opt_isKindOfClass
+0x008a44  tbz      w0, #0, #0x8e40
+0x008a48  mov      x0, x21
+0x008a4c  bl       #0x590c0 ; objc_msgSend$length
+0x008a50  cbz      x0, #0x8e40
+0x008a54  adrp     x0, #0x5f000
+0x008a58  add      x0, x0, #0x4cd ; -> 0x5f4cd "FBSSystemService"
+0x008a5c  bl       #0x56734 ; call _objc_getClass
+0x008a60  mov      x23, x0
+0x008a64  cbz      x0, #0x8ac0
+0x008a68  adrp     x8, #0x85000
+0x008a6c  ldr      x1, [x8, #0xb20] ; [0x85b20] sel:sharedService
+0x008a70  mov      x0, x23
+0x008a74  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x008a78  tbz      w0, #0, #0x8ac0
+0x008a7c  mov      x0, x23
+0x008a80  bl       #0x567c4 ; call _objc_retain
+0x008a84  adrp     x0, #0x7a000
+0x008a88  add      x0, x0, #0x100 ; -> 0x7a100 @"sharedService"
+0x008a8c  bl       #0x56374 ; call _NSSelectorFromString
+0x008a90  mov      x22, x0
+0x008a94  mov      x0, x23
+0x008a98  mov      x1, x22
+0x008a9c  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x008aa0  tbz      w0, #0, #0x8ac8
+0x008aa4  mov      x0, x23
+0x008aa8  mov      x1, x22
+0x008aac  bl       #0x56758 ; call _objc_msgSend (sel=sharedService)
+0x008ab0  mov      x29, x29
+0x008ab4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008ab8  mov      x22, x0
+0x008abc  b        #0x8adc
+0x008ac0  mov      x22, #0
+0x008ac4  b        #0x8ae4
+0x008ac8  adrp     x1, #0x7a000
+0x008acc  add      x1, x1, #0x100 ; -> 0x7a100 @"sharedService"
+0x008ad0  mov      x0, x23
+0x008ad4  bl       #0x4f330 ; -> _SCPMissingSelector
+0x008ad8  mov      x22, #0
+0x008adc  mov      x0, x23
+0x008ae0  bl       #0x567b8 ; call _objc_release
+0x008ae4  adrp     x0, #0x7a000
+0x008ae8  add      x0, x0, #0x120 ; -> 0x7a120 @"terminateApplication:forReason:andReport:withDescription:"
+0x008aec  bl       #0x56374 ; call _NSSelectorFromString
+0x008af0  mov      x23, x0
+0x008af4  mov      x0, x22
+0x008af8  mov      x1, x23
+0x008afc  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x008b00  tbz      w0, #0, #0x8bd8
+0x008b04  adrp     x5, #0x7a000
+0x008b08  add      x5, x5, #0x140 ; -> 0x7a140 @"OmniCar Split Screen close"
+0x008b0c  mov      x0, x22
+0x008b10  mov      x1, x23
+0x008b14  mov      x2, x21
+0x008b18  mov      w3, #1
+0x008b1c  mov      w4, #0
+0x008b20  bl       #0x56758 ; call _objc_msgSend
+0x008b24  ldr      x0, [x27, #0x678] ; [0x87678] class:NSString
+0x008b28  str      x21, [sp]
+0x008b2c  adrp     x2, #0x7a000
+0x008b30  add      x2, x2, #0x160 ; -> 0x7a160 @"tat han %@ (FBSSystemService)"
+0x008b34  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x008b38  mov      x29, x29
+0x008b3c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008b40  mov      x23, x0
+0x008b44  adrp     x0, #0x79000
+0x008b48  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x008b4c  mov      x1, x23
+0x008b50  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x008b54  b        #0x8e30
+0x008b58  b        #0x8b70
+0x008b5c  mov      x24, x1
+0x008b60  mov      x26, x0
+0x008b64  mov      x0, x23
+0x008b68  bl       #0x567b8 ; call _objc_release
+0x008b6c  b        #0x8b88
+0x008b70  mov      x26, x0
+0x008b74  mov      x0, x23
+0x008b78  bl       #0x567b8 ; call _objc_release
+0x008b7c  b        #0x8f18
+0x008b80  mov      x24, x1
+0x008b84  mov      x26, x0
+0x008b88  cmp      w24, #1
+0x008b8c  b.ne     #0x8f24
+0x008b90  mov      x0, x26
+0x008b94  bl       #0x566ec ; call _objc_begin_catch
+0x008b98  ldr      x8, [x27, #0x678] ; [0x87678] class:NSString
+0x008b9c  stp      x21, x0, [sp]
+0x008ba0  adrp     x2, #0x7a000
+0x008ba4  add      x2, x2, #0x180 ; -> 0x7a180 @"tat han %@ loi %@"
+0x008ba8  mov      x0, x8
+0x008bac  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x008bb0  mov      x29, x29
+0x008bb4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008bb8  mov      x23, x0
+0x008bbc  adrp     x0, #0x79000
+0x008bc0  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x008bc4  mov      x1, x23
+0x008bc8  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x008bcc  mov      x0, x23
+0x008bd0  bl       #0x567b8 ; call _objc_release
+0x008bd4  bl       #0x56710 ; call _objc_end_catch
+0x008bd8  adrp     x0, #0x5f000
+0x008bdc  add      x0, x0, #0x571 ; -> 0x5f571 "SBApplicationController"
+0x008be0  bl       #0x56734 ; call _objc_getClass
+0x008be4  mov      x29, x29
+0x008be8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008bec  mov      x25, x0
+0x008bf0  adrp     x0, #0x7a000
+0x008bf4  add      x0, x0, #0x1a0 ; -> 0x7a1a0 @"sharedInstance"
+0x008bf8  bl       #0x56374 ; call _NSSelectorFromString
+0x008bfc  mov      x23, x0
+0x008c00  mov      x0, x25
+0x008c04  mov      x1, x23
+0x008c08  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x008c0c  tbz      w0, #0, #0x8d58
+0x008c10  mov      x0, x25
+0x008c14  mov      x1, x23
+0x008c18  bl       #0x56758 ; call _objc_msgSend
+0x008c1c  mov      x29, x29
+0x008c20  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008c24  mov      x23, x0
+0x008c28  mov      x0, x25
+0x008c2c  bl       #0x567b8 ; call _objc_release
+0x008c30  cbz      x23, #0x8d78
+0x008c34  mov      x0, x23
+0x008c38  bl       #0x567c4 ; call _objc_retain
+0x008c3c  adrp     x0, #0x7a000
+0x008c40  add      x0, x0, #0x1c0 ; -> 0x7a1c0 @"applicationWithBundleIdentifier:"
+0x008c44  bl       #0x56374 ; call _NSSelectorFromString
+0x008c48  mov      x24, x0
+0x008c4c  mov      x0, x23
+0x008c50  mov      x1, x24
+0x008c54  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x008c58  tbz      w0, #0, #0x8d84
+0x008c5c  mov      x0, x23
+0x008c60  mov      x1, x24
+0x008c64  mov      x2, x21
+0x008c68  bl       #0x56758 ; call _objc_msgSend
+0x008c6c  mov      x29, x29
+0x008c70  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008c74  mov      x24, x0
+0x008c78  mov      x0, x23
+0x008c7c  bl       #0x567b8 ; call _objc_release
+0x008c80  cbz      x24, #0x8da4
+0x008c84  mov      x0, x24
+0x008c88  bl       #0x567c4 ; call _objc_retain
+0x008c8c  adrp     x0, #0x7a000
+0x008c90  add      x0, x0, #0x1e0 ; -> 0x7a1e0 @"processState"
+0x008c94  bl       #0x56374 ; call _NSSelectorFromString
+0x008c98  mov      x25, x0
+0x008c9c  mov      x0, x24
+0x008ca0  mov      x1, x25
+0x008ca4  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x008ca8  tbz      w0, #0, #0x8dac
+0x008cac  mov      x0, x24
+0x008cb0  mov      x1, x25
+0x008cb4  bl       #0x56758 ; call _objc_msgSend
+0x008cb8  mov      x29, x29
+0x008cbc  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008cc0  mov      x25, x0
+0x008cc4  mov      x0, x24
+0x008cc8  bl       #0x567b8 ; call _objc_release
+0x008ccc  cbz      x25, #0x8de8
+0x008cd0  mov      x0, x25
+0x008cd4  bl       #0x567c4 ; call _objc_retain
+0x008cd8  adrp     x0, #0x7a000
+0x008cdc  add      x0, x0, #0x200 ; -> 0x7a200 @"pid"
+0x008ce0  bl       #0x56374 ; call _NSSelectorFromString
+0x008ce4  mov      x26, x0
+0x008ce8  mov      x0, x25
+0x008cec  mov      x1, x26
+0x008cf0  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x008cf4  tbz      w0, #0, #0x8dc8
+0x008cf8  mov      x0, x25
+0x008cfc  mov      x1, x26
+0x008d00  bl       #0x56758 ; call _objc_msgSend
+0x008d04  mov      x26, x0
+0x008d08  mov      x0, x25
+0x008d0c  bl       #0x567b8 ; call _objc_release
+0x008d10  cmp      w26, #1
+0x008d14  b.lt     #0x8de8
+0x008d18  mov      x0, x26
+0x008d1c  mov      w1, #9
+0x008d20  bl       #0x56620 ; call _kill
+0x008d24  ldr      x0, [x27, #0x678] ; [0x87678] class:NSString
+0x008d28  stp      x21, x26, [sp]
+0x008d2c  adrp     x2, #0x7a000
+0x008d30  add      x2, x2, #0x220 ; -> 0x7a220 @"tat han %@ (kill pid %d)"
+0x008d34  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x008d38  mov      x29, x29
+0x008d3c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008d40  mov      x26, x0
+0x008d44  adrp     x0, #0x79000
+0x008d48  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x008d4c  mov      x1, x26
+0x008d50  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x008d54  b        #0x8e18
+0x008d58  adrp     x1, #0x7a000
+0x008d5c  add      x1, x1, #0x1a0 ; -> 0x7a1a0 @"sharedInstance"
+0x008d60  mov      x0, x25
+0x008d64  bl       #0x4f330 ; -> _SCPMissingSelector
+0x008d68  mov      x23, #0
+0x008d6c  mov      x26, #0
+0x008d70  mov      x24, #0
+0x008d74  b        #0x8ddc
+0x008d78  mov      x25, #0
+0x008d7c  mov      x24, #0
+0x008d80  b        #0x8de8
+0x008d84  adrp     x1, #0x7a000
+0x008d88  add      x1, x1, #0x1c0 ; -> 0x7a1c0 @"applicationWithBundleIdentifier:"
+0x008d8c  mov      x0, x23
+0x008d90  bl       #0x4f330 ; -> _SCPMissingSelector
+0x008d94  mov      x26, #0
+0x008d98  mov      x24, #0
+0x008d9c  mov      x25, x23
+0x008da0  b        #0x8ddc
+0x008da4  mov      x25, #0
+0x008da8  b        #0x8de8
+0x008dac  adrp     x1, #0x7a000
+0x008db0  add      x1, x1, #0x1e0 ; -> 0x7a1e0 @"processState"
+0x008db4  mov      x0, x24
+0x008db8  bl       #0x4f330 ; -> _SCPMissingSelector
+0x008dbc  mov      x26, #0
+0x008dc0  mov      x25, x24
+0x008dc4  b        #0x8ddc
+0x008dc8  adrp     x1, #0x7a000
+0x008dcc  add      x1, x1, #0x200 ; -> 0x7a200 @"pid"
+0x008dd0  mov      x0, x25
+0x008dd4  bl       #0x4f330 ; -> _SCPMissingSelector
+0x008dd8  mov      x26, x25
+0x008ddc  mov      x0, x25
+0x008de0  bl       #0x567b8 ; call _objc_release
+0x008de4  mov      x25, x26
+0x008de8  ldr      x0, [x27, #0x678] ; [0x87678] class:NSString
+0x008dec  str      x21, [sp]
+0x008df0  adrp     x2, #0x7a000
+0x008df4  add      x2, x2, #0x240 ; -> 0x7a240 @"tat han %@: khong thay process"
+0x008df8  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x008dfc  mov      x29, x29
+0x008e00  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008e04  mov      x26, x0
+0x008e08  adrp     x0, #0x79000
+0x008e0c  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x008e10  mov      x1, x26
+0x008e14  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x008e18  mov      x0, x26
+0x008e1c  bl       #0x567b8 ; call _objc_release
+0x008e20  mov      x0, x25
+0x008e24  bl       #0x567b8 ; call _objc_release
+0x008e28  mov      x0, x24
+0x008e2c  bl       #0x567b8 ; call _objc_release
+0x008e30  mov      x0, x23
+0x008e34  bl       #0x567b8 ; call _objc_release
+0x008e38  mov      x0, x22
+0x008e3c  bl       #0x567b8 ; call _objc_release
+0x008e40  mov      x0, x21
+0x008e44  bl       #0x567b8 ; call _objc_release
+0x008e48  mov      x0, x21
+0x008e4c  bl       #0x567b8 ; call _objc_release
+0x008e50  mov      x0, x20
+0x008e54  bl       #0x567b8 ; call _objc_release
+0x008e58  mov      x0, x19
+0x008e5c  ldp      x29, x30, [sp, #0x60]
+0x008e60  ldp      x20, x19, [sp, #0x50]
+0x008e64  ldp      x22, x21, [sp, #0x40]
+0x008e68  ldp      x24, x23, [sp, #0x30]
+0x008e6c  ldp      x26, x25, [sp, #0x20]
+0x008e70  ldp      x28, x27, [sp, #0x10]
+0x008e74  add      sp, sp, #0x70
+0x008e78  b        #0x567b8 ; call _objc_release
+0x008e7c  mov      x26, x0
+0x008e80  mov      x0, x23
+0x008e84  bl       #0x567b8 ; call _objc_release
+0x008e88  b        #0x8e90
+0x008e8c  mov      x26, x0
+0x008e90  bl       #0x56710 ; call _objc_end_catch
+0x008e94  b        #0x8f24
+0x008e98  b        #0x8ecc
+0x008e9c  b        #0x8ea0
+0x008ea0  mov      x26, x0
+0x008ea4  mov      x0, x25
+0x008ea8  b        #0x8ed8
+0x008eac  b        #0x8eb0
+0x008eb0  mov      x26, x0
+0x008eb4  mov      x25, x24
+0x008eb8  b        #0x8eec
+0x008ebc  b        #0x8ec0
+0x008ec0  mov      x26, x0
+0x008ec4  mov      x24, x23
+0x008ec8  b        #0x8ef4
+0x008ecc  mov      x1, x26
+0x008ed0  mov      x26, x0
+0x008ed4  mov      x0, x1
+0x008ed8  bl       #0x567b8 ; call _objc_release
+0x008edc  b        #0x8eec
+0x008ee0  b        #0x8f04
+0x008ee4  b        #0x8f20
+0x008ee8  mov      x26, x0
+0x008eec  mov      x0, x25
+0x008ef0  bl       #0x567b8 ; call _objc_release
+0x008ef4  mov      x0, x24
+0x008ef8  bl       #0x567b8 ; call _objc_release
+0x008efc  mov      x0, x23
+0x008f00  b        #0x8f0c
+0x008f04  mov      x26, x0
+0x008f08  mov      x0, x25
+0x008f0c  bl       #0x567b8 ; call _objc_release
+0x008f10  b        #0x8f24
+0x008f14  mov      x26, x0
+0x008f18  mov      x22, #0
+0x008f1c  b        #0x8f24
+0x008f20  mov      x26, x0
+0x008f24  mov      x0, x22
+0x008f28  bl       #0x567b8 ; call _objc_release
+0x008f2c  b        #0x8f44
+0x008f30  mov      x26, x0
+0x008f34  b        #0x8f54
+0x008f38  mov      x26, x0
+0x008f3c  b        #0x8f5c
+0x008f40  mov      x26, x0
+0x008f44  mov      x0, x21
+0x008f48  bl       #0x567b8 ; call _objc_release
+0x008f4c  mov      x0, x21
+0x008f50  bl       #0x567b8 ; call _objc_release
+0x008f54  mov      x0, x20
+0x008f58  bl       #0x567b8 ; call _objc_release
+0x008f5c  mov      x0, x19
+0x008f60  bl       #0x567b8 ; call _objc_release
+0x008f64  mov      x0, x26
+0x008f68  bl       #0x563e0 ; call __Unwind_Resume

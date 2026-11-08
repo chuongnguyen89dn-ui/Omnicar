@@ -1,0 +1,23 @@
+; sub_9afc
+; VA 0x9afc  size 80
+
+0x00009afc:  stp      x20, x19, [sp, #-0x20]!
+0x00009b00:  stp      x29, x30, [sp, #0x10]
+0x00009b04:  add      x29, sp, #0x10
+0x00009b08:  adrp     x0, #0x31000
+0x00009b0c:  add      x0, x0, #0xc28    ; @"startupScreenStyle"
+0x00009b10:  adrp     x1, #0x34000
+0x00009b14:  add      x1, x1, #0xde0
+0x00009b18:  bl       #0x1af70    ; -> OMCPref
+0x00009b1c:  mov      x29, x29
+0x00009b20:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009b24:  mov      x19, x0
+0x00009b28:  bl       #0x23860    ; -> _objc_msgSend(integerValue)
+0x00009b2c:  mov      x20, x0
+0x00009b30:  mov      x0, x19
+0x00009b34:  bl       #0x22120    ; -> _objc_release
+0x00009b38:  cmp      x20, #0xb
+0x00009b3c:  csel     x0, x20, xzr, lo
+0x00009b40:  ldp      x29, x30, [sp, #0x10]
+0x00009b44:  ldp      x20, x19, [sp], #0x20
+0x00009b48:  ret      

@@ -1,0 +1,138 @@
+; -[SSStartupView ss_buildScene]
+; VA 0x10570  size 540
+
+0x00010570:  stp      x22, x21, [sp, #-0x30]!
+0x00010574:  stp      x20, x19, [sp, #0x10]
+0x00010578:  stp      x29, x30, [sp, #0x20]
+0x0001057c:  add      x29, sp, #0x20
+0x00010580:  mov      x19, x0
+0x00010584:  adrp     x8, #0x3a000
+0x00010588:  ldrsw    x8, [x8, #0xd20]
+0x0001058c:  ldrb     w21, [x0, x8]
+0x00010590:  bl       #0x25840    ; -> _objc_msgSend(ss_clearScene)
+0x00010594:  mov      x0, x19
+0x00010598:  bl       #0x228c0    ; -> _objc_msgSend(bounds)
+0x0001059c:  adrp     x8, #0x3a000
+0x000105a0:  ldrsw    x8, [x8, #0xd08]
+0x000105a4:  add      x8, x19, x8
+0x000105a8:  stp      d2, d3, [x8]
+0x000105ac:  mov      x8, #0x4059000000000000
+0x000105b0:  fmov     d0, x8
+0x000105b4:  fdiv     d0, d3, d0
+0x000105b8:  adrp     x8, #0x28000
+0x000105bc:  ldr      d1, [x8, #0xe90]
+0x000105c0:  fdiv     d1, d2, d1
+0x000105c4:  fcmp     d0, d1
+0x000105c8:  fcsel    d0, d0, d1, mi
+0x000105cc:  adrp     x8, #0x3a000
+0x000105d0:  ldrsw    x22, [x8, #0xcb0]
+0x000105d4:  ldr      x8, [x19, x22]
+0x000105d8:  tbnz     x8, #0x3f, #0x1077c
+0x000105dc:  fcmp     d0, #0.0
+0x000105e0:  b.ls     #0x1077c
+0x000105e4:  fmov     d1, #6.00000000
+0x000105e8:  fdiv     d0, d0, d1
+0x000105ec:  adrp     x8, #0x3a000
+0x000105f0:  ldrsw    x8, [x8, #0xd80]
+0x000105f4:  str      d0, [x19, x8]
+0x000105f8:  mov      x9, #-0x3f67000000000000
+0x000105fc:  fmov     d1, x9
+0x00010600:  fmadd    d0, d0, d1, d2
+0x00010604:  fmov     d1, #0.50000000
+0x00010608:  fmul     d0, d0, d1
+0x0001060c:  adrp     x9, #0x3a000
+0x00010610:  ldrsw    x9, [x9, #0xd84]
+0x00010614:  str      d0, [x19, x9]
+0x00010618:  ldr      d0, [x19, x8]
+0x0001061c:  adrp     x8, #0x28000
+0x00010620:  ldr      d2, [x8, #0xee0]
+0x00010624:  fmadd    d0, d0, d2, d3
+0x00010628:  fmul     d0, d0, d1
+0x0001062c:  adrp     x8, #0x3a000
+0x00010630:  ldrsw    x8, [x8, #0xd88]
+0x00010634:  str      d0, [x19, x8]
+0x00010638:  adrp     x8, #0x3a000
+0x0001063c:  ldr      x0, [x8, #0xa10]    ; class(UIView)
+0x00010640:  bl       #0x22024    ; -> _objc_alloc
+0x00010644:  mov      x20, x0
+0x00010648:  mov      x0, x19
+0x0001064c:  bl       #0x228c0    ; -> _objc_msgSend(bounds)
+0x00010650:  mov      x0, x20
+0x00010654:  bl       #0x23780    ; -> _objc_msgSend(initWithFrame:)
+0x00010658:  adrp     x8, #0x3a000
+0x0001065c:  ldrsw    x20, [x8, #0xd30]
+0x00010660:  ldr      x8, [x19, x20]
+0x00010664:  str      x0, [x19, x20]
+0x00010668:  mov      x0, x8
+0x0001066c:  bl       #0x22120    ; -> _objc_release
+0x00010670:  ldr      x0, [x19, x20]
+0x00010674:  mov      w2, #0
+0x00010678:  bl       #0x25400    ; -> _objc_msgSend(setUserInteractionEnabled:)
+0x0001067c:  ldr      x2, [x19, x20]
+0x00010680:  mov      x0, x19
+0x00010684:  mov      x3, #0
+0x00010688:  bl       #0x23840    ; -> _objc_msgSend(insertSubview:atIndex:)
+0x0001068c:  ldr      x8, [x19, x22]
+0x00010690:  cmp      x8, #6
+0x00010694:  b.gt     #0x106bc
+0x00010698:  cmp      x8, #4
+0x0001069c:  b.gt     #0x106e0
+0x000106a0:  cmp      x8, #3
+0x000106a4:  b.eq     #0x10718
+0x000106a8:  cmp      x8, #4
+0x000106ac:  b.ne     #0x10744
+0x000106b0:  mov      x0, x19
+0x000106b4:  bl       #0x25740    ; -> _objc_msgSend(ss_buildEngine)
+0x000106b8:  b        #0x10744    ; -> sub_10744
+0x000106bc:  cmp      x8, #8
+0x000106c0:  b.gt     #0x106fc
+0x000106c4:  cmp      x8, #7
+0x000106c8:  b.eq     #0x10724
+0x000106cc:  cmp      x8, #8
+0x000106d0:  b.ne     #0x10744
+0x000106d4:  mov      x0, x19
+0x000106d8:  bl       #0x25720    ; -> _objc_msgSend(ss_buildBriefing)
+0x000106dc:  b        #0x10744    ; -> sub_10744
+0x000106e0:  cmp      x8, #5
+0x000106e4:  b.eq     #0x10730
+0x000106e8:  cmp      x8, #6
+0x000106ec:  b.ne     #0x10744
+0x000106f0:  mov      x0, x19
+0x000106f4:  bl       #0x257c0    ; -> _objc_msgSend(ss_buildParticles)
+0x000106f8:  b        #0x10744    ; -> sub_10744
+0x000106fc:  cmp      x8, #9
+0x00010700:  b.eq     #0x1073c
+0x00010704:  cmp      x8, #0xb
+0x00010708:  b.ne     #0x10744
+0x0001070c:  mov      x0, x19
+0x00010710:  bl       #0x25760    ; -> _objc_msgSend(ss_buildFestive)
+0x00010714:  b        #0x10744    ; -> sub_10744
+0x00010718:  mov      x0, x19
+0x0001071c:  bl       #0x25800    ; -> _objc_msgSend(ss_buildSky)
+0x00010720:  b        #0x10744    ; -> sub_10744
+0x00010724:  mov      x0, x19
+0x00010728:  bl       #0x25780    ; -> _objc_msgSend(ss_buildHud)
+0x0001072c:  b        #0x10744    ; -> sub_10744
+0x00010730:  mov      x0, x19
+0x00010734:  bl       #0x25820    ; -> _objc_msgSend(ss_buildWelcome)
+0x00010738:  b        #0x10744    ; -> sub_10744
+0x0001073c:  mov      x0, x19
+0x00010740:  bl       #0x257a0    ; -> _objc_msgSend(ss_buildLiquid)
+0x00010744:  adrp     x8, #0x3a000
+0x00010748:  ldrsw    x8, [x8, #0xd24]
+0x0001074c:  mov      w9, #1
+0x00010750:  strb     w9, [x19, x8]
+0x00010754:  mov      x0, x19
+0x00010758:  bl       #0x25940    ; -> _objc_msgSend(ss_now)
+0x0001075c:  mov      x0, x19
+0x00010760:  bl       #0x256e0    ; -> _objc_msgSend(ss_applyTime:)
+0x00010764:  cbz      w21, #0x1077c
+0x00010768:  mov      x0, x19
+0x0001076c:  ldp      x29, x30, [sp, #0x20]
+0x00010770:  ldp      x20, x19, [sp, #0x10]
+0x00010774:  ldp      x22, x21, [sp], #0x30
+0x00010778:  b        #0x259a0    ; -> _objc_msgSend(ss_startLink)
+0x0001077c:  ldp      x29, x30, [sp, #0x20]
+0x00010780:  ldp      x20, x19, [sp, #0x10]
+0x00010784:  ldp      x22, x21, [sp], #0x30
+0x00010788:  ret      

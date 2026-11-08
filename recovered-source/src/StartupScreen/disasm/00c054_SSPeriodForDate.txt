@@ -1,0 +1,58 @@
+; SSPeriodForDate
+; VA 0xc054  size 220
+
+0x0000c054:  stp      x22, x21, [sp, #-0x30]!
+0x0000c058:  stp      x20, x19, [sp, #0x10]
+0x0000c05c:  stp      x29, x30, [sp, #0x20]
+0x0000c060:  add      x29, sp, #0x20
+0x0000c064:  mov      x19, x0
+0x0000c068:  bl       #0x2212c    ; -> _objc_retain
+0x0000c06c:  adrp     x8, #0x3a000
+0x0000c070:  ldr      x0, [x8, #0xae8]    ; class(NSCalendar)
+0x0000c074:  bl       #0x22e60    ; -> _objc_msgSend(currentCalendar)
+0x0000c078:  mov      x29, x29
+0x0000c07c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000c080:  mov      x20, x0
+0x0000c084:  cbz      x19, #0xc0a0
+0x0000c088:  mov      x0, x20
+0x0000c08c:  mov      w2, #0x20
+0x0000c090:  mov      x3, x19
+0x0000c094:  bl       #0x22b80    ; -> _objc_msgSend(component:fromDate:)
+0x0000c098:  mov      x21, x0
+0x0000c09c:  b        #0xc0d4    ; -> sub_c0d4
+0x0000c0a0:  adrp     x8, #0x3a000
+0x0000c0a4:  ldr      x0, [x8, #0xa90]    ; class(NSDate)
+0x0000c0a8:  bl       #0x22f40    ; -> _objc_msgSend(date)
+0x0000c0ac:  mov      x29, x29
+0x0000c0b0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000c0b4:  mov      x22, x0
+0x0000c0b8:  mov      x0, x20
+0x0000c0bc:  mov      w2, #0x20
+0x0000c0c0:  mov      x3, x22
+0x0000c0c4:  bl       #0x22b80    ; -> _objc_msgSend(component:fromDate:)
+0x0000c0c8:  mov      x21, x0
+0x0000c0cc:  mov      x0, x22
+0x0000c0d0:  bl       #0x22120    ; -> _objc_release
+0x0000c0d4:  mov      x0, x20
+0x0000c0d8:  bl       #0x22120    ; -> _objc_release
+0x0000c0dc:  sub      x8, x21, #5
+0x0000c0e0:  cmp      x8, #6
+0x0000c0e4:  b.hs     #0xc0f0
+0x0000c0e8:  mov      x20, #0
+0x0000c0ec:  b        #0xc114    ; -> sub_c114
+0x0000c0f0:  sub      x8, x21, #0xb
+0x0000c0f4:  cmp      x8, #6
+0x0000c0f8:  b.hs     #0xc104
+0x0000c0fc:  mov      w20, #1
+0x0000c100:  b        #0xc114    ; -> sub_c114
+0x0000c104:  sub      x8, x21, #0x11
+0x0000c108:  cmp      x8, #4
+0x0000c10c:  mov      w8, #2
+0x0000c110:  cinc     x20, x8, hs
+0x0000c114:  mov      x0, x19
+0x0000c118:  bl       #0x22120    ; -> _objc_release
+0x0000c11c:  mov      x0, x20
+0x0000c120:  ldp      x29, x30, [sp, #0x20]
+0x0000c124:  ldp      x20, x19, [sp, #0x10]
+0x0000c128:  ldp      x22, x21, [sp], #0x30
+0x0000c12c:  ret      

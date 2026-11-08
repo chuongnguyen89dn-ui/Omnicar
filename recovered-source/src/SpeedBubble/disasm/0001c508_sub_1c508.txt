@@ -1,0 +1,18 @@
+# sub_1c508
+# addr 0x1c508 .. 0x1c544  (60 bytes)
+
+0001c508  sub      sp, sp, #0x40                               
+0001c50c  stp      x29, x30, [sp, #0x30]                       
+0001c510  add      x29, sp, #0x30                              
+0001c514  adrp     x8, #0x38000                                
+0001c518  ldr      x8, [x8, #0x580]                            ; [0x38580] __DATA_CONST,__got+0x580 (= import _CGAffineTransformIdentity)
+0001c51c  ldp      q0, q1, [x8]                                
+0001c520  stp      q0, q1, [sp]                                
+0001c524  ldr      q0, [x8, #0x20]                             ; [0x38020] __DATA_CONST,__got+0x20 (= import _class_getInstanceMethod)
+0001c528  str      q0, [sp, #0x20]                             
+0001c52c  ldr      x0, [x0, #0x20]                             
+0001c530  mov      x2, sp                                      
+0001c534  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+0001c538  ldp      x29, x30, [sp, #0x30]                       
+0001c53c  add      sp, sp, #0x40                               
+0001c540  ret                                                  

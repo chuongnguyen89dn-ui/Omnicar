@@ -1,0 +1,49 @@
+; sub_a26c
+0x00a26c  stp      x22, x21, [sp, #-0x30]!
+0x00a270  stp      x20, x19, [sp, #0x10]
+0x00a274  stp      x29, x30, [sp, #0x20]
+0x00a278  add      x29, sp, #0x20
+0x00a27c  mov      x20, x1
+0x00a280  mov      x19, x0
+0x00a284  bl       #0x567c4 ; call _objc_retain
+0x00a288  mov      x0, x20
+0x00a28c  bl       #0x567c4 ; call _objc_retain
+0x00a290  cbz      x19, #0xa2e8
+0x00a294  mov      x0, x20
+0x00a298  bl       #0x56374 ; call _NSSelectorFromString
+0x00a29c  mov      x1, x0
+0x00a2a0  mov      x0, x19
+0x00a2a4  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x00a2a8  tbz      w0, #0, #0xa2e8
+0x00a2ac  mov      x0, x20
+0x00a2b0  bl       #0x56374 ; call _NSSelectorFromString
+0x00a2b4  mov      x1, x0
+0x00a2b8  mov      x0, x19
+0x00a2bc  bl       #0x56758 ; call _objc_msgSend
+0x00a2c0  mov      x29, x29
+0x00a2c4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00a2c8  mov      x21, x0
+0x00a2cc  b        #0xa2ec
+0x00a2d0  mov      x21, x0
+0x00a2d4  cmp      w1, #1
+0x00a2d8  b.ne     #0xa314
+0x00a2dc  mov      x0, x21
+0x00a2e0  bl       #0x566ec ; call _objc_begin_catch
+0x00a2e4  bl       #0x56710 ; call _objc_end_catch
+0x00a2e8  mov      x21, #0
+0x00a2ec  mov      x0, x20
+0x00a2f0  bl       #0x567b8 ; call _objc_release
+0x00a2f4  mov      x0, x19
+0x00a2f8  bl       #0x567b8 ; call _objc_release
+0x00a2fc  mov      x0, x21
+0x00a300  ldp      x29, x30, [sp, #0x20]
+0x00a304  ldp      x20, x19, [sp, #0x10]
+0x00a308  ldp      x22, x21, [sp], #0x30
+0x00a30c  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x00a310  mov      x21, x0
+0x00a314  mov      x0, x20
+0x00a318  bl       #0x567b8 ; call _objc_release
+0x00a31c  mov      x0, x19
+0x00a320  bl       #0x567b8 ; call _objc_release
+0x00a324  mov      x0, x21
+0x00a328  bl       #0x563e0 ; call __Unwind_Resume

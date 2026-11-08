@@ -1,0 +1,19 @@
+# -[SPPIconView setImageView:]
+# addr 0xdf9c .. 0xdfdc  (64 bytes)
+
+0000df9c  stp      x22, x21, [sp, #-0x30]!                     
+0000dfa0  stp      x20, x19, [sp, #0x10]                       
+0000dfa4  stp      x29, x30, [sp, #0x20]                       
+0000dfa8  add      x29, sp, #0x20                              
+0000dfac  mov      x19, x2                                     
+0000dfb0  mov      x20, x0                                     
+0000dfb4  adrp     x8, #0x43000                                
+0000dfb8  ldrsw    x21, [x8, #0x1e4]                           
+0000dfbc  mov      x0, x2                                      
+0000dfc0  bl       #0x28004                                    ; _objc_retain
+0000dfc4  ldr      x0, [x20, x21]                              
+0000dfc8  str      x19, [x20, x21]                             
+0000dfcc  ldp      x29, x30, [sp, #0x20]                       
+0000dfd0  ldp      x20, x19, [sp, #0x10]                       
+0000dfd4  ldp      x22, x21, [sp], #0x30                       
+0000dfd8  b        #0x27ff8                                    ; _objc_release

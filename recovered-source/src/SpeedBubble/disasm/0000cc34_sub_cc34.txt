@@ -1,0 +1,167 @@
+# sub_cc34
+# addr 0xcc34 .. 0xcec4  (656 bytes)
+
+0000cc34  sub      sp, sp, #0x40                               
+0000cc38  stp      x22, x21, [sp, #0x10]                       
+0000cc3c  stp      x20, x19, [sp, #0x20]                       
+0000cc40  stp      x29, x30, [sp, #0x30]                       
+0000cc44  add      x29, sp, #0x30                              
+0000cc48  mov      x19, x2                                     
+0000cc4c  mov      x20, x1                                     
+0000cc50  mov      x21, x0                                     
+0000cc54  mov      x0, x2                                      
+0000cc58  bl       #0x28004                                    ; _objc_retain
+0000cc5c  adrp     x8, #0x43000                                
+0000cc60  ldr      x8, [x8, #0x8a0]                            ; [0x438a0] __DATA,__bss+0x100
+0000cc64  mov      x0, x21                                     
+0000cc68  mov      x1, x20                                     
+0000cc6c  mov      x2, x19                                     
+0000cc70  blr      x8                                          
+0000cc74  adrp     x8, #0x42000                                
+0000cc78  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0000cc7c  adrp     x2, #0x39000                                
+0000cc80  add      x2, x2, #0xe58                              ; @"SpringBoard ready"
+0000cc84  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0000cc88  mov      x29, x29                                    
+0000cc8c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000cc90  mov      x21, x0                                     
+0000cc94  adrp     x0, #0x38000                                
+0000cc98  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0000cc9c  mov      x1, x21                                     
+0000cca0  bl       #0x2155c                                    ; _OMCLogWrite
+0000cca4  mov      x0, x21                                     
+0000cca8  bl       #0x27ff8                                    ; _objc_release
+0000ccac  stp      xzr, xzr, [sp]                              
+0000ccb0  adrp     x0, #0x2d000                                
+0000ccb4  add      x0, x0, #0xd79                              ; "com.anlai.omnicar/speedbubble.speed"
+0000ccb8  adrp     x2, #0x38000                                
+0000ccbc  ldr      x2, [x2, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000ccc0  adrp     x3, #0x38000                                
+0000ccc4  add      x3, x3, #0x8b8                              ; __const[0x388b8] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000ccc8  add      x1, sp, #0xc                                
+0000cccc  bl       #0x27ef0                                    ; _notify_register_dispatch
+0000ccd0  adrp     x0, #0x2e000                                
+0000ccd4  add      x0, x0, #0x427                              ; "com.anlai.omnicar/speedbubble.demo"
+0000ccd8  adrp     x2, #0x38000                                
+0000ccdc  ldr      x2, [x2, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000cce0  adrp     x3, #0x38000                                
+0000cce4  add      x3, x3, #0x8d8                              ; __const[0x388d8] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000cce8  add      x1, sp, #8                                  
+0000ccec  bl       #0x27ef0                                    ; _notify_register_dispatch
+0000ccf0  adrp     x20, #0x38000                               
+0000ccf4  ldr      x20, [x20, #0x350]                          ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000ccf8  mov      x0, x20                                     
+0000ccfc  bl       #0x27ff8                                    ; _objc_release
+0000cd00  adrp     x0, #0x2e000                                
+0000cd04  add      x0, x0, #0x44a                              ; "com.anlai.omnicar/speedbubble.resetlayout"
+0000cd08  adrp     x3, #0x38000                                
+0000cd0c  add      x3, x3, #0x8f8                              ; __const[0x388f8] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000cd10  mov      x1, sp                                      
+0000cd14  mov      x2, x20                                     
+0000cd18  bl       #0x27ef0                                    ; _notify_register_dispatch
+0000cd1c  mov      x0, x20                                     
+0000cd20  bl       #0x27ff8                                    ; _objc_release
+0000cd24  adrp     x0, #0x2e000                                
+0000cd28  add      x0, x0, #0x474                              ; "com.anlai.omnicar/prefschanged"
+0000cd2c  adrp     x3, #0x38000                                
+0000cd30  add      x3, x3, #0x918                              ; __const[0x38918] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000cd34  add      x1, sp, #4                                  
+0000cd38  mov      x2, x20                                     
+0000cd3c  bl       #0x27ef0                                    ; _notify_register_dispatch
+0000cd40  adrp     x0, #0x38000                                
+0000cd44  ldr      x0, [x0, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000cd48  bl       #0x27ff8                                    ; _objc_release
+0000cd4c  bl       #0xd088                                     ; sub_d088
+0000cd50  adrp     x0, #0x2e000                                
+0000cd54  add      x0, x0, #0x493                              ; "com.anlai.omnicar/car.busy"
+0000cd58  adrp     x1, #0x43000                                
+0000cd5c  add      x1, x1, #0x8a8                              ; __DATA,__bss+0x108
+0000cd60  adrp     x2, #0x38000                                
+0000cd64  ldr      x2, [x2, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000cd68  adrp     x3, #0x38000                                
+0000cd6c  add      x3, x3, #0x938                              ; __const[0x38938] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000cd70  bl       #0x27ef0                                    ; _notify_register_dispatch
+0000cd74  adrp     x0, #0x38000                                
+0000cd78  ldr      x0, [x0, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000cd7c  bl       #0x27ff8                                    ; _objc_release
+0000cd80  adrp     x8, #0x42000                                
+0000cd84  ldr      x0, [x8, #0xfd0]                            ; [0x42fd0] classref -> NSNotificationCenter (= import _OBJC_CLASS_$_NSNotificationCenter)
+0000cd88  bl       #0x29160                                    ; objc_msgSend$defaultCenter
+0000cd8c  mov      x29, x29                                    
+0000cd90  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000cd94  mov      x21, x0                                     
+0000cd98  adrp     x8, #0x42000                                
+0000cd9c  ldr      x0, [x8, #0xfd8]                            ; [0x42fd8] classref -> NSOperationQueue (= import _OBJC_CLASS_$_NSOperationQueue)
+0000cda0  bl       #0x29d40                                    ; objc_msgSend$mainQueue
+0000cda4  mov      x29, x29                                    
+0000cda8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000cdac  mov      x20, x0                                     
+0000cdb0  adrp     x2, #0x39000                                
+0000cdb4  add      x2, x2, #0xe78                              ; @"CarPlayIsConnectedDidChange"
+0000cdb8  adrp     x5, #0x38000                                
+0000cdbc  add      x5, x5, #0x978                              ; __const[0x38978] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000cdc0  mov      x0, x21                                     
+0000cdc4  mov      x3, #0                                      
+0000cdc8  mov      x4, x20                                     
+0000cdcc  bl       #0x28480                                    ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0000cdd0  mov      x29, x29                                    
+0000cdd4  bl       #0x28070                                    ; _objc_unsafeClaimAutoreleasedReturnValue
+0000cdd8  mov      x0, x20                                     
+0000cddc  bl       #0x27ff8                                    ; _objc_release
+0000cde0  mov      x0, x21                                     
+0000cde4  bl       #0x27ff8                                    ; _objc_release
+0000cde8  adrp     x0, #0x2e000                                
+0000cdec  add      x0, x0, #0x4ca                              ; "com.anlai.omnicar/car.connected"
+0000cdf0  adrp     x1, #0x43000                                
+0000cdf4  add      x1, x1, #0x8ac                              ; __DATA,__bss+0x10c
+0000cdf8  adrp     x2, #0x38000                                
+0000cdfc  ldr      x2, [x2, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000ce00  adrp     x3, #0x38000                                
+0000ce04  add      x3, x3, #0x998                              ; __const[0x38998] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000ce08  bl       #0x27ef0                                    ; _notify_register_dispatch
+0000ce0c  adrp     x20, #0x38000                               
+0000ce10  ldr      x20, [x20, #0x350]                          ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000ce14  mov      x0, x20                                     
+0000ce18  bl       #0x27ff8                                    ; _objc_release
+0000ce1c  mov      x0, #0                                      
+0000ce20  mov      w1, #0x5e00                                 
+0000ce24  movk     w1, #0xb2d0, lsl #16                        
+0000ce28  bl       #0x27dc4                                    ; _dispatch_time
+0000ce2c  adrp     x2, #0x38000                                
+0000ce30  add      x2, x2, #0x9b8                              ; __const[0x389b8] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000ce34  mov      x1, x20                                     
+0000ce38  bl       #0x27d58                                    ; _dispatch_after
+0000ce3c  mov      x0, x20                                     
+0000ce40  bl       #0x27ff8                                    ; _objc_release
+0000ce44  mov      x0, x19                                     
+0000ce48  bl       #0x27ff8                                    ; _objc_release
+0000ce4c  ldp      x29, x30, [sp, #0x30]                       
+0000ce50  ldp      x20, x19, [sp, #0x20]                       
+0000ce54  ldp      x22, x21, [sp, #0x10]                       
+0000ce58  add      sp, sp, #0x40                               
+0000ce5c  ret                                                  
+0000ce60  b        #0xce88                                     ; sub_ce88
+0000ce64  mov      x1, x20                                     
+0000ce68  mov      x20, x0                                     
+0000ce6c  mov      x0, x1                                      
+0000ce70  bl       #0x27ff8                                    ; _objc_release
+0000ce74  b        #0xcea0                                     ; sub_cea0
+0000ce78  b        #0xce9c                                     ; sub_ce9c
+0000ce7c  b        #0xce88                                     ; sub_ce88
+0000ce80  b        #0xce88                                     ; sub_ce88
+0000ce84  b        #0xce88                                     ; sub_ce88
+0000ce88  mov      x20, x0                                     
+0000ce8c  adrp     x0, #0x38000                                
+0000ce90  ldr      x0, [x0, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+0000ce94  b        #0xcea4                                     ; sub_cea4
+0000ce98  b        #0xceb0                                     ; sub_ceb0
+0000ce9c  mov      x20, x0                                     
+0000cea0  mov      x0, x21                                     
+0000cea4  bl       #0x27ff8                                    ; _objc_release
+0000cea8  b        #0xceb4                                     ; sub_ceb4
+0000ceac  b        #0xceb0                                     ; sub_ceb0
+0000ceb0  mov      x20, x0                                     
+0000ceb4  mov      x0, x19                                     
+0000ceb8  bl       #0x27ff8                                    ; _objc_release
+0000cebc  mov      x0, x20                                     
+0000cec0  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,40 @@
+# sub_1c544
+# addr 0x1c544 .. 0x1c5d8  (148 bytes)
+
+0001c544  sub      sp, sp, #0x80                               
+0001c548  stp      x20, x19, [sp, #0x60]                       
+0001c54c  stp      x29, x30, [sp, #0x70]                       
+0001c550  add      x29, sp, #0x70                              
+0001c554  mov      x19, x0                                     
+0001c558  ldr      x0, [x0, #0x20]                             
+0001c55c  cbz      x0, #0x1c570                                
+0001c560  add      x8, sp, #0x30                               
+0001c564  bl       #0x28900                                    ; objc_msgSend$baseTransform
+0001c568  ldr      x0, [x19, #0x20]                            
+0001c56c  b        #0x1c57c                                    ; sub_1c57c
+0001c570  movi     v0.16b, #0                                  
+0001c574  stp      q0, q0, [sp, #0x40]                         
+0001c578  str      q0, [sp, #0x30]                             
+0001c57c  ldp      q0, q1, [sp, #0x30]                         
+0001c580  stp      q0, q1, [sp]                                
+0001c584  ldr      q0, [sp, #0x50]                             
+0001c588  str      q0, [sp, #0x20]                             
+0001c58c  bl       #0x28c60                                    ; objc_msgSend$card
+0001c590  mov      x29, x29                                    
+0001c594  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001c598  mov      x20, x0                                     
+0001c59c  mov      x2, sp                                      
+0001c5a0  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+0001c5a4  mov      x0, x20                                     
+0001c5a8  bl       #0x27ff8                                    ; _objc_release
+0001c5ac  ldr      x0, [x19, #0x20]                            
+0001c5b0  bl       #0x28d20                                    ; objc_msgSend$clampCard
+0001c5b4  ldp      x29, x30, [sp, #0x70]                       
+0001c5b8  ldp      x20, x19, [sp, #0x60]                       
+0001c5bc  add      sp, sp, #0x80                               
+0001c5c0  ret                                                  
+0001c5c4  mov      x19, x0                                     
+0001c5c8  mov      x0, x20                                     
+0001c5cc  bl       #0x27ff8                                    ; _objc_release
+0001c5d0  mov      x0, x19                                     
+0001c5d4  bl       #0x27c80                                    ; __Unwind_Resume

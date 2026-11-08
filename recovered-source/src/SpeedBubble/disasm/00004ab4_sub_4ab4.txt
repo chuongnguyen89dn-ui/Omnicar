@@ -1,0 +1,14 @@
+# sub_4ab4
+# addr 0x4ab4 .. 0x4ae0  (44 bytes)
+
+00004ab4  stp      x29, x30, [sp, #-0x10]!                     
+00004ab8  mov      x29, sp                                     
+00004abc  adrp     x8, #0x42000                                
+00004ac0  ldr      x0, [x8, #0xf68]                            ; [0x42f68] classref -> SPPSpeedGPS
+00004ac4  bl       #0x27fd4                                    ; _objc_opt_new
+00004ac8  adrp     x9, #0x43000                                
+00004acc  ldr      x8, [x9, #0x7d8]                            ; [0x437d8] __DATA,__bss+0x38
+00004ad0  str      x0, [x9, #0x7d8]                            
+00004ad4  mov      x0, x8                                      
+00004ad8  ldp      x29, x30, [sp], #0x10                       
+00004adc  b        #0x27ff8                                    ; _objc_release

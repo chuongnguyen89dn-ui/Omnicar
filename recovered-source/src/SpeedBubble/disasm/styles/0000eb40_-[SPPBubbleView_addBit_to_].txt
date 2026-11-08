@@ -1,0 +1,43 @@
+# -[SPPBubbleView addBit:to:]
+# addr 0xeb40 .. 0xebe0  (160 bytes)
+
+0000eb40  stp      x22, x21, [sp, #-0x30]!                     
+0000eb44  stp      x20, x19, [sp, #0x10]                       
+0000eb48  stp      x29, x30, [sp, #0x20]                       
+0000eb4c  add      x29, sp, #0x20                              
+0000eb50  mov      x19, x3                                     
+0000eb54  mov      x20, x2                                     
+0000eb58  mov      x21, x0                                     
+0000eb5c  adrp     x8, #0x43000                                
+0000eb60  ldr      x22, [x8, #0x18]                            ; [0x43018] classref -> UIView (= import _OBJC_CLASS_$_UIView)
+0000eb64  mov      x0, x3                                      
+0000eb68  bl       #0x28004                                    ; _objc_retain
+0000eb6c  mov      x0, x20                                     
+0000eb70  bl       #0x28004                                    ; _objc_retain
+0000eb74  mov      x0, x22                                     
+0000eb78  bl       #0x27f14                                    ; _objc_alloc_init
+0000eb7c  mov      x22, x0                                     
+0000eb80  mov      w2, #0                                      
+0000eb84  bl       #0x2bbc0                                    ; objc_msgSend$setUserInteractionEnabled:
+0000eb88  mov      x0, x19                                     
+0000eb8c  mov      x2, x22                                     
+0000eb90  bl       #0x284c0                                    ; objc_msgSend$addSubview:
+0000eb94  mov      x0, x19                                     
+0000eb98  bl       #0x27ff8                                    ; _objc_release
+0000eb9c  mov      x0, x21                                     
+0000eba0  bl       #0x28a20                                    ; objc_msgSend$bits
+0000eba4  mov      x29, x29                                    
+0000eba8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000ebac  mov      x19, x0                                     
+0000ebb0  mov      x2, x22                                     
+0000ebb4  mov      x3, x20                                     
+0000ebb8  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+0000ebbc  mov      x0, x20                                     
+0000ebc0  bl       #0x27ff8                                    ; _objc_release
+0000ebc4  mov      x0, x19                                     
+0000ebc8  bl       #0x27ff8                                    ; _objc_release
+0000ebcc  mov      x0, x22                                     
+0000ebd0  ldp      x29, x30, [sp, #0x20]                       
+0000ebd4  ldp      x20, x19, [sp, #0x10]                       
+0000ebd8  ldp      x22, x21, [sp], #0x30                       
+0000ebdc  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

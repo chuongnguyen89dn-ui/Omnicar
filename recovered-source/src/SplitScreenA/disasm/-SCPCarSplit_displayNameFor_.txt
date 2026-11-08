@@ -1,0 +1,155 @@
+; -[SCPCarSplit displayNameFor:]
+0x01029c  stp      x24, x23, [sp, #-0x40]!
+0x0102a0  stp      x22, x21, [sp, #0x10]
+0x0102a4  stp      x20, x19, [sp, #0x20]
+0x0102a8  stp      x29, x30, [sp, #0x30]
+0x0102ac  add      x29, sp, #0x30
+0x0102b0  mov      x19, x2
+0x0102b4  mov      x0, x2
+0x0102b8  bl       #0x567c4 ; call _objc_retain
+0x0102bc  mov      x0, x19
+0x0102c0  bl       #0xe324 ; -> sub_e324
+0x0102c4  mov      x29, x29
+0x0102c8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0102cc  mov      x20, x0
+0x0102d0  cbz      x0, #0x10318
+0x0102d4  mov      x0, x20
+0x0102d8  bl       #0x567c4 ; call _objc_retain
+0x0102dc  adrp     x0, #0x7b000
+0x0102e0  add      x0, x0, #0x80 ; -> 0x7b080 @"displayName"
+0x0102e4  bl       #0x56374 ; call _NSSelectorFromString
+0x0102e8  mov      x21, x0
+0x0102ec  mov      x0, x20
+0x0102f0  mov      x1, x21
+0x0102f4  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x0102f8  tbz      w0, #0, #0x10320
+0x0102fc  mov      x0, x20
+0x010300  mov      x1, x21
+0x010304  bl       #0x56758 ; call _objc_msgSend
+0x010308  mov      x29, x29
+0x01030c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x010310  mov      x21, x0
+0x010314  b        #0x10334
+0x010318  mov      x21, #0
+0x01031c  b        #0x1033c
+0x010320  adrp     x1, #0x7b000
+0x010324  add      x1, x1, #0x80 ; -> 0x7b080 @"displayName"
+0x010328  mov      x0, x20
+0x01032c  bl       #0x4f330 ; -> _SCPMissingSelector
+0x010330  mov      x21, #0
+0x010334  mov      x0, x20
+0x010338  bl       #0x567b8 ; call _objc_release
+0x01033c  mov      x0, x21
+0x010340  bl       #0x590c0 ; objc_msgSend$length
+0x010344  cbnz     x0, #0x10450
+0x010348  mov      x0, x19
+0x01034c  bl       #0x590c0 ; objc_msgSend$length
+0x010350  cbz      x0, #0x10450
+0x010354  adrp     x0, #0x5f000
+0x010358  add      x0, x0, #0xdc4 ; -> 0x5fdc4 "LSApplicationProxy"
+0x01035c  bl       #0x56734 ; call _objc_getClass
+0x010360  mov      x23, x0
+0x010364  cbz      x0, #0x10414
+0x010368  mov      x0, x23
+0x01036c  bl       #0x567c4 ; call _objc_retain
+0x010370  adrp     x0, #0x7a000
+0x010374  add      x0, x0, #0xc40 ; -> 0x7ac40 @"applicationProxyForIdentifier:"
+0x010378  bl       #0x56374 ; call _NSSelectorFromString
+0x01037c  mov      x22, x0
+0x010380  mov      x0, x23
+0x010384  mov      x1, x22
+0x010388  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x01038c  tbz      w0, #0, #0x103b0
+0x010390  mov      x0, x23
+0x010394  mov      x1, x22
+0x010398  mov      x2, x19
+0x01039c  bl       #0x56758 ; call _objc_msgSend
+0x0103a0  mov      x29, x29
+0x0103a4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0103a8  mov      x22, x0
+0x0103ac  b        #0x103c4
+0x0103b0  adrp     x1, #0x7a000
+0x0103b4  add      x1, x1, #0xc40 ; -> 0x7ac40 @"applicationProxyForIdentifier:"
+0x0103b8  mov      x0, x23
+0x0103bc  bl       #0x4f330 ; -> _SCPMissingSelector
+0x0103c0  mov      x22, #0
+0x0103c4  mov      x0, x23
+0x0103c8  bl       #0x567b8 ; call _objc_release
+0x0103cc  cbz      x22, #0x10414
+0x0103d0  mov      x0, x22
+0x0103d4  bl       #0x567c4 ; call _objc_retain
+0x0103d8  adrp     x0, #0x7b000
+0x0103dc  add      x0, x0, #0xa0 ; -> 0x7b0a0 @"localizedName"
+0x0103e0  bl       #0x56374 ; call _NSSelectorFromString
+0x0103e4  mov      x23, x0
+0x0103e8  mov      x0, x22
+0x0103ec  mov      x1, x23
+0x0103f0  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x0103f4  tbz      w0, #0, #0x10420
+0x0103f8  mov      x0, x22
+0x0103fc  mov      x1, x23
+0x010400  bl       #0x56758 ; call _objc_msgSend
+0x010404  mov      x29, x29
+0x010408  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01040c  mov      x23, x0
+0x010410  b        #0x10434
+0x010414  mov      x22, x21
+0x010418  mov      x21, #0
+0x01041c  b        #0x10448
+0x010420  adrp     x1, #0x7b000
+0x010424  add      x1, x1, #0xa0 ; -> 0x7b0a0 @"localizedName"
+0x010428  mov      x0, x22
+0x01042c  bl       #0x4f330 ; -> _SCPMissingSelector
+0x010430  mov      x23, #0
+0x010434  mov      x0, x22
+0x010438  bl       #0x567b8 ; call _objc_release
+0x01043c  mov      x0, x21
+0x010440  bl       #0x567b8 ; call _objc_release
+0x010444  mov      x21, x23
+0x010448  mov      x0, x22
+0x01044c  bl       #0x567b8 ; call _objc_release
+0x010450  mov      x0, x21
+0x010454  bl       #0x590c0 ; objc_msgSend$length
+0x010458  cmp      x0, #0
+0x01045c  csel     x22, x19, x21, eq
+0x010460  mov      x0, x22
+0x010464  bl       #0x567c4 ; call _objc_retain
+0x010468  mov      x0, x21
+0x01046c  bl       #0x567b8 ; call _objc_release
+0x010470  mov      x0, x20
+0x010474  bl       #0x567b8 ; call _objc_release
+0x010478  mov      x0, x19
+0x01047c  bl       #0x567b8 ; call _objc_release
+0x010480  mov      x0, x22
+0x010484  ldp      x29, x30, [sp, #0x30]
+0x010488  ldp      x20, x19, [sp, #0x20]
+0x01048c  ldp      x22, x21, [sp, #0x10]
+0x010490  ldp      x24, x23, [sp], #0x40
+0x010494  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x010498  b        #0x104a0
+0x01049c  b        #0x104b8
+0x0104a0  mov      x24, x0
+0x0104a4  mov      x0, x22
+0x0104a8  bl       #0x567b8 ; call _objc_release
+0x0104ac  mov      x0, x22
+0x0104b0  b        #0x104c0
+0x0104b4  b        #0x104e0
+0x0104b8  mov      x24, x0
+0x0104bc  mov      x0, x23
+0x0104c0  bl       #0x567b8 ; call _objc_release
+0x0104c4  b        #0x104e4
+0x0104c8  b        #0x104d4
+0x0104cc  mov      x24, x0
+0x0104d0  b        #0x104f4
+0x0104d4  mov      x24, x0
+0x0104d8  mov      x21, x20
+0x0104dc  b        #0x104e4
+0x0104e0  mov      x24, x0
+0x0104e4  mov      x0, x21
+0x0104e8  bl       #0x567b8 ; call _objc_release
+0x0104ec  mov      x0, x20
+0x0104f0  bl       #0x567b8 ; call _objc_release
+0x0104f4  mov      x0, x19
+0x0104f8  bl       #0x567b8 ; call _objc_release
+0x0104fc  mov      x0, x24
+0x010500  bl       #0x563e0 ; call __Unwind_Resume

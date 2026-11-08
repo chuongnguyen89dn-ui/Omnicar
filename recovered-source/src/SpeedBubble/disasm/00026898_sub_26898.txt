@@ -1,0 +1,40 @@
+# sub_26898
+# addr 0x26898 .. 0x2692c  (148 bytes)
+
+00026898  ldr      x8, [x0, #0x20]                             
+0002689c  adrp     x9, #0x43000                                
+000268a0  ldr      x9, [x9, #0xac8]                            ; [0x43ac8] __DATA,__bss+0x328
+000268a4  cmp      x8, x9                                      
+000268a8  b.ne     #0x26928                                    
+000268ac  stp      x20, x19, [sp, #-0x20]!                     
+000268b0  stp      x29, x30, [sp, #0x10]                       
+000268b4  add      x29, sp, #0x10                              
+000268b8  adrp     x19, #0x43000                               
+000268bc  ldr      x0, [x19, #0xa50]                           ; [0x43a50] __DATA,__bss+0x2b0
+000268c0  bl       #0x29980                                    ; objc_msgSend$invalidate
+000268c4  ldr      x0, [x19, #0xa50]                           ; [0x43a50] __DATA,__bss+0x2b0
+000268c8  str      xzr, [x19, #0xa50]                          
+000268cc  bl       #0x27ff8                                    ; _objc_release
+000268d0  adrp     x8, #0x43000                                
+000268d4  ldr      d0, [x8, #0xae8]                            ; [0x43ae8] __DATA,__bss+0x348
+000268d8  adrp     x8, #0x43000                                
+000268dc  ldr      d1, [x8, #0xb60]                            ; [0x43b60] __DATA,__bss+0x3c0
+000268e0  fsub     d0, d0, d1                                  
+000268e4  mov      x8, #0x4059000000000000                     
+000268e8  fmov     d1, x8                                      
+000268ec  fcmp     d0, d1                                      
+000268f0  ldp      x29, x30, [sp, #0x10]                       
+000268f4  ldp      x20, x19, [sp], #0x20                       
+000268f8  b.lt     #0x26928                                    
+000268fc  adrp     x8, #0x43000                                
+00026900  ldr      d1, [x8, #0xae0]                            ; [0x43ae0] __DATA,__bss+0x340
+00026904  adrp     x8, #0x43000                                
+00026908  ldr      d2, [x8, #0xb58]                            ; [0x43b58] __DATA,__bss+0x3b8
+0002690c  fsub     d1, d1, d2                                  
+00026910  mov      x8, #0x4059000000000000                     
+00026914  fmov     d2, x8                                      
+00026918  fmul     d1, d1, d2                                  
+0002691c  fdiv     d0, d1, d0                                  
+00026920  adrp     x8, #0x43000                                
+00026924  str      d0, [x8, #0xb68]                            
+00026928  ret                                                  

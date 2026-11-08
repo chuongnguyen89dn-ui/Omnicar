@@ -1,0 +1,67 @@
+# sub_1138c
+# addr 0x1138c .. 0x1148c  (256 bytes)
+
+0001138c  stp      d11, d10, [sp, #-0x50]!                     
+00011390  stp      d9, d8, [sp, #0x10]                         
+00011394  stp      x22, x21, [sp, #0x20]                       
+00011398  stp      x20, x19, [sp, #0x30]                       
+0001139c  stp      x29, x30, [sp, #0x40]                       
+000113a0  add      x29, sp, #0x40                              
+000113a4  mov      v8.16b, v0.16b                              
+000113a8  mov      x20, x1                                     
+000113ac  mov      x19, x0                                     
+000113b0  mov      x0, x1                                      
+000113b4  bl       #0x28010                                    ; _objc_retainAutorelease
+000113b8  mov      x0, x19                                     
+000113bc  bl       #0x28004                                    ; _objc_retain
+000113c0  mov      x0, x20                                     
+000113c4  bl       #0x281e0                                    ; objc_msgSend$CGColor
+000113c8  mov      x20, x0                                     
+000113cc  mov      x0, x19                                     
+000113d0  bl       #0x29b80                                    ; objc_msgSend$layer
+000113d4  mov      x29, x29                                    
+000113d8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000113dc  mov      x21, x0                                     
+000113e0  mov      x2, x20                                     
+000113e4  bl       #0x2b700                                    ; objc_msgSend$setShadowColor:
+000113e8  mov      x0, x21                                     
+000113ec  bl       #0x27ff8                                    ; _objc_release
+000113f0  adrp     x8, #0x38000                                
+000113f4  ldr      x8, [x8, #0x630]                            ; [0x38630] __DATA_CONST,__got+0x630 (= import _CGSizeZero)
+000113f8  ldp      d9, d10, [x8]                               
+000113fc  mov      x0, x19                                     
+00011400  bl       #0x29b80                                    ; objc_msgSend$layer
+00011404  mov      x29, x29                                    
+00011408  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001140c  mov      x20, x0                                     
+00011410  mov      v0.16b, v9.16b                              
+00011414  mov      v1.16b, v10.16b                             
+00011418  bl       #0x2b720                                    ; objc_msgSend$setShadowOffset:
+0001141c  mov      x0, x20                                     
+00011420  bl       #0x27ff8                                    ; _objc_release
+00011424  mov      x0, x19                                     
+00011428  bl       #0x29b80                                    ; objc_msgSend$layer
+0001142c  mov      x29, x29                                    
+00011430  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011434  mov      x20, x0                                     
+00011438  mov      v0.16b, v8.16b                              
+0001143c  bl       #0x2b780                                    ; objc_msgSend$setShadowRadius:
+00011440  mov      x0, x20                                     
+00011444  bl       #0x27ff8                                    ; _objc_release
+00011448  mov      x0, x19                                     
+0001144c  bl       #0x29b80                                    ; objc_msgSend$layer
+00011450  mov      x29, x29                                    
+00011454  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011458  mov      x20, x0                                     
+0001145c  mov      x0, x19                                     
+00011460  bl       #0x27ff8                                    ; _objc_release
+00011464  fmov     s0, #1.00000000                             
+00011468  mov      x0, x20                                     
+0001146c  bl       #0x2b740                                    ; objc_msgSend$setShadowOpacity:
+00011470  mov      x0, x20                                     
+00011474  ldp      x29, x30, [sp, #0x40]                       
+00011478  ldp      x20, x19, [sp, #0x30]                       
+0001147c  ldp      x22, x21, [sp, #0x20]                       
+00011480  ldp      d9, d8, [sp, #0x10]                         
+00011484  ldp      d11, d10, [sp], #0x50                       
+00011488  b        #0x27ff8                                    ; _objc_release

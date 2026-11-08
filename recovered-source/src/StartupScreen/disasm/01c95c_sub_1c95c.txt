@@ -1,0 +1,40 @@
+; sub_1c95c
+; VA 0x1c95c  size 148
+
+0x0001c95c:  mov      x21, x20
+0x0001c960:  ldr      x20, [x20, #0xa98]
+0x0001c964:  bl       #0x1da18    ; -> sub_1da18
+0x0001c968:  mov      x29, x29
+0x0001c96c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c970:  mov      x19, x0
+0x0001c974:  mov      x0, x20
+0x0001c978:  mov      x2, x19
+0x0001c97c:  bl       #0x230e0    ; -> _objc_msgSend(dictionaryWithContentsOfFile:)
+0x0001c980:  mov      x29, x29
+0x0001c984:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c988:  mov      x20, x0
+0x0001c98c:  cbz      x0, #0x1c9a8
+0x0001c990:  mov      x0, x20
+0x0001c994:  bl       #0x2212c    ; -> _objc_retain
+0x0001c998:  mov      x21, x20
+0x0001c99c:  b        #0x1c9bc    ; -> sub_1c9bc
+0x0001c9a0:  mov      w22, #1
+0x0001c9a4:  b        #0x1d904    ; -> sub_1d904
+0x0001c9a8:  ldr      x0, [x21, #0xa98]
+0x0001c9ac:  bl       #0x230c0    ; -> _objc_msgSend(dictionary)
+0x0001c9b0:  mov      x29, x29
+0x0001c9b4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c9b8:  mov      x21, x0
+0x0001c9bc:  mov      x0, x20
+0x0001c9c0:  bl       #0x22120    ; -> _objc_release
+0x0001c9c4:  mov      x0, x19
+0x0001c9c8:  bl       #0x22120    ; -> _objc_release
+0x0001c9cc:  adrp     x2, #0x34000
+0x0001c9d0:  add      x2, x2, #0x68    ; @"early"
+0x0001c9d4:  mov      x0, x21
+0x0001c9d8:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x0001c9dc:  mov      x29, x29
+0x0001c9e0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c9e4:  mov      x19, x0
+0x0001c9e8:  bl       #0x23860    ; -> _objc_msgSend(integerValue)
+0x0001c9ec:  str      x0, [sp, #0x20]

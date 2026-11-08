@@ -1,0 +1,26 @@
+=== sub_5694 @ 0x5694 (size 100) ===
+00005694  stp      x20, x19, [sp, #-0x20]!
+00005698  stp      x29, x30, [sp, #0x10]
+0000569c  add      x29, sp, #0x10
+000056a0  mov      x20, x1
+000056a4  mov      x19, x0
+000056a8  bl       #0x25c80 ; objc_msgSend sel=isEditable
+000056ac  cbz      w0, #0x56b8
+000056b0  mov      x0, x19
+000056b4  bl       #0x698c ; call sub_698c
+000056b8  adrp     x8, #0x3e000
+000056bc  ldr      x8, [x8, #0x988]
+000056c0  mov      x0, x19
+000056c4  mov      x1, x20
+000056c8  blr      x8
+000056cc  mov      x20, x0
+000056d0  cbz      w0, #0x56e8
+000056d4  mov      x0, x19
+000056d8  bl       #0x25c80 ; objc_msgSend sel=isEditable
+000056dc  cbz      w0, #0x56e8
+000056e0  mov      x0, x19
+000056e4  bl       #0x6a70 ; call sub_6a70
+000056e8  mov      x0, x20
+000056ec  ldp      x29, x30, [sp, #0x10]
+000056f0  ldp      x20, x19, [sp], #0x20
+000056f4  ret      

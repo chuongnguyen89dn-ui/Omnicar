@@ -1,0 +1,64 @@
+=== sub_92b4 @ 0x92b4 (size 252) ===
+000092b4  sub      sp, sp, #0x30
+000092b8  stp      x20, x19, [sp, #0x10]
+000092bc  stp      x29, x30, [sp, #0x20]
+000092c0  add      x29, sp, #0x20
+000092c4  mov      x0, x1
+000092c8  str      xzr, [sp, #8]
+000092cc  add      x1, sp, #8
+000092d0  bl       #0x246e0 ; call _notify_get_state
+000092d4  ldr      x20, [sp, #8]
+000092d8  adrp     x8, #0x3e000
+000092dc  ldr      x0, [x8, #0x2e0] ; class ABHost
+000092e0  bl       #0x27b20 ; objc_msgSend sel=shared
+000092e4  mov      x29, x29
+000092e8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000092ec  mov      x19, x0
+000092f0  ubfx     x4, x20, #8, #0x10
+000092f4  lsr      x2, x20, #0x18
+000092f8  and      w3, w20, #0xff
+000092fc  bl       #0x24d20 ; objc_msgSend sel=appWithHash:changedOrientation:supportedMask:
+00009300  mov      x0, x19
+00009304  bl       #0x2480c ; call _objc_release
+00009308  ldp      x29, x30, [sp, #0x20]
+0000930c  ldp      x20, x19, [sp, #0x10]
+00009310  add      sp, sp, #0x30
+00009314  ret      
+00009318  mov      x20, x1
+0000931c  mov      x1, x19
+00009320  mov      x19, x0
+00009324  mov      x0, x1
+00009328  bl       #0x2480c ; call _objc_release
+0000932c  b        #0x9338 ; call sub_9338
+00009330  mov      x20, x1
+00009334  mov      x19, x0
+00009338  cmp      w20, #1
+0000933c  b.ne     #0x93a8
+00009340  mov      x0, x19
+00009344  bl       #0x24740 ; call _objc_begin_catch
+00009348  adrp     x8, #0x3e000
+0000934c  ldr      x8, [x8, #0x290] ; bind _OBJC_CLASS_$_NSString
+00009350  str      x0, [sp]
+00009354  adrp     x2, #0x35000
+00009358  add      x2, x2, #0x870 = @"apporient loi %@"
+0000935c  mov      x0, x8
+00009360  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00009364  mov      x29, x29
+00009368  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000936c  mov      x20, x0
+00009370  adrp     x0, #0x34000
+00009374  add      x0, x0, #0xef0 = @"AppBridge"
+00009378  mov      x1, x20
+0000937c  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00009380  mov      x0, x20
+00009384  bl       #0x2480c ; call _objc_release
+00009388  bl       #0x24764 ; call _objc_end_catch
+0000938c  b        #0x9308 ; call sub_9308
+00009390  mov      x19, x0
+00009394  mov      x0, x20
+00009398  bl       #0x2480c ; call _objc_release
+0000939c  b        #0x93a4 ; call sub_93a4
+000093a0  mov      x19, x0
+000093a4  bl       #0x24764 ; call _objc_end_catch
+000093a8  mov      x0, x19
+000093ac  bl       #0x24470 ; call __Unwind_Resume

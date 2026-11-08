@@ -1,0 +1,174 @@
+; SSWeatherLoadCache
+; VA 0xbaf0  size 684
+
+0x0000baf0:  stp      d9, d8, [sp, #-0x70]!
+0x0000baf4:  stp      x28, x27, [sp, #0x10]
+0x0000baf8:  stp      x26, x25, [sp, #0x20]
+0x0000bafc:  stp      x24, x23, [sp, #0x30]
+0x0000bb00:  stp      x22, x21, [sp, #0x40]
+0x0000bb04:  stp      x20, x19, [sp, #0x50]
+0x0000bb08:  stp      x29, x30, [sp, #0x60]
+0x0000bb0c:  add      x29, sp, #0x60
+0x0000bb10:  sub      sp, sp, #0x500
+0x0000bb14:  mov      v8.16b, v0.16b
+0x0000bb18:  adrp     x8, #0x30000
+0x0000bb1c:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0000bb20:  ldr      x8, [x8]
+0x0000bb24:  stur     x8, [x29, #-0x70]
+0x0000bb28:  movi     v0.16b, #0
+0x0000bb2c:  stp      q0, q0, [sp, #0x20]
+0x0000bb30:  stp      q0, q0, [sp, #0x40]
+0x0000bb34:  adrp     x0, #0x32000
+0x0000bb38:  add      x0, x0, #0x4a8    ; @"/var/mobile/Library/OmniCar/StartupScreen/weather.plist"
+0x0000bb3c:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x0000bb40:  add      x1, sp, #0x60
+0x0000bb44:  bl       #0x4118    ; -> sub_4118
+0x0000bb48:  cbz      x0, #0xbb6c
+0x0000bb4c:  mov      x2, x0
+0x0000bb50:  adrp     x8, #0x3a000
+0x0000bb54:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x0000bb58:  bl       #0x25c40    ; -> _objc_msgSend(stringWithUTF8String:)
+0x0000bb5c:  mov      x29, x29
+0x0000bb60:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bb64:  mov      x20, x0
+0x0000bb68:  b        #0xbb70    ; -> sub_bb70
+0x0000bb6c:  mov      x20, #0
+0x0000bb70:  stur     x20, [x29, #-0x100]
+0x0000bb74:  bl       #0xbd9c    ; -> sub_bd9c
+0x0000bb78:  mov      x29, x29
+0x0000bb7c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bb80:  mov      x21, x0
+0x0000bb84:  stur     x0, [x29, #-0xf8]
+0x0000bb88:  adrp     x8, #0x3a000
+0x0000bb8c:  ldr      x0, [x8, #0xb00]    ; class(NSArray)
+0x0000bb90:  sub      x2, x29, #0x100
+0x0000bb94:  mov      w3, #2
+0x0000bb98:  bl       #0x22700    ; -> _objc_msgSend(arrayWithObjects:count:)
+0x0000bb9c:  mov      x29, x29
+0x0000bba0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bba4:  mov      x19, x0
+0x0000bba8:  mov      x0, x21
+0x0000bbac:  bl       #0x22120    ; -> _objc_release
+0x0000bbb0:  mov      x0, x20
+0x0000bbb4:  bl       #0x22120    ; -> _objc_release
+0x0000bbb8:  add      x2, sp, #0x20
+0x0000bbbc:  sub      x3, x29, #0xf0
+0x0000bbc0:  str      x19, [sp, #0x18]
+0x0000bbc4:  mov      x0, x19
+0x0000bbc8:  mov      w4, #0x10
+0x0000bbcc:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0000bbd0:  cbz      x0, #0xbd44
+0x0000bbd4:  mov      x22, x0
+0x0000bbd8:  stp      xzr, xzr, [sp, #8]
+0x0000bbdc:  ldr      x8, [sp, #0x30]
+0x0000bbe0:  ldr      x24, [x8]
+0x0000bbe4:  adrp     x27, #0x3a000
+0x0000bbe8:  adrp     x20, #0x31000
+0x0000bbec:  add      x20, x20, #0x928    ; @"date"
+0x0000bbf0:  adrp     x19, #0x3a000
+0x0000bbf4:  mov      x21, #0
+0x0000bbf8:  ldr      x8, [sp, #0x30]
+0x0000bbfc:  ldr      x8, [x8]
+0x0000bc00:  cmp      x8, x24
+0x0000bc04:  b.eq     #0xbc10
+0x0000bc08:  ldr      x0, [sp, #0x18]
+0x0000bc0c:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x0000bc10:  ldr      x8, [sp, #0x28]
+0x0000bc14:  ldr      x2, [x8, x21, lsl #3]
+0x0000bc18:  ldr      x0, [x27, #0xa58]
+0x0000bc1c:  bl       #0x230e0    ; -> _objc_msgSend(dictionaryWithContentsOfFile:)
+0x0000bc20:  mov      x29, x29
+0x0000bc24:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bc28:  mov      x25, x0
+0x0000bc2c:  mov      x2, x20
+0x0000bc30:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x0000bc34:  mov      x29, x29
+0x0000bc38:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bc3c:  mov      x26, x0
+0x0000bc40:  ldr      x0, [x19, #0xa90]
+0x0000bc44:  bl       #0x220e4    ; -> _objc_opt_class
+0x0000bc48:  mov      x1, x0
+0x0000bc4c:  mov      x0, x26
+0x0000bc50:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x0000bc54:  tbz      w0, #0, #0xbd08
+0x0000bc58:  mov      x23, x19
+0x0000bc5c:  mov      x19, x27
+0x0000bc60:  mov      x0, x25
+0x0000bc64:  adrp     x2, #0x32000
+0x0000bc68:  add      x2, x2, #0x348    ; @"temp"
+0x0000bc6c:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x0000bc70:  mov      x29, x29
+0x0000bc74:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bc78:  mov      x27, x0
+0x0000bc7c:  bl       #0xba08    ; -> sub_ba08
+0x0000bc80:  mov      x29, x29
+0x0000bc84:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bc88:  mov      x28, x0
+0x0000bc8c:  bl       #0x22120    ; -> _objc_release
+0x0000bc90:  mov      x0, x27
+0x0000bc94:  bl       #0x22120    ; -> _objc_release
+0x0000bc98:  cbz      x28, #0xbcb8
+0x0000bc9c:  fcmp     d8, #0.0
+0x0000bca0:  b.le     #0xbcc0
+0x0000bca4:  mov      x0, x26
+0x0000bca8:  bl       #0x25e00    ; -> _objc_msgSend(timeIntervalSinceNow)
+0x0000bcac:  fneg     d0, d0
+0x0000bcb0:  fcmp     d8, d0
+0x0000bcb4:  b.pl     #0xbcc0
+0x0000bcb8:  mov      x27, x19
+0x0000bcbc:  b        #0xbd04    ; -> sub_bd04
+0x0000bcc0:  mov      x27, x19
+0x0000bcc4:  ldr      x19, [sp, #0x10]
+0x0000bcc8:  cbz      x19, #0xbce0
+0x0000bccc:  mov      x0, x26
+0x0000bcd0:  mov      x2, x19
+0x0000bcd4:  bl       #0x22b60    ; -> _objc_msgSend(compare:)
+0x0000bcd8:  cmp      x0, #1
+0x0000bcdc:  b.ne     #0xbd04
+0x0000bce0:  mov      x0, x25
+0x0000bce4:  bl       #0x2212c    ; -> _objc_retain
+0x0000bce8:  ldr      x0, [sp, #8]
+0x0000bcec:  bl       #0x22120    ; -> _objc_release
+0x0000bcf0:  mov      x0, x26
+0x0000bcf4:  bl       #0x2212c    ; -> _objc_retain
+0x0000bcf8:  mov      x0, x19
+0x0000bcfc:  bl       #0x22120    ; -> _objc_release
+0x0000bd00:  stp      x25, x26, [sp, #8]
+0x0000bd04:  mov      x19, x23
+0x0000bd08:  mov      x0, x26
+0x0000bd0c:  bl       #0x22120    ; -> _objc_release
+0x0000bd10:  mov      x0, x25
+0x0000bd14:  bl       #0x22120    ; -> _objc_release
+0x0000bd18:  add      x21, x21, #1
+0x0000bd1c:  cmp      x22, x21
+0x0000bd20:  b.ne     #0xbbf8
+0x0000bd24:  add      x2, sp, #0x20
+0x0000bd28:  sub      x3, x29, #0xf0
+0x0000bd2c:  ldr      x0, [sp, #0x18]
+0x0000bd30:  mov      w4, #0x10
+0x0000bd34:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0000bd38:  mov      x22, x0
+0x0000bd3c:  cbnz     x0, #0xbbf4
+0x0000bd40:  b        #0xbd48    ; -> sub_bd48
+0x0000bd44:  stp      xzr, xzr, [sp, #8]
+0x0000bd48:  ldr      x0, [sp, #0x18]
+0x0000bd4c:  bl       #0x22120    ; -> _objc_release
+0x0000bd50:  ldr      x0, [sp, #0x10]
+0x0000bd54:  bl       #0x22120    ; -> _objc_release
+0x0000bd58:  ldur     x8, [x29, #-0x70]
+0x0000bd5c:  adrp     x9, #0x30000
+0x0000bd60:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0000bd64:  ldr      x9, [x9]
+0x0000bd68:  cmp      x9, x8
+0x0000bd6c:  b.ne     #0xbd98
+0x0000bd70:  ldr      x0, [sp, #8]
+0x0000bd74:  add      sp, sp, #0x500
+0x0000bd78:  ldp      x29, x30, [sp, #0x60]
+0x0000bd7c:  ldp      x20, x19, [sp, #0x50]
+0x0000bd80:  ldp      x22, x21, [sp, #0x40]
+0x0000bd84:  ldp      x24, x23, [sp, #0x30]
+0x0000bd88:  ldp      x26, x25, [sp, #0x20]
+0x0000bd8c:  ldp      x28, x27, [sp, #0x10]
+0x0000bd90:  ldp      d9, d8, [sp], #0x70
+0x0000bd94:  b        #0x22054    ; -> _objc_autoreleaseReturnValue
+0x0000bd98:  bl       #0x21dd8    ; -> ___stack_chk_fail

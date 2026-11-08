@@ -1,0 +1,15 @@
+; -[SSSplash setImageView:]
+; VA 0x7234  size 48
+
+0x00007234:  stp      x20, x19, [sp, #-0x20]!
+0x00007238:  stp      x29, x30, [sp, #0x10]
+0x0000723c:  add      x29, sp, #0x10
+0x00007240:  mov      x19, x2
+0x00007244:  mov      x20, x0
+0x00007248:  mov      x0, x2
+0x0000724c:  bl       #0x2212c    ; -> _objc_retain
+0x00007250:  ldr      x0, [x20, #0x20]
+0x00007254:  str      x19, [x20, #0x20]
+0x00007258:  ldp      x29, x30, [sp, #0x10]
+0x0000725c:  ldp      x20, x19, [sp], #0x20
+0x00007260:  b        #0x22120    ; -> _objc_release

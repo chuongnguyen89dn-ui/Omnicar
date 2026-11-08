@@ -1,0 +1,30 @@
+# sub_1f49c
+# addr 0x1f49c .. 0x1f508  (108 bytes)
+
+0001f49c  stp      x20, x19, [sp, #-0x20]!                     
+0001f4a0  stp      x29, x30, [sp, #0x10]                       
+0001f4a4  add      x29, sp, #0x10                              
+0001f4a8  adrp     x8, #0x43000                                
+0001f4ac  ldr      x0, [x8, #0x48]                             ; [0x43048] classref -> SPPOverspeed
+0001f4b0  bl       #0x27fd4                                    ; _objc_opt_new
+0001f4b4  adrp     x19, #0x43000                               
+0001f4b8  ldr      x8, [x19, #0x9e8]                           ; [0x439e8] __DATA,__bss+0x248
+0001f4bc  str      x0, [x19, #0x9e8]                           
+0001f4c0  mov      x0, x8                                      
+0001f4c4  bl       #0x27ff8                                    ; _objc_release
+0001f4c8  ldr      x0, [x19, #0x9e8]                           ; [0x439e8] __DATA,__bss+0x248
+0001f4cc  mov      w2, #-1                                     
+0001f4d0  bl       #0x2b840                                    ; objc_msgSend$setSpeed:
+0001f4d4  ldr      x0, [x19, #0x9e8]                           ; [0x439e8] __DATA,__bss+0x248
+0001f4d8  mov      w2, #-1                                     
+0001f4dc  bl       #0x2b1c0                                    ; objc_msgSend$setLimit:
+0001f4e0  ldr      x0, [x19, #0x9e8]                           ; [0x439e8] __DATA,__bss+0x248
+0001f4e4  mov      w2, #1                                      
+0001f4e8  bl       #0x2aa40                                    ; objc_msgSend$setArmed:
+0001f4ec  ldr      x0, [x19, #0x9e8]                           ; [0x439e8] __DATA,__bss+0x248
+0001f4f0  mov      x2, #-1                                     
+0001f4f4  bl       #0x2b7e0                                    ; objc_msgSend$setShownFx:
+0001f4f8  ldr      x0, [x19, #0x9e8]                           ; [0x439e8] __DATA,__bss+0x248
+0001f4fc  ldp      x29, x30, [sp, #0x10]                       
+0001f500  ldp      x20, x19, [sp], #0x20                       
+0001f504  b        #0x29c40                                    ; objc_msgSend$loadPrefs

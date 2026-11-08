@@ -1,0 +1,79 @@
+; -[SCPCarSplit homePressedDuringSplit:]
+0x040298  stp      x22, x21, [sp, #-0x30]!
+0x04029c  stp      x20, x19, [sp, #0x10]
+0x0402a0  stp      x29, x30, [sp, #0x20]
+0x0402a4  add      x29, sp, #0x20
+0x0402a8  mov      x22, x2
+0x0402ac  mov      x19, x0
+0x0402b0  bl       #0x12658 ; -> sub_12658
+0x0402b4  mov      x29, x29
+0x0402b8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0402bc  mov      x21, x0
+0x0402c0  adrp     x0, #0x79000
+0x0402c4  add      x0, x0, #0xf20 ; -> 0x79f20 @"currentBaseViewController"
+0x0402c8  bl       #0x56374 ; call _NSSelectorFromString
+0x0402cc  mov      x20, x0
+0x0402d0  mov      x0, x21
+0x0402d4  mov      x1, x20
+0x0402d8  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x0402dc  tbz      w0, #0, #0x402fc
+0x0402e0  mov      x0, x21
+0x0402e4  mov      x1, x20
+0x0402e8  bl       #0x56758 ; call _objc_msgSend
+0x0402ec  mov      x29, x29
+0x0402f0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0402f4  mov      x20, x0
+0x0402f8  b        #0x40310
+0x0402fc  adrp     x1, #0x79000
+0x040300  add      x1, x1, #0xf20 ; -> 0x79f20 @"currentBaseViewController"
+0x040304  mov      x0, x21
+0x040308  bl       #0x4f330 ; -> _SCPMissingSelector
+0x04030c  mov      x20, #0
+0x040310  mov      x0, x21
+0x040314  bl       #0x567b8 ; call _objc_release
+0x040318  tbz      w22, #0, #0x40328
+0x04031c  mov      x0, x19
+0x040320  bl       #0x57c40 ; objc_msgSend$dismissStuckBaseSoon
+0x040324  b        #0x4034c
+0x040328  cbz      x20, #0x4034c
+0x04032c  mov      x0, x19
+0x040330  bl       #0x5c220 ; objc_msgSend$soloReturnedVC
+0x040334  mov      x29, x29
+0x040338  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04033c  mov      x21, x0
+0x040340  bl       #0x567b8 ; call _objc_release
+0x040344  cmp      x20, x21
+0x040348  b.eq     #0x4031c
+0x04034c  mov      x0, x19
+0x040350  mov      x2, #0
+0x040354  bl       #0x5ba20 ; objc_msgSend$setSoloReturnedVC:
+0x040358  mov      x0, x19
+0x04035c  bl       #0x587c0 ; objc_msgSend$ignoreHomeOnce
+0x040360  cbz      w0, #0x40374
+0x040364  mov      x0, x19
+0x040368  mov      w2, #0
+0x04036c  bl       #0x5afe0 ; objc_msgSend$setIgnoreHomeOnce:
+0x040370  b        #0x40398
+0x040374  mov      x0, x19
+0x040378  bl       #0x5c1e0 ; objc_msgSend$soloHostedBundle
+0x04037c  mov      x29, x29
+0x040380  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x040384  mov      x21, x0
+0x040388  bl       #0x567b8 ; call _objc_release
+0x04038c  cbz      x21, #0x40398
+0x040390  mov      x0, x19
+0x040394  bl       #0x57ec0 ; objc_msgSend$endHostedSolo
+0x040398  mov      x0, x20
+0x04039c  ldp      x29, x30, [sp, #0x20]
+0x0403a0  ldp      x20, x19, [sp, #0x10]
+0x0403a4  ldp      x22, x21, [sp], #0x30
+0x0403a8  b        #0x567b8 ; call _objc_release
+0x0403ac  b        #0x403b0
+0x0403b0  mov      x19, x0
+0x0403b4  mov      x20, x21
+0x0403b8  b        #0x403c0
+0x0403bc  mov      x19, x0
+0x0403c0  mov      x0, x20
+0x0403c4  bl       #0x567b8 ; call _objc_release
+0x0403c8  mov      x0, x19
+0x0403cc  bl       #0x563e0 ; call __Unwind_Resume

@@ -1,0 +1,48 @@
+# sub_42d0
+# addr 0x42d0 .. 0x4384  (180 bytes)
+
+000042d0  stp      x20, x19, [sp, #-0x20]!                     
+000042d4  stp      x29, x30, [sp, #0x10]                       
+000042d8  add      x29, sp, #0x10                              
+000042dc  cbz      x0, #0x4344                                 
+000042e0  mov      x19, x1                                     
+000042e4  mov      x20, x0                                     
+000042e8  cbnz     x1, #0x42f8                                 
+000042ec  mov      w0, #0x400                                  
+000042f0  bl       #0x27eb4                                    ; _malloc
+000042f4  mov      x19, x0                                     
+000042f8  adrp     x8, #0x43000                                
+000042fc  ldr      x8, [x8, #0x7c8]                            ; [0x437c8] __DATA,__bss+0x28
+00004300  cmn      x8, #1                                      
+00004304  b.ne     #0x436c                                     
+00004308  adrp     x8, #0x43000                                
+0000430c  ldr      x8, [x8, #0x7a8]                            ; [0x437a8] __DATA,__bss+0x8
+00004310  blr      x8                                          
+00004314  ldrb     w8, [x20]                                   
+00004318  cmp      w8, #0x2f                                   
+0000431c  b.ne     #0x434c                                     
+00004320  mov      x1, x0                                      
+00004324  mov      x0, x19                                     
+00004328  mov      w2, #0x400                                  
+0000432c  bl       #0x2813c                                    ; _strlcpy
+00004330  mov      x0, x19                                     
+00004334  mov      x1, x20                                     
+00004338  mov      w2, #0x400                                  
+0000433c  bl       #0x28130                                    ; _strlcat
+00004340  b        #0x435c                                     ; sub_435c
+00004344  mov      x19, #0                                     
+00004348  b        #0x435c                                     ; sub_435c
+0000434c  mov      x0, x19                                     
+00004350  mov      x1, x20                                     
+00004354  mov      w2, #0x400                                  
+00004358  bl       #0x2813c                                    ; _strlcpy
+0000435c  mov      x0, x19                                     
+00004360  ldp      x29, x30, [sp, #0x10]                       
+00004364  ldp      x20, x19, [sp], #0x20                       
+00004368  ret                                                  
+0000436c  adrp     x0, #0x43000                                
+00004370  add      x0, x0, #0x7c8                              ; __DATA,__bss+0x28
+00004374  adrp     x1, #0x38000                                
+00004378  add      x1, x1, #0x668                              ; __const[0x38668] double=-4.4501477170146e-308 float=2.802596928649634e-43
+0000437c  bl       #0x27d70                                    ; _dispatch_once
+00004380  b        #0x4308                                     ; sub_4308

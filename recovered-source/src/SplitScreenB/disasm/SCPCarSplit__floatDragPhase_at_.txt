@@ -1,0 +1,181 @@
+; ==== SCPCarSplit__floatDragPhase_at_  @0x284e8..0x287b8 (720 bytes) ====
+000284e8  sub      sp, sp, #0x80                                
+000284ec  stp      d15, d14, [sp, #0x10]                        
+000284f0  stp      d13, d12, [sp, #0x20]                        
+000284f4  stp      d11, d10, [sp, #0x30]                        
+000284f8  stp      d9, d8, [sp, #0x40]                          
+000284fc  stp      x22, x21, [sp, #0x50]                        
+00028500  stp      x20, x19, [sp, #0x60]                        
+00028504  stp      x29, x30, [sp, #0x70]                        
+00028508  add      x29, sp, #0x70                               
+0002850c  mov      v10.16b, v1.16b                              
+00028510  mov      v11.16b, v0.16b                              
+00028514  mov      x21, x2                                      
+00028518  mov      x20, x0                                      
+0002851c  bl       #0x58200                                     ; msgSend "floatPane"
+00028520  mov      x29, x29                                     
+00028524  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00028528  mov      x19, x0                                      
+0002852c  cbz      x0, #0x28748                                 
+00028530  mov      x0, x20                                      
+00028534  bl       #0x57800                                     ; msgSend "container"
+00028538  mov      x29, x29                                     
+0002853c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00028540  mov      x22, x0                                      
+00028544  bl       #0x567b8                                     ; call _objc_release
+00028548  cbz      x22, #0x28748                                
+0002854c  cbz      w21, #0x28610                                
+00028550  mov      x0, x20                                      
+00028554  bl       #0x581a0                                     ; msgSend "floatFrame"
+00028558  mov      v9.16b, v2.16b                               
+0002855c  mov      v8.16b, v3.16b                               
+00028560  adrp     x8, #0x88000                                 
+00028564  ldr      d0, [x8, #0x158]                             
+00028568  fadd     d0, d11, d0                                  
+0002856c  adrp     x8, #0x88000                                 
+00028570  ldr      d1, [x8, #0x148]                             
+00028574  fsub     d11, d0, d1                                  
+00028578  adrp     x8, #0x88000                                 
+0002857c  ldr      d0, [x8, #0x160]                             
+00028580  fadd     d0, d10, d0                                  
+00028584  adrp     x8, #0x88000                                 
+00028588  ldr      d1, [x8, #0x150]                             
+0002858c  fsub     d10, d0, d1                                  
+00028590  cmp      w21, #1                                      
+00028594  b.ne     #0x28654                                     
+00028598  mov      x0, x20                                      
+0002859c  mov      v0.16b, v11.16b                              
+000285a0  mov      v1.16b, v10.16b                              
+000285a4  mov      v2.16b, v9.16b                               
+000285a8  mov      v3.16b, v8.16b                               
+000285ac  bl       #0x5ad00                                     ; msgSend "setFloatFrame:"
+000285b0  adrp     x22, #0x87000                                
+000285b4  ldr      x0, [x22, #0x728]                            ; classref CATransaction
+000285b8  bl       #0x571c0                                     ; msgSend "begin"
+000285bc  ldr      x0, [x22, #0x728]                            ; classref CATransaction
+000285c0  mov      w2, #1                                       
+000285c4  bl       #0x5ab20                                     ; msgSend "setDisableActions:"
+000285c8  mov      x0, x19                                      
+000285cc  bl       #0x5cb60                                     ; msgSend "view"
+000285d0  mov      x29, x29                                     
+000285d4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000285d8  mov      x21, x0                                      
+000285dc  mov      v0.16b, v11.16b                              
+000285e0  mov      v1.16b, v10.16b                              
+000285e4  mov      v2.16b, v9.16b                               
+000285e8  mov      v3.16b, v8.16b                               
+000285ec  bl       #0x5ae20                                     ; msgSend "setFrame:"
+000285f0  mov      x0, x21                                      
+000285f4  bl       #0x567b8                                     ; call _objc_release
+000285f8  ldr      x0, [x22, #0x728]                            ; classref CATransaction
+000285fc  bl       #0x57720                                     ; msgSend "commit"
+00028600  mov      x0, x20                                      
+00028604  mov      w2, #1                                       
+00028608  bl       #0x59de0                                     ; msgSend "pushHostFramesLive:"
+0002860c  b        #0x28748                                     
+00028610  adrp     x8, #0x88000                                 
+00028614  str      d11, [x8, #0x148]                            
+00028618  adrp     x8, #0x88000                                 
+0002861c  str      d10, [x8, #0x150]                            
+00028620  mov      x0, x20                                      
+00028624  bl       #0x581a0                                     ; msgSend "floatFrame"
+00028628  adrp     x8, #0x88000                                 
+0002862c  str      d0, [x8, #0x158]                             
+00028630  adrp     x8, #0x88000                                 
+00028634  str      d1, [x8, #0x160]                             
+00028638  mov      x0, x20                                      
+0002863c  mov      w2, #0                                       
+00028640  mov      x3, x19                                      
+00028644  bl       #0x5a8c0                                     ; msgSend "setBarVisible:forPane:"
+00028648  mov      x0, x20                                      
+0002864c  bl       #0x58460                                     ; msgSend "hideRatioMenu"
+00028650  b        #0x28748                                     
+00028654  mov      x0, x20                                      
+00028658  bl       #0x57800                                     ; msgSend "container"
+0002865c  mov      x29, x29                                     
+00028660  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00028664  mov      x21, x0                                      
+00028668  bl       #0x57320                                     ; msgSend "bounds"
+0002866c  mov      v13.16b, v0.16b                              
+00028670  mov      v14.16b, v1.16b                              
+00028674  mov      v12.16b, v2.16b                              
+00028678  mov      v15.16b, v3.16b                              
+0002867c  mov      x0, x21                                      
+00028680  bl       #0x567b8                                     ; call _objc_release
+00028684  mov      v0.16b, v11.16b                              
+00028688  mov      v1.16b, v10.16b                              
+0002868c  mov      v2.16b, v9.16b                               
+00028690  mov      v3.16b, v8.16b                               
+00028694  bl       #0x562cc                                     ; call _CGRectGetMidX
+00028698  mov      v11.16b, v0.16b                              
+0002869c  mov      v0.16b, v13.16b                              
+000286a0  mov      v1.16b, v14.16b                              
+000286a4  mov      v2.16b, v12.16b                              
+000286a8  mov      v3.16b, v15.16b                              
+000286ac  bl       #0x562cc                                     ; call _CGRectGetMidX
+000286b0  fsub     d1, d12, d9                                  
+000286b4  fmov     d2, #-8.00000000                             
+000286b8  fadd     d1, d1, d2                                   
+000286bc  fcmp     d11, d0                                      
+000286c0  fmov     d0, #8.00000000                              
+000286c4  fcsel    d0, d0, d1, mi                               
+000286c8  mov      x0, x20                                      
+000286cc  mov      v1.16b, v10.16b                              
+000286d0  mov      v2.16b, v9.16b                               
+000286d4  mov      v3.16b, v8.16b                               
+000286d8  bl       #0x5ad00                                     ; msgSend "setFloatFrame:"
+000286dc  mov      x0, x20                                      
+000286e0  mov      w2, #1                                       
+000286e4  bl       #0x5a160                                     ; msgSend "relayoutAnimated:"
+000286e8  adrp     x8, #0x87000                                 
+000286ec  ldr      x22, [x8, #0x678]                            ; classref NSString
+000286f0  mov      x0, x20                                      
+000286f4  bl       #0x581a0                                     ; msgSend "floatFrame"
+000286f8  bl       #0x56398                                     ; call _NSStringFromCGRect
+000286fc  mov      x29, x29                                     
+00028700  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00028704  mov      x21, x0                                      
+00028708  str      x0, [sp]                                     
+0002870c  adrp     x2, #0x7c000                                 
+00028710  add      x2, x2, #0x260                               
+00028714  mov      x0, x22                                      
+00028718  bl       #0x5c440                                     ; msgSend "stringWithFormat:"
+0002871c  mov      x29, x29                                     
+00028720  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00028724  mov      x22, x0                                      
+00028728  adrp     x0, #0x79000                                 
+0002872c  add      x0, x0, #0x5c0                               
+00028730  mov      x1, x22                                      
+00028734  bl       #0x4fbf4                                     
+00028738  mov      x0, x22                                      
+0002873c  bl       #0x567b8                                     ; call _objc_release
+00028740  mov      x0, x21                                      
+00028744  bl       #0x567b8                                     ; call _objc_release
+00028748  mov      x0, x19                                      
+0002874c  ldp      x29, x30, [sp, #0x70]                        
+00028750  ldp      x20, x19, [sp, #0x60]                        
+00028754  ldp      x22, x21, [sp, #0x50]                        
+00028758  ldp      d9, d8, [sp, #0x40]                          
+0002875c  ldp      d11, d10, [sp, #0x30]                        
+00028760  ldp      d13, d12, [sp, #0x20]                        
+00028764  ldp      d15, d14, [sp, #0x10]                        
+00028768  add      sp, sp, #0x80                                
+0002876c  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+00028770  mov      x20, x0                                      
+00028774  mov      x0, x22                                      
+00028778  bl       #0x567b8                                     ; call _objc_release
+0002877c  b        #0x2878c                                     
+00028780  b        #0x28788                                     
+00028784  b        #0x28788                                     
+00028788  mov      x20, x0                                      
+0002878c  mov      x0, x21                                      
+00028790  bl       #0x567b8                                     ; call _objc_release
+00028794  b        #0x287a8                                     
+00028798  b        #0x287a4                                     
+0002879c  b        #0x287a4                                     
+000287a0  b        #0x287a4                                     
+000287a4  mov      x20, x0                                      
+000287a8  mov      x0, x19                                      
+000287ac  bl       #0x567b8                                     ; call _objc_release
+000287b0  mov      x0, x20                                      
+000287b4  bl       #0x563e0                                     ; call __Unwind_Resume

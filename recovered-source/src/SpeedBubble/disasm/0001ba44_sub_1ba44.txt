@@ -1,0 +1,24 @@
+# sub_1ba44
+# addr 0x1ba44 .. 0x1ba98  (84 bytes)
+
+0001ba44  sub      sp, sp, #0x50                               
+0001ba48  stp      x20, x19, [sp, #0x30]                       
+0001ba4c  stp      x29, x30, [sp, #0x40]                       
+0001ba50  add      x29, sp, #0x40                              
+0001ba54  mov      x19, x0                                     
+0001ba58  ldr      x0, [x0, #0x20]                             
+0001ba5c  fmov     d0, #1.00000000                             
+0001ba60  bl       #0x2a980                                    ; objc_msgSend$setAlpha:
+0001ba64  adrp     x8, #0x38000                                
+0001ba68  ldr      x8, [x8, #0x580]                            ; [0x38580] __DATA_CONST,__got+0x580 (= import _CGAffineTransformIdentity)
+0001ba6c  ldp      q0, q1, [x8]                                
+0001ba70  stp      q0, q1, [sp]                                
+0001ba74  ldr      q0, [x8, #0x20]                             ; [0x38020] __DATA_CONST,__got+0x20 (= import _class_getInstanceMethod)
+0001ba78  str      q0, [sp, #0x20]                             
+0001ba7c  ldr      x0, [x19, #0x20]                            
+0001ba80  mov      x2, sp                                      
+0001ba84  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+0001ba88  ldp      x29, x30, [sp, #0x40]                       
+0001ba8c  ldp      x20, x19, [sp, #0x30]                       
+0001ba90  add      sp, sp, #0x50                               
+0001ba94  ret                                                  

@@ -1,0 +1,31 @@
+# sub_15268
+# addr 0x15268 .. 0x152d8  (112 bytes)
+
+00015268  stp      d11, d10, [sp, #-0x40]!                     
+0001526c  stp      d9, d8, [sp, #0x10]                         
+00015270  stp      x20, x19, [sp, #0x20]                       
+00015274  stp      x29, x30, [sp, #0x30]                       
+00015278  add      x29, sp, #0x30                              
+0001527c  mov      v8.16b, v2.16b                              
+00015280  mov      v9.16b, v1.16b                              
+00015284  mov      v10.16b, v0.16b                             
+00015288  mov      x19, x0                                     
+0001528c  bl       #0x28004                                    ; _objc_retain
+00015290  fmov     d0, xzr                                     
+00015294  fmov     d1, xzr                                     
+00015298  mov      x0, x19                                     
+0001529c  mov      v2.16b, v8.16b                              
+000152a0  mov      v3.16b, v8.16b                              
+000152a4  bl       #0x2ab40                                    ; objc_msgSend$setBounds:
+000152a8  mov      x0, x19                                     
+000152ac  mov      v0.16b, v10.16b                             
+000152b0  mov      v1.16b, v9.16b                              
+000152b4  bl       #0x2ac60                                    ; objc_msgSend$setCenter:
+000152b8  mov      x0, x19                                     
+000152bc  bl       #0x2b4c0                                    ; objc_msgSend$setNeedsLayout
+000152c0  mov      x0, x19                                     
+000152c4  ldp      x29, x30, [sp, #0x30]                       
+000152c8  ldp      x20, x19, [sp, #0x20]                       
+000152cc  ldp      d9, d8, [sp, #0x10]                         
+000152d0  ldp      d11, d10, [sp], #0x40                       
+000152d4  b        #0x27ff8                                    ; _objc_release

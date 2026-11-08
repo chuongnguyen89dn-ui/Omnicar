@@ -1,0 +1,372 @@
+; -[SSStartupView playIntro]
+; VA 0xf768  size 1476
+
+0x0000f768:  sub      sp, sp, #0x1c0
+0x0000f76c:  stp      d11, d10, [sp, #0x160]
+0x0000f770:  stp      d9, d8, [sp, #0x170]
+0x0000f774:  stp      x28, x27, [sp, #0x180]
+0x0000f778:  stp      x22, x21, [sp, #0x190]
+0x0000f77c:  stp      x20, x19, [sp, #0x1a0]
+0x0000f780:  stp      x29, x30, [sp, #0x1b0]
+0x0000f784:  add      x29, sp, #0x1b0
+0x0000f788:  mov      x20, x0
+0x0000f78c:  bl       #0x23a00    ; -> _objc_msgSend(layoutIfNeeded)
+0x0000f790:  adrp     x8, #0x3a000
+0x0000f794:  ldrsw    x8, [x8, #0xd04]
+0x0000f798:  ldr      d0, [x20, x8]
+0x0000f79c:  fmov     d1, #1.00000000
+0x0000f7a0:  fcmp     d0, d1
+0x0000f7a4:  fcsel    d10, d1, d0, mi
+0x0000f7a8:  adrp     x8, #0x3a000
+0x0000f7ac:  ldrsw    x8, [x8, #0xccc]
+0x0000f7b0:  ldr      x19, [x20, x8]
+0x0000f7b4:  cbz      x19, #0xf8c4
+0x0000f7b8:  mov      x0, x19
+0x0000f7bc:  bl       #0x2212c    ; -> _objc_retain
+0x0000f7c0:  mov      x0, x19
+0x0000f7c4:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x0000f7c8:  mov      x29, x29
+0x0000f7cc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f7d0:  mov      x21, x0
+0x0000f7d4:  bl       #0x241a0    ; -> _objc_msgSend(removeAllAnimations)
+0x0000f7d8:  mov      x0, x21
+0x0000f7dc:  bl       #0x22120    ; -> _objc_release
+0x0000f7e0:  mov      x0, x19
+0x0000f7e4:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x0000f7e8:  mov      x29, x29
+0x0000f7ec:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f7f0:  mov      x21, x0
+0x0000f7f4:  fmov     s0, wzr
+0x0000f7f8:  bl       #0x25080    ; -> _objc_msgSend(setShadowOpacity:)
+0x0000f7fc:  mov      x0, x21
+0x0000f800:  bl       #0x22120    ; -> _objc_release
+0x0000f804:  fmov     d0, xzr
+0x0000f808:  mov      x0, x19
+0x0000f80c:  bl       #0x24420    ; -> _objc_msgSend(setAlpha:)
+0x0000f810:  mov      x0, x20
+0x0000f814:  bl       #0x23ae0    ; -> _objc_msgSend(logoEffect)
+0x0000f818:  cmp      x0, #1
+0x0000f81c:  b.ne     #0xf924
+0x0000f820:  sub      x8, x29, #0x80
+0x0000f824:  fmov     d0, #0.50000000
+0x0000f828:  fmov     d1, #0.50000000
+0x0000f82c:  bl       #0x21ba4    ; -> _CGAffineTransformMakeScale
+0x0000f830:  ldp      q0, q1, [x29, #-0x80]
+0x0000f834:  stp      q0, q1, [x29, #-0xb0]
+0x0000f838:  ldur     q0, [x29, #-0x60]
+0x0000f83c:  stur     q0, [x29, #-0x90]
+0x0000f840:  sub      x2, x29, #0xb0
+0x0000f844:  mov      x0, x19
+0x0000f848:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x0000f84c:  adrp     x8, #0x3a000
+0x0000f850:  ldr      x20, [x8, #0xa10]    ; class(UIView)
+0x0000f854:  adrp     x8, #0x30000
+0x0000f858:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x0000f85c:  str      x8, [sp, #0xd8]
+0x0000f860:  adrp     x8, #0x28000
+0x0000f864:  ldr      d0, [x8, #0xdd0]
+0x0000f868:  str      d0, [sp, #0xe0]
+0x0000f86c:  adrp     x8, #0xf000
+0x0000f870:  add      x8, x8, #0xd2c    ; func sub_fd2c
+0x0000f874:  adrp     x9, #0x30000
+0x0000f878:  add      x9, x9, #0x788
+0x0000f87c:  stp      x8, x9, [sp, #0xe8]
+0x0000f880:  mov      x0, x19
+0x0000f884:  bl       #0x2212c    ; -> _objc_retain
+0x0000f888:  str      x19, [sp, #0xf8]
+0x0000f88c:  adrp     x8, #0x28000
+0x0000f890:  ldr      d0, [x8, #0xec8]
+0x0000f894:  adrp     x8, #0x28000
+0x0000f898:  ldr      d1, [x8, #0xed0]
+0x0000f89c:  adrp     x8, #0x28000
+0x0000f8a0:  ldr      d2, [x8, #0xe10]
+0x0000f8a4:  fmov     d3, xzr
+0x0000f8a8:  add      x3, sp, #0xd8
+0x0000f8ac:  mov      x0, x20
+0x0000f8b0:  mov      x2, #0
+0x0000f8b4:  mov      x4, #0
+0x0000f8b8:  bl       #0x225e0    ; -> _objc_msgSend(animateWithDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:)
+0x0000f8bc:  ldr      x20, [sp, #0xf8]
+0x0000f8c0:  b        #0xfcfc    ; -> sub_fcfc
+0x0000f8c4:  bl       #0x21b08    ; -> _CACurrentMediaTime
+0x0000f8c8:  adrp     x8, #0x3a000
+0x0000f8cc:  ldrsw    x8, [x8, #0xd1c]
+0x0000f8d0:  str      d0, [x20, x8]
+0x0000f8d4:  adrp     x8, #0x3a000
+0x0000f8d8:  ldrsw    x8, [x8, #0xd20]
+0x0000f8dc:  mov      w9, #1
+0x0000f8e0:  strb     w9, [x20, x8]
+0x0000f8e4:  adrp     x8, #0x3a000
+0x0000f8e8:  ldrsw    x8, [x8, #0xcb0]
+0x0000f8ec:  ldr      x8, [x20, x8]
+0x0000f8f0:  tbnz     x8, #0x3f, #0xf908
+0x0000f8f4:  fmov     d0, xzr
+0x0000f8f8:  mov      x0, x20
+0x0000f8fc:  bl       #0x256e0    ; -> _objc_msgSend(ss_applyTime:)
+0x0000f900:  mov      x0, x20
+0x0000f904:  bl       #0x259a0    ; -> _objc_msgSend(ss_startLink)
+0x0000f908:  adrp     x8, #0x3a000
+0x0000f90c:  ldrsw    x8, [x8, #0xcc0]
+0x0000f910:  ldr      x19, [x20, x8]
+0x0000f914:  cbz      x19, #0xfbf8
+0x0000f918:  mov      x0, x19
+0x0000f91c:  bl       #0x2212c    ; -> _objc_retain
+0x0000f920:  b        #0xfc10    ; -> sub_fc10
+0x0000f924:  mov      x0, x20
+0x0000f928:  bl       #0x23ae0    ; -> _objc_msgSend(logoEffect)
+0x0000f92c:  cmp      x0, #2
+0x0000f930:  b.ne     #0xfb5c
+0x0000f934:  adrp     x8, #0x30000
+0x0000f938:  ldr      x8, [x8, #0x5a8]    ; got(_CGAffineTransformIdentity)
+0x0000f93c:  ldp      q0, q1, [x8]
+0x0000f940:  stp      q0, q1, [x29, #-0xb0]
+0x0000f944:  ldr      q0, [x8, #0x20]    ; got(_class_getInstanceMethod)
+0x0000f948:  stur     q0, [x29, #-0x90]
+0x0000f94c:  sub      x2, x29, #0xb0
+0x0000f950:  mov      x0, x19
+0x0000f954:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x0000f958:  adrp     x8, #0x3a000
+0x0000f95c:  ldr      x0, [x8, #0x9d8]    ; class(UIColor)
+0x0000f960:  bl       #0x26040    ; -> _objc_msgSend(whiteColor)
+0x0000f964:  mov      x29, x29
+0x0000f968:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f96c:  mov      x20, x0
+0x0000f970:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0000f974:  bl       #0x22300    ; -> _objc_msgSend(CGColor)
+0x0000f978:  mov      x21, x0
+0x0000f97c:  mov      x0, x19
+0x0000f980:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x0000f984:  mov      x29, x29
+0x0000f988:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f98c:  mov      x22, x0
+0x0000f990:  mov      x2, x21
+0x0000f994:  bl       #0x25040    ; -> _objc_msgSend(setShadowColor:)
+0x0000f998:  mov      x0, x22
+0x0000f99c:  bl       #0x22120    ; -> _objc_release
+0x0000f9a0:  mov      x0, x20
+0x0000f9a4:  bl       #0x22120    ; -> _objc_release
+0x0000f9a8:  adrp     x8, #0x30000
+0x0000f9ac:  ldr      x8, [x8, #0x6a8]    ; got(_CGSizeZero)
+0x0000f9b0:  ldp      d8, d9, [x8]
+0x0000f9b4:  mov      x0, x19
+0x0000f9b8:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x0000f9bc:  mov      x29, x29
+0x0000f9c0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f9c4:  mov      x20, x0
+0x0000f9c8:  mov      v0.16b, v8.16b
+0x0000f9cc:  mov      v1.16b, v9.16b
+0x0000f9d0:  bl       #0x25060    ; -> _objc_msgSend(setShadowOffset:)
+0x0000f9d4:  mov      x0, x20
+0x0000f9d8:  bl       #0x22120    ; -> _objc_release
+0x0000f9dc:  fmov     d0, #7.00000000
+0x0000f9e0:  fmul     d8, d10, d0
+0x0000f9e4:  mov      x0, x19
+0x0000f9e8:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x0000f9ec:  mov      x29, x29
+0x0000f9f0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f9f4:  mov      x20, x0
+0x0000f9f8:  mov      v0.16b, v8.16b
+0x0000f9fc:  bl       #0x250a0    ; -> _objc_msgSend(setShadowRadius:)
+0x0000fa00:  mov      x0, x20
+0x0000fa04:  bl       #0x22120    ; -> _objc_release
+0x0000fa08:  mov      x0, x19
+0x0000fa0c:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x0000fa10:  mov      x29, x29
+0x0000fa14:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000fa18:  mov      x20, x0
+0x0000fa1c:  adrp     x8, #0x29000
+0x0000fa20:  ldr      s0, [x8, #0x424]
+0x0000fa24:  bl       #0x25080    ; -> _objc_msgSend(setShadowOpacity:)
+0x0000fa28:  mov      x0, x20
+0x0000fa2c:  bl       #0x22120    ; -> _objc_release
+0x0000fa30:  adrp     x8, #0x3a000
+0x0000fa34:  ldr      x0, [x8, #0xb38]    ; class(CABasicAnimation)
+0x0000fa38:  adrp     x2, #0x32000
+0x0000fa3c:  add      x2, x2, #0x628    ; @"shadowOpacity"
+0x0000fa40:  bl       #0x22600    ; -> _objc_msgSend(animationWithKeyPath:)
+0x0000fa44:  mov      x29, x29
+0x0000fa48:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000fa4c:  mov      x20, x0
+0x0000fa50:  adrp     x2, #0x35000
+0x0000fa54:  add      x2, x2, #0x710
+0x0000fa58:  bl       #0x249e0    ; -> _objc_msgSend(setFromValue:)
+0x0000fa5c:  adrp     x2, #0x35000
+0x0000fa60:  add      x2, x2, #0x720
+0x0000fa64:  mov      x0, x20
+0x0000fa68:  bl       #0x25360    ; -> _objc_msgSend(setToValue:)
+0x0000fa6c:  adrp     x8, #0x28000
+0x0000fa70:  ldr      d0, [x8, #0xeb0]
+0x0000fa74:  mov      x0, x20
+0x0000fa78:  bl       #0x24880    ; -> _objc_msgSend(setDuration:)
+0x0000fa7c:  mov      x0, x20
+0x0000fa80:  mov      w2, #1
+0x0000fa84:  bl       #0x244c0    ; -> _objc_msgSend(setAutoreverses:)
+0x0000fa88:  mov      w8, #0x7f800000
+0x0000fa8c:  fmov     s0, w8
+0x0000fa90:  mov      x0, x20
+0x0000fa94:  bl       #0x24f80    ; -> _objc_msgSend(setRepeatCount:)
+0x0000fa98:  adrp     x8, #0x3a000
+0x0000fa9c:  ldr      x0, [x8, #0xb40]    ; class(CAMediaTimingFunction)
+0x0000faa0:  adrp     x8, #0x30000
+0x0000faa4:  ldr      x8, [x8, #0x338]    ; got(_kCAMediaTimingFunctionEaseInEaseOut)
+0x0000faa8:  ldr      x2, [x8]
+0x0000faac:  bl       #0x23500    ; -> _objc_msgSend(functionWithName:)
+0x0000fab0:  mov      x29, x29
+0x0000fab4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000fab8:  mov      x21, x0
+0x0000fabc:  mov      x0, x20
+0x0000fac0:  mov      x2, x21
+0x0000fac4:  bl       #0x25320    ; -> _objc_msgSend(setTimingFunction:)
+0x0000fac8:  mov      x0, x21
+0x0000facc:  bl       #0x22120    ; -> _objc_release
+0x0000fad0:  mov      x0, x19
+0x0000fad4:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x0000fad8:  mov      x29, x29
+0x0000fadc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000fae0:  mov      x21, x0
+0x0000fae4:  adrp     x3, #0x32000
+0x0000fae8:  add      x3, x3, #0x648    ; @"ssGlow"
+0x0000faec:  mov      x2, x20
+0x0000faf0:  bl       #0x22400    ; -> _objc_msgSend(addAnimation:forKey:)
+0x0000faf4:  mov      x0, x21
+0x0000faf8:  bl       #0x22120    ; -> _objc_release
+0x0000fafc:  adrp     x8, #0x3a000
+0x0000fb00:  ldr      x21, [x8, #0xa10]    ; class(UIView)
+0x0000fb04:  adrp     x8, #0x30000
+0x0000fb08:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x0000fb0c:  str      x8, [sp, #0xb0]
+0x0000fb10:  adrp     x8, #0x28000
+0x0000fb14:  ldr      d0, [x8, #0xdd0]
+0x0000fb18:  str      d0, [sp, #0xb8]
+0x0000fb1c:  adrp     x8, #0xf000
+0x0000fb20:  add      x8, x8, #0xd80    ; func sub_fd80
+0x0000fb24:  adrp     x9, #0x30000
+0x0000fb28:  add      x9, x9, #0x788
+0x0000fb2c:  stp      x8, x9, [sp, #0xc0]
+0x0000fb30:  mov      x0, x19
+0x0000fb34:  bl       #0x2212c    ; -> _objc_retain
+0x0000fb38:  str      x19, [sp, #0xd0]
+0x0000fb3c:  adrp     x8, #0x28000
+0x0000fb40:  ldr      d0, [x8, #0xe70]
+0x0000fb44:  add      x2, sp, #0xb0
+0x0000fb48:  mov      x0, x21
+0x0000fb4c:  bl       #0x22580    ; -> _objc_msgSend(animateWithDuration:animations:)
+0x0000fb50:  ldr      x0, [sp, #0xd0]
+0x0000fb54:  bl       #0x22120    ; -> _objc_release
+0x0000fb58:  b        #0xfcfc    ; -> sub_fcfc
+0x0000fb5c:  adrp     x8, #0x28000
+0x0000fb60:  ldr      d0, [x8, #0xeb8]
+0x0000fb64:  add      x8, sp, #0x80
+0x0000fb68:  mov      v1.16b, v0.16b
+0x0000fb6c:  bl       #0x21ba4    ; -> _CGAffineTransformMakeScale
+0x0000fb70:  ldp      q0, q1, [sp, #0x80]
+0x0000fb74:  stp      q0, q1, [x29, #-0xb0]
+0x0000fb78:  ldr      q0, [sp, #0xa0]
+0x0000fb7c:  stur     q0, [x29, #-0x90]
+0x0000fb80:  sub      x2, x29, #0xb0
+0x0000fb84:  mov      x0, x19
+0x0000fb88:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x0000fb8c:  adrp     x8, #0x3a000
+0x0000fb90:  ldr      x20, [x8, #0xa10]    ; class(UIView)
+0x0000fb94:  adrp     x8, #0x30000
+0x0000fb98:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x0000fb9c:  str      x8, [sp, #0x58]
+0x0000fba0:  adrp     x8, #0x28000
+0x0000fba4:  ldr      d0, [x8, #0xdd0]
+0x0000fba8:  str      d0, [sp, #0x60]
+0x0000fbac:  adrp     x8, #0xf000
+0x0000fbb0:  add      x8, x8, #0xd8c    ; func sub_fd8c
+0x0000fbb4:  adrp     x9, #0x30000
+0x0000fbb8:  add      x9, x9, #0x788
+0x0000fbbc:  stp      x8, x9, [sp, #0x68]
+0x0000fbc0:  mov      x0, x19
+0x0000fbc4:  bl       #0x2212c    ; -> _objc_retain
+0x0000fbc8:  str      x19, [sp, #0x78]
+0x0000fbcc:  adrp     x8, #0x28000
+0x0000fbd0:  ldr      d0, [x8, #0xeb0]
+0x0000fbd4:  adrp     x8, #0x28000
+0x0000fbd8:  ldr      d1, [x8, #0xec0]
+0x0000fbdc:  add      x3, sp, #0x58
+0x0000fbe0:  mov      x0, x20
+0x0000fbe4:  mov      x2, #0
+0x0000fbe8:  mov      x4, #0
+0x0000fbec:  bl       #0x225c0    ; -> _objc_msgSend(animateWithDuration:delay:options:animations:completion:)
+0x0000fbf0:  ldr      x20, [sp, #0x78]
+0x0000fbf4:  b        #0xfcfc    ; -> sub_fcfc
+0x0000fbf8:  adrp     x8, #0x3a000
+0x0000fbfc:  ldrsw    x8, [x8, #0xcc8]
+0x0000fc00:  ldr      x19, [x20, x8]
+0x0000fc04:  mov      x0, x19
+0x0000fc08:  bl       #0x2212c    ; -> _objc_retain
+0x0000fc0c:  cbz      x19, #0xfd0c
+0x0000fc10:  mov      x0, x19
+0x0000fc14:  bl       #0x239e0    ; -> _objc_msgSend(layer)
+0x0000fc18:  mov      x29, x29
+0x0000fc1c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000fc20:  mov      x20, x0
+0x0000fc24:  bl       #0x241a0    ; -> _objc_msgSend(removeAllAnimations)
+0x0000fc28:  mov      x0, x20
+0x0000fc2c:  bl       #0x22120    ; -> _objc_release
+0x0000fc30:  fmov     d0, xzr
+0x0000fc34:  mov      x0, x19
+0x0000fc38:  bl       #0x24420    ; -> _objc_msgSend(setAlpha:)
+0x0000fc3c:  fmov     d0, #6.00000000
+0x0000fc40:  fmul     d1, d10, d0
+0x0000fc44:  sub      x8, x29, #0xb0
+0x0000fc48:  fmov     d0, xzr
+0x0000fc4c:  bl       #0x21bb0    ; -> _CGAffineTransformMakeTranslation
+0x0000fc50:  adrp     x8, #0x28000
+0x0000fc54:  ldr      d0, [x8, #0xe68]
+0x0000fc58:  add      x8, sp, #0x28
+0x0000fc5c:  sub      x0, x29, #0xb0
+0x0000fc60:  mov      v1.16b, v0.16b
+0x0000fc64:  bl       #0x21bbc    ; -> _CGAffineTransformScale
+0x0000fc68:  ldur     q0, [sp, #0x28]
+0x0000fc6c:  ldur     q1, [sp, #0x38]
+0x0000fc70:  stp      q0, q1, [x29, #-0xb0]
+0x0000fc74:  ldur     q0, [sp, #0x48]
+0x0000fc78:  stur     q0, [x29, #-0x90]
+0x0000fc7c:  sub      x2, x29, #0xb0
+0x0000fc80:  mov      x0, x19
+0x0000fc84:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x0000fc88:  adrp     x8, #0x3a000
+0x0000fc8c:  adrp     x9, #0x30000
+0x0000fc90:  ldr      x9, [x9, #0x350]    ; got(__NSConcreteStackBlock)
+0x0000fc94:  ldr      x20, [x8, #0xa10]    ; class(UIView)
+0x0000fc98:  str      x9, [sp]
+0x0000fc9c:  adrp     x8, #0x28000
+0x0000fca0:  ldr      d0, [x8, #0xdd0]
+0x0000fca4:  adrp     x8, #0xf000
+0x0000fca8:  add      x8, x8, #0xde0
+0x0000fcac:  str      d0, [sp, #8]
+0x0000fcb0:  adrp     x9, #0x30000
+0x0000fcb4:  add      x9, x9, #0x788
+0x0000fcb8:  stp      x8, x9, [sp, #0x10]
+0x0000fcbc:  str      x19, [sp, #0x20]
+0x0000fcc0:  mov      x0, x19
+0x0000fcc4:  bl       #0x2212c    ; -> _objc_retain
+0x0000fcc8:  adrp     x8, #0x28000
+0x0000fccc:  ldr      d0, [x8, #0xe70]
+0x0000fcd0:  adrp     x8, #0x28000
+0x0000fcd4:  ldr      d1, [x8, #0xec0]
+0x0000fcd8:  adrp     x8, #0x28000
+0x0000fcdc:  ldr      d2, [x8, #0xed8]
+0x0000fce0:  fmov     d3, xzr
+0x0000fce4:  mov      x3, sp
+0x0000fce8:  mov      x0, x20
+0x0000fcec:  mov      x2, #0
+0x0000fcf0:  mov      x4, #0
+0x0000fcf4:  bl       #0x225e0    ; -> _objc_msgSend(animateWithDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:)
+0x0000fcf8:  ldr      x20, [sp, #0x20]
+0x0000fcfc:  mov      x0, x20
+0x0000fd00:  bl       #0x22120    ; -> _objc_release
+0x0000fd04:  mov      x0, x19
+0x0000fd08:  bl       #0x22120    ; -> _objc_release
+0x0000fd0c:  ldp      x29, x30, [sp, #0x1b0]
+0x0000fd10:  ldp      x20, x19, [sp, #0x1a0]
+0x0000fd14:  ldp      x22, x21, [sp, #0x190]
+0x0000fd18:  ldp      x28, x27, [sp, #0x180]
+0x0000fd1c:  ldp      d9, d8, [sp, #0x170]
+0x0000fd20:  ldp      d11, d10, [sp, #0x160]
+0x0000fd24:  add      sp, sp, #0x1c0
+0x0000fd28:  ret      

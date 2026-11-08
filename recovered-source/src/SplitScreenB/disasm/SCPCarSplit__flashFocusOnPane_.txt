@@ -1,0 +1,137 @@
+; ==== SCPCarSplit__flashFocusOnPane_  @0x13314..0x13534 (544 bytes) ====
+00013314  sub      sp, sp, #0x80                                
+00013318  stp      x24, x23, [sp, #0x40]                        
+0001331c  stp      x22, x21, [sp, #0x50]                        
+00013320  stp      x20, x19, [sp, #0x60]                        
+00013324  stp      x29, x30, [sp, #0x70]                        
+00013328  add      x29, sp, #0x70                               
+0001332c  mov      x19, x2                                      
+00013330  mov      x20, x0                                      
+00013334  mov      x0, x2                                       
+00013338  bl       #0x567c4                                     ; call _objc_retain
+0001333c  mov      x0, x19                                      
+00013340  bl       #0x5cb60                                     ; msgSend "view"
+00013344  mov      x29, x29                                     
+00013348  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001334c  mov      x21, x0                                      
+00013350  cbz      x0, #0x134c4                                 
+00013354  mov      x0, x20                                      
+00013358  bl       #0x57e20                                     ; msgSend "dragGhost"
+0001335c  mov      x29, x29                                     
+00013360  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00013364  mov      x22, x0                                      
+00013368  bl       #0x567b8                                     ; call _objc_release
+0001336c  mov      x0, x21                                      
+00013370  bl       #0x567b8                                     ; call _objc_release
+00013374  cbnz     x22, #0x134c4                                
+00013378  adrp     x8, #0x87000                                 
+0001337c  ldr      x0, [x8, #0x730]                             ; classref UIColor
+00013380  adrp     x8, #0x6f000                                 
+00013384  ldr      d0, [x8, #0x30]                              ; double 0.6078431372549019
+00013388  adrp     x8, #0x6f000                                 
+0001338c  ldr      d1, [x8, #0x38]                              ; double 0.5294117647058824
+00013390  adrp     x8, #0x6f000                                 
+00013394  ldr      d2, [x8, #0x40]                              ; double 0.9725490196078431
+00013398  fmov     d3, #1.00000000                              
+0001339c  bl       #0x576e0                                     ; msgSend "colorWithRed:green:blue:alpha:"
+000133a0  mov      x29, x29                                     
+000133a4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000133a8  mov      x21, x0                                      
+000133ac  bl       #0x567d0                                     ; call _objc_retainAutorelease
+000133b0  bl       #0x569a0                                     ; msgSend "CGColor"
+000133b4  mov      x23, x0                                      
+000133b8  mov      x0, x19                                      
+000133bc  bl       #0x5cb60                                     ; msgSend "view"
+000133c0  mov      x29, x29                                     
+000133c4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000133c8  mov      x22, x0                                      
+000133cc  bl       #0x58fa0                                     ; msgSend "layer"
+000133d0  mov      x29, x29                                     
+000133d4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000133d8  mov      x24, x0                                      
+000133dc  mov      x2, x23                                      
+000133e0  bl       #0x5a8e0                                     ; msgSend "setBorderColor:"
+000133e4  mov      x0, x24                                      
+000133e8  bl       #0x567b8                                     ; call _objc_release
+000133ec  mov      x0, x22                                      
+000133f0  bl       #0x567b8                                     ; call _objc_release
+000133f4  mov      x0, x21                                      
+000133f8  bl       #0x567b8                                     ; call _objc_release
+000133fc  mov      x0, x19                                      
+00013400  bl       #0x5cb60                                     ; msgSend "view"
+00013404  mov      x29, x29                                     
+00013408  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001340c  mov      x21, x0                                      
+00013410  bl       #0x58fa0                                     ; msgSend "layer"
+00013414  mov      x29, x29                                     
+00013418  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001341c  mov      x22, x0                                      
+00013420  fmov     d0, #2.50000000                              
+00013424  bl       #0x5a900                                     ; msgSend "setBorderWidth:"
+00013428  mov      x0, x22                                      
+0001342c  bl       #0x567b8                                     ; call _objc_release
+00013430  mov      x0, x21                                      
+00013434  bl       #0x567b8                                     ; call _objc_release
+00013438  add      x0, sp, #0x38                                
+0001343c  mov      x1, x19                                      
+00013440  bl       #0x56740                                     ; call _objc_initWeak
+00013444  add      x0, sp, #0x30                                
+00013448  mov      x1, x20                                      
+0001344c  bl       #0x56740                                     ; call _objc_initWeak
+00013450  adrp     x8, #0x78000                                 
+00013454  ldr      x8, [x8, #0x338]                             
+00013458  str      x8, [sp]                                     
+0001345c  adrp     x8, #0x6e000                                 
+00013460  ldr      d0, [x8, #0xff8]                             ; double 1.6080749353e-314
+00013464  adrp     x8, #0x13000                                 
+00013468  add      x8, x8, #0x534                               
+0001346c  str      d0, [sp, #8]                                 
+00013470  adrp     x9, #0x78000                                 
+00013474  add      x9, x9, #0x840                               
+00013478  stp      x8, x9, [sp, #0x10]                          
+0001347c  mov      x20, sp                                      
+00013480  add      x0, x20, #0x20                               
+00013484  add      x1, sp, #0x38                                
+00013488  bl       #0x566f8                                     ; call _objc_copyWeak
+0001348c  add      x0, x20, #0x28                               
+00013490  add      x1, sp, #0x30                                
+00013494  bl       #0x566f8                                     ; call _objc_copyWeak
+00013498  fmov     d0, #1.00000000                              
+0001349c  mov      x0, sp                                       
+000134a0  bl       #0x12efc                                     
+000134a4  add      x0, x20, #0x28                               
+000134a8  bl       #0x56704                                     ; call _objc_destroyWeak
+000134ac  add      x0, x20, #0x20                               
+000134b0  bl       #0x56704                                     ; call _objc_destroyWeak
+000134b4  add      x0, sp, #0x30                                
+000134b8  bl       #0x56704                                     ; call _objc_destroyWeak
+000134bc  add      x0, sp, #0x38                                
+000134c0  bl       #0x56704                                     ; call _objc_destroyWeak
+000134c4  mov      x0, x19                                      
+000134c8  bl       #0x567b8                                     ; call _objc_release
+000134cc  ldp      x29, x30, [sp, #0x70]                        
+000134d0  ldp      x20, x19, [sp, #0x60]                        
+000134d4  ldp      x22, x21, [sp, #0x50]                        
+000134d8  ldp      x24, x23, [sp, #0x40]                        
+000134dc  add      sp, sp, #0x80                                
+000134e0  ret                                                   
+000134e4  b        #0x134fc                                     
+000134e8  b        #0x13510                                     
+000134ec  mov      x20, x0                                      
+000134f0  mov      x0, x24                                      
+000134f4  bl       #0x567b8                                     ; call _objc_release
+000134f8  b        #0x13500                                     
+000134fc  mov      x20, x0                                      
+00013500  mov      x0, x22                                      
+00013504  bl       #0x567b8                                     ; call _objc_release
+00013508  b        #0x13514                                     
+0001350c  b        #0x13510                                     
+00013510  mov      x20, x0                                      
+00013514  mov      x0, x21                                      
+00013518  bl       #0x567b8                                     ; call _objc_release
+0001351c  b        #0x13524                                     
+00013520  mov      x20, x0                                      
+00013524  mov      x0, x19                                      
+00013528  bl       #0x567b8                                     ; call _objc_release
+0001352c  mov      x0, x20                                      
+00013530  bl       #0x563e0                                     ; call __Unwind_Resume

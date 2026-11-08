@@ -1,0 +1,20 @@
+; -[SCPCarSplit layoutID]
+0x011080  stp      x20, x19, [sp, #-0x20]!
+0x011084  stp      x29, x30, [sp, #0x10]
+0x011088  add      x29, sp, #0x10
+0x01108c  mov      x19, x0
+0x011090  bl       #0x59200 ; objc_msgSend$mainRight
+0x011094  tbz      w0, #0, #0x110a0
+0x011098  mov      w0, #0x1f
+0x01109c  b        #0x110b0
+0x0110a0  mov      x0, x19
+0x0110a4  bl       #0x59260 ; objc_msgSend$mainStack
+0x0110a8  tbz      w0, #0, #0x110bc
+0x0110ac  mov      w0, #0xd
+0x0110b0  ldp      x29, x30, [sp, #0x10]
+0x0110b4  ldp      x20, x19, [sp], #0x20
+0x0110b8  ret      
+0x0110bc  mov      x0, x19
+0x0110c0  ldp      x29, x30, [sp, #0x10]
+0x0110c4  ldp      x20, x19, [sp], #0x20
+0x0110c8  b        #0x59800 ; objc_msgSend$paneCount

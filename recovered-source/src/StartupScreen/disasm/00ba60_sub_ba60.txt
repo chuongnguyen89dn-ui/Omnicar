@@ -1,0 +1,39 @@
+; sub_ba60
+; VA 0xba60  size 144
+
+0x0000ba60:  stp      x22, x21, [sp, #-0x30]!
+0x0000ba64:  stp      x20, x19, [sp, #0x10]
+0x0000ba68:  stp      x29, x30, [sp, #0x20]
+0x0000ba6c:  add      x29, sp, #0x20
+0x0000ba70:  mov      x19, x0
+0x0000ba74:  bl       #0x2212c    ; -> _objc_retain
+0x0000ba78:  adrp     x8, #0x3a000
+0x0000ba7c:  ldr      x0, [x8, #0xb00]    ; class(NSArray)
+0x0000ba80:  bl       #0x220e4    ; -> _objc_opt_class
+0x0000ba84:  mov      x1, x0
+0x0000ba88:  mov      x0, x19
+0x0000ba8c:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x0000ba90:  tbz      w0, #0, #0xbad0
+0x0000ba94:  mov      x0, x19
+0x0000ba98:  bl       #0x22e00    ; -> _objc_msgSend(count)
+0x0000ba9c:  cbz      x0, #0xbad0
+0x0000baa0:  mov      x0, x19
+0x0000baa4:  bl       #0x233e0    ; -> _objc_msgSend(firstObject)
+0x0000baa8:  mov      x29, x29
+0x0000baac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bab0:  mov      x21, x0
+0x0000bab4:  bl       #0xba08    ; -> sub_ba08
+0x0000bab8:  mov      x29, x29
+0x0000babc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000bac0:  mov      x20, x0
+0x0000bac4:  mov      x0, x21
+0x0000bac8:  bl       #0x22120    ; -> _objc_release
+0x0000bacc:  b        #0xbad4    ; -> sub_bad4
+0x0000bad0:  mov      x20, #0
+0x0000bad4:  mov      x0, x19
+0x0000bad8:  bl       #0x22120    ; -> _objc_release
+0x0000badc:  mov      x0, x20
+0x0000bae0:  ldp      x29, x30, [sp, #0x20]
+0x0000bae4:  ldp      x20, x19, [sp, #0x10]
+0x0000bae8:  ldp      x22, x21, [sp], #0x30
+0x0000baec:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

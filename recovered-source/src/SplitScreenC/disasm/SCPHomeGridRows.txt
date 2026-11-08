@@ -1,0 +1,52 @@
+; _SCPHomeGridRows
+0x049014  stp      x22, x21, [sp, #-0x30]!
+0x049018  stp      x20, x19, [sp, #0x10]
+0x04901c  stp      x29, x30, [sp, #0x20]
+0x049020  add      x29, sp, #0x20
+0x049024  bl       #0x48ef8 ; -> sub_48ef8
+0x049028  mov      x29, x29
+0x04902c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x049030  mov      x19, x0
+0x049034  adrp     x2, #0x7d000
+0x049038  add      x2, x2, #0x3c0 ; -> 0x7d3c0 @"on"
+0x04903c  bl       #0x59660 ; objc_msgSend$objectForKeyedSubscript:
+0x049040  mov      x29, x29
+0x049044  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x049048  mov      x20, x0
+0x04904c  bl       #0x572e0 ; objc_msgSend$boolValue
+0x049050  cbz      w0, #0x49084
+0x049054  adrp     x2, #0x7d000
+0x049058  add      x2, x2, #0xea0 ; -> 0x7dea0 @"rows"
+0x04905c  mov      x0, x19
+0x049060  bl       #0x59660 ; objc_msgSend$objectForKeyedSubscript:
+0x049064  mov      x29, x29
+0x049068  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04906c  mov      x22, x0
+0x049070  bl       #0x58be0 ; objc_msgSend$integerValue
+0x049074  mov      x21, x0
+0x049078  mov      x0, x22
+0x04907c  bl       #0x567b8 ; call _objc_release
+0x049080  b        #0x49088
+0x049084  mov      x21, #0
+0x049088  mov      x0, x20
+0x04908c  bl       #0x567b8 ; call _objc_release
+0x049090  mov      x0, x19
+0x049094  bl       #0x567b8 ; call _objc_release
+0x049098  mov      x0, x21
+0x04909c  ldp      x29, x30, [sp, #0x20]
+0x0490a0  ldp      x20, x19, [sp, #0x10]
+0x0490a4  ldp      x22, x21, [sp], #0x30
+0x0490a8  ret      
+0x0490ac  mov      x21, x0
+0x0490b0  mov      x0, x22
+0x0490b4  bl       #0x567b8 ; call _objc_release
+0x0490b8  b        #0x490c8
+0x0490bc  mov      x21, x0
+0x0490c0  b        #0x490d0
+0x0490c4  mov      x21, x0
+0x0490c8  mov      x0, x20
+0x0490cc  bl       #0x567b8 ; call _objc_release
+0x0490d0  mov      x0, x19
+0x0490d4  bl       #0x567b8 ; call _objc_release
+0x0490d8  mov      x0, x21
+0x0490dc  bl       #0x563e0 ; call __Unwind_Resume

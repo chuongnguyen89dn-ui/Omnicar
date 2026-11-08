@@ -1,0 +1,43 @@
+# sub_2692c
+# addr 0x2692c .. 0x269cc  (160 bytes)
+
+0002692c  stp      x29, x30, [sp, #-0x10]!                     
+00026930  mov      x29, sp                                     
+00026934  bl       #0x25b78                                    ; sub_25b78
+00026938  adrp     x8, #0x43000                                
+0002693c  ldr      d1, [x8, #0xaf0]                            ; [0x43af0] __DATA,__bss+0x350
+00026940  fcmp     d1, #0.0                                    
+00026944  b.le     #0x269c0                                    
+00026948  fsub     d1, d0, d1                                  
+0002694c  adrp     x9, #0x43000                                
+00026950  ldr      d3, [x9, #0xad0]                            ; [0x43ad0] __DATA,__bss+0x330
+00026954  fmov     d2, #1.50000000                             
+00026958  fmul     d4, d3, d2                                  
+0002695c  fmov     d2, xzr                                     
+00026960  fcmp     d1, d4                                      
+00026964  b.le     #0x26978                                    
+00026968  fdiv     d2, d1, d3                                  
+0002696c  frinta   d2, d2                                      
+00026970  fmov     d3, #-1.00000000                            
+00026974  fadd     d2, d2, d3                                  
+00026978  fmov     d3, #1.00000000                             
+0002697c  fadd     d3, d2, d3                                  
+00026980  adrp     x9, #0x43000                                
+00026984  ldr      d4, [x9, #0xae8]                            ; [0x43ae8] __DATA,__bss+0x348
+00026988  fadd     d3, d4, d3                                  
+0002698c  str      d3, [x9, #0xae8]                            
+00026990  adrp     x9, #0x43000                                
+00026994  ldr      d3, [x9, #0xae0]                            ; [0x43ae0] __DATA,__bss+0x340
+00026998  fadd     d2, d2, d3                                  
+0002699c  str      d2, [x9, #0xae0]                            
+000269a0  adrp     x9, #0x43000                                
+000269a4  ldr      d2, [x9, #0xad8]                            ; [0x43ad8] __DATA,__bss+0x338
+000269a8  adrp     x10, #0x32000                               
+000269ac  ldr      d3, [x10, #0xe18]                           ; [0x32e18] __const[0x32e18] double=1000.0 float=0.0
+000269b0  fmul     d1, d1, d3                                  
+000269b4  fcmp     d2, d1                                      
+000269b8  fcsel    d1, d1, d2, mi                              
+000269bc  str      d1, [x9, #0xad8]                            
+000269c0  str      d0, [x8, #0xaf0]                            
+000269c4  ldp      x29, x30, [sp], #0x10                       
+000269c8  ret                                                  

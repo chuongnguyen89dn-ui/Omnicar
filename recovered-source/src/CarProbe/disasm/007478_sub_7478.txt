@@ -1,0 +1,205 @@
+; sub_7478
+; VA 0x7478  size 788
+
+0x00007478:  mov      x29, x29
+0x0000747c:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00007480:  mov      x24, x0
+0x00007484:  adrp     x2, #0x10000
+0x00007488:  add      x2, x2, #0xf58    ; @"
+"
+0x0000748c:  bl       #0xb7a0    ; -> _objc_msgSend(componentsJoinedByString:)
+0x00007490:  mov      x29, x29
+0x00007494:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00007498:  mov      x25, x0
+0x0000749c:  stp      x23, x0, [sp, #8]
+0x000074a0:  str      x22, [sp]
+0x000074a4:  adrp     x2, #0x11000
+0x000074a8:  add      x2, x2, #0xd8    ; @"uncaught %@: %@
+%@
+"
+0x000074ac:  mov      x0, x21
+0x000074b0:  bl       #0xc180    ; -> _objc_msgSend(stringWithFormat:)
+0x000074b4:  mov      x29, x29
+0x000074b8:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x000074bc:  mov      x21, x0
+0x000074c0:  mov      x0, x25
+0x000074c4:  bl       #0xb410    ; -> _objc_release
+0x000074c8:  mov      x0, x24
+0x000074cc:  bl       #0xb410    ; -> _objc_release
+0x000074d0:  mov      x0, x23
+0x000074d4:  bl       #0xb410    ; -> _objc_release
+0x000074d8:  mov      x0, x22
+0x000074dc:  bl       #0xb410    ; -> _objc_release
+0x000074e0:  mov      x0, x21
+0x000074e4:  bl       #0xb428    ; -> _objc_retainAutorelease
+0x000074e8:  bl       #0xb5c0    ; -> _objc_msgSend(UTF8String)
+0x000074ec:  str      x0, [sp]
+0x000074f0:  adrp     x1, #0xc000
+0x000074f4:  add      x1, x1, #0x969    ; "%s"
+0x000074f8:  mov      x0, x20
+0x000074fc:  bl       #0xb284    ; -> _dprintf
+0x00007500:  mov      x0, x20
+0x00007504:  bl       #0xb1dc    ; -> _close
+0x00007508:  mov      x0, x21
+0x0000750c:  bl       #0xb410    ; -> _objc_release
+0x00007510:  adrp     x8, #0x14000
+0x00007514:  ldr      x8, [x8, #0x518]
+0x00007518:  cbz      x8, #0x7524
+0x0000751c:  mov      x0, x19
+0x00007520:  blr      x8
+0x00007524:  mov      x0, x19
+0x00007528:  bl       #0xb410    ; -> _objc_release
+0x0000752c:  ldur     x8, [x29, #-0x58]
+0x00007530:  adrp     x9, #0x10000
+0x00007534:  ldr      x9, [x9, #0x1b0]    ; got(___stack_chk_guard)
+0x00007538:  ldr      x9, [x9]
+0x0000753c:  cmp      x9, x8
+0x00007540:  b.ne     #0x7564
+0x00007544:  add      sp, sp, #0x2f0
+0x00007548:  ldp      x29, x30, [sp, #0x50]
+0x0000754c:  ldp      x20, x19, [sp, #0x40]
+0x00007550:  ldp      x22, x21, [sp, #0x30]
+0x00007554:  ldp      x24, x23, [sp, #0x20]
+0x00007558:  ldp      x26, x25, [sp, #0x10]
+0x0000755c:  ldp      x28, x27, [sp], #0x60
+0x00007560:  ret      
+0x00007564:  bl       #0xb140    ; -> ___stack_chk_fail
+0x00007568:  stp      x28, x27, [sp, #-0x60]!
+0x0000756c:  stp      x26, x25, [sp, #0x10]
+0x00007570:  stp      x24, x23, [sp, #0x20]
+0x00007574:  stp      x22, x21, [sp, #0x30]
+0x00007578:  stp      x20, x19, [sp, #0x40]
+0x0000757c:  stp      x29, x30, [sp, #0x50]
+0x00007580:  add      x29, sp, #0x50
+0x00007584:  sub      sp, sp, #0x270
+0x00007588:  mov      x22, x1
+0x0000758c:  mov      x23, x0
+0x00007590:  adrp     x8, #0x10000
+0x00007594:  ldr      x8, [x8, #0x1b0]    ; got(___stack_chk_guard)
+0x00007598:  ldr      x8, [x8]
+0x0000759c:  stur     x8, [x29, #-0x60]
+0x000075a0:  adrp     x8, #0x14000
+0x000075a4:  ldr      x0, [x8, #0x510]
+0x000075a8:  mov      w8, #0x1a4
+0x000075ac:  str      x8, [sp]
+0x000075b0:  mov      w1, #0x209
+0x000075b4:  bl       #0xb464    ; -> _open
+0x000075b8:  tbnz     w0, #0x1f, #0x773c
+0x000075bc:  mov      x20, x0
+0x000075c0:  add      x0, sp, #0x60
+0x000075c4:  mov      w1, #0x40
+0x000075c8:  bl       #0xb17c    ; -> _backtrace
+0x000075cc:  mov      x21, x0
+0x000075d0:  mov      x8, x23
+0x000075d4:  str      x8, [sp]
+0x000075d8:  adrp     x2, #0xc000
+0x000075dc:  add      x2, x2, #0x9a8    ; "signal-%d"
+0x000075e0:  add      x0, sp, #0x30
+0x000075e4:  mov      w1, #0x30
+0x000075e8:  bl       #0xb4d0    ; -> _snprintf
+0x000075ec:  add      x1, sp, #0x30
+0x000075f0:  add      x2, sp, #0x60
+0x000075f4:  mov      x0, x20
+0x000075f8:  mov      x3, x21
+0x000075fc:  bl       #0x7a00    ; -> sub_7a00
+0x00007600:  cbz      x22, #0x7610
+0x00007604:  ldr      w19, [x22, #8]
+0x00007608:  ldr      x22, [x22, #0x18]
+0x0000760c:  b        #0x7614    ; -> sub_7614
+0x00007610:  mov      w19, #0
+0x00007614:  bl       #0xb2cc    ; -> _getpid
+0x00007618:  stp      x22, x0, [sp, #0x10]
+0x0000761c:  stp      x23, x19, [sp]
+0x00007620:  str      x23, [sp, #0x20]
+0x00007624:  adrp     x1, #0xc000
+0x00007628:  add      x1, x1, #0x9b2    ; "signal %d (code %d) addr %p pid %d
+"
+0x0000762c:  mov      x0, x20
+0x00007630:  bl       #0xb284    ; -> _dprintf
+0x00007634:  add      x0, sp, #0x60
+0x00007638:  mov      x1, x21
+0x0000763c:  mov      x2, x20
+0x00007640:  bl       #0xb188    ; -> _backtrace_symbols_fd
+0x00007644:  bl       #0xb170    ; -> __dyld_image_count
+0x00007648:  cbz      w0, #0x7730
+0x0000764c:  mov      w21, #0
+0x00007650:  adrp     x22, #0xc000
+0x00007654:  add      x22, x22, #0x9d6    ; "__DATA"
+0x00007658:  adrp     x23, #0xc000
+0x0000765c:  add      x23, x23, #0x9dd    ; "__crash_info"
+0x00007660:  adrp     x27, #0xc000
+0x00007664:  add      x27, x27, #0xa0c    ; "?"
+0x00007668:  adrp     x25, #0xc000
+0x0000766c:  add      x25, x25, #0x9f7    ; "crash_info [%s]: %s
+"
+0x00007670:  mov      x0, x21
+0x00007674:  bl       #0xb158    ; -> __dyld_get_image_header
+0x00007678:  cbz      x0, #0x7720
+0x0000767c:  mov      x26, x0
+0x00007680:  str      xzr, [sp, #0x28]
+0x00007684:  add      x3, sp, #0x28
+0x00007688:  mov      x1, x22
+0x0000768c:  mov      x2, x23
+0x00007690:  bl       #0xb2d8    ; -> _getsectiondata
+0x00007694:  cbnz     x0, #0x76b0
+0x00007698:  add      x3, sp, #0x28
+0x0000769c:  mov      x0, x26
+0x000076a0:  adrp     x1, #0xc000
+0x000076a4:  add      x1, x1, #0x9ea    ; "__DATA_DIRTY"
+0x000076a8:  mov      x2, x23
+0x000076ac:  bl       #0xb2d8    ; -> _getsectiondata
+0x000076b0:  cbz      x0, #0x7720
+0x000076b4:  ldr      x8, [sp, #0x28]
+0x000076b8:  cmp      x8, #0x28
+0x000076bc:  b.lo     #0x7720
+0x000076c0:  ldr      x28, [x0, #8]
+0x000076c4:  ldr      x24, [x0, #0x20]
+0x000076c8:  mov      w8, #1
+0x000076cc:  mov      x19, x8
+0x000076d0:  cbz      x28, #0x7714
+0x000076d4:  ldrb     w8, [x28]
+0x000076d8:  cbz      w8, #0x7714
+0x000076dc:  mov      x0, x21
+0x000076e0:  bl       #0xb164    ; -> __dyld_get_image_name
+0x000076e4:  cbz      x0, #0x76f8
+0x000076e8:  mov      x26, x0
+0x000076ec:  mov      w1, #0x2f
+0x000076f0:  bl       #0xb518    ; -> _strrchr
+0x000076f4:  b        #0x76fc    ; -> sub_76fc
+0x000076f8:  mov      x26, x27
+0x000076fc:  cmp      x0, #0
+0x00007700:  csinc    x8, x26, x0, eq
+0x00007704:  stp      x8, x28, [sp]
+0x00007708:  mov      x0, x20
+0x0000770c:  mov      x1, x25
+0x00007710:  bl       #0xb284    ; -> _dprintf
+0x00007714:  mov      w8, #0
+0x00007718:  mov      x28, x24
+0x0000771c:  tbnz     w19, #0, #0x76cc
+0x00007720:  add      w21, w21, #1
+0x00007724:  bl       #0xb170    ; -> __dyld_image_count
+0x00007728:  cmp      w21, w0
+0x0000772c:  b.lo     #0x7670
+0x00007730:  mov      x0, x20
+0x00007734:  bl       #0xb1dc    ; -> _close
+0x00007738:  ldr      x23, [sp, #0x20]
+0x0000773c:  mov      x0, x23
+0x00007740:  mov      x1, #0
+0x00007744:  bl       #0xb4c4    ; -> _signal
+0x00007748:  mov      x0, x23
+0x0000774c:  bl       #0xb494    ; -> _raise
+0x00007750:  ldur     x8, [x29, #-0x60]
+0x00007754:  adrp     x9, #0x10000
+0x00007758:  ldr      x9, [x9, #0x1b0]    ; got(___stack_chk_guard)
+0x0000775c:  ldr      x9, [x9]
+0x00007760:  cmp      x9, x8
+0x00007764:  b.ne     #0x7788
+0x00007768:  add      sp, sp, #0x270
+0x0000776c:  ldp      x29, x30, [sp, #0x50]
+0x00007770:  ldp      x20, x19, [sp, #0x40]
+0x00007774:  ldp      x22, x21, [sp, #0x30]
+0x00007778:  ldp      x24, x23, [sp, #0x20]
+0x0000777c:  ldp      x26, x25, [sp, #0x10]
+0x00007780:  ldp      x28, x27, [sp], #0x60
+0x00007784:  ret      
+0x00007788:  bl       #0xb140    ; -> ___stack_chk_fail

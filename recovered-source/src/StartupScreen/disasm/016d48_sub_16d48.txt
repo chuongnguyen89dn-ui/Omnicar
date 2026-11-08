@@ -1,0 +1,66 @@
+; sub_16d48
+; VA 0x16d48  size 252
+
+0x00016d48:  add      x2, x2, #0xa88
+0x00016d4c:  mov      x0, x24
+0x00016d50:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00016d54:  mov      x29, x29
+0x00016d58:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016d5c:  mov      x24, x0
+0x00016d60:  adrp     x8, #0x32000
+0x00016d64:  add      x8, x8, #0xaa8    ; @"b'=\xd8'"
+0x00016d68:  stp      x0, x8, [x29, #-0xb0]
+0x00016d6c:  adrp     x8, #0x3a000
+0x00016d70:  ldr      x0, [x8, #0xb00]    ; class(NSArray)
+0x00016d74:  sub      x2, x29, #0xb8
+0x00016d78:  mov      w3, #3
+0x00016d7c:  bl       #0x22700    ; -> _objc_msgSend(arrayWithObjects:count:)
+0x00016d80:  mov      x29, x29
+0x00016d84:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016d88:  mov      x27, x0
+0x00016d8c:  mov      x0, x22
+0x00016d90:  mov      x2, x27
+0x00016d94:  bl       #0x22480    ; -> _objc_msgSend(addObject:)
+0x00016d98:  mov      x0, x27
+0x00016d9c:  bl       #0x22120    ; -> _objc_release
+0x00016da0:  mov      x0, x24
+0x00016da4:  bl       #0x22120    ; -> _objc_release
+0x00016da8:  mov      x0, x26
+0x00016dac:  bl       #0x22120    ; -> _objc_release
+0x00016db0:  mov      x0, x25
+0x00016db4:  bl       #0x22120    ; -> _objc_release
+0x00016db8:  mov      x0, x23
+0x00016dbc:  bl       #0x22120    ; -> _objc_release
+0x00016dc0:  mov      x0, x21
+0x00016dc4:  bl       #0x22120    ; -> _objc_release
+0x00016dc8:  mov      x0, x20
+0x00016dcc:  bl       #0x26020    ; -> _objc_msgSend(weather)
+0x00016dd0:  mov      x29, x29
+0x00016dd4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016dd8:  ldr      d9, [sp, #0x108]
+0x00016ddc:  str      x0, [sp, #0x40]
+0x00016de0:  cbz      x0, #0x170a8
+0x00016de4:  mov      x28, x0
+0x00016de8:  adrp     x2, #0x32000
+0x00016dec:  add      x2, x2, #0x388    ; @"code"
+0x00016df0:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x00016df4:  mov      x29, x29
+0x00016df8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016dfc:  mov      x21, x0
+0x00016e00:  bl       #0x23860    ; -> _objc_msgSend(integerValue)
+0x00016e04:  mov      x23, x0
+0x00016e08:  mov      x0, x21
+0x00016e0c:  bl       #0x22120    ; -> _objc_release
+0x00016e10:  adrp     x2, #0x32000
+0x00016e14:  add      x2, x2, #0x3c8    ; @"isDay"
+0x00016e18:  mov      x0, x28
+0x00016e1c:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x00016e20:  mov      x29, x29
+0x00016e24:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016e28:  mov      x21, x0
+0x00016e2c:  bl       #0x22880    ; -> _objc_msgSend(boolValue)
+0x00016e30:  mov      x24, x0
+0x00016e34:  mov      x0, x21
+0x00016e38:  bl       #0x22120    ; -> _objc_release
+0x00016e3c:  add      x3, sp, #0x110
+0x00016e40:  str      x23, [sp, #0xf0]

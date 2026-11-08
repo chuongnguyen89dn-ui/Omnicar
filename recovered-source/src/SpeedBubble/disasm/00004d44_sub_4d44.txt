@@ -1,0 +1,56 @@
+# sub_4d44
+# addr 0x4d44 .. 0x4e18  (212 bytes)
+
+00004d44  stp      x22, x21, [sp, #-0x30]!                     
+00004d48  stp      x20, x19, [sp, #0x10]                       
+00004d4c  stp      x29, x30, [sp, #0x20]                       
+00004d50  add      x29, sp, #0x20                              
+00004d54  mov      x19, x0                                     
+00004d58  ldp      x0, x20, [x0, #0x20]                        
+00004d5c  bl       #0x2c1c0                                    ; objc_msgSend$stopToken
+00004d60  cmp      x20, x0                                     
+00004d64  b.ne     #0x4dd0                                     
+00004d68  ldr      x0, [x19, #0x20]                            
+00004d6c  bl       #0x29e80                                    ; objc_msgSend$mgr
+00004d70  mov      x29, x29                                    
+00004d74  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00004d78  mov      x20, x0                                     
+00004d7c  bl       #0x27ff8                                    ; _objc_release
+00004d80  cbz      x20, #0x4dd0                                
+00004d84  ldr      x0, [x19, #0x20]                            
+00004d88  mov      w2, #0                                      
+00004d8c  bl       #0x2b8e0                                    ; objc_msgSend$setStopPending:
+00004d90  ldr      x0, [x19, #0x20]                            
+00004d94  bl       #0x286a0                                    ; objc_msgSend$appManagers
+00004d98  mov      x29, x29                                    
+00004d9c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00004da0  mov      x20, x0                                     
+00004da4  bl       #0x28520                                    ; objc_msgSend$allObjects
+00004da8  mov      x29, x29                                    
+00004dac  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00004db0  mov      x21, x0                                     
+00004db4  bl       #0x29000                                    ; objc_msgSend$count
+00004db8  mov      x22, x0                                     
+00004dbc  mov      x0, x21                                     
+00004dc0  bl       #0x27ff8                                    ; _objc_release
+00004dc4  mov      x0, x20                                     
+00004dc8  bl       #0x27ff8                                    ; _objc_release
+00004dcc  cbz      x22, #0x4de0                                
+00004dd0  ldp      x29, x30, [sp, #0x20]                       
+00004dd4  ldp      x20, x19, [sp, #0x10]                       
+00004dd8  ldp      x22, x21, [sp], #0x30                       
+00004ddc  ret                                                  
+00004de0  ldr      x0, [x19, #0x20]                            
+00004de4  ldp      x29, x30, [sp, #0x20]                       
+00004de8  ldp      x20, x19, [sp, #0x10]                       
+00004dec  ldp      x22, x21, [sp], #0x30                       
+00004df0  b        #0x2c160                                    ; objc_msgSend$stop
+00004df4  mov      x19, x0                                     
+00004df8  mov      x0, x21                                     
+00004dfc  bl       #0x27ff8                                    ; _objc_release
+00004e00  b        #0x4e08                                     ; sub_4e08
+00004e04  mov      x19, x0                                     
+00004e08  mov      x0, x20                                     
+00004e0c  bl       #0x27ff8                                    ; _objc_release
+00004e10  mov      x0, x19                                     
+00004e14  bl       #0x27c80                                    ; __Unwind_Resume

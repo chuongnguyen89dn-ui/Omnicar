@@ -1,0 +1,37 @@
+; sub_6504
+; VA 0x6504  size 136
+
+0x00006504:  adrp     x3, #0x30000
+0x00006508:  add      x3, x3, #0x9a8    ; block_lit(invoke=0x8aa4 sub_8aa4, sig=v12@?0i8)
+0x0000650c:  bl       #0x2200c    ; -> _notify_register_dispatch
+0x00006510:  adrp     x8, #0x3b000
+0x00006514:  ldr      w9, [x8, #0x19c]
+0x00006518:  add      w25, w9, #1
+0x0000651c:  str      w25, [x8, #0x19c]
+0x00006520:  mov      x0, sp
+0x00006524:  bl       #0x22150    ; -> _objc_retainBlock
+0x00006528:  adrp     x9, #0x3b000
+0x0000652c:  ldr      x8, [x9, #0x188]
+0x00006530:  str      x0, [x9, #0x188]
+0x00006534:  mov      x0, x8
+0x00006538:  bl       #0x22120    ; -> _objc_release
+0x0000653c:  adrp     x8, #0x3a000
+0x00006540:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x00006544:  adrp     x2, #0x31000
+0x00006548:  add      x2, x2, #0xa08    ; @"weather: no location access here, asking SpringBoard"
+0x0000654c:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00006550:  mov      x29, x29
+0x00006554:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006558:  mov      x20, x0
+0x0000655c:  adrp     x0, #0x30000
+0x00006560:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00006564:  mov      x1, x20
+0x00006568:  bl       #0x1b620    ; -> OMCLogWrite
+0x0000656c:  mov      x0, x20
+0x00006570:  bl       #0x22120    ; -> _objc_release
+0x00006574:  adrp     x0, #0x26000
+0x00006578:  add      x0, x0, #0xf91    ; "com.anlai.omnicar/startupscreen.weather.request"
+0x0000657c:  bl       #0x21ff4    ; -> _notify_post
+0x00006580:  movi     v0.16b, #0
+0x00006584:  stp      q0, q0, [sp, #0xa0]
+0x00006588:  stp      q0, q0, [sp, #0x80]

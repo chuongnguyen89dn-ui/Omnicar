@@ -1,0 +1,65 @@
+; ==== SCPCarSplit__refreshAppTab  @0x36e04..0x36f04 (256 bytes) ====
+00036e04  stp      x22, x21, [sp, #-0x30]!                      
+00036e08  stp      x20, x19, [sp, #0x10]                        
+00036e0c  stp      x29, x30, [sp, #0x20]                        
+00036e10  add      x29, sp, #0x20                               
+00036e14  mov      x20, x0                                      
+00036e18  bl       #0x5a0c0                                     ; msgSend "refreshHomeButton"
+00036e1c  mov      x0, x20                                      
+00036e20  bl       #0x5c820                                     ; msgSend "tray"
+00036e24  mov      x29, x29                                     
+00036e28  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00036e2c  cbz      x0, #0x36e6c                                 
+00036e30  mov      x19, x0                                      
+00036e34  mov      x0, x20                                      
+00036e38  bl       #0x5c820                                     ; msgSend "tray"
+00036e3c  mov      x29, x29                                     
+00036e40  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00036e44  mov      x21, x0                                      
+00036e48  mov      x0, x20                                      
+00036e4c  mov      x2, x21                                      
+00036e50  bl       #0x5cb80                                     ; msgSend "viewIsRaised:"
+00036e54  mov      x22, x0                                      
+00036e58  mov      x0, x21                                      
+00036e5c  bl       #0x567b8                                     ; call _objc_release
+00036e60  mov      x0, x19                                      
+00036e64  bl       #0x567b8                                     ; call _objc_release
+00036e68  tbz      w22, #0, #0x36e7c                            
+00036e6c  ldp      x29, x30, [sp, #0x20]                        
+00036e70  ldp      x20, x19, [sp, #0x10]                        
+00036e74  ldp      x22, x21, [sp], #0x30                        
+00036e78  ret                                                   
+00036e7c  mov      x0, x20                                      
+00036e80  bl       #0x5c820                                     ; msgSend "tray"
+00036e84  mov      x29, x29                                     
+00036e88  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00036e8c  mov      x19, x0                                      
+00036e90  mov      x0, x20                                      
+00036e94  mov      x2, x19                                      
+00036e98  bl       #0x59ea0                                     ; msgSend "raiseView:"
+00036e9c  mov      x0, x19                                      
+00036ea0  bl       #0x567b8                                     ; call _objc_release
+00036ea4  mov      x0, x20                                      
+00036ea8  bl       #0x59c40                                     ; msgSend "popupShield"
+00036eac  mov      x29, x29                                     
+00036eb0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00036eb4  mov      x19, x0                                      
+00036eb8  mov      x0, x20                                      
+00036ebc  mov      x2, x19                                      
+00036ec0  bl       #0x59ea0                                     ; msgSend "raiseView:"
+00036ec4  mov      x0, x19                                      
+00036ec8  ldp      x29, x30, [sp, #0x20]                        
+00036ecc  ldp      x20, x19, [sp, #0x10]                        
+00036ed0  ldp      x22, x21, [sp], #0x30                        
+00036ed4  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+00036ed8  b        #0x36ef0                                     
+00036edc  b        #0x36ef0                                     
+00036ee0  mov      x20, x0                                      
+00036ee4  mov      x0, x21                                      
+00036ee8  bl       #0x567b8                                     ; call _objc_release
+00036eec  b        #0x36ef4                                     
+00036ef0  mov      x20, x0                                      
+00036ef4  mov      x0, x19                                      
+00036ef8  bl       #0x567b8                                     ; call _objc_release
+00036efc  mov      x0, x20                                      
+00036f00  bl       #0x563e0                                     ; call __Unwind_Resume

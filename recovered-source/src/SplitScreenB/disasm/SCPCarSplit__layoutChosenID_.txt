@@ -1,0 +1,88 @@
+; ==== SCPCarSplit__layoutChosenID_  @0x3c61c..0x3c778 (348 bytes) ====
+0003c61c  sub      sp, sp, #0x40                                
+0003c620  stp      x22, x21, [sp, #0x10]                        
+0003c624  stp      x20, x19, [sp, #0x20]                        
+0003c628  stp      x29, x30, [sp, #0x30]                        
+0003c62c  add      x29, sp, #0x30                               
+0003c630  mov      x21, x2                                      
+0003c634  mov      x20, x0                                      
+0003c638  bl       #0x58fc0                                     ; msgSend "layoutApp"
+0003c63c  mov      x29, x29                                     
+0003c640  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003c644  mov      x19, x0                                      
+0003c648  mov      x0, x20                                      
+0003c64c  mov      x2, #0                                       
+0003c650  bl       #0x5b180                                     ; msgSend "setLayoutApp:"
+0003c654  mov      x0, x20                                      
+0003c658  bl       #0x57680                                     ; msgSend "collapseAppTray"
+0003c65c  mov      x0, x20                                      
+0003c660  bl       #0x56b60                                     ; msgSend "active"
+0003c664  cbz      w0, #0x3c678                                 
+0003c668  mov      x0, x20                                      
+0003c66c  mov      x2, x21                                      
+0003c670  bl       #0x5c580                                     ; msgSend "switchToLayout:"
+0003c674  b        #0x3c738                                     
+0003c678  adrp     x8, #0x87000                                 
+0003c67c  ldr      x0, [x8, #0x678]                             ; classref NSString
+0003c680  adrp     x8, #0x7d000                                 
+0003c684  add      x8, x8, #0x120                               
+0003c688  cmp      x19, #0                                      
+0003c68c  csel     x8, x8, x19, eq                              
+0003c690  stp      x21, x8, [sp]                                
+0003c694  adrp     x2, #0x7d000                                 
+0003c698  add      x2, x2, #0x100                               
+0003c69c  bl       #0x5c440                                     ; msgSend "stringWithFormat:"
+0003c6a0  mov      x29, x29                                     
+0003c6a4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003c6a8  mov      x22, x0                                      
+0003c6ac  adrp     x0, #0x79000                                 
+0003c6b0  add      x0, x0, #0x5c0                               
+0003c6b4  mov      x1, x22                                      
+0003c6b8  bl       #0x4fbf4                                     
+0003c6bc  mov      x0, x22                                      
+0003c6c0  bl       #0x567b8                                     ; call _objc_release
+0003c6c4  cbz      x19, #0x3c720                                
+0003c6c8  mov      x0, x20                                      
+0003c6cc  mov      x2, x21                                      
+0003c6d0  bl       #0x56b40                                     ; msgSend "activateWithLayout:"
+0003c6d4  cbz      w0, #0x3c738                                 
+0003c6d8  mov      x0, x20                                      
+0003c6dc  mov      x2, x19                                      
+0003c6e0  mov      w3, #0                                       
+0003c6e4  bl       #0x596a0                                     ; msgSend "openApp:slot:"
+0003c6e8  mov      w21, #0                                      
+0003c6ec  mov      x0, x20                                      
+0003c6f0  bl       #0x59800                                     ; msgSend "paneCount"
+0003c6f4  cmp      w21, w0                                      
+0003c6f8  b.ge     #0x3c738                                     
+0003c6fc  mov      x0, x20                                      
+0003c700  mov      x2, x21                                      
+0003c704  bl       #0x5c140                                     ; msgSend "slotOccupied:"
+0003c708  tbnz     w0, #0, #0x3c718                             
+0003c70c  mov      x0, x20                                      
+0003c710  mov      x2, x21                                      
+0003c714  bl       #0x5bfe0                                     ; msgSend "showPickerForSlot:"
+0003c718  add      w21, w21, #1                                 
+0003c71c  b        #0x3c6ec                                     
+0003c720  mov      x0, x20                                      
+0003c724  mov      x2, x21                                      
+0003c728  bl       #0x56b40                                     ; msgSend "activateWithLayout:"
+0003c72c  tbz      w0, #0, #0x3c738                             
+0003c730  mov      x0, x20                                      
+0003c734  bl       #0x5c000                                     ; msgSend "showPickersForEmptySlots"
+0003c738  mov      x0, x19                                      
+0003c73c  ldp      x29, x30, [sp, #0x30]                        
+0003c740  ldp      x20, x19, [sp, #0x20]                        
+0003c744  ldp      x22, x21, [sp, #0x10]                        
+0003c748  add      sp, sp, #0x40                                
+0003c74c  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+0003c750  mov      x20, x0                                      
+0003c754  mov      x0, x22                                      
+0003c758  bl       #0x567b8                                     ; call _objc_release
+0003c75c  b        #0x3c768                                     
+0003c760  b        #0x3c764                                     
+0003c764  mov      x20, x0                                      
+0003c768  mov      x0, x19                                      
+0003c76c  bl       #0x567b8                                     ; call _objc_release
+0003c770  mov      x0, x20                                      
+0003c774  bl       #0x563e0                                     ; call __Unwind_Resume

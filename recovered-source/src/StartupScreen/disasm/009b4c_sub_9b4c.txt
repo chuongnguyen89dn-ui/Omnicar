@@ -1,0 +1,14 @@
+; sub_9b4c
+; VA 0x9b4c  size 44
+
+0x00009b4c:  stp      x29, x30, [sp, #-0x10]!
+0x00009b50:  mov      x29, sp
+0x00009b54:  ldr      x0, [x0, #0x20]
+0x00009b58:  bl       #0x25ae0    ; -> _objc_msgSend(stop)
+0x00009b5c:  adrp     x8, #0x3b000
+0x00009b60:  ldr      x8, [x8, #0x178]
+0x00009b64:  cbz      x8, #0x9b70
+0x00009b68:  ldp      x29, x30, [sp], #0x10
+0x00009b6c:  ret      
+0x00009b70:  ldp      x29, x30, [sp], #0x10
+0x00009b74:  b        #0x9a84    ; -> sub_9a84

@@ -1,0 +1,296 @@
+; -[SCPCarSplit hostSolo:]
+0x03f9c0  sub      sp, sp, #0x160
+0x03f9c4  stp      d11, d10, [sp, #0xe0]
+0x03f9c8  stp      d9, d8, [sp, #0xf0]
+0x03f9cc  stp      x28, x27, [sp, #0x100]
+0x03f9d0  stp      x26, x25, [sp, #0x110]
+0x03f9d4  stp      x24, x23, [sp, #0x120]
+0x03f9d8  stp      x22, x21, [sp, #0x130]
+0x03f9dc  stp      x20, x19, [sp, #0x140]
+0x03f9e0  stp      x29, x30, [sp, #0x150]
+0x03f9e4  add      x29, sp, #0x150
+0x03f9e8  mov      x19, x2
+0x03f9ec  mov      x21, x0
+0x03f9f0  adrp     x8, #0x78000
+0x03f9f4  ldr      x8, [x8, #0x360] ; [0x78360] ___stack_chk_guard
+0x03f9f8  ldr      x8, [x8] ; [0x78000] <ordinal 0>
+0x03f9fc  stur     x8, [x29, #-0x80]
+0x03fa00  mov      x0, x2
+0x03fa04  bl       #0x567c4 ; call _objc_retain
+0x03fa08  mov      x0, x21
+0x03fa0c  bl       #0x5c600 ; objc_msgSend$tabParent
+0x03fa10  mov      x29, x29
+0x03fa14  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fa18  mov      x20, x0
+0x03fa1c  cbz      x0, #0x3fd1c
+0x03fa20  mov      x0, x21
+0x03fa24  mov      x2, x20
+0x03fa28  bl       #0x56f60 ; objc_msgSend$appAreaInParent:
+0x03fa2c  mov      x0, x20
+0x03fa30  mov      x2, #0
+0x03fa34  bl       #0x57960 ; objc_msgSend$convertRect:toView:
+0x03fa38  mov      v11.16b, v0.16b
+0x03fa3c  mov      v10.16b, v1.16b
+0x03fa40  mov      v9.16b, v2.16b
+0x03fa44  mov      v8.16b, v3.16b
+0x03fa48  mov      x0, x21
+0x03fa4c  mov      x2, x19
+0x03fa50  bl       #0x5b9e0 ; objc_msgSend$setSoloHostedBundle:
+0x03fa54  mov      x0, x21
+0x03fa58  mov      v0.16b, v11.16b
+0x03fa5c  mov      v1.16b, v10.16b
+0x03fa60  mov      v2.16b, v9.16b
+0x03fa64  mov      v3.16b, v8.16b
+0x03fa68  bl       #0x5ba00 ; objc_msgSend$setSoloHostedFrame:
+0x03fa6c  mov      x0, x21
+0x03fa70  mov      w2, #0
+0x03fa74  bl       #0x5bcc0 ; objc_msgSend$setTrayHidesBridge:
+0x03fa78  adrp     x8, #0x87000
+0x03fa7c  ldr      x23, [x8, #0x678] ; [0x87678] class:NSString
+0x03fa80  mov      v0.16b, v11.16b
+0x03fa84  mov      v1.16b, v10.16b
+0x03fa88  mov      v2.16b, v9.16b
+0x03fa8c  mov      v3.16b, v8.16b
+0x03fa90  bl       #0x56398 ; call _NSStringFromCGRect
+0x03fa94  mov      x29, x29
+0x03fa98  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fa9c  mov      x22, x0
+0x03faa0  stp      x19, x0, [sp]
+0x03faa4  adrp     x2, #0x7d000
+0x03faa8  add      x2, x2, #0x620 ; -> 0x7d620 @"AppBridge: %@ toan man %@"
+0x03faac  mov      x0, x23
+0x03fab0  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x03fab4  mov      x29, x29
+0x03fab8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fabc  mov      x23, x0
+0x03fac0  adrp     x0, #0x79000
+0x03fac4  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x03fac8  mov      x1, x23
+0x03facc  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x03fad0  mov      x0, x23
+0x03fad4  bl       #0x567b8 ; call _objc_release
+0x03fad8  mov      x0, x22
+0x03fadc  bl       #0x567b8 ; call _objc_release
+0x03fae0  adrp     x8, #0x79000
+0x03fae4  add      x8, x8, #0xb80 ; -> 0x79b80 @"identifier"
+0x03fae8  str      x19, [sp, #0xa8]
+0x03faec  adrp     x9, #0x7c000
+0x03faf0  add      x9, x9, #0x220 ; -> 0x7c220 @"x"
+0x03faf4  stp      x8, x9, [sp, #0x80]
+0x03faf8  adrp     x27, #0x87000
+0x03fafc  ldr      x0, [x27, #0x6e8] ; [0x876e8] class:NSNumber
+0x03fb00  mov      v0.16b, v11.16b
+0x03fb04  bl       #0x59540 ; objc_msgSend$numberWithDouble:
+0x03fb08  mov      x29, x29
+0x03fb0c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fb10  mov      x22, x0
+0x03fb14  str      x0, [sp, #0xb0]
+0x03fb18  adrp     x8, #0x7c000
+0x03fb1c  add      x8, x8, #0x240 ; -> 0x7c240 @"y"
+0x03fb20  str      x8, [sp, #0x90]
+0x03fb24  ldr      x0, [x27, #0x6e8] ; [0x876e8] class:NSNumber
+0x03fb28  mov      v0.16b, v10.16b
+0x03fb2c  bl       #0x59540 ; objc_msgSend$numberWithDouble:
+0x03fb30  mov      x29, x29
+0x03fb34  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fb38  mov      x23, x0
+0x03fb3c  str      x0, [sp, #0xb8]
+0x03fb40  adrp     x8, #0x7d000
+0x03fb44  add      x8, x8, #0x80 ; -> 0x7d080 @"w"
+0x03fb48  str      x8, [sp, #0x98]
+0x03fb4c  ldr      x0, [x27, #0x6e8] ; [0x876e8] class:NSNumber
+0x03fb50  mov      v0.16b, v9.16b
+0x03fb54  bl       #0x59540 ; objc_msgSend$numberWithDouble:
+0x03fb58  mov      x29, x29
+0x03fb5c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fb60  mov      x24, x0
+0x03fb64  str      x0, [sp, #0xc0]
+0x03fb68  adrp     x28, #0x7d000
+0x03fb6c  add      x28, x28, #0xa0 ; -> 0x7d0a0 @"h"
+0x03fb70  str      x28, [sp, #0xa0]
+0x03fb74  ldr      x0, [x27, #0x6e8] ; [0x876e8] class:NSNumber
+0x03fb78  mov      v0.16b, v8.16b
+0x03fb7c  bl       #0x59540 ; objc_msgSend$numberWithDouble:
+0x03fb80  mov      x29, x29
+0x03fb84  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fb88  mov      x25, x0
+0x03fb8c  str      x0, [sp, #0xc8]
+0x03fb90  adrp     x8, #0x87000
+0x03fb94  ldr      x0, [x8, #0x6b8] ; [0x876b8] class:NSDictionary
+0x03fb98  add      x2, sp, #0xa8
+0x03fb9c  add      x3, sp, #0x80
+0x03fba0  mov      w4, #5
+0x03fba4  bl       #0x57bc0 ; objc_msgSend$dictionaryWithObjects:forKeys:count:
+0x03fba8  mov      x29, x29
+0x03fbac  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fbb0  mov      x26, x0
+0x03fbb4  adrp     x2, #0x7d000
+0x03fbb8  add      x2, x2, #0x400 ; -> 0x7d400 @"com.anlai.omnicar/appbridge.open"
+0x03fbbc  mov      x0, x21
+0x03fbc0  mov      x3, x26
+0x03fbc4  bl       #0x58720 ; objc_msgSend$hostPost:info:
+0x03fbc8  mov      x0, x26
+0x03fbcc  bl       #0x567b8 ; call _objc_release
+0x03fbd0  mov      x0, x25
+0x03fbd4  bl       #0x567b8 ; call _objc_release
+0x03fbd8  mov      x0, x24
+0x03fbdc  bl       #0x567b8 ; call _objc_release
+0x03fbe0  mov      x0, x23
+0x03fbe4  bl       #0x567b8 ; call _objc_release
+0x03fbe8  mov      x0, x22
+0x03fbec  bl       #0x567b8 ; call _objc_release
+0x03fbf0  str      x19, [sp, #0x48]
+0x03fbf4  adrp     x8, #0x79000
+0x03fbf8  add      x9, x8, #0xb80 ; -> 0x79b80 @"identifier"
+0x03fbfc  adrp     x8, #0x7c000
+0x03fc00  add      x8, x8, #0x220 ; -> 0x7c220 @"x"
+0x03fc04  stp      x9, x8, [sp, #0x10]
+0x03fc08  ldr      x0, [x27, #0x6e8] ; [0x876e8] class:NSNumber
+0x03fc0c  mov      v0.16b, v11.16b
+0x03fc10  bl       #0x59540 ; objc_msgSend$numberWithDouble:
+0x03fc14  mov      x29, x29
+0x03fc18  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fc1c  mov      x22, x0
+0x03fc20  str      x0, [sp, #0x50]
+0x03fc24  adrp     x8, #0x7c000
+0x03fc28  add      x8, x8, #0x240 ; -> 0x7c240 @"y"
+0x03fc2c  str      x8, [sp, #0x20]
+0x03fc30  ldr      x0, [x27, #0x6e8] ; [0x876e8] class:NSNumber
+0x03fc34  mov      v0.16b, v10.16b
+0x03fc38  bl       #0x59540 ; objc_msgSend$numberWithDouble:
+0x03fc3c  mov      x29, x29
+0x03fc40  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fc44  mov      x23, x0
+0x03fc48  str      x0, [sp, #0x58]
+0x03fc4c  adrp     x8, #0x7d000
+0x03fc50  add      x8, x8, #0x80 ; -> 0x7d080 @"w"
+0x03fc54  str      x8, [sp, #0x28]
+0x03fc58  ldr      x0, [x27, #0x6e8] ; [0x876e8] class:NSNumber
+0x03fc5c  mov      v0.16b, v9.16b
+0x03fc60  bl       #0x59540 ; objc_msgSend$numberWithDouble:
+0x03fc64  mov      x29, x29
+0x03fc68  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fc6c  mov      x24, x0
+0x03fc70  str      x0, [sp, #0x60]
+0x03fc74  str      x28, [sp, #0x30]
+0x03fc78  ldr      x0, [x27, #0x6e8] ; [0x876e8] class:NSNumber
+0x03fc7c  mov      v0.16b, v8.16b
+0x03fc80  bl       #0x59540 ; objc_msgSend$numberWithDouble:
+0x03fc84  mov      x29, x29
+0x03fc88  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fc8c  mov      x25, x0
+0x03fc90  adrp     x8, #0x7d000
+0x03fc94  add      x8, x8, #0xc0 ; -> 0x7d0c0 @"live"
+0x03fc98  adrp     x9, #0x78000
+0x03fc9c  ldr      x9, [x9, #0x248] ; [0x78248] ___kCFBooleanFalse
+0x03fca0  stp      x0, x9, [sp, #0x68]
+0x03fca4  adrp     x10, #0x7d000
+0x03fca8  add      x10, x10, #0xe0 ; -> 0x7d0e0 @"handle"
+0x03fcac  stp      x8, x10, [sp, #0x38]
+0x03fcb0  str      x9, [sp, #0x78]
+0x03fcb4  adrp     x8, #0x87000
+0x03fcb8  ldr      x0, [x8, #0x6b8] ; [0x876b8] class:NSDictionary
+0x03fcbc  add      x2, sp, #0x48
+0x03fcc0  add      x3, sp, #0x10
+0x03fcc4  mov      w4, #7
+0x03fcc8  bl       #0x57bc0 ; objc_msgSend$dictionaryWithObjects:forKeys:count:
+0x03fccc  mov      x29, x29
+0x03fcd0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03fcd4  mov      x26, x0
+0x03fcd8  adrp     x2, #0x7d000
+0x03fcdc  add      x2, x2, #0x60 ; -> 0x7d060 @"com.anlai.omnicar/appbridge.frame"
+0x03fce0  mov      x0, x21
+0x03fce4  mov      x3, x26
+0x03fce8  bl       #0x58720 ; objc_msgSend$hostPost:info:
+0x03fcec  mov      x0, x26
+0x03fcf0  bl       #0x567b8 ; call _objc_release
+0x03fcf4  mov      x0, x25
+0x03fcf8  bl       #0x567b8 ; call _objc_release
+0x03fcfc  mov      x0, x24
+0x03fd00  bl       #0x567b8 ; call _objc_release
+0x03fd04  mov      x0, x23
+0x03fd08  bl       #0x567b8 ; call _objc_release
+0x03fd0c  mov      x0, x22
+0x03fd10  bl       #0x567b8 ; call _objc_release
+0x03fd14  mov      x0, x21
+0x03fd18  bl       #0x5a0a0 ; objc_msgSend$refreshAppTabSoon
+0x03fd1c  mov      x0, x20
+0x03fd20  bl       #0x567b8 ; call _objc_release
+0x03fd24  mov      x0, x19
+0x03fd28  bl       #0x567b8 ; call _objc_release
+0x03fd2c  ldur     x8, [x29, #-0x80]
+0x03fd30  adrp     x9, #0x78000
+0x03fd34  ldr      x9, [x9, #0x360] ; [0x78360] ___stack_chk_guard
+0x03fd38  ldr      x9, [x9] ; [0x78000] <ordinal 0>
+0x03fd3c  cmp      x9, x8
+0x03fd40  b.ne     #0x3fd6c
+0x03fd44  ldp      x29, x30, [sp, #0x150]
+0x03fd48  ldp      x20, x19, [sp, #0x140]
+0x03fd4c  ldp      x22, x21, [sp, #0x130]
+0x03fd50  ldp      x24, x23, [sp, #0x120]
+0x03fd54  ldp      x26, x25, [sp, #0x110]
+0x03fd58  ldp      x28, x27, [sp, #0x100]
+0x03fd5c  ldp      d9, d8, [sp, #0xf0]
+0x03fd60  ldp      d11, d10, [sp, #0xe0]
+0x03fd64  add      sp, sp, #0x160
+0x03fd68  ret      
+0x03fd6c  bl       #0x56404 ; call ___stack_chk_fail
+0x03fd70  mov      x21, x0
+0x03fd74  mov      x0, x26
+0x03fd78  bl       #0x567b8 ; call _objc_release
+0x03fd7c  b        #0x3fd84
+0x03fd80  mov      x21, x0
+0x03fd84  mov      x0, x25
+0x03fd88  bl       #0x567b8 ; call _objc_release
+0x03fd8c  b        #0x3fd94
+0x03fd90  mov      x21, x0
+0x03fd94  mov      x0, x24
+0x03fd98  bl       #0x567b8 ; call _objc_release
+0x03fd9c  b        #0x3fda4
+0x03fda0  mov      x21, x0
+0x03fda4  mov      x0, x23
+0x03fda8  bl       #0x567b8 ; call _objc_release
+0x03fdac  b        #0x3fdb4
+0x03fdb0  mov      x21, x0
+0x03fdb4  mov      x0, x22
+0x03fdb8  bl       #0x567b8 ; call _objc_release
+0x03fdbc  b        #0x3fe3c
+0x03fdc0  mov      x21, x0
+0x03fdc4  mov      x0, x26
+0x03fdc8  bl       #0x567b8 ; call _objc_release
+0x03fdcc  b        #0x3fdd4
+0x03fdd0  mov      x21, x0
+0x03fdd4  mov      x0, x25
+0x03fdd8  bl       #0x567b8 ; call _objc_release
+0x03fddc  b        #0x3fde4
+0x03fde0  mov      x21, x0
+0x03fde4  mov      x0, x24
+0x03fde8  bl       #0x567b8 ; call _objc_release
+0x03fdec  b        #0x3fdf4
+0x03fdf0  mov      x21, x0
+0x03fdf4  mov      x0, x23
+0x03fdf8  bl       #0x567b8 ; call _objc_release
+0x03fdfc  b        #0x3fe04
+0x03fe00  mov      x21, x0
+0x03fe04  mov      x0, x22
+0x03fe08  bl       #0x567b8 ; call _objc_release
+0x03fe0c  b        #0x3fe3c
+0x03fe10  mov      x21, x0
+0x03fe14  mov      x0, x23
+0x03fe18  bl       #0x567b8 ; call _objc_release
+0x03fe1c  b        #0x3fe24
+0x03fe20  mov      x21, x0
+0x03fe24  mov      x0, x22
+0x03fe28  bl       #0x567b8 ; call _objc_release
+0x03fe2c  b        #0x3fe3c
+0x03fe30  mov      x21, x0
+0x03fe34  b        #0x3fe44
+0x03fe38  mov      x21, x0
+0x03fe3c  mov      x0, x20
+0x03fe40  bl       #0x567b8 ; call _objc_release
+0x03fe44  mov      x0, x19
+0x03fe48  bl       #0x567b8 ; call _objc_release
+0x03fe4c  b        #0x3fe54
+0x03fe50  mov      x21, x0
+0x03fe54  mov      x0, x21
+0x03fe58  bl       #0x563e0 ; call __Unwind_Resume

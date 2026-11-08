@@ -1,0 +1,47 @@
+; sub_89f4
+; VA 0x89f4  size 176
+
+0x000089f4:  str      d1, [sp, #0x18]
+0x000089f8:  adrp     x9, #0x30000
+0x000089fc:  add      x9, x9, #0xa18
+0x00008a00:  stp      x8, x9, [sp, #0x20]
+0x00008a04:  str      d0, [sp, #0x38]
+0x00008a08:  mov      x0, x19
+0x00008a0c:  bl       #0x2212c    ; -> _objc_retain
+0x00008a10:  str      x19, [sp, #0x30]
+0x00008a14:  add      x3, sp, #0x10
+0x00008a18:  mov      x0, x23
+0x00008a1c:  mov      x2, x21
+0x00008a20:  bl       #0x22f00    ; -> _objc_msgSend(dataTaskWithURL:completionHandler:)
+0x00008a24:  mov      x29, x29
+0x00008a28:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008a2c:  mov      x24, x0
+0x00008a30:  bl       #0x24260    ; -> _objc_msgSend(resume)
+0x00008a34:  mov      x0, x23
+0x00008a38:  bl       #0x233a0    ; -> _objc_msgSend(finishTasksAndInvalidate)
+0x00008a3c:  mov      x0, x24
+0x00008a40:  bl       #0x22120    ; -> _objc_release
+0x00008a44:  ldr      x0, [sp, #0x30]
+0x00008a48:  bl       #0x22120    ; -> _objc_release
+0x00008a4c:  mov      x0, x23
+0x00008a50:  bl       #0x22120    ; -> _objc_release
+0x00008a54:  mov      x0, x22
+0x00008a58:  bl       #0x22120    ; -> _objc_release
+0x00008a5c:  b        #0x8a70    ; -> sub_8a70
+0x00008a60:  ldr      x8, [x19, #0x10]
+0x00008a64:  mov      x0, x19
+0x00008a68:  mov      x1, #0
+0x00008a6c:  blr      x8
+0x00008a70:  mov      x0, x21
+0x00008a74:  bl       #0x22120    ; -> _objc_release
+0x00008a78:  mov      x0, x20
+0x00008a7c:  bl       #0x22120    ; -> _objc_release
+0x00008a80:  mov      x0, x19
+0x00008a84:  bl       #0x22120    ; -> _objc_release
+0x00008a88:  ldp      x29, x30, [sp, #0x80]
+0x00008a8c:  ldp      x20, x19, [sp, #0x70]
+0x00008a90:  ldp      x22, x21, [sp, #0x60]
+0x00008a94:  ldp      x24, x23, [sp, #0x50]
+0x00008a98:  ldp      d9, d8, [sp, #0x40]
+0x00008a9c:  add      sp, sp, #0x90
+0x00008aa0:  ret      

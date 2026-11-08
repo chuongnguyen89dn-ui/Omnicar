@@ -1,0 +1,169 @@
+; SSApplySampleData
+; VA 0x1a974  size 664
+
+0x0001a974:  sub      sp, sp, #0xd0
+0x0001a978:  stp      x22, x21, [sp, #0xa0]
+0x0001a97c:  stp      x20, x19, [sp, #0xb0]
+0x0001a980:  stp      x29, x30, [sp, #0xc0]
+0x0001a984:  add      x29, sp, #0xc0
+0x0001a988:  mov      x19, x0
+0x0001a98c:  adrp     x8, #0x30000
+0x0001a990:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0001a994:  ldr      x8, [x8]
+0x0001a998:  stur     x8, [x29, #-0x28]
+0x0001a99c:  bl       #0x2212c    ; -> _objc_retain
+0x0001a9a0:  cbz      x19, #0x1abd4
+0x0001a9a4:  mov      x0, x19
+0x0001a9a8:  bl       #0x235a0    ; -> _objc_msgSend(hud)
+0x0001a9ac:  mov      x29, x29
+0x0001a9b0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001a9b4:  mov      x20, x0
+0x0001a9b8:  bl       #0x22120    ; -> _objc_release
+0x0001a9bc:  cbnz     x20, #0x1aa00
+0x0001a9c0:  mov      x0, x19
+0x0001a9c4:  bl       #0x22a00    ; -> _objc_msgSend(carName)
+0x0001a9c8:  mov      x29, x29
+0x0001a9cc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001a9d0:  mov      x20, x0
+0x0001a9d4:  bl       #0x16544    ; -> sub_16544
+0x0001a9d8:  mov      x29, x29
+0x0001a9dc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001a9e0:  mov      x21, x0
+0x0001a9e4:  mov      x0, x19
+0x0001a9e8:  mov      x2, x21
+0x0001a9ec:  bl       #0x24a40    ; -> _objc_msgSend(setHud:)
+0x0001a9f0:  mov      x0, x21
+0x0001a9f4:  bl       #0x22120    ; -> _objc_release
+0x0001a9f8:  mov      x0, x20
+0x0001a9fc:  bl       #0x22120    ; -> _objc_release
+0x0001aa00:  mov      x0, x19
+0x0001aa04:  bl       #0x23d40    ; -> _objc_msgSend(nextEvent)
+0x0001aa08:  mov      x29, x29
+0x0001aa0c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001aa10:  mov      x20, x0
+0x0001aa14:  bl       #0x22120    ; -> _objc_release
+0x0001aa18:  cbnz     x20, #0x1aac0
+0x0001aa1c:  adrp     x8, #0x31000
+0x0001aa20:  add      x8, x8, #0x908    ; @"title"
+0x0001aa24:  stur     x8, [x29, #-0x48]
+0x0001aa28:  adrp     x0, #0x33000
+0x0001aa2c:  add      x0, x0, #0x348    ; @"b'H\x00\xcd\x1ep\x00 \x00'"
+0x0001aa30:  adrp     x1, #0x33000
+0x0001aa34:  add      x1, x1, #0x368    ; @"Team meeting"
+0x0001aa38:  bl       #0x21318    ; -> OMCTr
+0x0001aa3c:  mov      x29, x29
+0x0001aa40:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001aa44:  mov      x20, x0
+0x0001aa48:  adrp     x8, #0x31000
+0x0001aa4c:  add      x8, x8, #0x928    ; @"date"
+0x0001aa50:  stp      x8, x0, [x29, #-0x40]
+0x0001aa54:  adrp     x8, #0x3a000
+0x0001aa58:  ldr      x0, [x8, #0xa90]    ; class(NSDate)
+0x0001aa5c:  adrp     x8, #0x29000
+0x0001aa60:  ldr      d0, [x8, #0x3f0]
+0x0001aa64:  bl       #0x22fc0    ; -> _objc_msgSend(dateWithTimeIntervalSinceNow:)
+0x0001aa68:  mov      x29, x29
+0x0001aa6c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001aa70:  mov      x21, x0
+0x0001aa74:  stur     x0, [x29, #-0x30]
+0x0001aa78:  adrp     x8, #0x3a000
+0x0001aa7c:  ldr      x0, [x8, #0xa58]    ; class(NSDictionary)
+0x0001aa80:  sub      x2, x29, #0x38
+0x0001aa84:  sub      x3, x29, #0x48
+0x0001aa88:  mov      w4, #2
+0x0001aa8c:  bl       #0x23100    ; -> _objc_msgSend(dictionaryWithObjects:forKeys:count:)
+0x0001aa90:  mov      x29, x29
+0x0001aa94:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001aa98:  mov      x22, x0
+0x0001aa9c:  mov      x0, x19
+0x0001aaa0:  mov      x2, x22
+0x0001aaa4:  bl       #0x24d20    ; -> _objc_msgSend(setNextEvent:)
+0x0001aaa8:  mov      x0, x22
+0x0001aaac:  bl       #0x22120    ; -> _objc_release
+0x0001aab0:  mov      x0, x21
+0x0001aab4:  bl       #0x22120    ; -> _objc_release
+0x0001aab8:  mov      x0, x20
+0x0001aabc:  bl       #0x22120    ; -> _objc_release
+0x0001aac0:  mov      x0, x19
+0x0001aac4:  bl       #0x227a0    ; -> _objc_msgSend(batteryPercent)
+0x0001aac8:  tbz      x0, #0x3f, #0x1aad8
+0x0001aacc:  mov      x0, x19
+0x0001aad0:  mov      w2, #0x52
+0x0001aad4:  bl       #0x24540    ; -> _objc_msgSend(setBatteryPercent:)
+0x0001aad8:  mov      x0, x19
+0x0001aadc:  bl       #0x26020    ; -> _objc_msgSend(weather)
+0x0001aae0:  mov      x29, x29
+0x0001aae4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001aae8:  mov      x20, x0
+0x0001aaec:  bl       #0x22120    ; -> _objc_release
+0x0001aaf0:  cbnz     x20, #0x1abd4
+0x0001aaf4:  adrp     x8, #0x32000
+0x0001aaf8:  add      x8, x8, #0x348    ; @"temp"
+0x0001aafc:  adrp     x9, #0x32000
+0x0001ab00:  add      x9, x9, #0x448    ; @"high"
+0x0001ab04:  stp      x8, x9, [sp, #8]
+0x0001ab08:  adrp     x8, #0x35000
+0x0001ab0c:  add      x8, x8, #0x50
+0x0001ab10:  adrp     x9, #0x35000
+0x0001ab14:  add      x9, x9, #0x68
+0x0001ab18:  stp      x8, x9, [sp, #0x40]
+0x0001ab1c:  adrp     x8, #0x32000
+0x0001ab20:  add      x8, x8, #0x468    ; @"low"
+0x0001ab24:  adrp     x9, #0x32000
+0x0001ab28:  add      x9, x9, #0x488    ; @"rain"
+0x0001ab2c:  stp      x8, x9, [sp, #0x18]
+0x0001ab30:  adrp     x8, #0x35000
+0x0001ab34:  add      x8, x8, #0x80
+0x0001ab38:  adrp     x9, #0x35000
+0x0001ab3c:  add      x9, x9, #0x98
+0x0001ab40:  stp      x8, x9, [sp, #0x50]
+0x0001ab44:  adrp     x8, #0x32000
+0x0001ab48:  add      x8, x8, #0x388    ; @"code"
+0x0001ab4c:  adrp     x9, #0x32000
+0x0001ab50:  add      x9, x9, #0x3c8    ; @"isDay"
+0x0001ab54:  stp      x8, x9, [sp, #0x28]
+0x0001ab58:  adrp     x8, #0x35000
+0x0001ab5c:  add      x8, x8, #0xb0
+0x0001ab60:  adrp     x9, #0x34000
+0x0001ab64:  add      x9, x9, #0xe70
+0x0001ab68:  stp      x8, x9, [sp, #0x60]
+0x0001ab6c:  adrp     x8, #0x31000
+0x0001ab70:  add      x8, x8, #0x928    ; @"date"
+0x0001ab74:  str      x8, [sp, #0x38]
+0x0001ab78:  adrp     x8, #0x3a000
+0x0001ab7c:  ldr      x0, [x8, #0xa90]    ; class(NSDate)
+0x0001ab80:  bl       #0x22f40    ; -> _objc_msgSend(date)
+0x0001ab84:  mov      x29, x29
+0x0001ab88:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ab8c:  mov      x20, x0
+0x0001ab90:  str      x0, [sp, #0x70]
+0x0001ab94:  adrp     x8, #0x3a000
+0x0001ab98:  ldr      x0, [x8, #0xa58]    ; class(NSDictionary)
+0x0001ab9c:  add      x2, sp, #0x40
+0x0001aba0:  add      x3, sp, #8
+0x0001aba4:  mov      w4, #7
+0x0001aba8:  bl       #0x23100    ; -> _objc_msgSend(dictionaryWithObjects:forKeys:count:)
+0x0001abac:  mov      x29, x29
+0x0001abb0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001abb4:  mov      x21, x0
+0x0001abb8:  mov      x0, x19
+0x0001abbc:  mov      x2, x21
+0x0001abc0:  bl       #0x254a0    ; -> _objc_msgSend(setWeather:)
+0x0001abc4:  mov      x0, x21
+0x0001abc8:  bl       #0x22120    ; -> _objc_release
+0x0001abcc:  mov      x0, x20
+0x0001abd0:  bl       #0x22120    ; -> _objc_release
+0x0001abd4:  mov      x0, x19
+0x0001abd8:  bl       #0x22120    ; -> _objc_release
+0x0001abdc:  ldur     x8, [x29, #-0x28]
+0x0001abe0:  adrp     x9, #0x30000
+0x0001abe4:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0001abe8:  ldr      x9, [x9]
+0x0001abec:  cmp      x9, x8
+0x0001abf0:  b.ne     #0x1ac08
+0x0001abf4:  ldp      x29, x30, [sp, #0xc0]
+0x0001abf8:  ldp      x20, x19, [sp, #0xb0]
+0x0001abfc:  ldp      x22, x21, [sp, #0xa0]
+0x0001ac00:  add      sp, sp, #0xd0
+0x0001ac04:  ret      
+0x0001ac08:  bl       #0x21dd8    ; -> ___stack_chk_fail

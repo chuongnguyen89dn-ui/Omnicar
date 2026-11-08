@@ -1,0 +1,103 @@
+; -[SSSplash startCountdown]
+; VA 0x6c18  size 400
+
+0x00006c18:  sub      sp, sp, #0x80
+0x00006c1c:  stp      d9, d8, [sp, #0x40]
+0x00006c20:  stp      x22, x21, [sp, #0x50]
+0x00006c24:  stp      x20, x19, [sp, #0x60]
+0x00006c28:  stp      x29, x30, [sp, #0x70]
+0x00006c2c:  add      x29, sp, #0x70
+0x00006c30:  mov      x19, x0
+0x00006c34:  bl       #0x25c60    ; -> _objc_msgSend(style)
+0x00006c38:  cbnz     x0, #0x6c48
+0x00006c3c:  mov      x0, x19
+0x00006c40:  bl       #0x23b00    ; -> _objc_msgSend(loop)
+0x00006c44:  cbz      w0, #0x6d94
+0x00006c48:  bl       #0x5a04    ; -> sub_5a04
+0x00006c4c:  mov      v8.16b, v0.16b
+0x00006c50:  adrp     x8, #0x3a000
+0x00006c54:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x00006c58:  str      d8, [sp]
+0x00006c5c:  adrp     x2, #0x31000
+0x00006c60:  add      x2, x2, #0x128    ; @"first frame shown, playing for up to %.0fs"
+0x00006c64:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00006c68:  mov      x29, x29
+0x00006c6c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00006c70:  mov      x20, x0
+0x00006c74:  adrp     x0, #0x30000
+0x00006c78:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00006c7c:  mov      x1, x20
+0x00006c80:  bl       #0x1b620    ; -> OMCLogWrite
+0x00006c84:  mov      x0, x20
+0x00006c88:  bl       #0x22120    ; -> _objc_release
+0x00006c8c:  mov      x0, x19
+0x00006c90:  bl       #0x25c60    ; -> _objc_msgSend(style)
+0x00006c94:  mov      x20, x0
+0x00006c98:  adrp     x21, #0x3b000
+0x00006c9c:  ldr      w0, [x21, #0x108]
+0x00006ca0:  cmn      w0, #1
+0x00006ca4:  b.eq     #0x6cb4
+0x00006ca8:  add      x1, x20, #1
+0x00006cac:  bl       #0x22018    ; -> _notify_set_state
+0x00006cb0:  b        #0x6cd4    ; -> sub_6cd4
+0x00006cb4:  adrp     x0, #0x27000
+0x00006cb8:  add      x0, x0, #0x549    ; "com.anlai.omnicar/startupscreen.style"
+0x00006cbc:  adrp     x1, #0x3b000
+0x00006cc0:  add      x1, x1, #0x108
+0x00006cc4:  bl       #0x22000    ; -> _notify_register_check
+0x00006cc8:  cbz      w0, #0x6da0
+0x00006ccc:  mov      w8, #-1
+0x00006cd0:  str      w8, [x21, #0x108]
+0x00006cd4:  bl       #0x21b50    ; -> _CFNotificationCenterGetDarwinNotifyCenter
+0x00006cd8:  adrp     x1, #0x31000
+0x00006cdc:  add      x1, x1, #0x148    ; @"com.anlai.omnicar/startupscreen.audio.play"
+0x00006ce0:  mov      x2, #0
+0x00006ce4:  mov      x3, #0
+0x00006ce8:  mov      w4, #1
+0x00006cec:  bl       #0x21b5c    ; -> _CFNotificationCenterPostNotification
+0x00006cf0:  add      x0, sp, #0x38
+0x00006cf4:  mov      x1, x19
+0x00006cf8:  bl       #0x220b4    ; -> _objc_initWeak
+0x00006cfc:  adrp     x8, #0x28000
+0x00006d00:  ldr      d0, [x8, #0xdd8]
+0x00006d04:  fmul     d0, d8, d0
+0x00006d08:  fcvtzs   x1, d0
+0x00006d0c:  mov      x0, #0
+0x00006d10:  bl       #0x21ef8    ; -> _dispatch_time
+0x00006d14:  mov      x19, x0
+0x00006d18:  adrp     x8, #0x30000
+0x00006d1c:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x00006d20:  str      x8, [sp, #8]
+0x00006d24:  adrp     x8, #0x28000
+0x00006d28:  ldr      d0, [x8, #0xdd0]
+0x00006d2c:  adrp     x8, #0x6000
+0x00006d30:  add      x8, x8, #0xda8    ; func sub_6da8
+0x00006d34:  str      d0, [sp, #0x10]
+0x00006d38:  adrp     x9, #0x30000
+0x00006d3c:  add      x9, x9, #0x7e8
+0x00006d40:  stp      x8, x9, [sp, #0x18]
+0x00006d44:  add      x20, sp, #8
+0x00006d48:  add      x0, x20, #0x20
+0x00006d4c:  add      x1, sp, #0x38
+0x00006d50:  bl       #0x2206c    ; -> _objc_copyWeak
+0x00006d54:  str      d8, [sp, #0x30]
+0x00006d58:  adrp     x1, #0x30000
+0x00006d5c:  ldr      x1, [x1, #0x388]    ; got(__dispatch_main_q)
+0x00006d60:  add      x2, sp, #8
+0x00006d64:  mov      x0, x19
+0x00006d68:  bl       #0x21e8c    ; -> _dispatch_after
+0x00006d6c:  add      x0, x20, #0x20
+0x00006d70:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00006d74:  add      x0, sp, #0x38
+0x00006d78:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00006d7c:  ldp      x29, x30, [sp, #0x70]
+0x00006d80:  ldp      x20, x19, [sp, #0x60]
+0x00006d84:  ldp      x22, x21, [sp, #0x50]
+0x00006d88:  ldp      d9, d8, [sp, #0x40]
+0x00006d8c:  add      sp, sp, #0x80
+0x00006d90:  ret      
+0x00006d94:  mov      x8, #0x404e000000000000
+0x00006d98:  fmov     d8, x8
+0x00006d9c:  b        #0x6c50    ; -> sub_6c50
+0x00006da0:  ldr      w0, [x21, #0x108]
+0x00006da4:  b        #0x6ca8    ; -> sub_6ca8

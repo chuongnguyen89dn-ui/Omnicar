@@ -1,0 +1,78 @@
+; sub_6b44
+0x006b44  sub      sp, sp, #0x50
+0x006b48  stp      x24, x23, [sp, #0x10]
+0x006b4c  stp      x22, x21, [sp, #0x20]
+0x006b50  stp      x20, x19, [sp, #0x30]
+0x006b54  stp      x29, x30, [sp, #0x40]
+0x006b58  add      x29, sp, #0x40
+0x006b5c  mov      x19, x2
+0x006b60  mov      x20, x1
+0x006b64  mov      x21, x0
+0x006b68  adrp     x8, #0x87000
+0x006b6c  ldr      x0, [x8, #0x688] ; [0x87688] class:SCPCarSplit
+0x006b70  bl       #0x5bea0 ; objc_msgSend$shared
+0x006b74  mov      x29, x29
+0x006b78  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x006b7c  mov      x22, x0
+0x006b80  mov      x2, x21
+0x006b84  bl       #0x59d00 ; objc_msgSend$protectsViewController:
+0x006b88  mov      x23, x0
+0x006b8c  mov      x0, x22
+0x006b90  bl       #0x567b8 ; call _objc_release
+0x006b94  cbz      w23, #0x6c40
+0x006b98  adrp     x8, #0x87000
+0x006b9c  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x006ba0  str      x19, [sp]
+0x006ba4  adrp     x2, #0x79000
+0x006ba8  add      x2, x2, #0xf80 ; -> 0x79f80 @"CarSplit: chan deactivate scene (mask=%llu) cua app trong ngan"
+0x006bac  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x006bb0  mov      x29, x29
+0x006bb4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x006bb8  mov      x19, x0
+0x006bbc  adrp     x0, #0x79000
+0x006bc0  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x006bc4  mov      x1, x19
+0x006bc8  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x006bcc  mov      x0, x19
+0x006bd0  ldp      x29, x30, [sp, #0x40]
+0x006bd4  ldp      x20, x19, [sp, #0x30]
+0x006bd8  ldp      x22, x21, [sp, #0x20]
+0x006bdc  ldp      x24, x23, [sp, #0x10]
+0x006be0  add      sp, sp, #0x50
+0x006be4  b        #0x567b8 ; call _objc_release
+0x006be8  mov      x22, x0
+0x006bec  mov      x0, x19
+0x006bf0  bl       #0x567b8 ; call _objc_release
+0x006bf4  mov      x0, x22
+0x006bf8  bl       #0x563e0 ; call __Unwind_Resume
+0x006bfc  mov      x23, x1
+0x006c00  mov      x1, x22
+0x006c04  mov      x22, x0
+0x006c08  mov      x0, x1
+0x006c0c  bl       #0x567b8 ; call _objc_release
+0x006c10  b        #0x6c1c
+0x006c14  mov      x23, x1
+0x006c18  mov      x22, x0
+0x006c1c  cmp      w23, #1
+0x006c20  b.ne     #0x6bf4
+0x006c24  mov      x0, x22
+0x006c28  bl       #0x566ec ; call _objc_begin_catch
+0x006c2c  mov      x1, x0
+0x006c30  adrp     x0, #0x5f000
+0x006c34  add      x0, x0, #0x32a ; -> 0x5f32a "deactivateScene"
+0x006c38  bl       #0x75cc ; -> sub_75cc
+0x006c3c  bl       #0x56710 ; call _objc_end_catch
+0x006c40  adrp     x8, #0x88000
+0x006c44  ldr      x3, [x8, #0x90]
+0x006c48  mov      x0, x21
+0x006c4c  mov      x1, x20
+0x006c50  mov      x2, x19
+0x006c54  ldp      x29, x30, [sp, #0x40]
+0x006c58  ldp      x20, x19, [sp, #0x30]
+0x006c5c  ldp      x22, x21, [sp, #0x20]
+0x006c60  ldp      x24, x23, [sp, #0x10]
+0x006c64  add      sp, sp, #0x50
+0x006c68  br       x3
+0x006c6c  mov      x22, x0
+0x006c70  bl       #0x56710 ; call _objc_end_catch
+0x006c74  b        #0x6bf4

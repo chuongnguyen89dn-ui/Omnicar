@@ -1,0 +1,181 @@
+# sub_1ea60
+# addr 0x1ea60 .. 0x1ed28  (712 bytes)
+
+0001ea60  sub      sp, sp, #0x80                               
+0001ea64  stp      x26, x25, [sp, #0x30]                       
+0001ea68  stp      x24, x23, [sp, #0x40]                       
+0001ea6c  stp      x22, x21, [sp, #0x50]                       
+0001ea70  stp      x20, x19, [sp, #0x60]                       
+0001ea74  stp      x29, x30, [sp, #0x70]                       
+0001ea78  add      x29, sp, #0x70                              
+0001ea7c  mov      x19, x1                                     
+0001ea80  mov      x21, x0                                     
+0001ea84  adrp     x8, #0x38000                                
+0001ea88  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0001ea8c  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0001ea90  str      x8, [sp, #0x28]                             
+0001ea94  mov      x0, x1                                      
+0001ea98  bl       #0x28004                                    ; _objc_retain
+0001ea9c  ldr      w8, [x21, #0x28]                            
+0001eaa0  adrp     x24, #0x43000                               
+0001eaa4  ldr      x0, [x24, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+0001eaa8  cmp      w8, #2                                      
+0001eaac  b.eq     #0x1eae0                                    
+0001eab0  cmp      w8, #1                                      
+0001eab4  b.ne     #0x1eb08                                    
+0001eab8  adrp     x8, #0x32000                                
+0001eabc  ldr      d1, [x8, #0x848]                            ; [0x32848] __const[0x32848] double=0.6 float=4.17232506322307e-08
+0001eac0  adrp     x8, #0x32000                                
+0001eac4  ldr      d2, [x8, #0x7c0]                            ; [0x327c0] __const[0x327c0] double=0.45 float=-107374184.0
+0001eac8  fmov     d0, xzr                                     
+0001eacc  fmov     d3, #1.00000000                             
+0001ead0  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+0001ead4  mov      x29, x29                                    
+0001ead8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001eadc  b        #0x1eb30                                    ; sub_1eb30
+0001eae0  adrp     x8, #0x32000                                
+0001eae4  ldr      d0, [x8, #0xc88]                            ; [0x32c88] __const[0x32c88] double=0.2 float=-1.5881868392106856e-23
+0001eae8  adrp     x8, #0x32000                                
+0001eaec  ldr      d2, [x8, #0xd58]                            ; [0x32d58] __const[0x32d58] double=0.95 float=2.7200830220753216e+23
+0001eaf0  fmov     d1, #0.75000000                             
+0001eaf4  fmov     d3, #1.00000000                             
+0001eaf8  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+0001eafc  mov      x29, x29                                    
+0001eb00  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001eb04  b        #0x1eb30                                    ; sub_1eb30
+0001eb08  adrp     x8, #0x32000                                
+0001eb0c  ldr      d0, [x8, #0xd88]                            ; [0x32d88] __const[0x32d88] double=0.1 float=-1.5881868392106856e-23
+0001eb10  adrp     x8, #0x32000                                
+0001eb14  ldr      d1, [x8, #0xdc0]                            ; [0x32dc0] __const[0x32dc0] double=0.4 float=-1.5881868392106856e-23
+0001eb18  adrp     x8, #0x32000                                
+0001eb1c  ldr      d2, [x8, #0x7e0]                            ; [0x327e0] __const[0x327e0] double=0.85 float=4.17232506322307e-08
+0001eb20  fmov     d3, #1.00000000                             
+0001eb24  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+0001eb28  mov      x29, x29                                    
+0001eb2c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001eb30  mov      x20, x0                                     
+0001eb34  bl       #0x2af20                                    ; objc_msgSend$setFill
+0001eb38  ldr      d2, [x21, #0x20]                            
+0001eb3c  fmov     d0, xzr                                     
+0001eb40  fmov     d1, xzr                                     
+0001eb44  mov      v3.16b, v2.16b                              
+0001eb48  bl       #0x27c5c                                    ; _UIRectFill
+0001eb4c  ldr      w22, [x21, #0x28]                           
+0001eb50  tbnz     w22, #0x1f, #0x1eb88                        
+0001eb54  adrp     x0, #0x3c000                                
+0001eb58  add      x0, x0, #0xed8                              ; __DATA_CONST,__objc_arrayobj+0x198
+0001eb5c  bl       #0x29000                                    ; objc_msgSend$count
+0001eb60  cmp      w22, w0                                     
+0001eb64  b.ge     #0x1eb88                                    
+0001eb68  ldrsw    x2, [x21, #0x28]                            
+0001eb6c  adrp     x0, #0x3c000                                
+0001eb70  add      x0, x0, #0xed8                              ; __DATA_CONST,__objc_arrayobj+0x198
+0001eb74  bl       #0x2a100                                    ; objc_msgSend$objectAtIndexedSubscript:
+0001eb78  mov      x29, x29                                    
+0001eb7c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001eb80  mov      x22, x0                                     
+0001eb84  b        #0x1eb90                                    ; sub_1eb90
+0001eb88  adrp     x22, #0x39000                               
+0001eb8c  add      x22, x22, #0x2d8                            ; @"?"
+0001eb90  adrp     x8, #0x38000                                
+0001eb94  ldr      x8, [x8, #0x1f8]                            ; [0x381f8] __DATA_CONST,__got+0x1f8 (= import _NSFontAttributeName)
+0001eb98  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0001eb9c  str      x8, [sp, #8]                                
+0001eba0  adrp     x8, #0x43000                                
+0001eba4  ldr      x0, [x8, #0x78]                             ; [0x43078] classref -> UIFont (= import _OBJC_CLASS_$_UIFont)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+0001eba8  adrp     x8, #0x38000                                
+0001ebac  ldr      x8, [x8, #0x230]                            ; [0x38230] __DATA_CONST,__got+0x230 (= import _UIFontWeightHeavy)
+0001ebb0  ldr      d1, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0001ebb4  fmov     d0, #26.00000000                            
+0001ebb8  bl       #0x2c460                                    ; objc_msgSend$systemFontOfSize:weight:
+0001ebbc  mov      x29, x29                                    
+0001ebc0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001ebc4  mov      x23, x0                                     
+0001ebc8  str      x0, [sp, #0x18]                             
+0001ebcc  adrp     x8, #0x38000                                
+0001ebd0  ldr      x8, [x8, #0x200]                            ; [0x38200] __DATA_CONST,__got+0x200 (= import _NSForegroundColorAttributeName)
+0001ebd4  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0001ebd8  str      x8, [sp, #0x10]                             
+0001ebdc  ldr      x0, [x24, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+0001ebe0  bl       #0x2c960                                    ; objc_msgSend$whiteColor
+0001ebe4  mov      x29, x29                                    
+0001ebe8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001ebec  mov      x25, x0                                     
+0001ebf0  str      x0, [sp, #0x20]                             
+0001ebf4  adrp     x8, #0x42000                                
+0001ebf8  ldr      x0, [x8, #0xfa8]                            ; [0x42fa8] classref -> NSDictionary (= import _OBJC_CLASS_$_NSDictionary)
+0001ebfc  add      x2, sp, #0x18                               
+0001ec00  add      x3, sp, #8                                  
+0001ec04  mov      w4, #2                                      
+0001ec08  bl       #0x29240                                    ; objc_msgSend$dictionaryWithObjects:forKeys:count:
+0001ec0c  mov      x29, x29                                    
+0001ec10  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001ec14  mov      x24, x0                                     
+0001ec18  mov      x0, x25                                     
+0001ec1c  bl       #0x27ff8                                    ; _objc_release
+0001ec20  mov      x0, x23                                     
+0001ec24  bl       #0x27ff8                                    ; _objc_release
+0001ec28  mov      x0, x22                                     
+0001ec2c  mov      x2, x24                                     
+0001ec30  bl       #0x2bf20                                    ; objc_msgSend$sizeWithAttributes:
+0001ec34  ldr      d2, [x21, #0x20]                            
+0001ec38  fsub     d0, d2, d0                                  
+0001ec3c  fmov     d3, #0.50000000                             
+0001ec40  fmul     d0, d0, d3                                  
+0001ec44  fsub     d1, d2, d1                                  
+0001ec48  fmul     d1, d1, d3                                  
+0001ec4c  mov      x0, x22                                     
+0001ec50  mov      x2, x24                                     
+0001ec54  bl       #0x292e0                                    ; objc_msgSend$drawAtPoint:withAttributes:
+0001ec58  mov      x0, x24                                     
+0001ec5c  bl       #0x27ff8                                    ; _objc_release
+0001ec60  mov      x0, x22                                     
+0001ec64  bl       #0x27ff8                                    ; _objc_release
+0001ec68  mov      x0, x20                                     
+0001ec6c  bl       #0x27ff8                                    ; _objc_release
+0001ec70  mov      x0, x19                                     
+0001ec74  bl       #0x27ff8                                    ; _objc_release
+0001ec78  ldr      x8, [sp, #0x28]                             
+0001ec7c  adrp     x9, #0x38000                                
+0001ec80  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0001ec84  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0001ec88  cmp      x9, x8                                      
+0001ec8c  b.ne     #0x1ecac                                    
+0001ec90  ldp      x29, x30, [sp, #0x70]                       
+0001ec94  ldp      x20, x19, [sp, #0x60]                       
+0001ec98  ldp      x22, x21, [sp, #0x50]                       
+0001ec9c  ldp      x24, x23, [sp, #0x40]                       
+0001eca0  ldp      x26, x25, [sp, #0x30]                       
+0001eca4  add      sp, sp, #0x80                               
+0001eca8  ret                                                  
+0001ecac  bl       #0x27ca4                                    ; ___stack_chk_fail
+0001ecb0  b        #0x1ecb8                                    ; sub_1ecb8
+0001ecb4  b        #0x1ecb8                                    ; sub_1ecb8
+0001ecb8  mov      x21, x0                                     
+0001ecbc  b        #0x1ed10                                    ; sub_1ed10
+0001ecc0  b        #0x1ed04                                    ; sub_1ed04
+0001ecc4  mov      x21, x0                                     
+0001ecc8  mov      x0, x25                                     
+0001eccc  bl       #0x27ff8                                    ; _objc_release
+0001ecd0  b        #0x1ecd8                                    ; sub_1ecd8
+0001ecd4  mov      x21, x0                                     
+0001ecd8  mov      x0, x23                                     
+0001ecdc  bl       #0x27ff8                                    ; _objc_release
+0001ece0  b        #0x1ecf8                                    ; sub_1ecf8
+0001ece4  mov      x21, x0                                     
+0001ece8  b        #0x1ecf8                                    ; sub_1ecf8
+0001ecec  mov      x21, x0                                     
+0001ecf0  mov      x0, x24                                     
+0001ecf4  bl       #0x27ff8                                    ; _objc_release
+0001ecf8  mov      x0, x22                                     
+0001ecfc  bl       #0x27ff8                                    ; _objc_release
+0001ed00  b        #0x1ed08                                    ; sub_1ed08
+0001ed04  mov      x21, x0                                     
+0001ed08  mov      x0, x20                                     
+0001ed0c  bl       #0x27ff8                                    ; _objc_release
+0001ed10  mov      x0, x19                                     
+0001ed14  bl       #0x27ff8                                    ; _objc_release
+0001ed18  b        #0x1ed20                                    ; sub_1ed20
+0001ed1c  mov      x21, x0                                     
+0001ed20  mov      x0, x21                                     
+0001ed24  bl       #0x27c80                                    ; __Unwind_Resume

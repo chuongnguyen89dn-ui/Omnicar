@@ -1,0 +1,45 @@
+; sub_13eb8
+; VA 0x13eb8  size 168
+
+0x00013eb8:  sub      sp, sp, #0x40
+0x00013ebc:  stp      x22, x21, [sp, #0x10]
+0x00013ec0:  stp      x20, x19, [sp, #0x20]
+0x00013ec4:  stp      x29, x30, [sp, #0x30]
+0x00013ec8:  add      x29, sp, #0x30
+0x00013ecc:  mov      x21, x2
+0x00013ed0:  mov      x20, x1
+0x00013ed4:  mov      x19, x0
+0x00013ed8:  bl       #0x2212c    ; -> _objc_retain
+0x00013edc:  mov      x0, x20
+0x00013ee0:  bl       #0x2212c    ; -> _objc_retain
+0x00013ee4:  mov      x0, x21
+0x00013ee8:  bl       #0x13e24    ; -> sub_13e24
+0x00013eec:  mov      x29, x29
+0x00013ef0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00013ef4:  mov      x21, x0
+0x00013ef8:  bl       #0x23a40    ; -> _objc_msgSend(length)
+0x00013efc:  cbz      x0, #0x13f24
+0x00013f00:  adrp     x8, #0x3a000
+0x00013f04:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x00013f08:  str      x21, [sp]
+0x00013f0c:  mov      x2, x19
+0x00013f10:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00013f14:  mov      x29, x29
+0x00013f18:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00013f1c:  mov      x22, x0
+0x00013f20:  b        #0x13f30    ; -> sub_13f30
+0x00013f24:  mov      x0, x20
+0x00013f28:  bl       #0x2212c    ; -> _objc_retain
+0x00013f2c:  mov      x22, x20
+0x00013f30:  mov      x0, x21
+0x00013f34:  bl       #0x22120    ; -> _objc_release
+0x00013f38:  mov      x0, x20
+0x00013f3c:  bl       #0x22120    ; -> _objc_release
+0x00013f40:  mov      x0, x19
+0x00013f44:  bl       #0x22120    ; -> _objc_release
+0x00013f48:  mov      x0, x22
+0x00013f4c:  ldp      x29, x30, [sp, #0x30]
+0x00013f50:  ldp      x20, x19, [sp, #0x20]
+0x00013f54:  ldp      x22, x21, [sp, #0x10]
+0x00013f58:  add      sp, sp, #0x40
+0x00013f5c:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

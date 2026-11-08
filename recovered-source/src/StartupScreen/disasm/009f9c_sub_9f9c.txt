@@ -1,0 +1,31 @@
+; sub_9f9c
+; VA 0x9f9c  size 112
+
+0x00009f9c:  stp      d9, d8, [sp, #-0x30]!
+0x00009fa0:  stp      x20, x19, [sp, #0x10]
+0x00009fa4:  stp      x29, x30, [sp, #0x20]
+0x00009fa8:  add      x29, sp, #0x20
+0x00009fac:  mov      x19, x1
+0x00009fb0:  mov      x0, x1
+0x00009fb4:  bl       #0x2212c    ; -> _objc_retain
+0x00009fb8:  adrp     x8, #0x3b000
+0x00009fbc:  ldr      x0, [x8, #0x190]
+0x00009fc0:  str      xzr, [x8, #0x190]
+0x00009fc4:  bl       #0x22120    ; -> _objc_release
+0x00009fc8:  cbz      x19, #0x9ff4
+0x00009fcc:  mov      x0, x19
+0x00009fd0:  bl       #0x22dc0    ; -> _objc_msgSend(coordinate)
+0x00009fd4:  mov      v8.16b, v0.16b
+0x00009fd8:  mov      x0, x19
+0x00009fdc:  bl       #0x22dc0    ; -> _objc_msgSend(coordinate)
+0x00009fe0:  adrp     x0, #0x31000
+0x00009fe4:  add      x0, x0, #0xe08    ; @"fresh CoreLocation"
+0x00009fe8:  mov      v0.16b, v8.16b
+0x00009fec:  bl       #0x9f1c    ; -> sub_9f1c
+0x00009ff0:  b        #0x9ff8    ; -> sub_9ff8
+0x00009ff4:  bl       #0x9b7c    ; -> sub_9b7c
+0x00009ff8:  mov      x0, x19
+0x00009ffc:  ldp      x29, x30, [sp, #0x20]
+0x0000a000:  ldp      x20, x19, [sp, #0x10]
+0x0000a004:  ldp      d9, d8, [sp], #0x30
+0x0000a008:  b        #0x22120    ; -> _objc_release

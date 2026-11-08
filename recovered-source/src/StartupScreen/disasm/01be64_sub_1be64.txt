@@ -1,0 +1,281 @@
+; sub_1be64
+; VA 0x1be64  size 1112
+
+0x0001be64:  stp      x28, x27, [sp, #0x130]
+0x0001be68:  stp      x26, x25, [sp, #0x140]
+0x0001be6c:  stp      x24, x23, [sp, #0x150]
+0x0001be70:  stp      x22, x21, [sp, #0x160]
+0x0001be74:  stp      x20, x19, [sp, #0x170]
+0x0001be78:  stp      x29, x30, [sp, #0x180]
+0x0001be7c:  add      x29, sp, #0x180
+0x0001be80:  mov      x26, x1
+0x0001be84:  adrp     x8, #0x30000
+0x0001be88:  ldr      x8, [x8, #0x378]    ; got(___stack_chk_guard)
+0x0001be8c:  ldr      x8, [x8]
+0x0001be90:  stur     x8, [x29, #-0x60]
+0x0001be94:  str      x0, [sp, #0x20]
+0x0001be98:  bl       #0x2212c    ; -> _objc_retain
+0x0001be9c:  mov      x0, x26
+0x0001bea0:  bl       #0x2212c    ; -> _objc_retain
+0x0001bea4:  adrp     x8, #0x3a000
+0x0001bea8:  ldr      x0, [x8, #0x9c8]    ; class(NSMutableArray)
+0x0001beac:  bl       #0x226a0    ; -> _objc_msgSend(array)
+0x0001beb0:  mov      x29, x29
+0x0001beb4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001beb8:  str      x0, [sp, #0x30]
+0x0001bebc:  adrp     x8, #0x3a000
+0x0001bec0:  ldr      x0, [x8, #0xbd8]    ; class(NSMutableOrderedSet)
+0x0001bec4:  bl       #0x23ee0    ; -> _objc_msgSend(orderedSet)
+0x0001bec8:  mov      x29, x29
+0x0001becc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bed0:  str      x0, [sp, #0x28]
+0x0001bed4:  movi     v0.16b, #0
+0x0001bed8:  stp      q0, q0, [sp, #0x40]
+0x0001bedc:  stp      q0, q0, [sp, #0x60]
+0x0001bee0:  mov      x0, x26
+0x0001bee4:  bl       #0x2212c    ; -> _objc_retain
+0x0001bee8:  add      x2, sp, #0x40
+0x0001beec:  add      x3, sp, #0xa0
+0x0001bef0:  mov      x0, x26
+0x0001bef4:  mov      w4, #0x10
+0x0001bef8:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001befc:  str      x26, [sp, #0x38]
+0x0001bf00:  cbz      x0, #0x1c128
+0x0001bf04:  mov      x24, x0
+0x0001bf08:  ldr      x8, [sp, #0x50]
+0x0001bf0c:  ldr      x20, [x8]
+0x0001bf10:  adrp     x23, #0x33000
+0x0001bf14:  add      x23, x23, #0xbc8    ; @" "
+0x0001bf18:  mov      x25, #0
+0x0001bf1c:  ldr      x8, [sp, #0x50]
+0x0001bf20:  ldr      x8, [x8]
+0x0001bf24:  cmp      x8, x20
+0x0001bf28:  b.eq     #0x1bf34
+0x0001bf2c:  mov      x0, x26
+0x0001bf30:  bl       #0x22090    ; -> _objc_enumerationMutation
+0x0001bf34:  ldr      x8, [sp, #0x48]
+0x0001bf38:  ldr      x28, [x8, x25, lsl #3]
+0x0001bf3c:  mov      x0, x28
+0x0001bf40:  mov      x2, x23
+0x0001bf44:  bl       #0x22c00    ; -> _objc_msgSend(componentsSeparatedByString:)
+0x0001bf48:  mov      x29, x29
+0x0001bf4c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bf50:  mov      x27, x0
+0x0001bf54:  bl       #0x22e00    ; -> _objc_msgSend(count)
+0x0001bf58:  cmp      x0, #2
+0x0001bf5c:  b.ne     #0x1c0f8
+0x0001bf60:  mov      x0, x27
+0x0001bf64:  mov      x2, #0
+0x0001bf68:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x0001bf6c:  mov      x29, x29
+0x0001bf70:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bf74:  mov      x22, x0
+0x0001bf78:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0001bf7c:  bl       #0x223c0    ; -> _objc_msgSend(UTF8String)
+0x0001bf80:  bl       #0x1bd18    ; -> OMCCarClass
+0x0001bf84:  mov      x19, x0
+0x0001bf88:  mov      x0, x22
+0x0001bf8c:  bl       #0x22120    ; -> _objc_release
+0x0001bf90:  cbz      x19, #0x1c060
+0x0001bf94:  mov      x0, x19
+0x0001bf98:  bl       #0x21d6c    ; -> _NSStringFromClass
+0x0001bf9c:  mov      x29, x29
+0x0001bfa0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bfa4:  mov      x22, x0
+0x0001bfa8:  mov      x0, x27
+0x0001bfac:  mov      x2, #0
+0x0001bfb0:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x0001bfb4:  mov      x29, x29
+0x0001bfb8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bfbc:  mov      x26, x0
+0x0001bfc0:  mov      x0, x22
+0x0001bfc4:  mov      x2, x26
+0x0001bfc8:  bl       #0x23920    ; -> _objc_msgSend(isEqualToString:)
+0x0001bfcc:  mov      x21, x0
+0x0001bfd0:  mov      x0, x26
+0x0001bfd4:  ldr      x26, [sp, #0x38]
+0x0001bfd8:  bl       #0x22120    ; -> _objc_release
+0x0001bfdc:  mov      x0, x22
+0x0001bfe0:  bl       #0x22120    ; -> _objc_release
+0x0001bfe4:  tbnz     w21, #0, #0x1c060
+0x0001bfe8:  adrp     x8, #0x3a000
+0x0001bfec:  ldr      x21, [x8, #0x9c0]    ; class(NSString)
+0x0001bff0:  mov      x0, x27
+0x0001bff4:  mov      x2, #0
+0x0001bff8:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x0001bffc:  mov      x29, x29
+0x0001c000:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c004:  mov      x22, x0
+0x0001c008:  mov      x0, x19
+0x0001c00c:  bl       #0x21d6c    ; -> _NSStringFromClass
+0x0001c010:  mov      x29, x29
+0x0001c014:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c018:  mov      x19, x0
+0x0001c01c:  stp      x22, x0, [sp]
+0x0001c020:  mov      x0, x21
+0x0001c024:  adrp     x2, #0x33000
+0x0001c028:  add      x2, x2, #0xbe8    ; @"%@=%@"
+0x0001c02c:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x0001c030:  mov      x29, x29
+0x0001c034:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c038:  mov      x21, x0
+0x0001c03c:  ldr      x0, [sp, #0x28]
+0x0001c040:  mov      x2, x21
+0x0001c044:  bl       #0x22480    ; -> _objc_msgSend(addObject:)
+0x0001c048:  mov      x0, x21
+0x0001c04c:  bl       #0x22120    ; -> _objc_release
+0x0001c050:  mov      x0, x19
+0x0001c054:  bl       #0x22120    ; -> _objc_release
+0x0001c058:  mov      x0, x22
+0x0001c05c:  bl       #0x22120    ; -> _objc_release
+0x0001c060:  mov      x0, x27
+0x0001c064:  mov      w2, #1
+0x0001c068:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x0001c06c:  mov      x29, x29
+0x0001c070:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c074:  mov      x19, x0
+0x0001c078:  adrp     x2, #0x32000
+0x0001c07c:  add      x2, x2, #0x208    ; @"-"
+0x0001c080:  bl       #0x23540    ; -> _objc_msgSend(hasPrefix:)
+0x0001c084:  cbz      w0, #0x1c0ac
+0x0001c088:  mov      x0, x19
+0x0001c08c:  mov      w2, #1
+0x0001c090:  bl       #0x25c80    ; -> _objc_msgSend(substringFromIndex:)
+0x0001c094:  mov      x29, x29
+0x0001c098:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c09c:  mov      x21, x0
+0x0001c0a0:  mov      x0, x19
+0x0001c0a4:  bl       #0x22120    ; -> _objc_release
+0x0001c0a8:  mov      x19, x21
+0x0001c0ac:  mov      x0, x27
+0x0001c0b0:  mov      x2, #0
+0x0001c0b4:  bl       #0x23e80    ; -> _objc_msgSend(objectAtIndexedSubscript:)
+0x0001c0b8:  mov      x29, x29
+0x0001c0bc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c0c0:  mov      x21, x0
+0x0001c0c4:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0001c0c8:  bl       #0x223c0    ; -> _objc_msgSend(UTF8String)
+0x0001c0cc:  mov      x1, x19
+0x0001c0d0:  bl       #0x1bc64    ; -> OMCHasMethod
+0x0001c0d4:  mov      x22, x0
+0x0001c0d8:  mov      x0, x21
+0x0001c0dc:  bl       #0x22120    ; -> _objc_release
+0x0001c0e0:  tbnz     w22, #0, #0x1c0f0
+0x0001c0e4:  ldr      x0, [sp, #0x30]
+0x0001c0e8:  mov      x2, x28
+0x0001c0ec:  bl       #0x22480    ; -> _objc_msgSend(addObject:)
+0x0001c0f0:  mov      x0, x19
+0x0001c0f4:  bl       #0x22120    ; -> _objc_release
+0x0001c0f8:  mov      x0, x27
+0x0001c0fc:  bl       #0x22120    ; -> _objc_release
+0x0001c100:  add      x25, x25, #1
+0x0001c104:  cmp      x24, x25
+0x0001c108:  b.ne     #0x1bf1c
+0x0001c10c:  add      x2, sp, #0x40
+0x0001c110:  add      x3, sp, #0xa0
+0x0001c114:  mov      x0, x26
+0x0001c118:  mov      w4, #0x10
+0x0001c11c:  bl       #0x22e20    ; -> _objc_msgSend(countByEnumeratingWithState:objects:count:)
+0x0001c120:  mov      x24, x0
+0x0001c124:  cbnz     x0, #0x1bf18
+0x0001c128:  mov      x0, x26
+0x0001c12c:  bl       #0x22120    ; -> _objc_release
+0x0001c130:  adrp     x8, #0x3a000
+0x0001c134:  ldr      x0, [x8, #0xa80]    ; class(UIDevice)
+0x0001c138:  bl       #0x22e80    ; -> _objc_msgSend(currentDevice)
+0x0001c13c:  mov      x29, x29
+0x0001c140:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c144:  mov      x19, x0
+0x0001c148:  bl       #0x25d40    ; -> _objc_msgSend(systemVersion)
+0x0001c14c:  mov      x29, x29
+0x0001c150:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c154:  mov      x23, x0
+0x0001c158:  mov      x0, x19
+0x0001c15c:  bl       #0x22120    ; -> _objc_release
+0x0001c160:  adrp     x20, #0x3b000
+0x0001c164:  ldr      x8, [x20, #0x1e0]
+0x0001c168:  cbnz     x8, #0x1c190
+0x0001c16c:  adrp     x8, #0x3a000
+0x0001c170:  ldr      x0, [x8, #0xa98]    ; class(NSMutableDictionary)
+0x0001c174:  bl       #0x230c0    ; -> _objc_msgSend(dictionary)
+0x0001c178:  mov      x29, x29
+0x0001c17c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c180:  ldr      x8, [x20, #0x1e0]
+0x0001c184:  str      x0, [x20, #0x1e0]
+0x0001c188:  mov      x0, x8
+0x0001c18c:  bl       #0x22120    ; -> _objc_release
+0x0001c190:  adrp     x8, #0x3a000
+0x0001c194:  ldr      x19, [x8, #0x9c0]    ; class(NSString)
+0x0001c198:  adrp     x8, #0x3a000
+0x0001c19c:  ldr      x0, [x8, #0xa78]    ; class(NSProcessInfo)
+0x0001c1a0:  bl       #0x240c0    ; -> _objc_msgSend(processInfo)
+0x0001c1a4:  mov      x29, x29
+0x0001c1a8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c1ac:  mov      x21, x0
+0x0001c1b0:  bl       #0x240e0    ; -> _objc_msgSend(?)
+0x0001c1b4:  mov      x29, x29
+0x0001c1b8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c1bc:  mov      x22, x0
+0x0001c1c0:  adrp     x8, #0x33000
+0x0001c1c4:  add      x8, x8, #0xc28    ; @"diagHooks."
+0x0001c1c8:  ldr      x27, [sp, #0x20]
+0x0001c1cc:  stp      x27, x0, [sp, #8]
+0x0001c1d0:  str      x8, [sp]
+0x0001c1d4:  adrp     x2, #0x33000
+0x0001c1d8:  add      x2, x2, #0xc08    ; @"%@%@@%@"
+0x0001c1dc:  mov      x0, x19
+0x0001c1e0:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x0001c1e4:  mov      x29, x29
+0x0001c1e8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c1ec:  mov      x24, x0
+0x0001c1f0:  mov      x0, x22
+0x0001c1f4:  bl       #0x22120    ; -> _objc_release
+0x0001c1f8:  mov      x0, x21
+0x0001c1fc:  bl       #0x22120    ; -> _objc_release
+0x0001c200:  ldr      x0, [x20, #0x1e0]
+0x0001c204:  mov      x2, x24
+0x0001c208:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x0001c20c:  mov      x29, x29
+0x0001c210:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c214:  mov      x26, x0
+0x0001c218:  ldr      x28, [sp, #0x30]
+0x0001c21c:  cbz      x0, #0x1c230
+0x0001c220:  mov      x0, x26
+0x0001c224:  bl       #0x2212c    ; -> _objc_retain
+0x0001c228:  mov      x25, x26
+0x0001c22c:  b        #0x1c2b8    ; -> sub_1c2b8
+0x0001c230:  adrp     x8, #0x33000
+0x0001c234:  add      x8, x8, #0xc48    ; @"total"
+0x0001c238:  adrp     x9, #0x33000
+0x0001c23c:  add      x9, x9, #0xc68    ; @"missing"
+0x0001c240:  adrp     x10, #0x35000
+0x0001c244:  add      x10, x10, #0xe0
+0x0001c248:  stp      x9, x10, [sp, #0x88]
+0x0001c24c:  str      x8, [sp, #0x80]
+0x0001c250:  adrp     x8, #0x3a000
+0x0001c254:  ldr      x0, [x8, #0x9c8]    ; class(NSMutableArray)
+0x0001c258:  bl       #0x226a0    ; -> _objc_msgSend(array)
+0x0001c25c:  mov      x29, x29
+0x0001c260:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c264:  mov      x19, x0
+0x0001c268:  str      x0, [sp, #0x98]
+0x0001c26c:  adrp     x8, #0x3a000
+0x0001c270:  ldr      x0, [x8, #0xa58]    ; class(NSDictionary)
+0x0001c274:  add      x2, sp, #0x90
+0x0001c278:  add      x3, sp, #0x80
+0x0001c27c:  mov      w4, #2
+0x0001c280:  bl       #0x23100    ; -> _objc_msgSend(dictionaryWithObjects:forKeys:count:)
+0x0001c284:  mov      x29, x29
+0x0001c288:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001c28c:  mov      x21, x0
+0x0001c290:  bl       #0x23ca0    ; -> _objc_msgSend(mutableCopy)
+0x0001c294:  mov      x25, x0
+0x0001c298:  ldr      x0, [x20, #0x1e0]
+0x0001c29c:  mov      x2, x25
+0x0001c2a0:  mov      x3, x24
+0x0001c2a4:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x0001c2a8:  mov      x0, x21
+0x0001c2ac:  bl       #0x22120    ; -> _objc_release
+0x0001c2b0:  mov      x0, x19
+0x0001c2b4:  bl       #0x22120    ; -> _objc_release
+0x0001c2b8:  mov      x0, x26

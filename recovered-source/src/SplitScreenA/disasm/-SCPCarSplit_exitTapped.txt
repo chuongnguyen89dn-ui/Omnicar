@@ -1,0 +1,145 @@
+; -[SCPCarSplit exitTapped]
+0x03b138  sub      sp, sp, #0x40
+0x03b13c  stp      x22, x21, [sp, #0x10]
+0x03b140  stp      x20, x19, [sp, #0x20]
+0x03b144  stp      x29, x30, [sp, #0x30]
+0x03b148  add      x29, sp, #0x30
+0x03b14c  mov      x20, x0
+0x03b150  bl       #0x57680 ; objc_msgSend$collapseAppTray
+0x03b154  mov      x0, x20
+0x03b158  bl       #0x56b60 ; objc_msgSend$active
+0x03b15c  tbz      w0, #0, #0x3b1a4
+0x03b160  mov      x0, x20
+0x03b164  bl       #0x57fa0 ; objc_msgSend$exitKeepBundle
+0x03b168  mov      x29, x29
+0x03b16c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03b170  mov      x19, x0
+0x03b174  adrp     x8, #0x87000
+0x03b178  ldr      x21, [x8, #0x678] ; [0x87678] class:NSString
+0x03b17c  cbz      x0, #0x3b1d8
+0x03b180  str      x19, [sp]
+0x03b184  adrp     x2, #0x7c000
+0x03b188  add      x2, x2, #0xf00 ; -> 0x7cf00 @", %@ ve toan man"
+0x03b18c  mov      x0, x21
+0x03b190  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x03b194  mov      x29, x29
+0x03b198  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03b19c  mov      x22, x0
+0x03b1a0  b        #0x3b1e0
+0x03b1a4  adrp     x8, #0x87000
+0x03b1a8  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x03b1ac  adrp     x2, #0x7c000
+0x03b1b0  add      x2, x2, #0xec0 ; -> 0x7cec0 @"CarSplit: nut thoat (chua chia) -> dong bang"
+0x03b1b4  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x03b1b8  mov      x29, x29
+0x03b1bc  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03b1c0  mov      x19, x0
+0x03b1c4  adrp     x0, #0x79000
+0x03b1c8  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x03b1cc  mov      x1, x19
+0x03b1d0  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x03b1d4  b        #0x3b240
+0x03b1d8  adrp     x22, #0x7b000
+0x03b1dc  add      x22, x22, #0x2a0 ; -> 0x7b2a0 @""
+0x03b1e0  str      x22, [sp]
+0x03b1e4  adrp     x2, #0x7c000
+0x03b1e8  add      x2, x2, #0xee0 ; -> 0x7cee0 @"CarSplit: nut thoat -> thoat chia man%@"
+0x03b1ec  mov      x0, x21
+0x03b1f0  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x03b1f4  mov      x29, x29
+0x03b1f8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03b1fc  mov      x21, x0
+0x03b200  adrp     x0, #0x79000
+0x03b204  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x03b208  mov      x1, x21
+0x03b20c  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x03b210  mov      x0, x21
+0x03b214  bl       #0x567b8 ; call _objc_release
+0x03b218  cbz      x19, #0x3b234
+0x03b21c  mov      x0, x22
+0x03b220  bl       #0x567b8 ; call _objc_release
+0x03b224  mov      x0, x20
+0x03b228  mov      x2, x19
+0x03b22c  bl       #0x5c180 ; objc_msgSend$soloBundle:
+0x03b230  b        #0x3b240
+0x03b234  mov      x0, x20
+0x03b238  mov      w2, #1
+0x03b23c  bl       #0x57600 ; objc_msgSend$closeGoingHome:
+0x03b240  mov      x0, x19
+0x03b244  ldp      x29, x30, [sp, #0x30]
+0x03b248  ldp      x20, x19, [sp, #0x20]
+0x03b24c  ldp      x22, x21, [sp, #0x10]
+0x03b250  add      sp, sp, #0x40
+0x03b254  b        #0x567b8 ; call _objc_release
+0x03b258  mov      x2, x21
+0x03b25c  mov      x21, x1
+0x03b260  mov      x20, x0
+0x03b264  mov      x0, x2
+0x03b268  bl       #0x567b8 ; call _objc_release
+0x03b26c  b        #0x3b278
+0x03b270  mov      x21, x1
+0x03b274  mov      x20, x0
+0x03b278  cbz      x19, #0x3b298
+0x03b27c  mov      x0, x22
+0x03b280  bl       #0x567b8 ; call _objc_release
+0x03b284  b        #0x3b298
+0x03b288  b        #0x3b290
+0x03b28c  b        #0x3b2a4
+0x03b290  mov      x21, x1
+0x03b294  mov      x20, x0
+0x03b298  mov      x0, x19
+0x03b29c  bl       #0x567b8 ; call _objc_release
+0x03b2a0  b        #0x3b2ac
+0x03b2a4  mov      x21, x1
+0x03b2a8  mov      x20, x0
+0x03b2ac  cmp      w21, #1
+0x03b2b0  b.ne     #0x3b36c
+0x03b2b4  mov      x0, x20
+0x03b2b8  bl       #0x566ec ; call _objc_begin_catch
+0x03b2bc  mov      x19, x0
+0x03b2c0  bl       #0x567c4 ; call _objc_retain
+0x03b2c4  adrp     x8, #0x87000
+0x03b2c8  ldr      x20, [x8, #0x678] ; [0x87678] class:NSString
+0x03b2cc  mov      x0, x19
+0x03b2d0  bl       #0x574a0 ; objc_msgSend$callStackSymbols
+0x03b2d4  mov      x29, x29
+0x03b2d8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03b2dc  mov      x21, x0
+0x03b2e0  stp      x19, x0, [sp]
+0x03b2e4  adrp     x2, #0x7c000
+0x03b2e8  add      x2, x2, #0xf20 ; -> 0x7cf20 @"CarSplit: loi nut thoat %@
+%@"
+0x03b2ec  mov      x0, x20
+0x03b2f0  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x03b2f4  mov      x29, x29
+0x03b2f8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x03b2fc  mov      x22, x0
+0x03b300  adrp     x0, #0x79000
+0x03b304  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x03b308  mov      x1, x22
+0x03b30c  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x03b310  mov      x0, x22
+0x03b314  bl       #0x567b8 ; call _objc_release
+0x03b318  mov      x0, x21
+0x03b31c  bl       #0x567b8 ; call _objc_release
+0x03b320  mov      x0, x19
+0x03b324  bl       #0x567b8 ; call _objc_release
+0x03b328  ldp      x29, x30, [sp, #0x30]
+0x03b32c  ldp      x20, x19, [sp, #0x20]
+0x03b330  ldp      x22, x21, [sp, #0x10]
+0x03b334  add      sp, sp, #0x40
+0x03b338  b        #0x56710 ; call _objc_end_catch
+0x03b33c  mov      x20, x0
+0x03b340  mov      x0, x22
+0x03b344  bl       #0x567b8 ; call _objc_release
+0x03b348  b        #0x3b350
+0x03b34c  mov      x20, x0
+0x03b350  mov      x0, x21
+0x03b354  bl       #0x567b8 ; call _objc_release
+0x03b358  b        #0x3b360
+0x03b35c  mov      x20, x0
+0x03b360  mov      x0, x19
+0x03b364  bl       #0x567b8 ; call _objc_release
+0x03b368  bl       #0x56710 ; call _objc_end_catch
+0x03b36c  mov      x0, x20
+0x03b370  bl       #0x563e0 ; call __Unwind_Resume

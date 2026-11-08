@@ -1,0 +1,23 @@
+; sub_54220
+0x054220  stp      x29, x30, [sp, #-0x10]!
+0x054224  mov      x29, sp
+0x054228  adrp     x8, #0x88000
+0x05422c  ldr      w8, [x8, #0x3ac]
+0x054230  cbnz     w8, #0x54240
+0x054234  adrp     x0, #0x88000
+0x054238  add      x0, x0, #0x3a8 ; -> 0x883a8
+0x05423c  bl       #0x56650 ; call _mach_timebase_info
+0x054240  bl       #0x5662c ; call _mach_absolute_time
+0x054244  ucvtf    d0, x0
+0x054248  adrp     x8, #0x88000
+0x05424c  add      x8, x8, #0x3a8 ; -> 0x883a8
+0x054250  ldp      s1, s2, [x8]
+0x054254  ucvtf    d1, d1
+0x054258  fmul     d0, d0, d1
+0x05425c  ucvtf    d1, d2
+0x054260  fdiv     d0, d0, d1
+0x054264  adrp     x8, #0x6f000
+0x054268  ldr      d1, [x8, #0x70]
+0x05426c  fdiv     d0, d0, d1
+0x054270  ldp      x29, x30, [sp], #0x10
+0x054274  ret      

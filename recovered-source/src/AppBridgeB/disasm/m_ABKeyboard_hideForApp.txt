@@ -1,0 +1,172 @@
+=== -[ABKeyboard hideForApp:] @ 0x1935c (size 684) ===
+0001935c  sub      sp, sp, #0xb0
+00019360  stp      d9, d8, [sp, #0x60]
+00019364  stp      x24, x23, [sp, #0x70]
+00019368  stp      x22, x21, [sp, #0x80]
+0001936c  stp      x20, x19, [sp, #0x90]
+00019370  stp      x29, x30, [sp, #0xa0]
+00019374  add      x29, sp, #0xa0
+00019378  mov      x19, x2
+0001937c  mov      x20, x0
+00019380  mov      x0, x2
+00019384  bl       #0x24818 ; call _objc_retain
+00019388  mov      x0, x20
+0001938c  bl       #0x24ce0 ; objc_msgSend sel=app
+00019390  mov      x29, x29
+00019394  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00019398  mov      x21, x0
+0001939c  cbz      x0, #0x1956c
+000193a0  cbz      x19, #0x193e0
+000193a4  mov      x0, x20
+000193a8  bl       #0x24ce0 ; objc_msgSend sel=app
+000193ac  mov      x29, x29
+000193b0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000193b4  mov      x22, x0
+000193b8  mov      x0, x19
+000193bc  mov      x2, x22
+000193c0  bl       #0x25cc0 ; objc_msgSend sel=isEqualToString:
+000193c4  mov      x23, x0
+000193c8  mov      x0, x22
+000193cc  bl       #0x2480c ; call _objc_release
+000193d0  mov      x0, x21
+000193d4  bl       #0x2480c ; call _objc_release
+000193d8  tbnz     w23, #0, #0x193e8
+000193dc  b        #0x1956c ; call sub_1956c
+000193e0  mov      x0, x21
+000193e4  bl       #0x2480c ; call _objc_release
+000193e8  adrp     x8, #0x3e000
+000193ec  ldr      x22, [x8, #0x290] ; bind _OBJC_CLASS_$_NSString
+000193f0  mov      x0, x20
+000193f4  bl       #0x24ce0 ; objc_msgSend sel=app
+000193f8  mov      x29, x29
+000193fc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00019400  mov      x21, x0
+00019404  str      x0, [sp]
+00019408  adrp     x2, #0x36000
+0001940c  add      x2, x2, #0xcb0 = @"ban phim xe: an (%@)"
+00019410  mov      x0, x22
+00019414  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00019418  mov      x29, x29
+0001941c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00019420  mov      x22, x0
+00019424  adrp     x0, #0x34000
+00019428  add      x0, x0, #0xef0 = @"AppBridge"
+0001942c  mov      x1, x22
+00019430  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00019434  mov      x0, x22
+00019438  bl       #0x2480c ; call _objc_release
+0001943c  mov      x0, x21
+00019440  bl       #0x2480c ; call _objc_release
+00019444  mov      x0, x20
+00019448  mov      x2, #0
+0001944c  bl       #0x26b80 ; objc_msgSend sel=setApp:
+00019450  mov      x0, x20
+00019454  bl       #0x26560 ; objc_msgSend sel=panel
+00019458  mov      x29, x29
+0001945c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00019460  mov      x21, x0
+00019464  mov      x0, x20
+00019468  mov      x2, #0
+0001946c  mov      w3, #0
+00019470  bl       #0x25da0 ; objc_msgSend sel=key:pressed:
+00019474  adrp     x8, #0x3e000
+00019478  ldr      x0, [x8, #0x3c8] ; bind _OBJC_CLASS_$_UIViewPropertyAnimator
+0001947c  bl       #0x2471c ; call _objc_alloc
+00019480  mov      x22, x0
+00019484  adrp     x8, #0x3e000
+00019488  ldr      x0, [x8, #0x3d0] ; bind _OBJC_CLASS_$_UICubicTimingParameters
+0001948c  bl       #0x2471c ; call _objc_alloc
+00019490  adrp     x8, #0x2b000
+00019494  ldr      d0, [x8, #0x1d8] ; -> 0x99999999a
+00019498  fmov     d1, xzr
+0001949c  fmov     d3, #1.00000000
+000194a0  mov      v2.16b, v0.16b
+000194a4  bl       #0x259e0 ; objc_msgSend sel=initWithControlPoint1:controlPoint2:
+000194a8  mov      x23, x0
+000194ac  fmov     d0, #0.25000000
+000194b0  mov      x0, x22
+000194b4  mov      x2, x23
+000194b8  bl       #0x25a00 ; objc_msgSend sel=initWithDuration:timingParameters:
+000194bc  mov      x22, x0
+000194c0  mov      x0, x23
+000194c4  bl       #0x2480c ; call _objc_release
+000194c8  adrp     x23, #0x34000
+000194cc  ldr      x23, [x23, #0x258] ; -> __NSConcreteStackBlock
+000194d0  str      x23, [sp, #0x38]
+000194d4  adrp     x8, #0x2b000
+000194d8  ldr      d8, [x8, #0x1d0] ; -> 0xc2000000
+000194dc  str      d8, [sp, #0x40]
+000194e0  adrp     x8, #0x19000
+000194e4  add      x8, x8, #0x608
+000194e8  adrp     x9, #0x34000
+000194ec  add      x9, x9, #0x890
+000194f0  stp      x8, x9, [sp, #0x48]
+000194f4  mov      x0, x21
+000194f8  bl       #0x24818 ; call _objc_retain
+000194fc  str      x21, [sp, #0x58]
+00019500  add      x2, sp, #0x38
+00019504  mov      x0, x22
+00019508  bl       #0x24a80 ; objc_msgSend sel=addAnimations:
+0001950c  str      x23, [sp, #8]
+00019510  adrp     x8, #0x19000
+00019514  add      x8, x8, #0x664
+00019518  str      d8, [sp, #0x10]
+0001951c  adrp     x9, #0x34000
+00019520  add      x9, x9, #0xb10
+00019524  stp      x8, x9, [sp, #0x18]
+00019528  str      x20, [sp, #0x28]
+0001952c  mov      x0, x21
+00019530  bl       #0x24818 ; call _objc_retain
+00019534  str      x21, [sp, #0x30]
+00019538  add      x2, sp, #8
+0001953c  mov      x0, x22
+00019540  bl       #0x24ac0 ; objc_msgSend sel=addCompletion:
+00019544  mov      x0, x22
+00019548  bl       #0x27c00 ; objc_msgSend sel=startAnimation
+0001954c  ldr      x0, [sp, #0x30]
+00019550  bl       #0x2480c ; call _objc_release
+00019554  ldr      x0, [sp, #0x58]
+00019558  bl       #0x2480c ; call _objc_release
+0001955c  mov      x0, x22
+00019560  bl       #0x2480c ; call _objc_release
+00019564  mov      x0, x21
+00019568  bl       #0x2480c ; call _objc_release
+0001956c  mov      x0, x19
+00019570  bl       #0x2480c ; call _objc_release
+00019574  ldp      x29, x30, [sp, #0xa0]
+00019578  ldp      x20, x19, [sp, #0x90]
+0001957c  ldp      x22, x21, [sp, #0x80]
+00019580  ldp      x24, x23, [sp, #0x70]
+00019584  ldp      d9, d8, [sp, #0x60]
+00019588  add      sp, sp, #0xb0
+0001958c  ret      
+00019590  b        #0x195d0 ; call sub_195d0
+00019594  b        #0x195e4 ; call sub_195e4
+00019598  b        #0x1959c ; call sub_1959c
+0001959c  mov      x20, x0
+000195a0  ldr      x0, [sp, #0x30]
+000195a4  bl       #0x2480c ; call _objc_release
+000195a8  b        #0x195b0 ; call sub_195b0
+000195ac  mov      x20, x0
+000195b0  ldr      x0, [sp, #0x58]
+000195b4  bl       #0x2480c ; call _objc_release
+000195b8  b        #0x195d4 ; call sub_195d4
+000195bc  mov      x20, x0
+000195c0  mov      x0, x23
+000195c4  b        #0x195d8 ; call sub_195d8
+000195c8  b        #0x195e4 ; call sub_195e4
+000195cc  b        #0x195f4 ; call sub_195f4
+000195d0  mov      x20, x0
+000195d4  mov      x0, x22
+000195d8  bl       #0x2480c ; call _objc_release
+000195dc  b        #0x195e8 ; call sub_195e8
+000195e0  b        #0x195e4 ; call sub_195e4
+000195e4  mov      x20, x0
+000195e8  mov      x0, x21
+000195ec  bl       #0x2480c ; call _objc_release
+000195f0  b        #0x195f8 ; call sub_195f8
+000195f4  mov      x20, x0
+000195f8  mov      x0, x19
+000195fc  bl       #0x2480c ; call _objc_release
+00019600  mov      x0, x20
+00019604  bl       #0x24470 ; call __Unwind_Resume

@@ -1,0 +1,54 @@
+; sub_12efc
+0x012efc  sub      sp, sp, #0x60
+0x012f00  stp      d9, d8, [sp, #0x30]
+0x012f04  stp      x20, x19, [sp, #0x40]
+0x012f08  stp      x29, x30, [sp, #0x50]
+0x012f0c  add      x29, sp, #0x50
+0x012f10  mov      x19, x0
+0x012f14  mov      v8.16b, v0.16b
+0x012f18  bl       #0x567c4 ; call _objc_retain
+0x012f1c  adrp     x8, #0x78000
+0x012f20  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x012f24  str      x8, [sp, #8]
+0x012f28  adrp     x8, #0x6e000
+0x012f2c  ldr      d0, [x8, #0xff8]
+0x012f30  adrp     x8, #0x46000
+0x012f34  add      x8, x8, #0x814 ; -> 0x46814 sub_46814
+0x012f38  str      d0, [sp, #0x10]
+0x012f3c  adrp     x9, #0x79000
+0x012f40  add      x9, x9, #0x30 ; -> 0x79030
+0x012f44  stp      x8, x9, [sp, #0x18]
+0x012f48  str      x19, [sp, #0x28]
+0x012f4c  mov      x0, x19
+0x012f50  bl       #0x567c4 ; call _objc_retain
+0x012f54  add      x0, sp, #8
+0x012f58  bl       #0x567e8 ; call _objc_retainBlock
+0x012f5c  mov      x20, x0
+0x012f60  fcmp     d8, #0.0
+0x012f64  b.ls     #0x12f94
+0x012f68  adrp     x8, #0x6f000
+0x012f6c  ldr      d0, [x8, #0x70]
+0x012f70  fmul     d0, d8, d0
+0x012f74  fcvtzs   x1, d0
+0x012f78  mov      x0, #0
+0x012f7c  bl       #0x56548 ; call _dispatch_time
+0x012f80  adrp     x1, #0x78000
+0x012f84  ldr      x1, [x1, #0x370] ; [0x78370] __dispatch_main_q
+0x012f88  mov      x2, x20
+0x012f8c  bl       #0x564d0 ; call _dispatch_after
+0x012f90  b        #0x12fa4
+0x012f94  adrp     x0, #0x78000
+0x012f98  ldr      x0, [x0, #0x370] ; [0x78370] __dispatch_main_q
+0x012f9c  mov      x1, x20
+0x012fa0  bl       #0x564dc ; call _dispatch_async
+0x012fa4  mov      x0, x20
+0x012fa8  bl       #0x567b8 ; call _objc_release
+0x012fac  ldr      x0, [sp, #0x28]
+0x012fb0  bl       #0x567b8 ; call _objc_release
+0x012fb4  mov      x0, x19
+0x012fb8  bl       #0x567b8 ; call _objc_release
+0x012fbc  ldp      x29, x30, [sp, #0x50]
+0x012fc0  ldp      x20, x19, [sp, #0x40]
+0x012fc4  ldp      d9, d8, [sp, #0x30]
+0x012fc8  add      sp, sp, #0x60
+0x012fcc  ret      

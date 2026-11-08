@@ -1,0 +1,164 @@
+# sub_269cc
+# addr 0x269cc .. 0x26c50  (644 bytes)
+
+000269cc  stp      x28, x27, [sp, #-0x60]!                     
+000269d0  stp      x26, x25, [sp, #0x10]                       
+000269d4  stp      x24, x23, [sp, #0x20]                       
+000269d8  stp      x22, x21, [sp, #0x30]                       
+000269dc  stp      x20, x19, [sp, #0x40]                       
+000269e0  stp      x29, x30, [sp, #0x50]                       
+000269e4  add      x29, sp, #0x50                              
+000269e8  sub      sp, sp, #0x1b0                              
+000269ec  mov      x20, x1                                     
+000269f0  mov      x19, x0                                     
+000269f4  adrp     x8, #0x38000                                
+000269f8  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+000269fc  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00026a00  stur     x8, [x29, #-0x60]                           
+00026a04  bl       #0x28004                                    ; _objc_retain
+00026a08  mov      x0, x20                                     
+00026a0c  bl       #0x28004                                    ; _objc_retain
+00026a10  movi     v0.16b, #0                                  
+00026a14  stp      q0, q0, [sp, #0x60]                         
+00026a18  stp      q0, q0, [sp, #0x80]                         
+00026a1c  adrp     x0, #0x3c000                                
+00026a20  add      x0, x0, #0xf50                              ; __DATA_CONST,__objc_arrayobj+0x210
+00026a24  add      x2, sp, #0x60                               
+00026a28  sub      x3, x29, #0xe0                              
+00026a2c  mov      w4, #0x10                                   
+00026a30  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00026a34  mov      x27, x0                                     
+00026a38  cbz      x0, #0x26c00                                
+00026a3c  ldr      x8, [sp, #0x70]                             
+00026a40  ldr      x21, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00026a44  adrp     x26, #0x42000                               
+00026a48  adrp     x24, #0x42000                               
+00026a4c  adrp     x22, #0x3c000                               
+00026a50  add      x22, x22, #0x278                            ; @"nil"
+00026a54  adrp     x23, #0x3c000                               
+00026a58  add      x23, x23, #0x538                            ; @"(null)"
+00026a5c  str      x19, [sp, #0x18]                            
+00026a60  str      x21, [sp, #8]                               
+00026a64  mov      x28, #0                                     
+00026a68  str      x27, [sp, #0x10]                            
+00026a6c  ldr      x8, [sp, #0x70]                             
+00026a70  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00026a74  cmp      x8, x21                                     
+00026a78  b.eq     #0x26a88                                    
+00026a7c  adrp     x0, #0x3c000                                
+00026a80  add      x0, x0, #0xf50                              ; __DATA_CONST,__objc_arrayobj+0x210
+00026a84  bl       #0x27f68                                    ; _objc_enumerationMutation
+00026a88  ldr      x8, [sp, #0x68]                             
+00026a8c  ldr      x2, [x8, x28, lsl #3]                       ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00026a90  mov      x0, x19                                     
+00026a94  bl       #0x2a140                                    ; objc_msgSend$objectForKeyedSubscript:
+00026a98  mov      x29, x29                                    
+00026a9c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026aa0  mov      x25, x0                                     
+00026aa4  ldr      x0, [x26, #0xfa8]                           ; [0x42fa8] classref -> NSDictionary (= import _OBJC_CLASS_$_NSDictionary)
+00026aa8  bl       #0x27fbc                                    ; _objc_opt_class
+00026aac  mov      x1, x0                                      
+00026ab0  mov      x0, x25                                     
+00026ab4  bl       #0x27fc8                                    ; _objc_opt_isKindOfClass
+00026ab8  tbz      w0, #0, #0x26bb4                            
+00026abc  movi     v0.16b, #0                                  
+00026ac0  stp      q0, q0, [sp, #0x40]                         
+00026ac4  stp      q0, q0, [sp, #0x20]                         
+00026ac8  mov      x0, x20                                     
+00026acc  bl       #0x28004                                    ; _objc_retain
+00026ad0  add      x2, sp, #0x20                               
+00026ad4  add      x3, sp, #0xa0                               
+00026ad8  mov      x0, x20                                     
+00026adc  mov      w4, #0x10                                   
+00026ae0  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00026ae4  cbz      x0, #0x26ba0                                
+00026ae8  mov      x26, x0                                     
+00026aec  ldr      x8, [sp, #0x30]                             
+00026af0  ldr      x21, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00026af4  mov      x19, #0                                     
+00026af8  ldr      x8, [sp, #0x30]                             
+00026afc  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00026b00  cmp      x8, x21                                     
+00026b04  b.eq     #0x26b10                                    
+00026b08  mov      x0, x20                                     
+00026b0c  bl       #0x27f68                                    ; _objc_enumerationMutation
+00026b10  ldr      x8, [sp, #0x28]                             
+00026b14  ldr      x2, [x8, x19, lsl #3]                       ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00026b18  mov      x0, x25                                     
+00026b1c  bl       #0x2a140                                    ; objc_msgSend$objectForKeyedSubscript:
+00026b20  mov      x29, x29                                    
+00026b24  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00026b28  mov      x27, x0                                     
+00026b2c  ldr      x0, [x24, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00026b30  bl       #0x27fbc                                    ; _objc_opt_class
+00026b34  mov      x1, x0                                      
+00026b38  mov      x0, x27                                     
+00026b3c  bl       #0x27fc8                                    ; _objc_opt_isKindOfClass
+00026b40  tbz      w0, #0, #0x26b70                            
+00026b44  mov      x0, x27                                     
+00026b48  bl       #0x29ba0                                    ; objc_msgSend$length
+00026b4c  cbz      x0, #0x26b70                                
+00026b50  mov      x0, x27                                     
+00026b54  mov      x2, x22                                     
+00026b58  bl       #0x29a00                                    ; objc_msgSend$isEqualToString:
+00026b5c  tbnz     w0, #0, #0x26b70                            
+00026b60  mov      x0, x27                                     
+00026b64  mov      x2, x23                                     
+00026b68  bl       #0x29a00                                    ; objc_msgSend$isEqualToString:
+00026b6c  cbz      w0, #0x26bec                                
+00026b70  mov      x0, x27                                     
+00026b74  bl       #0x27ff8                                    ; _objc_release
+00026b78  add      x19, x19, #1                                
+00026b7c  cmp      x26, x19                                    
+00026b80  b.ne     #0x26af8                                    
+00026b84  add      x2, sp, #0x20                               
+00026b88  add      x3, sp, #0xa0                               
+00026b8c  mov      x0, x20                                     
+00026b90  mov      w4, #0x10                                   
+00026b94  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00026b98  mov      x26, x0                                     
+00026b9c  cbnz     x0, #0x26af4                                
+00026ba0  mov      x0, x20                                     
+00026ba4  bl       #0x27ff8                                    ; _objc_release
+00026ba8  ldp      x27, x19, [sp, #0x10]                       
+00026bac  ldr      x21, [sp, #8]                               
+00026bb0  adrp     x26, #0x42000                               
+00026bb4  mov      x0, x25                                     
+00026bb8  bl       #0x27ff8                                    ; _objc_release
+00026bbc  add      x28, x28, #1                                
+00026bc0  cmp      x28, x27                                    
+00026bc4  b.ne     #0x26a6c                                    
+00026bc8  add      x2, sp, #0x60                               
+00026bcc  sub      x3, x29, #0xe0                              
+00026bd0  adrp     x0, #0x3c000                                
+00026bd4  add      x0, x0, #0xf50                              ; __DATA_CONST,__objc_arrayobj+0x210
+00026bd8  mov      w4, #0x10                                   
+00026bdc  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00026be0  mov      x27, x0                                     
+00026be4  cbnz     x0, #0x26a64                                
+00026be8  b        #0x26c00                                    ; sub_26c00
+00026bec  mov      x0, x20                                     
+00026bf0  bl       #0x27ff8                                    ; _objc_release
+00026bf4  mov      x0, x25                                     
+00026bf8  bl       #0x27ff8                                    ; _objc_release
+00026bfc  ldr      x19, [sp, #0x18]                            
+00026c00  mov      x0, x20                                     
+00026c04  bl       #0x27ff8                                    ; _objc_release
+00026c08  mov      x0, x19                                     
+00026c0c  bl       #0x27ff8                                    ; _objc_release
+00026c10  ldur     x8, [x29, #-0x60]                           
+00026c14  adrp     x9, #0x38000                                
+00026c18  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00026c1c  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00026c20  cmp      x9, x8                                      
+00026c24  b.ne     #0x26c4c                                    
+00026c28  mov      x0, x27                                     
+00026c2c  add      sp, sp, #0x1b0                              
+00026c30  ldp      x29, x30, [sp, #0x50]                       
+00026c34  ldp      x20, x19, [sp, #0x40]                       
+00026c38  ldp      x22, x21, [sp, #0x30]                       
+00026c3c  ldp      x24, x23, [sp, #0x20]                       
+00026c40  ldp      x26, x25, [sp, #0x10]                       
+00026c44  ldp      x28, x27, [sp], #0x60                       
+00026c48  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+00026c4c  bl       #0x27ca4                                    ; ___stack_chk_fail

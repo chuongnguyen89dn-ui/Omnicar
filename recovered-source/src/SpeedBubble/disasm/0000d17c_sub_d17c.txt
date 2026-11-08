@@ -1,0 +1,23 @@
+# sub_d17c
+# addr 0xd17c .. 0xd1cc  (80 bytes)
+
+0000d17c  stp      x20, x19, [sp, #-0x20]!                     
+0000d180  stp      x29, x30, [sp, #0x10]                       
+0000d184  add      x29, sp, #0x10                              
+0000d188  adrp     x8, #0x43000                                
+0000d18c  ldr      x0, [x8, #0x40]                             ; [0x43040] classref -> SPPBubble
+0000d190  bl       #0x2bd80                                    ; objc_msgSend$shared
+0000d194  mov      x29, x29                                    
+0000d198  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000d19c  mov      x19, x0                                     
+0000d1a0  bl       #0x2a500                                    ; objc_msgSend$refresh
+0000d1a4  mov      x0, x19                                     
+0000d1a8  bl       #0x27ff8                                    ; _objc_release
+0000d1ac  ldp      x29, x30, [sp, #0x10]                       
+0000d1b0  ldp      x20, x19, [sp], #0x20                       
+0000d1b4  b        #0xd1cc                                     ; sub_d1cc
+0000d1b8  mov      x20, x0                                     
+0000d1bc  mov      x0, x19                                     
+0000d1c0  bl       #0x27ff8                                    ; _objc_release
+0000d1c4  mov      x0, x20                                     
+0000d1c8  bl       #0x27c80                                    ; __Unwind_Resume

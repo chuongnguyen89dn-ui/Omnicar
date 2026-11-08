@@ -1,0 +1,39 @@
+; OMCFeatureEnabled
+; VA 0x1b034  size 144
+
+0x0001b034:  stp      x22, x21, [sp, #-0x30]!
+0x0001b038:  stp      x20, x19, [sp, #0x10]
+0x0001b03c:  stp      x29, x30, [sp, #0x20]
+0x0001b040:  add      x29, sp, #0x20
+0x0001b044:  mov      x19, x0
+0x0001b048:  bl       #0x2212c    ; -> _objc_retain
+0x0001b04c:  bl       #0x1afd8    ; -> OMCEnabled
+0x0001b050:  cbz      w0, #0x1b0a4
+0x0001b054:  adrp     x2, #0x33000
+0x0001b058:  add      x2, x2, #0x9e8    ; @"Enabled"
+0x0001b05c:  mov      x0, x19
+0x0001b060:  bl       #0x25b40    ; -> _objc_msgSend(stringByAppendingString:)
+0x0001b064:  mov      x29, x29
+0x0001b068:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b06c:  mov      x21, x0
+0x0001b070:  adrp     x1, #0x30000
+0x0001b074:  ldr      x1, [x1, #0x220]    ; got(___kCFBooleanTrue)
+0x0001b078:  bl       #0x1af70    ; -> OMCPref
+0x0001b07c:  mov      x29, x29
+0x0001b080:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b084:  mov      x22, x0
+0x0001b088:  bl       #0x22880    ; -> _objc_msgSend(boolValue)
+0x0001b08c:  mov      x20, x0
+0x0001b090:  mov      x0, x22
+0x0001b094:  bl       #0x22120    ; -> _objc_release
+0x0001b098:  mov      x0, x21
+0x0001b09c:  bl       #0x22120    ; -> _objc_release
+0x0001b0a0:  b        #0x1b0a8    ; -> sub_1b0a8
+0x0001b0a4:  mov      w20, #0
+0x0001b0a8:  mov      x0, x19
+0x0001b0ac:  bl       #0x22120    ; -> _objc_release
+0x0001b0b0:  mov      x0, x20
+0x0001b0b4:  ldp      x29, x30, [sp, #0x20]
+0x0001b0b8:  ldp      x20, x19, [sp, #0x10]
+0x0001b0bc:  ldp      x22, x21, [sp], #0x30
+0x0001b0c0:  ret      

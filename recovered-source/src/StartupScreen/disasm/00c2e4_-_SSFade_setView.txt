@@ -1,0 +1,15 @@
+; -[SSFade setView:]
+; VA 0xc2e4  size 48
+
+0x0000c2e4:  stp      x20, x19, [sp, #-0x20]!
+0x0000c2e8:  stp      x29, x30, [sp, #0x10]
+0x0000c2ec:  add      x29, sp, #0x10
+0x0000c2f0:  mov      x19, x2
+0x0000c2f4:  mov      x20, x0
+0x0000c2f8:  mov      x0, x2
+0x0000c2fc:  bl       #0x2212c    ; -> _objc_retain
+0x0000c300:  ldr      x0, [x20, #0x10]
+0x0000c304:  str      x19, [x20, #0x10]
+0x0000c308:  ldp      x29, x30, [sp, #0x10]
+0x0000c30c:  ldp      x20, x19, [sp], #0x20
+0x0000c310:  b        #0x22120    ; -> _objc_release

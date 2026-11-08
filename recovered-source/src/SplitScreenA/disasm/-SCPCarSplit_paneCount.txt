@@ -1,0 +1,21 @@
+; -[SCPCarSplit paneCount]
+0x010fac  stp      x20, x19, [sp, #-0x20]!
+0x010fb0  stp      x29, x30, [sp, #0x10]
+0x010fb4  add      x29, sp, #0x10
+0x010fb8  bl       #0x5c160 ; objc_msgSend$slots
+0x010fbc  mov      x29, x29
+0x010fc0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x010fc4  mov      x19, x0
+0x010fc8  bl       #0x579e0 ; objc_msgSend$count
+0x010fcc  mov      x20, x0
+0x010fd0  mov      x0, x19
+0x010fd4  bl       #0x567b8 ; call _objc_release
+0x010fd8  mov      x0, x20
+0x010fdc  ldp      x29, x30, [sp, #0x10]
+0x010fe0  ldp      x20, x19, [sp], #0x20
+0x010fe4  ret      
+0x010fe8  mov      x20, x0
+0x010fec  mov      x0, x19
+0x010ff0  bl       #0x567b8 ; call _objc_release
+0x010ff4  mov      x0, x20
+0x010ff8  bl       #0x563e0 ; call __Unwind_Resume

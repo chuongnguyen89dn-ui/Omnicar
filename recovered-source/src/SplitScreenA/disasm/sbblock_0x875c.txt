@@ -1,0 +1,87 @@
+; sub_875c
+0x00875c  sub      sp, sp, #0x60
+0x008760  stp      x22, x21, [sp, #0x30]
+0x008764  stp      x20, x19, [sp, #0x40]
+0x008768  stp      x29, x30, [sp, #0x50]
+0x00876c  add      x29, sp, #0x50
+0x008770  mov      x19, x1
+0x008774  mov      x0, x1
+0x008778  bl       #0x567c4 ; call _objc_retain
+0x00877c  adrp     x21, #0x88000
+0x008780  ldr      x20, [x21, #0xa8]
+0x008784  mov      x0, x20
+0x008788  bl       #0x567c4 ; call _objc_retain
+0x00878c  cbz      x20, #0x87b0
+0x008790  bl       #0x56164 ; call _CFAbsoluteTimeGetCurrent
+0x008794  adrp     x8, #0x88000
+0x008798  ldr      d1, [x8, #0xb8]
+0x00879c  fsub     d0, d0, d1
+0x0087a0  adrp     x8, #0x6f000
+0x0087a4  ldr      d1, [x8]
+0x0087a8  fcmp     d0, d1
+0x0087ac  b.le     #0x87bc
+0x0087b0  ldr      x0, [x21, #0xa8]
+0x0087b4  str      xzr, [x21, #0xa8]
+0x0087b8  b        #0x885c
+0x0087bc  adrp     x8, #0x87000
+0x0087c0  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x0087c4  str      x20, [sp]
+0x0087c8  adrp     x2, #0x7a000
+0x0087cc  add      x2, x2, #0x60 ; -> 0x7a060 @"man xe san sang -> gui lai yeu cau %@"
+0x0087d0  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x0087d4  mov      x29, x29
+0x0087d8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0087dc  mov      x21, x0
+0x0087e0  adrp     x0, #0x79000
+0x0087e4  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x0087e8  mov      x1, x21
+0x0087ec  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x0087f0  mov      x0, x21
+0x0087f4  bl       #0x567b8 ; call _objc_release
+0x0087f8  mov      x0, #0
+0x0087fc  mov      w1, #0x9400
+0x008800  movk     w1, #0x7735, lsl #16
+0x008804  bl       #0x56548 ; call _dispatch_time
+0x008808  mov      x21, x0
+0x00880c  adrp     x8, #0x78000
+0x008810  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x008814  str      x8, [sp, #8]
+0x008818  adrp     x8, #0x6e000
+0x00881c  ldr      d0, [x8, #0xff8]
+0x008820  str      d0, [sp, #0x10]
+0x008824  adrp     x8, #0x8000
+0x008828  add      x8, x8, #0x8b4 ; -> 0x88b4 sub_88b4
+0x00882c  adrp     x9, #0x78000
+0x008830  add      x9, x9, #0x910 ; -> 0x78910
+0x008834  stp      x8, x9, [sp, #0x18]
+0x008838  mov      x0, x20
+0x00883c  bl       #0x567c4 ; call _objc_retain
+0x008840  str      x20, [sp, #0x28]
+0x008844  adrp     x1, #0x78000
+0x008848  ldr      x1, [x1, #0x370] ; [0x78370] __dispatch_main_q
+0x00884c  add      x2, sp, #8
+0x008850  mov      x0, x21
+0x008854  bl       #0x564d0 ; call _dispatch_after
+0x008858  ldr      x0, [sp, #0x28]
+0x00885c  bl       #0x567b8 ; call _objc_release
+0x008860  mov      x0, x20
+0x008864  bl       #0x567b8 ; call _objc_release
+0x008868  mov      x0, x19
+0x00886c  bl       #0x567b8 ; call _objc_release
+0x008870  ldp      x29, x30, [sp, #0x50]
+0x008874  ldp      x20, x19, [sp, #0x40]
+0x008878  ldp      x22, x21, [sp, #0x30]
+0x00887c  add      sp, sp, #0x60
+0x008880  ret      
+0x008884  mov      x1, x21
+0x008888  mov      x21, x0
+0x00888c  mov      x0, x1
+0x008890  bl       #0x567b8 ; call _objc_release
+0x008894  b        #0x889c
+0x008898  mov      x21, x0
+0x00889c  mov      x0, x20
+0x0088a0  bl       #0x567b8 ; call _objc_release
+0x0088a4  mov      x0, x19
+0x0088a8  bl       #0x567b8 ; call _objc_release
+0x0088ac  mov      x0, x21
+0x0088b0  bl       #0x563e0 ; call __Unwind_Resume

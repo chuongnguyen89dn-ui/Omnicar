@@ -1,0 +1,43 @@
+; _SCPHomeRefresh
+0x04b598  stp      x22, x21, [sp, #-0x30]!
+0x04b59c  stp      x20, x19, [sp, #0x10]
+0x04b5a0  stp      x29, x30, [sp, #0x20]
+0x04b5a4  add      x29, sp, #0x20
+0x04b5a8  bl       #0x4b640 ; -> sub_4b640
+0x04b5ac  mov      x29, x29
+0x04b5b0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04b5b4  adrp     x9, #0x88000
+0x04b5b8  ldr      x8, [x9, #0x1d8]
+0x04b5bc  str      x0, [x9, #0x1d8]
+0x04b5c0  mov      x0, x8
+0x04b5c4  bl       #0x567b8 ; call _objc_release
+0x04b5c8  adrp     x0, #0x88000
+0x04b5cc  add      x0, x0, #0x1e0 ; -> 0x881e0
+0x04b5d0  bl       #0x5674c ; call _objc_loadWeakRetained
+0x04b5d4  mov      x19, x0
+0x04b5d8  bl       #0x58da0 ; objc_msgSend$isViewLoaded
+0x04b5dc  cbz      w0, #0x4b608
+0x04b5e0  mov      x0, x19
+0x04b5e4  bl       #0x4a6d8 ; -> _SCPHomeApply
+0x04b5e8  mov      x0, x19
+0x04b5ec  bl       #0x5cb60 ; objc_msgSend$view
+0x04b5f0  mov      x29, x29
+0x04b5f4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04b5f8  mov      x20, x0
+0x04b5fc  bl       #0x5b3e0 ; objc_msgSend$setNeedsLayout
+0x04b600  mov      x0, x20
+0x04b604  bl       #0x567b8 ; call _objc_release
+0x04b608  mov      x0, x19
+0x04b60c  ldp      x29, x30, [sp, #0x20]
+0x04b610  ldp      x20, x19, [sp, #0x10]
+0x04b614  ldp      x22, x21, [sp], #0x30
+0x04b618  b        #0x567b8 ; call _objc_release
+0x04b61c  mov      x21, x0
+0x04b620  mov      x0, x20
+0x04b624  bl       #0x567b8 ; call _objc_release
+0x04b628  b        #0x4b630
+0x04b62c  mov      x21, x0
+0x04b630  mov      x0, x19
+0x04b634  bl       #0x567b8 ; call _objc_release
+0x04b638  mov      x0, x21
+0x04b63c  bl       #0x563e0 ; call __Unwind_Resume

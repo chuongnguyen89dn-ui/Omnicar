@@ -1,0 +1,19 @@
+; sub_8470
+; VA 0x8470  size 64
+
+0x00008470:  str      x0, [sp, #0x28]
+0x00008474:  bl       #0x2212c    ; -> _objc_retain
+0x00008478:  adrp     x0, #0x30000
+0x0000847c:  ldr      x0, [x0, #0x388]    ; got(__dispatch_main_q)
+0x00008480:  add      x1, sp, #8
+0x00008484:  bl       #0x21e98    ; -> _dispatch_async
+0x00008488:  ldr      x0, [sp, #0x28]
+0x0000848c:  bl       #0x22120    ; -> _objc_release
+0x00008490:  mov      x0, x19
+0x00008494:  bl       #0x22120    ; -> _objc_release
+0x00008498:  ldp      x29, x30, [sp, #0x40]
+0x0000849c:  ldp      x20, x19, [sp, #0x30]
+0x000084a0:  add      sp, sp, #0x50
+0x000084a4:  ret      
+0x000084a8:  ldr      x0, [x0, #0x20]
+0x000084ac:  adrp     x1, #0x31000

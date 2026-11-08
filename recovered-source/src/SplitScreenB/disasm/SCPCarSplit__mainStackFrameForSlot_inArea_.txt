@@ -1,0 +1,72 @@
+; ==== SCPCarSplit__mainStackFrameForSlot_inArea_  @0x11110..0x1122c (284 bytes) ====
+00011110  sub      sp, sp, #0x70                                
+00011114  stp      d15, d14, [sp, #0x10]                        
+00011118  stp      d13, d12, [sp, #0x20]                        
+0001111c  stp      d11, d10, [sp, #0x30]                        
+00011120  stp      d9, d8, [sp, #0x40]                          
+00011124  stp      x20, x19, [sp, #0x50]                        
+00011128  stp      x29, x30, [sp, #0x60]                        
+0001112c  add      x29, sp, #0x60                               
+00011130  mov      v12.16b, v3.16b                              
+00011134  mov      v13.16b, v2.16b                              
+00011138  mov      v14.16b, v1.16b                              
+0001113c  mov      v15.16b, v0.16b                              
+00011140  mov      x19, x0                                      
+00011144  bl       #0x590a0                                     ; msgSend "leftMainStackFrameForSlot:inArea:"
+00011148  mov      v11.16b, v0.16b                              
+0001114c  mov      v10.16b, v1.16b                              
+00011150  mov      v8.16b, v2.16b                               
+00011154  mov      v9.16b, v3.16b                               
+00011158  mov      x0, x19                                      
+0001115c  bl       #0x59200                                     ; msgSend "mainRight"
+00011160  cbz      w0, #0x111fc                                 
+00011164  mov      x0, x19                                      
+00011168  bl       #0x5cb20                                     ; msgSend "vertical"
+0001116c  mov      v0.16b, v15.16b                              
+00011170  mov      v1.16b, v14.16b                              
+00011174  mov      v2.16b, v13.16b                              
+00011178  mov      v3.16b, v12.16b                              
+0001117c  cbz      w0, #0x111c0                                 
+00011180  bl       #0x562f0                                     ; call _CGRectGetMinY
+00011184  str      d0, [sp, #8]                                 
+00011188  mov      v0.16b, v15.16b                              
+0001118c  mov      v1.16b, v14.16b                              
+00011190  mov      v2.16b, v13.16b                              
+00011194  mov      v3.16b, v12.16b                              
+00011198  bl       #0x562c0                                     ; call _CGRectGetMaxY
+0001119c  ldr      d1, [sp, #8]                                 
+000111a0  fadd     d12, d1, d0                                  
+000111a4  mov      v0.16b, v11.16b                              
+000111a8  mov      v1.16b, v10.16b                              
+000111ac  mov      v2.16b, v8.16b                               
+000111b0  mov      v3.16b, v9.16b                               
+000111b4  bl       #0x562c0                                     ; call _CGRectGetMaxY
+000111b8  fsub     d10, d12, d0                                 
+000111bc  b        #0x111fc                                     
+000111c0  bl       #0x562e4                                     ; call _CGRectGetMinX
+000111c4  str      d0, [sp, #8]                                 
+000111c8  mov      v0.16b, v15.16b                              
+000111cc  mov      v1.16b, v14.16b                              
+000111d0  mov      v2.16b, v13.16b                              
+000111d4  mov      v3.16b, v12.16b                              
+000111d8  bl       #0x562b4                                     ; call _CGRectGetMaxX
+000111dc  ldr      d1, [sp, #8]                                 
+000111e0  fadd     d12, d1, d0                                  
+000111e4  mov      v0.16b, v11.16b                              
+000111e8  mov      v1.16b, v10.16b                              
+000111ec  mov      v2.16b, v8.16b                               
+000111f0  mov      v3.16b, v9.16b                               
+000111f4  bl       #0x562b4                                     ; call _CGRectGetMaxX
+000111f8  fsub     d11, d12, d0                                 
+000111fc  mov      v0.16b, v11.16b                              
+00011200  mov      v1.16b, v10.16b                              
+00011204  mov      v2.16b, v8.16b                               
+00011208  mov      v3.16b, v9.16b                               
+0001120c  ldp      x29, x30, [sp, #0x60]                        
+00011210  ldp      x20, x19, [sp, #0x50]                        
+00011214  ldp      d9, d8, [sp, #0x40]                          
+00011218  ldp      d11, d10, [sp, #0x30]                        
+0001121c  ldp      d13, d12, [sp, #0x20]                        
+00011220  ldp      d15, d14, [sp, #0x10]                        
+00011224  add      sp, sp, #0x70                                
+00011228  ret                                                   

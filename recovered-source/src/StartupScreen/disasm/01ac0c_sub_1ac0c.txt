@@ -1,0 +1,64 @@
+; sub_1ac0c
+; VA 0x1ac0c  size 244
+
+0x0001ac0c:  sub      sp, sp, #0x70
+0x0001ac10:  stp      d9, d8, [sp, #0x30]
+0x0001ac14:  stp      x22, x21, [sp, #0x40]
+0x0001ac18:  stp      x20, x19, [sp, #0x50]
+0x0001ac1c:  stp      x29, x30, [sp, #0x60]
+0x0001ac20:  add      x29, sp, #0x60
+0x0001ac24:  mov      x19, x0
+0x0001ac28:  mov      v8.16b, v1.16b
+0x0001ac2c:  mov      v9.16b, v0.16b
+0x0001ac30:  bl       #0x2212c    ; -> _objc_retain
+0x0001ac34:  adrp     x8, #0x3a000
+0x0001ac38:  ldr      x0, [x8, #0xbc8]    ; class(UIGraphicsImageRendererFormat)
+0x0001ac3c:  bl       #0x24080    ; -> _objc_msgSend(preferredFormat)
+0x0001ac40:  mov      x29, x29
+0x0001ac44:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ac48:  mov      x20, x0
+0x0001ac4c:  mov      w2, #0
+0x0001ac50:  bl       #0x24e20    ; -> _objc_msgSend(setOpaque:)
+0x0001ac54:  adrp     x8, #0x3a000
+0x0001ac58:  ldr      x0, [x8, #0xbd0]    ; class(UIGraphicsImageRenderer)
+0x0001ac5c:  bl       #0x22024    ; -> _objc_alloc
+0x0001ac60:  mov      v0.16b, v9.16b
+0x0001ac64:  mov      v1.16b, v8.16b
+0x0001ac68:  mov      x2, x20
+0x0001ac6c:  bl       #0x237e0    ; -> _objc_msgSend(initWithSize:format:)
+0x0001ac70:  mov      x21, x0
+0x0001ac74:  adrp     x8, #0x30000
+0x0001ac78:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x0001ac7c:  str      x8, [sp, #8]
+0x0001ac80:  adrp     x8, #0x28000
+0x0001ac84:  ldr      d0, [x8, #0xdd0]
+0x0001ac88:  adrp     x8, #0x1a000
+0x0001ac8c:  add      x8, x8, #0xd18    ; func sub_1ad18
+0x0001ac90:  str      d0, [sp, #0x10]
+0x0001ac94:  adrp     x9, #0x30000
+0x0001ac98:  add      x9, x9, #0xc08
+0x0001ac9c:  stp      x8, x9, [sp, #0x18]
+0x0001aca0:  str      x19, [sp, #0x28]
+0x0001aca4:  mov      x0, x19
+0x0001aca8:  bl       #0x2212c    ; -> _objc_retain
+0x0001acac:  add      x2, sp, #8
+0x0001acb0:  mov      x0, x21
+0x0001acb4:  bl       #0x23620    ; -> _objc_msgSend(imageWithActions:)
+0x0001acb8:  mov      x29, x29
+0x0001acbc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001acc0:  mov      x22, x0
+0x0001acc4:  ldr      x0, [sp, #0x28]
+0x0001acc8:  bl       #0x22120    ; -> _objc_release
+0x0001accc:  mov      x0, x19
+0x0001acd0:  bl       #0x22120    ; -> _objc_release
+0x0001acd4:  mov      x0, x21
+0x0001acd8:  bl       #0x22120    ; -> _objc_release
+0x0001acdc:  mov      x0, x20
+0x0001ace0:  bl       #0x22120    ; -> _objc_release
+0x0001ace4:  mov      x0, x22
+0x0001ace8:  ldp      x29, x30, [sp, #0x60]
+0x0001acec:  ldp      x20, x19, [sp, #0x50]
+0x0001acf0:  ldp      x22, x21, [sp, #0x40]
+0x0001acf4:  ldp      d9, d8, [sp, #0x30]
+0x0001acf8:  add      sp, sp, #0x70
+0x0001acfc:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

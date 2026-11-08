@@ -1,0 +1,86 @@
+; ==== SCPCarSplit__urlRatio_  @0x24e44..0x24f98 (340 bytes) ====
+00024e44  sub      sp, sp, #0x50                                
+00024e48  stp      d9, d8, [sp, #0x10]                          
+00024e4c  stp      x22, x21, [sp, #0x20]                        
+00024e50  stp      x20, x19, [sp, #0x30]                        
+00024e54  stp      x29, x30, [sp, #0x40]                        
+00024e58  add      x29, sp, #0x40                               
+00024e5c  mov      v8.16b, v0.16b                               
+00024e60  mov      x19, x0                                      
+00024e64  bl       #0x56b60                                     ; msgSend "active"
+00024e68  cbz      w0, #0x24e88                                 
+00024e6c  mov      x0, x19                                      
+00024e70  bl       #0x59800                                     ; msgSend "paneCount"
+00024e74  cmp      w0, #2                                       
+00024e78  b.ne     #0x24e88                                     
+00024e7c  mov      x0, x19                                      
+00024e80  bl       #0x59260                                     ; msgSend "mainStack"
+00024e84  tbz      w0, #0, #0x24ea0                             
+00024e88  ldp      x29, x30, [sp, #0x40]                        
+00024e8c  ldp      x20, x19, [sp, #0x30]                        
+00024e90  ldp      x22, x21, [sp, #0x20]                        
+00024e94  ldp      d9, d8, [sp, #0x10]                          
+00024e98  add      sp, sp, #0x50                                
+00024e9c  ret                                                   
+00024ea0  adrp     x8, #0x6f000                                 
+00024ea4  ldr      d0, [x8, #0x78]                              ; double 0.2
+00024ea8  fmaxnm   d0, d8, d0                                   
+00024eac  adrp     x8, #0x6f000                                 
+00024eb0  ldr      d1, [x8, #0x80]                              ; double 0.8
+00024eb4  fcmp     d0, d1                                       
+00024eb8  fcsel    d8, d1, d0, gt                               
+00024ebc  adrp     x8, #0x87000                                 
+00024ec0  ldr      x22, [x8, #0x708]                            ; classref NSMutableArray
+00024ec4  adrp     x21, #0x87000                                
+00024ec8  ldr      x0, [x21, #0x6e8]                            ; classref NSNumber
+00024ecc  mov      v0.16b, v8.16b                               
+00024ed0  bl       #0x59540                                     ; msgSend "numberWithDouble:"
+00024ed4  mov      x29, x29                                     
+00024ed8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00024edc  mov      x20, x0                                      
+00024ee0  ldr      x0, [x21, #0x6e8]                            ; classref NSNumber
+00024ee4  fmov     d0, #1.00000000                              
+00024ee8  fsub     d0, d0, d8                                   
+00024eec  bl       #0x59540                                     ; msgSend "numberWithDouble:"
+00024ef0  mov      x29, x29                                     
+00024ef4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00024ef8  mov      x21, x0                                      
+00024efc  stp      x0, xzr, [sp]                                
+00024f00  mov      x0, x22                                      
+00024f04  mov      x2, x20                                      
+00024f08  bl       #0x57060                                     ; msgSend "arrayWithObjects:"
+00024f0c  mov      x29, x29                                     
+00024f10  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00024f14  mov      x22, x0                                      
+00024f18  mov      x0, x19                                      
+00024f1c  mov      x2, x22                                      
+00024f20  bl       #0x5ae00                                     ; msgSend "setFractions:"
+00024f24  mov      x0, x22                                      
+00024f28  bl       #0x567b8                                     ; call _objc_release
+00024f2c  mov      x0, x21                                      
+00024f30  bl       #0x567b8                                     ; call _objc_release
+00024f34  mov      x0, x20                                      
+00024f38  bl       #0x567b8                                     ; call _objc_release
+00024f3c  mov      x0, x19                                      
+00024f40  mov      w2, #1                                       
+00024f44  bl       #0x5a160                                     ; msgSend "relayoutAnimated:"
+00024f48  mov      x0, x19                                      
+00024f4c  ldp      x29, x30, [sp, #0x40]                        
+00024f50  ldp      x20, x19, [sp, #0x30]                        
+00024f54  ldp      x22, x21, [sp, #0x20]                        
+00024f58  ldp      d9, d8, [sp, #0x10]                          
+00024f5c  add      sp, sp, #0x50                                
+00024f60  b        #0x5a1a0                                     ; msgSend "rememberPair" | tail-msgSend "rememberPair"
+00024f64  mov      x19, x0                                      
+00024f68  mov      x0, x22                                      
+00024f6c  bl       #0x567b8                                     ; call _objc_release
+00024f70  b        #0x24f78                                     
+00024f74  mov      x19, x0                                      
+00024f78  mov      x0, x21                                      
+00024f7c  bl       #0x567b8                                     ; call _objc_release
+00024f80  b        #0x24f88                                     
+00024f84  mov      x19, x0                                      
+00024f88  mov      x0, x20                                      
+00024f8c  bl       #0x567b8                                     ; call _objc_release
+00024f90  mov      x0, x19                                      
+00024f94  bl       #0x563e0                                     ; call __Unwind_Resume

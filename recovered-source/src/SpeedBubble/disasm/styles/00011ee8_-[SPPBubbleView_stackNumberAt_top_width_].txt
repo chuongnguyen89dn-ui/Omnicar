@@ -1,0 +1,79 @@
+# -[SPPBubbleView stackNumberAt:top:width:]
+# addr 0x11ee8 .. 0x12018  (304 bytes)
+
+00011ee8  stp      d13, d12, [sp, #-0x60]!                     
+00011eec  stp      d11, d10, [sp, #0x10]                       
+00011ef0  stp      d9, d8, [sp, #0x20]                         
+00011ef4  stp      x22, x21, [sp, #0x30]                       
+00011ef8  stp      x20, x19, [sp, #0x40]                       
+00011efc  stp      x29, x30, [sp, #0x50]                       
+00011f00  add      x29, sp, #0x50                              
+00011f04  mov      v8.16b, v2.16b                              
+00011f08  mov      v9.16b, v1.16b                              
+00011f0c  mov      v10.16b, v0.16b                             
+00011f10  mov      x19, x0                                     
+00011f14  bl       #0x2c000                                    ; objc_msgSend$speedLabel
+00011f18  mov      x29, x29                                    
+00011f1c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011f20  mov      x20, x0                                     
+00011f24  bl       #0x294a0                                    ; objc_msgSend$font
+00011f28  mov      x29, x29                                    
+00011f2c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011f30  mov      x21, x0                                     
+00011f34  bl       #0x29c00                                    ; objc_msgSend$lineHeight
+00011f38  frintp   d11, d0                                     
+00011f3c  mov      x0, x21                                     
+00011f40  bl       #0x27ff8                                    ; _objc_release
+00011f44  mov      x0, x20                                     
+00011f48  bl       #0x27ff8                                    ; _objc_release
+00011f4c  mov      x0, x19                                     
+00011f50  bl       #0x2c680                                    ; objc_msgSend$unitLabel
+00011f54  mov      x29, x29                                    
+00011f58  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011f5c  mov      x20, x0                                     
+00011f60  bl       #0x294a0                                    ; objc_msgSend$font
+00011f64  mov      x29, x29                                    
+00011f68  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011f6c  mov      x21, x0                                     
+00011f70  bl       #0x29c00                                    ; objc_msgSend$lineHeight
+00011f74  frintp   d12, d0                                     
+00011f78  mov      x0, x21                                     
+00011f7c  bl       #0x27ff8                                    ; _objc_release
+00011f80  mov      x0, x20                                     
+00011f84  bl       #0x27ff8                                    ; _objc_release
+00011f88  fmov     d0, #-0.50000000                            
+00011f8c  fmul     d0, d8, d0                                  
+00011f90  fadd     d10, d10, d0                                
+00011f94  mov      x0, x19                                     
+00011f98  bl       #0x2c000                                    ; objc_msgSend$speedLabel
+00011f9c  mov      x29, x29                                    
+00011fa0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011fa4  mov      x20, x0                                     
+00011fa8  mov      v0.16b, v10.16b                             
+00011fac  mov      v1.16b, v9.16b                              
+00011fb0  mov      v2.16b, v8.16b                              
+00011fb4  mov      v3.16b, v11.16b                             
+00011fb8  bl       #0x2afc0                                    ; objc_msgSend$setFrame:
+00011fbc  mov      x0, x20                                     
+00011fc0  bl       #0x27ff8                                    ; _objc_release
+00011fc4  fadd     d0, d9, d11                                 
+00011fc8  fmov     d1, #-3.00000000                            
+00011fcc  fadd     d9, d0, d1                                  
+00011fd0  mov      x0, x19                                     
+00011fd4  bl       #0x2c680                                    ; objc_msgSend$unitLabel
+00011fd8  mov      x29, x29                                    
+00011fdc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011fe0  mov      x19, x0                                     
+00011fe4  mov      v0.16b, v10.16b                             
+00011fe8  mov      v1.16b, v9.16b                              
+00011fec  mov      v2.16b, v8.16b                              
+00011ff0  mov      v3.16b, v12.16b                             
+00011ff4  bl       #0x2afc0                                    ; objc_msgSend$setFrame:
+00011ff8  mov      x0, x19                                     
+00011ffc  ldp      x29, x30, [sp, #0x50]                       
+00012000  ldp      x20, x19, [sp, #0x40]                       
+00012004  ldp      x22, x21, [sp, #0x30]                       
+00012008  ldp      d9, d8, [sp, #0x20]                         
+0001200c  ldp      d11, d10, [sp, #0x10]                       
+00012010  ldp      d13, d12, [sp], #0x60                       
+00012014  b        #0x27ff8                                    ; _objc_release

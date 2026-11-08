@@ -1,0 +1,13 @@
+# +[SPPPrefs warnVoice]
+# addr 0x1f17c .. 0x1f1a4  (40 bytes)
+
+0001f17c  stp      x29, x30, [sp, #-0x10]!                     
+0001f180  mov      x29, sp                                     
+0001f184  adrp     x0, #0x3b000                                
+0001f188  add      x0, x0, #0x1b8                              ; @"speedBubbleWarnSound"
+0001f18c  mov      w1, #2                                      
+0001f190  bl       #0x1f108                                    ; sub_1f108
+0001f194  cmp      x0, #1                                      
+0001f198  cset     w0, eq                                      
+0001f19c  ldp      x29, x30, [sp], #0x10                       
+0001f1a0  ret                                                  

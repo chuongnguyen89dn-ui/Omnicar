@@ -1,0 +1,96 @@
+; ==== SCPCarSplit__resetFractions  @0x14200..0x1437c (380 bytes) ====
+00014200  sub      sp, sp, #0x60                                
+00014204  stp      d9, d8, [sp, #0x10]                          
+00014208  stp      x24, x23, [sp, #0x20]                        
+0001420c  stp      x22, x21, [sp, #0x30]                        
+00014210  stp      x20, x19, [sp, #0x40]                        
+00014214  stp      x29, x30, [sp, #0x50]                        
+00014218  add      x29, sp, #0x50                               
+0001421c  mov      x19, x0                                      
+00014220  bl       #0x59800                                     ; msgSend "paneCount"
+00014224  mov      x20, x0                                      
+00014228  mov      x0, x19                                      
+0001422c  bl       #0x59040                                     ; msgSend "layoutKind"
+00014230  cmp      x0, #1                                       
+00014234  b.eq     #0x14248                                     
+00014238  mov      x0, x19                                      
+0001423c  bl       #0x59040                                     ; msgSend "layoutKind"
+00014240  cmp      x0, #2                                       
+00014244  b.ne     #0x142a0                                     
+00014248  cmp      w20, #3                                      
+0001424c  b.ne     #0x142a0                                     
+00014250  adrp     x8, #0x87000                                 
+00014254  ldr      x0, [x8, #0x708]                             ; classref NSMutableArray
+00014258  adrp     x2, #0x80000                                 
+0001425c  add      x2, x2, #0x708                               
+00014260  stp      x2, xzr, [sp]                                
+00014264  bl       #0x57060                                     ; msgSend "arrayWithObjects:"
+00014268  mov      x29, x29                                     
+0001426c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00014270  mov      x21, x0                                      
+00014274  mov      x0, x19                                      
+00014278  mov      x2, x21                                      
+0001427c  bl       #0x5ae00                                     ; msgSend "setFractions:"
+00014280  mov      x0, x21                                      
+00014284  ldp      x29, x30, [sp, #0x50]                        
+00014288  ldp      x20, x19, [sp, #0x40]                        
+0001428c  ldp      x22, x21, [sp, #0x30]                        
+00014290  ldp      x24, x23, [sp, #0x20]                        
+00014294  ldp      d9, d8, [sp, #0x10]                          
+00014298  add      sp, sp, #0x60                                
+0001429c  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+000142a0  adrp     x8, #0x87000                                 
+000142a4  ldr      x0, [x8, #0x708]                             ; classref NSMutableArray
+000142a8  bl       #0x56fe0                                     ; msgSend "array"
+000142ac  mov      x29, x29                                     
+000142b0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000142b4  mov      x21, x0                                      
+000142b8  mov      x0, x19                                      
+000142bc  mov      x2, x21                                      
+000142c0  bl       #0x5ae00                                     ; msgSend "setFractions:"
+000142c4  mov      x0, x21                                      
+000142c8  bl       #0x567b8                                     ; call _objc_release
+000142cc  cmp      w20, #1                                      
+000142d0  b.lt     #0x14334                                     
+000142d4  ucvtf    d0, w20                                      
+000142d8  fmov     d1, #1.00000000                              
+000142dc  fdiv     d8, d1, d0                                   
+000142e0  adrp     x23, #0x87000                                
+000142e4  mov      x0, x19                                      
+000142e8  bl       #0x58300                                     ; msgSend "fractions"
+000142ec  mov      x29, x29                                     
+000142f0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000142f4  mov      x21, x0                                      
+000142f8  ldr      x0, [x23, #0x6e8]                            ; classref NSNumber
+000142fc  mov      v0.16b, v8.16b                               
+00014300  bl       #0x59540                                     ; msgSend "numberWithDouble:"
+00014304  mov      x29, x29                                     
+00014308  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001430c  mov      x22, x0                                      
+00014310  mov      x0, x21                                      
+00014314  mov      x2, x22                                      
+00014318  bl       #0x56ca0                                     ; msgSend "addObject:"
+0001431c  mov      x0, x22                                      
+00014320  bl       #0x567b8                                     ; call _objc_release
+00014324  mov      x0, x21                                      
+00014328  bl       #0x567b8                                     ; call _objc_release
+0001432c  subs     w20, w20, #1                                 
+00014330  b.ne     #0x142e4                                     
+00014334  ldp      x29, x30, [sp, #0x50]                        
+00014338  ldp      x20, x19, [sp, #0x40]                        
+0001433c  ldp      x22, x21, [sp, #0x30]                        
+00014340  ldp      x24, x23, [sp, #0x20]                        
+00014344  ldp      d9, d8, [sp, #0x10]                          
+00014348  add      sp, sp, #0x60                                
+0001434c  ret                                                   
+00014350  b        #0x14358                                     
+00014354  b        #0x14358                                     
+00014358  mov      x19, x0                                      
+0001435c  b        #0x1436c                                     
+00014360  mov      x19, x0                                      
+00014364  mov      x0, x22                                      
+00014368  bl       #0x567b8                                     ; call _objc_release
+0001436c  mov      x0, x21                                      
+00014370  bl       #0x567b8                                     ; call _objc_release
+00014374  mov      x0, x19                                      
+00014378  bl       #0x563e0                                     ; call __Unwind_Resume

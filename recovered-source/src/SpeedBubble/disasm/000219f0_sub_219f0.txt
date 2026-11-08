@@ -1,0 +1,14 @@
+# sub_219f0
+# addr 0x219f0 .. 0x21a1c  (44 bytes)
+
+000219f0  stp      x29, x30, [sp, #-0x10]!                     
+000219f4  mov      x29, sp                                     
+000219f8  adrp     x0, #0x3b000                                
+000219fc  add      x0, x0, #0xaf8                              ; @"NSDistributedNotificationCenter"
+00021a00  bl       #0x27c08                                    ; _NSClassFromString
+00021a04  cbz      x0, #0x21a14                                
+00021a08  bl       #0x29160                                    ; objc_msgSend$defaultCenter
+00021a0c  mov      x29, x29                                    
+00021a10  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021a14  ldp      x29, x30, [sp], #0x10                       
+00021a18  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

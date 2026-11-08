@@ -1,0 +1,34 @@
+00048140  stp      x20, x19, [sp, #-0x20]!                      
+00048144  stp      x29, x30, [sp, #0x10]                        
+00048148  add      x29, sp, #0x10                               
+0004814c  ldr      x20, [x0, #0x20]                             
+00048150  adrp     x8, #0x87000                                 
+00048154  ldr      x0, [x8, #0x718]                             ; classref UIBezierPath
+00048158  fmov     d4, #1.00000000                              
+0004815c  fmaxnm   d6, d2, d4                                   
+00048160  fmaxnm   d5, d3, d4                                   
+00048164  fcmp     d2, d3                                       
+00048168  fcsel    d2, d2, d3, mi                               
+0004816c  fmov     d3, #0.50000000                              
+00048170  fmul     d2, d2, d3                                   
+00048174  fmov     d3, #2.00000000                              
+00048178  fcmp     d2, d3                                       
+0004817c  fcsel    d4, d3, d2, gt                               
+00048180  mov      v2.16b, v6.16b                               
+00048184  mov      v3.16b, v5.16b                               
+00048188  bl       #0x572a0                                     ; msgSend "bezierPathWithRoundedRect:cornerRadius:"
+0004818c  mov      x29, x29                                     
+00048190  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00048194  mov      x19, x0                                      
+00048198  mov      x0, x20                                      
+0004819c  mov      x2, x19                                      
+000481a0  bl       #0x56fa0                                     ; msgSend "appendPath:"
+000481a4  mov      x0, x19                                      
+000481a8  ldp      x29, x30, [sp, #0x10]                        
+000481ac  ldp      x20, x19, [sp], #0x20                        
+000481b0  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+000481b4  mov      x20, x0                                      
+000481b8  mov      x0, x19                                      
+000481bc  bl       #0x567b8                                     ; call _objc_release
+000481c0  mov      x0, x20                                      
+000481c4  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,18 @@
+=== +[ABHost shared] @ 0xa9e8 (size 68) ===
+0000a9e8  stp      x20, x19, [sp, #-0x20]!
+0000a9ec  stp      x29, x30, [sp, #0x10]
+0000a9f0  add      x29, sp, #0x10
+0000a9f4  adrp     x8, #0x3e000
+0000a9f8  ldr      x8, [x8, #0xa38]
+0000a9fc  cmn      x8, #1
+0000aa00  b.ne     #0xaa24
+0000aa04  adrp     x8, #0x3e000
+0000aa08  ldr      x19, [x8, #0xa30]
+0000aa0c  mov      x0, x19
+0000aa10  bl       #0x24818 ; call _objc_retain
+0000aa14  mov      x0, x19
+0000aa18  ldp      x29, x30, [sp, #0x10]
+0000aa1c  ldp      x20, x19, [sp], #0x20
+0000aa20  b        #0x24734 ; call _objc_autoreleaseReturnValue
+0000aa24  bl       #0x241b8 ; call sub_241b8
+0000aa28  b        #0xaa04 ; call sub_aa04

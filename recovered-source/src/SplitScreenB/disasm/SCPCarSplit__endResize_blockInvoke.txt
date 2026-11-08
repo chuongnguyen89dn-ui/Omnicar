@@ -1,0 +1,88 @@
+; ==== SCPCarSplit__endResize_blockInvoke  @0x2c364..0x2c4c0 (348 bytes) ====
+0002c364  sub      sp, sp, #0x110                               
+0002c368  stp      x24, x23, [sp, #0xd0]                        
+0002c36c  stp      x22, x21, [sp, #0xe0]                        
+0002c370  stp      x20, x19, [sp, #0xf0]                        
+0002c374  stp      x29, x30, [sp, #0x100]                       
+0002c378  add      x29, sp, #0x100                              
+0002c37c  mov      x20, x0                                      
+0002c380  adrp     x8, #0x78000                                 
+0002c384  ldr      x8, [x8, #0x360]                             
+0002c388  ldr      x8, [x8]                                     
+0002c38c  stur     x8, [x29, #-0x38]                            
+0002c390  add      x0, x0, #0x28                                
+0002c394  bl       #0x5674c                                     ; call _objc_loadWeakRetained
+0002c398  mov      x19, x0                                      
+0002c39c  cbz      x0, #0x2c450                                 
+0002c3a0  mov      x0, x19                                      
+0002c3a4  bl       #0x5a480                                     ; msgSend "resizing"
+0002c3a8  tbnz     w0, #0, #0x2c450                             
+0002c3ac  mov      x0, x19                                      
+0002c3b0  mov      w2, #-1                                      
+0002c3b4  bl       #0x592c0                                     ; msgSend "markDismissSlot:"
+0002c3b8  movi     v0.16b, #0                                   
+0002c3bc  stp      q0, q0, [sp, #0x20]                          
+0002c3c0  stp      q0, q0, [sp]                                 
+0002c3c4  ldr      x20, [x20, #0x20]                            
+0002c3c8  mov      x0, x20                                      
+0002c3cc  bl       #0x567c4                                     ; call _objc_retain
+0002c3d0  mov      x2, sp                                       
+0002c3d4  add      x3, sp, #0x48                                
+0002c3d8  mov      x0, x20                                      
+0002c3dc  mov      w4, #0x10                                    
+0002c3e0  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+0002c3e4  mov      x21, x0                                      
+0002c3e8  cbz      x0, #0x2c448                                 
+0002c3ec  ldr      x8, [sp, #0x10]                              
+0002c3f0  ldr      x22, [x8]                                    
+0002c3f4  mov      x23, #0                                      
+0002c3f8  ldr      x8, [sp, #0x10]                              
+0002c3fc  ldr      x8, [x8]                                     
+0002c400  cmp      x8, x22                                      
+0002c404  b.eq     #0x2c410                                     
+0002c408  mov      x0, x20                                      
+0002c40c  bl       #0x5671c                                     ; call _objc_enumerationMutation
+0002c410  ldr      x8, [sp, #8]                                 
+0002c414  ldr      x2, [x8, x23, lsl #3]                        
+0002c418  mov      x0, x19                                      
+0002c41c  bl       #0x5a260                                     ; msgSend "removeCoverFromPane:"
+0002c420  add      x23, x23, #1                                 
+0002c424  cmp      x21, x23                                     
+0002c428  b.ne     #0x2c3f8                                     
+0002c42c  mov      x2, sp                                       
+0002c430  add      x3, sp, #0x48                                
+0002c434  mov      x0, x20                                      
+0002c438  mov      w4, #0x10                                    
+0002c43c  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+0002c440  mov      x21, x0                                      
+0002c444  cbnz     x0, #0x2c3f4                                 
+0002c448  mov      x0, x20                                      
+0002c44c  bl       #0x567b8                                     ; call _objc_release
+0002c450  mov      x0, x19                                      
+0002c454  bl       #0x567b8                                     ; call _objc_release
+0002c458  ldur     x8, [x29, #-0x38]                            
+0002c45c  adrp     x9, #0x78000                                 
+0002c460  ldr      x9, [x9, #0x360]                             
+0002c464  ldr      x9, [x9]                                     
+0002c468  cmp      x9, x8                                       
+0002c46c  b.ne     #0x2c488                                     
+0002c470  ldp      x29, x30, [sp, #0x100]                       
+0002c474  ldp      x20, x19, [sp, #0xf0]                        
+0002c478  ldp      x22, x21, [sp, #0xe0]                        
+0002c47c  ldp      x24, x23, [sp, #0xd0]                        
+0002c480  add      sp, sp, #0x110                               
+0002c484  ret                                                   
+0002c488  bl       #0x56404                                     ; call ___stack_chk_fail
+0002c48c  b        #0x2c49c                                     
+0002c490  mov      x21, x0                                      
+0002c494  b        #0x2c4a8                                     
+0002c498  b        #0x2c49c                                     
+0002c49c  mov      x21, x0                                      
+0002c4a0  mov      x0, x20                                      
+0002c4a4  bl       #0x567b8                                     ; call _objc_release
+0002c4a8  mov      x0, x19                                      
+0002c4ac  bl       #0x567b8                                     ; call _objc_release
+0002c4b0  b        #0x2c4b8                                     
+0002c4b4  mov      x21, x0                                      
+0002c4b8  mov      x0, x21                                      
+0002c4bc  bl       #0x563e0                                     ; call __Unwind_Resume

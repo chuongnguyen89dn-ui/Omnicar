@@ -1,0 +1,101 @@
+; -[SCPCarSplit raise]
+0x0156a4  stp      x22, x21, [sp, #-0x30]!
+0x0156a8  stp      x20, x19, [sp, #0x10]
+0x0156ac  stp      x29, x30, [sp, #0x20]
+0x0156b0  add      x29, sp, #0x20
+0x0156b4  mov      x20, x0
+0x0156b8  bl       #0x57800 ; objc_msgSend$container
+0x0156bc  mov      x29, x29
+0x0156c0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0156c4  mov      x21, x0
+0x0156c8  bl       #0x5c520 ; objc_msgSend$superview
+0x0156cc  mov      x29, x29
+0x0156d0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0156d4  mov      x19, x0
+0x0156d8  mov      x0, x21
+0x0156dc  bl       #0x567b8 ; call _objc_release
+0x0156e0  cbz      x19, #0x157c8
+0x0156e4  mov      x0, x20
+0x0156e8  bl       #0x57800 ; objc_msgSend$container
+0x0156ec  mov      x29, x29
+0x0156f0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0156f4  mov      x21, x0
+0x0156f8  mov      x0, x19
+0x0156fc  mov      x2, x21
+0x015700  bl       #0x573e0 ; objc_msgSend$bringSubviewToFront:
+0x015704  mov      x0, x21
+0x015708  bl       #0x567b8 ; call _objc_release
+0x01570c  bl       #0x12658 ; -> sub_12658
+0x015710  mov      x29, x29
+0x015714  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x015718  mov      x22, x0
+0x01571c  adrp     x0, #0x7b000
+0x015720  add      x0, x0, #0x380 ; -> 0x7b380 @"stackedContainerView"
+0x015724  bl       #0x56374 ; call _NSSelectorFromString
+0x015728  mov      x21, x0
+0x01572c  mov      x0, x22
+0x015730  mov      x1, x21
+0x015734  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x015738  tbz      w0, #0, #0x15758
+0x01573c  mov      x0, x22
+0x015740  mov      x1, x21
+0x015744  bl       #0x56758 ; call _objc_msgSend
+0x015748  mov      x29, x29
+0x01574c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x015750  mov      x21, x0
+0x015754  b        #0x1576c
+0x015758  adrp     x1, #0x7b000
+0x01575c  add      x1, x1, #0x380 ; -> 0x7b380 @"stackedContainerView"
+0x015760  mov      x0, x22
+0x015764  bl       #0x4f330 ; -> _SCPMissingSelector
+0x015768  mov      x21, #0
+0x01576c  mov      x0, x22
+0x015770  bl       #0x567b8 ; call _objc_release
+0x015774  mov      x0, x21
+0x015778  bl       #0x5c520 ; objc_msgSend$superview
+0x01577c  mov      x29, x29
+0x015780  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x015784  mov      x22, x0
+0x015788  bl       #0x567b8 ; call _objc_release
+0x01578c  cmp      x22, x19
+0x015790  b.ne     #0x157c0
+0x015794  mov      x0, x20
+0x015798  bl       #0x57800 ; objc_msgSend$container
+0x01579c  mov      x29, x29
+0x0157a0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0157a4  mov      x22, x0
+0x0157a8  mov      x0, x19
+0x0157ac  mov      x2, x22
+0x0157b0  mov      x3, x21
+0x0157b4  bl       #0x58b60 ; objc_msgSend$insertSubview:belowSubview:
+0x0157b8  mov      x0, x22
+0x0157bc  bl       #0x567b8 ; call _objc_release
+0x0157c0  mov      x0, x21
+0x0157c4  bl       #0x567b8 ; call _objc_release
+0x0157c8  mov      x0, x19
+0x0157cc  ldp      x29, x30, [sp, #0x20]
+0x0157d0  ldp      x20, x19, [sp, #0x10]
+0x0157d4  ldp      x22, x21, [sp], #0x30
+0x0157d8  b        #0x567b8 ; call _objc_release
+0x0157dc  mov      x20, x0
+0x0157e0  mov      x0, x22
+0x0157e4  bl       #0x567b8 ; call _objc_release
+0x0157e8  b        #0x15804
+0x0157ec  b        #0x15818
+0x0157f0  b        #0x157f8
+0x0157f4  b        #0x15800
+0x0157f8  mov      x20, x0
+0x0157fc  b        #0x15824
+0x015800  mov      x20, x0
+0x015804  mov      x0, x21
+0x015808  b        #0x15820
+0x01580c  mov      x20, x0
+0x015810  mov      x19, x21
+0x015814  b        #0x15824
+0x015818  mov      x20, x0
+0x01581c  mov      x0, x22
+0x015820  bl       #0x567b8 ; call _objc_release
+0x015824  mov      x0, x19
+0x015828  bl       #0x567b8 ; call _objc_release
+0x01582c  mov      x0, x20
+0x015830  bl       #0x563e0 ; call __Unwind_Resume

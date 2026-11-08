@@ -1,0 +1,128 @@
+=== sub_6e08 @ 0x6e08 (size 508) ===
+00006e08  stp      x22, x21, [sp, #-0x30]!
+00006e0c  stp      x20, x19, [sp, #0x10]
+00006e10  stp      x29, x30, [sp, #0x20]
+00006e14  add      x29, sp, #0x20
+00006e18  adrp     x8, #0x3e000
+00006e1c  ldr      x0, [x8, #0x280] ; bind _OBJC_CLASS_$_NSBundle
+00006e20  bl       #0x26080 ; objc_msgSend sel=mainBundle
+00006e24  mov      x29, x29
+00006e28  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00006e2c  mov      x19, x0
+00006e30  bl       #0x25040 ; objc_msgSend sel=bundleIdentifier
+00006e34  mov      x29, x29
+00006e38  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00006e3c  mov      x20, x0
+00006e40  adrp     x2, #0x34000
+00006e44  add      x2, x2, #0xdf0 = @"com.apple.springboard"
+00006e48  bl       #0x25cc0 ; objc_msgSend sel=isEqualToString:
+00006e4c  mov      x21, x0
+00006e50  mov      x0, x20
+00006e54  bl       #0x2480c ; call _objc_release
+00006e58  mov      x0, x19
+00006e5c  bl       #0x2480c ; call _objc_release
+00006e60  tbz      w21, #0, #0x6f84
+00006e64  adrp     x20, #0x3e000
+00006e68  ldr      x0, [x20, #0x290] ; bind _OBJC_CLASS_$_NSString
+00006e6c  adrp     x2, #0x35000
+00006e70  add      x2, x2, #0x250 = @"loaded into SpringBoard"
+00006e74  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00006e78  mov      x29, x29
+00006e7c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00006e80  mov      x19, x0
+00006e84  adrp     x0, #0x34000
+00006e88  add      x0, x0, #0xef0 = @"AppBridge"
+00006e8c  mov      x1, x19
+00006e90  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00006e94  mov      x0, x19
+00006e98  bl       #0x2480c ; call _objc_release
+00006e9c  adrp     x0, #0x29000
+00006ea0  add      x0, x0, #0x2f6 ; "SpringBoard"
+00006ea4  bl       #0x24788 ; call _objc_getClass
+00006ea8  adrp     x8, #0x3d000
+00006eac  ldr      x1, [x8, #0x230] ; selref @applicationDidFinishLaunching:
+00006eb0  adrp     x2, #0x7000
+00006eb4  add      x2, x2, #4
+00006eb8  adrp     x3, #0x3e000
+00006ebc  add      x3, x3, #0x9f0
+00006ec0  bl       #0x243ec ; call _MSHookMessageEx
+00006ec4  adrp     x0, #0x29000
+00006ec8  add      x0, x0, #0x302 ; "SBSuspendedUnderLockManager"
+00006ecc  bl       #0x24788 ; call _objc_getClass
+00006ed0  adrp     x8, #0x3d000
+00006ed4  ldr      x1, [x8, #0x238] ; selref @_shouldBeBackgroundUnderLockForScene:withSettings:
+00006ed8  adrp     x2, #0x7000
+00006edc  add      x2, x2, #0x2bc
+00006ee0  adrp     x3, #0x3e000
+00006ee4  add      x3, x3, #0x9f8
+00006ee8  bl       #0x243ec ; call _MSHookMessageEx
+00006eec  adrp     x0, #0x29000
+00006ef0  add      x0, x0, #0x31e ; "FBScene"
+00006ef4  bl       #0x24788 ; call _objc_getClass
+00006ef8  adrp     x8, #0x3d000
+00006efc  ldr      x1, [x8, #0x240] ; selref @updateSettings:withTransitionContext:completion:
+00006f00  adrp     x2, #0x7000
+00006f04  add      x2, x2, #0x4b4
+00006f08  adrp     x3, #0x3e000
+00006f0c  add      x3, x3, #0xa00
+00006f10  bl       #0x243ec ; call _MSHookMessageEx
+00006f14  adrp     x0, #0x29000
+00006f18  add      x0, x0, #0x326 ; "SBSceneView"
+00006f1c  bl       #0x24788 ; call _objc_getClass
+00006f20  adrp     x8, #0x3d000
+00006f24  ldr      x1, [x8, #0x248] ; selref @_updateReferenceSize:andOrientation:
+00006f28  adrp     x2, #0x7000
+00006f2c  add      x2, x2, #0x764
+00006f30  adrp     x3, #0x3e000
+00006f34  add      x3, x3, #0xa08
+00006f38  bl       #0x243ec ; call _MSHookMessageEx
+00006f3c  adrp     x0, #0x34000
+00006f40  add      x0, x0, #0xef0 = @"AppBridge"
+00006f44  adrp     x1, #0x39000
+00006f48  add      x1, x1, #0x408
+00006f4c  bl       #0x1e580 ; call sym:_OMCCheckHooks
+00006f50  adrp     x1, #0x29000
+00006f54  add      x1, x1, #0x3ee ; "BKSDisplayServicesSetScreenBlanked"
+00006f58  mov      x0, #-2
+00006f5c  bl       #0x245f0 ; call _dlsym
+00006f60  cbz      x0, #0x6f94
+00006f64  adrp     x1, #0x7000
+00006f68  add      x1, x1, #0x77c
+00006f6c  adrp     x2, #0x3e000
+00006f70  add      x2, x2, #0xa10
+00006f74  ldp      x29, x30, [sp, #0x20]
+00006f78  ldp      x20, x19, [sp, #0x10]
+00006f7c  ldp      x22, x21, [sp], #0x30
+00006f80  b        #0x243e0 ; call _MSHookFunction
+00006f84  ldp      x29, x30, [sp, #0x20]
+00006f88  ldp      x20, x19, [sp, #0x10]
+00006f8c  ldp      x22, x21, [sp], #0x30
+00006f90  ret      
+00006f94  ldr      x0, [x20, #0x290] ; bind _OBJC_CLASS_$_NSString
+00006f98  adrp     x2, #0x35000
+00006f9c  add      x2, x2, #0x2d0 = @"khong tim thay BKSDisplayServicesSetScreenBlanked"
+00006fa0  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00006fa4  mov      x29, x29
+00006fa8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00006fac  mov      x19, x0
+00006fb0  adrp     x0, #0x34000
+00006fb4  add      x0, x0, #0xef0 = @"AppBridge"
+00006fb8  mov      x1, x19
+00006fbc  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00006fc0  mov      x0, x19
+00006fc4  ldp      x29, x30, [sp, #0x20]
+00006fc8  ldp      x20, x19, [sp, #0x10]
+00006fcc  ldp      x22, x21, [sp], #0x30
+00006fd0  b        #0x2480c ; call _objc_release
+00006fd4  b        #0x6ff0 ; call sub_6ff0
+00006fd8  b        #0x6ff0 ; call sub_6ff0
+00006fdc  mov      x1, x20
+00006fe0  mov      x20, x0
+00006fe4  mov      x0, x1
+00006fe8  bl       #0x2480c ; call _objc_release
+00006fec  b        #0x6ff4 ; call sub_6ff4
+00006ff0  mov      x20, x0
+00006ff4  mov      x0, x19
+00006ff8  bl       #0x2480c ; call _objc_release
+00006ffc  mov      x0, x20
+00007000  bl       #0x24470 ; call __Unwind_Resume

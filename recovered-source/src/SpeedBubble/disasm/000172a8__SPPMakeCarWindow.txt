@@ -1,0 +1,384 @@
+# _SPPMakeCarWindow
+# addr 0x172a8 .. 0x1789c  (1524 bytes)
+
+000172a8  sub      sp, sp, #0x90                               
+000172ac  stp      d11, d10, [sp, #0x20]                       
+000172b0  stp      d9, d8, [sp, #0x30]                         
+000172b4  stp      x26, x25, [sp, #0x40]                       
+000172b8  stp      x24, x23, [sp, #0x50]                       
+000172bc  stp      x22, x21, [sp, #0x60]                       
+000172c0  stp      x20, x19, [sp, #0x70]                       
+000172c4  stp      x29, x30, [sp, #0x80]                       
+000172c8  add      x29, sp, #0x80                              
+000172cc  mov      x22, x0                                     
+000172d0  bl       #0x16ebc                                    ; _SPPGetCarPlayCADisplay
+000172d4  mov      x29, x29                                    
+000172d8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000172dc  mov      x19, x0                                     
+000172e0  cbz      x0, #0x1733c                                
+000172e4  adrp     x0, #0x2e000                                
+000172e8  add      x0, x0, #0x955                              ; "FBSDisplayConfiguration"
+000172ec  bl       #0x27f74                                    ; _objc_getClass
+000172f0  bl       #0x27f08                                    ; _objc_alloc
+000172f4  mov      x21, x0                                     
+000172f8  adrp     x0, #0x3a000                                
+000172fc  add      x0, x0, #0x998                              ; @"initWithCADisplay:isMainDisplay:"
+00017300  bl       #0x27c2c                                    ; _NSSelectorFromString
+00017304  mov      x20, x0                                     
+00017308  mov      x0, x21                                     
+0001730c  mov      x1, x20                                     
+00017310  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00017314  tbz      w0, #0, #0x17344                            
+00017318  mov      x0, x21                                     
+0001731c  mov      x1, x20                                     
+00017320  mov      x2, x19                                     
+00017324  mov      w3, #0                                      
+00017328  bl       #0x27f98                                    ; _objc_msgSend
+0001732c  mov      x29, x29                                    
+00017330  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017334  mov      x20, x0                                     
+00017338  b        #0x17360                                    ; sub_17360
+0001733c  mov      x22, #0                                     
+00017340  b        #0x17798                                    ; sub_17798
+00017344  adrp     x0, #0x38000                                
+00017348  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001734c  adrp     x2, #0x3a000                                
+00017350  add      x2, x2, #0x998                              ; @"initWithCADisplay:isMainDisplay:"
+00017354  mov      x1, x21                                     
+00017358  bl       #0x2248c                                    ; _OMCMissingSelector
+0001735c  mov      x20, #0                                     
+00017360  mov      x0, x21                                     
+00017364  bl       #0x27ff8                                    ; _objc_release
+00017368  cbz      x20, #0x173c0                               
+0001736c  adrp     x0, #0x2e000                                
+00017370  add      x0, x0, #0x9b5                              ; "UIRootSceneWindow"
+00017374  bl       #0x27f74                                    ; _objc_getClass
+00017378  bl       #0x27f08                                    ; _objc_alloc
+0001737c  mov      x23, x0                                     
+00017380  adrp     x0, #0x3a000                                
+00017384  add      x0, x0, #0x9d8                              ; @"initWithDisplayConfiguration:"
+00017388  bl       #0x27c2c                                    ; _NSSelectorFromString
+0001738c  mov      x21, x0                                     
+00017390  mov      x0, x23                                     
+00017394  mov      x1, x21                                     
+00017398  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001739c  tbz      w0, #0, #0x173f4                            
+000173a0  mov      x0, x23                                     
+000173a4  mov      x1, x21                                     
+000173a8  mov      x2, x20                                     
+000173ac  bl       #0x27f98                                    ; _objc_msgSend
+000173b0  mov      x29, x29                                    
+000173b4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000173b8  mov      x21, x0                                     
+000173bc  b        #0x17410                                    ; sub_17410
+000173c0  adrp     x8, #0x42000                                
+000173c4  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000173c8  adrp     x2, #0x3a000                                
+000173cc  add      x2, x2, #0x9b8                              ; @"khong tao duoc FBSDisplayConfiguration"
+000173d0  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000173d4  mov      x29, x29                                    
+000173d8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000173dc  mov      x21, x0                                     
+000173e0  adrp     x0, #0x38000                                
+000173e4  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+000173e8  mov      x1, x21                                     
+000173ec  bl       #0x2155c                                    ; _OMCLogWrite
+000173f0  b        #0x174e0                                    ; sub_174e0
+000173f4  adrp     x0, #0x38000                                
+000173f8  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+000173fc  adrp     x2, #0x3a000                                
+00017400  add      x2, x2, #0x9d8                              ; @"initWithDisplayConfiguration:"
+00017404  mov      x1, x23                                     
+00017408  bl       #0x2248c                                    ; _OMCMissingSelector
+0001740c  mov      x21, #0                                     
+00017410  mov      x0, x23                                     
+00017414  bl       #0x27ff8                                    ; _objc_release
+00017418  adrp     x8, #0x42000                                
+0001741c  ldr      x0, [x8, #0xff8]                            ; [0x42ff8] classref -> UIWindow (= import _OBJC_CLASS_$_UIWindow)
+00017420  bl       #0x27fbc                                    ; _objc_opt_class
+00017424  mov      x1, x0                                      
+00017428  mov      x0, x21                                     
+0001742c  bl       #0x27fc8                                    ; _objc_opt_isKindOfClass
+00017430  tbz      w0, #0, #0x174a4                            
+00017434  adrp     x0, #0x3a000                                
+00017438  add      x0, x0, #0xa18                              ; @"pointScale"
+0001743c  bl       #0x27c2c                                    ; _NSSelectorFromString
+00017440  mov      x1, x0                                      
+00017444  mov      x0, x20                                     
+00017448  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001744c  fmov     d8, xzr                                     
+00017450  tbz      w0, #0, #0x17508                            
+00017454  mov      x0, x20                                     
+00017458  bl       #0x28004                                    ; _objc_retain
+0001745c  adrp     x0, #0x3a000                                
+00017460  add      x0, x0, #0xa18                              ; @"pointScale"
+00017464  bl       #0x27c2c                                    ; _NSSelectorFromString
+00017468  mov      x23, x0                                     
+0001746c  mov      x0, x20                                     
+00017470  mov      x1, x23                                     
+00017474  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00017478  tbz      w0, #0, #0x174e8                            
+0001747c  mov      x0, x20                                     
+00017480  mov      x1, x23                                     
+00017484  bl       #0x27f98                                    ; _objc_msgSend
+00017488  mov      v8.16b, v0.16b                              
+0001748c  mov      x0, x20                                     
+00017490  bl       #0x27ff8                                    ; _objc_release
+00017494  fmov     d0, #1.00000000                             
+00017498  fcmp     d8, d0                                      
+0001749c  b.mi     #0x17508                                    
+000174a0  b        #0x176b4                                    ; sub_176b4
+000174a4  adrp     x8, #0x42000                                
+000174a8  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000174ac  str      x21, [sp]                                   
+000174b0  adrp     x2, #0x3a000                                
+000174b4  add      x2, x2, #0x9f8                              ; @"khong tao duoc UIRootSceneWindow: %@"
+000174b8  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000174bc  mov      x29, x29                                    
+000174c0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000174c4  mov      x23, x0                                     
+000174c8  adrp     x0, #0x38000                                
+000174cc  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+000174d0  mov      x1, x23                                     
+000174d4  bl       #0x2155c                                    ; _OMCLogWrite
+000174d8  mov      x0, x23                                     
+000174dc  bl       #0x27ff8                                    ; _objc_release
+000174e0  mov      x22, #0                                     
+000174e4  b        #0x17788                                    ; sub_17788
+000174e8  adrp     x0, #0x38000                                
+000174ec  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+000174f0  adrp     x2, #0x3a000                                
+000174f4  add      x2, x2, #0xa18                              ; @"pointScale"
+000174f8  mov      x1, x20                                     
+000174fc  bl       #0x2248c                                    ; _OMCMissingSelector
+00017500  mov      x0, x20                                     
+00017504  bl       #0x27ff8                                    ; _objc_release
+00017508  adrp     x0, #0x3a000                                
+0001750c  add      x0, x0, #0xa38                              ; @"currentMode"
+00017510  bl       #0x27c2c                                    ; _NSSelectorFromString
+00017514  mov      x1, x0                                      
+00017518  mov      x0, x19                                     
+0001751c  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00017520  fmov     d10, xzr                                    
+00017524  tbz      w0, #0, #0x1756c                            
+00017528  mov      x0, x19                                     
+0001752c  bl       #0x28004                                    ; _objc_retain
+00017530  adrp     x0, #0x3a000                                
+00017534  add      x0, x0, #0xa38                              ; @"currentMode"
+00017538  bl       #0x27c2c                                    ; _NSSelectorFromString
+0001753c  mov      x23, x0                                     
+00017540  mov      x0, x19                                     
+00017544  mov      x1, x23                                     
+00017548  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001754c  tbz      w0, #0, #0x17574                            
+00017550  mov      x0, x19                                     
+00017554  mov      x1, x23                                     
+00017558  bl       #0x27f98                                    ; _objc_msgSend
+0001755c  mov      x29, x29                                    
+00017560  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017564  mov      x23, x0                                     
+00017568  b        #0x17590                                    ; sub_17590
+0001756c  mov      x23, #0                                     
+00017570  b        #0x17668                                    ; sub_17668
+00017574  adrp     x0, #0x38000                                
+00017578  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001757c  adrp     x2, #0x3a000                                
+00017580  add      x2, x2, #0xa38                              ; @"currentMode"
+00017584  mov      x1, x19                                     
+00017588  bl       #0x2248c                                    ; _OMCMissingSelector
+0001758c  mov      x23, #0                                     
+00017590  mov      x0, x19                                     
+00017594  bl       #0x27ff8                                    ; _objc_release
+00017598  cbz      x23, #0x17668                               
+0001759c  mov      x0, x23                                     
+000175a0  bl       #0x28004                                    ; _objc_retain
+000175a4  adrp     x0, #0x3a000                                
+000175a8  add      x0, x0, #0xa58                              ; @"width"
+000175ac  bl       #0x27c2c                                    ; _NSSelectorFromString
+000175b0  mov      x24, x0                                     
+000175b4  mov      x0, x23                                     
+000175b8  mov      x1, x24                                     
+000175bc  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+000175c0  tbz      w0, #0, #0x175d8                            
+000175c4  mov      x0, x23                                     
+000175c8  mov      x1, x24                                     
+000175cc  bl       #0x27f98                                    ; _objc_msgSend
+000175d0  mov      x24, x0                                     
+000175d4  b        #0x175f4                                    ; sub_175f4
+000175d8  adrp     x0, #0x38000                                
+000175dc  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+000175e0  adrp     x2, #0x3a000                                
+000175e4  add      x2, x2, #0xa58                              ; @"width"
+000175e8  mov      x1, x23                                     
+000175ec  bl       #0x2248c                                    ; _OMCMissingSelector
+000175f0  mov      x24, #0                                     
+000175f4  mov      x0, x23                                     
+000175f8  bl       #0x27ff8                                    ; _objc_release
+000175fc  mov      x0, x23                                     
+00017600  bl       #0x28004                                    ; _objc_retain
+00017604  adrp     x0, #0x3a000                                
+00017608  add      x0, x0, #0xa78                              ; @"height"
+0001760c  bl       #0x27c2c                                    ; _NSSelectorFromString
+00017610  mov      x25, x0                                     
+00017614  mov      x0, x23                                     
+00017618  mov      x1, x25                                     
+0001761c  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+00017620  tbz      w0, #0, #0x17638                            
+00017624  mov      x0, x23                                     
+00017628  mov      x1, x25                                     
+0001762c  bl       #0x27f98                                    ; _objc_msgSend
+00017630  mov      x25, x0                                     
+00017634  b        #0x17654                                    ; sub_17654
+00017638  adrp     x0, #0x38000                                
+0001763c  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00017640  adrp     x2, #0x3a000                                
+00017644  add      x2, x2, #0xa78                              ; @"height"
+00017648  mov      x1, x23                                     
+0001764c  bl       #0x2248c                                    ; _OMCMissingSelector
+00017650  mov      x25, #0                                     
+00017654  mov      x0, x23                                     
+00017658  bl       #0x27ff8                                    ; _objc_release
+0001765c  cmp      x24, x25                                    
+00017660  csel     x8, x24, x25, hi                            
+00017664  ucvtf    d10, x8                                     
+00017668  mov      x0, x21                                     
+0001766c  bl       #0x28ac0                                    ; objc_msgSend$bounds
+00017670  mov      v9.16b, v2.16b                              
+00017674  mov      x0, x21                                     
+00017678  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0001767c  fcmp     d9, d3                                      
+00017680  fcsel    d0, d3, d9, mi                              
+00017684  fcmp     d10, #0.0                                   
+00017688  b.le     #0x176ac                                    
+0001768c  fcmp     d0, #0.0                                    
+00017690  b.le     #0x176ac                                    
+00017694  fdiv     d0, d10, d0                                 
+00017698  fmov     d1, #4.00000000                             
+0001769c  fmul     d0, d0, d1                                  
+000176a0  frinta   d0, d0                                      
+000176a4  fmov     d1, #0.25000000                             
+000176a8  fmul     d8, d0, d1                                  
+000176ac  mov      x0, x23                                     
+000176b0  bl       #0x27ff8                                    ; _objc_release
+000176b4  fmov     d0, #1.00000000                             
+000176b8  fcmp     d8, d0                                      
+000176bc  b.mi     #0x176cc                                    
+000176c0  fmov     d0, #4.00000000                             
+000176c4  fcmp     d8, d0                                      
+000176c8  b.le     #0x17720                                    
+000176cc  mov      x0, x21                                     
+000176d0  bl       #0x2a840                                    ; objc_msgSend$screen
+000176d4  mov      x29, x29                                    
+000176d8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000176dc  mov      x23, x0                                     
+000176e0  bl       #0x2a780                                    ; objc_msgSend$scale
+000176e4  fmov     d8, #2.00000000                             
+000176e8  fmov     d1, #1.00000000                             
+000176ec  fcmp     d0, d1                                      
+000176f0  b.lt     #0x17718                                    
+000176f4  mov      x0, x21                                     
+000176f8  bl       #0x2a840                                    ; objc_msgSend$screen
+000176fc  mov      x29, x29                                    
+00017700  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017704  mov      x24, x0                                     
+00017708  bl       #0x2a780                                    ; objc_msgSend$scale
+0001770c  mov      v8.16b, v0.16b                              
+00017710  mov      x0, x24                                     
+00017714  bl       #0x27ff8                                    ; _objc_release
+00017718  mov      x0, x23                                     
+0001771c  bl       #0x27ff8                                    ; _objc_release
+00017720  str      d8, [x22]                                   
+00017724  adrp     x8, #0x42000                                
+00017728  ldr      x22, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001772c  mov      x0, x21                                     
+00017730  bl       #0x28ac0                                    ; objc_msgSend$bounds
+00017734  mov      v9.16b, v2.16b                              
+00017738  mov      x0, x21                                     
+0001773c  bl       #0x28ac0                                    ; objc_msgSend$bounds
+00017740  stp      d3, d8, [sp, #8]                            
+00017744  str      d9, [sp]                                    
+00017748  adrp     x2, #0x3a000                                
+0001774c  add      x2, x2, #0xa98                              ; @"man xe: %.0fx%.0f diem, ti le %.2f"
+00017750  mov      x0, x22                                     
+00017754  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00017758  mov      x29, x29                                    
+0001775c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00017760  mov      x23, x0                                     
+00017764  adrp     x0, #0x38000                                
+00017768  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001776c  mov      x1, x23                                     
+00017770  bl       #0x2155c                                    ; _OMCLogWrite
+00017774  mov      x0, x23                                     
+00017778  bl       #0x27ff8                                    ; _objc_release
+0001777c  mov      x0, x21                                     
+00017780  bl       #0x28004                                    ; _objc_retain
+00017784  mov      x22, x21                                    
+00017788  mov      x0, x21                                     
+0001778c  bl       #0x27ff8                                    ; _objc_release
+00017790  mov      x0, x20                                     
+00017794  bl       #0x27ff8                                    ; _objc_release
+00017798  mov      x0, x19                                     
+0001779c  bl       #0x27ff8                                    ; _objc_release
+000177a0  mov      x0, x22                                     
+000177a4  ldp      x29, x30, [sp, #0x80]                       
+000177a8  ldp      x20, x19, [sp, #0x70]                       
+000177ac  ldp      x22, x21, [sp, #0x60]                       
+000177b0  ldp      x24, x23, [sp, #0x50]                       
+000177b4  ldp      x26, x25, [sp, #0x40]                       
+000177b8  ldp      d9, d8, [sp, #0x30]                         
+000177bc  ldp      d11, d10, [sp, #0x20]                       
+000177c0  add      sp, sp, #0x90                               
+000177c4  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+000177c8  mov      x22, x0                                     
+000177cc  mov      x0, x24                                     
+000177d0  b        #0x177f0                                    ; sub_177f0
+000177d4  b        #0x177e8                                    ; sub_177e8
+000177d8  b        #0x177e8                                    ; sub_177e8
+000177dc  b        #0x17804                                    ; sub_17804
+000177e0  b        #0x17818                                    ; sub_17818
+000177e4  b        #0x177e8                                    ; sub_177e8
+000177e8  mov      x22, x0                                     
+000177ec  mov      x0, x23                                     
+000177f0  bl       #0x27ff8                                    ; _objc_release
+000177f4  b        #0x17828                                    ; sub_17828
+000177f8  b        #0x17824                                    ; sub_17824
+000177fc  b        #0x17824                                    ; sub_17824
+00017800  b        #0x17824                                    ; sub_17824
+00017804  mov      x22, x0                                     
+00017808  mov      x0, x19                                     
+0001780c  b        #0x1782c                                    ; sub_1782c
+00017810  b        #0x17824                                    ; sub_17824
+00017814  b        #0x17864                                    ; sub_17864
+00017818  mov      x22, x0                                     
+0001781c  mov      x0, x20                                     
+00017820  b        #0x1782c                                    ; sub_1782c
+00017824  mov      x22, x0                                     
+00017828  mov      x0, x23                                     
+0001782c  bl       #0x27ff8                                    ; _objc_release
+00017830  b        #0x17868                                    ; sub_17868
+00017834  b        #0x17864                                    ; sub_17864
+00017838  b        #0x1785c                                    ; sub_1785c
+0001783c  b        #0x17864                                    ; sub_17864
+00017840  b        #0x17864                                    ; sub_17864
+00017844  b        #0x17850                                    ; sub_17850
+00017848  b        #0x17864                                    ; sub_17864
+0001784c  b        #0x17878                                    ; sub_17878
+00017850  mov      x22, x0                                     
+00017854  mov      x0, x23                                     
+00017858  b        #0x1786c                                    ; sub_1786c
+0001785c  mov      x22, x0                                     
+00017860  b        #0x17870                                    ; sub_17870
+00017864  mov      x22, x0                                     
+00017868  mov      x0, x21                                     
+0001786c  bl       #0x27ff8                                    ; _objc_release
+00017870  mov      x0, x20                                     
+00017874  b        #0x17880                                    ; sub_17880
+00017878  mov      x22, x0                                     
+0001787c  mov      x0, x21                                     
+00017880  bl       #0x27ff8                                    ; _objc_release
+00017884  mov      x0, x19                                     
+00017888  bl       #0x27ff8                                    ; _objc_release
+0001788c  mov      x0, x22                                     
+00017890  bl       #0x27c80                                    ; __Unwind_Resume
+00017894  mov      x22, x0                                     
+00017898  b        #0x17884                                    ; sub_17884

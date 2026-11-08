@@ -1,0 +1,410 @@
+# __init_1
+# addr 0x5950 .. 0x5fac  (1628 bytes)
+
+00005950  sub      sp, sp, #0x1a0                              
+00005954  stp      d9, d8, [sp, #0x130]                        
+00005958  stp      x28, x27, [sp, #0x140]                      
+0000595c  stp      x26, x25, [sp, #0x150]                      
+00005960  stp      x24, x23, [sp, #0x160]                      
+00005964  stp      x22, x21, [sp, #0x170]                      
+00005968  stp      x20, x19, [sp, #0x180]                      
+0000596c  stp      x29, x30, [sp, #0x190]                      
+00005970  add      x29, sp, #0x190                             
+00005974  adrp     x8, #0x38000                                
+00005978  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0000597c  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00005980  stur     x8, [x29, #-0x70]                           
+00005984  adrp     x8, #0x42000                                
+00005988  ldr      x0, [x8, #0xf50]                            ; [0x42f50] classref -> NSBundle (= import _OBJC_CLASS_$_NSBundle)
+0000598c  bl       #0x29d20                                    ; objc_msgSend$mainBundle
+00005990  mov      x29, x29                                    
+00005994  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005998  mov      x19, x0                                     
+0000599c  bl       #0x28b60                                    ; objc_msgSend$bundleIdentifier
+000059a0  mov      x29, x29                                    
+000059a4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000059a8  mov      x22, x0                                     
+000059ac  bl       #0x28004                                    ; _objc_retain
+000059b0  cbz      x22, #0x59cc                                
+000059b4  adrp     x0, #0x3c000                                
+000059b8  add      x0, x0, #0xd58                              ; __DATA_CONST,__objc_arrayobj+0x18
+000059bc  mov      x2, x22                                     
+000059c0  bl       #0x297c0                                    ; objc_msgSend$indexOfObject:
+000059c4  mov      x20, x0                                     
+000059c8  b        #0x59d0                                     ; sub_59d0
+000059cc  mov      x20, #0x7fffffffffffffff                    
+000059d0  mov      x0, x22                                     
+000059d4  bl       #0x27ff8                                    ; _objc_release
+000059d8  mov      x0, x22                                     
+000059dc  bl       #0x27ff8                                    ; _objc_release
+000059e0  mov      x0, x19                                     
+000059e4  bl       #0x27ff8                                    ; _objc_release
+000059e8  tbnz     w20, #0x1f, #0x5ec8                         
+000059ec  adrp     x8, #0x43000                                
+000059f0  str      w20, [x8, #0x800]                           
+000059f4  adrp     x23, #0x42000                               
+000059f8  ldr      x21, [x23, #0xf58]                          ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000059fc  cmp      w20, #3                                     
+00005a00  b.hi     #0x5a40                                     
+00005a04  adrp     x0, #0x3c000                                
+00005a08  add      x0, x0, #0xd70                              ; __DATA_CONST,__objc_arrayobj+0x30
+00005a0c  and      x2, x20, #3                                 
+00005a10  bl       #0x2a100                                    ; objc_msgSend$objectAtIndexedSubscript:
+00005a14  mov      x29, x29                                    
+00005a18  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005a1c  mov      x19, x0                                     
+00005a20  adrp     x0, #0x3c000                                
+00005a24  add      x0, x0, #0xd88                              ; __DATA_CONST,__objc_arrayobj+0x48
+00005a28  and      x2, x20, #3                                 
+00005a2c  bl       #0x2a100                                    ; objc_msgSend$objectAtIndexedSubscript:
+00005a30  mov      x29, x29                                    
+00005a34  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005a38  mov      x20, x0                                     
+00005a3c  b        #0x5a50                                     ; sub_5a50
+00005a40  adrp     x20, #0x39000                               
+00005a44  add      x20, x20, #0xb8                             ; @"vn.vietmap.live"
+00005a48  adrp     x19, #0x39000                               
+00005a4c  add      x19, x19, #0x2d8                            ; @"?"
+00005a50  stp      x19, x20, [sp]                              
+00005a54  adrp     x2, #0x39000                                
+00005a58  add      x2, x2, #0x1f8                              ; @"loaded into %@ (%@)"
+00005a5c  mov      x0, x21                                     
+00005a60  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00005a64  mov      x29, x29                                    
+00005a68  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005a6c  mov      x22, x0                                     
+00005a70  adrp     x0, #0x38000                                
+00005a74  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00005a78  mov      x1, x22                                     
+00005a7c  bl       #0x2155c                                    ; _OMCLogWrite
+00005a80  mov      x0, x22                                     
+00005a84  bl       #0x27ff8                                    ; _objc_release
+00005a88  mov      x0, x20                                     
+00005a8c  bl       #0x27ff8                                    ; _objc_release
+00005a90  mov      x0, x19                                     
+00005a94  bl       #0x27ff8                                    ; _objc_release
+00005a98  adrp     x0, #0x2d000                                
+00005a9c  add      x0, x0, #0xd41                              ; "CLLocationManager"
+00005aa0  bl       #0x27f74                                    ; _objc_getClass
+00005aa4  mov      x19, x0                                     
+00005aa8  adrp     x8, #0x42000                                
+00005aac  ldr      x1, [x8, #0xb40]                            ; [0x42b40] selref -> @startUpdatingLocation
+00005ab0  adrp     x2, #0x5000                                 
+00005ab4  add      x2, x2, #0xfac                              ; __TEXT,__text+0x1fac
+00005ab8  adrp     x3, #0x43000                                
+00005abc  add      x3, x3, #0x808                              ; __DATA,__bss+0x68
+00005ac0  bl       #0x27bfc                                    ; _MSHookMessageEx
+00005ac4  adrp     x8, #0x42000                                
+00005ac8  ldr      x1, [x8, #0xb78]                            ; [0x42b78] selref -> @stopUpdatingLocation
+00005acc  adrp     x2, #0x5000                                 
+00005ad0  add      x2, x2, #0xfdc                              ; __TEXT,__text+0x1fdc
+00005ad4  adrp     x3, #0x43000                                
+00005ad8  add      x3, x3, #0x810                              ; __DATA,__bss+0x70
+00005adc  mov      x0, x19                                     
+00005ae0  bl       #0x27bfc                                    ; _MSHookMessageEx
+00005ae4  adrp     x0, #0x2d000                                
+00005ae8  add      x0, x0, #0xe07                              ; "FlutterEngine"
+00005aec  bl       #0x27f74                                    ; _objc_getClass
+00005af0  cbz      x0, #0x5b74                                 
+00005af4  mov      x19, x0                                     
+00005af8  adrp     x0, #0x39000                                
+00005afc  add      x0, x0, #0x318                              ; @"setMessageHandlerOnChannel:binaryMessageHandler:taskQueue:"
+00005b00  bl       #0x27c2c                                    ; _NSSelectorFromString
+00005b04  mov      x21, x0                                     
+00005b08  adrp     x0, #0x39000                                
+00005b0c  add      x0, x0, #0x338                              ; @"setMessageHandlerOnChannel:binaryMessageHandler:"
+00005b10  bl       #0x27c2c                                    ; _NSSelectorFromString
+00005b14  mov      x20, x0                                     
+00005b18  mov      x0, x19                                     
+00005b1c  mov      x1, x21                                     
+00005b20  bl       #0x27d34                                    ; _class_getInstanceMethod
+00005b24  cbz      x0, #0x5ba4                                 
+00005b28  adrp     x2, #0x6000                                 
+00005b2c  add      x2, x2, #0x638                              ; __TEXT,__text+0x2638
+00005b30  adrp     x3, #0x43000                                
+00005b34  add      x3, x3, #0x848                              ; __DATA,__bss+0xa8
+00005b38  mov      x0, x19                                     
+00005b3c  mov      x1, x21                                     
+00005b40  bl       #0x27bfc                                    ; _MSHookMessageEx
+00005b44  ldr      x0, [x23, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00005b48  adrp     x2, #0x39000                                
+00005b4c  add      x2, x2, #0x358                              ; @"kenh: da hook FlutterEngine (taskQueue)"
+00005b50  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00005b54  mov      x29, x29                                    
+00005b58  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005b5c  mov      x19, x0                                     
+00005b60  adrp     x0, #0x38000                                
+00005b64  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00005b68  mov      x1, x19                                     
+00005b6c  bl       #0x2155c                                    ; _OMCLogWrite
+00005b70  b        #0x5bfc                                     ; sub_5bfc
+00005b74  ldr      x0, [x23, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00005b78  adrp     x2, #0x39000                                
+00005b7c  add      x2, x2, #0x2f8                              ; @"kenh: app khong dung Flutter"
+00005b80  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00005b84  mov      x29, x29                                    
+00005b88  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005b8c  mov      x19, x0                                     
+00005b90  adrp     x0, #0x38000                                
+00005b94  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00005b98  mov      x1, x19                                     
+00005b9c  bl       #0x2155c                                    ; _OMCLogWrite
+00005ba0  b        #0x5bfc                                     ; sub_5bfc
+00005ba4  mov      x0, x19                                     
+00005ba8  mov      x1, x20                                     
+00005bac  bl       #0x27d34                                    ; _class_getInstanceMethod
+00005bb0  cbz      x0, #0x5c04                                 
+00005bb4  adrp     x2, #0x6000                                 
+00005bb8  add      x2, x2, #0x71c                              ; __TEXT,__text+0x271c
+00005bbc  adrp     x3, #0x43000                                
+00005bc0  add      x3, x3, #0x850                              ; __DATA,__bss+0xb0
+00005bc4  mov      x0, x19                                     
+00005bc8  mov      x1, x20                                     
+00005bcc  bl       #0x27bfc                                    ; _MSHookMessageEx
+00005bd0  ldr      x0, [x23, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00005bd4  adrp     x2, #0x39000                                
+00005bd8  add      x2, x2, #0x378                              ; @"kenh: da hook FlutterEngine"
+00005bdc  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00005be0  mov      x29, x29                                    
+00005be4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005be8  mov      x19, x0                                     
+00005bec  adrp     x0, #0x38000                                
+00005bf0  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00005bf4  mov      x1, x19                                     
+00005bf8  bl       #0x2155c                                    ; _OMCLogWrite
+00005bfc  mov      x0, x19                                     
+00005c00  bl       #0x27ff8                                    ; _objc_release
+00005c04  adrp     x1, #0x2d000                                
+00005c08  add      x1, x1, #0xff2                              ; "UIAccessibilityIsSwitchControlRunning"
+00005c0c  mov      x0, #-2                                     
+00005c10  bl       #0x27de8                                    ; _dlsym
+00005c14  cbz      x0, #0x5cf0                                 
+00005c18  adrp     x1, #0x7000                                 
+00005c1c  add      x1, x1, #0x9ac                              ; __TEXT,__text+0x39ac
+00005c20  adrp     x2, #0x43000                                
+00005c24  add      x2, x2, #0x870                              ; __DATA,__bss+0xd0
+00005c28  bl       #0x27bf0                                    ; _MSHookFunction
+00005c2c  movi     v0.16b, #0                                  
+00005c30  stp      q0, q0, [sp, #0x60]                         
+00005c34  stp      q0, q0, [sp, #0x40]                         
+00005c38  adrp     x0, #0x3c000                                
+00005c3c  add      x0, x0, #0xdb8                              ; __DATA_CONST,__objc_arrayobj+0x78
+00005c40  add      x2, sp, #0x40                               
+00005c44  add      x3, sp, #0xa0                               
+00005c48  mov      w4, #0x10                                   
+00005c4c  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00005c50  mov      x19, x0                                     
+00005c54  cbz      x0, #0x5d24                                 
+00005c58  ldr      x8, [sp, #0x50]                             
+00005c5c  ldr      x23, [x8]                                   ; [0x42000] selref -> @fileURLWithPath:
+00005c60  adrp     x8, #0x32000                                
+00005c64  ldr      d8, [x8, #0x7a0]                            ; [0x327a0] __const[0x327a0] double=1000000000.0 float=0.0
+00005c68  adrp     x20, #0x38000                               
+00005c6c  ldr      x20, [x20, #0x350]                          ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+00005c70  adrp     x21, #0x38000                               
+00005c74  add      x21, x21, #0x848                            ; __const[0x38848] double=-4.4501477170146e-308 float=2.802596928649634e-43
+00005c78  adrp     x22, #0x3c000                               
+00005c7c  add      x22, x22, #0xdb8                            ; __DATA_CONST,__objc_arrayobj+0x78
+00005c80  mov      x24, #0                                     
+00005c84  ldr      x8, [sp, #0x50]                             
+00005c88  ldr      x8, [x8]                                    ; [0x32000] __TEXT,__gcc_except_tab+0x2338
+00005c8c  cmp      x8, x23                                     
+00005c90  b.eq     #0x5c9c                                     
+00005c94  mov      x0, x22                                     
+00005c98  bl       #0x27f68                                    ; _objc_enumerationMutation
+00005c9c  ldr      x8, [sp, #0x48]                             
+00005ca0  ldr      x0, [x8, x24, lsl #3]                       ; [0x32000] __TEXT,__gcc_except_tab+0x2338
+00005ca4  bl       #0x292c0                                    ; objc_msgSend$doubleValue
+00005ca8  fmul     d0, d0, d8                                  
+00005cac  fcvtzs   x1, d0                                      
+00005cb0  mov      x0, #0                                      
+00005cb4  bl       #0x27dc4                                    ; _dispatch_time
+00005cb8  mov      x1, x20                                     
+00005cbc  mov      x2, x21                                     
+00005cc0  bl       #0x27d58                                    ; _dispatch_after
+00005cc4  add      x24, x24, #1                                
+00005cc8  cmp      x19, x24                                    
+00005ccc  b.ne     #0x5c84                                     
+00005cd0  add      x2, sp, #0x40                               
+00005cd4  add      x3, sp, #0xa0                               
+00005cd8  mov      x0, x22                                     
+00005cdc  mov      w4, #0x10                                   
+00005ce0  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00005ce4  mov      x19, x0                                     
+00005ce8  cbnz     x0, #0x5c80                                 
+00005cec  b        #0x5d24                                     ; sub_5d24
+00005cf0  ldr      x0, [x23, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00005cf4  adrp     x2, #0x39000                                
+00005cf8  add      x2, x2, #0x638                              ; @"speed scan: khong tim thay UIAccessibilityIsSwitchControlRunning"
+00005cfc  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00005d00  mov      x29, x29                                    
+00005d04  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005d08  mov      x19, x0                                     
+00005d0c  adrp     x0, #0x38000                                
+00005d10  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00005d14  mov      x1, x19                                     
+00005d18  bl       #0x2155c                                    ; _OMCLogWrite
+00005d1c  mov      x0, x19                                     
+00005d20  bl       #0x27ff8                                    ; _objc_release
+00005d24  adrp     x8, #0x42000                                
+00005d28  ldr      x0, [x8, #0xfd0]                            ; [0x42fd0] classref -> NSNotificationCenter (= import _OBJC_CLASS_$_NSNotificationCenter)
+00005d2c  bl       #0x29160                                    ; objc_msgSend$defaultCenter
+00005d30  mov      x29, x29                                    
+00005d34  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005d38  mov      x19, x0                                     
+00005d3c  movi     v0.16b, #0                                  
+00005d40  stp      q0, q0, [sp, #0x60]                         
+00005d44  stp      q0, q0, [sp, #0x40]                         
+00005d48  adrp     x8, #0x38000                                
+00005d4c  ldr      x8, [x8, #0x248]                            ; [0x38248] __DATA_CONST,__got+0x248 (= import _UISceneDidActivateNotification)
+00005d50  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00005d54  adrp     x9, #0x38000                                
+00005d58  ldr      x9, [x9, #0x258]                            ; [0x38258] __DATA_CONST,__got+0x258 (= import _UISceneWillDeactivateNotification)
+00005d5c  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00005d60  stp      x8, x9, [sp, #0x80]                         
+00005d64  adrp     x8, #0x38000                                
+00005d68  ldr      x8, [x8, #0x250]                            ; [0x38250] __DATA_CONST,__got+0x250 (= import _UISceneDidEnterBackgroundNotification)
+00005d6c  adrp     x9, #0x38000                                
+00005d70  ldr      x9, [x9, #0x260]                            ; [0x38260] __DATA_CONST,__got+0x260 (= import _UISceneWillEnterForegroundNotification)
+00005d74  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00005d78  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00005d7c  stp      x8, x9, [sp, #0x90]                         
+00005d80  adrp     x8, #0x42000                                
+00005d84  ldr      x0, [x8, #0xf80]                            ; [0x42f80] classref -> NSArray (= import _OBJC_CLASS_$_NSArray)
+00005d88  add      x2, sp, #0x80                               
+00005d8c  mov      w3, #4                                      
+00005d90  bl       #0x28880                                    ; objc_msgSend$arrayWithObjects:count:
+00005d94  mov      x29, x29                                    
+00005d98  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005d9c  mov      x22, x0                                     
+00005da0  add      x2, sp, #0x40                               
+00005da4  add      x3, sp, #0xa0                               
+00005da8  mov      w4, #0x10                                   
+00005dac  str      x0, [sp, #0x10]                             
+00005db0  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00005db4  mov      x21, x0                                     
+00005db8  cbz      x0, #0x5e94                                 
+00005dbc  ldr      x8, [sp, #0x50]                             
+00005dc0  ldr      x24, [x8]                                   ; [0x42000] selref -> @fileURLWithPath:
+00005dc4  adrp     x26, #0x38000                               
+00005dc8  ldr      x26, [x26, #0x318]                          ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+00005dcc  adrp     x8, #0x32000                                
+00005dd0  ldr      d8, [x8, #0x780]                            ; [0x32780] __const[0x32780] double=1.6080749353e-314 float=-32.0
+00005dd4  adrp     x27, #0x7000                                
+00005dd8  add      x27, x27, #0xa24                            ; __TEXT,__text+0x3a24
+00005ddc  adrp     x28, #0x38000                               
+00005de0  add      x28, x28, #0x888                            ; __const[0x38888] double=0.0 float=0.0
+00005de4  adrp     x20, #0x38000                               
+00005de8  add      x20, x20, #0x868                            ; __const[0x38868] double=-4.4501477170146e-308 float=2.802596928649634e-43
+00005dec  mov      x25, #0                                     
+00005df0  ldr      x8, [sp, #0x50]                             
+00005df4  ldr      x8, [x8]                                    ; [0x32000] __TEXT,__gcc_except_tab+0x2338
+00005df8  cmp      x8, x24                                     
+00005dfc  b.eq     #0x5e08                                     
+00005e00  ldr      x0, [sp, #0x10]                             
+00005e04  bl       #0x27f68                                    ; _objc_enumerationMutation
+00005e08  ldr      x8, [sp, #0x48]                             
+00005e0c  ldr      x23, [x8, x25, lsl #3]                      ; [0x32000] __TEXT,__gcc_except_tab+0x2338
+00005e10  adrp     x8, #0x42000                                
+00005e14  ldr      x0, [x8, #0xfd8]                            ; [0x42fd8] classref -> NSOperationQueue (= import _OBJC_CLASS_$_NSOperationQueue)
+00005e18  bl       #0x29d40                                    ; objc_msgSend$mainQueue
+00005e1c  mov      x29, x29                                    
+00005e20  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005e24  mov      x22, x0                                     
+00005e28  str      x26, [sp, #0x18]                            
+00005e2c  str      d8, [sp, #0x20]                             
+00005e30  stp      x27, x28, [sp, #0x28]                       
+00005e34  str      x20, [sp, #0x38]                            
+00005e38  add      x5, sp, #0x18                               
+00005e3c  mov      x0, x19                                     
+00005e40  mov      x2, x23                                     
+00005e44  mov      x3, #0                                      
+00005e48  mov      x4, x22                                     
+00005e4c  bl       #0x28480                                    ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+00005e50  mov      x29, x29                                    
+00005e54  bl       #0x28070                                    ; _objc_unsafeClaimAutoreleasedReturnValue
+00005e58  mov      x0, x22                                     
+00005e5c  bl       #0x27ff8                                    ; _objc_release
+00005e60  ldr      x0, [sp, #0x38]                             
+00005e64  bl       #0x27ff8                                    ; _objc_release
+00005e68  add      x25, x25, #1                                
+00005e6c  cmp      x21, x25                                    
+00005e70  b.ne     #0x5df0                                     
+00005e74  add      x2, sp, #0x40                               
+00005e78  add      x3, sp, #0xa0                               
+00005e7c  ldr      x22, [sp, #0x10]                            
+00005e80  mov      x0, x22                                     
+00005e84  mov      w4, #0x10                                   
+00005e88  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00005e8c  mov      x21, x0                                     
+00005e90  cbnz     x0, #0x5dec                                 
+00005e94  mov      x0, x22                                     
+00005e98  bl       #0x27ff8                                    ; _objc_release
+00005e9c  mov      x0, x19                                     
+00005ea0  bl       #0x27ff8                                    ; _objc_release
+00005ea4  mov      x0, #0                                      
+00005ea8  mov      w1, #0x2800                                 
+00005eac  movk     w1, #0xee6b, lsl #16                        
+00005eb0  bl       #0x27dc4                                    ; _dispatch_time
+00005eb4  adrp     x1, #0x38000                                
+00005eb8  ldr      x1, [x1, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+00005ebc  adrp     x2, #0x38000                                
+00005ec0  add      x2, x2, #0x738                              ; __const[0x38738] double=-4.4501477170146e-308 float=2.802596928649634e-43
+00005ec4  bl       #0x27d58                                    ; _dispatch_after
+00005ec8  ldur     x8, [x29, #-0x70]                           
+00005ecc  adrp     x9, #0x38000                                
+00005ed0  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00005ed4  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00005ed8  cmp      x9, x8                                      
+00005edc  b.ne     #0x5f04                                     
+00005ee0  ldp      x29, x30, [sp, #0x190]                      
+00005ee4  ldp      x20, x19, [sp, #0x180]                      
+00005ee8  ldp      x22, x21, [sp, #0x170]                      
+00005eec  ldp      x24, x23, [sp, #0x160]                      
+00005ef0  ldp      x26, x25, [sp, #0x150]                      
+00005ef4  ldp      x28, x27, [sp, #0x140]                      
+00005ef8  ldp      d9, d8, [sp, #0x130]                        
+00005efc  add      sp, sp, #0x1a0                              
+00005f00  ret                                                  
+00005f04  bl       #0x27ca4                                    ; ___stack_chk_fail
+00005f08  b        #0x5f5c                                     ; sub_5f5c
+00005f0c  b        #0x5f5c                                     ; sub_5f5c
+00005f10  b        #0x5f5c                                     ; sub_5f5c
+00005f14  b        #0x5f5c                                     ; sub_5f5c
+00005f18  b        #0x5f5c                                     ; sub_5f5c
+00005f1c  b        #0x5f88                                     ; sub_5f88
+00005f20  mov      x21, x0                                     
+00005f24  b        #0x5f94                                     ; sub_5f94
+00005f28  mov      x21, x0                                     
+00005f2c  mov      x0, x22                                     
+00005f30  bl       #0x27ff8                                    ; _objc_release
+00005f34  b        #0x5f3c                                     ; sub_5f3c
+00005f38  mov      x21, x0                                     
+00005f3c  mov      x0, x20                                     
+00005f40  b        #0x5f54                                     ; sub_5f54
+00005f44  mov      x21, x0                                     
+00005f48  mov      x0, x22                                     
+00005f4c  bl       #0x27ff8                                    ; _objc_release
+00005f50  mov      x0, x22                                     
+00005f54  bl       #0x27ff8                                    ; _objc_release
+00005f58  b        #0x5f60                                     ; sub_5f60
+00005f5c  mov      x21, x0                                     
+00005f60  mov      x0, x19                                     
+00005f64  bl       #0x27ff8                                    ; _objc_release
+00005f68  b        #0x5fa4                                     ; sub_5fa4
+00005f6c  b        #0x5f88                                     ; sub_5f88
+00005f70  mov      x21, x0                                     
+00005f74  ldr      x0, [sp, #0x38]                             
+00005f78  bl       #0x27ff8                                    ; _objc_release
+00005f7c  mov      x0, x22                                     
+00005f80  bl       #0x27ff8                                    ; _objc_release
+00005f84  b        #0x5f8c                                     ; sub_5f8c
+00005f88  mov      x21, x0                                     
+00005f8c  ldr      x0, [sp, #0x10]                             
+00005f90  bl       #0x27ff8                                    ; _objc_release
+00005f94  mov      x0, x19                                     
+00005f98  bl       #0x27ff8                                    ; _objc_release
+00005f9c  b        #0x5fa4                                     ; sub_5fa4
+00005fa0  mov      x21, x0                                     
+00005fa4  mov      x0, x21                                     
+00005fa8  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,288 @@
+# -[SPPOverspeed ensureWindow]
+# addr 0x1fab8 .. 0x1ff2c  (1140 bytes)
+
+0001fab8  sub      sp, sp, #0x80                               
+0001fabc  stp      d9, d8, [sp, #0x20]                         
+0001fac0  stp      x26, x25, [sp, #0x30]                       
+0001fac4  stp      x24, x23, [sp, #0x40]                       
+0001fac8  stp      x22, x21, [sp, #0x50]                       
+0001facc  stp      x20, x19, [sp, #0x60]                       
+0001fad0  stp      x29, x30, [sp, #0x70]                       
+0001fad4  add      x29, sp, #0x70                              
+0001fad8  mov      x22, x0                                     
+0001fadc  bl       #0x16ebc                                    ; _SPPGetCarPlayCADisplay
+0001fae0  mov      x29, x29                                    
+0001fae4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fae8  mov      x19, x0                                     
+0001faec  cbz      x0, #0x1fb50                                
+0001faf0  adrp     x0, #0x3a000                                
+0001faf4  add      x0, x0, #0x978                              ; @"uniqueId"
+0001faf8  bl       #0x27c2c                                    ; _NSSelectorFromString
+0001fafc  mov      x1, x0                                      
+0001fb00  mov      x0, x19                                     
+0001fb04  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001fb08  tbz      w0, #0, #0x1fb60                            
+0001fb0c  mov      x0, x19                                     
+0001fb10  bl       #0x28004                                    ; _objc_retain
+0001fb14  adrp     x0, #0x3a000                                
+0001fb18  add      x0, x0, #0x978                              ; @"uniqueId"
+0001fb1c  bl       #0x27c2c                                    ; _NSSelectorFromString
+0001fb20  mov      x20, x0                                     
+0001fb24  mov      x0, x19                                     
+0001fb28  mov      x1, x20                                     
+0001fb2c  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001fb30  tbz      w0, #0, #0x1fb68                            
+0001fb34  mov      x0, x19                                     
+0001fb38  mov      x1, x20                                     
+0001fb3c  bl       #0x27f98                                    ; _objc_msgSend
+0001fb40  mov      x29, x29                                    
+0001fb44  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fb48  mov      x20, x0                                     
+0001fb4c  b        #0x1fb84                                    ; sub_1fb84
+0001fb50  mov      x0, x22                                     
+0001fb54  bl       #0x29300                                    ; objc_msgSend$dropWindow
+0001fb58  mov      w23, #0                                     
+0001fb5c  b        #0x1fe4c                                    ; sub_1fe4c
+0001fb60  mov      x20, #0                                     
+0001fb64  b        #0x1fb8c                                    ; sub_1fb8c
+0001fb68  adrp     x0, #0x38000                                
+0001fb6c  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001fb70  adrp     x2, #0x3a000                                
+0001fb74  add      x2, x2, #0x978                              ; @"uniqueId"
+0001fb78  mov      x1, x19                                     
+0001fb7c  bl       #0x2248c                                    ; _OMCMissingSelector
+0001fb80  mov      x20, #0                                     
+0001fb84  mov      x0, x19                                     
+0001fb88  bl       #0x27ff8                                    ; _objc_release
+0001fb8c  mov      x0, x22                                     
+0001fb90  bl       #0x2c9a0                                    ; objc_msgSend$window
+0001fb94  mov      x29, x29                                    
+0001fb98  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fb9c  mov      x21, x0                                     
+0001fba0  cbz      x0, #0x1fbe0                                
+0001fba4  cbz      x20, #0x1fe38                               
+0001fba8  mov      x0, x22                                     
+0001fbac  bl       #0x29260                                    ; objc_msgSend$displayID
+0001fbb0  mov      x29, x29                                    
+0001fbb4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fbb8  mov      x23, x0                                     
+0001fbbc  mov      x0, x20                                     
+0001fbc0  mov      x2, x23                                     
+0001fbc4  bl       #0x29a00                                    ; objc_msgSend$isEqualToString:
+0001fbc8  mov      x24, x0                                     
+0001fbcc  mov      x0, x23                                     
+0001fbd0  bl       #0x27ff8                                    ; _objc_release
+0001fbd4  mov      x0, x21                                     
+0001fbd8  bl       #0x27ff8                                    ; _objc_release
+0001fbdc  tbnz     w24, #0, #0x1fe40                           
+0001fbe0  mov      x0, x22                                     
+0001fbe4  bl       #0x29300                                    ; objc_msgSend$dropWindow
+0001fbe8  mov      x8, #0x4000000000000000                     
+0001fbec  str      x8, [sp, #0x18]                             
+0001fbf0  add      x0, sp, #0x18                               
+0001fbf4  bl       #0x172a8                                    ; _SPPMakeCarWindow
+0001fbf8  mov      x29, x29                                    
+0001fbfc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fc00  mov      x21, x0                                     
+0001fc04  cmp      x0, #0                                      
+0001fc08  cset     w23, ne                                     
+0001fc0c  cbz      x0, #0x1fe2c                                
+0001fc10  mov      x0, x21                                     
+0001fc14  bl       #0x1789c                                    ; _SPPMakeWindowPassThrough
+0001fc18  mov      x0, x21                                     
+0001fc1c  mov      w2, #0                                      
+0001fc20  bl       #0x2bbc0                                    ; objc_msgSend$setUserInteractionEnabled:
+0001fc24  adrp     x8, #0x38000                                
+0001fc28  ldr      x8, [x8, #0x278]                            ; [0x38278] __DATA_CONST,__got+0x278 (= import _UIWindowLevelStatusBar)
+0001fc2c  ldr      d0, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0001fc30  adrp     x8, #0x32000                                
+0001fc34  ldr      d1, [x8, #0xa90]                            ; [0x32a90] __const[0x32a90] double=65.0 float=0.0
+0001fc38  fadd     d0, d0, d1                                  
+0001fc3c  mov      x0, x21                                     
+0001fc40  bl       #0x2bd00                                    ; objc_msgSend$setWindowLevel:
+0001fc44  adrp     x26, #0x43000                               
+0001fc48  ldr      x0, [x26, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+0001fc4c  bl       #0x28d40                                    ; objc_msgSend$clearColor
+0001fc50  mov      x29, x29                                    
+0001fc54  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fc58  mov      x24, x0                                     
+0001fc5c  mov      x0, x21                                     
+0001fc60  mov      x2, x24                                     
+0001fc64  bl       #0x2aaa0                                    ; objc_msgSend$setBackgroundColor:
+0001fc68  mov      x0, x24                                     
+0001fc6c  bl       #0x27ff8                                    ; _objc_release
+0001fc70  adrp     x8, #0x43000                                
+0001fc74  ldr      x0, [x8, #0x20]                             ; [0x43020] classref -> UIImageView (= import _OBJC_CLASS_$_UIImageView)
+0001fc78  bl       #0x27f08                                    ; _objc_alloc
+0001fc7c  mov      x24, x0                                     
+0001fc80  mov      x0, x21                                     
+0001fc84  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0001fc88  mov      x0, x24                                     
+0001fc8c  bl       #0x29800                                    ; objc_msgSend$initWithFrame:
+0001fc90  mov      x24, x0                                     
+0001fc94  bl       #0x1ff2c                                    ; sub_1ff2c
+0001fc98  mov      x29, x29                                    
+0001fc9c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fca0  mov      x25, x0                                     
+0001fca4  mov      x0, x24                                     
+0001fca8  mov      x2, x25                                     
+0001fcac  bl       #0x2b120                                    ; objc_msgSend$setImage:
+0001fcb0  mov      x0, x25                                     
+0001fcb4  bl       #0x27ff8                                    ; _objc_release
+0001fcb8  mov      x0, x24                                     
+0001fcbc  mov      w2, #0x12                                   
+0001fcc0  bl       #0x2aa60                                    ; objc_msgSend$setAutoresizingMask:
+0001fcc4  mov      x0, x24                                     
+0001fcc8  mov      w2, #0                                      
+0001fccc  bl       #0x2bbc0                                    ; objc_msgSend$setUserInteractionEnabled:
+0001fcd0  fmov     d0, xzr                                     
+0001fcd4  mov      x0, x24                                     
+0001fcd8  bl       #0x2a980                                    ; objc_msgSend$setAlpha:
+0001fcdc  mov      x0, x21                                     
+0001fce0  mov      x2, x24                                     
+0001fce4  bl       #0x284c0                                    ; objc_msgSend$addSubview:
+0001fce8  adrp     x8, #0x43000                                
+0001fcec  ldr      x0, [x8, #0x18]                             ; [0x43018] classref -> UIView (= import _OBJC_CLASS_$_UIView)
+0001fcf0  bl       #0x27f08                                    ; _objc_alloc
+0001fcf4  mov      x25, x0                                     
+0001fcf8  mov      x0, x21                                     
+0001fcfc  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0001fd00  mov      x0, x25                                     
+0001fd04  bl       #0x29800                                    ; objc_msgSend$initWithFrame:
+0001fd08  mov      x25, x0                                     
+0001fd0c  ldr      x0, [x26, #0x28]                            ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+0001fd10  adrp     x8, #0x32000                                
+0001fd14  ldr      d1, [x8, #0xd40]                            ; [0x32d40] __const[0x32d40] double=0.23 float=-151996493463552.0
+0001fd18  adrp     x8, #0x32000                                
+0001fd1c  ldr      d2, [x8, #0xd48]                            ; [0x32d48] __const[0x32d48] double=0.19 float=-7.462978591897724e-36
+0001fd20  adrp     x8, #0x32000                                
+0001fd24  ldr      d3, [x8, #0xdd0]                            ; [0x32dd0] __const[0x32dd0] double=0.32 float=89128.9609375
+0001fd28  fmov     d0, #1.00000000                             
+0001fd2c  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+0001fd30  mov      x29, x29                                    
+0001fd34  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fd38  mov      x26, x0                                     
+0001fd3c  mov      x0, x25                                     
+0001fd40  mov      x2, x26                                     
+0001fd44  bl       #0x2aaa0                                    ; objc_msgSend$setBackgroundColor:
+0001fd48  mov      x0, x26                                     
+0001fd4c  bl       #0x27ff8                                    ; _objc_release
+0001fd50  mov      x0, x25                                     
+0001fd54  mov      w2, #0x12                                   
+0001fd58  bl       #0x2aa60                                    ; objc_msgSend$setAutoresizingMask:
+0001fd5c  mov      x0, x25                                     
+0001fd60  mov      w2, #0                                      
+0001fd64  bl       #0x2bbc0                                    ; objc_msgSend$setUserInteractionEnabled:
+0001fd68  fmov     d0, xzr                                     
+0001fd6c  mov      x0, x25                                     
+0001fd70  bl       #0x2a980                                    ; objc_msgSend$setAlpha:
+0001fd74  mov      x0, x21                                     
+0001fd78  mov      x2, x25                                     
+0001fd7c  bl       #0x284c0                                    ; objc_msgSend$addSubview:
+0001fd80  mov      x0, x21                                     
+0001fd84  mov      w2, #1                                      
+0001fd88  bl       #0x2b060                                    ; objc_msgSend$setHidden:
+0001fd8c  mov      x0, x22                                     
+0001fd90  mov      x2, x21                                     
+0001fd94  bl       #0x2bce0                                    ; objc_msgSend$setWindow:
+0001fd98  mov      x0, x22                                     
+0001fd9c  mov      x2, x24                                     
+0001fda0  bl       #0x2b040                                    ; objc_msgSend$setGlow:
+0001fda4  mov      x0, x22                                     
+0001fda8  mov      x2, x25                                     
+0001fdac  bl       #0x2af60                                    ; objc_msgSend$setFlash:
+0001fdb0  mov      x0, x22                                     
+0001fdb4  mov      x2, x20                                     
+0001fdb8  bl       #0x2ae60                                    ; objc_msgSend$setDisplayID:
+0001fdbc  mov      x0, x22                                     
+0001fdc0  mov      x2, #-1                                     
+0001fdc4  bl       #0x2b7e0                                    ; objc_msgSend$setShownFx:
+0001fdc8  adrp     x8, #0x42000                                
+0001fdcc  ldr      x22, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001fdd0  mov      x0, x21                                     
+0001fdd4  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0001fdd8  mov      v8.16b, v2.16b                              
+0001fddc  mov      x0, x21                                     
+0001fde0  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0001fde4  stp      d8, d3, [sp]                                
+0001fde8  adrp     x2, #0x3b000                                
+0001fdec  add      x2, x2, #0x398                              ; @"canh bao: cua so vien tren xe tao xong (%.0fx%.0f)"
+0001fdf0  mov      x0, x22                                     
+0001fdf4  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001fdf8  mov      x29, x29                                    
+0001fdfc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fe00  mov      x22, x0                                     
+0001fe04  adrp     x0, #0x38000                                
+0001fe08  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001fe0c  mov      x1, x22                                     
+0001fe10  bl       #0x2155c                                    ; _OMCLogWrite
+0001fe14  mov      x0, x22                                     
+0001fe18  bl       #0x27ff8                                    ; _objc_release
+0001fe1c  mov      x0, x25                                     
+0001fe20  bl       #0x27ff8                                    ; _objc_release
+0001fe24  mov      x0, x24                                     
+0001fe28  bl       #0x27ff8                                    ; _objc_release
+0001fe2c  mov      x0, x21                                     
+0001fe30  bl       #0x27ff8                                    ; _objc_release
+0001fe34  b        #0x1fe44                                    ; sub_1fe44
+0001fe38  mov      x0, x21                                     
+0001fe3c  bl       #0x27ff8                                    ; _objc_release
+0001fe40  mov      w23, #1                                     
+0001fe44  mov      x0, x20                                     
+0001fe48  bl       #0x27ff8                                    ; _objc_release
+0001fe4c  mov      x0, x19                                     
+0001fe50  bl       #0x27ff8                                    ; _objc_release
+0001fe54  mov      x0, x23                                     
+0001fe58  ldp      x29, x30, [sp, #0x70]                       
+0001fe5c  ldp      x20, x19, [sp, #0x60]                       
+0001fe60  ldp      x22, x21, [sp, #0x50]                       
+0001fe64  ldp      x24, x23, [sp, #0x40]                       
+0001fe68  ldp      x26, x25, [sp, #0x30]                       
+0001fe6c  ldp      d9, d8, [sp, #0x20]                         
+0001fe70  add      sp, sp, #0x80                               
+0001fe74  ret                                                  
+0001fe78  mov      x1, x22                                     
+0001fe7c  mov      x22, x0                                     
+0001fe80  mov      x0, x1                                      
+0001fe84  b        #0x1fe94                                    ; sub_1fe94
+0001fe88  b        #0x1fef8                                    ; sub_1fef8
+0001fe8c  mov      x22, x0                                     
+0001fe90  mov      x0, x26                                     
+0001fe94  bl       #0x27ff8                                    ; _objc_release
+0001fe98  b        #0x1fefc                                    ; sub_1fefc
+0001fe9c  b        #0x1fef8                                    ; sub_1fef8
+0001fea0  b        #0x1fee8                                    ; sub_1fee8
+0001fea4  mov      x22, x0                                     
+0001fea8  mov      x0, x23                                     
+0001feac  b        #0x1ff08                                    ; sub_1ff08
+0001feb0  b        #0x1fed8                                    ; sub_1fed8
+0001feb4  b        #0x1fec4                                    ; sub_1fec4
+0001feb8  b        #0x1fee0                                    ; sub_1fee0
+0001febc  b        #0x1fef0                                    ; sub_1fef0
+0001fec0  b        #0x1fef8                                    ; sub_1fef8
+0001fec4  mov      x22, x0                                     
+0001fec8  mov      x0, x19                                     
+0001fecc  b        #0x1ff18                                    ; sub_1ff18
+0001fed0  b        #0x1fee8                                    ; sub_1fee8
+0001fed4  b        #0x1fed8                                    ; sub_1fed8
+0001fed8  mov      x22, x0                                     
+0001fedc  b        #0x1ff0c                                    ; sub_1ff0c
+0001fee0  mov      x22, x0                                     
+0001fee4  b        #0x1ff14                                    ; sub_1ff14
+0001fee8  mov      x22, x0                                     
+0001feec  b        #0x1ff04                                    ; sub_1ff04
+0001fef0  mov      x22, x0                                     
+0001fef4  b        #0x1ff1c                                    ; sub_1ff1c
+0001fef8  mov      x22, x0                                     
+0001fefc  mov      x0, x25                                     
+0001ff00  bl       #0x27ff8                                    ; _objc_release
+0001ff04  mov      x0, x24                                     
+0001ff08  bl       #0x27ff8                                    ; _objc_release
+0001ff0c  mov      x0, x21                                     
+0001ff10  bl       #0x27ff8                                    ; _objc_release
+0001ff14  mov      x0, x20                                     
+0001ff18  bl       #0x27ff8                                    ; _objc_release
+0001ff1c  mov      x0, x19                                     
+0001ff20  bl       #0x27ff8                                    ; _objc_release
+0001ff24  mov      x0, x22                                     
+0001ff28  bl       #0x27c80                                    ; __Unwind_Resume

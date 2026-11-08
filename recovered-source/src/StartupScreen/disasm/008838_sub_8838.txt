@@ -1,0 +1,19 @@
+; sub_8838
+; VA 0x8838  size 64
+
+0x00008838:  cbz      x0, #0x8874
+0x0000883c:  stp      x20, x19, [sp, #-0x20]!
+0x00008840:  stp      x29, x30, [sp, #0x10]
+0x00008844:  add      x29, sp, #0x10
+0x00008848:  adrp     x1, #0x3b000
+0x0000884c:  add      x1, x1, #0x158
+0x00008850:  bl       #0x2209c    ; -> _objc_getAssociatedObject
+0x00008854:  mov      x29, x29
+0x00008858:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000885c:  mov      x19, x0
+0x00008860:  bl       #0x25d60    ; -> _objc_msgSend(tearDown)
+0x00008864:  mov      x0, x19
+0x00008868:  ldp      x29, x30, [sp, #0x10]
+0x0000886c:  ldp      x20, x19, [sp], #0x20
+0x00008870:  b        #0x22120    ; -> _objc_release
+0x00008874:  ret      

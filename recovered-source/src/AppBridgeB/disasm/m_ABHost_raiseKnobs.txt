@@ -1,0 +1,106 @@
+=== -[ABHost raiseKnobs] @ 0x13918 (size 420) ===
+00013918  sub      sp, sp, #0x130
+0001391c  stp      x28, x27, [sp, #0xd0]
+00013920  stp      x26, x25, [sp, #0xe0]
+00013924  stp      x24, x23, [sp, #0xf0]
+00013928  stp      x22, x21, [sp, #0x100]
+0001392c  stp      x20, x19, [sp, #0x110]
+00013930  stp      x29, x30, [sp, #0x120]
+00013934  add      x29, sp, #0x120
+00013938  mov      x20, x0
+0001393c  adrp     x8, #0x34000
+00013940  ldr      x8, [x8, #0x278] ; -> ___stack_chk_guard
+00013944  ldr      x8, [x8]
+00013948  stur     x8, [x29, #-0x58]
+0001394c  movi     v0.16b, #0
+00013950  stp      q0, q0, [sp]
+00013954  stp      q0, q0, [sp, #0x20]
+00013958  bl       #0x25e60 ; objc_msgSend sel=knobViews
+0001395c  mov      x29, x29
+00013960  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00013964  mov      x19, x0
+00013968  mov      x2, sp
+0001396c  add      x3, sp, #0x48
+00013970  mov      w4, #0x10
+00013974  bl       #0x25440 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+00013978  mov      x21, x0
+0001397c  cbz      x0, #0x13a34
+00013980  ldr      x8, [sp, #0x10]
+00013984  ldr      x24, [x8]
+00013988  mov      x25, #0
+0001398c  ldr      x8, [sp, #0x10]
+00013990  ldr      x8, [x8]
+00013994  cmp      x8, x24
+00013998  b.eq     #0x139a4
+0001399c  mov      x0, x19
+000139a0  bl       #0x24770 ; call _objc_enumerationMutation
+000139a4  ldr      x8, [sp, #8]
+000139a8  ldr      x22, [x8, x25, lsl #3]
+000139ac  mov      x0, x22
+000139b0  bl       #0x27e20 ; objc_msgSend sel=superview
+000139b4  mov      x29, x29
+000139b8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000139bc  mov      x23, x0
+000139c0  mov      x0, x20
+000139c4  bl       #0x281e0 ; objc_msgSend sel=window
+000139c8  mov      x29, x29
+000139cc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000139d0  cmp      x23, x0
+000139d4  cset     w26, eq
+000139d8  bl       #0x2480c ; call _objc_release
+000139dc  mov      x0, x23
+000139e0  bl       #0x2480c ; call _objc_release
+000139e4  cbz      w26, #0x13a0c
+000139e8  mov      x0, x20
+000139ec  bl       #0x281e0 ; objc_msgSend sel=window
+000139f0  mov      x29, x29
+000139f4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000139f8  mov      x23, x0
+000139fc  mov      x2, x22
+00013a00  bl       #0x24f80 ; objc_msgSend sel=bringSubviewToFront:
+00013a04  mov      x0, x23
+00013a08  bl       #0x2480c ; call _objc_release
+00013a0c  add      x25, x25, #1
+00013a10  cmp      x21, x25
+00013a14  b.ne     #0x1398c
+00013a18  mov      x2, sp
+00013a1c  add      x3, sp, #0x48
+00013a20  mov      x0, x19
+00013a24  mov      w4, #0x10
+00013a28  bl       #0x25440 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+00013a2c  mov      x21, x0
+00013a30  cbnz     x0, #0x13988
+00013a34  mov      x0, x19
+00013a38  bl       #0x2480c ; call _objc_release
+00013a3c  ldur     x8, [x29, #-0x58]
+00013a40  adrp     x9, #0x34000
+00013a44  ldr      x9, [x9, #0x278] ; -> ___stack_chk_guard
+00013a48  ldr      x9, [x9]
+00013a4c  cmp      x9, x8
+00013a50  b.ne     #0x13a74
+00013a54  ldp      x29, x30, [sp, #0x120]
+00013a58  ldp      x20, x19, [sp, #0x110]
+00013a5c  ldp      x22, x21, [sp, #0x100]
+00013a60  ldp      x24, x23, [sp, #0xf0]
+00013a64  ldp      x26, x25, [sp, #0xe0]
+00013a68  ldp      x28, x27, [sp, #0xd0]
+00013a6c  add      sp, sp, #0x130
+00013a70  ret      
+00013a74  bl       #0x24488 ; call ___stack_chk_fail
+00013a78  b        #0x13aa0 ; call sub_13aa0
+00013a7c  b        #0x13aa0 ; call sub_13aa0
+00013a80  mov      x20, x0
+00013a84  mov      x0, x23
+00013a88  bl       #0x2480c ; call _objc_release
+00013a8c  b        #0x13aa4 ; call sub_13aa4
+00013a90  mov      x20, x0
+00013a94  mov      x0, x23
+00013a98  bl       #0x2480c ; call _objc_release
+00013a9c  b        #0x13aa4 ; call sub_13aa4
+00013aa0  mov      x20, x0
+00013aa4  mov      x0, x19
+00013aa8  bl       #0x2480c ; call _objc_release
+00013aac  b        #0x13ab4 ; call sub_13ab4
+00013ab0  mov      x20, x0
+00013ab4  mov      x0, x20
+00013ab8  bl       #0x24470 ; call __Unwind_Resume

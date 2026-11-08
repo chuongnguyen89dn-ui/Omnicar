@@ -1,0 +1,156 @@
+; ==== sub_a2c4_SPPCandidatesSummary @0xa2c4..0xa530 (620 bytes) — closure pass dump ====
+0000a2c4  stp      x28, x27, [sp, #-0x60]!                        
+0000a2c8  stp      x26, x25, [sp, #0x10]                          
+0000a2cc  stp      x24, x23, [sp, #0x20]                          
+0000a2d0  stp      x22, x21, [sp, #0x30]                          
+0000a2d4  stp      x20, x19, [sp, #0x40]                          
+0000a2d8  stp      x29, x30, [sp, #0x50]                          
+0000a2dc  add      x29, sp, #0x50                                 
+0000a2e0  sub      sp, sp, #0x1a0                                 
+0000a2e4  mov      x19, x0                                        
+0000a2e8  adrp     x8, #0x38000                                   
+0000a2ec  ldr      x8, [x8, #0x340]                               ; [0x38340] got ___stack_chk_guard
+0000a2f0  ldr      x8, [x8]                                       ; [0x38000] got ___objc_personality_v0
+0000a2f4  stur     x8, [x29, #-0x60]                              
+0000a2f8  bl       #0x28004                                       ; call _objc_retain
+0000a2fc  movi     v0.16b, #0                                     
+0000a300  stp      q0, q0, [sp, #0x50]                            
+0000a304  stp      q0, q0, [sp, #0x70]                            
+0000a308  mov      x0, x19                                        
+0000a30c  bl       #0x28004                                       ; call _objc_retain
+0000a310  add      x2, sp, #0x50                                  
+0000a314  sub      x3, x29, #0xe0                                 
+0000a318  str      x19, [sp, #8]                                  
+0000a31c  mov      x0, x19                                        
+0000a320  mov      w4, #0x10                                      
+0000a324  bl       #0x29020                                       ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0000a328  mov      x19, x0                                        
+0000a32c  cbz      x0, #0xa45c                                    ; -> loc_a45c
+0000a330  ldr      x8, [sp, #0x60]                                
+0000a334  ldr      x21, [x8]                                      ; [0x38000] got ___objc_personality_v0
+0000a338  adrp     x25, #0x42000                                  
+0000a33c  mov      x27, #0                                        
+0000a340  ldr      x8, [sp, #0x60]                                
+0000a344  ldr      x8, [x8]                                       ; [0x38000] got ___objc_personality_v0
+0000a348  cmp      x8, x21                                        
+0000a34c  b.eq     #0xa358                                        ; -> loc_a358
+0000a350  ldr      x0, [sp, #8]                                   
+0000a354  bl       #0x27f68                                       ; call _objc_enumerationMutation
+0000a358  ldr      x8, [sp, #0x58]                                
+0000a35c  ldr      x22, [x8, x27, lsl #3]                         ; [0x38000] got ___objc_personality_v0
+0000a360  ldr      x0, [x25, #0xfe0]                              ; [0x42fe0] classref NSMutableArray
+0000a364  bl       #0x28820                                       ; objc_msgSend$array
+0000a368  mov      x29, x29                                       
+0000a36c  bl       #0x2801c                                       ; call _objc_retainAutoreleasedReturnValue
+0000a370  mov      x20, x0                                        
+0000a374  mov      x0, x22                                        
+0000a378  mov      x1, x20                                        
+0000a37c  mov      w2, #0                                         
+0000a380  bl       #0xc018                                        ; call sub_c018
+0000a384  movi     v0.16b, #0                                     
+0000a388  stp      q0, q0, [sp, #0x30]                            
+0000a38c  stp      q0, q0, [sp, #0x10]                            
+0000a390  mov      x0, x20                                        
+0000a394  bl       #0x28004                                       ; call _objc_retain
+0000a398  add      x2, sp, #0x10                                  
+0000a39c  add      x3, sp, #0x90                                  
+0000a3a0  mov      x0, x20                                        
+0000a3a4  mov      w4, #0x10                                      
+0000a3a8  bl       #0x29020                                       ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0000a3ac  mov      x22, x0                                        
+0000a3b0  cbz      x0, #0xa424                                    ; -> loc_a424
+0000a3b4  ldr      x8, [sp, #0x20]                                
+0000a3b8  ldr      x28, [x8]                                      ; [0x38000] got ___objc_personality_v0
+0000a3bc  mov      x26, #0                                        
+0000a3c0  ldr      x8, [sp, #0x20]                                
+0000a3c4  ldr      x8, [x8]                                       ; [0x38000] got ___objc_personality_v0
+0000a3c8  cmp      x8, x28                                        
+0000a3cc  b.eq     #0xa3d8                                        ; -> loc_a3d8
+0000a3d0  mov      x0, x20                                        
+0000a3d4  bl       #0x27f68                                       ; call _objc_enumerationMutation
+0000a3d8  ldr      x8, [sp, #0x18]                                
+0000a3dc  ldr      x24, [x8, x26, lsl #3]                         ; [0x38000] got ___objc_personality_v0
+0000a3e0  mov      x0, x24                                        
+0000a3e4  bl       #0xae3c                                        ; call sub_ae3c
+0000a3e8  tbz      w0, #0, #0xa3fc                                ; -> loc_a3fc
+0000a3ec  mov      x0, x24                                        
+0000a3f0  bl       #0xb0ec                                        ; call sub_b0ec
+0000a3f4  mov      x23, x0                                        
+0000a3f8  tbz      w0, #0x1f, #0xa464                             ; -> loc_a464
+0000a3fc  add      x26, x26, #1                                   
+0000a400  cmp      x22, x26                                       
+0000a404  b.ne     #0xa3c0                                        ; -> loc_a3c0
+0000a408  add      x2, sp, #0x10                                  
+0000a40c  add      x3, sp, #0x90                                  
+0000a410  mov      x0, x20                                        
+0000a414  mov      w4, #0x10                                      
+0000a418  bl       #0x29020                                       ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0000a41c  mov      x22, x0                                        
+0000a420  cbnz     x0, #0xa3bc                                    ; -> loc_a3bc
+0000a424  mov      x0, x20                                        
+0000a428  bl       #0x27ff8                                       ; call _objc_release
+0000a42c  mov      x0, x20                                        
+0000a430  bl       #0x27ff8                                       ; call _objc_release
+0000a434  add      x27, x27, #1                                   
+0000a438  cmp      x27, x19                                       
+0000a43c  b.ne     #0xa340                                        ; -> loc_a340
+0000a440  add      x2, sp, #0x50                                  
+0000a444  sub      x3, x29, #0xe0                                 
+0000a448  ldr      x0, [sp, #8]                                   
+0000a44c  mov      w4, #0x10                                      
+0000a450  bl       #0x29020                                       ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0000a454  mov      x19, x0                                        
+0000a458  cbnz     x0, #0xa33c                                    ; -> loc_a33c
+0000a45c  mov      w23, #-1                                       
+0000a460  b        #0xa484                                        ; -> loc_a484
+0000a464  adrp     x0, #0x43000                                   
+0000a468  add      x0, x0, #0x7f8                                 ; [0x437f8] global SPPCachedAuxView(weak)
+0000a46c  mov      x1, x24                                        
+0000a470  bl       #0x2804c                                       ; call _objc_storeWeak
+0000a474  mov      x0, x20                                        
+0000a478  bl       #0x27ff8                                       ; call _objc_release
+0000a47c  mov      x0, x20                                        
+0000a480  bl       #0x27ff8                                       ; call _objc_release
+0000a484  ldr      x0, [sp, #8]                                   
+0000a488  bl       #0x27ff8                                       ; call _objc_release
+0000a48c  ldr      x0, [sp, #8]                                   
+0000a490  bl       #0x27ff8                                       ; call _objc_release
+0000a494  ldur     x8, [x29, #-0x60]                              
+0000a498  adrp     x9, #0x38000                                   
+0000a49c  ldr      x9, [x9, #0x340]                               ; [0x38340] got ___stack_chk_guard
+0000a4a0  ldr      x9, [x9]                                       ; [0x38000] got ___objc_personality_v0
+0000a4a4  cmp      x9, x8                                         
+0000a4a8  b.ne     #0xa4d0                                        ; -> loc_a4d0
+0000a4ac  mov      x0, x23                                        
+0000a4b0  add      sp, sp, #0x1a0                                 
+0000a4b4  ldp      x29, x30, [sp, #0x50]                          
+0000a4b8  ldp      x20, x19, [sp, #0x40]                          
+0000a4bc  ldp      x22, x21, [sp, #0x30]                          
+0000a4c0  ldp      x24, x23, [sp, #0x20]                          
+0000a4c4  ldp      x26, x25, [sp, #0x10]                          
+0000a4c8  ldp      x28, x27, [sp], #0x60                          
+0000a4cc  ret                                                     
+0000a4d0  bl       #0x27ca4                                       ; call ___stack_chk_fail
+0000a4d4  b        #0xa4ec                                        ; -> loc_a4ec
+0000a4d8  b        #0xa4ec                                        ; -> loc_a4ec
+0000a4dc  b        #0xa4ec                                        ; -> loc_a4ec
+0000a4e0  b        #0xa4fc                                        ; -> loc_a4fc
+0000a4e4  mov      x21, x0                                        
+0000a4e8  b        #0xa508                                        ; -> loc_a508
+0000a4ec  mov      x21, x0                                        
+0000a4f0  b        #0xa510                                        ; -> loc_a510
+0000a4f4  b        #0xa4fc                                        ; -> loc_a4fc
+0000a4f8  b        #0xa4fc                                        ; -> loc_a4fc
+0000a4fc  mov      x21, x0                                        
+0000a500  mov      x0, x20                                        
+0000a504  bl       #0x27ff8                                       ; call _objc_release
+0000a508  mov      x0, x20                                        
+0000a50c  bl       #0x27ff8                                       ; call _objc_release
+0000a510  ldr      x0, [sp, #8]                                   
+0000a514  bl       #0x27ff8                                       ; call _objc_release
+0000a518  ldr      x0, [sp, #8]                                   
+0000a51c  bl       #0x27ff8                                       ; call _objc_release
+0000a520  b        #0xa528                                        ; -> loc_a528
+0000a524  mov      x21, x0                                        
+0000a528  mov      x0, x21                                        
+0000a52c  bl       #0x27c80                                       ; call __Unwind_Resume

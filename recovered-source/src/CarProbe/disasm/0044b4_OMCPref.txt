@@ -1,0 +1,29 @@
+; OMCPref
+; VA 0x44b4  size 104
+
+0x000044b4:  stp      x22, x21, [sp, #-0x30]!
+0x000044b8:  stp      x20, x19, [sp, #0x10]
+0x000044bc:  stp      x29, x30, [sp, #0x20]
+0x000044c0:  add      x29, sp, #0x20
+0x000044c4:  mov      x19, x1
+0x000044c8:  mov      x20, x0
+0x000044cc:  mov      x0, x1
+0x000044d0:  bl       #0xb41c    ; -> _objc_retain
+0x000044d4:  adrp     x1, #0x10000
+0x000044d8:  add      x1, x1, #0x6d8    ; @"com.anlai.omnicar"
+0x000044dc:  mov      x0, x20
+0x000044e0:  bl       #0xb074    ; -> _CFPreferencesCopyAppValue
+0x000044e4:  mov      x20, x0
+0x000044e8:  cmp      x0, #0
+0x000044ec:  csel     x21, x19, x0, eq
+0x000044f0:  mov      x0, x21
+0x000044f4:  bl       #0xb41c    ; -> _objc_retain
+0x000044f8:  mov      x0, x19
+0x000044fc:  bl       #0xb410    ; -> _objc_release
+0x00004500:  mov      x0, x20
+0x00004504:  bl       #0xb410    ; -> _objc_release
+0x00004508:  mov      x0, x21
+0x0000450c:  ldp      x29, x30, [sp, #0x20]
+0x00004510:  ldp      x20, x19, [sp, #0x10]
+0x00004514:  ldp      x22, x21, [sp], #0x30
+0x00004518:  b        #0xb38c    ; -> _objc_autoreleaseReturnValue

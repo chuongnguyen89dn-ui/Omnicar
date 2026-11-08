@@ -1,0 +1,117 @@
+; sub_54278
+0x054278  sub      sp, sp, #0x50
+0x05427c  stp      d9, d8, [sp, #0x10]
+0x054280  stp      x22, x21, [sp, #0x20]
+0x054284  stp      x20, x19, [sp, #0x30]
+0x054288  stp      x29, x30, [sp, #0x40]
+0x05428c  add      x29, sp, #0x40
+0x054290  mov      x19, x0
+0x054294  bl       #0x54220 ; -> sub_54220
+0x054298  ldr      d1, [x19, #0x20]
+0x05429c  fsub     d8, d0, d1
+0x0542a0  adrp     x8, #0x88000
+0x0542a4  add      x8, x8, #0x3a1 ; -> 0x883a1
+0x0542a8  stlrb    wzr, [x8]
+0x0542ac  adrp     x8, #0x88000
+0x0542b0  ldr      x8, [x8, #0x258]
+0x0542b4  fmov     d0, #0.50000000
+0x0542b8  fcmp     d8, d0
+0x0542bc  ccmp     x8, #0, #4, ge
+0x0542c0  b.ne     #0x542dc
+0x0542c4  ldp      x29, x30, [sp, #0x40]
+0x0542c8  ldp      x20, x19, [sp, #0x30]
+0x0542cc  ldp      x22, x21, [sp, #0x20]
+0x0542d0  ldp      d9, d8, [sp, #0x10]
+0x0542d4  add      sp, sp, #0x50
+0x0542d8  ret      
+0x0542dc  adrp     x8, #0x88000
+0x0542e0  ldr      d1, [x8, #0x318]
+0x0542e4  fmov     d0, #1.00000000
+0x0542e8  fadd     d1, d1, d0
+0x0542ec  str      d1, [x8, #0x318]
+0x0542f0  fmov     d1, #2.00000000
+0x0542f4  fcmp     d8, d1
+0x0542f8  b.lt     #0x5430c
+0x0542fc  adrp     x8, #0x88000
+0x054300  ldr      d1, [x8, #0x310]
+0x054304  fadd     d0, d1, d0
+0x054308  str      d0, [x8, #0x310]
+0x05430c  adrp     x8, #0x88000
+0x054310  ldr      d0, [x8, #0x308]
+0x054314  adrp     x9, #0x6f000
+0x054318  ldr      d1, [x9, #0x418]
+0x05431c  fmul     d1, d8, d1
+0x054320  fcmp     d0, d1
+0x054324  fcsel    d0, d1, d0, mi
+0x054328  str      d0, [x8, #0x308]
+0x05432c  bl       #0x51fb8 ; -> sub_51fb8
+0x054330  cbz      x0, #0x54360
+0x054334  ldrb     w8, [x0, #0x400]
+0x054338  cbz      w8, #0x54360
+0x05433c  adrp     x8, #0x87000
+0x054340  ldr      x8, [x8, #0x678] ; [0x87678] class:NSString
+0x054344  add      x2, x0, #0x400
+0x054348  mov      x0, x8
+0x05434c  bl       #0x5c460 ; objc_msgSend$stringWithUTF8String:
+0x054350  mov      x29, x29
+0x054354  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x054358  mov      x19, x0
+0x05435c  b        #0x54368
+0x054360  adrp     x19, #0x7c000
+0x054364  add      x19, x19, #0xe60 ; -> 0x7ce60 @"-"
+0x054368  adrp     x8, #0x87000
+0x05436c  ldr      x20, [x8, #0x6e8] ; [0x876e8] class:NSNumber
+0x054370  adrp     x22, #0x88000
+0x054374  ldr      x0, [x22, #0x280]
+0x054378  mov      x2, x19
+0x05437c  bl       #0x59660 ; objc_msgSend$objectForKeyedSubscript:
+0x054380  mov      x29, x29
+0x054384  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x054388  mov      x21, x0
+0x05438c  bl       #0x58be0 ; objc_msgSend$integerValue
+0x054390  add      x2, x0, #1
+0x054394  mov      x0, x20
+0x054398  bl       #0x59580 ; objc_msgSend$numberWithInteger:
+0x05439c  mov      x29, x29
+0x0543a0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0543a4  mov      x20, x0
+0x0543a8  ldr      x0, [x22, #0x280]
+0x0543ac  mov      x2, x20
+0x0543b0  mov      x3, x19
+0x0543b4  bl       #0x5b480 ; objc_msgSend$setObject:forKeyedSubscript:
+0x0543b8  mov      x0, x20
+0x0543bc  bl       #0x567b8 ; call _objc_release
+0x0543c0  mov      x0, x21
+0x0543c4  bl       #0x567b8 ; call _objc_release
+0x0543c8  adrp     x20, #0x88000
+0x0543cc  add      x20, x20, #0x380 ; -> 0x88380
+0x0543d0  ldur     q0, [x20, #8]
+0x0543d4  str      q0, [x20]
+0x0543d8  bl       #0x54220 ; -> sub_54220
+0x0543dc  str      d0, [x20, #0x10]
+0x0543e0  fmov     d0, #2.00000000
+0x0543e4  fcmp     d8, d0
+0x0543e8  b.lt     #0x5442c
+0x0543ec  adrp     x8, #0x87000
+0x0543f0  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x0543f4  str      x19, [sp, #8]
+0x0543f8  str      d8, [sp]
+0x0543fc  adrp     x2, #0x7f000
+0x054400  add      x2, x2, #0x360 ; -> 0x7f360 @"CarPlay do %.1fs (OmniCar gan nhat: %@)"
+0x054404  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x054408  mov      x29, x29
+0x05440c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x054410  mov      x20, x0
+0x054414  adrp     x0, #0x7e000
+0x054418  add      x0, x0, #0xdc0 ; -> 0x7edc0 @"Core"
+0x05441c  mov      x1, x20
+0x054420  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x054424  mov      x0, x20
+0x054428  bl       #0x567b8 ; call _objc_release
+0x05442c  mov      x0, x19
+0x054430  ldp      x29, x30, [sp, #0x40]
+0x054434  ldp      x20, x19, [sp, #0x30]
+0x054438  ldp      x22, x21, [sp, #0x20]
+0x05443c  ldp      d9, d8, [sp, #0x10]
+0x054440  add      sp, sp, #0x50
+0x054444  b        #0x567b8 ; call _objc_release

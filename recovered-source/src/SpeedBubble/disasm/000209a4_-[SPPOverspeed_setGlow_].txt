@@ -1,0 +1,15 @@
+# -[SPPOverspeed setGlow:]
+# addr 0x209a4 .. 0x209d4  (48 bytes)
+
+000209a4  stp      x20, x19, [sp, #-0x20]!                     
+000209a8  stp      x29, x30, [sp, #0x10]                       
+000209ac  add      x29, sp, #0x10                              
+000209b0  mov      x19, x2                                     
+000209b4  mov      x20, x0                                     
+000209b8  mov      x0, x2                                      
+000209bc  bl       #0x28004                                    ; _objc_retain
+000209c0  ldr      x0, [x20, #0x20]                            
+000209c4  str      x19, [x20, #0x20]                           
+000209c8  ldp      x29, x30, [sp, #0x10]                       
+000209cc  ldp      x20, x19, [sp], #0x20                       
+000209d0  b        #0x27ff8                                    ; _objc_release

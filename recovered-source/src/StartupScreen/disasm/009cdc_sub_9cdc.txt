@@ -1,0 +1,179 @@
+; sub_9cdc
+; VA 0x9cdc  size 704
+
+0x00009cdc:  adrp     x8, #0x28000
+0x00009ce0:  ldr      d0, [x8, #0xe00]
+0x00009ce4:  fcmp     d8, d0
+0x00009ce8:  b.mi     #0x9d98
+0x00009cec:  adrp     x2, #0x31000
+0x00009cf0:  add      x2, x2, #0xd08    ; @"lat"
+0x00009cf4:  mov      x0, x19
+0x00009cf8:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x00009cfc:  mov      x29, x29
+0x00009d00:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009d04:  mov      x21, x0
+0x00009d08:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x00009d0c:  mov      v9.16b, v0.16b
+0x00009d10:  mov      x0, x21
+0x00009d14:  bl       #0x22120    ; -> _objc_release
+0x00009d18:  adrp     x2, #0x31000
+0x00009d1c:  add      x2, x2, #0xd28    ; @"lon"
+0x00009d20:  mov      x0, x19
+0x00009d24:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x00009d28:  mov      x29, x29
+0x00009d2c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009d30:  mov      x21, x0
+0x00009d34:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x00009d38:  mov      v10.16b, v0.16b
+0x00009d3c:  mov      x0, x21
+0x00009d40:  bl       #0x22120    ; -> _objc_release
+0x00009d44:  mov      x0, x20
+0x00009d48:  bl       #0x22120    ; -> _objc_release
+0x00009d4c:  mov      x0, x19
+0x00009d50:  bl       #0x22120    ; -> _objc_release
+0x00009d54:  ldr      x0, [x25, #0x9c0]
+0x00009d58:  mov      x8, #-0x3fb2000000000000
+0x00009d5c:  fmov     d0, x8
+0x00009d60:  fdiv     d0, d8, d0
+0x00009d64:  str      d0, [sp]
+0x00009d68:  adrp     x2, #0x31000
+0x00009d6c:  add      x2, x2, #0xe48    ; @"nav app's (%.0f min old)"
+0x00009d70:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00009d74:  mov      x29, x29
+0x00009d78:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009d7c:  mov      x19, x0
+0x00009d80:  mov      v0.16b, v9.16b
+0x00009d84:  mov      v1.16b, v10.16b
+0x00009d88:  bl       #0x9f1c    ; -> sub_9f1c
+0x00009d8c:  b        #0x9ed4    ; -> sub_9ed4
+0x00009d90:  mov      x0, x21
+0x00009d94:  bl       #0x22120    ; -> _objc_release
+0x00009d98:  mov      x0, x20
+0x00009d9c:  bl       #0x22120    ; -> _objc_release
+0x00009da0:  mov      x0, x19
+0x00009da4:  bl       #0x22120    ; -> _objc_release
+0x00009da8:  ldr      x0, [x25, #0x9c0]
+0x00009dac:  adrp     x2, #0x31000
+0x00009db0:  add      x2, x2, #0xe68    ; @"weather: no position from the nav app yet, trying the IP"
+0x00009db4:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00009db8:  mov      x29, x29
+0x00009dbc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009dc0:  mov      x19, x0
+0x00009dc4:  adrp     x0, #0x30000
+0x00009dc8:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00009dcc:  mov      x1, x19
+0x00009dd0:  bl       #0x1b620    ; -> OMCLogWrite
+0x00009dd4:  mov      x0, x19
+0x00009dd8:  bl       #0x22120    ; -> _objc_release
+0x00009ddc:  adrp     x8, #0x3a000
+0x00009de0:  ldr      x0, [x8, #0xaa8]    ; class(NSURLSessionConfiguration)
+0x00009de4:  bl       #0x23260    ; -> _objc_msgSend(ephemeralSessionConfiguration)
+0x00009de8:  mov      x29, x29
+0x00009dec:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009df0:  mov      x19, x0
+0x00009df4:  fmov     d0, #4.00000000
+0x00009df8:  bl       #0x252e0    ; -> _objc_msgSend(setTimeoutIntervalForRequest:)
+0x00009dfc:  fmov     d0, #4.00000000
+0x00009e00:  mov      x0, x19
+0x00009e04:  bl       #0x25300    ; -> _objc_msgSend(setTimeoutIntervalForResource:)
+0x00009e08:  mov      x0, x19
+0x00009e0c:  mov      w2, #0
+0x00009e10:  bl       #0x25480    ; -> _objc_msgSend(setWaitsForConnectivity:)
+0x00009e14:  adrp     x8, #0x3a000
+0x00009e18:  ldr      x0, [x8, #0xab0]    ; class(NSURLSession)
+0x00009e1c:  mov      x2, x19
+0x00009e20:  bl       #0x24340    ; -> _objc_msgSend(sessionWithConfiguration:)
+0x00009e24:  mov      x29, x29
+0x00009e28:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009e2c:  mov      x20, x0
+0x00009e30:  adrp     x8, #0x3a000
+0x00009e34:  ldr      x0, [x8, #0xa60]    ; class(NSURL)
+0x00009e38:  adrp     x2, #0x31000
+0x00009e3c:  add      x2, x2, #0xec8    ; @"https://ipapi.co/json/"
+0x00009e40:  bl       #0x223a0    ; -> _objc_msgSend(URLWithString:)
+0x00009e44:  mov      x29, x29
+0x00009e48:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009e4c:  mov      x21, x0
+0x00009e50:  adrp     x8, #0x30000
+0x00009e54:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x00009e58:  str      x8, [sp, #8]
+0x00009e5c:  adrp     x8, #0x28000
+0x00009e60:  ldr      d0, [x8, #0xdd0]
+0x00009e64:  adrp     x8, #0xa000
+0x00009e68:  add      x8, x8, #0x22c
+0x00009e6c:  adrp     x9, #0x30000
+0x00009e70:  add      x9, x9, #0xb38
+0x00009e74:  str      d0, [sp, #0x10]
+0x00009e78:  stp      x8, x9, [sp, #0x18]
+0x00009e7c:  adrp     x8, #0x30000
+0x00009e80:  add      x8, x8, #0xae8    ; block_lit(invoke=0xa0c8 sub_a0c8, sig=v32@?0d8d16@"NSString"24)
+0x00009e84:  str      x8, [sp, #0x28]
+0x00009e88:  add      x3, sp, #8
+0x00009e8c:  mov      x0, x20
+0x00009e90:  mov      x2, x21
+0x00009e94:  bl       #0x22f00    ; -> _objc_msgSend(dataTaskWithURL:completionHandler:)
+0x00009e98:  mov      x29, x29
+0x00009e9c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009ea0:  mov      x22, x0
+0x00009ea4:  mov      x0, x21
+0x00009ea8:  bl       #0x22120    ; -> _objc_release
+0x00009eac:  mov      x0, x22
+0x00009eb0:  bl       #0x24260    ; -> _objc_msgSend(resume)
+0x00009eb4:  mov      x0, x20
+0x00009eb8:  bl       #0x233a0    ; -> _objc_msgSend(finishTasksAndInvalidate)
+0x00009ebc:  mov      x0, x22
+0x00009ec0:  bl       #0x22120    ; -> _objc_release
+0x00009ec4:  ldr      x0, [sp, #0x28]
+0x00009ec8:  bl       #0x22120    ; -> _objc_release
+0x00009ecc:  mov      x0, x20
+0x00009ed0:  bl       #0x22120    ; -> _objc_release
+0x00009ed4:  mov      x0, x19
+0x00009ed8:  bl       #0x22120    ; -> _objc_release
+0x00009edc:  ldur     x8, [x29, #-0x68]
+0x00009ee0:  adrp     x9, #0x30000
+0x00009ee4:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x00009ee8:  ldr      x9, [x9]
+0x00009eec:  cmp      x9, x8
+0x00009ef0:  b.ne     #0x9f18
+0x00009ef4:  add      sp, sp, #0x410
+0x00009ef8:  ldp      x29, x30, [sp, #0x60]
+0x00009efc:  ldp      x20, x19, [sp, #0x50]
+0x00009f00:  ldp      x22, x21, [sp, #0x40]
+0x00009f04:  ldp      x24, x23, [sp, #0x30]
+0x00009f08:  ldp      x26, x25, [sp, #0x20]
+0x00009f0c:  ldp      d9, d8, [sp, #0x10]
+0x00009f10:  ldp      d11, d10, [sp], #0x70
+0x00009f14:  ret      
+0x00009f18:  bl       #0x21dd8    ; -> ___stack_chk_fail
+0x00009f1c:  sub      sp, sp, #0x40
+0x00009f20:  stp      d9, d8, [sp, #0x10]
+0x00009f24:  stp      x20, x19, [sp, #0x20]
+0x00009f28:  stp      x29, x30, [sp, #0x30]
+0x00009f2c:  add      x29, sp, #0x30
+0x00009f30:  mov      v8.16b, v1.16b
+0x00009f34:  mov      v9.16b, v0.16b
+0x00009f38:  adrp     x8, #0x3a000
+0x00009f3c:  ldr      x8, [x8, #0x9c0]    ; class(NSString)
+0x00009f40:  str      x0, [sp]
+0x00009f44:  adrp     x2, #0x31000
+0x00009f48:  add      x2, x2, #0xfa8    ; @"weather: SpringBoard fetching with the %@ position"
+0x00009f4c:  mov      x0, x8
+0x00009f50:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00009f54:  mov      x29, x29
+0x00009f58:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009f5c:  mov      x19, x0
+0x00009f60:  adrp     x0, #0x30000
+0x00009f64:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00009f68:  mov      x1, x19
+0x00009f6c:  bl       #0x1b620    ; -> OMCLogWrite
+0x00009f70:  mov      x0, x19
+0x00009f74:  bl       #0x22120    ; -> _objc_release
+0x00009f78:  adrp     x0, #0x30000
+0x00009f7c:  add      x0, x0, #0xb88    ; block_lit(invoke=0xa608 sub_a608, sig=v16@?0@"NSDictionary"8)
+0x00009f80:  mov      v0.16b, v9.16b
+0x00009f84:  mov      v1.16b, v8.16b
+0x00009f88:  ldp      x29, x30, [sp, #0x30]
+0x00009f8c:  ldp      x20, x19, [sp, #0x20]
+0x00009f90:  ldp      d9, d8, [sp, #0x10]
+0x00009f94:  add      sp, sp, #0x40
+0x00009f98:  b        #0x88e4    ; -> sub_88e4

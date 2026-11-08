@@ -1,0 +1,76 @@
+; ==== SCP_helper_makePresetChip  @0x46a64..0x46b90 (300 bytes) ====
+00046a64  sub      sp, sp, #0x80                                
+00046a68  stp      d9, d8, [sp, #0x40]                          
+00046a6c  stp      x22, x21, [sp, #0x50]                        
+00046a70  stp      x20, x19, [sp, #0x60]                        
+00046a74  stp      x29, x30, [sp, #0x70]                        
+00046a78  add      x29, sp, #0x70                               
+00046a7c  mov      x19, x1                                      
+00046a80  mov      x21, x0                                      
+00046a84  mov      v8.16b, v0.16b                               
+00046a88  mov      x0, x1                                       
+00046a8c  bl       #0x567c4                                     ; call _objc_retain
+00046a90  adrp     x8, #0x87000                                 
+00046a94  ldr      x0, [x8, #0x828]                             ; classref UIGraphicsImageRenderer
+00046a98  bl       #0x566bc                                     ; call _objc_alloc
+00046a9c  mov      v0.16b, v8.16b                               
+00046aa0  mov      v1.16b, v8.16b                               
+00046aa4  bl       #0x58a00                                     ; msgSend "initWithSize:"
+00046aa8  mov      x20, x0                                      
+00046aac  adrp     x8, #0x78000                                 
+00046ab0  ldr      x8, [x8, #0x338]                             
+00046ab4  str      x8, [sp, #8]                                 
+00046ab8  adrp     x8, #0x6e000                                 
+00046abc  ldr      d0, [x8, #0xff8]                             ; double 1.6080749353e-314
+00046ac0  str      d0, [sp, #0x10]                              
+00046ac4  adrp     x8, #0x47000                                 
+00046ac8  add      x8, x8, #0x7dc                               
+00046acc  adrp     x9, #0x79000                                 
+00046ad0  add      x9, x9, #0xc0                                
+00046ad4  stp      x8, x9, [sp, #0x18]                          
+00046ad8  str      d8, [sp, #0x30]                              
+00046adc  strb     w21, [sp, #0x38]                             
+00046ae0  mov      x0, x19                                      
+00046ae4  bl       #0x567c4                                     ; call _objc_retain
+00046ae8  str      x19, [sp, #0x28]                             
+00046aec  add      x2, sp, #8                                   
+00046af0  mov      x0, x20                                      
+00046af4  bl       #0x58880                                     ; msgSend "imageWithActions:"
+00046af8  mov      x29, x29                                     
+00046afc  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00046b00  mov      x22, x0                                      
+00046b04  mov      w2, #2                                       
+00046b08  bl       #0x58900                                     ; msgSend "imageWithRenderingMode:"
+00046b0c  mov      x29, x29                                     
+00046b10  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00046b14  mov      x21, x0                                      
+00046b18  mov      x0, x22                                      
+00046b1c  bl       #0x567b8                                     ; call _objc_release
+00046b20  ldr      x0, [sp, #0x28]                              
+00046b24  bl       #0x567b8                                     ; call _objc_release
+00046b28  mov      x0, x20                                      
+00046b2c  bl       #0x567b8                                     ; call _objc_release
+00046b30  mov      x0, x19                                      
+00046b34  bl       #0x567b8                                     ; call _objc_release
+00046b38  mov      x0, x21                                      
+00046b3c  ldp      x29, x30, [sp, #0x70]                        
+00046b40  ldp      x20, x19, [sp, #0x60]                        
+00046b44  ldp      x22, x21, [sp, #0x50]                        
+00046b48  ldp      d9, d8, [sp, #0x40]                          
+00046b4c  add      sp, sp, #0x80                                
+00046b50  b        #0x566e0                                     ; call _objc_autoreleaseReturnValue | tail _objc_autoreleaseReturnValue
+00046b54  mov      x21, x0                                      
+00046b58  mov      x0, x22                                      
+00046b5c  bl       #0x567b8                                     ; call _objc_release
+00046b60  b        #0x46b68                                     
+00046b64  mov      x21, x0                                      
+00046b68  ldr      x0, [sp, #0x28]                              
+00046b6c  bl       #0x567b8                                     ; call _objc_release
+00046b70  mov      x0, x20                                      
+00046b74  bl       #0x567b8                                     ; call _objc_release
+00046b78  b        #0x46b80                                     
+00046b7c  mov      x21, x0                                      
+00046b80  mov      x0, x19                                      
+00046b84  bl       #0x567b8                                     ; call _objc_release
+00046b88  mov      x0, x21                                      
+00046b8c  bl       #0x563e0                                     ; call __Unwind_Resume

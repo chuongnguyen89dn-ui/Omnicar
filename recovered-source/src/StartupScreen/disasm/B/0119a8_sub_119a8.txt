@@ -1,0 +1,77 @@
+; sub_119a8
+; VA 0x119a8  size 296
+
+0x000119a8:  fadd     d0, d0, d15
+0x000119ac:  fcvt     s0, d0
+0x000119b0:  mov      x0, x23
+0x000119b4:  bl       #0x24e00    ; -> _objc_msgSend(setOpacity:)
+0x000119b8:  mov      w0, #0x4241
+0x000119bc:  movk     w0, #0xf, lsl #16
+0x000119c0:  bl       #0x21e14    ; -> _arc4random_uniform
+0x000119c4:  ucvtf    d0, w0
+0x000119c8:  fmul     d0, d0, d14
+0x000119cc:  fdiv     d0, d0, d11
+0x000119d0:  fadd     d0, d0, d10
+0x000119d4:  ldr      d1, [sp, #0x30]
+0x000119d8:  fmul     d9, d1, d0
+0x000119dc:  fmov     d0, xzr
+0x000119e0:  mov      x0, x23
+0x000119e4:  mov      v1.16b, v9.16b
+0x000119e8:  bl       #0x24ee0    ; -> _objc_msgSend(setPosition:)
+0x000119ec:  ldr      d0, [sp, #0x28]
+0x000119f0:  fadd     d13, d0, d8
+0x000119f4:  mov      w0, #0x4241
+0x000119f8:  movk     w0, #0xf, lsl #16
+0x000119fc:  bl       #0x21e14    ; -> _arc4random_uniform
+0x00011a00:  ucvtf    d0, w0
+0x00011a04:  fmul     d0, d13, d0
+0x00011a08:  fdiv     d0, d0, d11
+0x00011a0c:  fmov     d1, xzr
+0x00011a10:  fadd     d13, d0, d1
+0x00011a14:  mov      w0, #0x4241
+0x00011a18:  movk     w0, #0xf, lsl #16
+0x00011a1c:  bl       #0x21e14    ; -> _arc4random_uniform
+0x00011a20:  ucvtf    d0, w0
+0x00011a24:  fmov     d1, #14.00000000
+0x00011a28:  fmul     d0, d0, d1
+0x00011a2c:  fdiv     d0, d0, d11
+0x00011a30:  fmov     d1, #8.00000000
+0x00011a34:  fadd     d0, d0, d1
+0x00011a38:  str      x27, [sp, #0x40]
+0x00011a3c:  stp      d13, d9, [sp, #0x48]
+0x00011a40:  ldr      d13, [sp, #0x38]
+0x00011a44:  fmul     d0, d13, d0
+0x00011a48:  str      d0, [sp, #0x58]
+0x00011a4c:  str      xzr, [sp, #0x60]
+0x00011a50:  str      d8, [sp, #0x68]
+0x00011a54:  str      xzr, [sp, #0x70]
+0x00011a58:  add      x2, sp, #0x40
+0x00011a5c:  mov      x0, x19
+0x00011a60:  mov      x3, x23
+0x00011a64:  mov      x4, x28
+0x00011a68:  bl       #0x25640    ; -> _objc_msgSend(ss_addMote:layer:to:)
+0x00011a6c:  mov      x0, x23
+0x00011a70:  bl       #0x22120    ; -> _objc_release
+0x00011a74:  subs     x20, x20, #1
+0x00011a78:  b.ne     #0x11900
+0x00011a7c:  mov      x0, x21
+0x00011a80:  bl       #0x22120    ; -> _objc_release
+0x00011a84:  cmp      x25, #7
+0x00011a88:  b.gt     #0x11cf4
+0x00011a8c:  sub      x8, x25, #6
+0x00011a90:  cmp      x8, #2
+0x00011a94:  ldp      d14, d15, [sp, #0x28]
+0x00011a98:  ldr      x21, [sp, #0x18]
+0x00011a9c:  b.lo     #0x11f3c
+0x00011aa0:  cmp      x25, #5
+0x00011aa4:  mov      v8.16b, v13.16b
+0x00011aa8:  mov      v9.16b, v14.16b
+0x00011aac:  b.ne     #0x12500
+0x00011ab0:  adrp     x8, #0x30000
+0x00011ab4:  ldr      x8, [x8, #0x318]    ; got(_kCAGradientLayerRadial)
+0x00011ab8:  ldr      x8, [x8]
+0x00011abc:  str      x8, [sp, #0x30]
+0x00011ac0:  adrp     x8, #0x28000
+0x00011ac4:  ldr      d0, [x8, #0xfc8]
+0x00011ac8:  fmul     d0, d8, d0
+0x00011acc:  str      d0, [sp, #0x28]

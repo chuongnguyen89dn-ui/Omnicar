@@ -1,0 +1,22 @@
+# sub_d308
+# addr 0xd308 .. 0xd354  (76 bytes)
+
+0000d308  stp      x20, x19, [sp, #-0x20]!                     
+0000d30c  stp      x29, x30, [sp, #0x10]                       
+0000d310  add      x29, sp, #0x10                              
+0000d314  adrp     x8, #0x43000                                
+0000d318  ldr      x0, [x8, #0x48]                             ; [0x43048] classref -> SPPOverspeed
+0000d31c  bl       #0x2bd80                                    ; objc_msgSend$shared
+0000d320  mov      x29, x29                                    
+0000d324  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000d328  mov      x19, x0                                     
+0000d32c  bl       #0x28c00                                    ; objc_msgSend$carChanged
+0000d330  mov      x0, x19                                     
+0000d334  ldp      x29, x30, [sp, #0x10]                       
+0000d338  ldp      x20, x19, [sp], #0x20                       
+0000d33c  b        #0x27ff8                                    ; _objc_release
+0000d340  mov      x20, x0                                     
+0000d344  mov      x0, x19                                     
+0000d348  bl       #0x27ff8                                    ; _objc_release
+0000d34c  mov      x0, x20                                     
+0000d350  bl       #0x27c80                                    ; __Unwind_Resume

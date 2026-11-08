@@ -1,0 +1,84 @@
+; ==== SCPCarSplit__neighbourCornersForSlot_  @0x11a04..0x11b50 (332 bytes) ====
+00011a04  stp      x24, x23, [sp, #-0x40]!                      
+00011a08  stp      x22, x21, [sp, #0x10]                        
+00011a0c  stp      x20, x19, [sp, #0x20]                        
+00011a10  stp      x29, x30, [sp, #0x30]                        
+00011a14  add      x29, sp, #0x30                               
+00011a18  mov      x19, x2                                      
+00011a1c  mov      x20, x0                                      
+00011a20  bl       #0x59800                                     ; msgSend "paneCount"
+00011a24  mov      x21, #0                                      
+00011a28  cmp      w19, w0                                      
+00011a2c  b.ge     #0x11b38                                     
+00011a30  tbnz     w19, #0x1f, #0x11b38                         
+00011a34  mov      x23, x0                                      
+00011a38  cmp      w0, #2                                       
+00011a3c  b.lt     #0x11b38                                     
+00011a40  mov      x0, x20                                      
+00011a44  bl       #0x5cb20                                     ; msgSend "vertical"
+00011a48  mov      x22, x0                                      
+00011a4c  mov      x0, x20                                      
+00011a50  bl       #0x59260                                     ; msgSend "mainStack"
+00011a54  cbz      w0, #0x11b04                                 
+00011a58  cmp      w22, #0                                      
+00011a5c  mov      w8, #0xd                                     
+00011a60  mov      w9, #0xb                                     
+00011a64  csel     x8, x9, x8, ne                               
+00011a68  mov      w9, #3                                       
+00011a6c  mov      w10, #5                                      
+00011a70  csel     w9, w10, w9, ne                              
+00011a74  mov      w10, #4                                      
+00011a78  mov      w11, #2                                      
+00011a7c  csel     w10, w11, w10, ne                            
+00011a80  mov      w11, #0xa                                    
+00011a84  mov      w12, #0xc                                    
+00011a88  csel     w11, w12, w11, ne                            
+00011a8c  cmp      w19, #1                                      
+00011a90  mov      w12, #7                                      
+00011a94  csel     x8, x8, x12, eq                              
+00011a98  csel     w9, w9, w10, eq                              
+00011a9c  orr      w9, w9, w11                                  
+00011aa0  and      x8, x9, x8                                   
+00011aa4  cmp      w22, #0                                      
+00011aa8  mov      w9, #0xa                                     
+00011aac  mov      w10, #0xc                                    
+00011ab0  csel     x9, x10, x9, ne                              
+00011ab4  cmp      w19, #0                                      
+00011ab8  csel     x21, x8, x9, ne                              
+00011abc  mov      x0, x20                                      
+00011ac0  bl       #0x59200                                     ; msgSend "mainRight"
+00011ac4  cbz      w0, #0x11b38                                 
+00011ac8  cmp      w22, #0                                      
+00011acc  mov      w8, #2                                       
+00011ad0  mov      w9, #4                                       
+00011ad4  csel     x10, x9, x8, ne                              
+00011ad8  csel     x8, x8, x9, ne                               
+00011adc  sbfx     x9, x21, #0, #1                              
+00011ae0  and      x9, x9, x10                                  
+00011ae4  tst      x21, x10                                     
+00011ae8  cinc     x9, x9, ne                                   
+00011aec  orr      x10, x9, #8                                  
+00011af0  tst      x21, x8                                      
+00011af4  csel     x9, x9, x10, eq                              
+00011af8  cmp      x21, #8                                      
+00011afc  csel     x8, xzr, x8, lo                              
+00011b00  b        #0x11b34                                     
+00011b04  cmp      w22, #0                                      
+00011b08  mov      w8, #0xa                                     
+00011b0c  mov      w9, #0xc                                     
+00011b10  csel     x8, x9, x8, ne                               
+00011b14  mov      w9, #5                                       
+00011b18  mov      w10, #3                                      
+00011b1c  csel     x9, x10, x9, ne                              
+00011b20  cmp      w19, #0                                      
+00011b24  csel     x9, xzr, x9, eq                              
+00011b28  sub      w10, w23, #1                                 
+00011b2c  cmp      w19, w10                                     
+00011b30  csel     x8, x8, xzr, lo                              
+00011b34  orr      x21, x9, x8                                  
+00011b38  mov      x0, x21                                      
+00011b3c  ldp      x29, x30, [sp, #0x30]                        
+00011b40  ldp      x20, x19, [sp, #0x20]                        
+00011b44  ldp      x22, x21, [sp, #0x10]                        
+00011b48  ldp      x24, x23, [sp], #0x40                        
+00011b4c  ret                                                   

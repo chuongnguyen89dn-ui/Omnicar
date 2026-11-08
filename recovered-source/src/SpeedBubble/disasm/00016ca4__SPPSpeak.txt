@@ -1,0 +1,107 @@
+# _SPPSpeak
+# addr 0x16ca4 .. 0x16e44  (416 bytes)
+
+00016ca4  sub      sp, sp, #0x50                               
+00016ca8  stp      x24, x23, [sp, #0x10]                       
+00016cac  stp      x22, x21, [sp, #0x20]                       
+00016cb0  stp      x20, x19, [sp, #0x30]                       
+00016cb4  stp      x29, x30, [sp, #0x40]                       
+00016cb8  add      x29, sp, #0x40                              
+00016cbc  mov      x19, x0                                     
+00016cc0  bl       #0x28004                                    ; _objc_retain
+00016cc4  mov      x0, x19                                     
+00016cc8  bl       #0x29ba0                                    ; objc_msgSend$length
+00016ccc  cbz      x0, #0x16e28                                
+00016cd0  adrp     x24, #0x43000                               
+00016cd4  ldr      x0, [x24, #0x908]                           ; [0x43908] __DATA,__bss+0x168
+00016cd8  cbnz     x0, #0x16d2c                                
+00016cdc  adrp     x8, #0x43000                                
+00016ce0  ldr      x0, [x8, #0xb0]                             ; [0x430b0] classref -> AVSpeechSynthesizer (= import _OBJC_CLASS_$_AVSpeechSynthesizer)
+00016ce4  bl       #0x27fd4                                    ; _objc_opt_new
+00016ce8  ldr      x8, [x24, #0x908]                           ; [0x43908] __DATA,__bss+0x168
+00016cec  str      x0, [x24, #0x908]                           
+00016cf0  mov      x0, x8                                      
+00016cf4  bl       #0x27ff8                                    ; _objc_release
+00016cf8  ldr      x0, [x24, #0x908]                           ; [0x43908] __DATA,__bss+0x168
+00016cfc  mov      w2, #1                                      
+00016d00  bl       #0x2bbe0                                    ; objc_msgSend$setUsesApplicationAudioSession:
+00016d04  bl       #0x16c54                                    ; sub_16c54
+00016d08  mov      x29, x29                                    
+00016d0c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016d10  mov      x20, x0                                     
+00016d14  ldr      x0, [x24, #0x908]                           ; [0x43908] __DATA,__bss+0x168
+00016d18  mov      x2, x20                                     
+00016d1c  bl       #0x2ade0                                    ; objc_msgSend$setDelegate:
+00016d20  mov      x0, x20                                     
+00016d24  bl       #0x27ff8                                    ; _objc_release
+00016d28  ldr      x0, [x24, #0x908]                           ; [0x43908] __DATA,__bss+0x168
+00016d2c  bl       #0x29aa0                                    ; objc_msgSend$isSpeaking
+00016d30  cbz      w0, #0x16d40                                
+00016d34  ldr      x0, [x24, #0x908]                           ; [0x43908] __DATA,__bss+0x168
+00016d38  mov      x2, #0                                      
+00016d3c  bl       #0x2c1a0                                    ; objc_msgSend$stopSpeakingAtBoundary:
+00016d40  bl       #0x16a1c                                    ; sub_16a1c
+00016d44  adrp     x8, #0x43000                                
+00016d48  ldr      x0, [x8, #0xb8]                             ; [0x430b8] classref -> AVSpeechUtterance (= import _OBJC_CLASS_$_AVSpeechUtterance)
+00016d4c  mov      x2, x19                                     
+00016d50  bl       #0x2bfa0                                    ; objc_msgSend$speechUtteranceWithString:
+00016d54  mov      x29, x29                                    
+00016d58  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016d5c  mov      x20, x0                                     
+00016d60  adrp     x8, #0x43000                                
+00016d64  ldr      x21, [x8, #0xc0]                            ; [0x430c0] classref -> AVSpeechSynthesisVoice (= import _OBJC_CLASS_$_AVSpeechSynthesisVoice)
+00016d68  bl       #0x16e44                                    ; sub_16e44
+00016d6c  mov      x29, x29                                    
+00016d70  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016d74  mov      x22, x0                                     
+00016d78  mov      x0, x21                                     
+00016d7c  mov      x2, x22                                     
+00016d80  bl       #0x2c840                                    ; objc_msgSend$voiceWithLanguage:
+00016d84  mov      x29, x29                                    
+00016d88  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016d8c  mov      x21, x0                                     
+00016d90  mov      x0, x22                                     
+00016d94  bl       #0x27ff8                                    ; _objc_release
+00016d98  cbnz     x21, #0x16df4                               
+00016d9c  adrp     x8, #0x42000                                
+00016da0  ldr      x22, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00016da4  bl       #0x16e44                                    ; sub_16e44
+00016da8  mov      x29, x29                                    
+00016dac  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016db0  mov      x23, x0                                     
+00016db4  str      x0, [sp]                                    
+00016db8  adrp     x2, #0x3a000                                
+00016dbc  add      x2, x2, #0x538                              ; @"am thanh: khong co giong %@, dung giong mac dinh"
+00016dc0  mov      x0, x22                                     
+00016dc4  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00016dc8  mov      x29, x29                                    
+00016dcc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016dd0  mov      x22, x0                                     
+00016dd4  adrp     x0, #0x38000                                
+00016dd8  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00016ddc  mov      x1, x22                                     
+00016de0  bl       #0x2155c                                    ; _OMCLogWrite
+00016de4  mov      x0, x22                                     
+00016de8  bl       #0x27ff8                                    ; _objc_release
+00016dec  mov      x0, x23                                     
+00016df0  bl       #0x27ff8                                    ; _objc_release
+00016df4  mov      x0, x20                                     
+00016df8  mov      x2, x21                                     
+00016dfc  bl       #0x2bc20                                    ; objc_msgSend$setVoice:
+00016e00  fmov     s0, #1.00000000                             
+00016e04  mov      x0, x20                                     
+00016e08  bl       #0x2bc80                                    ; objc_msgSend$setVolume:
+00016e0c  ldr      x0, [x24, #0x908]                           ; [0x43908] __DATA,__bss+0x168
+00016e10  mov      x2, x20                                     
+00016e14  bl       #0x2bf80                                    ; objc_msgSend$speakUtterance:
+00016e18  mov      x0, x21                                     
+00016e1c  bl       #0x27ff8                                    ; _objc_release
+00016e20  mov      x0, x20                                     
+00016e24  bl       #0x27ff8                                    ; _objc_release
+00016e28  mov      x0, x19                                     
+00016e2c  ldp      x29, x30, [sp, #0x40]                       
+00016e30  ldp      x20, x19, [sp, #0x30]                       
+00016e34  ldp      x22, x21, [sp, #0x20]                       
+00016e38  ldp      x24, x23, [sp, #0x10]                       
+00016e3c  add      sp, sp, #0x50                               
+00016e40  b        #0x27ff8                                    ; _objc_release

@@ -1,0 +1,58 @@
+=== sub_698c @ 0x698c (size 228) ===
+0000698c  stp      x22, x21, [sp, #-0x30]!
+00006990  stp      x20, x19, [sp, #0x10]
+00006994  stp      x29, x30, [sp, #0x20]
+00006998  add      x29, sp, #0x20
+0000699c  mov      x19, x0
+000069a0  bl       #0x24818 ; call _objc_retain
+000069a4  adrp     x8, #0x3e000
+000069a8  ldr      w8, [x8, #0x7d0] ; -> 0xffffffff
+000069ac  cmp      w8, #1
+000069b0  b.lt     #0x6a38
+000069b4  adrp     x8, #0x3d000
+000069b8  ldr      x1, [x8, #0xca8] ; selref @setInputView:
+000069bc  mov      x0, x19
+000069c0  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+000069c4  tbz      w0, #0, #0x6a38
+000069c8  mov      x0, x19
+000069cc  bl       #0x25ae0 ; objc_msgSend sel=inputView
+000069d0  mov      x29, x29
+000069d4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000069d8  mov      x20, x0
+000069dc  bl       #0x2480c ; call _objc_release
+000069e0  cbnz     x20, #0x6a38
+000069e4  adrp     x8, #0x3e000
+000069e8  ldr      x0, [x8, #0x2d0] ; bind _OBJC_CLASS_$_UIView
+000069ec  bl       #0x2471c ; call _objc_alloc
+000069f0  adrp     x8, #0x34000
+000069f4  ldr      x8, [x8, #0x570] ; -> _CGRectZero
+000069f8  ldp      d0, d1, [x8]
+000069fc  ldp      d2, d3, [x8, #0x10]
+00006a00  bl       #0x25a40 ; objc_msgSend sel=initWithFrame:
+00006a04  mov      x20, x0
+00006a08  mov      x0, x19
+00006a0c  mov      x2, x20
+00006a10  bl       #0x271a0 ; objc_msgSend sel=setInputView:
+00006a14  mov      x0, x20
+00006a18  bl       #0x2480c ; call _objc_release
+00006a1c  adrp     x1, #0x3e000
+00006a20  add      x1, x1, #0x9e4
+00006a24  adrp     x2, #0x34000
+00006a28  ldr      x2, [x2, #0x208] ; -> ___kCFBooleanTrue
+00006a2c  mov      x0, x19
+00006a30  mov      w3, #1
+00006a34  bl       #0x24848 ; call _objc_setAssociatedObject
+00006a38  mov      x0, x19
+00006a3c  ldp      x29, x30, [sp, #0x20]
+00006a40  ldp      x20, x19, [sp, #0x10]
+00006a44  ldp      x22, x21, [sp], #0x30
+00006a48  b        #0x2480c ; call _objc_release
+00006a4c  mov      x21, x0
+00006a50  mov      x0, x20
+00006a54  bl       #0x2480c ; call _objc_release
+00006a58  b        #0x6a60 ; call sub_6a60
+00006a5c  mov      x21, x0
+00006a60  mov      x0, x19
+00006a64  bl       #0x2480c ; call _objc_release
+00006a68  mov      x0, x21
+00006a6c  bl       #0x24470 ; call __Unwind_Resume

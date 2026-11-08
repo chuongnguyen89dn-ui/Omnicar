@@ -1,0 +1,71 @@
+; _SCPHomeAppRemovable
+0x00b1f8  stp      x20, x19, [sp, #-0x20]!
+0x00b1fc  stp      x29, x30, [sp, #0x10]
+0x00b200  add      x29, sp, #0x10
+0x00b204  mov      x19, x0
+0x00b208  bl       #0x567c4 ; call _objc_retain
+0x00b20c  mov      x0, x19
+0x00b210  bl       #0x590c0 ; objc_msgSend$length
+0x00b214  cbz      x0, #0xb290
+0x00b218  mov      x0, x19
+0x00b21c  bl       #0x567c4 ; call _objc_retain
+0x00b220  adrp     x8, #0x87000
+0x00b224  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x00b228  bl       #0x5677c ; call _objc_opt_class
+0x00b22c  mov      x1, x0
+0x00b230  mov      x0, x19
+0x00b234  bl       #0x56788 ; call _objc_opt_isKindOfClass
+0x00b238  tbz      w0, #0, #0xb27c
+0x00b23c  mov      x0, x19
+0x00b240  bl       #0x590c0 ; objc_msgSend$length
+0x00b244  cbz      x0, #0xb27c
+0x00b248  adrp     x0, #0x80000
+0x00b24c  add      x0, x0, #0x380 ; -> 0x80380
+0x00b250  mov      x2, x19
+0x00b254  bl       #0x57820 ; objc_msgSend$containsObject:
+0x00b258  tbnz     w0, #0, #0xb270
+0x00b25c  adrp     x2, #0x7a000
+0x00b260  add      x2, x2, #0xd40 ; -> 0x7ad40 @"com.apple.CarPlay"
+0x00b264  mov      x0, x19
+0x00b268  bl       #0x58400 ; objc_msgSend$hasPrefix:
+0x00b26c  tbz      w0, #0, #0xb2bc
+0x00b270  mov      x0, x19
+0x00b274  bl       #0x567b8 ; call _objc_release
+0x00b278  b        #0xb290
+0x00b27c  mov      x0, x19
+0x00b280  bl       #0x567b8 ; call _objc_release
+0x00b284  mov      x0, x19
+0x00b288  bl       #0x9980 ; -> _SCPIsInjectedPhoneApp
+0x00b28c  tbz      w0, #0, #0xb298
+0x00b290  mov      w20, #0
+0x00b294  b        #0xb2a4
+0x00b298  mov      x0, x19
+0x00b29c  bl       #0xb310 ; -> sub_b310
+0x00b2a0  mov      x20, x0
+0x00b2a4  mov      x0, x19
+0x00b2a8  bl       #0x567b8 ; call _objc_release
+0x00b2ac  mov      x0, x20
+0x00b2b0  ldp      x29, x30, [sp, #0x10]
+0x00b2b4  ldp      x20, x19, [sp], #0x20
+0x00b2b8  ret      
+0x00b2bc  adrp     x2, #0x7a000
+0x00b2c0  add      x2, x2, #0xd60 ; -> 0x7ad60 @"NowPlaying"
+0x00b2c4  mov      x0, x19
+0x00b2c8  bl       #0x59ec0 ; objc_msgSend$rangeOfString:
+0x00b2cc  mov      x20, x0
+0x00b2d0  mov      x0, x19
+0x00b2d4  bl       #0x567b8 ; call _objc_release
+0x00b2d8  mov      x8, #0x7fffffffffffffff
+0x00b2dc  cmp      x20, x8
+0x00b2e0  b.eq     #0xb284
+0x00b2e4  b        #0xb290
+0x00b2e8  b        #0xb2f4
+0x00b2ec  mov      x20, x0
+0x00b2f0  b        #0xb300
+0x00b2f4  mov      x20, x0
+0x00b2f8  mov      x0, x19
+0x00b2fc  bl       #0x567b8 ; call _objc_release
+0x00b300  mov      x0, x19
+0x00b304  bl       #0x567b8 ; call _objc_release
+0x00b308  mov      x0, x20
+0x00b30c  bl       #0x563e0 ; call __Unwind_Resume

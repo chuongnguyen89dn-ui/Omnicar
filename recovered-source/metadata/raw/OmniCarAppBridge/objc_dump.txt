@@ -1,0 +1,713 @@
+// slice: arm64
+@interface ABBoxView : UIWindowScene
+    // ivar _handleHit : @"UIView" (offset 8)
+    // ivar _bar : @"UIView" (offset 16)
+    // ivar _passInsets : {UIEdgeInsets="top"d"left"d"bottom"d"right"d} (offset 24)
+    // ivar _hole : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 56)
+    @property (T{UIEdgeInsets=dddd},N,V_passInsets) passInsets;
+    @property (T@"UIView",W,N,V_handleHit) handleHit;
+    @property (T@"UIView",W,N,V_bar) bar;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_hole) hole;
+    - (B40@0:8{CGPoint=dd}16@32) pointInside:withEvent:;  // imp 39072
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setHole:;  // imp 39724
+    - (v16@0:8) applyHole;  // imp 39952
+    - (v16@0:8) layoutSubviews;  // imp 40528
+    - ({UIEdgeInsets=dddd}16@0:8) passInsets;  // imp 40616
+    - (v48@0:8{UIEdgeInsets=dddd}16) setPassInsets:;  // imp 40640
+    - (@16@0:8) handleHit;  // imp 40664
+    - (v24@0:8@16) setHandleHit:;  // imp 40696
+    - (@16@0:8) bar;  // imp 40716
+    - (v24@0:8@16) setBar:;  // imp 40748
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) hole;  // imp 40768
+    - (v16@0:8) .cxx_destruct;  // imp 40792
+@end
+
+@interface ABBarButton : NSNull
+    - (B40@0:8{CGPoint=dd}16@32) pointInside:withEvent:;  // imp 40848
+    - (v20@0:8B16) setHighlighted:;  // imp 41004
+@end
+
+@interface ABPane : NSRunLoop
+    // ivar _ready : B (offset 8)
+    // ivar _bundleID : @"NSString" (offset 16)
+    // ivar _box : @"ABBoxView" (offset 24)
+    // ivar _application : @ (offset 32)
+    // ivar _appViewController : @ (offset 40)
+    // ivar _sceneMonitor : @ (offset 48)
+    // ivar _orientation : q (offset 56)
+    // ivar _requestedOrientation : q (offset 64)
+    // ivar _handle : @"UIView" (offset 72)
+    // ivar _handleHit : @"UIView" (offset 80)
+    // ivar _bar : @"UIView" (offset 88)
+    // ivar _popButton : @"UIButton" (offset 96)
+    // ivar _soloButton : @"UIButton" (offset 104)
+    // ivar _handleOffset : d (offset 112)
+    // ivar _shield : @"UIView" (offset 120)
+    // ivar _sceneBox : {CGSize="width"d"height"d} (offset 128)
+    // ivar _frame : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 144)
+    @property (T@"NSString",C,N,V_bundleID) bundleID;
+    @property (T@"ABBoxView",&,N,V_box) box;
+    @property (T@,&,N,V_application) application;
+    @property (T@,&,N,V_appViewController) appViewController;
+    @property (T@,&,N,V_sceneMonitor) sceneMonitor;
+    @property (Tq,N,V_orientation) orientation;
+    @property (Tq,N,V_requestedOrientation) requestedOrientation;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_frame) frame;
+    @property (T{CGSize=dd},N,V_sceneBox) sceneBox;
+    @property (TB,N,V_ready) ready;
+    @property (T@"UIView",&,N,V_handle) handle;
+    @property (T@"UIView",&,N,V_handleHit) handleHit;
+    @property (T@"UIView",&,N,V_bar) bar;
+    @property (T@"UIButton",&,N,V_popButton) popButton;
+    @property (T@"UIButton",&,N,V_soloButton) soloButton;
+    @property (Td,N,V_handleOffset) handleOffset;
+    @property (T@"UIView",&,N,V_shield) shield;
+    - (@16@0:8) bundleID;  // imp 41344
+    - (v24@0:8@16) setBundleID:;  // imp 41352
+    - (@16@0:8) box;  // imp 41360
+    - (v24@0:8@16) setBox:;  // imp 41368
+    - (@16@0:8) application;  // imp 41416
+    - (v24@0:8@16) setApplication:;  // imp 41424
+    - (@16@0:8) appViewController;  // imp 41472
+    - (v24@0:8@16) setAppViewController:;  // imp 41480
+    - (@16@0:8) sceneMonitor;  // imp 41528
+    - (v24@0:8@16) setSceneMonitor:;  // imp 41536
+    - (q16@0:8) orientation;  // imp 41584
+    - (v24@0:8q16) setOrientation:;  // imp 41592
+    - (q16@0:8) requestedOrientation;  // imp 41600
+    - (v24@0:8q16) setRequestedOrientation:;  // imp 41608
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) frame;  // imp 41616
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setFrame:;  // imp 41628
+    - ({CGSize=dd}16@0:8) sceneBox;  // imp 41640
+    - (v32@0:8{CGSize=dd}16) setSceneBox:;  // imp 41648
+    - (B16@0:8) ready;  // imp 41656
+    - (v20@0:8B16) setReady:;  // imp 41664
+    - (@16@0:8) handle;  // imp 41672
+    - (v24@0:8@16) setHandle:;  // imp 41680
+    - (@16@0:8) handleHit;  // imp 41728
+    - (v24@0:8@16) setHandleHit:;  // imp 41736
+    - (@16@0:8) bar;  // imp 41784
+    - (v24@0:8@16) setBar:;  // imp 41792
+    - (@16@0:8) popButton;  // imp 41840
+    - (v24@0:8@16) setPopButton:;  // imp 41848
+    - (@16@0:8) soloButton;  // imp 41896
+    - (v24@0:8@16) setSoloButton:;  // imp 41904
+    - (d16@0:8) handleOffset;  // imp 41952
+    - (v24@0:8d16) setHandleOffset:;  // imp 41960
+    - (@16@0:8) shield;  // imp 41968
+    - (v24@0:8@16) setShield:;  // imp 41976
+    - (v16@0:8) .cxx_destruct;  // imp 42024
+@end
+
+@interface ABShieldView : UIWindowScene
+    - (v32@0:8@16@24) touchesBegan:withEvent:;  // imp 42180
+@end
+
+@interface ABKnobView : UIWindowScene
+    // ivar _index : i (offset 8)
+    // ivar _dot : @"UIView" (offset 16)
+    // ivar _lastSent : {CGPoint="x"d"y"d} (offset 24)
+    @property (Ti,N,V_index) index;
+    @property (T{CGPoint=dd},N,V_lastSent) lastSent;
+    @property (T@"UIView",&,N,V_dot) dot;
+    - (v28@0:8i16@20) relay:touches:;  // imp 42380
+    - (v32@0:8@16@24) touchesBegan:withEvent:;  // imp 43276
+    - (v32@0:8@16@24) touchesMoved:withEvent:;  // imp 43288
+    - (v32@0:8@16@24) touchesEnded:withEvent:;  // imp 43300
+    - (v32@0:8@16@24) touchesCancelled:withEvent:;  // imp 43312
+    - (i16@0:8) index;  // imp 43324
+    - (v20@0:8i16) setIndex:;  // imp 43340
+    - ({CGPoint=dd}16@0:8) lastSent;  // imp 43356
+    - (v32@0:8{CGPoint=dd}16) setLastSent:;  // imp 43376
+    - (@16@0:8) dot;  // imp 43396
+    - (v24@0:8@16) setDot:;  // imp 43412
+    - (v16@0:8) .cxx_destruct;  // imp 43476
+@end
+
+@interface ABHost : NSRunLoop
+    // ivar _shieldOn : B (offset 8)
+    // ivar _window : @"UIWindow" (offset 16)
+    // ivar _displayID : @"NSString" (offset 24)
+    // ivar _panes : @"NSMutableArray" (offset 32)
+    // ivar _knobViews : @"NSMutableArray" (offset 40)
+    // ivar _carAppArea : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 48)
+    @property (T@"UIWindow",&,N,V_window) window;
+    @property (TB,N,V_shieldOn) shieldOn;
+    @property (T@"NSString",C,N,V_displayID) displayID;
+    @property (T@"NSMutableArray",&,N,V_panes) panes;
+    @property (T@"NSMutableArray",&,N,V_knobViews) knobViews;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_carAppArea) carAppArea;
+    - (Q16@0:8) count;  // imp 43680
+    - (B24@0:8@16) hostsApp:;  // imp 43760
+    - (@24@0:8@16) paneFor:;  // imp 44164
+    - (d16@0:8) zoom;  // imp 44576
+    - (B16@0:8) ensureWindow;  // imp 44712
+    - (v16@0:8) dropWindowIfEmpty;  // imp 47260
+    - (v56@0:8@16{CGRect={CGPoint=dd}{CGSize=dd}}24) openApp:frame:;  // imp 47264
+    - (v24@0:8@16) revealPane:;  // imp 49528
+    - (v24@0:8@16) setupLiveAppViewForPane:;  // imp 49852
+    - (v32@0:8@16@24) sceneMonitor:sceneWasDestroyed:;  // imp 59880
+    - (v24@0:8@16) layoutPane:;  // imp 60544
+    - (q24@0:8@16) effectiveOrientation:;  // imp 62308
+    - (@16@0:8) carWindow;  // imp 62416
+    - (@24@0:8Q16) bundleForHash:;  // imp 62476
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}24@0:8@16) frameOfApp:;  // imp 62956
+    - (v36@0:8Q16i24Q28) appWithHash:changedOrientation:supportedMask:;  // imp 63152
+    - (v24@0:8@16) nudgePane:;  // imp 63916
+    - (v96@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16@48B56B60{UIEdgeInsets=dddd}64) setFrame:forApp:live:handle:passInsets:;  // imp 65128
+    - (v56@0:8{UIEdgeInsets=dddd}16@48) setPassInsets:forApp:;  // imp 66444
+    - (v40@0:8d16Q24@32) setCornerRadius:corners:forApp:;  // imp 66616
+    - (@24@0:8@16) buildBarForPane:;  // imp 67000
+    - (v24@0:8@16) layoutBarForPane:;  // imp 71312
+    - (v40@0:8B16i20B24B28@32) setBarVisible:pop:dim:single:forApp:;  // imp 71784
+    - (v24@0:8@16) hideBarForPane:;  // imp 75280
+    - (v20@0:8B16) setShieldAll:;  // imp 75940
+    - (v28@0:8B16@20) setShield:forPane:;  // imp 76248
+    - (v56@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16@48) setHole:forApp:;  // imp 77028
+    - (v16@0:8) outsideTouched;  // imp 77320
+    - (@24@0:8@16) paneOfBarButton:;  // imp 77688
+    - (v32@0:8@16@24) postBarAction:from:;  // imp 78152
+    - (v24@0:8@16) barReplace:;  // imp 78712
+    - (v24@0:8@16) barPop:;  // imp 78728
+    - (v24@0:8@16) barFull:;  // imp 78744
+    - (v24@0:8@16) barBackground:;  // imp 78760
+    - (v24@0:8@16) barClose:;  // imp 78776
+    - (v24@0:8@16) setupHandleForPane:;  // imp 78792
+    - (v28@0:8B16@20) setHandleVisible:forPane:;  // imp 79820
+    - (v16@0:8) raiseKnobs;  // imp 80152
+    - (v24@0:8@16) setKnobs:;  // imp 80572
+    - (v32@0:8d16@24) setHandleOffset:forApp:;  // imp 85116
+    - (v24@0:8@16) handlePanned:;  // imp 85300
+    - (v28@0:8B16@20) setFront:forApp:;  // imp 86440
+    - (v24@0:8@16) handleTapped:;  // imp 86740
+    - (v24@0:8@16) teardownPane:;  // imp 87472
+    - (v28@0:8@16B24) closeApp:terminate:;  // imp 89248
+    - (v16@0:8) closeAll;  // imp 90348
+    - (v24@0:8@16) closeAllExcept:;  // imp 90356
+    - (v16@0:8) carDisconnected;  // imp 91112
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) carAppArea;  // imp 91828
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setCarAppArea:;  // imp 91840
+    - (@16@0:8) window;  // imp 91852
+    - (v24@0:8@16) setWindow:;  // imp 91860
+    - (B16@0:8) shieldOn;  // imp 91908
+    - (v20@0:8B16) setShieldOn:;  // imp 91916
+    - (@16@0:8) displayID;  // imp 91924
+    - (v24@0:8@16) setDisplayID:;  // imp 91932
+    - (@16@0:8) panes;  // imp 91940
+    - (v24@0:8@16) setPanes:;  // imp 91948
+    - (@16@0:8) knobViews;  // imp 91996
+    - (v24@0:8@16) setKnobViews:;  // imp 92004
+    - (v16@0:8) .cxx_destruct;  // imp 92052
+    + (@16@0:8) shared;  // imp 43496
+@end
+
+@interface ABKey : NSNull
+    // ivar _lit : B (offset 8)
+    // ivar _value : @"NSString" (offset 16)
+    // ivar _command : @"NSString" (offset 24)
+    // ivar _weight : d (offset 32)
+    // ivar _restColor : @"UIColor" (offset 40)
+    // ivar _restTint : @"UIColor" (offset 48)
+    // ivar _hint : @"UILabel" (offset 56)
+    // ivar _accent : @"CAGradientLayer" (offset 64)
+    @property (T@"NSString",C,N,V_value) value;
+    @property (T@"NSString",C,N,V_command) command;
+    @property (Td,N,V_weight) weight;
+    @property (TB,N,V_lit) lit;
+    @property (T@"UIColor",&,N,V_restColor) restColor;
+    @property (T@"UIColor",&,N,V_restTint) restTint;
+    @property (T@"UILabel",&,N,V_hint) hint;
+    @property (T@"CAGradientLayer",&,N,V_accent) accent;
+    - (v20@0:8B16) paint:;  // imp 98780
+    - (v20@0:8B16) setHighlighted:;  // imp 100308
+    - (v16@0:8) layoutSubviews;  // imp 100808
+    - (@16@0:8) value;  // imp 101116
+    - (v24@0:8@16) setValue:;  // imp 101132
+    - (@16@0:8) command;  // imp 101144
+    - (v24@0:8@16) setCommand:;  // imp 101160
+    - (d16@0:8) weight;  // imp 101172
+    - (v24@0:8d16) setWeight:;  // imp 101188
+    - (B16@0:8) lit;  // imp 101204
+    - (v20@0:8B16) setLit:;  // imp 101220
+    - (@16@0:8) restColor;  // imp 101236
+    - (v24@0:8@16) setRestColor:;  // imp 101252
+    - (@16@0:8) restTint;  // imp 101316
+    - (v24@0:8@16) setRestTint:;  // imp 101332
+    - (@16@0:8) hint;  // imp 101396
+    - (v24@0:8@16) setHint:;  // imp 101412
+    - (@16@0:8) accent;  // imp 101476
+    - (v24@0:8@16) setAccent:;  // imp 101492
+    - (v16@0:8) .cxx_destruct;  // imp 101556
+@end
+
+@interface ABKeyboard : NSRunLoop
+    // ivar _numbers : B (offset 8)
+    // ivar _shift : B (offset 9)
+    // ivar _vietnamese : B (offset 10)
+    // ivar _app : @"NSString" (offset 16)
+    // ivar _panel : @"UIView" (offset 24)
+    // ivar _glass : @"UIVisualEffectView" (offset 32)
+    // ivar _bubble : @"UILabel" (offset 40)
+    // ivar _field : @"UIView" (offset 48)
+    // ivar _preview : @"UILabel" (offset 56)
+    // ivar _langButton : @"UIButton" (offset 64)
+    // ivar _hideButton : @"UIButton" (offset 72)
+    // ivar _keysView : @"UIView" (offset 80)
+    // ivar _rows : @"NSMutableArray" (offset 88)
+    // ivar _returnType : q (offset 96)
+    // ivar _word : @"NSMutableString" (offset 104)
+    // ivar _typed : @"NSMutableString" (offset 112)
+    @property (T@"NSString",C,N,V_app) app;
+    @property (T@"UIView",&,N,V_panel) panel;
+    @property (T@"UIVisualEffectView",&,N,V_glass) glass;
+    @property (T@"UILabel",&,N,V_bubble) bubble;
+    @property (T@"UIView",&,N,V_field) field;
+    @property (T@"UILabel",&,N,V_preview) preview;
+    @property (T@"UIButton",&,N,V_langButton) langButton;
+    @property (T@"UIButton",&,N,V_hideButton) hideButton;
+    @property (T@"UIView",&,N,V_keysView) keysView;
+    @property (T@"NSMutableArray",&,N,V_rows) rows;
+    @property (TB,N,V_numbers) numbers;
+    @property (TB,N,V_shift) shift;
+    @property (TB,N,V_vietnamese) vietnamese;
+    @property (Tq,N,V_returnType) returnType;
+    @property (T@"NSMutableString",&,N,V_word) word;
+    @property (T@"NSMutableString",&,N,V_typed) typed;
+    - (v40@0:8@16q24q32) showForApp:keyboardType:returnType:;  // imp 101812
+    - (v24@0:8@16) hideForApp:;  // imp 103260
+    - (v24@0:8@16) layoutPanelIn:;  // imp 104144
+    - (v28@0:8@16B24) key:pressed:;  // imp 104908
+    - (v16@0:8) buildPanel;  // imp 107008
+    - (@56@0:8@16@24@32@40d48) key:symbol:value:command:weight:;  // imp 109488
+    - (@48@0:8@16@24@32d40) key:value:command:weight:;  // imp 111624
+    - (v16@0:8) rebuildKeys;  // imp 111664
+    - (v16@0:8) layoutKeys;  // imp 114524
+    - (v16@0:8) updatePreview;  // imp 116168
+    - (v16@0:8) langTapped;  // imp 116664
+    - (v40@0:8@16Q24@32) send:del:text:;  // imp 116764
+    - (v24@0:8@16) typeCharacter:;  // imp 117292
+    - (v24@0:8@16) keyTapped:;  // imp 118228
+    - (v16@0:8) hideTapped;  // imp 119364
+    - (@16@0:8) app;  // imp 119420
+    - (v24@0:8@16) setApp:;  // imp 119428
+    - (@16@0:8) panel;  // imp 119436
+    - (v24@0:8@16) setPanel:;  // imp 119444
+    - (@16@0:8) glass;  // imp 119492
+    - (v24@0:8@16) setGlass:;  // imp 119500
+    - (@16@0:8) bubble;  // imp 119548
+    - (v24@0:8@16) setBubble:;  // imp 119556
+    - (@16@0:8) field;  // imp 119604
+    - (v24@0:8@16) setField:;  // imp 119612
+    - (@16@0:8) preview;  // imp 119660
+    - (v24@0:8@16) setPreview:;  // imp 119668
+    - (@16@0:8) langButton;  // imp 119716
+    - (v24@0:8@16) setLangButton:;  // imp 119724
+    - (@16@0:8) hideButton;  // imp 119772
+    - (v24@0:8@16) setHideButton:;  // imp 119780
+    - (@16@0:8) keysView;  // imp 119828
+    - (v24@0:8@16) setKeysView:;  // imp 119836
+    - (@16@0:8) rows;  // imp 119884
+    - (v24@0:8@16) setRows:;  // imp 119892
+    - (B16@0:8) numbers;  // imp 119940
+    - (v20@0:8B16) setNumbers:;  // imp 119948
+    - (B16@0:8) shift;  // imp 119956
+    - (v20@0:8B16) setShift:;  // imp 119964
+    - (B16@0:8) vietnamese;  // imp 119972
+    - (v20@0:8B16) setVietnamese:;  // imp 119980
+    - (q16@0:8) returnType;  // imp 119988
+    - (v24@0:8q16) setReturnType:;  // imp 119996
+    - (@16@0:8) word;  // imp 120004
+    - (v24@0:8@16) setWord:;  // imp 120012
+    - (@16@0:8) typed;  // imp 120060
+    - (v24@0:8@16) setTyped:;  // imp 120068
+    - (v16@0:8) .cxx_destruct;  // imp 120116
+    + (@16@0:8) shared;  // imp 101700
+@end
+
+@protocol NSObject
+    - (B24@0:8@16) isEqual:;
+    - (#16@0:8) class;
+    - (@16@0:8) self;
+    - (@24@0:8:16) performSelector:;
+    - (@32@0:8:16@24) performSelector:withObject:;
+    - (@40@0:8:16@24@32) performSelector:withObject:withObject:;
+    - (B16@0:8) isProxy;
+    - (B24@0:8#16) isKindOfClass:;
+    - (B24@0:8#16) isMemberOfClass:;
+    - (B24@0:8@16) conformsToProtocol:;
+    - (B24@0:8:16) respondsToSelector:;
+    - (@16@0:8) retain;
+    - (Vv16@0:8) release;
+    - (@16@0:8) autorelease;
+    - (Q16@0:8) retainCount;
+    - (^{_NSZone=}16@0:8) zone;
+    - (Q16@0:8) hash;
+    - (#16@0:8) superclass;
+    - (@16@0:8) description;
+@end
+
+@protocol UITextInputTraits
+@end
+
+@protocol UIKeyInput
+    - (v24@0:8@16) insertText:;
+    - (v16@0:8) deleteBackward;
+    - (B16@0:8) hasText;
+@end
+
+// slice: arm64e
+@interface ABBoxView : UIWindowScene
+    // ivar _handleHit : @"UIView" (offset 8)
+    // ivar _bar : @"UIView" (offset 16)
+    // ivar _passInsets : {UIEdgeInsets="top"d"left"d"bottom"d"right"d} (offset 24)
+    // ivar _hole : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 56)
+    @property (T{UIEdgeInsets=dddd},N,V_passInsets) passInsets;
+    @property (T@"UIView",W,N,V_handleHit) handleHit;
+    @property (T@"UIView",W,N,V_bar) bar;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_hole) hole;
+    - (B40@0:8{CGPoint=dd}16@32) pointInside:withEvent:;  // imp 40188
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setHole:;  // imp 40844
+    - (v16@0:8) applyHole;  // imp 41092
+    - (v16@0:8) layoutSubviews;  // imp 41688
+    - ({UIEdgeInsets=dddd}16@0:8) passInsets;  // imp 41780
+    - (v48@0:8{UIEdgeInsets=dddd}16) setPassInsets:;  // imp 41804
+    - (@16@0:8) handleHit;  // imp 41828
+    - (v24@0:8@16) setHandleHit:;  // imp 41880
+    - (@16@0:8) bar;  // imp 41900
+    - (v24@0:8@16) setBar:;  // imp 41952
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) hole;  // imp 41972
+    - (v16@0:8) .cxx_destruct;  // imp 41996
+@end
+
+@interface ABBarButton : NSNull
+    - (B40@0:8{CGPoint=dd}16@32) pointInside:withEvent:;  // imp 42072
+    - (v20@0:8B16) setHighlighted:;  // imp 42248
+@end
+
+@interface ABPane : NSRunLoop
+    // ivar _ready : B (offset 8)
+    // ivar _bundleID : @"NSString" (offset 16)
+    // ivar _box : @"ABBoxView" (offset 24)
+    // ivar _application : @ (offset 32)
+    // ivar _appViewController : @ (offset 40)
+    // ivar _sceneMonitor : @ (offset 48)
+    // ivar _orientation : q (offset 56)
+    // ivar _requestedOrientation : q (offset 64)
+    // ivar _handle : @"UIView" (offset 72)
+    // ivar _handleHit : @"UIView" (offset 80)
+    // ivar _bar : @"UIView" (offset 88)
+    // ivar _popButton : @"UIButton" (offset 96)
+    // ivar _soloButton : @"UIButton" (offset 104)
+    // ivar _handleOffset : d (offset 112)
+    // ivar _shield : @"UIView" (offset 120)
+    // ivar _sceneBox : {CGSize="width"d"height"d} (offset 128)
+    // ivar _frame : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 144)
+    @property (T@"NSString",C,N,V_bundleID) bundleID;
+    @property (T@"ABBoxView",&,N,V_box) box;
+    @property (T@,&,N,V_application) application;
+    @property (T@,&,N,V_appViewController) appViewController;
+    @property (T@,&,N,V_sceneMonitor) sceneMonitor;
+    @property (Tq,N,V_orientation) orientation;
+    @property (Tq,N,V_requestedOrientation) requestedOrientation;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_frame) frame;
+    @property (T{CGSize=dd},N,V_sceneBox) sceneBox;
+    @property (TB,N,V_ready) ready;
+    @property (T@"UIView",&,N,V_handle) handle;
+    @property (T@"UIView",&,N,V_handleHit) handleHit;
+    @property (T@"UIView",&,N,V_bar) bar;
+    @property (T@"UIButton",&,N,V_popButton) popButton;
+    @property (T@"UIButton",&,N,V_soloButton) soloButton;
+    @property (Td,N,V_handleOffset) handleOffset;
+    @property (T@"UIView",&,N,V_shield) shield;
+    - (@16@0:8) bundleID;  // imp 42620
+    - (v24@0:8@16) setBundleID:;  // imp 42628
+    - (@16@0:8) box;  // imp 42636
+    - (v24@0:8@16) setBox:;  // imp 42644
+    - (@16@0:8) application;  // imp 42712
+    - (v24@0:8@16) setApplication:;  // imp 42720
+    - (@16@0:8) appViewController;  // imp 42788
+    - (v24@0:8@16) setAppViewController:;  // imp 42796
+    - (@16@0:8) sceneMonitor;  // imp 42864
+    - (v24@0:8@16) setSceneMonitor:;  // imp 42872
+    - (q16@0:8) orientation;  // imp 42940
+    - (v24@0:8q16) setOrientation:;  // imp 42948
+    - (q16@0:8) requestedOrientation;  // imp 42956
+    - (v24@0:8q16) setRequestedOrientation:;  // imp 42964
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) frame;  // imp 42972
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setFrame:;  // imp 42984
+    - ({CGSize=dd}16@0:8) sceneBox;  // imp 42996
+    - (v32@0:8{CGSize=dd}16) setSceneBox:;  // imp 43004
+    - (B16@0:8) ready;  // imp 43012
+    - (v20@0:8B16) setReady:;  // imp 43020
+    - (@16@0:8) handle;  // imp 43028
+    - (v24@0:8@16) setHandle:;  // imp 43036
+    - (@16@0:8) handleHit;  // imp 43104
+    - (v24@0:8@16) setHandleHit:;  // imp 43112
+    - (@16@0:8) bar;  // imp 43180
+    - (v24@0:8@16) setBar:;  // imp 43188
+    - (@16@0:8) popButton;  // imp 43256
+    - (v24@0:8@16) setPopButton:;  // imp 43264
+    - (@16@0:8) soloButton;  // imp 43332
+    - (v24@0:8@16) setSoloButton:;  // imp 43340
+    - (d16@0:8) handleOffset;  // imp 43408
+    - (v24@0:8d16) setHandleOffset:;  // imp 43416
+    - (@16@0:8) shield;  // imp 43424
+    - (v24@0:8@16) setShield:;  // imp 43432
+    - (v16@0:8) .cxx_destruct;  // imp 43500
+@end
+
+@interface ABShieldView : UIWindowScene
+    - (v32@0:8@16@24) touchesBegan:withEvent:;  // imp 43676
+@end
+
+@interface ABKnobView : UIWindowScene
+    // ivar _index : i (offset 8)
+    // ivar _dot : @"UIView" (offset 16)
+    // ivar _lastSent : {CGPoint="x"d"y"d} (offset 24)
+    @property (Ti,N,V_index) index;
+    @property (T{CGPoint=dd},N,V_lastSent) lastSent;
+    @property (T@"UIView",&,N,V_dot) dot;
+    - (v28@0:8i16@20) relay:touches:;  // imp 43896
+    - (v32@0:8@16@24) touchesBegan:withEvent:;  // imp 44796
+    - (v32@0:8@16@24) touchesMoved:withEvent:;  // imp 44808
+    - (v32@0:8@16@24) touchesEnded:withEvent:;  // imp 44820
+    - (v32@0:8@16@24) touchesCancelled:withEvent:;  // imp 44832
+    - (i16@0:8) index;  // imp 44844
+    - (v20@0:8i16) setIndex:;  // imp 44864
+    - ({CGPoint=dd}16@0:8) lastSent;  // imp 44884
+    - (v32@0:8{CGPoint=dd}16) setLastSent:;  // imp 44904
+    - (@16@0:8) dot;  // imp 44924
+    - (v24@0:8@16) setDot:;  // imp 44944
+    - (v16@0:8) .cxx_destruct;  // imp 45020
+@end
+
+@interface ABHost : NSRunLoop
+    // ivar _shieldOn : B (offset 8)
+    // ivar _window : @"UIWindow" (offset 16)
+    // ivar _displayID : @"NSString" (offset 24)
+    // ivar _panes : @"NSMutableArray" (offset 32)
+    // ivar _knobViews : @"NSMutableArray" (offset 40)
+    // ivar _carAppArea : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 48)
+    @property (T@"UIWindow",&,N,V_window) window;
+    @property (TB,N,V_shieldOn) shieldOn;
+    @property (T@"NSString",C,N,V_displayID) displayID;
+    @property (T@"NSMutableArray",&,N,V_panes) panes;
+    @property (T@"NSMutableArray",&,N,V_knobViews) knobViews;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_carAppArea) carAppArea;
+    - (Q16@0:8) count;  // imp 45264
+    - (B24@0:8@16) hostsApp:;  // imp 45348
+    - (@24@0:8@16) paneFor:;  // imp 45760
+    - (d16@0:8) zoom;  // imp 46196
+    - (B16@0:8) ensureWindow;  // imp 46336
+    - (v16@0:8) dropWindowIfEmpty;  // imp 48920
+    - (v56@0:8@16{CGRect={CGPoint=dd}{CGSize=dd}}24) openApp:frame:;  // imp 48924
+    - (v24@0:8@16) revealPane:;  // imp 51276
+    - (v24@0:8@16) setupLiveAppViewForPane:;  // imp 51648
+    - (v32@0:8@16@24) sceneMonitor:sceneWasDestroyed:;  // imp 61904
+    - (v24@0:8@16) layoutPane:;  // imp 62576
+    - (q24@0:8@16) effectiveOrientation:;  // imp 64388
+    - (@16@0:8) carWindow;  // imp 64500
+    - (@24@0:8Q16) bundleForHash:;  // imp 64580
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}24@0:8@16) frameOfApp:;  // imp 65080
+    - (v36@0:8Q16i24Q28) appWithHash:changedOrientation:supportedMask:;  // imp 65280
+    - (v24@0:8@16) nudgePane:;  // imp 66048
+    - (v96@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16@48B56B60{UIEdgeInsets=dddd}64) setFrame:forApp:live:handle:passInsets:;  // imp 67348
+    - (v56@0:8{UIEdgeInsets=dddd}16@48) setPassInsets:forApp:;  // imp 68752
+    - (v40@0:8d16Q24@32) setCornerRadius:corners:forApp:;  // imp 68944
+    - (@24@0:8@16) buildBarForPane:;  // imp 69348
+    - (v24@0:8@16) layoutBarForPane:;  // imp 73708
+    - (v40@0:8B16i20B24B28@32) setBarVisible:pop:dim:single:forApp:;  // imp 74184
+    - (v24@0:8@16) hideBarForPane:;  // imp 77756
+    - (v20@0:8B16) setShieldAll:;  // imp 78484
+    - (v28@0:8B16@20) setShield:forPane:;  // imp 78800
+    - (v56@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16@48) setHole:forApp:;  // imp 79600
+    - (v16@0:8) outsideTouched;  // imp 79912
+    - (@24@0:8@16) paneOfBarButton:;  // imp 80288
+    - (v32@0:8@16@24) postBarAction:from:;  // imp 80776
+    - (v24@0:8@16) barReplace:;  // imp 81340
+    - (v24@0:8@16) barPop:;  // imp 81356
+    - (v24@0:8@16) barFull:;  // imp 81372
+    - (v24@0:8@16) barBackground:;  // imp 81388
+    - (v24@0:8@16) barClose:;  // imp 81404
+    - (v24@0:8@16) setupHandleForPane:;  // imp 81420
+    - (v28@0:8B16@20) setHandleVisible:forPane:;  // imp 82468
+    - (v16@0:8) raiseKnobs;  // imp 82820
+    - (v24@0:8@16) setKnobs:;  // imp 83248
+    - (v32@0:8d16@24) setHandleOffset:forApp:;  // imp 87876
+    - (v24@0:8@16) handlePanned:;  // imp 88080
+    - (v28@0:8B16@20) setFront:forApp:;  // imp 89228
+    - (v24@0:8@16) handleTapped:;  // imp 89548
+    - (v24@0:8@16) teardownPane:;  // imp 90288
+    - (v28@0:8@16B24) closeApp:terminate:;  // imp 92144
+    - (v16@0:8) closeAll;  // imp 93264
+    - (v24@0:8@16) closeAllExcept:;  // imp 93272
+    - (v16@0:8) carDisconnected;  // imp 94036
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) carAppArea;  // imp 94760
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setCarAppArea:;  // imp 94772
+    - (@16@0:8) window;  // imp 94784
+    - (v24@0:8@16) setWindow:;  // imp 94792
+    - (B16@0:8) shieldOn;  // imp 94860
+    - (v20@0:8B16) setShieldOn:;  // imp 94868
+    - (@16@0:8) displayID;  // imp 94876
+    - (v24@0:8@16) setDisplayID:;  // imp 94884
+    - (@16@0:8) panes;  // imp 94892
+    - (v24@0:8@16) setPanes:;  // imp 94900
+    - (@16@0:8) knobViews;  // imp 94968
+    - (v24@0:8@16) setKnobViews:;  // imp 94976
+    - (v16@0:8) .cxx_destruct;  // imp 95044
+    + (@16@0:8) shared;  // imp 45040
+@end
+
+@interface ABKey : NSNull
+    // ivar _lit : B (offset 8)
+    // ivar _value : @"NSString" (offset 16)
+    // ivar _command : @"NSString" (offset 24)
+    // ivar _weight : d (offset 32)
+    // ivar _restColor : @"UIColor" (offset 40)
+    // ivar _restTint : @"UIColor" (offset 48)
+    // ivar _hint : @"UILabel" (offset 56)
+    // ivar _accent : @"CAGradientLayer" (offset 64)
+    @property (T@"NSString",C,N,V_value) value;
+    @property (T@"NSString",C,N,V_command) command;
+    @property (Td,N,V_weight) weight;
+    @property (TB,N,V_lit) lit;
+    @property (T@"UIColor",&,N,V_restColor) restColor;
+    @property (T@"UIColor",&,N,V_restTint) restTint;
+    @property (T@"UILabel",&,N,V_hint) hint;
+    @property (T@"CAGradientLayer",&,N,V_accent) accent;
+    - (v20@0:8B16) paint:;  // imp 101924
+    - (v20@0:8B16) setHighlighted:;  // imp 103456
+    - (v16@0:8) layoutSubviews;  // imp 103988
+    - (@16@0:8) value;  // imp 104300
+    - (v24@0:8@16) setValue:;  // imp 104320
+    - (@16@0:8) command;  // imp 104332
+    - (v24@0:8@16) setCommand:;  // imp 104352
+    - (d16@0:8) weight;  // imp 104364
+    - (v24@0:8d16) setWeight:;  // imp 104384
+    - (B16@0:8) lit;  // imp 104404
+    - (v20@0:8B16) setLit:;  // imp 104424
+    - (@16@0:8) restColor;  // imp 104444
+    - (v24@0:8@16) setRestColor:;  // imp 104464
+    - (@16@0:8) restTint;  // imp 104540
+    - (v24@0:8@16) setRestTint:;  // imp 104560
+    - (@16@0:8) hint;  // imp 104636
+    - (v24@0:8@16) setHint:;  // imp 104656
+    - (@16@0:8) accent;  // imp 104732
+    - (v24@0:8@16) setAccent:;  // imp 104752
+    - (v16@0:8) .cxx_destruct;  // imp 104828
+@end
+
+@interface ABKeyboard : NSRunLoop
+    // ivar _numbers : B (offset 8)
+    // ivar _shift : B (offset 9)
+    // ivar _vietnamese : B (offset 10)
+    // ivar _app : @"NSString" (offset 16)
+    // ivar _panel : @"UIView" (offset 24)
+    // ivar _glass : @"UIVisualEffectView" (offset 32)
+    // ivar _bubble : @"UILabel" (offset 40)
+    // ivar _field : @"UIView" (offset 48)
+    // ivar _preview : @"UILabel" (offset 56)
+    // ivar _langButton : @"UIButton" (offset 64)
+    // ivar _hideButton : @"UIButton" (offset 72)
+    // ivar _keysView : @"UIView" (offset 80)
+    // ivar _rows : @"NSMutableArray" (offset 88)
+    // ivar _returnType : q (offset 96)
+    // ivar _word : @"NSMutableString" (offset 104)
+    // ivar _typed : @"NSMutableString" (offset 112)
+    @property (T@"NSString",C,N,V_app) app;
+    @property (T@"UIView",&,N,V_panel) panel;
+    @property (T@"UIVisualEffectView",&,N,V_glass) glass;
+    @property (T@"UILabel",&,N,V_bubble) bubble;
+    @property (T@"UIView",&,N,V_field) field;
+    @property (T@"UILabel",&,N,V_preview) preview;
+    @property (T@"UIButton",&,N,V_langButton) langButton;
+    @property (T@"UIButton",&,N,V_hideButton) hideButton;
+    @property (T@"UIView",&,N,V_keysView) keysView;
+    @property (T@"NSMutableArray",&,N,V_rows) rows;
+    @property (TB,N,V_numbers) numbers;
+    @property (TB,N,V_shift) shift;
+    @property (TB,N,V_vietnamese) vietnamese;
+    @property (Tq,N,V_returnType) returnType;
+    @property (T@"NSMutableString",&,N,V_word) word;
+    @property (T@"NSMutableString",&,N,V_typed) typed;
+    - (v40@0:8@16q24q32) showForApp:keyboardType:returnType:;  // imp 105144
+    - (v24@0:8@16) hideForApp:;  // imp 106624
+    - (v24@0:8@16) layoutPanelIn:;  // imp 107576
+    - (v28@0:8@16B24) key:pressed:;  // imp 108360
+    - (v16@0:8) buildPanel;  // imp 110536
+    - (@56@0:8@16@24@32@40d48) key:symbol:value:command:weight:;  // imp 113036
+    - (@48@0:8@16@24@32d40) key:value:command:weight:;  // imp 115192
+    - (v16@0:8) rebuildKeys;  // imp 115252
+    - (v16@0:8) layoutKeys;  // imp 118124
+    - (v16@0:8) updatePreview;  // imp 119780
+    - (v16@0:8) langTapped;  // imp 120296
+    - (v40@0:8@16Q24@32) send:del:text:;  // imp 120416
+    - (v24@0:8@16) typeCharacter:;  // imp 120948
+    - (v24@0:8@16) keyTapped:;  // imp 121904
+    - (v16@0:8) hideTapped;  // imp 123060
+    - (@16@0:8) app;  // imp 123136
+    - (v24@0:8@16) setApp:;  // imp 123144
+    - (@16@0:8) panel;  // imp 123152
+    - (v24@0:8@16) setPanel:;  // imp 123160
+    - (@16@0:8) glass;  // imp 123228
+    - (v24@0:8@16) setGlass:;  // imp 123236
+    - (@16@0:8) bubble;  // imp 123304
+    - (v24@0:8@16) setBubble:;  // imp 123312
+    - (@16@0:8) field;  // imp 123380
+    - (v24@0:8@16) setField:;  // imp 123388
+    - (@16@0:8) preview;  // imp 123456
+    - (v24@0:8@16) setPreview:;  // imp 123464
+    - (@16@0:8) langButton;  // imp 123532
+    - (v24@0:8@16) setLangButton:;  // imp 123540
+    - (@16@0:8) hideButton;  // imp 123608
+    - (v24@0:8@16) setHideButton:;  // imp 123616
+    - (@16@0:8) keysView;  // imp 123684
+    - (v24@0:8@16) setKeysView:;  // imp 123692
+    - (@16@0:8) rows;  // imp 123760
+    - (v24@0:8@16) setRows:;  // imp 123768
+    - (B16@0:8) numbers;  // imp 123836
+    - (v20@0:8B16) setNumbers:;  // imp 123844
+    - (B16@0:8) shift;  // imp 123852
+    - (v20@0:8B16) setShift:;  // imp 123860
+    - (B16@0:8) vietnamese;  // imp 123868
+    - (v20@0:8B16) setVietnamese:;  // imp 123876
+    - (q16@0:8) returnType;  // imp 123884
+    - (v24@0:8q16) setReturnType:;  // imp 123892
+    - (@16@0:8) word;  // imp 123900
+    - (v24@0:8@16) setWord:;  // imp 123908
+    - (@16@0:8) typed;  // imp 123976
+    - (v24@0:8@16) setTyped:;  // imp 123984
+    - (v16@0:8) .cxx_destruct;  // imp 124052
+    + (@16@0:8) shared;  // imp 104992
+@end
+
+@protocol NSObject
+    - (B24@0:8@16) isEqual:;
+    - (#16@0:8) class;
+    - (@16@0:8) self;
+    - (@24@0:8:16) performSelector:;
+    - (@32@0:8:16@24) performSelector:withObject:;
+    - (@40@0:8:16@24@32) performSelector:withObject:withObject:;
+    - (B16@0:8) isProxy;
+    - (B24@0:8#16) isKindOfClass:;
+    - (B24@0:8#16) isMemberOfClass:;
+    - (B24@0:8@16) conformsToProtocol:;
+    - (B24@0:8:16) respondsToSelector:;
+    - (@16@0:8) retain;
+    - (Vv16@0:8) release;
+    - (@16@0:8) autorelease;
+    - (Q16@0:8) retainCount;
+    - (^{_NSZone=}16@0:8) zone;
+    - (Q16@0:8) hash;
+    - (#16@0:8) superclass;
+    - (@16@0:8) description;
+@end
+
+@protocol UITextInputTraits
+@end
+
+@protocol UIKeyInput
+    - (v24@0:8@16) insertText:;
+    - (v16@0:8) deleteBackward;
+    - (B16@0:8) hasText;
+@end

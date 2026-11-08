@@ -1,0 +1,15 @@
+; -[SSGauge setNeedle:]
+; VA 0xc408  size 48
+
+0x0000c408:  stp      x20, x19, [sp, #-0x20]!
+0x0000c40c:  stp      x29, x30, [sp, #0x10]
+0x0000c410:  add      x29, sp, #0x10
+0x0000c414:  mov      x19, x2
+0x0000c418:  mov      x20, x0
+0x0000c41c:  mov      x0, x2
+0x0000c420:  bl       #0x2212c    ; -> _objc_retain
+0x0000c424:  ldr      x0, [x20, #0x20]
+0x0000c428:  str      x19, [x20, #0x20]
+0x0000c42c:  ldp      x29, x30, [sp, #0x10]
+0x0000c430:  ldp      x20, x19, [sp], #0x20
+0x0000c434:  b        #0x22120    ; -> _objc_release

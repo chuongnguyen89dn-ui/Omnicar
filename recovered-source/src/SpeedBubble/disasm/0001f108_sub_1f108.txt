@@ -1,0 +1,32 @@
+# sub_1f108
+# addr 0x1f108 .. 0x1f17c  (116 bytes)
+
+0001f108  stp      x20, x19, [sp, #-0x20]!                     
+0001f10c  stp      x29, x30, [sp, #0x10]                       
+0001f110  add      x29, sp, #0x10                              
+0001f114  mov      x20, x1                                     
+0001f118  bl       #0x1edb0                                    ; sub_1edb0
+0001f11c  mov      x29, x29                                    
+0001f120  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f124  mov      x19, x0                                     
+0001f128  adrp     x8, #0x42000                                
+0001f12c  ldr      x1, [x8, #0x158]                            ; [0x42158] selref -> @integerValue
+0001f130  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001f134  tbz      w0, #0, #0x1f144                            
+0001f138  mov      x0, x19                                     
+0001f13c  bl       #0x29960                                    ; objc_msgSend$integerValue
+0001f140  b        #0x1f148                                    ; sub_1f148
+0001f144  mov      x0, #0                                      
+0001f148  cmp      x0, x20                                     
+0001f14c  csel     x20, x0, xzr, lo                            
+0001f150  mov      x0, x19                                     
+0001f154  bl       #0x27ff8                                    ; _objc_release
+0001f158  mov      x0, x20                                     
+0001f15c  ldp      x29, x30, [sp, #0x10]                       
+0001f160  ldp      x20, x19, [sp], #0x20                       
+0001f164  ret                                                  
+0001f168  mov      x20, x0                                     
+0001f16c  mov      x0, x19                                     
+0001f170  bl       #0x27ff8                                    ; _objc_release
+0001f174  mov      x0, x20                                     
+0001f178  bl       #0x27c80                                    ; __Unwind_Resume

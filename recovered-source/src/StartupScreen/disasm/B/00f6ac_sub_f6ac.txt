@@ -1,0 +1,50 @@
+; sub_f6ac
+; VA 0xf6ac  size 188
+
+0x0000f6ac:  stp      d9, d8, [sp, #-0x40]!
+0x0000f6b0:  stp      x22, x21, [sp, #0x10]
+0x0000f6b4:  stp      x20, x19, [sp, #0x20]
+0x0000f6b8:  stp      x29, x30, [sp, #0x30]
+0x0000f6bc:  add      x29, sp, #0x30
+0x0000f6c0:  mov      v8.16b, v0.16b
+0x0000f6c4:  adrp     x22, #0x3a000
+0x0000f6c8:  ldr      x0, [x22, #0xbc0]    ; class(UIFont)
+0x0000f6cc:  bl       #0x25ce0    ; -> _objc_msgSend(systemFontOfSize:weight:)
+0x0000f6d0:  mov      x29, x29
+0x0000f6d4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f6d8:  mov      x19, x0
+0x0000f6dc:  bl       #0x23400    ; -> _objc_msgSend(fontDescriptor)
+0x0000f6e0:  mov      x29, x29
+0x0000f6e4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f6e8:  mov      x21, x0
+0x0000f6ec:  adrp     x8, #0x30000
+0x0000f6f0:  ldr      x8, [x8, #0x240]    ; got(_UIFontDescriptorSystemDesignRounded)
+0x0000f6f4:  ldr      x2, [x8]
+0x0000f6f8:  bl       #0x23420    ; -> _objc_msgSend(fontDescriptorWithDesign:)
+0x0000f6fc:  mov      x29, x29
+0x0000f700:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f704:  mov      x20, x0
+0x0000f708:  mov      x0, x21
+0x0000f70c:  bl       #0x22120    ; -> _objc_release
+0x0000f710:  cbz      x20, #0xf734
+0x0000f714:  ldr      x0, [x22, #0xbc0]
+0x0000f718:  mov      x2, x20
+0x0000f71c:  mov      v0.16b, v8.16b
+0x0000f720:  bl       #0x23440    ; -> _objc_msgSend(fontWithDescriptor:size:)
+0x0000f724:  mov      x29, x29
+0x0000f728:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000f72c:  mov      x21, x0
+0x0000f730:  b        #0xf740    ; -> sub_f740
+0x0000f734:  mov      x0, x19
+0x0000f738:  bl       #0x2212c    ; -> _objc_retain
+0x0000f73c:  mov      x21, x19
+0x0000f740:  mov      x0, x20
+0x0000f744:  bl       #0x22120    ; -> _objc_release
+0x0000f748:  mov      x0, x19
+0x0000f74c:  bl       #0x22120    ; -> _objc_release
+0x0000f750:  mov      x0, x21
+0x0000f754:  ldp      x29, x30, [sp, #0x30]
+0x0000f758:  ldp      x20, x19, [sp, #0x20]
+0x0000f75c:  ldp      x22, x21, [sp, #0x10]
+0x0000f760:  ldp      d9, d8, [sp], #0x40
+0x0000f764:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

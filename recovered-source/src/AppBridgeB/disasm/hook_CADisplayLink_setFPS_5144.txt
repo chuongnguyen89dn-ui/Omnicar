@@ -1,0 +1,56 @@
+=== sub_5144 @ 0x5144 (size 220) ===
+00005144  stp      x22, x21, [sp, #-0x30]!
+00005148  stp      x20, x19, [sp, #0x10]
+0000514c  stp      x29, x30, [sp, #0x20]
+00005150  add      x29, sp, #0x20
+00005154  mov      x19, x2
+00005158  mov      x20, x1
+0000515c  mov      x21, x0
+00005160  adrp     x8, #0x3e000
+00005164  ldrb     w8, [x8, #0x9c0]
+00005168  cmp      w8, #1
+0000516c  b.eq     #0x51e8
+00005170  adrp     x8, #0x3e000
+00005174  ldr      x0, [x8, #0x2a0] ; bind _OBJC_CLASS_$_NSNumber
+00005178  mov      x2, x19
+0000517c  bl       #0x26340 ; objc_msgSend sel=numberWithInteger:
+00005180  mov      x29, x29
+00005184  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00005188  mov      x22, x0
+0000518c  adrp     x1, #0x3e000
+00005190  add      x1, x1, #0x9c2
+00005194  mov      x0, x21
+00005198  mov      x2, x22
+0000519c  mov      w3, #1
+000051a0  bl       #0x24848 ; call _objc_setAssociatedObject
+000051a4  mov      x0, x22
+000051a8  bl       #0x2480c ; call _objc_release
+000051ac  adrp     x1, #0x3e000
+000051b0  add      x1, x1, #0x9c1
+000051b4  mov      x0, x21
+000051b8  mov      x2, #0
+000051bc  mov      w3, #1
+000051c0  bl       #0x24848 ; call _objc_setAssociatedObject
+000051c4  adrp     x8, #0x3e000
+000051c8  ldr      w8, [x8, #0x9b0]
+000051cc  cmp      w8, #1
+000051d0  b.lt     #0x51e8
+000051d4  mov      x0, x21
+000051d8  ldp      x29, x30, [sp, #0x20]
+000051dc  ldp      x20, x19, [sp, #0x10]
+000051e0  ldp      x22, x21, [sp], #0x30
+000051e4  b        #0x5cbc ; call sub_5cbc
+000051e8  adrp     x8, #0x3e000
+000051ec  ldr      x3, [x8, #0x948]
+000051f0  mov      x0, x21
+000051f4  mov      x1, x20
+000051f8  mov      x2, x19
+000051fc  ldp      x29, x30, [sp, #0x20]
+00005200  ldp      x20, x19, [sp, #0x10]
+00005204  ldp      x22, x21, [sp], #0x30
+00005208  br       x3
+0000520c  mov      x19, x0
+00005210  mov      x0, x22
+00005214  bl       #0x2480c ; call _objc_release
+00005218  mov      x0, x19
+0000521c  bl       #0x24470 ; call __Unwind_Resume

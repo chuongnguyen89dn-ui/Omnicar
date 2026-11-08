@@ -1,0 +1,196 @@
+=== -[ABHost setShield:forPane:] @ 0x129d8 (size 780) ===
+000129d8  stp      d11, d10, [sp, #-0x50]!
+000129dc  stp      d9, d8, [sp, #0x10]
+000129e0  stp      x22, x21, [sp, #0x20]
+000129e4  stp      x20, x19, [sp, #0x30]
+000129e8  stp      x29, x30, [sp, #0x40]
+000129ec  add      x29, sp, #0x40
+000129f0  mov      x19, x3
+000129f4  mov      x20, x2
+000129f8  mov      x0, x3
+000129fc  bl       #0x24818 ; call _objc_retain
+00012a00  cbz      x19, #0x12c54
+00012a04  tbz      w20, #0, #0x12c28
+00012a08  mov      x0, x19
+00012a0c  bl       #0x27b60 ; objc_msgSend sel=shield
+00012a10  mov      x29, x29
+00012a14  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012a18  mov      x20, x0
+00012a1c  bl       #0x2480c ; call _objc_release
+00012a20  cbnz     x20, #0x12adc
+00012a24  adrp     x8, #0x3e000
+00012a28  ldr      x0, [x8, #0x368] ; class ABShieldView
+00012a2c  bl       #0x2471c ; call _objc_alloc
+00012a30  mov      x21, x0
+00012a34  mov      x0, x19
+00012a38  bl       #0x24f60 ; objc_msgSend sel=box
+00012a3c  mov      x29, x29
+00012a40  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012a44  mov      x20, x0
+00012a48  bl       #0x24f40 ; objc_msgSend sel=bounds
+00012a4c  mov      x0, x21
+00012a50  bl       #0x25a40 ; objc_msgSend sel=initWithFrame:
+00012a54  mov      x21, x0
+00012a58  mov      x0, x20
+00012a5c  bl       #0x2480c ; call _objc_release
+00012a60  adrp     x8, #0x3e000
+00012a64  ldr      x0, [x8, #0x320] ; bind _OBJC_CLASS_$_UIColor
+00012a68  adrp     x8, #0x2b000
+00012a6c  ldr      d1, [x8, #0x2c8] ; -> 0x147ae147b
+00012a70  fmov     d0, #1.00000000
+00012a74  bl       #0x25240 ; objc_msgSend sel=colorWithWhite:alpha:
+00012a78  mov      x29, x29
+00012a7c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012a80  mov      x20, x0
+00012a84  mov      x0, x21
+00012a88  mov      x2, x20
+00012a8c  bl       #0x26c20 ; objc_msgSend sel=setBackgroundColor:
+00012a90  mov      x0, x20
+00012a94  bl       #0x2480c ; call _objc_release
+00012a98  mov      x0, x21
+00012a9c  mov      w2, #0x12
+00012aa0  bl       #0x26c00 ; objc_msgSend sel=setAutoresizingMask:
+00012aa4  mov      x0, x19
+00012aa8  mov      x2, x21
+00012aac  bl       #0x27780 ; objc_msgSend sel=setShield:
+00012ab0  mov      x0, x19
+00012ab4  bl       #0x24f60 ; objc_msgSend sel=box
+00012ab8  mov      x29, x29
+00012abc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012ac0  mov      x20, x0
+00012ac4  mov      x2, x21
+00012ac8  bl       #0x24ba0 ; objc_msgSend sel=addSubview:
+00012acc  mov      x0, x20
+00012ad0  bl       #0x2480c ; call _objc_release
+00012ad4  mov      x0, x21
+00012ad8  bl       #0x2480c ; call _objc_release
+00012adc  mov      x0, x19
+00012ae0  bl       #0x24f60 ; objc_msgSend sel=box
+00012ae4  mov      x29, x29
+00012ae8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012aec  mov      x21, x0
+00012af0  bl       #0x24f40 ; objc_msgSend sel=bounds
+00012af4  mov      v8.16b, v0.16b
+00012af8  mov      v9.16b, v1.16b
+00012afc  mov      v10.16b, v2.16b
+00012b00  mov      v11.16b, v3.16b
+00012b04  mov      x0, x19
+00012b08  bl       #0x27b60 ; objc_msgSend sel=shield
+00012b0c  mov      x29, x29
+00012b10  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012b14  mov      x20, x0
+00012b18  mov      v0.16b, v8.16b
+00012b1c  mov      v1.16b, v9.16b
+00012b20  mov      v2.16b, v10.16b
+00012b24  mov      v3.16b, v11.16b
+00012b28  bl       #0x26f80 ; objc_msgSend sel=setFrame:
+00012b2c  mov      x0, x20
+00012b30  bl       #0x2480c ; call _objc_release
+00012b34  mov      x0, x21
+00012b38  bl       #0x2480c ; call _objc_release
+00012b3c  mov      x0, x19
+00012b40  bl       #0x24f60 ; objc_msgSend sel=box
+00012b44  mov      x29, x29
+00012b48  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012b4c  mov      x21, x0
+00012b50  mov      x0, x19
+00012b54  bl       #0x27b60 ; objc_msgSend sel=shield
+00012b58  mov      x29, x29
+00012b5c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012b60  mov      x20, x0
+00012b64  mov      x0, x21
+00012b68  mov      x2, x20
+00012b6c  bl       #0x24f80 ; objc_msgSend sel=bringSubviewToFront:
+00012b70  mov      x0, x20
+00012b74  bl       #0x2480c ; call _objc_release
+00012b78  mov      x0, x21
+00012b7c  bl       #0x2480c ; call _objc_release
+00012b80  mov      x0, x19
+00012b84  bl       #0x24e60 ; objc_msgSend sel=bar
+00012b88  mov      x29, x29
+00012b8c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012b90  mov      x20, x0
+00012b94  bl       #0x2480c ; call _objc_release
+00012b98  cbz      x20, #0x12be0
+00012b9c  mov      x0, x19
+00012ba0  bl       #0x24f60 ; objc_msgSend sel=box
+00012ba4  mov      x29, x29
+00012ba8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012bac  mov      x21, x0
+00012bb0  mov      x0, x19
+00012bb4  bl       #0x24e60 ; objc_msgSend sel=bar
+00012bb8  mov      x29, x29
+00012bbc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012bc0  mov      x20, x0
+00012bc4  mov      x0, x21
+00012bc8  mov      x2, x20
+00012bcc  bl       #0x24f80 ; objc_msgSend sel=bringSubviewToFront:
+00012bd0  mov      x0, x20
+00012bd4  bl       #0x2480c ; call _objc_release
+00012bd8  mov      x0, x21
+00012bdc  bl       #0x2480c ; call _objc_release
+00012be0  mov      x0, x19
+00012be4  bl       #0x24f60 ; objc_msgSend sel=box
+00012be8  mov      x29, x29
+00012bec  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012bf0  mov      x21, x0
+00012bf4  mov      x0, x19
+00012bf8  bl       #0x25860 ; objc_msgSend sel=handleHit
+00012bfc  mov      x29, x29
+00012c00  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012c04  mov      x20, x0
+00012c08  mov      x0, x21
+00012c0c  mov      x2, x20
+00012c10  bl       #0x24f80 ; objc_msgSend sel=bringSubviewToFront:
+00012c14  mov      x0, x20
+00012c18  bl       #0x2480c ; call _objc_release
+00012c1c  mov      x0, x21
+00012c20  bl       #0x2480c ; call _objc_release
+00012c24  b        #0x12c54 ; call sub_12c54
+00012c28  mov      x0, x19
+00012c2c  bl       #0x27b60 ; objc_msgSend sel=shield
+00012c30  mov      x29, x29
+00012c34  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012c38  mov      x21, x0
+00012c3c  bl       #0x26840 ; objc_msgSend sel=removeFromSuperview
+00012c40  mov      x0, x21
+00012c44  bl       #0x2480c ; call _objc_release
+00012c48  mov      x0, x19
+00012c4c  mov      x2, #0
+00012c50  bl       #0x27780 ; objc_msgSend sel=setShield:
+00012c54  mov      x0, x19
+00012c58  ldp      x29, x30, [sp, #0x40]
+00012c5c  ldp      x20, x19, [sp, #0x30]
+00012c60  ldp      x22, x21, [sp, #0x20]
+00012c64  ldp      d9, d8, [sp, #0x10]
+00012c68  ldp      d11, d10, [sp], #0x50
+00012c6c  b        #0x2480c ; call _objc_release
+00012c70  b        #0x12ca4 ; call sub_12ca4
+00012c74  b        #0x12ca4 ; call sub_12ca4
+00012c78  b        #0x12ca4 ; call sub_12ca4
+00012c7c  b        #0x12cc0 ; call sub_12cc0
+00012c80  mov      x1, x20
+00012c84  mov      x20, x0
+00012c88  mov      x0, x1
+00012c8c  b        #0x12cc8 ; call sub_12cc8
+00012c90  b        #0x12cd0 ; call sub_12cd0
+00012c94  b        #0x12ca4 ; call sub_12ca4
+00012c98  b        #0x12cc0 ; call sub_12cc0
+00012c9c  b        #0x12ca4 ; call sub_12ca4
+00012ca0  b        #0x12cc0 ; call sub_12cc0
+00012ca4  mov      x1, x20
+00012ca8  mov      x20, x0
+00012cac  mov      x0, x1
+00012cb0  bl       #0x2480c ; call _objc_release
+00012cb4  b        #0x12cc4 ; call sub_12cc4
+00012cb8  b        #0x12cc0 ; call sub_12cc0
+00012cbc  b        #0x12cc0 ; call sub_12cc0
+00012cc0  mov      x20, x0
+00012cc4  mov      x0, x21
+00012cc8  bl       #0x2480c ; call _objc_release
+00012ccc  b        #0x12cd4 ; call sub_12cd4
+00012cd0  mov      x20, x0
+00012cd4  mov      x0, x19
+00012cd8  bl       #0x2480c ; call _objc_release
+00012cdc  mov      x0, x20
+00012ce0  bl       #0x24470 ; call __Unwind_Resume

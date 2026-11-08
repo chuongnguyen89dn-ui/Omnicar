@@ -1,0 +1,119 @@
+# sub_25bd0
+# addr 0x25bd0 .. 0x25da0  (464 bytes)
+
+00025bd0  sub      sp, sp, #0x50                               
+00025bd4  stp      d9, d8, [sp, #0x10]                         
+00025bd8  stp      x22, x21, [sp, #0x20]                       
+00025bdc  stp      x20, x19, [sp, #0x30]                       
+00025be0  stp      x29, x30, [sp, #0x40]                       
+00025be4  add      x29, sp, #0x40                              
+00025be8  mov      x19, x0                                     
+00025bec  bl       #0x25b78                                    ; sub_25b78
+00025bf0  ldr      d1, [x19, #0x20]                            
+00025bf4  fsub     d8, d0, d1                                  
+00025bf8  adrp     x8, #0x43000                                
+00025bfc  add      x8, x8, #0xb91                              ; __DATA,__bss+0x3f1
+00025c00  stlrb    wzr, [x8]                                   
+00025c04  adrp     x8, #0x43000                                
+00025c08  ldr      x8, [x8, #0xa48]                            ; [0x43a48] __DATA,__bss+0x2a8
+00025c0c  fmov     d0, #0.50000000                             
+00025c10  fcmp     d8, d0                                      
+00025c14  ccmp     x8, #0, #4, ge                              
+00025c18  b.ne     #0x25c34                                    
+00025c1c  ldp      x29, x30, [sp, #0x40]                       
+00025c20  ldp      x20, x19, [sp, #0x30]                       
+00025c24  ldp      x22, x21, [sp, #0x20]                       
+00025c28  ldp      d9, d8, [sp, #0x10]                         
+00025c2c  add      sp, sp, #0x50                               
+00025c30  ret                                                  
+00025c34  adrp     x8, #0x43000                                
+00025c38  ldr      d1, [x8, #0xb08]                            ; [0x43b08] __DATA,__bss+0x368
+00025c3c  fmov     d0, #1.00000000                             
+00025c40  fadd     d1, d1, d0                                  
+00025c44  str      d1, [x8, #0xb08]                            
+00025c48  fmov     d1, #2.00000000                             
+00025c4c  fcmp     d8, d1                                      
+00025c50  b.lt     #0x25c64                                    
+00025c54  adrp     x8, #0x43000                                
+00025c58  ldr      d1, [x8, #0xb00]                            ; [0x43b00] __DATA,__bss+0x360
+00025c5c  fadd     d0, d1, d0                                  
+00025c60  str      d0, [x8, #0xb00]                            
+00025c64  adrp     x8, #0x43000                                
+00025c68  ldr      d0, [x8, #0xaf8]                            ; [0x43af8] __DATA,__bss+0x358
+00025c6c  adrp     x9, #0x32000                                
+00025c70  ldr      d1, [x9, #0xe18]                            ; [0x32e18] __const[0x32e18] double=1000.0 float=0.0
+00025c74  fmul     d1, d8, d1                                  
+00025c78  fcmp     d0, d1                                      
+00025c7c  fcsel    d0, d1, d0, mi                              
+00025c80  str      d0, [x8, #0xaf8]                            
+00025c84  bl       #0x23910                                    ; sub_23910
+00025c88  cbz      x0, #0x25cb8                                
+00025c8c  ldrb     w8, [x0, #0x400]                            
+00025c90  cbz      w8, #0x25cb8                                
+00025c94  adrp     x8, #0x42000                                
+00025c98  ldr      x8, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00025c9c  add      x2, x0, #0x400                              
+00025ca0  mov      x0, x8                                      
+00025ca4  bl       #0x2c320                                    ; objc_msgSend$stringWithUTF8String:
+00025ca8  mov      x29, x29                                    
+00025cac  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00025cb0  mov      x19, x0                                     
+00025cb4  b        #0x25cc0                                    ; sub_25cc0
+00025cb8  adrp     x19, #0x39000                               
+00025cbc  add      x19, x19, #0x778                            ; @"-"
+00025cc0  adrp     x8, #0x42000                                
+00025cc4  ldr      x20, [x8, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+00025cc8  adrp     x22, #0x43000                               
+00025ccc  ldr      x0, [x22, #0xa70]                           ; [0x43a70] __DATA,__bss+0x2d0
+00025cd0  mov      x2, x19                                     
+00025cd4  bl       #0x2a140                                    ; objc_msgSend$objectForKeyedSubscript:
+00025cd8  mov      x29, x29                                    
+00025cdc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00025ce0  mov      x21, x0                                     
+00025ce4  bl       #0x29960                                    ; objc_msgSend$integerValue
+00025ce8  add      x2, x0, #1                                  
+00025cec  mov      x0, x20                                     
+00025cf0  bl       #0x2a080                                    ; objc_msgSend$numberWithInteger:
+00025cf4  mov      x29, x29                                    
+00025cf8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00025cfc  mov      x20, x0                                     
+00025d00  ldr      x0, [x22, #0xa70]                           ; [0x43a70] __DATA,__bss+0x2d0
+00025d04  mov      x2, x20                                     
+00025d08  mov      x3, x19                                     
+00025d0c  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00025d10  mov      x0, x20                                     
+00025d14  bl       #0x27ff8                                    ; _objc_release
+00025d18  mov      x0, x21                                     
+00025d1c  bl       #0x27ff8                                    ; _objc_release
+00025d20  adrp     x20, #0x43000                               
+00025d24  add      x20, x20, #0xb70                            ; __DATA,__bss+0x3d0
+00025d28  ldur     q0, [x20, #8]                               
+00025d2c  str      q0, [x20]                                   
+00025d30  bl       #0x25b78                                    ; sub_25b78
+00025d34  str      d0, [x20, #0x10]                            
+00025d38  fmov     d0, #2.00000000                             
+00025d3c  fcmp     d8, d0                                      
+00025d40  b.lt     #0x25d84                                    
+00025d44  adrp     x8, #0x42000                                
+00025d48  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00025d4c  str      x19, [sp, #8]                               
+00025d50  str      d8, [sp]                                    
+00025d54  adrp     x2, #0x3b000                                
+00025d58  add      x2, x2, #0xe38                              ; @"CarPlay do %.1fs (OmniCar gan nhat: %@)"
+00025d5c  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00025d60  mov      x29, x29                                    
+00025d64  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00025d68  mov      x20, x0                                     
+00025d6c  adrp     x0, #0x3b000                                
+00025d70  add      x0, x0, #0x8b8                              ; @"Core"
+00025d74  mov      x1, x20                                     
+00025d78  bl       #0x2155c                                    ; _OMCLogWrite
+00025d7c  mov      x0, x20                                     
+00025d80  bl       #0x27ff8                                    ; _objc_release
+00025d84  mov      x0, x19                                     
+00025d88  ldp      x29, x30, [sp, #0x40]                       
+00025d8c  ldp      x20, x19, [sp, #0x30]                       
+00025d90  ldp      x22, x21, [sp, #0x20]                       
+00025d94  ldp      d9, d8, [sp, #0x10]                         
+00025d98  add      sp, sp, #0x50                               
+00025d9c  b        #0x27ff8                                    ; _objc_release

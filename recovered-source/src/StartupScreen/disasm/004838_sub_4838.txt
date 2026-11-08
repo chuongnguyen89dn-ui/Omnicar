@@ -1,0 +1,46 @@
+; sub_4838
+; VA 0x4838  size 172
+
+0x00004838:  str      w0, [sp, #0x2c]
+0x0000483c:  mov      x0, x19
+0x00004840:  bl       #0x22120    ; -> _objc_release
+0x00004844:  ldr      x8, [sp, #0x50]
+0x00004848:  cbz      x8, #0x4be8
+0x0000484c:  adrp     x8, #0x3a000
+0x00004850:  ldr      x0, [x8, #0x9e0]    ; class(SSStartupView)
+0x00004854:  bl       #0x22024    ; -> _objc_alloc
+0x00004858:  mov      x19, x0
+0x0000485c:  ldr      x0, [sp, #0x58]
+0x00004860:  bl       #0x228c0    ; -> _objc_msgSend(bounds)
+0x00004864:  mov      x0, x19
+0x00004868:  bl       #0x23780    ; -> _objc_msgSend(initWithFrame:)
+0x0000486c:  ldr      x21, [sp, #0x60]
+0x00004870:  ldr      x8, [x21, #0x28]!
+0x00004874:  str      x0, [x21]
+0x00004878:  mov      x0, x8
+0x0000487c:  bl       #0x22120    ; -> _objc_release
+0x00004880:  ldr      x0, [x21]
+0x00004884:  ldr      x2, [sp, #0x50]
+0x00004888:  bl       #0x25200    ; -> _objc_msgSend(setStyle:)
+0x0000488c:  ldr      x0, [x21]
+0x00004890:  mov      x2, x20
+0x00004894:  bl       #0x24de0    ; -> _objc_msgSend(setOccasion:)
+0x00004898:  adrp     x0, #0x30000
+0x0000489c:  add      x0, x0, #0xfc8    ; @"startupScreenGreetingName"
+0x000048a0:  mov      x1, #0
+0x000048a4:  bl       #0x1af70    ; -> OMCPref
+0x000048a8:  mov      x29, x29
+0x000048ac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000048b0:  str      x0, [sp, #0x38]
+0x000048b4:  adrp     x8, #0x3a000
+0x000048b8:  ldr      x0, [x8, #0x9c0]    ; class(NSString)
+0x000048bc:  bl       #0x220e4    ; -> _objc_opt_class
+0x000048c0:  mov      x1, x0
+0x000048c4:  ldr      x0, [sp, #0x38]
+0x000048c8:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x000048cc:  tst      w0, #1
+0x000048d0:  ldr      x8, [sp, #0x38]
+0x000048d4:  csel     x2, x8, xzr, ne
+0x000048d8:  ldr      x0, [x21]
+0x000048dc:  bl       #0x24ca0    ; -> _objc_msgSend(setName:)
+0x000048e0:  adrp     x0, #0x30000

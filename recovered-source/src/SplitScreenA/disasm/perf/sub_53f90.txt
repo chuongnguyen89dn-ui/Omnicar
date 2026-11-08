@@ -1,0 +1,165 @@
+; sub_53f90
+0x053f90  stp      d11, d10, [sp, #-0x60]!
+0x053f94  stp      d9, d8, [sp, #0x10]
+0x053f98  stp      x28, x27, [sp, #0x20]
+0x053f9c  stp      x22, x21, [sp, #0x30]
+0x053fa0  stp      x20, x19, [sp, #0x40]
+0x053fa4  stp      x29, x30, [sp, #0x50]
+0x053fa8  add      x29, sp, #0x50
+0x053fac  sub      sp, sp, #0x1a0
+0x053fb0  bl       #0x54220 ; -> sub_54220
+0x053fb4  adrp     x8, #0x88000
+0x053fb8  add      x8, x8, #0x3a1 ; -> 0x883a1
+0x053fbc  mov      w9, #1
+0x053fc0  ldaxrb   w10, [x8]
+0x053fc4  cbnz     w10, #0x54014
+0x053fc8  stlxrb   w10, w9, [x8]
+0x053fcc  cbnz     w10, #0x53fc0
+0x053fd0  adrp     x8, #0x78000
+0x053fd4  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x053fd8  str      x8, [sp]
+0x053fdc  adrp     x8, #0x6f000
+0x053fe0  ldr      d1, [x8, #8]
+0x053fe4  adrp     x8, #0x54000
+0x053fe8  add      x8, x8, #0x278 ; -> 0x54278 sub_54278
+0x053fec  str      d1, [sp, #8]
+0x053ff0  adrp     x9, #0x78000
+0x053ff4  add      x9, x9, #0x9a0 ; -> 0x789a0
+0x053ff8  stp      x8, x9, [sp, #0x10]
+0x053ffc  str      d0, [sp, #0x20]
+0x054000  adrp     x0, #0x78000
+0x054004  ldr      x0, [x0, #0x370] ; [0x78370] __dispatch_main_q
+0x054008  mov      x1, sp
+0x05400c  bl       #0x564dc ; call _dispatch_async
+0x054010  b        #0x54018
+0x054014  clrex    
+0x054018  adrp     x8, #0x88000
+0x05401c  ldr      w9, [x8, #0x3a4]
+0x054020  add      w9, w9, #1
+0x054024  str      w9, [x8, #0x3a4]
+0x054028  mov      w8, #0xcccd
+0x05402c  movk     w8, #0xcccc, lsl #16
+0x054030  mul      w8, w9, w8
+0x054034  ror      w8, w8, #2
+0x054038  mov      w9, #0xcccc
+0x05403c  movk     w9, #0xccc, lsl #16
+0x054040  cmp      w8, w9
+0x054044  b.hi     #0x54200
+0x054048  str      wzr, [sp, #0x2c]
+0x05404c  adrp     x19, #0x78000
+0x054050  ldr      x19, [x19, #0x4a0] ; [0x784a0] _mach_task_self_
+0x054054  ldr      w0, [x19] ; [0x78000] <ordinal 0>
+0x054058  add      x1, sp, #0x30
+0x05405c  add      x2, sp, #0x2c
+0x054060  bl       #0x56950 ; call _task_threads
+0x054064  fmov     d9, #-1.00000000
+0x054068  fmov     d8, #-1.00000000
+0x05406c  cbnz     w0, #0x5410c
+0x054070  ldr      w8, [sp, #0x2c]
+0x054074  cbz      w8, #0x540f8
+0x054078  mov      x20, #0
+0x05407c  fmov     d8, xzr
+0x054080  mov      w21, #0xa
+0x054084  mov      x22, #0x4059000000000000
+0x054088  adrp     x8, #0x6f000
+0x05408c  ldr      d10, [x8, #0x418]
+0x054090  str      w21, [sp, #0x28]
+0x054094  ldr      x8, [sp, #0x30]
+0x054098  ldr      w0, [x8, x20, lsl #2]
+0x05409c  add      x2, sp, #0x38
+0x0540a0  add      x3, sp, #0x28
+0x0540a4  mov      w1, #3
+0x0540a8  bl       #0x5695c ; call _thread_info
+0x0540ac  cbnz     w0, #0x540d0
+0x0540b0  ldrb     w8, [sp, #0x54]
+0x0540b4  tbnz     w8, #1, #0x540d0
+0x0540b8  ldr      w8, [sp, #0x48]
+0x0540bc  scvtf    d0, w8
+0x0540c0  fmov     d1, x22
+0x0540c4  fmul     d0, d0, d1
+0x0540c8  fdiv     d0, d0, d10
+0x0540cc  fadd     d8, d8, d0
+0x0540d0  ldr      w0, [x19] ; [0x78000] <ordinal 0>
+0x0540d4  ldr      x8, [sp, #0x30]
+0x0540d8  ldr      w1, [x8, x20, lsl #2]
+0x0540dc  bl       #0x56644 ; call _mach_port_deallocate
+0x0540e0  add      x20, x20, #1
+0x0540e4  ldr      w8, [sp, #0x2c]
+0x0540e8  cmp      x20, x8
+0x0540ec  b.lo     #0x54090
+0x0540f0  lsl      x2, x8, #2
+0x0540f4  b        #0x54100
+0x0540f8  mov      x2, #0
+0x0540fc  fmov     d8, xzr
+0x054100  ldr      w0, [x19] ; [0x78000] <ordinal 0>
+0x054104  ldr      x1, [sp, #0x30]
+0x054108  bl       #0x56980 ; call _vm_deallocate
+0x05410c  mov      w8, #0x59
+0x054110  str      w8, [sp, #0x30]
+0x054114  ldr      w0, [x19] ; [0x78000] <ordinal 0>
+0x054118  add      x2, sp, #0x38
+0x05411c  add      x3, sp, #0x30
+0x054120  mov      w1, #0x16
+0x054124  bl       #0x56944 ; call _task_info
+0x054128  ldr      d0, [sp, #0xc8]
+0x05412c  ucvtf    d0, d0
+0x054130  mov      x8, #0x3eb0000000000000
+0x054134  fmov     d1, x8
+0x054138  fmul     d0, d0, d1
+0x05413c  cmp      w0, #0
+0x054140  fcsel    d9, d0, d9, eq
+0x054144  adrp     x19, #0x88000
+0x054148  ldr      w0, [x19, #0x3b0]
+0x05414c  cbnz     w0, #0x54168
+0x054150  bl       #0x56638 ; call _mach_host_self
+0x054154  str      w0, [x19, #0x3b0]
+0x054158  adrp     x1, #0x88000
+0x05415c  add      x1, x1, #0x3b8 ; -> 0x883b8
+0x054160  bl       #0x565d8 ; call _host_page_size
+0x054164  ldr      w0, [x19, #0x3b0]
+0x054168  mov      w8, #0x26
+0x05416c  str      w8, [sp, #0x30]
+0x054170  add      x2, sp, #0x38
+0x054174  add      x3, sp, #0x30
+0x054178  mov      w1, #4
+0x05417c  bl       #0x565e4 ; call _host_statistics64
+0x054180  fmov     d10, #-1.00000000
+0x054184  cbnz     w0, #0x541b4
+0x054188  ldr      w8, [sp, #0x38]
+0x05418c  ldr      w9, [sp, #0x40]
+0x054190  add      w8, w9, w8
+0x054194  ucvtf    d0, w8
+0x054198  adrp     x8, #0x88000
+0x05419c  ldr      d1, [x8, #0x3b8]
+0x0541a0  ucvtf    d1, d1
+0x0541a4  fmul     d0, d0, d1
+0x0541a8  mov      x8, #0x3eb0000000000000
+0x0541ac  fmov     d1, x8
+0x0541b0  fmul     d10, d0, d1
+0x0541b4  bl       #0x56878 ; call _os_proc_available_memory
+0x0541b8  ucvtf    d0, x0, #0x14
+0x0541bc  adrp     x8, #0x78000
+0x0541c0  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x0541c4  str      x8, [sp, #0x38]
+0x0541c8  adrp     x8, #0x6f000
+0x0541cc  ldr      d1, [x8, #8]
+0x0541d0  str      d1, [sp, #0x40]
+0x0541d4  adrp     x8, #0x54000
+0x0541d8  add      x8, x8, #0x448 ; -> 0x54448 sub_54448
+0x0541dc  adrp     x9, #0x79000
+0x0541e0  add      x9, x9, #0x4a0 ; -> 0x794a0
+0x0541e4  stp      x8, x9, [sp, #0x48]
+0x0541e8  stp      d8, d9, [sp, #0x58]
+0x0541ec  stp      d0, d10, [sp, #0x68]
+0x0541f0  adrp     x0, #0x78000
+0x0541f4  ldr      x0, [x0, #0x370] ; [0x78370] __dispatch_main_q
+0x0541f8  add      x1, sp, #0x38
+0x0541fc  bl       #0x564dc ; call _dispatch_async
+0x054200  add      sp, sp, #0x1a0
+0x054204  ldp      x29, x30, [sp, #0x50]
+0x054208  ldp      x20, x19, [sp, #0x40]
+0x05420c  ldp      x22, x21, [sp, #0x30]
+0x054210  ldp      x28, x27, [sp, #0x20]
+0x054214  ldp      d9, d8, [sp, #0x10]
+0x054218  ldp      d11, d10, [sp], #0x60
+0x05421c  ret      

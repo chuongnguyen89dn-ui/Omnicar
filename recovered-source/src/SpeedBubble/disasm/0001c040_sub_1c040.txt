@@ -1,0 +1,27 @@
+# sub_1c040
+# addr 0x1c040 .. 0x1c0a0  (96 bytes)
+
+0001c040  sub      sp, sp, #0x80                               
+0001c044  stp      x20, x19, [sp, #0x60]                       
+0001c048  stp      x29, x30, [sp, #0x70]                       
+0001c04c  add      x29, sp, #0x70                              
+0001c050  mov      x19, x0                                     
+0001c054  ldr      x0, [x0, #0x20]                             
+0001c058  fmov     d0, xzr                                     
+0001c05c  bl       #0x2a980                                    ; objc_msgSend$setAlpha:
+0001c060  adrp     x8, #0x32000                                
+0001c064  ldr      d0, [x8, #0x7e8]                            ; [0x327e8] __const[0x327e8] double=0.9 float=-107374184.0
+0001c068  add      x8, sp, #0x30                               
+0001c06c  mov      v1.16b, v0.16b                              
+0001c070  bl       #0x27b18                                    ; _CGAffineTransformMakeScale
+0001c074  ldp      q0, q1, [sp, #0x30]                         
+0001c078  stp      q0, q1, [sp]                                
+0001c07c  ldr      q0, [sp, #0x50]                             
+0001c080  str      q0, [sp, #0x20]                             
+0001c084  ldr      x0, [x19, #0x20]                            
+0001c088  mov      x2, sp                                      
+0001c08c  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+0001c090  ldp      x29, x30, [sp, #0x70]                       
+0001c094  ldp      x20, x19, [sp, #0x60]                       
+0001c098  add      sp, sp, #0x80                               
+0001c09c  ret                                                  

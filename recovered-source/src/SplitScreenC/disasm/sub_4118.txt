@@ -1,0 +1,23 @@
+; sub_4118
+0x004118  stp      x20, x19, [sp, #-0x20]!
+0x00411c  stp      x29, x30, [sp, #0x10]
+0x004120  add      x29, sp, #0x10
+0x004124  mov      x19, x1
+0x004128  mov      x20, x0
+0x00412c  adrp     x8, #0x87000
+0x004130  ldr      x8, [x8, #0xfa8]
+0x004134  cmn      x8, #1
+0x004138  b.ne     #0x4158
+0x00413c  adrp     x8, #0x87000
+0x004140  ldr      x2, [x8, #0xfa0]
+0x004144  mov      x0, x20
+0x004148  mov      x1, x19
+0x00414c  ldp      x29, x30, [sp, #0x10]
+0x004150  ldp      x20, x19, [sp], #0x20
+0x004154  br       x2
+0x004158  adrp     x0, #0x87000
+0x00415c  add      x0, x0, #0xfa8 ; -> 0x87fa8
+0x004160  adrp     x1, #0x78000
+0x004164  add      x1, x1, #0x6e0 ; -> 0x786e0
+0x004168  bl       #0x564f4 ; call _dispatch_once
+0x00416c  b        #0x413c

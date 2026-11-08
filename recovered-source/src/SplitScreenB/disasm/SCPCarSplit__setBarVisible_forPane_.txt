@@ -1,0 +1,359 @@
+; ==== SCPCarSplit__setBarVisible_forPane_  @0x241fc..0x24794 (1432 bytes) ====
+000241fc  stp      d9, d8, [sp, #-0x60]!                        
+00024200  stp      x28, x27, [sp, #0x10]                        
+00024204  stp      x24, x23, [sp, #0x20]                        
+00024208  stp      x22, x21, [sp, #0x30]                        
+0002420c  stp      x20, x19, [sp, #0x40]                        
+00024210  stp      x29, x30, [sp, #0x50]                        
+00024214  add      x29, sp, #0x50                               
+00024218  sub      sp, sp, #0x200                               
+0002421c  mov      x19, x3                                      
+00024220  mov      x21, x2                                      
+00024224  mov      x20, x0                                      
+00024228  adrp     x8, #0x78000                                 
+0002422c  ldr      x8, [x8, #0x360]                             
+00024230  ldr      x8, [x8]                                     
+00024234  stur     x8, [x29, #-0x58]                            
+00024238  mov      x0, x3                                       
+0002423c  bl       #0x567c4                                     ; call _objc_retain
+00024240  mov      x0, x19                                      
+00024244  bl       #0x57180                                     ; msgSend "barTimer"
+00024248  mov      x29, x29                                     
+0002424c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00024250  mov      x22, x0                                      
+00024254  bl       #0x58c00                                     ; msgSend "invalidate"
+00024258  mov      x0, x22                                      
+0002425c  bl       #0x567b8                                     ; call _objc_release
+00024260  mov      x0, x19                                      
+00024264  mov      x2, #0                                       
+00024268  bl       #0x5a8a0                                     ; msgSend "setBarTimer:"
+0002426c  cbz      w21, #0x2448c                                
+00024270  mov      x0, x20                                      
+00024274  bl       #0x58460                                     ; msgSend "hideRatioMenu"
+00024278  movi     v0.16b, #0                                   
+0002427c  stp      q0, q0, [sp, #0x150]                         
+00024280  stp      q0, q0, [sp, #0x130]                         
+00024284  mov      x0, x20                                      
+00024288  bl       #0x56e20                                     ; msgSend "allPanes"
+0002428c  mov      x29, x29                                     
+00024290  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00024294  mov      x21, x0                                      
+00024298  add      x2, sp, #0x130                               
+0002429c  sub      x3, x29, #0xd8                               
+000242a0  mov      w4, #0x10                                    
+000242a4  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+000242a8  mov      x22, x0                                      
+000242ac  cbz      x0, #0x24318                                 
+000242b0  ldr      x8, [sp, #0x140]                             
+000242b4  ldr      x23, [x8]                                    
+000242b8  mov      x24, #0                                      
+000242bc  ldr      x8, [sp, #0x140]                             
+000242c0  ldr      x8, [x8]                                     
+000242c4  cmp      x8, x23                                      
+000242c8  b.eq     #0x242d4                                     
+000242cc  mov      x0, x21                                      
+000242d0  bl       #0x5671c                                     ; call _objc_enumerationMutation
+000242d4  ldr      x8, [sp, #0x138]                             
+000242d8  ldr      x3, [x8, x24, lsl #3]                        
+000242dc  cmp      x3, x19                                      
+000242e0  b.eq     #0x242f0                                     
+000242e4  mov      x0, x20                                      
+000242e8  mov      w2, #0                                       
+000242ec  bl       #0x5a8c0                                     ; msgSend "setBarVisible:forPane:"
+000242f0  add      x24, x24, #1                                 
+000242f4  cmp      x22, x24                                     
+000242f8  b.ne     #0x242bc                                     
+000242fc  add      x2, sp, #0x130                               
+00024300  sub      x3, x29, #0xd8                               
+00024304  mov      x0, x21                                      
+00024308  mov      w4, #0x10                                    
+0002430c  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+00024310  mov      x22, x0                                      
+00024314  cbnz     x0, #0x242b8                                 
+00024318  mov      x0, x21                                      
+0002431c  bl       #0x567b8                                     ; call _objc_release
+00024320  mov      x0, x20                                      
+00024324  mov      x2, x19                                      
+00024328  bl       #0x58fe0                                     ; msgSend "layoutBarForPane:"
+0002432c  mov      x0, x19                                      
+00024330  bl       #0x57160                                     ; msgSend "bar"
+00024334  mov      x29, x29                                     
+00024338  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002433c  mov      x22, x0                                      
+00024340  bl       #0x58d20                                     ; msgSend "isHidden"
+00024344  mov      x21, x0                                      
+00024348  mov      x0, x22                                      
+0002434c  bl       #0x567b8                                     ; call _objc_release
+00024350  mov      x0, x19                                      
+00024354  bl       #0x57160                                     ; msgSend "bar"
+00024358  mov      x29, x29                                     
+0002435c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00024360  mov      x22, x0                                      
+00024364  mov      w2, #0                                       
+00024368  bl       #0x5aea0                                     ; msgSend "setHidden:"
+0002436c  mov      x0, x22                                      
+00024370  bl       #0x567b8                                     ; call _objc_release
+00024374  mov      x0, x19                                      
+00024378  bl       #0x583c0                                     ; msgSend "handle"
+0002437c  mov      x29, x29                                     
+00024380  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00024384  mov      x22, x0                                      
+00024388  mov      w1, #1                                       
+0002438c  bl       #0x24794                                     
+00024390  mov      x0, x22                                      
+00024394  bl       #0x567b8                                     ; call _objc_release
+00024398  cbz      w21, #0x243bc                                
+0002439c  mov      x0, x19                                      
+000243a0  bl       #0x57160                                     ; msgSend "bar"
+000243a4  mov      x29, x29                                     
+000243a8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000243ac  mov      x22, x0                                      
+000243b0  bl       #0x24a34                                     
+000243b4  mov      x0, x22                                      
+000243b8  bl       #0x567b8                                     ; call _objc_release
+000243bc  add      x0, sp, #0xc0                                
+000243c0  mov      x1, x20                                      
+000243c4  bl       #0x56740                                     ; call _objc_initWeak
+000243c8  add      x0, sp, #0x128                               
+000243cc  mov      x1, x19                                      
+000243d0  bl       #0x56740                                     ; call _objc_initWeak
+000243d4  adrp     x8, #0x87000                                 
+000243d8  adrp     x9, #0x78000                                 
+000243dc  ldr      x9, [x9, #0x338]                             
+000243e0  ldr      x22, [x8, #0x778]                            ; classref NSTimer
+000243e4  str      x9, [sp, #0xf8]                              
+000243e8  adrp     x8, #0x6e000                                 
+000243ec  ldr      d0, [x8, #0xff8]                             ; double 1.6080749353e-314
+000243f0  adrp     x8, #0x24000                                 
+000243f4  add      x8, x8, #0xbac                               
+000243f8  str      d0, [sp, #0x100]                             
+000243fc  adrp     x9, #0x78000                                 
+00024400  add      x9, x9, #0xd00                               
+00024404  stp      x8, x9, [sp, #0x108]                         
+00024408  add      x23, sp, #0xf8                               
+0002440c  add      x0, x23, #0x20                               
+00024410  add      x1, sp, #0x128                               
+00024414  bl       #0x566f8                                     ; call _objc_copyWeak
+00024418  add      x0, x23, #0x28                               
+0002441c  add      x1, sp, #0xc0                                
+00024420  bl       #0x566f8                                     ; call _objc_copyWeak
+00024424  fmov     d0, #4.00000000                              
+00024428  add      x3, sp, #0xf8                                
+0002442c  mov      x0, x22                                      
+00024430  mov      w2, #0                                       
+00024434  bl       #0x5a600                                     ; msgSend "scheduledTimerWithTimeInterval:repeats:block:"
+00024438  mov      x29, x29                                     
+0002443c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00024440  mov      x22, x0                                      
+00024444  mov      x0, x19                                      
+00024448  mov      x2, x22                                      
+0002444c  bl       #0x5a8a0                                     ; msgSend "setBarTimer:"
+00024450  mov      x0, x22                                      
+00024454  bl       #0x567b8                                     ; call _objc_release
+00024458  cbz      w21, #0x24468                                
+0002445c  mov      x0, x20                                      
+00024460  mov      w2, #0                                       
+00024464  bl       #0x59de0                                     ; msgSend "pushHostFramesLive:"
+00024468  add      x0, x23, #0x28                               
+0002446c  bl       #0x56704                                     ; call _objc_destroyWeak
+00024470  add      x0, x23, #0x20                               
+00024474  bl       #0x56704                                     ; call _objc_destroyWeak
+00024478  add      x0, sp, #0x128                               
+0002447c  bl       #0x56704                                     ; call _objc_destroyWeak
+00024480  add      x0, sp, #0xc0                                
+00024484  bl       #0x56704                                     ; call _objc_destroyWeak
+00024488  b        #0x2462c                                     
+0002448c  mov      x0, x19                                      
+00024490  bl       #0x57160                                     ; msgSend "bar"
+00024494  mov      x29, x29                                     
+00024498  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002449c  mov      x21, x0                                      
+000244a0  bl       #0x58d20                                     ; msgSend "isHidden"
+000244a4  mov      x22, x0                                      
+000244a8  mov      x0, x21                                      
+000244ac  bl       #0x567b8                                     ; call _objc_release
+000244b0  tbnz     w22, #0, #0x2462c                            
+000244b4  mov      x0, x19                                      
+000244b8  bl       #0x583c0                                     ; msgSend "handle"
+000244bc  mov      x29, x29                                     
+000244c0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000244c4  mov      x21, x0                                      
+000244c8  mov      w1, #0                                       
+000244cc  bl       #0x24794                                     
+000244d0  mov      x0, x21                                      
+000244d4  bl       #0x567b8                                     ; call _objc_release
+000244d8  mov      x0, x19                                      
+000244dc  bl       #0x57160                                     ; msgSend "bar"
+000244e0  mov      x29, x29                                     
+000244e4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000244e8  mov      x21, x0                                      
+000244ec  add      x0, sp, #0x128                               
+000244f0  mov      x1, x20                                      
+000244f4  bl       #0x56740                                     ; call _objc_initWeak
+000244f8  add      x0, sp, #0xf0                                
+000244fc  mov      x1, x19                                      
+00024500  bl       #0x56740                                     ; call _objc_initWeak
+00024504  cbz      x21, #0x24518                                
+00024508  add      x8, sp, #0xc0                                
+0002450c  mov      x0, x21                                      
+00024510  bl       #0x5c7c0                                     ; msgSend "transform"
+00024514  b        #0x24524                                     
+00024518  movi     v0.16b, #0                                   
+0002451c  stp      q0, q0, [sp, #0xd0]                          
+00024520  str      q0, [sp, #0xc0]                              
+00024524  add      x22, sp, #0x68                               
+00024528  adrp     x8, #0x87000                                 
+0002452c  ldr      x20, [x8, #0x710]                            ; classref UIView
+00024530  adrp     x23, #0x78000                                
+00024534  ldr      x23, [x23, #0x338]                           
+00024538  str      x23, [sp, #0x68]                             
+0002453c  adrp     x8, #0x6e000                                 
+00024540  ldr      d8, [x8, #0xff8]                             ; double 1.6080749353e-314
+00024544  str      d8, [sp, #0x70]                              
+00024548  adrp     x8, #0x24000                                 
+0002454c  add      x8, x8, #0xc44                               
+00024550  adrp     x9, #0x78000                                 
+00024554  add      x9, x9, #0xd30                               
+00024558  stp      x8, x9, [sp, #0x78]                          
+0002455c  mov      x0, x21                                      
+00024560  bl       #0x567c4                                     ; call _objc_retain
+00024564  str      x21, [sp, #0x88]                             
+00024568  ldp      q0, q1, [sp, #0xc0]                          
+0002456c  stur     q0, [x22, #0x28]                             
+00024570  stur     q1, [x22, #0x38]                             
+00024574  ldr      q0, [sp, #0xe0]                              
+00024578  stur     q0, [x22, #0x48]                             
+0002457c  str      x23, [sp]                                    
+00024580  str      d8, [sp, #8]                                 
+00024584  adrp     x8, #0x24000                                 
+00024588  add      x8, x8, #0xcbc                               
+0002458c  adrp     x9, #0x78000                                 
+00024590  add      x9, x9, #0xd60                               
+00024594  stp      x8, x9, [sp, #0x10]                          
+00024598  mov      x0, x21                                      
+0002459c  bl       #0x567c4                                     ; call _objc_retain
+000245a0  str      x21, [sp, #0x20]                             
+000245a4  ldp      q0, q1, [sp, #0xc0]                          
+000245a8  stur     q0, [sp, #0x38]                              
+000245ac  stur     q1, [sp, #0x48]                              
+000245b0  ldr      q0, [sp, #0xe0]                              
+000245b4  stur     q0, [sp, #0x58]                              
+000245b8  mov      x22, sp                                      
+000245bc  add      x0, x22, #0x28                               
+000245c0  add      x1, sp, #0xf0                                
+000245c4  bl       #0x566f8                                     ; call _objc_copyWeak
+000245c8  add      x0, x22, #0x30                               
+000245cc  add      x1, sp, #0x128                               
+000245d0  bl       #0x566f8                                     ; call _objc_copyWeak
+000245d4  adrp     x8, #0x6f000                                 
+000245d8  ldr      d0, [x8, #0x130]                             ; double 0.18
+000245dc  fmov     d1, xzr                                      
+000245e0  add      x3, sp, #0x68                                
+000245e4  mov      x4, sp                                       
+000245e8  mov      x0, x20                                      
+000245ec  mov      w2, #0x10000                                 
+000245f0  bl       #0x56ee0                                     ; msgSend "animateWithDuration:delay:options:animations:completion:"
+000245f4  add      x0, x22, #0x30                               
+000245f8  bl       #0x56704                                     ; call _objc_destroyWeak
+000245fc  add      x0, x22, #0x28                               
+00024600  bl       #0x56704                                     ; call _objc_destroyWeak
+00024604  ldr      x0, [sp, #0x20]                              
+00024608  bl       #0x567b8                                     ; call _objc_release
+0002460c  ldr      x0, [sp, #0x88]                              
+00024610  bl       #0x567b8                                     ; call _objc_release
+00024614  add      x0, sp, #0xf0                                
+00024618  bl       #0x56704                                     ; call _objc_destroyWeak
+0002461c  add      x0, sp, #0x128                               
+00024620  bl       #0x56704                                     ; call _objc_destroyWeak
+00024624  mov      x0, x21                                      
+00024628  bl       #0x567b8                                     ; call _objc_release
+0002462c  mov      x0, x19                                      
+00024630  bl       #0x567b8                                     ; call _objc_release
+00024634  ldur     x8, [x29, #-0x58]                            
+00024638  adrp     x9, #0x78000                                 
+0002463c  ldr      x9, [x9, #0x360]                             
+00024640  ldr      x9, [x9]                                     
+00024644  cmp      x9, x8                                       
+00024648  b.ne     #0x2466c                                     
+0002464c  add      sp, sp, #0x200                               
+00024650  ldp      x29, x30, [sp, #0x50]                        
+00024654  ldp      x20, x19, [sp, #0x40]                        
+00024658  ldp      x22, x21, [sp, #0x30]                        
+0002465c  ldp      x24, x23, [sp, #0x20]                        
+00024660  ldp      x28, x27, [sp, #0x10]                        
+00024664  ldp      d9, d8, [sp], #0x60                          
+00024668  ret                                                   
+0002466c  bl       #0x56404                                     ; call ___stack_chk_fail
+00024670  mov      x20, x0                                      
+00024674  add      x0, sp, #0xf0                                
+00024678  bl       #0x56704                                     ; call _objc_destroyWeak
+0002467c  add      x0, sp, #0x128                               
+00024680  bl       #0x56704                                     ; call _objc_destroyWeak
+00024684  mov      x0, x21                                      
+00024688  bl       #0x567b8                                     ; call _objc_release
+0002468c  b        #0x2477c                                     
+00024690  b        #0x246e4                                     
+00024694  mov      x20, x0                                      
+00024698  mov      x0, x22                                      
+0002469c  bl       #0x567b8                                     ; call _objc_release
+000246a0  b        #0x2477c                                     
+000246a4  mov      x20, x0                                      
+000246a8  add      x0, x22, #0x30                               
+000246ac  bl       #0x56704                                     ; call _objc_destroyWeak
+000246b0  add      x0, x22, #0x28                               
+000246b4  bl       #0x56704                                     ; call _objc_destroyWeak
+000246b8  ldr      x0, [sp, #0x20]                              
+000246bc  bl       #0x567b8                                     ; call _objc_release
+000246c0  ldr      x0, [sp, #0x88]                              
+000246c4  bl       #0x567b8                                     ; call _objc_release
+000246c8  b        #0x24674                                     
+000246cc  b        #0x24764                                     
+000246d0  b        #0x24740                                     
+000246d4  mov      x20, x0                                      
+000246d8  mov      x0, x22                                      
+000246dc  bl       #0x567b8                                     ; call _objc_release
+000246e0  b        #0x246e8                                     
+000246e4  mov      x20, x0                                      
+000246e8  add      x0, x23, #0x28                               
+000246ec  bl       #0x56704                                     ; call _objc_destroyWeak
+000246f0  add      x0, x23, #0x20                               
+000246f4  bl       #0x56704                                     ; call _objc_destroyWeak
+000246f8  add      x0, sp, #0x128                               
+000246fc  bl       #0x56704                                     ; call _objc_destroyWeak
+00024700  add      x0, sp, #0xc0                                
+00024704  bl       #0x56704                                     ; call _objc_destroyWeak
+00024708  b        #0x2477c                                     
+0002470c  mov      x20, x0                                      
+00024710  mov      x0, x22                                      
+00024714  bl       #0x567b8                                     ; call _objc_release
+00024718  b        #0x2477c                                     
+0002471c  mov      x20, x0                                      
+00024720  mov      x0, x22                                      
+00024724  bl       #0x567b8                                     ; call _objc_release
+00024728  b        #0x2477c                                     
+0002472c  mov      x20, x0                                      
+00024730  mov      x0, x22                                      
+00024734  bl       #0x567b8                                     ; call _objc_release
+00024738  b        #0x2477c                                     
+0002473c  b        #0x24770                                     
+00024740  mov      x20, x0                                      
+00024744  mov      x0, x21                                      
+00024748  b        #0x24758                                     
+0002474c  b        #0x24764                                     
+00024750  mov      x20, x0                                      
+00024754  mov      x0, x22                                      
+00024758  bl       #0x567b8                                     ; call _objc_release
+0002475c  b        #0x2477c                                     
+00024760  b        #0x24764                                     
+00024764  mov      x20, x0                                      
+00024768  b        #0x2477c                                     
+0002476c  b        #0x24770                                     
+00024770  mov      x20, x0                                      
+00024774  mov      x0, x21                                      
+00024778  bl       #0x567b8                                     ; call _objc_release
+0002477c  mov      x0, x19                                      
+00024780  bl       #0x567b8                                     ; call _objc_release
+00024784  b        #0x2478c                                     
+00024788  mov      x20, x0                                      
+0002478c  mov      x0, x20                                      
+00024790  bl       #0x563e0                                     ; call __Unwind_Resume

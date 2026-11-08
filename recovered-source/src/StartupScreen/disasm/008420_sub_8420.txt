@@ -1,0 +1,37 @@
+; sub_8420
+; VA 0x8420  size 136
+
+0x00008420:  sub      sp, sp, #0x50
+0x00008424:  stp      x20, x19, [sp, #0x30]
+0x00008428:  stp      x29, x30, [sp, #0x40]
+0x0000842c:  add      x29, sp, #0x40
+0x00008430:  mov      x0, x1
+0x00008434:  bl       #0x23e60    ; -> _objc_msgSend(object)
+0x00008438:  mov      x29, x29
+0x0000843c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008440:  mov      x19, x0
+0x00008444:  adrp     x8, #0x30000
+0x00008448:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x0000844c:  str      x8, [sp, #8]
+0x00008450:  adrp     x8, #0x28000
+0x00008454:  ldr      d0, [x8, #0xdd0]
+0x00008458:  adrp     x8, #0x8000
+0x0000845c:  add      x8, x8, #0x4a8    ; func sub_84a8
+0x00008460:  str      d0, [sp, #0x10]
+0x00008464:  adrp     x9, #0x30000
+0x00008468:  add      x9, x9, #0x788
+0x0000846c:  stp      x8, x9, [sp, #0x18]
+0x00008470:  str      x0, [sp, #0x28]
+0x00008474:  bl       #0x2212c    ; -> _objc_retain
+0x00008478:  adrp     x0, #0x30000
+0x0000847c:  ldr      x0, [x0, #0x388]    ; got(__dispatch_main_q)
+0x00008480:  add      x1, sp, #8
+0x00008484:  bl       #0x21e98    ; -> _dispatch_async
+0x00008488:  ldr      x0, [sp, #0x28]
+0x0000848c:  bl       #0x22120    ; -> _objc_release
+0x00008490:  mov      x0, x19
+0x00008494:  bl       #0x22120    ; -> _objc_release
+0x00008498:  ldp      x29, x30, [sp, #0x40]
+0x0000849c:  ldp      x20, x19, [sp, #0x30]
+0x000084a0:  add      sp, sp, #0x50
+0x000084a4:  ret      

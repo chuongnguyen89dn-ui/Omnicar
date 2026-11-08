@@ -1,0 +1,198 @@
+; -[SSSplash start]
+; VA 0x5c24  size 780
+
+0x00005c24:  sub      sp, sp, #0xe0
+0x00005c28:  stp      d9, d8, [sp, #0x70]
+0x00005c2c:  stp      x28, x27, [sp, #0x80]
+0x00005c30:  stp      x26, x25, [sp, #0x90]
+0x00005c34:  stp      x24, x23, [sp, #0xa0]
+0x00005c38:  stp      x22, x21, [sp, #0xb0]
+0x00005c3c:  stp      x20, x19, [sp, #0xc0]
+0x00005c40:  stp      x29, x30, [sp, #0xd0]
+0x00005c44:  add      x29, sp, #0xd0
+0x00005c48:  mov      x19, x0
+0x00005c4c:  bl       #0x21b08    ; -> _CACurrentMediaTime
+0x00005c50:  mov      x0, x19
+0x00005c54:  bl       #0x25100    ; -> _objc_msgSend(setShownAt:)
+0x00005c58:  mov      x0, x19
+0x00005c5c:  bl       #0x260a0    ; -> _objc_msgSend(window)
+0x00005c60:  mov      x29, x29
+0x00005c64:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005c68:  mov      x20, x0
+0x00005c6c:  mov      w2, #0
+0x00005c70:  bl       #0x24a00    ; -> _objc_msgSend(setHidden:)
+0x00005c74:  mov      x0, x20
+0x00005c78:  bl       #0x22120    ; -> _objc_release
+0x00005c7c:  adrp     x8, #0x3a000
+0x00005c80:  ldr      x8, [x8, #0x9c0]    ; class(NSString)
+0x00005c84:  str      x8, [sp, #0x38]
+0x00005c88:  mov      x0, x19
+0x00005c8c:  bl       #0x25c60    ; -> _objc_msgSend(style)
+0x00005c90:  mov      x24, x0
+0x00005c94:  mov      x0, x19
+0x00005c98:  bl       #0x260a0    ; -> _objc_msgSend(window)
+0x00005c9c:  mov      x29, x29
+0x00005ca0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005ca4:  mov      x20, x0
+0x00005ca8:  bl       #0x23480    ; -> _objc_msgSend(frame)
+0x00005cac:  bl       #0x21d60    ; -> _NSStringFromCGRect
+0x00005cb0:  mov      x29, x29
+0x00005cb4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005cb8:  mov      x21, x0
+0x00005cbc:  mov      x0, x19
+0x00005cc0:  bl       #0x260a0    ; -> _objc_msgSend(window)
+0x00005cc4:  mov      x29, x29
+0x00005cc8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005ccc:  mov      x22, x0
+0x00005cd0:  bl       #0x260c0    ; -> _objc_msgSend(windowLevel)
+0x00005cd4:  mov      v8.16b, v0.16b
+0x00005cd8:  mov      x0, x19
+0x00005cdc:  bl       #0x260a0    ; -> _objc_msgSend(window)
+0x00005ce0:  mov      x29, x29
+0x00005ce4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005ce8:  mov      x25, x0
+0x00005cec:  bl       #0x260e0    ; -> _objc_msgSend(windowScene)
+0x00005cf0:  mov      x29, x29
+0x00005cf4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005cf8:  mov      x26, x0
+0x00005cfc:  bl       #0x24320    ; -> _objc_msgSend(session)
+0x00005d00:  mov      x29, x29
+0x00005d04:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005d08:  mov      x27, x0
+0x00005d0c:  bl       #0x23fc0    ; -> _objc_msgSend(persistentIdentifier)
+0x00005d10:  mov      x29, x29
+0x00005d14:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005d18:  mov      x28, x0
+0x00005d1c:  mov      x0, x19
+0x00005d20:  bl       #0x234a0    ; -> _objc_msgSend(frameCount)
+0x00005d24:  mov      x23, x0
+0x00005d28:  mov      x0, x19
+0x00005d2c:  bl       #0x23460    ; -> _objc_msgSend(fps)
+0x00005d30:  mov      v9.16b, v0.16b
+0x00005d34:  mov      x0, x19
+0x00005d38:  bl       #0x23b00    ; -> _objc_msgSend(loop)
+0x00005d3c:  str      x0, [sp, #0x30]
+0x00005d40:  str      d9, [sp, #0x28]
+0x00005d44:  stp      x28, x23, [sp, #0x18]
+0x00005d48:  str      d8, [sp, #0x10]
+0x00005d4c:  adrp     x2, #0x31000
+0x00005d50:  add      x2, x2, #0x68    ; @"splash window shown: style=%ld frame=%@ level=%.0f scene=%@ frames=%lu fps=%.0f loop=%d"
+0x00005d54:  stp      x24, x21, [sp]
+0x00005d58:  ldr      x0, [sp, #0x38]
+0x00005d5c:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00005d60:  mov      x29, x29
+0x00005d64:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005d68:  mov      x23, x0
+0x00005d6c:  adrp     x0, #0x30000
+0x00005d70:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00005d74:  mov      x1, x23
+0x00005d78:  bl       #0x1b620    ; -> OMCLogWrite
+0x00005d7c:  mov      x0, x23
+0x00005d80:  bl       #0x22120    ; -> _objc_release
+0x00005d84:  mov      x0, x28
+0x00005d88:  bl       #0x22120    ; -> _objc_release
+0x00005d8c:  mov      x0, x27
+0x00005d90:  bl       #0x22120    ; -> _objc_release
+0x00005d94:  mov      x0, x26
+0x00005d98:  bl       #0x22120    ; -> _objc_release
+0x00005d9c:  mov      x0, x25
+0x00005da0:  bl       #0x22120    ; -> _objc_release
+0x00005da4:  mov      x0, x22
+0x00005da8:  bl       #0x22120    ; -> _objc_release
+0x00005dac:  mov      x0, x21
+0x00005db0:  bl       #0x22120    ; -> _objc_release
+0x00005db4:  mov      x0, x20
+0x00005db8:  bl       #0x22120    ; -> _objc_release
+0x00005dbc:  adrp     x8, #0x3a000
+0x00005dc0:  ldr      x0, [x8, #0xa00]    ; class(CADisplayLink)
+0x00005dc4:  adrp     x8, #0x39000
+0x00005dc8:  ldr      x3, [x8, #0x858]    ; selref(tick)
+0x00005dcc:  mov      x2, x19
+0x00005dd0:  bl       #0x23160    ; -> _objc_msgSend(displayLinkWithTarget:selector:)
+0x00005dd4:  mov      x29, x29
+0x00005dd8:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005ddc:  mov      x20, x0
+0x00005de0:  mov      x0, x19
+0x00005de4:  mov      x2, x20
+0x00005de8:  bl       #0x24840    ; -> _objc_msgSend(setDisplayLink:)
+0x00005dec:  mov      x0, x20
+0x00005df0:  bl       #0x22120    ; -> _objc_release
+0x00005df4:  mov      x0, x19
+0x00005df8:  bl       #0x23140    ; -> _objc_msgSend(displayLink)
+0x00005dfc:  mov      x29, x29
+0x00005e00:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005e04:  mov      x20, x0
+0x00005e08:  adrp     x8, #0x3a000
+0x00005e0c:  ldr      x0, [x8, #0xa08]    ; class(NSRunLoop)
+0x00005e10:  bl       #0x23b80    ; -> _objc_msgSend(mainRunLoop)
+0x00005e14:  mov      x29, x29
+0x00005e18:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00005e1c:  mov      x21, x0
+0x00005e20:  adrp     x8, #0x30000
+0x00005e24:  ldr      x8, [x8, #0x1f8]    ; got(_NSRunLoopCommonModes)
+0x00005e28:  ldr      x3, [x8]
+0x00005e2c:  mov      x0, x20
+0x00005e30:  mov      x2, x21
+0x00005e34:  bl       #0x22540    ; -> _objc_msgSend(addToRunLoop:forMode:)
+0x00005e38:  mov      x0, x21
+0x00005e3c:  bl       #0x22120    ; -> _objc_release
+0x00005e40:  mov      x0, x20
+0x00005e44:  bl       #0x22120    ; -> _objc_release
+0x00005e48:  mov      x0, x19
+0x00005e4c:  bl       #0x25c60    ; -> _objc_msgSend(style)
+0x00005e50:  cbz      x0, #0x5e80
+0x00005e54:  mov      x0, x19
+0x00005e58:  bl       #0x25c60    ; -> _objc_msgSend(style)
+0x00005e5c:  cmp      x0, #3
+0x00005e60:  b.eq     #0x5e74
+0x00005e64:  mov      x0, x19
+0x00005e68:  bl       #0x25c60    ; -> _objc_msgSend(style)
+0x00005e6c:  cmp      x0, #8
+0x00005e70:  b.ne     #0x5e88
+0x00005e74:  mov      x0, x19
+0x00005e78:  bl       #0x24160    ; -> _objc_msgSend(refreshWeather)
+0x00005e7c:  b        #0x5e88    ; -> sub_5e88
+0x00005e80:  mov      x0, x19
+0x00005e84:  bl       #0x23000    ; -> _objc_msgSend(decodeMore)
+0x00005e88:  add      x0, sp, #0x68
+0x00005e8c:  mov      x1, x19
+0x00005e90:  bl       #0x220b4    ; -> _objc_initWeak
+0x00005e94:  mov      x1, #0xe400
+0x00005e98:  movk     x1, #0x540b, lsl #16
+0x00005e9c:  movk     x1, #2, lsl #32
+0x00005ea0:  mov      x0, #0
+0x00005ea4:  bl       #0x21ef8    ; -> _dispatch_time
+0x00005ea8:  mov      x19, x0
+0x00005eac:  adrp     x8, #0x30000
+0x00005eb0:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x00005eb4:  str      x8, [sp, #0x40]
+0x00005eb8:  adrp     x8, #0x28000
+0x00005ebc:  ldr      d0, [x8, #0xdd0]
+0x00005ec0:  adrp     x8, #0x5000
+0x00005ec4:  add      x8, x8, #0xf30    ; func sub_5f30
+0x00005ec8:  str      d0, [sp, #0x48]
+0x00005ecc:  adrp     x9, #0x30000
+0x00005ed0:  add      x9, x9, #0x6f8
+0x00005ed4:  stp      x8, x9, [sp, #0x50]
+0x00005ed8:  add      x20, sp, #0x40
+0x00005edc:  add      x0, x20, #0x20
+0x00005ee0:  add      x1, sp, #0x68
+0x00005ee4:  bl       #0x2206c    ; -> _objc_copyWeak
+0x00005ee8:  adrp     x1, #0x30000
+0x00005eec:  ldr      x1, [x1, #0x388]    ; got(__dispatch_main_q)
+0x00005ef0:  add      x2, sp, #0x40
+0x00005ef4:  mov      x0, x19
+0x00005ef8:  bl       #0x21e8c    ; -> _dispatch_after
+0x00005efc:  add      x0, x20, #0x20
+0x00005f00:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00005f04:  add      x0, sp, #0x68
+0x00005f08:  bl       #0x22078    ; -> _objc_destroyWeak
+0x00005f0c:  ldp      x29, x30, [sp, #0xd0]
+0x00005f10:  ldp      x20, x19, [sp, #0xc0]
+0x00005f14:  ldp      x22, x21, [sp, #0xb0]
+0x00005f18:  ldp      x24, x23, [sp, #0xa0]
+0x00005f1c:  ldp      x26, x25, [sp, #0x90]
+0x00005f20:  ldp      x28, x27, [sp, #0x80]
+0x00005f24:  ldp      d9, d8, [sp, #0x70]
+0x00005f28:  add      sp, sp, #0xe0
+0x00005f2c:  ret      

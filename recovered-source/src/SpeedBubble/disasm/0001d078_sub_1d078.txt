@@ -1,0 +1,30 @@
+# sub_1d078
+# addr 0x1d078 .. 0x1d0e4  (108 bytes)
+
+0001d078  sub      sp, sp, #0x40                               
+0001d07c  stp      x29, x30, [sp, #0x30]                       
+0001d080  add      x29, sp, #0x30                              
+0001d084  adrp     x8, #0x43000                                
+0001d088  ldr      x8, [x8, #0x18]                             ; [0x43018] classref -> UIView (= import _OBJC_CLASS_$_UIView)
+0001d08c  adrp     x9, #0x38000                                
+0001d090  ldr      x9, [x9, #0x318]                            ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+0001d094  str      x9, [sp, #8]                                
+0001d098  adrp     x9, #0x32000                                
+0001d09c  ldr      d0, [x9, #0x780]                            ; [0x32780] __const[0x32780] double=1.6080749353e-314 float=-32.0
+0001d0a0  str      d0, [sp, #0x10]                             
+0001d0a4  adrp     x9, #0x1d000                                
+0001d0a8  add      x9, x9, #0xe4                               ; __TEXT,__text+0x190e4
+0001d0ac  adrp     x10, #0x38000                               
+0001d0b0  add      x10, x10, #0xab8                            ; __const[0x38ab8] double=0.0 float=0.0
+0001d0b4  stp      x9, x10, [sp, #0x18]                        
+0001d0b8  ldr      x9, [x0, #0x20]                             
+0001d0bc  str      x9, [sp, #0x28]                             
+0001d0c0  adrp     x9, #0x32000                                
+0001d0c4  ldr      d0, [x9, #0xda0]                            ; [0x32da0] __const[0x32da0] double=0.15 float=4.17232506322307e-08
+0001d0c8  add      x2, sp, #8                                  
+0001d0cc  mov      x0, x8                                      
+0001d0d0  bl       #0x28560                                    ; objc_msgSend$animateWithDuration:animations:
+0001d0d4  ldp      x29, x30, [sp, #0x30]                       
+0001d0d8  add      sp, sp, #0x40                               
+0001d0dc  ret                                                  
+0001d0e0  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,95 @@
+; sub_9580
+; VA 0x9580  size 368
+
+0x00009580:  ldr      x0, [x8, #0xad0]
+0x00009584:  bl       #0x22024    ; -> _objc_alloc
+0x00009588:  mov      x22, x0
+0x0000958c:  adrp     x8, #0x3a000
+0x00009590:  ldr      x0, [x8, #0xa60]    ; class(NSURL)
+0x00009594:  mov      x2, x19
+0x00009598:  bl       #0x23340    ; -> _objc_msgSend(fileURLWithPath:)
+0x0000959c:  mov      x29, x29
+0x000095a0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000095a4:  mov      x23, x0
+0x000095a8:  str      xzr, [sp, #0x60]
+0x000095ac:  add      x3, sp, #0x60
+0x000095b0:  mov      x0, x22
+0x000095b4:  mov      x2, x23
+0x000095b8:  bl       #0x23720    ; -> _objc_msgSend(initWithContentsOfURL:error:)
+0x000095bc:  mov      x24, x0
+0x000095c0:  ldr      x22, [sp, #0x60]
+0x000095c4:  mov      x0, x22
+0x000095c8:  bl       #0x2212c    ; -> _objc_retain
+0x000095cc:  ldr      x0, [x26, #0x178]
+0x000095d0:  str      x24, [x26, #0x178]
+0x000095d4:  bl       #0x22120    ; -> _objc_release
+0x000095d8:  mov      x0, x23
+0x000095dc:  bl       #0x22120    ; -> _objc_release
+0x000095e0:  ldr      x0, [x26, #0x178]
+0x000095e4:  cbz      x0, #0x9714
+0x000095e8:  mov      x2, x20
+0x000095ec:  bl       #0x24da0    ; -> _objc_msgSend(setNumberOfLoops:)
+0x000095f0:  ldr      x0, [x26, #0x178]
+0x000095f4:  mov      v0.16b, v8.16b
+0x000095f8:  bl       #0x25440    ; -> _objc_msgSend(setVolume:)
+0x000095fc:  ldr      x0, [x26, #0x178]
+0x00009600:  bl       #0x23fe0    ; -> _objc_msgSend(play)
+0x00009604:  mov      x23, x0
+0x00009608:  ldr      x24, [x25, #0x9c0]
+0x0000960c:  mov      x0, x19
+0x00009610:  bl       #0x239c0    ; -> _objc_msgSend(lastPathComponent)
+0x00009614:  mov      x29, x29
+0x00009618:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000961c:  mov      x20, x0
+0x00009620:  fcvt     d8, s8
+0x00009624:  mov      x0, x21
+0x00009628:  bl       #0x22ec0    ; -> _objc_msgSend(currentRoute)
+0x0000962c:  mov      x29, x29
+0x00009630:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009634:  mov      x25, x0
+0x00009638:  bl       #0x23f80    ; -> _objc_msgSend(outputs)
+0x0000963c:  mov      x29, x29
+0x00009640:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009644:  mov      x26, x0
+0x00009648:  bl       #0x233e0    ; -> _objc_msgSend(firstObject)
+0x0000964c:  mov      x29, x29
+0x00009650:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009654:  mov      x27, x0
+0x00009658:  bl       #0x24020    ; -> _objc_msgSend(portType)
+0x0000965c:  mov      x29, x29
+0x00009660:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009664:  mov      x28, x0
+0x00009668:  str      x0, [sp, #0x18]
+0x0000966c:  str      d8, [sp, #0x10]
+0x00009670:  stp      x20, x23, [sp]
+0x00009674:  adrp     x2, #0x31000
+0x00009678:  add      x2, x2, #0xc08    ; @"audio: playing %@ ok=%d volume=%.2f route=%@"
+0x0000967c:  mov      x0, x24
+0x00009680:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00009684:  mov      x29, x29
+0x00009688:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000968c:  mov      x23, x0
+0x00009690:  adrp     x0, #0x30000
+0x00009694:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00009698:  mov      x1, x23
+0x0000969c:  bl       #0x1b620    ; -> OMCLogWrite
+0x000096a0:  mov      x0, x23
+0x000096a4:  bl       #0x22120    ; -> _objc_release
+0x000096a8:  mov      x0, x28
+0x000096ac:  bl       #0x22120    ; -> _objc_release
+0x000096b0:  mov      x0, x27
+0x000096b4:  bl       #0x22120    ; -> _objc_release
+0x000096b8:  mov      x0, x26
+0x000096bc:  bl       #0x22120    ; -> _objc_release
+0x000096c0:  mov      x0, x25
+0x000096c4:  bl       #0x22120    ; -> _objc_release
+0x000096c8:  mov      x0, x20
+0x000096cc:  bl       #0x22120    ; -> _objc_release
+0x000096d0:  b        #0x9750    ; -> sub_9750
+0x000096d4:  mov      x0, x22
+0x000096d8:  bl       #0x22120    ; -> _objc_release
+0x000096dc:  mov      x0, x21
+0x000096e0:  bl       #0x22120    ; -> _objc_release
+0x000096e4:  ldr      x0, [x25, #0x9c0]
+0x000096e8:  adrp     x2, #0x31000
+0x000096ec:  add      x2, x2, #0xba8    ; @"audio: skipped, a phone call is in progress"

@@ -1,0 +1,11 @@
+# -[SPPBubbleView setColor:]
+# addr 0x158d4 .. 0x158f4  (32 bytes)
+
+000158d4  adrp     x8, #0x43000                                
+000158d8  ldrsw    x8, [x8, #0x20c]                            
+000158dc  ldr      x9, [x0, x8]                                
+000158e0  cmp      x2, x9                                      
+000158e4  b.ne     #0x158ec                                    
+000158e8  ret                                                  
+000158ec  str      x2, [x0, x8]                                
+000158f0  b        #0x2a4e0                                    ; objc_msgSend$rebuild

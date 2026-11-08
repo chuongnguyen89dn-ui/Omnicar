@@ -1,0 +1,26 @@
+; -[SSCanvasView drawRect:]
+; VA 0xc584  size 92
+
+0x0000c584:  stp      x22, x21, [sp, #-0x30]!
+0x0000c588:  stp      x20, x19, [sp, #0x10]
+0x0000c58c:  stp      x29, x30, [sp, #0x20]
+0x0000c590:  add      x29, sp, #0x20
+0x0000c594:  mov      x19, x0
+0x0000c598:  bl       #0x23fa0    ; -> _objc_msgSend(owner)
+0x0000c59c:  mov      x29, x29
+0x0000c5a0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000c5a4:  mov      x20, x0
+0x0000c5a8:  bl       #0x21d84    ; -> _UIGraphicsGetCurrentContext
+0x0000c5ac:  mov      x21, x0
+0x0000c5b0:  mov      x0, x19
+0x0000c5b4:  bl       #0x228c0    ; -> _objc_msgSend(bounds)
+0x0000c5b8:  mov      v0.16b, v2.16b
+0x0000c5bc:  mov      v1.16b, v3.16b
+0x0000c5c0:  mov      x0, x20
+0x0000c5c4:  mov      x2, x21
+0x0000c5c8:  bl       #0x25860    ; -> _objc_msgSend(ss_drawCanvas:size:)
+0x0000c5cc:  mov      x0, x20
+0x0000c5d0:  ldp      x29, x30, [sp, #0x20]
+0x0000c5d4:  ldp      x20, x19, [sp, #0x10]
+0x0000c5d8:  ldp      x22, x21, [sp], #0x30
+0x0000c5dc:  b        #0x22120    ; -> _objc_release

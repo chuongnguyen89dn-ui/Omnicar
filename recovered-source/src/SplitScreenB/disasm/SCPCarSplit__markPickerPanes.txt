@@ -1,0 +1,116 @@
+; ==== SCPCarSplit__markPickerPanes  @0x322cc..0x32498 (460 bytes) ====
+000322cc  sub      sp, sp, #0x150                               
+000322d0  stp      d11, d10, [sp, #0xd0]                        
+000322d4  stp      d9, d8, [sp, #0xe0]                          
+000322d8  stp      x28, x27, [sp, #0xf0]                        
+000322dc  stp      x26, x25, [sp, #0x100]                       
+000322e0  stp      x24, x23, [sp, #0x110]                       
+000322e4  stp      x22, x21, [sp, #0x120]                       
+000322e8  stp      x20, x19, [sp, #0x130]                       
+000322ec  stp      x29, x30, [sp, #0x140]                       
+000322f0  add      x29, sp, #0x140                              
+000322f4  mov      x20, x0                                      
+000322f8  adrp     x8, #0x78000                                 
+000322fc  ldr      x8, [x8, #0x360]                             
+00032300  ldr      x8, [x8]                                     
+00032304  stur     x8, [x29, #-0x78]                            
+00032308  movi     v0.16b, #0                                   
+0003230c  stp      q0, q0, [sp]                                 
+00032310  stp      q0, q0, [sp, #0x20]                          
+00032314  bl       #0x56e20                                     ; msgSend "allPanes"
+00032318  mov      x29, x29                                     
+0003231c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00032320  mov      x19, x0                                      
+00032324  mov      x2, sp                                       
+00032328  add      x3, sp, #0x48                                
+0003232c  mov      w4, #0x10                                    
+00032330  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+00032334  mov      x21, x0                                      
+00032338  cbz      x0, #0x323f8                                 
+0003233c  ldr      x8, [sp, #0x10]                              
+00032340  ldr      x25, [x8]                                    
+00032344  fmov     d9, xzr                                      
+00032348  fmov     d10, #3.00000000                             
+0003234c  mov      x26, #0                                      
+00032350  ldr      x8, [sp, #0x10]                              
+00032354  ldr      x8, [x8]                                     
+00032358  cmp      x8, x25                                      
+0003235c  b.eq     #0x32368                                     
+00032360  mov      x0, x19                                      
+00032364  bl       #0x5671c                                     ; call _objc_enumerationMutation
+00032368  ldr      x8, [sp, #8]                                 
+0003236c  ldr      x23, [x8, x26, lsl #3]                       
+00032370  mov      x0, x20                                      
+00032374  bl       #0x59aa0                                     ; msgSend "pickerSheetPane"
+00032378  mov      x29, x29                                     
+0003237c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00032380  mov      x22, x0                                      
+00032384  cmp      x23, x0                                      
+00032388  fcsel    d8, d10, d9, eq                              
+0003238c  mov      x0, x23                                      
+00032390  bl       #0x599e0                                     ; msgSend "picker"
+00032394  mov      x29, x29                                     
+00032398  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003239c  mov      x23, x0                                      
+000323a0  bl       #0x58fa0                                     ; msgSend "layer"
+000323a4  mov      x29, x29                                     
+000323a8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000323ac  mov      x24, x0                                      
+000323b0  mov      v0.16b, v8.16b                               
+000323b4  bl       #0x5a900                                     ; msgSend "setBorderWidth:"
+000323b8  mov      x0, x24                                      
+000323bc  bl       #0x567b8                                     ; call _objc_release
+000323c0  mov      x0, x23                                      
+000323c4  bl       #0x567b8                                     ; call _objc_release
+000323c8  mov      x0, x22                                      
+000323cc  bl       #0x567b8                                     ; call _objc_release
+000323d0  add      x26, x26, #1                                 
+000323d4  cmp      x21, x26                                     
+000323d8  b.ne     #0x32350                                     
+000323dc  mov      x2, sp                                       
+000323e0  add      x3, sp, #0x48                                
+000323e4  mov      x0, x19                                      
+000323e8  mov      w4, #0x10                                    
+000323ec  bl       #0x57a00                                     ; msgSend "countByEnumeratingWithState:objects:count:"
+000323f0  mov      x21, x0                                      
+000323f4  cbnz     x0, #0x3234c                                 
+000323f8  mov      x0, x19                                      
+000323fc  bl       #0x567b8                                     ; call _objc_release
+00032400  ldur     x8, [x29, #-0x78]                            
+00032404  adrp     x9, #0x78000                                 
+00032408  ldr      x9, [x9, #0x360]                             
+0003240c  ldr      x9, [x9]                                     
+00032410  cmp      x9, x8                                       
+00032414  b.ne     #0x32440                                     
+00032418  ldp      x29, x30, [sp, #0x140]                       
+0003241c  ldp      x20, x19, [sp, #0x130]                       
+00032420  ldp      x22, x21, [sp, #0x120]                       
+00032424  ldp      x24, x23, [sp, #0x110]                       
+00032428  ldp      x26, x25, [sp, #0x100]                       
+0003242c  ldp      x28, x27, [sp, #0xf0]                        
+00032430  ldp      d9, d8, [sp, #0xe0]                          
+00032434  ldp      d11, d10, [sp, #0xd0]                        
+00032438  add      sp, sp, #0x150                               
+0003243c  ret                                                   
+00032440  bl       #0x56404                                     ; call ___stack_chk_fail
+00032444  b        #0x3247c                                     
+00032448  b        #0x3247c                                     
+0003244c  mov      x20, x0                                      
+00032450  b        #0x32460                                     
+00032454  mov      x20, x0                                      
+00032458  mov      x0, x24                                      
+0003245c  bl       #0x567b8                                     ; call _objc_release
+00032460  mov      x0, x23                                      
+00032464  bl       #0x567b8                                     ; call _objc_release
+00032468  b        #0x32470                                     
+0003246c  mov      x20, x0                                      
+00032470  mov      x0, x22                                      
+00032474  bl       #0x567b8                                     ; call _objc_release
+00032478  b        #0x32480                                     
+0003247c  mov      x20, x0                                      
+00032480  mov      x0, x19                                      
+00032484  bl       #0x567b8                                     ; call _objc_release
+00032488  b        #0x32490                                     
+0003248c  mov      x20, x0                                      
+00032490  mov      x0, x20                                      
+00032494  bl       #0x563e0                                     ; call __Unwind_Resume

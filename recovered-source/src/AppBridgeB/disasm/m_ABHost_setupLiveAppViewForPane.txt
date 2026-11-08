@@ -1,0 +1,1470 @@
+=== -[ABHost setupLiveAppViewForPane:] @ 0xc2bc (size 5876) ===
+0000c2bc  sub      sp, sp, #0x140
+0000c2c0  stp      x28, x27, [sp, #0xe0]
+0000c2c4  stp      x26, x25, [sp, #0xf0]
+0000c2c8  stp      x24, x23, [sp, #0x100]
+0000c2cc  stp      x22, x21, [sp, #0x110]
+0000c2d0  stp      x20, x19, [sp, #0x120]
+0000c2d4  stp      x29, x30, [sp, #0x130]
+0000c2d8  add      x29, sp, #0x130
+0000c2dc  mov      x19, x2
+0000c2e0  str      x0, [sp, #0x30]
+0000c2e4  mov      x0, x2
+0000c2e8  bl       #0x24818 ; call _objc_retain
+0000c2ec  str      x19, [sp, #0x80]
+0000c2f0  mov      x0, x19
+0000c2f4  bl       #0x25020 ; objc_msgSend sel=bundleID
+0000c2f8  mov      x29, x29
+0000c2fc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c300  str      x0, [sp, #0x60]
+0000c304  adrp     x0, #0x29000
+0000c308  add      x0, x0, #0x878 ; "SBApplicationController"
+0000c30c  bl       #0x24788 ; call _objc_getClass
+0000c310  mov      x29, x29
+0000c314  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c318  mov      x20, x0
+0000c31c  adrp     x0, #0x35000
+0000c320  add      x0, x0, #0xbd0 = @"sharedInstance"
+0000c324  bl       #0x2441c ; call _NSSelectorFromString
+0000c328  mov      x19, x0
+0000c32c  mov      x0, x20
+0000c330  mov      x1, x19
+0000c334  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000c338  tbz      w0, #0, #0xc358
+0000c33c  mov      x0, x20
+0000c340  mov      x1, x19
+0000c344  bl       #0x247ac ; call _objc_msgSend
+0000c348  mov      x29, x29
+0000c34c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c350  mov      x19, x0
+0000c354  b        #0xc36c ; call sub_c36c
+0000c358  adrp     x1, #0x35000
+0000c35c  add      x1, x1, #0xbd0 = @"sharedInstance"
+0000c360  mov      x0, x20
+0000c364  bl       #0x9698 ; call sym:_ABMissingSelector
+0000c368  mov      x19, #0
+0000c36c  mov      x0, x19
+0000c370  bl       #0x24818 ; call _objc_retain
+0000c374  mov      x0, x19
+0000c378  bl       #0x2480c ; call _objc_release
+0000c37c  mov      x0, x20
+0000c380  bl       #0x2480c ; call _objc_release
+0000c384  adrp     x0, #0x35000
+0000c388  add      x0, x0, #0xbf0 = @"applicationWithBundleIdentifier:"
+0000c38c  bl       #0x2441c ; call _NSSelectorFromString
+0000c390  mov      x20, x0
+0000c394  mov      x0, x19
+0000c398  mov      x1, x20
+0000c39c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000c3a0  tbz      w0, #0, #0xc3c4
+0000c3a4  mov      x0, x19
+0000c3a8  mov      x1, x20
+0000c3ac  ldr      x2, [sp, #0x60]
+0000c3b0  bl       #0x247ac ; call _objc_msgSend
+0000c3b4  mov      x29, x29
+0000c3b8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c3bc  mov      x20, x0
+0000c3c0  b        #0xc3d8 ; call sub_c3d8
+0000c3c4  adrp     x1, #0x35000
+0000c3c8  add      x1, x1, #0xbf0 = @"applicationWithBundleIdentifier:"
+0000c3cc  mov      x0, x19
+0000c3d0  bl       #0x9698 ; call sym:_ABMissingSelector
+0000c3d4  mov      x20, #0
+0000c3d8  mov      x0, x20
+0000c3dc  bl       #0x24818 ; call _objc_retain
+0000c3e0  mov      x0, x20
+0000c3e4  bl       #0x2480c ; call _objc_release
+0000c3e8  mov      x0, x19
+0000c3ec  bl       #0x2480c ; call _objc_release
+0000c3f0  ldr      x19, [sp, #0x80]
+0000c3f4  mov      x0, x19
+0000c3f8  mov      x2, x20
+0000c3fc  bl       #0x26bc0 ; objc_msgSend sel=setApplication:
+0000c400  mov      x0, x20
+0000c404  bl       #0x2480c ; call _objc_release
+0000c408  mov      x0, x19
+0000c40c  bl       #0x24d80 ; objc_msgSend sel=application
+0000c410  mov      x29, x29
+0000c414  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c418  mov      x19, x0
+0000c41c  adrp     x26, #0x3e000
+0000c420  adrp     x25, #0x29000
+0000c424  add      x25, x25, #0x8ec ; "Features/AppBridge/ABHost.mm"
+0000c428  adrp     x24, #0x3e000
+0000c42c  cbz      x0, #0xc44c
+0000c430  adrp     x0, #0x29000
+0000c434  add      x0, x0, #0x8c0 ; "SBApplication"
+0000c438  bl       #0x24788 ; call _objc_getClass
+0000c43c  mov      x1, x0
+0000c440  mov      x0, x19
+0000c444  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000c448  tbnz     w0, #0, #0xc4b0
+0000c44c  adrp     x21, #0x29000
+0000c450  add      x21, x21, #0x8c0 ; "SBApplication"
+0000c454  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000c458  mov      w8, #0x1b5
+0000c45c  stp      x25, x8, [sp, #0x10]
+0000c460  stp      x21, x19, [sp]
+0000c464  adrp     x2, #0x35000
+0000c468  add      x2, x2, #0xc10 = @"UNEXPECTED %s: got %@ (%s:%d)"
+0000c46c  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000c470  mov      x29, x29
+0000c474  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c478  mov      x20, x0
+0000c47c  adrp     x0, #0x34000
+0000c480  add      x0, x0, #0xef0 = @"AppBridge"
+0000c484  mov      x1, x20
+0000c488  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000c48c  mov      x0, x20
+0000c490  bl       #0x2480c ; call _objc_release
+0000c494  ldr      x0, [x24, #0x338] ; bind _OBJC_CLASS_$_NSException
+0000c498  adrp     x2, #0x34000
+0000c49c  add      x2, x2, #0xef0 = @"AppBridge"
+0000c4a0  stp      x21, x19, [sp]
+0000c4a4  adrp     x3, #0x35000
+0000c4a8  add      x3, x3, #0xc30 = @"expected %s got %@"
+0000c4ac  bl       #0x26700 ; objc_msgSend sel=raise:format:
+0000c4b0  mov      x0, x19
+0000c4b4  bl       #0x24818 ; call _objc_retain
+0000c4b8  mov      x0, x19
+0000c4bc  bl       #0x2480c ; call _objc_release
+0000c4c0  mov      x0, x19
+0000c4c4  bl       #0x2480c ; call _objc_release
+0000c4c8  adrp     x0, #0x29000
+0000c4cc  add      x0, x0, #0x91c ; "SBSceneManagerCoordinator"
+0000c4d0  bl       #0x24788 ; call _objc_getClass
+0000c4d4  mov      x29, x29
+0000c4d8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c4dc  mov      x19, x0
+0000c4e0  adrp     x0, #0x35000
+0000c4e4  add      x0, x0, #0xc50 = @"mainDisplaySceneManager"
+0000c4e8  bl       #0x2441c ; call _NSSelectorFromString
+0000c4ec  mov      x20, x0
+0000c4f0  mov      x0, x19
+0000c4f4  mov      x1, x20
+0000c4f8  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000c4fc  tbz      w0, #0, #0xc51c
+0000c500  mov      x0, x19
+0000c504  mov      x1, x20
+0000c508  bl       #0x247ac ; call _objc_msgSend
+0000c50c  mov      x29, x29
+0000c510  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c514  mov      x21, x0
+0000c518  b        #0xc530 ; call sub_c530
+0000c51c  adrp     x1, #0x35000
+0000c520  add      x1, x1, #0xc50 = @"mainDisplaySceneManager"
+0000c524  mov      x0, x19
+0000c528  bl       #0x9698 ; call sym:_ABMissingSelector
+0000c52c  mov      x21, #0
+0000c530  mov      x0, x21
+0000c534  bl       #0x24818 ; call _objc_retain
+0000c538  mov      x0, x21
+0000c53c  bl       #0x2480c ; call _objc_release
+0000c540  mov      x0, x19
+0000c544  bl       #0x2480c ; call _objc_release
+0000c548  mov      x0, x21
+0000c54c  bl       #0x24818 ; call _objc_retain
+0000c550  cbz      x21, #0xc570
+0000c554  adrp     x0, #0x29000
+0000c558  add      x0, x0, #0x94e ; "SBMainDisplaySceneManager"
+0000c55c  bl       #0x24788 ; call _objc_getClass
+0000c560  mov      x1, x0
+0000c564  mov      x0, x21
+0000c568  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000c56c  tbnz     w0, #0, #0xc5d4
+0000c570  adrp     x20, #0x29000
+0000c574  add      x20, x20, #0x94e ; "SBMainDisplaySceneManager"
+0000c578  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000c57c  mov      w8, #0x1b8
+0000c580  stp      x25, x8, [sp, #0x10]
+0000c584  stp      x20, x21, [sp]
+0000c588  adrp     x2, #0x35000
+0000c58c  add      x2, x2, #0xc10 = @"UNEXPECTED %s: got %@ (%s:%d)"
+0000c590  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000c594  mov      x29, x29
+0000c598  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c59c  mov      x19, x0
+0000c5a0  adrp     x0, #0x34000
+0000c5a4  add      x0, x0, #0xef0 = @"AppBridge"
+0000c5a8  mov      x1, x19
+0000c5ac  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000c5b0  mov      x0, x19
+0000c5b4  bl       #0x2480c ; call _objc_release
+0000c5b8  ldr      x0, [x24, #0x338] ; bind _OBJC_CLASS_$_NSException
+0000c5bc  adrp     x2, #0x34000
+0000c5c0  add      x2, x2, #0xef0 = @"AppBridge"
+0000c5c4  stp      x20, x21, [sp]
+0000c5c8  adrp     x3, #0x35000
+0000c5cc  add      x3, x3, #0xc30 = @"expected %s got %@"
+0000c5d0  bl       #0x26700 ; objc_msgSend sel=raise:format:
+0000c5d4  mov      x0, x21
+0000c5d8  bl       #0x24818 ; call _objc_retain
+0000c5dc  mov      x0, x21
+0000c5e0  bl       #0x2480c ; call _objc_release
+0000c5e4  mov      x0, x21
+0000c5e8  bl       #0x2480c ; call _objc_release
+0000c5ec  adrp     x1, #0x39000
+0000c5f0  add      x1, x1, #0x420
+0000c5f4  adrp     x2, #0x35000
+0000c5f8  add      x2, x2, #0xc70 = @"layoutStateManager"
+0000c5fc  mov      x0, x21
+0000c600  bl       #0xd9b0 ; call sub_d9b0
+0000c604  mov      x29, x29
+0000c608  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c60c  str      x0, [sp, #0x38]
+0000c610  cbz      x0, #0xc658
+0000c614  mov      x19, x0
+0000c618  mov      x0, x21
+0000c61c  bl       #0x24818 ; call _objc_retain
+0000c620  mov      x0, x19
+0000c624  bl       #0x2441c ; call _NSSelectorFromString
+0000c628  mov      x19, x0
+0000c62c  mov      x0, x21
+0000c630  mov      x1, x19
+0000c634  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000c638  tbz      w0, #0, #0xc660
+0000c63c  mov      x0, x21
+0000c640  mov      x1, x19
+0000c644  bl       #0x247ac ; call _objc_msgSend
+0000c648  mov      x29, x29
+0000c64c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c650  mov      x19, x0
+0000c654  b        #0xc670 ; call sub_c670
+0000c658  str      xzr, [sp, #0x58]
+0000c65c  b        #0xc69c ; call sub_c69c
+0000c660  mov      x0, x21
+0000c664  ldr      x1, [sp, #0x38]
+0000c668  bl       #0x9698 ; call sym:_ABMissingSelector
+0000c66c  mov      x19, #0
+0000c670  mov      x0, x19
+0000c674  bl       #0x24818 ; call _objc_retain
+0000c678  mov      x0, x19
+0000c67c  bl       #0x2480c ; call _objc_release
+0000c680  mov      x0, x21
+0000c684  bl       #0x2480c ; call _objc_release
+0000c688  mov      x0, x19
+0000c68c  bl       #0x24818 ; call _objc_retain
+0000c690  str      x19, [sp, #0x58]
+0000c694  mov      x0, x19
+0000c698  bl       #0x2480c ; call _objc_release
+0000c69c  mov      x0, x21
+0000c6a0  bl       #0x24818 ; call _objc_retain
+0000c6a4  adrp     x0, #0x35000
+0000c6a8  add      x0, x0, #0xcb0 = @"displayIdentity"
+0000c6ac  bl       #0x2441c ; call _NSSelectorFromString
+0000c6b0  mov      x19, x0
+0000c6b4  mov      x0, x21
+0000c6b8  mov      x1, x19
+0000c6bc  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000c6c0  tbz      w0, #0, #0xc6e0
+0000c6c4  mov      x0, x21
+0000c6c8  mov      x1, x19
+0000c6cc  bl       #0x247ac ; call _objc_msgSend
+0000c6d0  mov      x29, x29
+0000c6d4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c6d8  mov      x22, x0
+0000c6dc  b        #0xc6f4 ; call sub_c6f4
+0000c6e0  adrp     x1, #0x35000
+0000c6e4  add      x1, x1, #0xcb0 = @"displayIdentity"
+0000c6e8  mov      x0, x21
+0000c6ec  bl       #0x9698 ; call sym:_ABMissingSelector
+0000c6f0  mov      x22, #0
+0000c6f4  mov      x0, x22
+0000c6f8  bl       #0x24818 ; call _objc_retain
+0000c6fc  mov      x0, x22
+0000c700  bl       #0x2480c ; call _objc_release
+0000c704  mov      x0, x21
+0000c708  bl       #0x2480c ; call _objc_release
+0000c70c  mov      x0, x22
+0000c710  bl       #0x24818 ; call _objc_retain
+0000c714  str      x22, [sp, #0x50]
+0000c718  cbz      x22, #0xc738
+0000c71c  adrp     x0, #0x29000
+0000c720  add      x0, x0, #0x99f ; "FBSDisplayIdentity"
+0000c724  bl       #0x24788 ; call _objc_getClass
+0000c728  mov      x1, x0
+0000c72c  mov      x0, x22
+0000c730  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000c734  tbnz     w0, #0, #0xc79c
+0000c738  adrp     x20, #0x29000
+0000c73c  add      x20, x20, #0x99f ; "FBSDisplayIdentity"
+0000c740  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000c744  mov      w8, #0x1bf
+0000c748  stp      x25, x8, [sp, #0x10]
+0000c74c  stp      x20, x22, [sp]
+0000c750  adrp     x2, #0x35000
+0000c754  add      x2, x2, #0xc10 = @"UNEXPECTED %s: got %@ (%s:%d)"
+0000c758  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000c75c  mov      x29, x29
+0000c760  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c764  mov      x19, x0
+0000c768  adrp     x0, #0x34000
+0000c76c  add      x0, x0, #0xef0 = @"AppBridge"
+0000c770  mov      x1, x19
+0000c774  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000c778  mov      x0, x19
+0000c77c  bl       #0x2480c ; call _objc_release
+0000c780  ldr      x0, [x24, #0x338] ; bind _OBJC_CLASS_$_NSException
+0000c784  adrp     x2, #0x34000
+0000c788  add      x2, x2, #0xef0 = @"AppBridge"
+0000c78c  stp      x20, x22, [sp]
+0000c790  adrp     x3, #0x35000
+0000c794  add      x3, x3, #0xc30 = @"expected %s got %@"
+0000c798  bl       #0x26700 ; objc_msgSend sel=raise:format:
+0000c79c  mov      x0, x22
+0000c7a0  bl       #0x24818 ; call _objc_retain
+0000c7a4  mov      x0, x22
+0000c7a8  bl       #0x2480c ; call _objc_release
+0000c7ac  mov      x0, x22
+0000c7b0  bl       #0x2480c ; call _objc_release
+0000c7b4  adrp     x1, #0x39000
+0000c7b8  add      x1, x1, #0x438
+0000c7bc  adrp     x2, #0x35000
+0000c7c0  add      x2, x2, #0xd30 = @"sceneIdentityForApplication"
+0000c7c4  mov      x0, x21
+0000c7c8  bl       #0xd9b0 ; call sub_d9b0
+0000c7cc  mov      x29, x29
+0000c7d0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c7d4  str      x0, [sp, #0x48]
+0000c7d8  ldr      x0, [sp, #0x80]
+0000c7dc  bl       #0x24d80 ; objc_msgSend sel=application
+0000c7e0  mov      x29, x29
+0000c7e4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c7e8  mov      x19, x0
+0000c7ec  mov      x0, x21
+0000c7f0  ldr      x1, [sp, #0x48]
+0000c7f4  mov      x2, x19
+0000c7f8  ldr      x3, [sp, #0x60]
+0000c7fc  mov      x4, x22
+0000c800  bl       #0xdef0 ; call sub_def0
+0000c804  mov      x29, x29
+0000c808  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c80c  mov      x23, x0
+0000c810  mov      x0, x19
+0000c814  bl       #0x2480c ; call _objc_release
+0000c818  cbz      x23, #0xc844
+0000c81c  mov      x0, x23
+0000c820  bl       #0x24818 ; call _objc_retain
+0000c824  adrp     x0, #0x29000
+0000c828  add      x0, x0, #0xa95 ; "FBSSceneIdentity"
+0000c82c  bl       #0x24788 ; call _objc_getClass
+0000c830  mov      x1, x0
+0000c834  mov      x0, x23
+0000c838  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000c83c  tbz      w0, #0, #0xc91c
+0000c840  b        #0xc980 ; call sub_c980
+0000c844  ldr      x0, [sp, #0x80]
+0000c848  bl       #0x24d80 ; objc_msgSend sel=application
+0000c84c  mov      x29, x29
+0000c850  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c854  mov      x19, x0
+0000c858  adrp     x0, #0x35000
+0000c85c  add      x0, x0, #0xd50 = @"sceneIdentityForRole:"
+0000c860  bl       #0x2441c ; call _NSSelectorFromString
+0000c864  mov      x1, x0
+0000c868  mov      x0, x19
+0000c86c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000c870  mov      x20, x0
+0000c874  mov      x0, x19
+0000c878  bl       #0x2480c ; call _objc_release
+0000c87c  tbz      w20, #0, #0xc8dc
+0000c880  ldr      x0, [sp, #0x80]
+0000c884  bl       #0x24d80 ; objc_msgSend sel=application
+0000c888  mov      x29, x29
+0000c88c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c890  mov      x19, x0
+0000c894  adrp     x0, #0x35000
+0000c898  add      x0, x0, #0xd50 = @"sceneIdentityForRole:"
+0000c89c  bl       #0x2441c ; call _NSSelectorFromString
+0000c8a0  mov      x20, x0
+0000c8a4  mov      x0, x19
+0000c8a8  mov      x1, x20
+0000c8ac  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000c8b0  tbz      w0, #0, #0xc8e4
+0000c8b4  adrp     x8, #0x34000
+0000c8b8  ldr      x8, [x8, #0x250] ; -> _UIWindowSceneSessionRoleApplication
+0000c8bc  ldr      x2, [x8]
+0000c8c0  mov      x0, x19
+0000c8c4  mov      x1, x20
+0000c8c8  bl       #0x247ac ; call _objc_msgSend
+0000c8cc  mov      x29, x29
+0000c8d0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c8d4  mov      x23, x0
+0000c8d8  b        #0xc8f8 ; call sub_c8f8
+0000c8dc  mov      x23, #0
+0000c8e0  b        #0xc91c ; call sub_c91c
+0000c8e4  adrp     x1, #0x35000
+0000c8e8  add      x1, x1, #0xd50 = @"sceneIdentityForRole:"
+0000c8ec  mov      x0, x19
+0000c8f0  bl       #0x9698 ; call sym:_ABMissingSelector
+0000c8f4  mov      x23, #0
+0000c8f8  mov      x0, x23
+0000c8fc  bl       #0x24818 ; call _objc_retain
+0000c900  mov      x0, x23
+0000c904  bl       #0x2480c ; call _objc_release
+0000c908  mov      x0, x19
+0000c90c  bl       #0x2480c ; call _objc_release
+0000c910  mov      x0, x23
+0000c914  bl       #0x24818 ; call _objc_retain
+0000c918  cbnz     x23, #0xc824
+0000c91c  adrp     x20, #0x29000
+0000c920  add      x20, x20, #0xa95 ; "FBSSceneIdentity"
+0000c924  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000c928  mov      w8, #0x1c7
+0000c92c  stp      x25, x8, [sp, #0x10]
+0000c930  stp      x20, x23, [sp]
+0000c934  adrp     x2, #0x35000
+0000c938  add      x2, x2, #0xc10 = @"UNEXPECTED %s: got %@ (%s:%d)"
+0000c93c  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000c940  mov      x29, x29
+0000c944  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c948  mov      x19, x0
+0000c94c  adrp     x0, #0x34000
+0000c950  add      x0, x0, #0xef0 = @"AppBridge"
+0000c954  mov      x1, x19
+0000c958  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000c95c  mov      x0, x19
+0000c960  bl       #0x2480c ; call _objc_release
+0000c964  ldr      x0, [x24, #0x338] ; bind _OBJC_CLASS_$_NSException
+0000c968  adrp     x2, #0x34000
+0000c96c  add      x2, x2, #0xef0 = @"AppBridge"
+0000c970  stp      x20, x23, [sp]
+0000c974  adrp     x3, #0x35000
+0000c978  add      x3, x3, #0xc30 = @"expected %s got %@"
+0000c97c  bl       #0x26700 ; objc_msgSend sel=raise:format:
+0000c980  mov      x0, x23
+0000c984  bl       #0x24818 ; call _objc_retain
+0000c988  mov      x0, x23
+0000c98c  bl       #0x2480c ; call _objc_release
+0000c990  mov      x0, x23
+0000c994  bl       #0x2480c ; call _objc_release
+0000c998  adrp     x19, #0x29000
+0000c99c  add      x19, x19, #0xaa6 ; "SBApplicationSceneHandleRequest"
+0000c9a0  mov      x0, x19
+0000c9a4  bl       #0x24788 ; call _objc_getClass
+0000c9a8  mov      x29, x29
+0000c9ac  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c9b0  mov      x20, x0
+0000c9b4  str      x23, [sp, #0x40]
+0000c9b8  adrp     x0, #0x35000
+0000c9bc  add      x0, x0, #0xd70 = @"defaultRequestForApplication:sceneIdentity:displayIdentity:"
+0000c9c0  bl       #0x2441c ; call _NSSelectorFromString
+0000c9c4  mov      x22, x0
+0000c9c8  mov      x0, x20
+0000c9cc  mov      x1, x22
+0000c9d0  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000c9d4  tbz      w0, #0, #0xca1c
+0000c9d8  ldr      x0, [sp, #0x80]
+0000c9dc  bl       #0x24d80 ; objc_msgSend sel=application
+0000c9e0  mov      x29, x29
+0000c9e4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000c9e8  mov      x23, x0
+0000c9ec  mov      x0, x20
+0000c9f0  mov      x1, x22
+0000c9f4  mov      x2, x23
+0000c9f8  ldr      x3, [sp, #0x40]
+0000c9fc  ldr      x4, [sp, #0x50]
+0000ca00  bl       #0x247ac ; call _objc_msgSend
+0000ca04  mov      x29, x29
+0000ca08  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000ca0c  mov      x22, x0
+0000ca10  mov      x0, x23
+0000ca14  bl       #0x2480c ; call _objc_release
+0000ca18  b        #0xca30 ; call sub_ca30
+0000ca1c  adrp     x1, #0x35000
+0000ca20  add      x1, x1, #0xd70 = @"defaultRequestForApplication:sceneIdentity:displayIdentity:"
+0000ca24  mov      x0, x20
+0000ca28  bl       #0x9698 ; call sym:_ABMissingSelector
+0000ca2c  mov      x22, #0
+0000ca30  mov      x0, x22
+0000ca34  bl       #0x24818 ; call _objc_retain
+0000ca38  mov      x0, x22
+0000ca3c  bl       #0x2480c ; call _objc_release
+0000ca40  mov      x0, x20
+0000ca44  bl       #0x2480c ; call _objc_release
+0000ca48  mov      x0, x22
+0000ca4c  bl       #0x24818 ; call _objc_retain
+0000ca50  str      x22, [sp, #0x70]
+0000ca54  cbz      x22, #0xca74
+0000ca58  adrp     x0, #0x29000
+0000ca5c  add      x0, x0, #0xaa6 ; "SBApplicationSceneHandleRequest"
+0000ca60  bl       #0x24788 ; call _objc_getClass
+0000ca64  mov      x1, x0
+0000ca68  ldr      x0, [sp, #0x70]
+0000ca6c  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000ca70  tbnz     w0, #0, #0xcad8
+0000ca74  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000ca78  mov      w8, #0x1cb
+0000ca7c  stp      x25, x8, [sp, #0x10]
+0000ca80  ldr      x8, [sp, #0x70]
+0000ca84  stp      x19, x8, [sp]
+0000ca88  adrp     x2, #0x35000
+0000ca8c  add      x2, x2, #0xc10 = @"UNEXPECTED %s: got %@ (%s:%d)"
+0000ca90  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000ca94  mov      x29, x29
+0000ca98  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000ca9c  mov      x20, x0
+0000caa0  adrp     x0, #0x34000
+0000caa4  add      x0, x0, #0xef0 = @"AppBridge"
+0000caa8  mov      x1, x20
+0000caac  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000cab0  mov      x0, x20
+0000cab4  bl       #0x2480c ; call _objc_release
+0000cab8  ldr      x0, [x24, #0x338] ; bind _OBJC_CLASS_$_NSException
+0000cabc  adrp     x2, #0x34000
+0000cac0  add      x2, x2, #0xef0 = @"AppBridge"
+0000cac4  ldr      x8, [sp, #0x70]
+0000cac8  stp      x19, x8, [sp]
+0000cacc  adrp     x3, #0x35000
+0000cad0  add      x3, x3, #0xc30 = @"expected %s got %@"
+0000cad4  bl       #0x26700 ; objc_msgSend sel=raise:format:
+0000cad8  ldr      x19, [sp, #0x70]
+0000cadc  mov      x0, x19
+0000cae0  bl       #0x24818 ; call _objc_retain
+0000cae4  mov      x0, x19
+0000cae8  bl       #0x2480c ; call _objc_release
+0000caec  mov      x0, x19
+0000caf0  bl       #0x2480c ; call _objc_release
+0000caf4  mov      x0, x21
+0000caf8  bl       #0x24818 ; call _objc_retain
+0000cafc  adrp     x0, #0x35000
+0000cb00  add      x0, x0, #0xd90 = @"fetchOrCreateApplicationSceneHandleForRequest:"
+0000cb04  bl       #0x2441c ; call _NSSelectorFromString
+0000cb08  mov      x19, x0
+0000cb0c  mov      x0, x21
+0000cb10  mov      x1, x19
+0000cb14  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000cb18  tbz      w0, #0, #0xcb3c
+0000cb1c  mov      x0, x21
+0000cb20  mov      x1, x19
+0000cb24  ldr      x2, [sp, #0x70]
+0000cb28  bl       #0x247ac ; call _objc_msgSend
+0000cb2c  mov      x29, x29
+0000cb30  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000cb34  mov      x19, x0
+0000cb38  b        #0xcb50 ; call sub_cb50
+0000cb3c  adrp     x1, #0x35000
+0000cb40  add      x1, x1, #0xd90 = @"fetchOrCreateApplicationSceneHandleForRequest:"
+0000cb44  mov      x0, x21
+0000cb48  bl       #0x9698 ; call sym:_ABMissingSelector
+0000cb4c  mov      x19, #0
+0000cb50  mov      x0, x19
+0000cb54  bl       #0x24818 ; call _objc_retain
+0000cb58  mov      x0, x19
+0000cb5c  bl       #0x2480c ; call _objc_release
+0000cb60  mov      x0, x21
+0000cb64  bl       #0x2480c ; call _objc_release
+0000cb68  mov      x0, x19
+0000cb6c  bl       #0x24818 ; call _objc_retain
+0000cb70  str      x19, [sp, #0x68]
+0000cb74  cbz      x19, #0xcb94
+0000cb78  adrp     x0, #0x29000
+0000cb7c  add      x0, x0, #0xb31 ; "SBDeviceApplicationSceneHandle"
+0000cb80  bl       #0x24788 ; call _objc_getClass
+0000cb84  mov      x1, x0
+0000cb88  ldr      x0, [sp, #0x68]
+0000cb8c  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000cb90  tbnz     w0, #0, #0xcc00
+0000cb94  adrp     x20, #0x29000
+0000cb98  add      x20, x20, #0xb31 ; "SBDeviceApplicationSceneHandle"
+0000cb9c  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000cba0  mov      w8, #0x1cd
+0000cba4  stp      x25, x8, [sp, #0x10]
+0000cba8  ldr      x8, [sp, #0x68]
+0000cbac  stp      x20, x8, [sp]
+0000cbb0  adrp     x2, #0x35000
+0000cbb4  add      x2, x2, #0xc10 = @"UNEXPECTED %s: got %@ (%s:%d)"
+0000cbb8  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000cbbc  mov      x29, x29
+0000cbc0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000cbc4  mov      x19, x0
+0000cbc8  adrp     x0, #0x34000
+0000cbcc  add      x0, x0, #0xef0 = @"AppBridge"
+0000cbd0  mov      x1, x19
+0000cbd4  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000cbd8  mov      x0, x19
+0000cbdc  bl       #0x2480c ; call _objc_release
+0000cbe0  ldr      x0, [x24, #0x338] ; bind _OBJC_CLASS_$_NSException
+0000cbe4  adrp     x2, #0x34000
+0000cbe8  add      x2, x2, #0xef0 = @"AppBridge"
+0000cbec  ldr      x8, [sp, #0x68]
+0000cbf0  stp      x20, x8, [sp]
+0000cbf4  adrp     x3, #0x35000
+0000cbf8  add      x3, x3, #0xc30 = @"expected %s got %@"
+0000cbfc  bl       #0x26700 ; objc_msgSend sel=raise:format:
+0000cc00  ldr      x19, [sp, #0x68]
+0000cc04  mov      x0, x19
+0000cc08  bl       #0x24818 ; call _objc_retain
+0000cc0c  mov      x0, x19
+0000cc10  bl       #0x2480c ; call _objc_release
+0000cc14  mov      x0, x19
+0000cc18  bl       #0x2480c ; call _objc_release
+0000cc1c  adrp     x19, #0x29000
+0000cc20  add      x19, x19, #0xb50 ; "SBDeviceApplicationSceneEntity"
+0000cc24  mov      x0, x19
+0000cc28  bl       #0x24788 ; call _objc_getClass
+0000cc2c  bl       #0x2471c ; call _objc_alloc
+0000cc30  mov      x20, x0
+0000cc34  adrp     x0, #0x35000
+0000cc38  add      x0, x0, #0xdb0 = @"initWithApplicationSceneHandle:"
+0000cc3c  bl       #0x2441c ; call _NSSelectorFromString
+0000cc40  mov      x22, x0
+0000cc44  mov      x0, x20
+0000cc48  mov      x1, x22
+0000cc4c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000cc50  tbz      w0, #0, #0xcc74
+0000cc54  mov      x0, x20
+0000cc58  mov      x1, x22
+0000cc5c  ldr      x2, [sp, #0x68]
+0000cc60  bl       #0x247ac ; call _objc_msgSend
+0000cc64  mov      x29, x29
+0000cc68  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000cc6c  mov      x22, x0
+0000cc70  b        #0xcc88 ; call sub_cc88
+0000cc74  adrp     x1, #0x35000
+0000cc78  add      x1, x1, #0xdb0 = @"initWithApplicationSceneHandle:"
+0000cc7c  mov      x0, x20
+0000cc80  bl       #0x9698 ; call sym:_ABMissingSelector
+0000cc84  mov      x22, #0
+0000cc88  mov      x0, x22
+0000cc8c  bl       #0x24818 ; call _objc_retain
+0000cc90  mov      x0, x22
+0000cc94  bl       #0x2480c ; call _objc_release
+0000cc98  mov      x0, x20
+0000cc9c  bl       #0x2480c ; call _objc_release
+0000cca0  mov      x0, x22
+0000cca4  bl       #0x24818 ; call _objc_retain
+0000cca8  str      x22, [sp, #0x78]
+0000ccac  cbz      x22, #0xcccc
+0000ccb0  adrp     x0, #0x29000
+0000ccb4  add      x0, x0, #0xb50 ; "SBDeviceApplicationSceneEntity"
+0000ccb8  bl       #0x24788 ; call _objc_getClass
+0000ccbc  mov      x1, x0
+0000ccc0  ldr      x0, [sp, #0x78]
+0000ccc4  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000ccc8  tbnz     w0, #0, #0xcd30
+0000cccc  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000ccd0  mov      w8, #0x1cf
+0000ccd4  stp      x25, x8, [sp, #0x10]
+0000ccd8  ldr      x8, [sp, #0x78]
+0000ccdc  stp      x19, x8, [sp]
+0000cce0  adrp     x2, #0x35000
+0000cce4  add      x2, x2, #0xc10 = @"UNEXPECTED %s: got %@ (%s:%d)"
+0000cce8  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000ccec  mov      x29, x29
+0000ccf0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000ccf4  mov      x20, x0
+0000ccf8  adrp     x0, #0x34000
+0000ccfc  add      x0, x0, #0xef0 = @"AppBridge"
+0000cd00  mov      x1, x20
+0000cd04  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000cd08  mov      x0, x20
+0000cd0c  bl       #0x2480c ; call _objc_release
+0000cd10  ldr      x0, [x24, #0x338] ; bind _OBJC_CLASS_$_NSException
+0000cd14  adrp     x2, #0x34000
+0000cd18  add      x2, x2, #0xef0 = @"AppBridge"
+0000cd1c  ldr      x8, [sp, #0x78]
+0000cd20  stp      x19, x8, [sp]
+0000cd24  adrp     x3, #0x35000
+0000cd28  add      x3, x3, #0xc30 = @"expected %s got %@"
+0000cd2c  bl       #0x26700 ; objc_msgSend sel=raise:format:
+0000cd30  ldr      x19, [sp, #0x78]
+0000cd34  mov      x0, x19
+0000cd38  bl       #0x24818 ; call _objc_retain
+0000cd3c  mov      x0, x19
+0000cd40  bl       #0x2480c ; call _objc_release
+0000cd44  mov      x0, x19
+0000cd48  bl       #0x2480c ; call _objc_release
+0000cd4c  adrp     x19, #0x29000
+0000cd50  add      x19, x19, #0xb8f ; "SBAppViewController"
+0000cd54  mov      x0, x19
+0000cd58  bl       #0x24788 ; call _objc_getClass
+0000cd5c  bl       #0x2471c ; call _objc_alloc
+0000cd60  mov      x20, x0
+0000cd64  adrp     x0, #0x35000
+0000cd68  add      x0, x0, #0xdd0 = @"initWithIdentifier:andApplicationSceneEntity:"
+0000cd6c  bl       #0x2441c ; call _NSSelectorFromString
+0000cd70  mov      x22, x0
+0000cd74  mov      x0, x20
+0000cd78  mov      x1, x22
+0000cd7c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000cd80  tbz      w0, #0, #0xcda8
+0000cd84  mov      x0, x20
+0000cd88  mov      x1, x22
+0000cd8c  ldr      x2, [sp, #0x60]
+0000cd90  ldr      x3, [sp, #0x78]
+0000cd94  bl       #0x247ac ; call _objc_msgSend
+0000cd98  mov      x29, x29
+0000cd9c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000cda0  mov      x22, x0
+0000cda4  b        #0xcdbc ; call sub_cdbc
+0000cda8  adrp     x1, #0x35000
+0000cdac  add      x1, x1, #0xdd0 = @"initWithIdentifier:andApplicationSceneEntity:"
+0000cdb0  mov      x0, x20
+0000cdb4  bl       #0x9698 ; call sym:_ABMissingSelector
+0000cdb8  mov      x22, #0
+0000cdbc  mov      x0, x22
+0000cdc0  bl       #0x24818 ; call _objc_retain
+0000cdc4  mov      x0, x22
+0000cdc8  bl       #0x2480c ; call _objc_release
+0000cdcc  mov      x0, x20
+0000cdd0  bl       #0x2480c ; call _objc_release
+0000cdd4  mov      x0, x22
+0000cdd8  bl       #0x24818 ; call _objc_retain
+0000cddc  cbz      x22, #0xcdfc
+0000cde0  adrp     x0, #0x29000
+0000cde4  add      x0, x0, #0xb8f ; "SBAppViewController"
+0000cde8  bl       #0x24788 ; call _objc_getClass
+0000cdec  mov      x1, x0
+0000cdf0  mov      x0, x22
+0000cdf4  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000cdf8  tbnz     w0, #0, #0xce58
+0000cdfc  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000ce00  mov      w8, #0x1d1
+0000ce04  stp      x25, x8, [sp, #0x10]
+0000ce08  stp      x19, x22, [sp]
+0000ce0c  adrp     x2, #0x35000
+0000ce10  add      x2, x2, #0xc10 = @"UNEXPECTED %s: got %@ (%s:%d)"
+0000ce14  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000ce18  mov      x29, x29
+0000ce1c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000ce20  mov      x20, x0
+0000ce24  adrp     x0, #0x34000
+0000ce28  add      x0, x0, #0xef0 = @"AppBridge"
+0000ce2c  mov      x1, x20
+0000ce30  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000ce34  mov      x0, x20
+0000ce38  bl       #0x2480c ; call _objc_release
+0000ce3c  ldr      x0, [x24, #0x338] ; bind _OBJC_CLASS_$_NSException
+0000ce40  adrp     x2, #0x34000
+0000ce44  add      x2, x2, #0xef0 = @"AppBridge"
+0000ce48  stp      x19, x22, [sp]
+0000ce4c  adrp     x3, #0x35000
+0000ce50  add      x3, x3, #0xc30 = @"expected %s got %@"
+0000ce54  bl       #0x26700 ; objc_msgSend sel=raise:format:
+0000ce58  mov      x0, x22
+0000ce5c  bl       #0x24818 ; call _objc_retain
+0000ce60  mov      x0, x22
+0000ce64  bl       #0x2480c ; call _objc_release
+0000ce68  mov      x0, x22
+0000ce6c  bl       #0x2480c ; call _objc_release
+0000ce70  ldr      x0, [sp, #0x80]
+0000ce74  mov      x2, x22
+0000ce78  bl       #0x26ba0 ; objc_msgSend sel=setAppViewController:
+0000ce7c  mov      x0, x22
+0000ce80  bl       #0x24818 ; call _objc_retain
+0000ce84  adrp     x0, #0x35000
+0000ce88  add      x0, x0, #0xdf0 = @"setIgnoresOcclusions:"
+0000ce8c  bl       #0x2441c ; call _NSSelectorFromString
+0000ce90  mov      x19, x0
+0000ce94  mov      x0, x22
+0000ce98  mov      x1, x19
+0000ce9c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000cea0  tbz      w0, #0, #0xceb8
+0000cea4  mov      x0, x22
+0000cea8  mov      x1, x19
+0000ceac  mov      w2, #0
+0000ceb0  bl       #0x247ac ; call _objc_msgSend
+0000ceb4  b        #0xcec8 ; call sub_cec8
+0000ceb8  adrp     x1, #0x35000
+0000cebc  add      x1, x1, #0xdf0 = @"setIgnoresOcclusions:"
+0000cec0  mov      x0, x22
+0000cec4  bl       #0x9698 ; call sym:_ABMissingSelector
+0000cec8  mov      x0, x22
+0000cecc  bl       #0x2480c ; call _objc_release
+0000ced0  adrp     x2, #0x39000
+0000ced4  add      x2, x2, #0x5d0
+0000ced8  adrp     x3, #0x35000
+0000cedc  add      x3, x3, #0xe10 = @"_currentMode"
+0000cee0  mov      x0, x22
+0000cee4  bl       #0x27a20 ; objc_msgSend sel=setValue:forKey:
+0000cee8  adrp     x2, #0x35000
+0000ceec  add      x2, x2, #0xe30 = @"_activationSettings"
+0000cef0  mov      x0, x22
+0000cef4  bl       #0x28100 ; objc_msgSend sel=valueForKey:
+0000cef8  mov      x29, x29
+0000cefc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000cf00  mov      x19, x0
+0000cf04  adrp     x0, #0x35000
+0000cf08  add      x0, x0, #0xe50 = @"clearActivationSettings"
+0000cf0c  bl       #0x2441c ; call _NSSelectorFromString
+0000cf10  mov      x20, x0
+0000cf14  mov      x0, x19
+0000cf18  mov      x1, x20
+0000cf1c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000cf20  tbz      w0, #0, #0xcf34
+0000cf24  mov      x0, x19
+0000cf28  mov      x1, x20
+0000cf2c  bl       #0x247ac ; call _objc_msgSend
+0000cf30  b        #0xcf44 ; call sub_cf44
+0000cf34  adrp     x1, #0x35000
+0000cf38  add      x1, x1, #0xe50 = @"clearActivationSettings"
+0000cf3c  mov      x0, x19
+0000cf40  bl       #0x9698 ; call sym:_ABMissingSelector
+0000cf44  mov      x0, x19
+0000cf48  bl       #0x2480c ; call _objc_release
+0000cf4c  mov      x0, x22
+0000cf50  bl       #0x24818 ; call _objc_retain
+0000cf54  adrp     x0, #0x35000
+0000cf58  add      x0, x0, #0xe70 = @"_createSceneUpdateTransactionForApplicationSceneEntity:deliveringActions:"
+0000cf5c  bl       #0x2441c ; call _NSSelectorFromString
+0000cf60  mov      x19, x0
+0000cf64  mov      x0, x22
+0000cf68  mov      x1, x19
+0000cf6c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000cf70  tbz      w0, #0, #0xcf98
+0000cf74  mov      x0, x22
+0000cf78  mov      x1, x19
+0000cf7c  ldr      x2, [sp, #0x78]
+0000cf80  mov      w3, #1
+0000cf84  bl       #0x247ac ; call _objc_msgSend
+0000cf88  mov      x29, x29
+0000cf8c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000cf90  mov      x20, x0
+0000cf94  b        #0xcfac ; call sub_cfac
+0000cf98  adrp     x1, #0x35000
+0000cf9c  add      x1, x1, #0xe70 = @"_createSceneUpdateTransactionForApplicationSceneEntity:deliveringActions:"
+0000cfa0  mov      x0, x22
+0000cfa4  bl       #0x9698 ; call sym:_ABMissingSelector
+0000cfa8  mov      x20, #0
+0000cfac  mov      x0, x20
+0000cfb0  bl       #0x24818 ; call _objc_retain
+0000cfb4  mov      x0, x20
+0000cfb8  bl       #0x2480c ; call _objc_release
+0000cfbc  mov      x0, x22
+0000cfc0  bl       #0x2480c ; call _objc_release
+0000cfc4  mov      x0, x20
+0000cfc8  bl       #0x24818 ; call _objc_retain
+0000cfcc  cbz      x20, #0xcfec
+0000cfd0  adrp     x0, #0x29000
+0000cfd4  add      x0, x0, #0xc6a ; "SBApplicationSceneUpdateTransaction"
+0000cfd8  bl       #0x24788 ; call _objc_getClass
+0000cfdc  mov      x1, x0
+0000cfe0  mov      x0, x20
+0000cfe4  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000cfe8  tbnz     w0, #0, #0xd050
+0000cfec  adrp     x23, #0x29000
+0000cff0  add      x23, x23, #0xc6a ; "SBApplicationSceneUpdateTransaction"
+0000cff4  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000cff8  mov      w8, #0x1d9
+0000cffc  stp      x25, x8, [sp, #0x10]
+0000d000  stp      x23, x20, [sp]
+0000d004  adrp     x2, #0x35000
+0000d008  add      x2, x2, #0xc10 = @"UNEXPECTED %s: got %@ (%s:%d)"
+0000d00c  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000d010  mov      x29, x29
+0000d014  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d018  mov      x19, x0
+0000d01c  adrp     x0, #0x34000
+0000d020  add      x0, x0, #0xef0 = @"AppBridge"
+0000d024  mov      x1, x19
+0000d028  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000d02c  mov      x0, x19
+0000d030  bl       #0x2480c ; call _objc_release
+0000d034  ldr      x0, [x24, #0x338] ; bind _OBJC_CLASS_$_NSException
+0000d038  adrp     x2, #0x34000
+0000d03c  add      x2, x2, #0xef0 = @"AppBridge"
+0000d040  stp      x23, x20, [sp]
+0000d044  adrp     x3, #0x35000
+0000d048  add      x3, x3, #0xc30 = @"expected %s got %@"
+0000d04c  bl       #0x26700 ; objc_msgSend sel=raise:format:
+0000d050  mov      x0, x20
+0000d054  bl       #0x24818 ; call _objc_retain
+0000d058  mov      x0, x20
+0000d05c  bl       #0x2480c ; call _objc_release
+0000d060  mov      x0, x20
+0000d064  bl       #0x2480c ; call _objc_release
+0000d068  adrp     x2, #0x35000
+0000d06c  add      x2, x2, #0xe90 = @"_activeTransitions"
+0000d070  mov      x0, x22
+0000d074  bl       #0x28100 ; objc_msgSend sel=valueForKey:
+0000d078  mov      x29, x29
+0000d07c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d080  mov      x24, x0
+0000d084  sub      x0, x29, #0x60
+0000d088  ldr      x1, [sp, #0x30]
+0000d08c  bl       #0x24794 ; call _objc_initWeak
+0000d090  sub      x0, x29, #0x68
+0000d094  ldr      x1, [sp, #0x80]
+0000d098  bl       #0x24794 ; call _objc_initWeak
+0000d09c  mov      x0, x20
+0000d0a0  bl       #0x24818 ; call _objc_retain
+0000d0a4  adrp     x0, #0x35000
+0000d0a8  add      x0, x0, #0xeb0 = @"setCompletionBlock:"
+0000d0ac  str      x24, [sp, #0x28]
+0000d0b0  bl       #0x2441c ; call _NSSelectorFromString
+0000d0b4  mov      x19, x0
+0000d0b8  mov      x0, x20
+0000d0bc  mov      x1, x19
+0000d0c0  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000d0c4  tbz      w0, #0, #0xd15c
+0000d0c8  adrp     x8, #0x34000
+0000d0cc  ldr      x8, [x8, #0x258] ; -> __NSConcreteStackBlock
+0000d0d0  str      x8, [sp, #0x88]
+0000d0d4  adrp     x8, #0x2b000
+0000d0d8  ldr      d0, [x8, #0x1d0] ; -> 0xc2000000
+0000d0dc  str      d0, [sp, #0x90]
+0000d0e0  adrp     x8, #0xe000
+0000d0e4  add      x8, x8, #0x2a0
+0000d0e8  adrp     x9, #0x34000
+0000d0ec  add      x9, x9, #0x8f0
+0000d0f0  stp      x8, x9, [sp, #0x98]
+0000d0f4  mov      x0, x24
+0000d0f8  bl       #0x24818 ; call _objc_retain
+0000d0fc  str      x24, [sp, #0xa8]
+0000d100  mov      x0, x20
+0000d104  bl       #0x24818 ; call _objc_retain
+0000d108  str      x20, [sp, #0xb0]
+0000d10c  add      x23, sp, #0x88
+0000d110  add      x0, x23, #0x30 ; "itions"
+0000d114  sub      x1, x29, #0x68
+0000d118  bl       #0x2474c ; call _objc_copyWeak
+0000d11c  add      x0, x23, #0x38 ; "etCompletionBlock:"
+0000d120  sub      x1, x29, #0x60
+0000d124  bl       #0x2474c ; call _objc_copyWeak
+0000d128  add      x2, sp, #0x88
+0000d12c  mov      x0, x20
+0000d130  mov      x1, x19
+0000d134  bl       #0x247ac ; call _objc_msgSend
+0000d138  add      x0, x23, #0x38 ; "etCompletionBlock:"
+0000d13c  bl       #0x24758 ; call _objc_destroyWeak
+0000d140  add      x0, x23, #0x30 ; "itions"
+0000d144  bl       #0x24758 ; call _objc_destroyWeak
+0000d148  ldr      x0, [sp, #0xb0]
+0000d14c  bl       #0x2480c ; call _objc_release
+0000d150  ldr      x0, [sp, #0xa8]
+0000d154  bl       #0x2480c ; call _objc_release
+0000d158  b        #0xd16c ; call sub_d16c
+0000d15c  adrp     x1, #0x35000
+0000d160  add      x1, x1, #0xeb0 = @"setCompletionBlock:"
+0000d164  mov      x0, x20
+0000d168  bl       #0x9698 ; call sym:_ABMissingSelector
+0000d16c  mov      x0, x20
+0000d170  bl       #0x2480c ; call _objc_release
+0000d174  mov      x0, x24
+0000d178  mov      x2, x20
+0000d17c  bl       #0x24b20 ; objc_msgSend sel=addObject:
+0000d180  mov      x0, x20
+0000d184  bl       #0x24818 ; call _objc_retain
+0000d188  adrp     x0, #0x35000
+0000d18c  add      x0, x0, #0xf50 = @"begin"
+0000d190  bl       #0x2441c ; call _NSSelectorFromString
+0000d194  mov      x19, x0
+0000d198  mov      x0, x20
+0000d19c  mov      x1, x19
+0000d1a0  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000d1a4  tbz      w0, #0, #0xd1b8
+0000d1a8  mov      x0, x20
+0000d1ac  mov      x1, x19
+0000d1b0  bl       #0x247ac ; call _objc_msgSend
+0000d1b4  b        #0xd1c8 ; call sub_d1c8
+0000d1b8  adrp     x1, #0x35000
+0000d1bc  add      x1, x1, #0xf50 = @"begin"
+0000d1c0  mov      x0, x20
+0000d1c4  bl       #0x9698 ; call sym:_ABMissingSelector
+0000d1c8  mov      x0, x20
+0000d1cc  bl       #0x2480c ; call _objc_release
+0000d1d0  mov      x0, x22
+0000d1d4  bl       #0x24818 ; call _objc_retain
+0000d1d8  adrp     x0, #0x35000
+0000d1dc  add      x0, x0, #0xf70 = @"_createSceneViewController"
+0000d1e0  bl       #0x2441c ; call _NSSelectorFromString
+0000d1e4  mov      x19, x0
+0000d1e8  mov      x0, x22
+0000d1ec  mov      x1, x19
+0000d1f0  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000d1f4  tbz      w0, #0, #0xd208
+0000d1f8  mov      x0, x22
+0000d1fc  mov      x1, x19
+0000d200  bl       #0x247ac ; call _objc_msgSend
+0000d204  b        #0xd218 ; call sub_d218
+0000d208  adrp     x1, #0x35000
+0000d20c  add      x1, x1, #0xf70 = @"_createSceneViewController"
+0000d210  mov      x0, x22
+0000d214  bl       #0x9698 ; call sym:_ABMissingSelector
+0000d218  mov      x0, x22
+0000d21c  bl       #0x2480c ; call _objc_release
+0000d220  adrp     x0, #0x29000
+0000d224  add      x0, x0, #0xd56 ; "SBApplicationSceneView"
+0000d228  bl       #0x24788 ; call _objc_getClass
+0000d22c  mov      x29, x29
+0000d230  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d234  mov      x23, x0
+0000d238  adrp     x0, #0x35000
+0000d23c  add      x0, x0, #0xf90 = @"defaultDisplayModeAnimationFactory"
+0000d240  bl       #0x2441c ; call _NSSelectorFromString
+0000d244  mov      x19, x0
+0000d248  mov      x0, x23
+0000d24c  mov      x1, x19
+0000d250  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000d254  tbz      w0, #0, #0xd274
+0000d258  mov      x0, x23
+0000d25c  mov      x1, x19
+0000d260  bl       #0x247ac ; call _objc_msgSend
+0000d264  mov      x29, x29
+0000d268  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d26c  mov      x19, x0
+0000d270  b        #0xd288 ; call sub_d288
+0000d274  adrp     x1, #0x35000
+0000d278  add      x1, x1, #0xf90 = @"defaultDisplayModeAnimationFactory"
+0000d27c  mov      x0, x23
+0000d280  bl       #0x9698 ; call sym:_ABMissingSelector
+0000d284  mov      x19, #0
+0000d288  mov      x0, x19
+0000d28c  bl       #0x24818 ; call _objc_retain
+0000d290  mov      x0, x19
+0000d294  bl       #0x2480c ; call _objc_release
+0000d298  mov      x0, x23
+0000d29c  bl       #0x2480c ; call _objc_release
+0000d2a0  mov      x0, x22
+0000d2a4  bl       #0x24818 ; call _objc_retain
+0000d2a8  adrp     x0, #0x35000
+0000d2ac  add      x0, x0, #0xfb0 = @"appView"
+0000d2b0  bl       #0x2441c ; call _NSSelectorFromString
+0000d2b4  mov      x23, x0
+0000d2b8  mov      x0, x22
+0000d2bc  mov      x1, x23
+0000d2c0  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000d2c4  tbz      w0, #0, #0xd2e4
+0000d2c8  mov      x0, x22
+0000d2cc  mov      x1, x23
+0000d2d0  bl       #0x247ac ; call _objc_msgSend
+0000d2d4  mov      x29, x29
+0000d2d8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d2dc  mov      x23, x0
+0000d2e0  b        #0xd2f8 ; call sub_d2f8
+0000d2e4  adrp     x1, #0x35000
+0000d2e8  add      x1, x1, #0xfb0 = @"appView"
+0000d2ec  mov      x0, x22
+0000d2f0  bl       #0x9698 ; call sym:_ABMissingSelector
+0000d2f4  mov      x23, #0
+0000d2f8  mov      x0, x23
+0000d2fc  bl       #0x24818 ; call _objc_retain
+0000d300  mov      x0, x23
+0000d304  bl       #0x2480c ; call _objc_release
+0000d308  mov      x0, x22
+0000d30c  bl       #0x2480c ; call _objc_release
+0000d310  adrp     x0, #0x35000
+0000d314  add      x0, x0, #0xfd0 = @"setDisplayMode:animationFactory:completion:"
+0000d318  bl       #0x2441c ; call _NSSelectorFromString
+0000d31c  mov      x24, x0
+0000d320  mov      x0, x23
+0000d324  mov      x1, x24
+0000d328  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000d32c  tbz      w0, #0, #0xd34c
+0000d330  mov      x0, x23
+0000d334  mov      x1, x24
+0000d338  mov      w2, #4
+0000d33c  mov      x3, x19
+0000d340  mov      x4, #0
+0000d344  bl       #0x247ac ; call _objc_msgSend
+0000d348  b        #0xd35c ; call sub_d35c
+0000d34c  adrp     x1, #0x35000
+0000d350  add      x1, x1, #0xfd0 = @"setDisplayMode:animationFactory:completion:"
+0000d354  mov      x0, x23
+0000d358  bl       #0x9698 ; call sym:_ABMissingSelector
+0000d35c  mov      x0, x22
+0000d360  bl       #0x28140 ; objc_msgSend sel=view
+0000d364  mov      x29, x29
+0000d368  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d36c  mov      x27, x0
+0000d370  adrp     x8, #0x3e000
+0000d374  ldr      x0, [x8, #0x320] ; bind _OBJC_CLASS_$_UIColor
+0000d378  bl       #0x251a0 ; objc_msgSend sel=clearColor
+0000d37c  mov      x29, x29
+0000d380  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d384  mov      x24, x0
+0000d388  mov      x0, x27
+0000d38c  mov      x2, x24
+0000d390  bl       #0x26c20 ; objc_msgSend sel=setBackgroundColor:
+0000d394  mov      x0, x24
+0000d398  bl       #0x2480c ; call _objc_release
+0000d39c  ldr      x0, [sp, #0x80]
+0000d3a0  bl       #0x24f60 ; objc_msgSend sel=box
+0000d3a4  mov      x29, x29
+0000d3a8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d3ac  mov      x24, x0
+0000d3b0  mov      x2, x27
+0000d3b4  mov      x3, #0
+0000d3b8  bl       #0x25b60 ; objc_msgSend sel=insertSubview:atIndex:
+0000d3bc  mov      x0, x24
+0000d3c0  bl       #0x2480c ; call _objc_release
+0000d3c4  adrp     x1, #0x39000
+0000d3c8  add      x1, x1, #0x450
+0000d3cc  adrp     x2, #0x36000
+0000d3d0  add      x2, x2, #0x30 = @"primarySceneIdentifierForBundleIdentifier"
+0000d3d4  ldr      x0, [sp, #0x58]
+0000d3d8  bl       #0xd9b0 ; call sub_d9b0
+0000d3dc  mov      x29, x29
+0000d3e0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d3e4  mov      x24, x0
+0000d3e8  ldr      x0, [sp, #0x80]
+0000d3ec  bl       #0x24d80 ; objc_msgSend sel=application
+0000d3f0  mov      x29, x29
+0000d3f4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d3f8  mov      x25, x0
+0000d3fc  ldp      x0, x3, [sp, #0x58]
+0000d400  mov      x1, x24
+0000d404  mov      x2, x25
+0000d408  ldr      x4, [sp, #0x50]
+0000d40c  bl       #0xdef0 ; call sub_def0
+0000d410  mov      x29, x29
+0000d414  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d418  mov      x28, x0
+0000d41c  mov      x0, x25
+0000d420  bl       #0x2480c ; call _objc_release
+0000d424  ldr      x0, [x26, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000d428  bl       #0x247d0 ; call _objc_opt_class
+0000d42c  mov      x1, x0
+0000d430  mov      x0, x28
+0000d434  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000d438  tbz      w0, #0, #0xd538
+0000d43c  cbz      x28, #0xd540
+0000d440  adrp     x0, #0x29000
+0000d444  add      x0, x0, #0xe65 ; "FBSceneMonitor"
+0000d448  bl       #0x24788 ; call _objc_getClass
+0000d44c  bl       #0x2471c ; call _objc_alloc
+0000d450  mov      x26, x0
+0000d454  adrp     x0, #0x36000
+0000d458  add      x0, x0, #0x50 = @"initWithSceneID:"
+0000d45c  bl       #0x2441c ; call _NSSelectorFromString
+0000d460  mov      x25, x0
+0000d464  mov      x0, x26
+0000d468  mov      x1, x25
+0000d46c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000d470  tbz      w0, #0, #0xd494
+0000d474  mov      x0, x26
+0000d478  mov      x1, x25
+0000d47c  mov      x2, x28
+0000d480  bl       #0x247ac ; call _objc_msgSend
+0000d484  mov      x29, x29
+0000d488  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d48c  mov      x25, x0
+0000d490  b        #0xd4a8 ; call sub_d4a8
+0000d494  adrp     x1, #0x36000
+0000d498  add      x1, x1, #0x50 = @"initWithSceneID:"
+0000d49c  mov      x0, x26
+0000d4a0  bl       #0x9698 ; call sym:_ABMissingSelector
+0000d4a4  mov      x25, #0
+0000d4a8  mov      x0, x25
+0000d4ac  bl       #0x24818 ; call _objc_retain
+0000d4b0  mov      x0, x25
+0000d4b4  bl       #0x2480c ; call _objc_release
+0000d4b8  mov      x0, x26
+0000d4bc  bl       #0x2480c ; call _objc_release
+0000d4c0  ldr      x26, [sp, #0x80]
+0000d4c4  mov      x0, x26
+0000d4c8  mov      x2, x25
+0000d4cc  bl       #0x276a0 ; objc_msgSend sel=setSceneMonitor:
+0000d4d0  mov      x0, x25
+0000d4d4  bl       #0x2480c ; call _objc_release
+0000d4d8  mov      x0, x26
+0000d4dc  bl       #0x26a40 ; objc_msgSend sel=sceneMonitor
+0000d4e0  mov      x29, x29
+0000d4e4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000d4e8  mov      x26, x0
+0000d4ec  adrp     x0, #0x36000
+0000d4f0  add      x0, x0, #0x70 = @"setDelegate:"
+0000d4f4  bl       #0x2441c ; call _NSSelectorFromString
+0000d4f8  mov      x25, x0
+0000d4fc  mov      x0, x26
+0000d500  mov      x1, x25
+0000d504  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000d508  tbz      w0, #0, #0xd520
+0000d50c  mov      x0, x26
+0000d510  mov      x1, x25
+0000d514  ldr      x2, [sp, #0x30]
+0000d518  bl       #0x247ac ; call _objc_msgSend
+0000d51c  b        #0xd530 ; call sub_d530
+0000d520  adrp     x1, #0x36000
+0000d524  add      x1, x1, #0x70 = @"setDelegate:"
+0000d528  mov      x0, x26
+0000d52c  bl       #0x9698 ; call sym:_ABMissingSelector
+0000d530  mov      x0, x26
+0000d534  bl       #0x2480c ; call _objc_release
+0000d538  mov      x0, x28
+0000d53c  bl       #0x2480c ; call _objc_release
+0000d540  mov      x0, x24
+0000d544  bl       #0x2480c ; call _objc_release
+0000d548  mov      x0, x27
+0000d54c  bl       #0x2480c ; call _objc_release
+0000d550  mov      x0, x23
+0000d554  bl       #0x2480c ; call _objc_release
+0000d558  mov      x0, x19
+0000d55c  bl       #0x2480c ; call _objc_release
+0000d560  sub      x0, x29, #0x68
+0000d564  bl       #0x24758 ; call _objc_destroyWeak
+0000d568  sub      x0, x29, #0x60
+0000d56c  bl       #0x24758 ; call _objc_destroyWeak
+0000d570  ldr      x0, [sp, #0x28]
+0000d574  bl       #0x2480c ; call _objc_release
+0000d578  mov      x0, x20
+0000d57c  bl       #0x2480c ; call _objc_release
+0000d580  mov      x0, x22
+0000d584  bl       #0x2480c ; call _objc_release
+0000d588  ldr      x0, [sp, #0x78]
+0000d58c  bl       #0x2480c ; call _objc_release
+0000d590  ldr      x0, [sp, #0x68]
+0000d594  bl       #0x2480c ; call _objc_release
+0000d598  ldr      x0, [sp, #0x70]
+0000d59c  bl       #0x2480c ; call _objc_release
+0000d5a0  ldr      x0, [sp, #0x40]
+0000d5a4  bl       #0x2480c ; call _objc_release
+0000d5a8  ldr      x0, [sp, #0x48]
+0000d5ac  bl       #0x2480c ; call _objc_release
+0000d5b0  ldr      x0, [sp, #0x50]
+0000d5b4  bl       #0x2480c ; call _objc_release
+0000d5b8  ldr      x0, [sp, #0x58]
+0000d5bc  bl       #0x2480c ; call _objc_release
+0000d5c0  ldr      x0, [sp, #0x38]
+0000d5c4  bl       #0x2480c ; call _objc_release
+0000d5c8  mov      x0, x21
+0000d5cc  bl       #0x2480c ; call _objc_release
+0000d5d0  ldr      x0, [sp, #0x60]
+0000d5d4  bl       #0x2480c ; call _objc_release
+0000d5d8  ldr      x0, [sp, #0x80]
+0000d5dc  bl       #0x2480c ; call _objc_release
+0000d5e0  ldp      x29, x30, [sp, #0x130]
+0000d5e4  ldp      x20, x19, [sp, #0x120]
+0000d5e8  ldp      x22, x21, [sp, #0x110]
+0000d5ec  ldp      x24, x23, [sp, #0x100]
+0000d5f0  ldp      x26, x25, [sp, #0xf0]
+0000d5f4  ldp      x28, x27, [sp, #0xe0]
+0000d5f8  add      sp, sp, #0x140
+0000d5fc  ret      
+0000d600  b        #0xd76c ; call sub_d76c
+0000d604  b        #0xd778 ; call sub_d778
+0000d608  b        #0xd7c8 ; call sub_d7c8
+0000d60c  str      x0, [sp, #0x30]
+0000d610  mov      x0, x25
+0000d614  b        #0xd704 ; call sub_d704
+0000d618  b        #0xd6fc ; call sub_d6fc
+0000d61c  b        #0xd76c ; call sub_d76c
+0000d620  b        #0xd778 ; call sub_d778
+0000d624  str      x0, [sp, #0x30]
+0000d628  add      x0, x23, #0x38 ; "etCompletionBlock:"
+0000d62c  bl       #0x24758 ; call _objc_destroyWeak
+0000d630  add      x0, x23, #0x30 ; "itions"
+0000d634  bl       #0x24758 ; call _objc_destroyWeak
+0000d638  ldr      x0, [sp, #0xb0]
+0000d63c  bl       #0x2480c ; call _objc_release
+0000d640  ldr      x0, [sp, #0xa8]
+0000d644  bl       #0x2480c ; call _objc_release
+0000d648  b        #0xd908 ; call sub_d908
+0000d64c  str      x0, [sp, #0x30]
+0000d650  mov      x0, x23
+0000d654  bl       #0x2480c ; call _objc_release
+0000d658  b        #0xd84c ; call sub_d84c
+0000d65c  b        #0xd6fc ; call sub_d6fc
+0000d660  b        #0xd7c8 ; call sub_d7c8
+0000d664  b        #0xd7bc ; call sub_d7bc
+0000d668  str      x0, [sp, #0x30]
+0000d66c  mov      x0, x19
+0000d670  bl       #0x2480c ; call _objc_release
+0000d674  b        #0xd8d4 ; call sub_d8d4
+0000d678  str      x0, [sp, #0x30]
+0000d67c  mov      x0, x19
+0000d680  bl       #0x2480c ; call _objc_release
+0000d684  b        #0xd87c ; call sub_d87c
+0000d688  str      x0, [sp, #0x30]
+0000d68c  mov      x0, x20
+0000d690  bl       #0x2480c ; call _objc_release
+0000d694  b        #0xd9a8 ; call sub_d9a8
+0000d698  str      x0, [sp, #0x30]
+0000d69c  mov      x0, x20
+0000d6a0  bl       #0x2480c ; call _objc_release
+0000d6a4  b        #0xd88c ; call sub_d88c
+0000d6a8  str      x0, [sp, #0x30]
+0000d6ac  mov      x0, x19
+0000d6b0  bl       #0x2480c ; call _objc_release
+0000d6b4  b        #0xd898 ; call sub_d898
+0000d6b8  str      x0, [sp, #0x30]
+0000d6bc  mov      x0, x20
+0000d6c0  bl       #0x2480c ; call _objc_release
+0000d6c4  b        #0xd8a4 ; call sub_d8a4
+0000d6c8  str      x0, [sp, #0x30]
+0000d6cc  mov      x0, x19
+0000d6d0  bl       #0x2480c ; call _objc_release
+0000d6d4  b        #0xd8b0 ; call sub_d8b0
+0000d6d8  str      x0, [sp, #0x30]
+0000d6dc  mov      x0, x19
+0000d6e0  bl       #0x2480c ; call _objc_release
+0000d6e4  b        #0xd8bc ; call sub_d8bc
+0000d6e8  str      x0, [sp, #0x30]
+0000d6ec  mov      x0, x20
+0000d6f0  bl       #0x2480c ; call _objc_release
+0000d6f4  b        #0xd8c8 ; call sub_d8c8
+0000d6f8  b        #0xd76c ; call sub_d76c
+0000d6fc  str      x0, [sp, #0x30]
+0000d700  mov      x0, x26
+0000d704  bl       #0x2480c ; call _objc_release
+0000d708  b        #0xd7cc ; call sub_d7cc
+0000d70c  str      x0, [sp, #0x30]
+0000d710  mov      x0, x25
+0000d714  b        #0xd7d0 ; call sub_d7d0
+0000d718  b        #0xd724 ; call sub_d724
+0000d71c  b        #0xd7e0 ; call sub_d7e0
+0000d720  b        #0xd724 ; call sub_d724
+0000d724  str      x0, [sp, #0x30]
+0000d728  b        #0xd7d4 ; call sub_d7d4
+0000d72c  b        #0xd8e4 ; call sub_d8e4
+0000d730  b        #0xd7f0 ; call sub_d7f0
+0000d734  b        #0xd7fc ; call sub_d7fc
+0000d738  b        #0xd73c ; call sub_d73c
+0000d73c  str      x0, [sp, #0x30]
+0000d740  b        #0xd910 ; call sub_d910
+0000d744  str      x0, [sp, #0x30]
+0000d748  b        #0xd928 ; call sub_d928
+0000d74c  b        #0xd9a4 ; call sub_d9a4
+0000d750  b        #0xd80c ; call sub_d80c
+0000d754  b        #0xd814 ; call sub_d814
+0000d758  b        #0xd828 ; call sub_d828
+0000d75c  b        #0xd83c ; call sub_d83c
+0000d760  b        #0xd848 ; call sub_d848
+0000d764  str      x0, [sp, #0x30]
+0000d768  b        #0xd8dc ; call sub_d8dc
+0000d76c  str      x0, [sp, #0x30]
+0000d770  mov      x0, x19
+0000d774  b        #0xd954 ; call sub_d954
+0000d778  str      x0, [sp, #0x30]
+0000d77c  b        #0xd958 ; call sub_d958
+0000d780  str      x0, [sp, #0x30]
+0000d784  b        #0xd960 ; call sub_d960
+0000d788  b        #0xd854 ; call sub_d854
+0000d78c  str      x0, [sp, #0x30]
+0000d790  b        #0xd978 ; call sub_d978
+0000d794  b        #0xd8c4 ; call sub_d8c4
+0000d798  b        #0xd7ac ; call sub_d7ac
+0000d79c  b        #0xd7ac ; call sub_d7ac
+0000d7a0  b        #0xd868 ; call sub_d868
+0000d7a4  b        #0xd8c4 ; call sub_d8c4
+0000d7a8  b        #0xd868 ; call sub_d868
+0000d7ac  str      x0, [sp, #0x30]
+0000d7b0  b        #0xd980 ; call sub_d980
+0000d7b4  str      x0, [sp, #0x30]
+0000d7b8  b        #0xd988 ; call sub_d988
+0000d7bc  str      x0, [sp, #0x30]
+0000d7c0  mov      x0, x21
+0000d7c4  b        #0xd96c ; call sub_d96c
+0000d7c8  str      x0, [sp, #0x30]
+0000d7cc  mov      x0, x28
+0000d7d0  bl       #0x2480c ; call _objc_release
+0000d7d4  mov      x0, x24
+0000d7d8  bl       #0x2480c ; call _objc_release
+0000d7dc  b        #0xd7e4 ; call sub_d7e4
+0000d7e0  str      x0, [sp, #0x30]
+0000d7e4  mov      x0, x27
+0000d7e8  bl       #0x2480c ; call _objc_release
+0000d7ec  b        #0xd8e8 ; call sub_d8e8
+0000d7f0  str      x0, [sp, #0x30]
+0000d7f4  mov      x23, x22
+0000d7f8  b        #0xd8e8 ; call sub_d8e8
+0000d7fc  str      x0, [sp, #0x30]
+0000d800  mov      x0, x23
+0000d804  b        #0xd90c ; call sub_d90c
+0000d808  b        #0xd9a4 ; call sub_d9a4
+0000d80c  str      x0, [sp, #0x30]
+0000d810  b        #0xd930 ; call sub_d930
+0000d814  str      x0, [sp, #0x30]
+0000d818  mov      x0, x20
+0000d81c  b        #0xd934 ; call sub_d934
+0000d820  str      x0, [sp, #0x30]
+0000d824  b        #0xd938 ; call sub_d938
+0000d828  str      x0, [sp, #0x30]
+0000d82c  mov      x0, x20
+0000d830  b        #0xd93c ; call sub_d93c
+0000d834  str      x0, [sp, #0x30]
+0000d838  b        #0xd940 ; call sub_d940
+0000d83c  str      x0, [sp, #0x30]
+0000d840  mov      x0, x21
+0000d844  b        #0xd944 ; call sub_d944
+0000d848  str      x0, [sp, #0x30]
+0000d84c  mov      x0, x20
+0000d850  b        #0xd94c ; call sub_d94c
+0000d854  str      x0, [sp, #0x30]
+0000d858  mov      x0, x21
+0000d85c  b        #0xd964 ; call sub_d964
+0000d860  b        #0xd8c4 ; call sub_d8c4
+0000d864  b        #0xd8c4 ; call sub_d8c4
+0000d868  str      x0, [sp, #0x30]
+0000d86c  mov      x0, x20
+0000d870  b        #0xd97c ; call sub_d97c
+0000d874  b        #0xd904 ; call sub_d904
+0000d878  str      x0, [sp, #0x30]
+0000d87c  mov      x0, x20
+0000d880  b        #0xd924 ; call sub_d924
+0000d884  b        #0xd9a4 ; call sub_d9a4
+0000d888  str      x0, [sp, #0x30]
+0000d88c  ldr      x0, [sp, #0x78]
+0000d890  b        #0xd934 ; call sub_d934
+0000d894  str      x0, [sp, #0x30]
+0000d898  ldr      x0, [sp, #0x68]
+0000d89c  b        #0xd93c ; call sub_d93c
+0000d8a0  str      x0, [sp, #0x30]
+0000d8a4  ldr      x0, [sp, #0x70]
+0000d8a8  b        #0xd944 ; call sub_d944
+0000d8ac  str      x0, [sp, #0x30]
+0000d8b0  ldr      x0, [sp, #0x50]
+0000d8b4  b        #0xd95c ; call sub_d95c
+0000d8b8  str      x0, [sp, #0x30]
+0000d8bc  mov      x0, x21
+0000d8c0  b        #0xd974 ; call sub_d974
+0000d8c4  str      x0, [sp, #0x30]
+0000d8c8  mov      x0, x19
+0000d8cc  b        #0xd97c ; call sub_d97c
+0000d8d0  str      x0, [sp, #0x30]
+0000d8d4  mov      x0, x23
+0000d8d8  bl       #0x2480c ; call _objc_release
+0000d8dc  mov      x0, x23
+0000d8e0  b        #0xd954 ; call sub_d954
+0000d8e4  str      x0, [sp, #0x30]
+0000d8e8  mov      x0, x23
+0000d8ec  bl       #0x2480c ; call _objc_release
+0000d8f0  mov      x0, x19
+0000d8f4  b        #0xd90c ; call sub_d90c
+0000d8f8  str      x0, [sp, #0x30]
+0000d8fc  mov      x0, x22
+0000d900  b        #0xd90c ; call sub_d90c
+0000d904  str      x0, [sp, #0x30]
+0000d908  mov      x0, x20
+0000d90c  bl       #0x2480c ; call _objc_release
+0000d910  sub      x0, x29, #0x68
+0000d914  bl       #0x24758 ; call _objc_destroyWeak
+0000d918  sub      x0, x29, #0x60
+0000d91c  bl       #0x24758 ; call _objc_destroyWeak
+0000d920  ldr      x0, [sp, #0x28]
+0000d924  bl       #0x2480c ; call _objc_release
+0000d928  mov      x0, x20
+0000d92c  bl       #0x2480c ; call _objc_release
+0000d930  mov      x0, x22
+0000d934  bl       #0x2480c ; call _objc_release
+0000d938  ldr      x0, [sp, #0x78]
+0000d93c  bl       #0x2480c ; call _objc_release
+0000d940  ldr      x0, [sp, #0x68]
+0000d944  bl       #0x2480c ; call _objc_release
+0000d948  ldr      x0, [sp, #0x70]
+0000d94c  bl       #0x2480c ; call _objc_release
+0000d950  ldr      x0, [sp, #0x40]
+0000d954  bl       #0x2480c ; call _objc_release
+0000d958  ldr      x0, [sp, #0x48]
+0000d95c  bl       #0x2480c ; call _objc_release
+0000d960  ldr      x0, [sp, #0x50]
+0000d964  bl       #0x2480c ; call _objc_release
+0000d968  ldr      x0, [sp, #0x58]
+0000d96c  bl       #0x2480c ; call _objc_release
+0000d970  ldr      x0, [sp, #0x38]
+0000d974  bl       #0x2480c ; call _objc_release
+0000d978  mov      x0, x21
+0000d97c  bl       #0x2480c ; call _objc_release
+0000d980  ldr      x0, [sp, #0x60]
+0000d984  bl       #0x2480c ; call _objc_release
+0000d988  ldr      x0, [sp, #0x80]
+0000d98c  bl       #0x2480c ; call _objc_release
+0000d990  ldr      x0, [sp, #0x30]
+0000d994  bl       #0x24470 ; call __Unwind_Resume
+0000d998  str      x0, [sp, #0x30]
+0000d99c  mov      x0, x19
+0000d9a0  b        #0xd92c ; call sub_d92c
+0000d9a4  str      x0, [sp, #0x30]
+0000d9a8  mov      x0, x22
+0000d9ac  b        #0xd92c ; call sub_d92c

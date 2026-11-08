@@ -1,0 +1,32 @@
+; -[SCPCarSplit sceneOfViewController:]
+0x01aaf4  stp      x20, x19, [sp, #-0x20]!
+0x01aaf8  stp      x29, x30, [sp, #0x10]
+0x01aafc  add      x29, sp, #0x10
+0x01ab00  mov      x19, x2
+0x01ab04  mov      x0, x2
+0x01ab08  bl       #0x567c4 ; call _objc_retain
+0x01ab0c  adrp     x8, #0x87000
+0x01ab10  ldr      x0, [x8, #0x6a0] ; [0x876a0] class:UIViewController
+0x01ab14  bl       #0x5677c ; call _objc_opt_class
+0x01ab18  mov      x1, x0
+0x01ab1c  mov      x0, x19
+0x01ab20  bl       #0x56788 ; call _objc_opt_isKindOfClass
+0x01ab24  tbz      w0, #0, #0x1ab40
+0x01ab28  mov      x0, x19
+0x01ab2c  bl       #0x1ab70 ; -> sub_1ab70
+0x01ab30  mov      x29, x29
+0x01ab34  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01ab38  mov      x20, x0
+0x01ab3c  b        #0x1ab44
+0x01ab40  mov      x20, #0
+0x01ab44  mov      x0, x19
+0x01ab48  bl       #0x567b8 ; call _objc_release
+0x01ab4c  mov      x0, x20
+0x01ab50  ldp      x29, x30, [sp, #0x10]
+0x01ab54  ldp      x20, x19, [sp], #0x20
+0x01ab58  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x01ab5c  mov      x20, x0
+0x01ab60  mov      x0, x19
+0x01ab64  bl       #0x567b8 ; call _objc_release
+0x01ab68  mov      x0, x20
+0x01ab6c  bl       #0x563e0 ; call __Unwind_Resume

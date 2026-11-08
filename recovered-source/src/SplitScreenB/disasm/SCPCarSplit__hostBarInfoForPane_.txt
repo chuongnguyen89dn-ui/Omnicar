@@ -1,0 +1,191 @@
+; ==== SCPCarSplit__hostBarInfoForPane_  @0x3cd60..0x3d058 (760 bytes) ====
+0003cd60  sub      sp, sp, #0xa0                                
+0003cd64  stp      x26, x25, [sp, #0x50]                        
+0003cd68  stp      x24, x23, [sp, #0x60]                        
+0003cd6c  stp      x22, x21, [sp, #0x70]                        
+0003cd70  stp      x20, x19, [sp, #0x80]                        
+0003cd74  stp      x29, x30, [sp, #0x90]                        
+0003cd78  add      x29, sp, #0x90                               
+0003cd7c  mov      x19, x2                                      
+0003cd80  mov      x20, x0                                      
+0003cd84  adrp     x8, #0x78000                                 
+0003cd88  ldr      x8, [x8, #0x360]                             
+0003cd8c  ldr      x8, [x8]                                     
+0003cd90  str      x8, [sp, #0x48]                              
+0003cd94  mov      x0, x2                                       
+0003cd98  bl       #0x567c4                                     ; call _objc_retain
+0003cd9c  mov      x0, x20                                      
+0003cda0  bl       #0x58200                                     ; msgSend "floatPane"
+0003cda4  mov      x29, x29                                     
+0003cda8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003cdac  mov      x21, x0                                      
+0003cdb0  bl       #0x567b8                                     ; call _objc_release
+0003cdb4  cmp      x19, x21                                     
+0003cdb8  b.eq     #0x3cdd0                                     
+0003cdbc  mov      x0, x20                                      
+0003cdc0  mov      x2, x19                                      
+0003cdc4  bl       #0x574c0                                     ; msgSend "canPopOutPane:"
+0003cdc8  mov      x23, x0                                      
+0003cdcc  b        #0x3ce08                                     
+0003cdd0  mov      x0, x19                                      
+0003cdd4  bl       #0x5cae0                                     ; msgSend "vc"
+0003cdd8  mov      x29, x29                                     
+0003cddc  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003cde0  mov      x22, x0                                      
+0003cde4  cbz      x0, #0x3cdfc                                 
+0003cde8  mov      x0, x20                                      
+0003cdec  bl       #0x59800                                     ; msgSend "paneCount"
+0003cdf0  cmp      w0, #3                                       
+0003cdf4  cset     w23, lt                                      
+0003cdf8  b        #0x3ce00                                     
+0003cdfc  mov      w23, #0                                      
+0003ce00  mov      x0, x22                                      
+0003ce04  bl       #0x567b8                                     ; call _objc_release
+0003ce08  mov      x0, x20                                      
+0003ce0c  bl       #0x5cca0                                     ; msgSend "zoomedSlot"
+0003ce10  mov      x29, x29                                     
+0003ce14  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003ce18  mov      x22, x0                                      
+0003ce1c  cbz      x0, #0x3ce58                                 
+0003ce20  mov      x0, x20                                      
+0003ce24  bl       #0x5cca0                                     ; msgSend "zoomedSlot"
+0003ce28  mov      x29, x29                                     
+0003ce2c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003ce30  mov      x20, x0                                      
+0003ce34  bl       #0x58bc0                                     ; msgSend "intValue"
+0003ce38  mov      x24, x0                                      
+0003ce3c  mov      x0, x19                                      
+0003ce40  bl       #0x5c100                                     ; msgSend "slot"
+0003ce44  cmp      w24, w0                                      
+0003ce48  cset     w25, eq                                      
+0003ce4c  mov      x0, x20                                      
+0003ce50  bl       #0x567b8                                     ; call _objc_release
+0003ce54  b        #0x3ce5c                                     
+0003ce58  mov      w25, #0                                      
+0003ce5c  mov      x0, x22                                      
+0003ce60  bl       #0x567b8                                     ; call _objc_release
+0003ce64  adrp     x8, #0x7d000                                 
+0003ce68  add      x8, x8, #0x140                               
+0003ce6c  str      x8, [sp, #8]                                 
+0003ce70  adrp     x26, #0x87000                                
+0003ce74  ldr      x22, [x26, #0x6e8]                           ; classref NSNumber
+0003ce78  mov      x0, x19                                      
+0003ce7c  bl       #0x57160                                     ; msgSend "bar"
+0003ce80  mov      x29, x29                                     
+0003ce84  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003ce88  mov      x20, x0                                      
+0003ce8c  bl       #0x58d20                                     ; msgSend "isHidden"
+0003ce90  eor      w2, w0, #1                                   
+0003ce94  mov      x0, x22                                      
+0003ce98  bl       #0x59520                                     ; msgSend "numberWithBool:"
+0003ce9c  mov      x29, x29                                     
+0003cea0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003cea4  mov      x22, x0                                      
+0003cea8  adrp     x8, #0x7d000                                 
+0003ceac  add      x8, x8, #0x160                               
+0003ceb0  str      x0, [sp, #0x28]                              
+0003ceb4  str      x8, [sp, #0x10]                              
+0003ceb8  ldr      x0, [x26, #0x6e8]                            ; classref NSNumber
+0003cebc  cmp      x19, x21                                     
+0003cec0  mov      w8, #1                                       
+0003cec4  cinc     w2, w8, eq                                   
+0003cec8  bl       #0x59560                                     ; msgSend "numberWithInt:"
+0003cecc  mov      x29, x29                                     
+0003ced0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003ced4  mov      x24, x0                                      
+0003ced8  str      x0, [sp, #0x30]                              
+0003cedc  adrp     x8, #0x7d000                                 
+0003cee0  add      x8, x8, #0x180                               
+0003cee4  str      x8, [sp, #0x18]                              
+0003cee8  ldr      x0, [x26, #0x6e8]                            ; classref NSNumber
+0003ceec  eor      w2, w23, #1                                  
+0003cef0  bl       #0x59520                                     ; msgSend "numberWithBool:"
+0003cef4  mov      x29, x29                                     
+0003cef8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003cefc  mov      x23, x0                                      
+0003cf00  str      x0, [sp, #0x38]                              
+0003cf04  adrp     x8, #0x7d000                                 
+0003cf08  add      x8, x8, #0x1a0                               
+0003cf0c  str      x8, [sp, #0x20]                              
+0003cf10  ldr      x0, [x26, #0x6e8]                            ; classref NSNumber
+0003cf14  mov      x2, x25                                      
+0003cf18  bl       #0x59520                                     ; msgSend "numberWithBool:"
+0003cf1c  mov      x29, x29                                     
+0003cf20  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003cf24  mov      x25, x0                                      
+0003cf28  str      x0, [sp, #0x40]                              
+0003cf2c  adrp     x8, #0x87000                                 
+0003cf30  ldr      x0, [x8, #0x6b8]                             ; classref NSDictionary
+0003cf34  add      x2, sp, #0x28                                
+0003cf38  add      x3, sp, #8                                   
+0003cf3c  mov      w4, #4                                       
+0003cf40  bl       #0x57bc0                                     ; msgSend "dictionaryWithObjects:forKeys:count:"
+0003cf44  mov      x29, x29                                     
+0003cf48  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003cf4c  mov      x21, x0                                      
+0003cf50  mov      x0, x25                                      
+0003cf54  bl       #0x567b8                                     ; call _objc_release
+0003cf58  mov      x0, x23                                      
+0003cf5c  bl       #0x567b8                                     ; call _objc_release
+0003cf60  mov      x0, x24                                      
+0003cf64  bl       #0x567b8                                     ; call _objc_release
+0003cf68  mov      x0, x22                                      
+0003cf6c  bl       #0x567b8                                     ; call _objc_release
+0003cf70  mov      x0, x20                                      
+0003cf74  bl       #0x567b8                                     ; call _objc_release
+0003cf78  mov      x0, x19                                      
+0003cf7c  bl       #0x567b8                                     ; call _objc_release
+0003cf80  ldr      x8, [sp, #0x48]                              
+0003cf84  adrp     x9, #0x78000                                 
+0003cf88  ldr      x9, [x9, #0x360]                             
+0003cf8c  ldr      x9, [x9]                                     
+0003cf90  cmp      x9, x8                                       
+0003cf94  b.ne     #0x3cfb8                                     
+0003cf98  mov      x0, x21                                      
+0003cf9c  ldp      x29, x30, [sp, #0x90]                        
+0003cfa0  ldp      x20, x19, [sp, #0x80]                        
+0003cfa4  ldp      x22, x21, [sp, #0x70]                        
+0003cfa8  ldp      x24, x23, [sp, #0x60]                        
+0003cfac  ldp      x26, x25, [sp, #0x50]                        
+0003cfb0  add      sp, sp, #0xa0                                
+0003cfb4  b        #0x566e0                                     ; call _objc_autoreleaseReturnValue | tail _objc_autoreleaseReturnValue
+0003cfb8  bl       #0x56404                                     ; call ___stack_chk_fail
+0003cfbc  b        #0x3cfc4                                     
+0003cfc0  b        #0x3d03c                                     
+0003cfc4  mov      x21, x0                                      
+0003cfc8  b        #0x3d020                                     
+0003cfcc  b        #0x3d03c                                     
+0003cfd0  mov      x21, x0                                      
+0003cfd4  mov      x0, x25                                      
+0003cfd8  bl       #0x567b8                                     ; call _objc_release
+0003cfdc  b        #0x3cfe4                                     
+0003cfe0  mov      x21, x0                                      
+0003cfe4  mov      x0, x23                                      
+0003cfe8  bl       #0x567b8                                     ; call _objc_release
+0003cfec  b        #0x3cff4                                     
+0003cff0  mov      x21, x0                                      
+0003cff4  mov      x0, x24                                      
+0003cff8  bl       #0x567b8                                     ; call _objc_release
+0003cffc  b        #0x3d004                                     
+0003d000  mov      x21, x0                                      
+0003d004  mov      x0, x22                                      
+0003d008  bl       #0x567b8                                     ; call _objc_release
+0003d00c  b        #0x3d030                                     
+0003d010  b        #0x3d03c                                     
+0003d014  mov      x21, x0                                      
+0003d018  mov      x0, x20                                      
+0003d01c  bl       #0x567b8                                     ; call _objc_release
+0003d020  mov      x0, x22                                      
+0003d024  bl       #0x567b8                                     ; call _objc_release
+0003d028  b        #0x3d040                                     
+0003d02c  mov      x21, x0                                      
+0003d030  mov      x0, x20                                      
+0003d034  bl       #0x567b8                                     ; call _objc_release
+0003d038  b        #0x3d040                                     
+0003d03c  mov      x21, x0                                      
+0003d040  mov      x0, x19                                      
+0003d044  bl       #0x567b8                                     ; call _objc_release
+0003d048  b        #0x3d050                                     
+0003d04c  mov      x21, x0                                      
+0003d050  mov      x0, x21                                      
+0003d054  bl       #0x563e0                                     ; call __Unwind_Resume

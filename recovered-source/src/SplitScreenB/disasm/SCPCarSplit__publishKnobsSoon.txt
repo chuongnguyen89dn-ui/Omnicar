@@ -1,0 +1,28 @@
+; ==== SCPCarSplit__publishKnobsSoon  @0x3ed08..0x3ed74 (108 bytes) ====
+0003ed08  adrp     x8, #0x88000                                 
+0003ed0c  ldrb     w9, [x8, #0x190]                             
+0003ed10  tbnz     w9, #0, #0x3ed70                             
+0003ed14  sub      sp, sp, #0x40                                
+0003ed18  stp      x29, x30, [sp, #0x30]                        
+0003ed1c  add      x29, sp, #0x30                               
+0003ed20  mov      w9, #1                                       
+0003ed24  adrp     x10, #0x78000                                
+0003ed28  ldr      x10, [x10, #0x338]                           
+0003ed2c  strb     w9, [x8, #0x190]                             
+0003ed30  str      x10, [sp, #8]                                
+0003ed34  adrp     x8, #0x6e000                                 
+0003ed38  ldr      d0, [x8, #0xff8]                             ; double 1.6080749353e-314
+0003ed3c  adrp     x8, #0x3e000                                 
+0003ed40  add      x8, x8, #0xd74                               
+0003ed44  str      d0, [sp, #0x10]                              
+0003ed48  adrp     x9, #0x78000                                 
+0003ed4c  add      x9, x9, #0x910                               
+0003ed50  stp      x8, x9, [sp, #0x18]                          
+0003ed54  str      x0, [sp, #0x28]                              
+0003ed58  adrp     x0, #0x78000                                 
+0003ed5c  ldr      x0, [x0, #0x370]                             
+0003ed60  add      x1, sp, #8                                   
+0003ed64  bl       #0x564dc                                     ; call _dispatch_async
+0003ed68  ldp      x29, x30, [sp, #0x30]                        
+0003ed6c  add      sp, sp, #0x40                                
+0003ed70  ret                                                   

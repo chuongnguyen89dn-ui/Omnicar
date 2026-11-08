@@ -1,0 +1,59 @@
+# -[SPPOverspeed loadPrefs]
+# addr 0x1f508 .. 0x1f5e8  (224 bytes)
+
+0001f508  stp      x20, x19, [sp, #-0x20]!                     
+0001f50c  stp      x29, x30, [sp, #0x10]                       
+0001f510  add      x29, sp, #0x10                              
+0001f514  mov      x19, x0                                     
+0001f518  adrp     x20, #0x43000                               
+0001f51c  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001f520  bl       #0x29320                                    ; objc_msgSend$enabled
+0001f524  mov      x2, x0                                      
+0001f528  mov      x0, x19                                     
+0001f52c  bl       #0x2aee0                                    ; objc_msgSend$setEnabled:
+0001f530  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001f534  bl       #0x2c8a0                                    ; objc_msgSend$warnMode
+0001f538  mov      x2, x0                                      
+0001f53c  mov      x0, x19                                     
+0001f540  bl       #0x2b440                                    ; objc_msgSend$setMode:
+0001f544  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001f548  bl       #0x2c880                                    ; objc_msgSend$warnMarginKmh
+0001f54c  mov      x0, x19                                     
+0001f550  bl       #0x2b2c0                                    ; objc_msgSend$setMarginKmh:
+0001f554  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001f558  bl       #0x2c860                                    ; objc_msgSend$warnFx
+0001f55c  mov      x2, x0                                      
+0001f560  mov      x0, x19                                     
+0001f564  bl       #0x2b000                                    ; objc_msgSend$setFx:
+0001f568  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001f56c  bl       #0x2c8e0                                    ; objc_msgSend$warnVoice
+0001f570  mov      x2, x0                                      
+0001f574  mov      x0, x19                                     
+0001f578  bl       #0x2bc20                                    ; objc_msgSend$setVoice:
+0001f57c  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001f580  bl       #0x2c8c0                                    ; objc_msgSend$warnTone
+0001f584  mov      x2, x0                                      
+0001f588  mov      x0, x19                                     
+0001f58c  bl       #0x2bb00                                    ; objc_msgSend$setTone:
+0001f590  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001f594  bl       #0x2c900                                    ; objc_msgSend$warnVoiceLine
+0001f598  mov      x2, x0                                      
+0001f59c  mov      x0, x19                                     
+0001f5a0  bl       #0x2bc40                                    ; objc_msgSend$setVoiceLine:
+0001f5a4  ldr      x0, [x20, #0x38]                            ; [0x43038] classref -> SPPPrefs
+0001f5a8  bl       #0x2c920                                    ; objc_msgSend$warnVoiceText
+0001f5ac  mov      x29, x29                                    
+0001f5b0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f5b4  mov      x20, x0                                     
+0001f5b8  mov      x0, x19                                     
+0001f5bc  mov      x2, x20                                     
+0001f5c0  bl       #0x2bc60                                    ; objc_msgSend$setVoiceText:
+0001f5c4  mov      x0, x20                                     
+0001f5c8  ldp      x29, x30, [sp, #0x10]                       
+0001f5cc  ldp      x20, x19, [sp], #0x20                       
+0001f5d0  b        #0x27ff8                                    ; _objc_release
+0001f5d4  mov      x19, x0                                     
+0001f5d8  mov      x0, x20                                     
+0001f5dc  bl       #0x27ff8                                    ; _objc_release
+0001f5e0  mov      x0, x19                                     
+0001f5e4  bl       #0x27c80                                    ; __Unwind_Resume

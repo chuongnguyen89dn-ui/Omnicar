@@ -1,0 +1,95 @@
+; -[SSStartupView ss_sceneColors]
+; VA 0xd580  size 368
+
+0x0000d580:  stp      x29, x30, [sp, #-0x10]!
+0x0000d584:  mov      x29, sp
+0x0000d588:  adrp     x8, #0x3a000
+0x0000d58c:  ldrsw    x8, [x8, #0xcb0]
+0x0000d590:  ldr      x8, [x0, x8]
+0x0000d594:  cmp      x8, #6
+0x0000d598:  b.gt     #0xd5cc
+0x0000d59c:  cmp      x8, #4
+0x0000d5a0:  b.eq     #0xd5f8
+0x0000d5a4:  cmp      x8, #5
+0x0000d5a8:  b.eq     #0xd64c
+0x0000d5ac:  cmp      x8, #6
+0x0000d5b0:  b.ne     #0xd61c
+0x0000d5b4:  mov      w8, #0x308
+0x0000d5b8:  movk     w8, #2, lsl #16
+0x0000d5bc:  orr      w0, w8, #1
+0x0000d5c0:  mov      w1, #0xa18
+0x0000d5c4:  movk     w1, #7, lsl #16
+0x0000d5c8:  b        #0xd670    ; -> sub_d670
+0x0000d5cc:  cmp      x8, #7
+0x0000d5d0:  b.eq     #0xd608
+0x0000d5d4:  cmp      x8, #8
+0x0000d5d8:  b.eq     #0xd660
+0x0000d5dc:  cmp      x8, #9
+0x0000d5e0:  b.ne     #0xd61c
+0x0000d5e4:  mov      w0, #0xf0fb
+0x0000d5e8:  movk     w0, #0xee, lsl #16
+0x0000d5ec:  mov      w1, #0xf5fb
+0x0000d5f0:  movk     w1, #0xf4, lsl #16
+0x0000d5f4:  b        #0xd670    ; -> sub_d670
+0x0000d5f8:  mov      w0, #0x70c
+0x0000d5fc:  movk     w0, #5, lsl #16
+0x0000d600:  mov      w1, #0
+0x0000d604:  b        #0xd670    ; -> sub_d670
+0x0000d608:  mov      w0, #0x50c
+0x0000d60c:  movk     w0, #1, lsl #16
+0x0000d610:  mov      w1, #0x121e
+0x0000d614:  movk     w1, #4, lsl #16
+0x0000d618:  b        #0xd670    ; -> sub_d670
+0x0000d61c:  bl       #0x23ec0    ; -> _objc_msgSend(occasion)
+0x0000d620:  cmp      x0, #2
+0x0000d624:  b.gt     #0xd684
+0x0000d628:  cmp      x0, #1
+0x0000d62c:  b.eq     #0xd6c0
+0x0000d630:  cmp      x0, #2
+0x0000d634:  b.ne     #0xd6a8
+0x0000d638:  mov      w0, #0xb3a
+0x0000d63c:  movk     w0, #0x1b, lsl #16
+0x0000d640:  mov      w1, #0x1a78
+0x0000d644:  movk     w1, #0x3b, lsl #16
+0x0000d648:  b        #0xd670    ; -> sub_d670
+0x0000d64c:  mov      w0, #0x308
+0x0000d650:  movk     w0, #2, lsl #16
+0x0000d654:  mov      w1, #0x70d
+0x0000d658:  movk     w1, #6, lsl #16
+0x0000d65c:  b        #0xd670    ; -> sub_d670
+0x0000d660:  mov      w0, #0x1a33
+0x0000d664:  movk     w0, #0xc, lsl #16
+0x0000d668:  mov      w1, #0x3a66
+0x0000d66c:  movk     w1, #0x1f, lsl #16
+0x0000d670:  bl       #0xd6f0    ; -> sub_d6f0
+0x0000d674:  mov      x29, x29
+0x0000d678:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000d67c:  ldp      x29, x30, [sp], #0x10
+0x0000d680:  b        #0x22054    ; -> _objc_autoreleaseReturnValue
+0x0000d684:  cmp      x0, #3
+0x0000d688:  b.eq     #0xd6d4
+0x0000d68c:  cmp      x0, #4
+0x0000d690:  b.ne     #0xd6a8
+0x0000d694:  mov      w0, #0xa24
+0x0000d698:  movk     w0, #0xa, lsl #16
+0x0000d69c:  mov      w1, #0x1446
+0x0000d6a0:  movk     w1, #0x1d, lsl #16
+0x0000d6a4:  b        #0xd670    ; -> sub_d670
+0x0000d6a8:  mov      w8, #0x308
+0x0000d6ac:  movk     w8, #2, lsl #16
+0x0000d6b0:  add      w0, w8, #0x71c
+0x0000d6b4:  mov      w1, #0x1d4a
+0x0000d6b8:  movk     w1, #0xb, lsl #16
+0x0000d6bc:  b        #0xd670    ; -> sub_d670
+0x0000d6c0:  mov      w0, #6
+0x0000d6c4:  movk     w0, #0x5a, lsl #16
+0x0000d6c8:  mov      w1, #0xf
+0x0000d6cc:  movk     w1, #0xa3, lsl #16
+0x0000d6d0:  b        #0xd670    ; -> sub_d670
+0x0000d6d4:  mov      w8, #0x121e
+0x0000d6d8:  movk     w8, #4, lsl #16
+0x0000d6dc:  mov      w9, #0x1d4a
+0x0000d6e0:  movk     w9, #0xb, lsl #16
+0x0000d6e4:  orr      w0, w8, #1
+0x0000d6e8:  add      w1, w9, #0xcf3
+0x0000d6ec:  b        #0xd670    ; -> sub_d670

@@ -1,0 +1,15 @@
+# -[SPPSpeedGPS setMgr:]
+# addr 0x5844 .. 0x5874  (48 bytes)
+
+00005844  stp      x20, x19, [sp, #-0x20]!                     
+00005848  stp      x29, x30, [sp, #0x10]                       
+0000584c  add      x29, sp, #0x10                              
+00005850  mov      x19, x2                                     
+00005854  mov      x20, x0                                     
+00005858  mov      x0, x2                                      
+0000585c  bl       #0x28004                                    ; _objc_retain
+00005860  ldr      x0, [x20, #0x10]                            
+00005864  str      x19, [x20, #0x10]                           
+00005868  ldp      x29, x30, [sp, #0x10]                       
+0000586c  ldp      x20, x19, [sp], #0x20                       
+00005870  b        #0x27ff8                                    ; _objc_release

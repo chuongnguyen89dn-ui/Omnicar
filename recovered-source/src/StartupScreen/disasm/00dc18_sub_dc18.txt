@@ -1,0 +1,52 @@
+; sub_dc18
+; VA 0xdc18  size 196
+
+0x0000dc18:  stp      x22, x21, [sp, #-0x30]!
+0x0000dc1c:  stp      x20, x19, [sp, #0x10]
+0x0000dc20:  stp      x29, x30, [sp, #0x20]
+0x0000dc24:  add      x29, sp, #0x20
+0x0000dc28:  mov      x19, x0
+0x0000dc2c:  adrp     x8, #0x3a000
+0x0000dc30:  ldr      x20, [x8, #0xaf0]    ; class(NSDateFormatter)
+0x0000dc34:  bl       #0x2212c    ; -> _objc_retain
+0x0000dc38:  mov      x0, x20
+0x0000dc3c:  bl       #0x220fc    ; -> _objc_opt_new
+0x0000dc40:  mov      x20, x0
+0x0000dc44:  adrp     x8, #0x3a000
+0x0000dc48:  ldr      x21, [x8, #0xaf8]    ; class(NSLocale)
+0x0000dc4c:  bl       #0x20f80    ; -> OMCCurrentLanguage
+0x0000dc50:  mov      x29, x29
+0x0000dc54:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000dc58:  mov      x22, x0
+0x0000dc5c:  mov      x0, x21
+0x0000dc60:  mov      x2, x22
+0x0000dc64:  bl       #0x23a60    ; -> _objc_msgSend(localeWithLocaleIdentifier:)
+0x0000dc68:  mov      x29, x29
+0x0000dc6c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000dc70:  mov      x21, x0
+0x0000dc74:  mov      x0, x22
+0x0000dc78:  bl       #0x22120    ; -> _objc_release
+0x0000dc7c:  mov      x0, x20
+0x0000dc80:  mov      x2, x21
+0x0000dc84:  bl       #0x24b40    ; -> _objc_msgSend(setLocale:)
+0x0000dc88:  mov      x0, x21
+0x0000dc8c:  bl       #0x22120    ; -> _objc_release
+0x0000dc90:  adrp     x2, #0x33000
+0x0000dc94:  add      x2, x2, #0x3c8    ; @"EEEEdMMMM"
+0x0000dc98:  mov      x0, x20
+0x0000dc9c:  bl       #0x24b60    ; -> _objc_msgSend(setLocalizedDateFormatFromTemplate:)
+0x0000dca0:  mov      x0, x20
+0x0000dca4:  mov      x2, x19
+0x0000dca8:  bl       #0x25bc0    ; -> _objc_msgSend(stringFromDate:)
+0x0000dcac:  mov      x29, x29
+0x0000dcb0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000dcb4:  mov      x21, x0
+0x0000dcb8:  mov      x0, x19
+0x0000dcbc:  bl       #0x22120    ; -> _objc_release
+0x0000dcc0:  mov      x0, x20
+0x0000dcc4:  bl       #0x22120    ; -> _objc_release
+0x0000dcc8:  mov      x0, x21
+0x0000dccc:  ldp      x29, x30, [sp, #0x20]
+0x0000dcd0:  ldp      x20, x19, [sp, #0x10]
+0x0000dcd4:  ldp      x22, x21, [sp], #0x30
+0x0000dcd8:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

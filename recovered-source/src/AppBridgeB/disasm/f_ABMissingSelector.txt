@@ -1,0 +1,118 @@
+=== sym:_ABMissingSelector @ 0x9698 (size 468) ===
+00009698  sub      sp, sp, #0x50
+0000969c  stp      x24, x23, [sp, #0x10]
+000096a0  stp      x22, x21, [sp, #0x20]
+000096a4  stp      x20, x19, [sp, #0x30]
+000096a8  stp      x29, x30, [sp, #0x40]
+000096ac  add      x29, sp, #0x40
+000096b0  mov      x20, x1
+000096b4  mov      x19, x0
+000096b8  bl       #0x24818 ; call _objc_retain
+000096bc  mov      x0, x20
+000096c0  bl       #0x24818 ; call _objc_retain
+000096c4  cbz      x19, #0x97d4
+000096c8  adrp     x8, #0x3e000
+000096cc  ldr      x8, [x8, #0xa28]
+000096d0  cmn      x8, #1
+000096d4  b.ne     #0x97f8
+000096d8  adrp     x23, #0x3e000
+000096dc  ldr      x21, [x23, #0x290] ; bind _OBJC_CLASS_$_NSString
+000096e0  mov      x0, x19
+000096e4  bl       #0x247d0 ; call _objc_opt_class
+000096e8  bl       #0x2444c ; call _NSStringFromClass
+000096ec  mov      x29, x29
+000096f0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000096f4  mov      x22, x0
+000096f8  stp      x0, x20, [sp]
+000096fc  adrp     x2, #0x35000
+00009700  add      x2, x2, #0x970 = @"%@ %@"
+00009704  mov      x0, x21
+00009708  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000970c  mov      x29, x29
+00009710  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00009714  mov      x21, x0
+00009718  mov      x0, x22
+0000971c  bl       #0x2480c ; call _objc_release
+00009720  adrp     x24, #0x3e000
+00009724  ldr      x22, [x24, #0xa20]
+00009728  mov      x0, x22
+0000972c  bl       #0x24818 ; call _objc_retain
+00009730  mov      x0, x22
+00009734  bl       #0x24878 ; call _objc_sync_enter
+00009738  ldr      x0, [x24, #0xa20]
+0000973c  mov      x2, x21
+00009740  bl       #0x25360 ; objc_msgSend sel=containsObject:
+00009744  tbz      w0, #0, #0x9754
+00009748  mov      x0, x22
+0000974c  bl       #0x24884 ; call _objc_sync_exit
+00009750  b        #0x97c4 ; call sub_97c4
+00009754  ldr      x0, [x24, #0xa20]
+00009758  mov      x2, x21
+0000975c  bl       #0x24b20 ; objc_msgSend sel=addObject:
+00009760  mov      x0, x22
+00009764  bl       #0x24884 ; call _objc_sync_exit
+00009768  mov      x0, x22
+0000976c  bl       #0x2480c ; call _objc_release
+00009770  ldr      x23, [x23, #0x290] ; bind _OBJC_CLASS_$_NSString
+00009774  mov      x0, x19
+00009778  bl       #0x247d0 ; call _objc_opt_class
+0000977c  bl       #0x2444c ; call _NSStringFromClass
+00009780  mov      x29, x29
+00009784  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00009788  mov      x22, x0
+0000978c  stp      x0, x20, [sp]
+00009790  adrp     x2, #0x35000
+00009794  add      x2, x2, #0x990 = @"THIEU METHOD: %@ khong co %@ -> bo qua"
+00009798  mov      x0, x23
+0000979c  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+000097a0  mov      x29, x29
+000097a4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000097a8  mov      x23, x0
+000097ac  adrp     x0, #0x34000
+000097b0  add      x0, x0, #0xef0 = @"AppBridge"
+000097b4  mov      x1, x23
+000097b8  bl       #0x1dd30 ; call sym:_OMCLogWrite
+000097bc  mov      x0, x23
+000097c0  bl       #0x2480c ; call _objc_release
+000097c4  mov      x0, x22
+000097c8  bl       #0x2480c ; call _objc_release
+000097cc  mov      x0, x21
+000097d0  bl       #0x2480c ; call _objc_release
+000097d4  mov      x0, x20
+000097d8  bl       #0x2480c ; call _objc_release
+000097dc  mov      x0, x19
+000097e0  ldp      x29, x30, [sp, #0x40]
+000097e4  ldp      x20, x19, [sp, #0x30]
+000097e8  ldp      x22, x21, [sp, #0x20]
+000097ec  ldp      x24, x23, [sp, #0x10]
+000097f0  add      sp, sp, #0x50
+000097f4  b        #0x2480c ; call _objc_release
+000097f8  bl       #0x241a4 ; call sub_241a4
+000097fc  b        #0x96d8 ; call sub_96d8
+00009800  mov      x1, x23
+00009804  mov      x23, x0
+00009808  mov      x0, x1
+0000980c  bl       #0x2480c ; call _objc_release
+00009810  b        #0x983c ; call sub_983c
+00009814  mov      x23, x0
+00009818  b        #0x983c ; call sub_983c
+0000981c  mov      x23, x0
+00009820  b        #0x9844 ; call sub_9844
+00009824  mov      x23, x0
+00009828  mov      x0, x22
+0000982c  b        #0x9848 ; call sub_9848
+00009830  mov      x23, x0
+00009834  mov      x0, x22
+00009838  bl       #0x24884 ; call _objc_sync_exit
+0000983c  mov      x0, x22
+00009840  bl       #0x2480c ; call _objc_release
+00009844  mov      x0, x21
+00009848  bl       #0x2480c ; call _objc_release
+0000984c  b        #0x9854 ; call sub_9854
+00009850  mov      x23, x0
+00009854  mov      x0, x20
+00009858  bl       #0x2480c ; call _objc_release
+0000985c  mov      x0, x19
+00009860  bl       #0x2480c ; call _objc_release
+00009864  mov      x0, x23
+00009868  bl       #0x24470 ; call __Unwind_Resume

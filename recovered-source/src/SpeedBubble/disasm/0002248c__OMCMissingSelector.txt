@@ -1,0 +1,110 @@
+# _OMCMissingSelector
+# addr 0x2248c .. 0x22638  (428 bytes)
+
+0002248c  sub      sp, sp, #0x60                               
+00022490  stp      x26, x25, [sp, #0x10]                       
+00022494  stp      x24, x23, [sp, #0x20]                       
+00022498  stp      x22, x21, [sp, #0x30]                       
+0002249c  stp      x20, x19, [sp, #0x40]                       
+000224a0  stp      x29, x30, [sp, #0x50]                       
+000224a4  add      x29, sp, #0x50                              
+000224a8  mov      x21, x2                                     
+000224ac  mov      x20, x1                                     
+000224b0  mov      x19, x0                                     
+000224b4  bl       #0x28004                                    ; _objc_retain
+000224b8  mov      x0, x20                                     
+000224bc  bl       #0x28004                                    ; _objc_retain
+000224c0  mov      x0, x21                                     
+000224c4  bl       #0x28004                                    ; _objc_retain
+000224c8  cbz      x20, #0x225ec                               
+000224cc  adrp     x8, #0x43000                                
+000224d0  ldr      x8, [x8, #0xa40]                            ; [0x43a40] __DATA,__bss+0x2a0
+000224d4  cmn      x8, #1                                      
+000224d8  b.ne     #0x2261c                                    
+000224dc  adrp     x24, #0x42000                               
+000224e0  ldr      x22, [x24, #0xf58]                          ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000224e4  mov      x0, x20                                     
+000224e8  bl       #0x27fbc                                    ; _objc_opt_class
+000224ec  bl       #0x27c44                                    ; _NSStringFromClass
+000224f0  mov      x29, x29                                    
+000224f4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000224f8  mov      x23, x0                                     
+000224fc  stp      x0, x21, [sp]                               
+00022500  adrp     x2, #0x3b000                                
+00022504  add      x2, x2, #0x7b8                              ; @"%@ %@"
+00022508  mov      x0, x22                                     
+0002250c  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00022510  mov      x29, x29                                    
+00022514  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022518  mov      x22, x0                                     
+0002251c  mov      x0, x23                                     
+00022520  bl       #0x27ff8                                    ; _objc_release
+00022524  adrp     x25, #0x43000                               
+00022528  ldr      x23, [x25, #0xa38]                          ; [0x43a38] __DATA,__bss+0x298
+0002252c  mov      x0, x23                                     
+00022530  bl       #0x28004                                    ; _objc_retain
+00022534  mov      x0, x23                                     
+00022538  bl       #0x28058                                    ; _objc_sync_enter
+0002253c  ldr      x0, [x25, #0xa38]                           ; [0x43a38] __DATA,__bss+0x298
+00022540  mov      x2, x22                                     
+00022544  bl       #0x28ee0                                    ; objc_msgSend$containsObject:
+00022548  tbz      w0, #0, #0x22558                            
+0002254c  mov      x0, x23                                     
+00022550  bl       #0x28064                                    ; _objc_sync_exit
+00022554  b        #0x225dc                                    ; sub_225dc
+00022558  ldr      x0, [x25, #0xa38]                           ; [0x43a38] __DATA,__bss+0x298
+0002255c  mov      x2, x22                                     
+00022560  bl       #0x28440                                    ; objc_msgSend$addObject:
+00022564  mov      x0, x23                                     
+00022568  bl       #0x28064                                    ; _objc_sync_exit
+0002256c  mov      x0, x23                                     
+00022570  bl       #0x27ff8                                    ; _objc_release
+00022574  ldr      x24, [x24, #0xf58]                          ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00022578  adrp     x8, #0x43000                                
+0002257c  ldr      x0, [x8, #0x140]                            ; [0x43140] classref -> UIDevice (= import _OBJC_CLASS_$_UIDevice)
+00022580  bl       #0x29040                                    ; objc_msgSend$currentDevice
+00022584  mov      x29, x29                                    
+00022588  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002258c  mov      x23, x0                                     
+00022590  bl       #0x2c4a0                                    ; objc_msgSend$systemVersion
+00022594  mov      x29, x29                                    
+00022598  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002259c  mov      x25, x0                                     
+000225a0  stp      x0, x22, [sp]                               
+000225a4  adrp     x2, #0x3b000                                
+000225a8  add      x2, x2, #0x7d8                              ; @"THIEU METHOD (iOS %@): %@ -> bo qua"
+000225ac  mov      x0, x24                                     
+000225b0  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000225b4  mov      x29, x29                                    
+000225b8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000225bc  mov      x24, x0                                     
+000225c0  mov      x0, x19                                     
+000225c4  mov      x1, x24                                     
+000225c8  bl       #0x2155c                                    ; _OMCLogWrite
+000225cc  mov      x0, x24                                     
+000225d0  bl       #0x27ff8                                    ; _objc_release
+000225d4  mov      x0, x25                                     
+000225d8  bl       #0x27ff8                                    ; _objc_release
+000225dc  mov      x0, x23                                     
+000225e0  bl       #0x27ff8                                    ; _objc_release
+000225e4  mov      x0, x22                                     
+000225e8  bl       #0x27ff8                                    ; _objc_release
+000225ec  mov      x0, x21                                     
+000225f0  bl       #0x27ff8                                    ; _objc_release
+000225f4  mov      x0, x20                                     
+000225f8  bl       #0x27ff8                                    ; _objc_release
+000225fc  mov      x0, x19                                     
+00022600  ldp      x29, x30, [sp, #0x50]                       
+00022604  ldp      x20, x19, [sp, #0x40]                       
+00022608  ldp      x22, x21, [sp, #0x30]                       
+0002260c  ldp      x24, x23, [sp, #0x20]                       
+00022610  ldp      x26, x25, [sp, #0x10]                       
+00022614  add      sp, sp, #0x60                               
+00022618  b        #0x27ff8                                    ; _objc_release
+0002261c  bl       #0x27a44                                    ; sub_27a44
+00022620  b        #0x224dc                                    ; sub_224dc
+00022624  mov      x19, x0                                     
+00022628  mov      x0, x23                                     
+0002262c  bl       #0x28064                                    ; _objc_sync_exit
+00022630  mov      x0, x19                                     
+00022634  bl       #0x27c80                                    ; __Unwind_Resume

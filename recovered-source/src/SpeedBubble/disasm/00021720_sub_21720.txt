@@ -1,0 +1,20 @@
+# sub_21720
+# addr 0x21720 .. 0x21764  (68 bytes)
+
+00021720  stp      x20, x19, [sp, #-0x20]!                     
+00021724  stp      x29, x30, [sp, #0x10]                       
+00021728  add      x29, sp, #0x10                              
+0002172c  adrp     x8, #0x43000                                
+00021730  ldr      x0, [x8, #0x158]                            ; [0x43158] classref -> NSDateFormatter (= import _OBJC_CLASS_$_NSDateFormatter)
+00021734  bl       #0x27fd4                                    ; _objc_opt_new
+00021738  adrp     x19, #0x43000                               
+0002173c  ldr      x8, [x19, #0xa20]                           ; [0x43a20] __DATA,__bss+0x280
+00021740  str      x0, [x19, #0xa20]                           
+00021744  mov      x0, x8                                      
+00021748  bl       #0x27ff8                                    ; _objc_release
+0002174c  ldr      x0, [x19, #0xa20]                           ; [0x43a20] __DATA,__bss+0x280
+00021750  adrp     x2, #0x3b000                                
+00021754  add      x2, x2, #0x5d8                              ; @"yyyy-MM-dd HH:mm:ss.SSS"
+00021758  ldp      x29, x30, [sp, #0x10]                       
+0002175c  ldp      x20, x19, [sp], #0x20                       
+00021760  b        #0x2ada0                                    ; objc_msgSend$setDateFormat:

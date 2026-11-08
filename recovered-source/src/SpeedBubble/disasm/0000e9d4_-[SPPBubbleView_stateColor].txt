@@ -1,0 +1,36 @@
+# -[SPPBubbleView stateColor]
+# addr 0xe9d4 .. 0xea58  (132 bytes)
+
+0000e9d4  stp      x29, x30, [sp, #-0x10]!                     
+0000e9d8  mov      x29, sp                                     
+0000e9dc  bl       #0x2c040                                    ; objc_msgSend$speedState
+0000e9e0  mov      x8, x0                                      
+0000e9e4  adrp     x9, #0x43000                                
+0000e9e8  ldr      x0, [x9, #0x28]                             ; [0x43028] classref -> UIColor (= import _OBJC_CLASS_$_UIColor)
+0000e9ec  cmp      w8, #1                                      
+0000e9f0  b.eq     #0xea10                                     
+0000e9f4  cmp      w8, #2                                      
+0000e9f8  b.ne     #0xea28                                     
+0000e9fc  adrp     x8, #0x32000                                
+0000ea00  ldr      d1, [x8, #0x898]                            ; [0x32898] __const[0x32898] double=0.35294117647058826 float=-2.4328842560755655e-25
+0000ea04  adrp     x8, #0x32000                                
+0000ea08  ldr      d2, [x8, #0x8a0]                            ; [0x328a0] __const[0x328a0] double=0.37254901960784315 float=-474644083638272.0
+0000ea0c  b        #0xea20                                     ; sub_ea20
+0000ea10  adrp     x8, #0x32000                                
+0000ea14  ldr      d1, [x8, #0x888]                            ; [0x32888] __const[0x32888] double=0.7019607843137254 float=1.2497145512265383e+33
+0000ea18  adrp     x8, #0x32000                                
+0000ea1c  ldr      d2, [x8, #0x890]                            ; [0x32890] __const[0x32890] double=0.25098039215686274 float=2.8411366687849113e-29
+0000ea20  fmov     d0, #1.00000000                             
+0000ea24  b        #0xea40                                     ; sub_ea40
+0000ea28  adrp     x8, #0x32000                                
+0000ea2c  ldr      d0, [x8, #0x8a8]                            ; [0x328a8] __const[0x328a8] double=0.2901960784313726 float=-9.250028707633039e-28
+0000ea30  adrp     x8, #0x32000                                
+0000ea34  ldr      d1, [x8, #0x8b0]                            ; [0x328b0] __const[0x328b0] double=0.30980392156862746 float=-1819583971328.0
+0000ea38  adrp     x8, #0x32000                                
+0000ea3c  ldr      d2, [x8, #0x8b8]                            ; [0x328b8] __const[0x328b8] double=0.5019607843137255 float=2.8411366687849113e-29
+0000ea40  fmov     d3, #1.00000000                             
+0000ea44  bl       #0x28de0                                    ; objc_msgSend$colorWithRed:green:blue:alpha:
+0000ea48  mov      x29, x29                                    
+0000ea4c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000ea50  ldp      x29, x30, [sp], #0x10                       
+0000ea54  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

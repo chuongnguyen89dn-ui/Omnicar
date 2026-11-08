@@ -1,0 +1,28 @@
+# sub_5734
+# addr 0x5734 .. 0x5798  (100 bytes)
+
+00005734  stp      x29, x30, [sp, #-0x10]!                     
+00005738  mov      x29, sp                                     
+0000573c  bl       #0x27ad0                                    ; _CFAbsoluteTimeGetCurrent
+00005740  adrp     x8, #0x43000                                
+00005744  ldr      d1, [x8, #0x820]                            ; [0x43820] __DATA,__bss+0x80
+00005748  fcmp     d1, #0.0                                    
+0000574c  b.le     #0x5770                                     
+00005750  fsub     d1, d0, d1                                  
+00005754  adrp     x8, #0x32000                                
+00005758  ldr      d2, [x8, #0x798]                            ; [0x32798] __const[0x32798] double=600.0 float=0.0
+0000575c  fcmp     d1, d2                                      
+00005760  b.pl     #0x5770                                     
+00005764  adrp     x8, #0x43000                                
+00005768  ldr      w0, [x8, #0x6b0]                            ; [0x436b0] __DATA,__data+0xc8 (raw data word 0xFFFFFFFFFFFFFFFF, not a pointer)  [annotation corrected per ANNOTATION_AUDIT ground truth]
+0000576c  b        #0x5790                                     ; sub_5790
+00005770  adrp     x8, #0x43000                                
+00005774  ldr      d1, [x8, #0x828]                            ; [0x43828] __DATA,__bss+0x88
+00005778  fsub     d0, d0, d1                                  
+0000577c  adrp     x8, #0x43000                                
+00005780  ldr      w8, [x8, #0x6b4]                            ; [0x436b4] __DATA,__data+0xcc
+00005784  fmov     d1, #2.00000000                             
+00005788  fcmp     d0, d1                                      
+0000578c  csinv    w0, w8, wzr, mi                             
+00005790  ldp      x29, x30, [sp], #0x10                       
+00005794  ret                                                  

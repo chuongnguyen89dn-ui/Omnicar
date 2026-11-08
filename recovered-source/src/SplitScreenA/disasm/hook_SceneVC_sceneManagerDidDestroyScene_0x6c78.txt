@@ -1,0 +1,103 @@
+; sub_6c78
+0x006c78  stp      x26, x25, [sp, #-0x50]!
+0x006c7c  stp      x24, x23, [sp, #0x10]
+0x006c80  stp      x22, x21, [sp, #0x20]
+0x006c84  stp      x20, x19, [sp, #0x30]
+0x006c88  stp      x29, x30, [sp, #0x40]
+0x006c8c  add      x29, sp, #0x40
+0x006c90  mov      x20, x3
+0x006c94  mov      x19, x2
+0x006c98  mov      x23, x1
+0x006c9c  mov      x22, x0
+0x006ca0  mov      x0, x2
+0x006ca4  bl       #0x567c4 ; call _objc_retain
+0x006ca8  mov      x0, x20
+0x006cac  bl       #0x567c4 ; call _objc_retain
+0x006cb0  adrp     x25, #0x87000
+0x006cb4  ldr      x0, [x25, #0x688] ; [0x87688] class:SCPCarSplit
+0x006cb8  bl       #0x5bea0 ; objc_msgSend$shared
+0x006cbc  mov      x29, x29
+0x006cc0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x006cc4  mov      x24, x0
+0x006cc8  mov      x2, x22
+0x006ccc  bl       #0x5a5c0 ; objc_msgSend$sceneOfViewController:
+0x006cd0  mov      x29, x29
+0x006cd4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x006cd8  mov      x21, x0
+0x006cdc  mov      x0, x24
+0x006ce0  bl       #0x567b8 ; call _objc_release
+0x006ce4  adrp     x8, #0x88000
+0x006ce8  ldr      x8, [x8, #0x98]
+0x006cec  mov      x0, x22
+0x006cf0  mov      x1, x23
+0x006cf4  mov      x2, x19
+0x006cf8  mov      x3, x20
+0x006cfc  blr      x8
+0x006d00  ldr      x0, [x25, #0x688] ; [0x87688] class:SCPCarSplit
+0x006d04  bl       #0x5bea0 ; objc_msgSend$shared
+0x006d08  mov      x29, x29
+0x006d0c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x006d10  mov      x23, x0
+0x006d14  mov      x2, x20
+0x006d18  mov      x3, x22
+0x006d1c  mov      x4, x21
+0x006d20  bl       #0x5a5a0 ; objc_msgSend$scene:destroyedForViewController:ownScene:
+0x006d24  mov      x0, x23
+0x006d28  bl       #0x567b8 ; call _objc_release
+0x006d2c  mov      x0, x21
+0x006d30  bl       #0x567b8 ; call _objc_release
+0x006d34  mov      x0, x20
+0x006d38  bl       #0x567b8 ; call _objc_release
+0x006d3c  mov      x0, x19
+0x006d40  ldp      x29, x30, [sp, #0x40]
+0x006d44  ldp      x20, x19, [sp, #0x30]
+0x006d48  ldp      x22, x21, [sp, #0x20]
+0x006d4c  ldp      x24, x23, [sp, #0x10]
+0x006d50  ldp      x26, x25, [sp], #0x50
+0x006d54  b        #0x567b8 ; call _objc_release
+0x006d58  mov      x22, x1
+0x006d5c  mov      x24, x0
+0x006d60  mov      x0, x23
+0x006d64  bl       #0x567b8 ; call _objc_release
+0x006d68  b        #0x6d74
+0x006d6c  mov      x22, x1
+0x006d70  mov      x24, x0
+0x006d74  cmp      w22, #1
+0x006d78  b.ne     #0x6dc4
+0x006d7c  mov      x0, x24
+0x006d80  bl       #0x566ec ; call _objc_begin_catch
+0x006d84  mov      x1, x0
+0x006d88  adrp     x0, #0x5f000
+0x006d8c  add      x0, x0, #0x379 ; -> 0x5f379 "didDestroyScene"
+0x006d90  bl       #0x75cc ; -> sub_75cc
+0x006d94  bl       #0x56710 ; call _objc_end_catch
+0x006d98  b        #0x6d2c
+0x006d9c  mov      x24, x0
+0x006da0  bl       #0x56710 ; call _objc_end_catch
+0x006da4  b        #0x6dc4
+0x006da8  mov      x21, x1
+0x006dac  mov      x1, x24
+0x006db0  mov      x24, x0
+0x006db4  mov      x0, x1
+0x006db8  bl       #0x567b8 ; call _objc_release
+0x006dbc  b        #0x6dec
+0x006dc0  mov      x24, x0
+0x006dc4  mov      x0, x21
+0x006dc8  bl       #0x567b8 ; call _objc_release
+0x006dcc  mov      x0, x20
+0x006dd0  bl       #0x567b8 ; call _objc_release
+0x006dd4  mov      x0, x19
+0x006dd8  bl       #0x567b8 ; call _objc_release
+0x006ddc  mov      x0, x24
+0x006de0  bl       #0x563e0 ; call __Unwind_Resume
+0x006de4  mov      x21, x1
+0x006de8  mov      x24, x0
+0x006dec  cmp      w21, #1
+0x006df0  b.ne     #0x6e08
+0x006df4  mov      x0, x24
+0x006df8  bl       #0x566ec ; call _objc_begin_catch
+0x006dfc  bl       #0x56710 ; call _objc_end_catch
+0x006e00  mov      x21, #0
+0x006e04  b        #0x6ce4
+0x006e08  mov      x21, #0
+0x006e0c  b        #0x6dc4

@@ -1,0 +1,48 @@
+# _OMCHasMethod
+# addr 0x21ba0 .. 0x21c54  (180 bytes)
+
+00021ba0  stp      x22, x21, [sp, #-0x30]!                     
+00021ba4  stp      x20, x19, [sp, #0x10]                       
+00021ba8  stp      x29, x30, [sp, #0x20]                       
+00021bac  add      x29, sp, #0x20                              
+00021bb0  mov      x19, x1                                     
+00021bb4  mov      x20, x0                                     
+00021bb8  mov      x0, x1                                      
+00021bbc  bl       #0x28004                                    ; _objc_retain
+00021bc0  mov      x0, x20                                     
+00021bc4  bl       #0x21c54                                    ; _OMCCarClass
+00021bc8  mov      x20, x0                                     
+00021bcc  cbz      x0, #0x21c38                                
+00021bd0  adrp     x2, #0x3b000                                
+00021bd4  add      x2, x2, #0x658                              ; @"+"
+00021bd8  mov      x0, x19                                     
+00021bdc  bl       #0x29600                                    ; objc_msgSend$hasPrefix:
+00021be0  cbz      w0, #0x21c1c                                
+00021be4  mov      x0, x19                                     
+00021be8  mov      w2, #1                                      
+00021bec  bl       #0x2c3c0                                    ; objc_msgSend$substringFromIndex:
+00021bf0  mov      x29, x29                                    
+00021bf4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021bf8  mov      x21, x0                                     
+00021bfc  bl       #0x27c2c                                    ; _NSSelectorFromString
+00021c00  mov      x22, x0                                     
+00021c04  mov      x0, x21                                     
+00021c08  bl       #0x27ff8                                    ; _objc_release
+00021c0c  mov      x0, x20                                     
+00021c10  mov      x1, x22                                     
+00021c14  bl       #0x27d28                                    ; _class_getClassMethod
+00021c18  b        #0x21c30                                    ; sub_21c30
+00021c1c  mov      x0, x19                                     
+00021c20  bl       #0x27c2c                                    ; _NSSelectorFromString
+00021c24  mov      x1, x0                                      
+00021c28  mov      x0, x20                                     
+00021c2c  bl       #0x27d34                                    ; _class_getInstanceMethod
+00021c30  cmp      x0, #0                                      
+00021c34  cset     w20, ne                                     
+00021c38  mov      x0, x19                                     
+00021c3c  bl       #0x27ff8                                    ; _objc_release
+00021c40  mov      x0, x20                                     
+00021c44  ldp      x29, x30, [sp, #0x20]                       
+00021c48  ldp      x20, x19, [sp, #0x10]                       
+00021c4c  ldp      x22, x21, [sp], #0x30                       
+00021c50  ret                                                  

@@ -1,0 +1,143 @@
+# sub_b4f0
+# addr 0xb4f0 .. 0xb720  (560 bytes)
+
+0000b4f0  sub      sp, sp, #0x130                              
+0000b4f4  stp      x28, x27, [sp, #0xe0]                       
+0000b4f8  stp      x24, x23, [sp, #0xf0]                       
+0000b4fc  stp      x22, x21, [sp, #0x100]                      
+0000b500  stp      x20, x19, [sp, #0x110]                      
+0000b504  stp      x29, x30, [sp, #0x120]                      
+0000b508  add      x29, sp, #0x120                             
+0000b50c  mov      x19, x0                                     
+0000b510  adrp     x8, #0x38000                                
+0000b514  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0000b518  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000b51c  stur     x8, [x29, #-0x48]                           
+0000b520  bl       #0x28004                                    ; _objc_retain
+0000b524  mov      x0, x19                                     
+0000b528  bl       #0x29ba0                                    ; objc_msgSend$length
+0000b52c  cbz      x0, #0xb678                                 
+0000b530  mov      x0, x19                                     
+0000b534  bl       #0x29d00                                    ; objc_msgSend$lowercaseString
+0000b538  mov      x29, x29                                    
+0000b53c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000b540  mov      x20, x0                                     
+0000b544  movi     v0.16b, #0                                  
+0000b548  stp      q0, q0, [sp, #0x30]                         
+0000b54c  stp      q0, q0, [sp, #0x10]                         
+0000b550  adrp     x0, #0x3c000                                
+0000b554  add      x0, x0, #0xdd0                              ; __DATA_CONST,__objc_arrayobj+0x90
+0000b558  add      x2, sp, #0x10                               
+0000b55c  add      x3, sp, #0x58                               
+0000b560  mov      w4, #0x10                                   
+0000b564  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0000b568  mov      x22, x0                                     
+0000b56c  cbz      x0, #0xb5d8                                 
+0000b570  ldr      x8, [sp, #0x20]                             
+0000b574  ldr      x23, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000b578  adrp     x21, #0x3c000                               
+0000b57c  add      x21, x21, #0xdd0                            ; __DATA_CONST,__objc_arrayobj+0x90
+0000b580  mov      x24, #0                                     
+0000b584  ldr      x8, [sp, #0x20]                             
+0000b588  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000b58c  cmp      x8, x23                                     
+0000b590  b.eq     #0xb59c                                     
+0000b594  mov      x0, x21                                     
+0000b598  bl       #0x27f68                                    ; _objc_enumerationMutation
+0000b59c  ldr      x8, [sp, #0x18]                             
+0000b5a0  ldr      x2, [x8, x24, lsl #3]                       ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000b5a4  mov      x0, x20                                     
+0000b5a8  bl       #0x28f00                                    ; objc_msgSend$containsString:
+0000b5ac  tbnz     w0, #0, #0xb5e0                             
+0000b5b0  add      x24, x24, #1                                
+0000b5b4  cmp      x22, x24                                    
+0000b5b8  b.ne     #0xb584                                     
+0000b5bc  add      x2, sp, #0x10                               
+0000b5c0  add      x3, sp, #0x58                               
+0000b5c4  mov      x0, x21                                     
+0000b5c8  mov      w4, #0x10                                   
+0000b5cc  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+0000b5d0  mov      x22, x0                                     
+0000b5d4  cbnz     x0, #0xb580                                 
+0000b5d8  mov      w21, #-1                                    
+0000b5dc  b        #0xb66c                                     ; sub_b66c
+0000b5e0  adrp     x8, #0x43000                                
+0000b5e4  ldr      x0, [x8, #8]                                ; [0x43008] classref -> NSScanner (= import _OBJC_CLASS_$_NSScanner)
+0000b5e8  mov      x2, x20                                     
+0000b5ec  bl       #0x2a7e0                                    ; objc_msgSend$scannerWithString:
+0000b5f0  mov      x29, x29                                    
+0000b5f4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000b5f8  mov      x22, x0                                     
+0000b5fc  mov      w8, #-1                                     
+0000b600  adrp     x24, #0x42000                               
+0000b604  mov      x21, x8                                     
+0000b608  mov      x0, x22                                     
+0000b60c  bl       #0x299c0                                    ; objc_msgSend$isAtEnd
+0000b610  tbnz     w0, #0, #0xb664                             
+0000b614  ldr      x0, [x24, #0xfc8]                           ; [0x42fc8] classref -> NSCharacterSet (= import _OBJC_CLASS_$_NSCharacterSet)
+0000b618  bl       #0x29100                                    ; objc_msgSend$decimalDigitCharacterSet
+0000b61c  mov      x29, x29                                    
+0000b620  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000b624  mov      x23, x0                                     
+0000b628  mov      x0, x22                                     
+0000b62c  mov      x2, x23                                     
+0000b630  mov      x3, #0                                      
+0000b634  bl       #0x2a7c0                                    ; objc_msgSend$scanUpToCharactersFromSet:intoString:
+0000b638  mov      x0, x23                                     
+0000b63c  bl       #0x27ff8                                    ; _objc_release
+0000b640  str      wzr, [sp, #0xc]                             
+0000b644  add      x2, sp, #0xc                                
+0000b648  mov      x0, x22                                     
+0000b64c  bl       #0x2a7a0                                    ; objc_msgSend$scanInt:
+0000b650  ldr      w8, [sp, #0xc]                              
+0000b654  sub      w9, w8, #5                                  
+0000b658  cmp      w9, #0xc4                                   
+0000b65c  csel     w8, w8, w21, lo                             
+0000b660  tbnz     w0, #0, #0xb604                             
+0000b664  mov      x0, x22                                     
+0000b668  bl       #0x27ff8                                    ; _objc_release
+0000b66c  mov      x0, x20                                     
+0000b670  bl       #0x27ff8                                    ; _objc_release
+0000b674  b        #0xb67c                                     ; sub_b67c
+0000b678  mov      w21, #-1                                    
+0000b67c  mov      x0, x19                                     
+0000b680  bl       #0x27ff8                                    ; _objc_release
+0000b684  ldur     x8, [x29, #-0x48]                           
+0000b688  adrp     x9, #0x38000                                
+0000b68c  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+0000b690  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0000b694  cmp      x9, x8                                      
+0000b698  b.ne     #0xb6bc                                     
+0000b69c  mov      x0, x21                                     
+0000b6a0  ldp      x29, x30, [sp, #0x120]                      
+0000b6a4  ldp      x20, x19, [sp, #0x110]                      
+0000b6a8  ldp      x22, x21, [sp, #0x100]                      
+0000b6ac  ldp      x24, x23, [sp, #0xf0]                       
+0000b6b0  ldp      x28, x27, [sp, #0xe0]                       
+0000b6b4  add      sp, sp, #0x130                              
+0000b6b8  ret                                                  
+0000b6bc  bl       #0x27ca4                                    ; ___stack_chk_fail
+0000b6c0  b        #0xb6fc                                     ; sub_b6fc
+0000b6c4  b        #0xb6fc                                     ; sub_b6fc
+0000b6c8  b        #0xb6fc                                     ; sub_b6fc
+0000b6cc  b        #0xb6d0                                     ; sub_b6d0
+0000b6d0  mov      x21, x0                                     
+0000b6d4  b        #0xb708                                     ; sub_b708
+0000b6d8  b        #0xb6ec                                     ; sub_b6ec
+0000b6dc  mov      x21, x0                                     
+0000b6e0  mov      x0, x23                                     
+0000b6e4  bl       #0x27ff8                                    ; _objc_release
+0000b6e8  b        #0xb6f0                                     ; sub_b6f0
+0000b6ec  mov      x21, x0                                     
+0000b6f0  mov      x0, x22                                     
+0000b6f4  bl       #0x27ff8                                    ; _objc_release
+0000b6f8  b        #0xb700                                     ; sub_b700
+0000b6fc  mov      x21, x0                                     
+0000b700  mov      x0, x20                                     
+0000b704  bl       #0x27ff8                                    ; _objc_release
+0000b708  mov      x0, x19                                     
+0000b70c  bl       #0x27ff8                                    ; _objc_release
+0000b710  b        #0xb718                                     ; sub_b718
+0000b714  mov      x21, x0                                     
+0000b718  mov      x0, x21                                     
+0000b71c  bl       #0x27c80                                    ; __Unwind_Resume

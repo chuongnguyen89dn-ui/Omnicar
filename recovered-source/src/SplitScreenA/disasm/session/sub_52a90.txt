@@ -1,0 +1,93 @@
+; sub_52a90
+0x052a90  sub      sp, sp, #0xe0
+0x052a94  stp      x26, x25, [sp, #0x90]
+0x052a98  stp      x24, x23, [sp, #0xa0]
+0x052a9c  stp      x22, x21, [sp, #0xb0]
+0x052aa0  stp      x20, x19, [sp, #0xc0]
+0x052aa4  stp      x29, x30, [sp, #0xd0]
+0x052aa8  add      x29, sp, #0xd0
+0x052aac  mov      x20, x1
+0x052ab0  mov      x19, x0
+0x052ab4  adrp     x8, #0x78000
+0x052ab8  ldr      x8, [x8, #0x360] ; [0x78360] ___stack_chk_guard
+0x052abc  ldr      x8, [x8] ; [0x78000] <ordinal 0>
+0x052ac0  stur     x8, [x29, #-0x48]
+0x052ac4  strb     wzr, [sp, #0x48]
+0x052ac8  cmp      w3, #1
+0x052acc  b.lt     #0x52b8c
+0x052ad0  mov      x21, x2
+0x052ad4  mov      w26, w3
+0x052ad8  adrp     x22, #0x62000
+0x052adc  add      x22, x22, #0xba3 ; -> 0x62ba3 "OmniCar"
+0x052ae0  adrp     x23, #0x62000
+0x052ae4  add      x23, x23, #0xbab ; -> 0x62bab ".dylib"
+0x052ae8  ldr      x0, [x21], #8
+0x052aec  add      x1, sp, #0x28
+0x052af0  bl       #0x56554 ; call _dladdr
+0x052af4  ldr      x24, [sp, #0x28]
+0x052af8  cmp      w0, #0
+0x052afc  ccmp     x24, #0, #4, ne
+0x052b00  b.eq     #0x52b54
+0x052b04  mov      x0, x24
+0x052b08  mov      w1, #0x2f
+0x052b0c  bl       #0x56920 ; call _strrchr
+0x052b10  cmp      x0, #0
+0x052b14  csinc    x24, x24, x0, eq
+0x052b18  mov      x0, x24
+0x052b1c  bl       #0x56908 ; call _strlen
+0x052b20  mov      x25, x0
+0x052b24  mov      x0, x24
+0x052b28  mov      x1, x22
+0x052b2c  mov      w2, #7
+0x052b30  bl       #0x56914 ; call _strncmp
+0x052b34  cmp      w0, #0
+0x052b38  ccmp     x25, #0xe, #0, eq
+0x052b3c  b.lo     #0x52b54
+0x052b40  add      x8, x24, x25
+0x052b44  sub      x0, x8, #6
+0x052b48  mov      x1, x23
+0x052b4c  bl       #0x568e4 ; call _strcmp
+0x052b50  cbz      w0, #0x52b60
+0x052b54  subs     x26, x26, #1
+0x052b58  b.ne     #0x52ae8
+0x052b5c  b        #0x52b8c
+0x052b60  sub      x8, x25, #0xd
+0x052b64  cmp      x8, #0x3f
+0x052b68  mov      w9, #0x3f
+0x052b6c  csel     x21, x8, x9, lo
+0x052b70  add      x22, sp, #0x48
+0x052b74  add      x0, sp, #0x48
+0x052b78  add      x1, x24, #7
+0x052b7c  mov      x2, x21
+0x052b80  mov      w3, #0x40
+0x052b84  bl       #0x563ec ; call ___memcpy_chk
+0x052b88  strb     wzr, [x22, x21]
+0x052b8c  mov      x0, #0
+0x052b90  bl       #0x56968 ; call _time
+0x052b94  adrp     x8, #0x88000
+0x052b98  ldr      x8, [x8, #0x2c0]
+0x052b9c  ldr      x9, [x8, #0x440]
+0x052ba0  sub      x9, x0, x9
+0x052ba4  add      x8, x8, #0x400 ; -> 0x88400
+0x052ba8  stp      x8, x20, [sp, #0x10]
+0x052bac  add      x8, sp, #0x48
+0x052bb0  stp      x9, x8, [sp]
+0x052bb4  adrp     x1, #0x62000
+0x052bb8  add      x1, x1, #0xb76 ; -> 0x62b76 "omc-crash age=%ld suspect=%s last=%s how=%s
+"
+0x052bbc  mov      x0, x19
+0x052bc0  bl       #0x56578 ; call _dprintf
+0x052bc4  ldur     x8, [x29, #-0x48]
+0x052bc8  adrp     x9, #0x78000
+0x052bcc  ldr      x9, [x9, #0x360] ; [0x78360] ___stack_chk_guard
+0x052bd0  ldr      x9, [x9] ; [0x78000] <ordinal 0>
+0x052bd4  cmp      x9, x8
+0x052bd8  b.ne     #0x52bf8
+0x052bdc  ldp      x29, x30, [sp, #0xd0]
+0x052be0  ldp      x20, x19, [sp, #0xc0]
+0x052be4  ldp      x22, x21, [sp, #0xb0]
+0x052be8  ldp      x24, x23, [sp, #0xa0]
+0x052bec  ldp      x26, x25, [sp, #0x90]
+0x052bf0  add      sp, sp, #0xe0
+0x052bf4  ret      
+0x052bf8  bl       #0x56404 ; call ___stack_chk_fail

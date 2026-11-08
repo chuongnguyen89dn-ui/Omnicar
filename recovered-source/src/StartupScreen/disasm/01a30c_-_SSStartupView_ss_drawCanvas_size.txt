@@ -1,0 +1,41 @@
+; -[SSStartupView ss_drawCanvas:size:]
+; VA 0x1a30c  size 152
+
+0x0001a30c:  stp      d9, d8, [sp, #-0x30]!
+0x0001a310:  stp      x20, x19, [sp, #0x10]
+0x0001a314:  stp      x29, x30, [sp, #0x20]
+0x0001a318:  add      x29, sp, #0x20
+0x0001a31c:  cbz      x2, #0x1a394
+0x0001a320:  mov      x20, x0
+0x0001a324:  adrp     x8, #0x3a000
+0x0001a328:  ldrsw    x8, [x8, #0xd24]
+0x0001a32c:  ldrb     w8, [x0, x8]
+0x0001a330:  cmp      w8, #1
+0x0001a334:  b.ne     #0x1a394
+0x0001a338:  mov      x19, x2
+0x0001a33c:  mov      x0, x20
+0x0001a340:  bl       #0x25940    ; -> _objc_msgSend(ss_now)
+0x0001a344:  mov      v8.16b, v0.16b
+0x0001a348:  adrp     x8, #0x3a000
+0x0001a34c:  ldrsw    x8, [x8, #0xd48]
+0x0001a350:  ldr      x8, [x20, x8]
+0x0001a354:  cbz      x8, #0x1a368
+0x0001a358:  mov      x0, x20
+0x0001a35c:  mov      x2, x19
+0x0001a360:  mov      v0.16b, v8.16b
+0x0001a364:  bl       #0x258a0    ; -> _objc_msgSend(ss_drawParticles:t:)
+0x0001a368:  adrp     x8, #0x3a000
+0x0001a36c:  ldrsw    x8, [x8, #0xd4c]
+0x0001a370:  ldr      x8, [x20, x8]
+0x0001a374:  cbz      x8, #0x1a394
+0x0001a378:  mov      x0, x20
+0x0001a37c:  mov      x2, x19
+0x0001a380:  mov      v0.16b, v8.16b
+0x0001a384:  ldp      x29, x30, [sp, #0x20]
+0x0001a388:  ldp      x20, x19, [sp, #0x10]
+0x0001a38c:  ldp      d9, d8, [sp], #0x30
+0x0001a390:  b        #0x25880    ; -> _objc_msgSend(ss_drawFireworks:t:)
+0x0001a394:  ldp      x29, x30, [sp, #0x20]
+0x0001a398:  ldp      x20, x19, [sp, #0x10]
+0x0001a39c:  ldp      d9, d8, [sp], #0x30
+0x0001a3a0:  ret      

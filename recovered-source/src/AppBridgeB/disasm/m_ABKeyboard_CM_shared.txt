@@ -1,0 +1,18 @@
+=== +[ABKeyboard shared] @ 0x18d44 (size 68) ===
+00018d44  stp      x20, x19, [sp, #-0x20]!
+00018d48  stp      x29, x30, [sp, #0x10]
+00018d4c  add      x29, sp, #0x10
+00018d50  adrp     x8, #0x3e000
+00018d54  ldr      x8, [x8, #0xa58]
+00018d58  cmn      x8, #1
+00018d5c  b.ne     #0x18d80
+00018d60  adrp     x8, #0x3e000
+00018d64  ldr      x19, [x8, #0xa50]
+00018d68  mov      x0, x19
+00018d6c  bl       #0x24818 ; call _objc_retain
+00018d70  mov      x0, x19
+00018d74  ldp      x29, x30, [sp, #0x10]
+00018d78  ldp      x20, x19, [sp], #0x20
+00018d7c  b        #0x24734 ; call _objc_autoreleaseReturnValue
+00018d80  bl       #0x241cc ; call sub_241cc
+00018d84  b        #0x18d60 ; call sub_18d60

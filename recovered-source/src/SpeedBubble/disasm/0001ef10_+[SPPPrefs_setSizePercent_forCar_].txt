@@ -1,0 +1,45 @@
+# +[SPPPrefs setSizePercent:forCar:]
+# addr 0x1ef10 .. 0x1efb8  (168 bytes)
+
+0001ef10  stp      d9, d8, [sp, #-0x30]!                       
+0001ef14  stp      x20, x19, [sp, #0x10]                       
+0001ef18  stp      x29, x30, [sp, #0x20]                       
+0001ef1c  add      x29, sp, #0x20                              
+0001ef20  mov      v8.16b, v0.16b                              
+0001ef24  adrp     x8, #0x3b000                                
+0001ef28  add      x8, x8, #0x118                              ; @"speedBubbleSizePhone"
+0001ef2c  adrp     x9, #0x3b000                                
+0001ef30  add      x9, x9, #0xf8                               ; @"speedBubbleSizeCar"
+0001ef34  cmp      w2, #0                                      
+0001ef38  csel     x19, x9, x8, ne                             
+0001ef3c  mov      x0, x19                                     
+0001ef40  bl       #0x28004                                    ; _objc_retain
+0001ef44  adrp     x8, #0x42000                                
+0001ef48  ldr      x0, [x8, #0xfc0]                            ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+0001ef4c  mov      x8, #0x404e000000000000                     
+0001ef50  fmov     d0, x8                                      
+0001ef54  fmaxnm   d0, d8, d0                                  
+0001ef58  adrp     x8, #0x32000                                
+0001ef5c  ldr      d1, [x8, #0xb40]                            ; [0x32b40] __const[0x32b40] double=220.0 float=0.0
+0001ef60  fcmp     d0, d1                                      
+0001ef64  fcsel    d0, d1, d0, gt                              
+0001ef68  frinta   d0, d0                                      
+0001ef6c  bl       #0x2a040                                    ; objc_msgSend$numberWithDouble:
+0001ef70  mov      x1, x0                                      
+0001ef74  adrp     x2, #0x3b000                                
+0001ef78  add      x2, x2, #0x138                              ; @"com.anlai.omnicar"
+0001ef7c  mov      x0, x19                                     
+0001ef80  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+0001ef84  adrp     x0, #0x3b000                                
+0001ef88  add      x0, x0, #0x138                              ; @"com.anlai.omnicar"
+0001ef8c  bl       #0x27adc                                    ; _CFPreferencesAppSynchronize
+0001ef90  mov      x0, x19                                     
+0001ef94  ldp      x29, x30, [sp, #0x20]                       
+0001ef98  ldp      x20, x19, [sp, #0x10]                       
+0001ef9c  ldp      d9, d8, [sp], #0x30                         
+0001efa0  b        #0x27ff8                                    ; _objc_release
+0001efa4  mov      x20, x0                                     
+0001efa8  mov      x0, x19                                     
+0001efac  bl       #0x27ff8                                    ; _objc_release
+0001efb0  mov      x0, x20                                     
+0001efb4  bl       #0x27c80                                    ; __Unwind_Resume

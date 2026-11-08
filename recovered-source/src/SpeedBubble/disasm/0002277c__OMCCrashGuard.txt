@@ -1,0 +1,1130 @@
+# _OMCCrashGuard
+# addr 0x2277c .. 0x23910  (4500 bytes)
+
+0002277c  stp      x28, x27, [sp, #-0x60]!                     
+00022780  stp      x26, x25, [sp, #0x10]                       
+00022784  stp      x24, x23, [sp, #0x20]                       
+00022788  stp      x22, x21, [sp, #0x30]                       
+0002278c  stp      x20, x19, [sp, #0x40]                       
+00022790  stp      x29, x30, [sp, #0x50]                       
+00022794  add      x29, sp, #0x50                              
+00022798  sub      sp, sp, #0x480                              
+0002279c  mov      x26, x0                                     
+000227a0  adrp     x8, #0x38000                                
+000227a4  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+000227a8  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000227ac  stur     x8, [x29, #-0x60]                           
+000227b0  bl       #0x28004                                    ; _objc_retain
+000227b4  adrp     x8, #0x43000                                
+000227b8  ldr      x8, [x8, #0xaa8]                            ; [0x43aa8] __DATA,__bss+0x308
+000227bc  cmn      x8, #1                                      
+000227c0  b.ne     #0x23904                                    
+000227c4  adrp     x8, #0x43000                                
+000227c8  ldrb     w8, [x8, #0xaa0]                            
+000227cc  cmp      w8, #1                                      
+000227d0  b.ne     #0x228dc                                    
+000227d4  mov      x0, x26                                     
+000227d8  bl       #0x29ba0                                    ; objc_msgSend$length
+000227dc  cbz      x0, #0x228dc                                
+000227e0  bl       #0x23910                                    ; sub_23910
+000227e4  adrp     x20, #0x43000                               
+000227e8  adrp     x22, #0x42000                               
+000227ec  cbnz     x0, #0x235b0                                
+000227f0  mov      w0, #1                                      
+000227f4  mov      w1, #0x448                                  
+000227f8  bl       #0x27d04                                    ; _calloc
+000227fc  adrp     x22, #0x43000                               
+00022800  str      x0, [x22, #0xab0]                           
+00022804  mov      x0, #0                                      
+00022808  bl       #0x281a8                                    ; _time
+0002280c  ldr      x8, [x22, #0xab0]                           ; [0x43ab0] __DATA,__bss+0x310
+00022810  str      x0, [x8, #0x440]                            
+00022814  str      x8, [sp]                                    
+00022818  adrp     x2, #0x2f000                                
+0002281c  add      x2, x2, #0x576                              ; "%llx"
+00022820  add      x0, sp, #0x2d0                              
+00022824  mov      w1, #0x20                                   
+00022828  bl       #0x28118                                    ; _snprintf
+0002282c  adrp     x0, #0x2f000                                
+00022830  add      x0, x0, #0x567                              ; "OMC_CRASHGUARD"
+00022834  add      x1, sp, #0x2d0                              
+00022838  mov      w2, #1                                      
+0002283c  bl       #0x280e8                                    ; _setenv
+00022840  bl       #0x27c50                                    ; _NSTemporaryDirectory
+00022844  mov      x29, x29                                    
+00022848  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002284c  mov      x19, x0                                     
+00022850  adrp     x2, #0x3b000                                
+00022854  add      x2, x2, #0xb18                              ; @"OmniCar-CarPlay-crash.txt"
+00022858  bl       #0x2c220                                    ; objc_msgSend$stringByAppendingPathComponent:
+0002285c  mov      x29, x29                                    
+00022860  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022864  mov      x21, x0                                     
+00022868  mov      x0, x19                                     
+0002286c  bl       #0x27ff8                                    ; _objc_release
+00022870  ldr      x19, [x22, #0xab0]                          ; [0x43ab0] __DATA,__bss+0x310
+00022874  mov      x0, x21                                     
+00022878  bl       #0x28010                                    ; _objc_retainAutorelease
+0002287c  str      x21, [sp, #0x48]                            
+00022880  bl       #0x293e0                                    ; objc_msgSend$fileSystemRepresentation
+00022884  mov      x1, x0                                      
+00022888  mov      x0, x19                                     
+0002288c  mov      w2, #0x400                                  
+00022890  mov      w3, #0x400                                  
+00022894  bl       #0x27cb0                                    ; ___strlcpy_chk
+00022898  mov      x21, x20                                    
+0002289c  ldr      x20, [x20, #0x68]                           ; [0x43068] classref -> NSMutableDictionary (= import _OBJC_CLASS_$_NSMutableDictionary)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+000228a0  bl       #0x23954                                    ; sub_23954
+000228a4  mov      x29, x29                                    
+000228a8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000228ac  mov      x19, x0                                     
+000228b0  mov      x0, x20                                     
+000228b4  mov      x2, x19                                     
+000228b8  bl       #0x29220                                    ; objc_msgSend$dictionaryWithContentsOfFile:
+000228bc  mov      x29, x29                                    
+000228c0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000228c4  mov      x20, x0                                     
+000228c8  cbz      x0, #0x228e4                                
+000228cc  mov      x0, x20                                     
+000228d0  bl       #0x28004                                    ; _objc_retain
+000228d4  mov      x21, x20                                    
+000228d8  b        #0x228f8                                    ; sub_228f8
+000228dc  mov      w22, #1                                     
+000228e0  b        #0x23840                                    ; sub_23840
+000228e4  ldr      x0, [x21, #0x68]                            
+000228e8  bl       #0x29200                                    ; objc_msgSend$dictionary
+000228ec  mov      x29, x29                                    
+000228f0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000228f4  mov      x21, x0                                     
+000228f8  mov      x0, x20                                     
+000228fc  bl       #0x27ff8                                    ; _objc_release
+00022900  mov      x0, x19                                     
+00022904  bl       #0x27ff8                                    ; _objc_release
+00022908  adrp     x2, #0x3b000                                
+0002290c  add      x2, x2, #0xb38                              ; @"early"
+00022910  mov      x0, x21                                     
+00022914  bl       #0x2a140                                    ; objc_msgSend$objectForKeyedSubscript:
+00022918  mov      x29, x29                                    
+0002291c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022920  mov      x19, x0                                     
+00022924  bl       #0x29960                                    ; objc_msgSend$integerValue
+00022928  str      x0, [sp, #0x20]                             
+0002292c  mov      x0, x19                                     
+00022930  bl       #0x27ff8                                    ; _objc_release
+00022934  adrp     x8, #0x42000                                
+00022938  ldr      x19, [x8, #0xfe0]                           ; [0x42fe0] classref -> NSMutableArray (= import _OBJC_CLASS_$_NSMutableArray)
+0002293c  adrp     x2, #0x3b000                                
+00022940  add      x2, x2, #0xb58                              ; @"suspects"
+00022944  mov      x0, x21                                     
+00022948  bl       #0x2a140                                    ; objc_msgSend$objectForKeyedSubscript:
+0002294c  mov      x29, x29                                    
+00022950  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022954  mov      x20, x0                                     
+00022958  cmp      x0, #0                                      
+0002295c  adrp     x8, #0x38000                                
+00022960  ldr      x8, [x8, #0x1d0]                            ; [0x381d0] __DATA_CONST,__got+0x1d0 (= import ___NSArray0__struct)
+00022964  csel     x2, x8, x0, eq                              
+00022968  mov      x0, x19                                     
+0002296c  bl       #0x28860                                    ; objc_msgSend$arrayWithArray:
+00022970  mov      x29, x29                                    
+00022974  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022978  mov      x27, x0                                     
+0002297c  mov      x0, x20                                     
+00022980  bl       #0x27ff8                                    ; _objc_release
+00022984  adrp     x19, #0x42000                               
+00022988  ldr      x0, [x19, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0002298c  ldr      x2, [sp, #0x48]                             
+00022990  mov      w3, #4                                      
+00022994  mov      x4, #0                                      
+00022998  bl       #0x2c2e0                                    ; objc_msgSend$stringWithContentsOfFile:encoding:error:
+0002299c  mov      x29, x29                                    
+000229a0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000229a4  str      x0, [sp, #0x40]                             
+000229a8  bl       #0x29ba0                                    ; objc_msgSend$length
+000229ac  adrp     x20, #0x42000                               
+000229b0  str      x21, [sp, #0x38]                            
+000229b4  cbz      x0, #0x233d8                                
+000229b8  ldr      x0, [x19, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000229bc  ldr      x8, [sp, #0x40]                             
+000229c0  str      x8, [sp]                                    
+000229c4  adrp     x2, #0x3b000                                
+000229c8  add      x2, x2, #0xb78                              ; @"CARPLAY SAP LAN TRUOC:
+%@"
+000229cc  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000229d0  mov      x29, x29                                    
+000229d4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000229d8  mov      x19, x0                                     
+000229dc  adrp     x0, #0x3b000                                
+000229e0  add      x0, x0, #0x8b8                              ; @"Core"
+000229e4  mov      x1, x19                                     
+000229e8  bl       #0x2155c                                    ; _OMCLogWrite
+000229ec  mov      x0, x19                                     
+000229f0  bl       #0x27ff8                                    ; _objc_release
+000229f4  adrp     x8, #0x43000                                
+000229f8  ldr      x0, [x8, #0x170]                            ; [0x43170] classref -> NSFileManager (= import _OBJC_CLASS_$_NSFileManager)
+000229fc  bl       #0x29180                                    ; objc_msgSend$defaultManager
+00022a00  mov      x29, x29                                    
+00022a04  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022a08  mov      x19, x0                                     
+00022a0c  ldr      x2, [sp, #0x48]                             
+00022a10  mov      x3, #0                                      
+00022a14  bl       #0x288c0                                    ; objc_msgSend$attributesOfItemAtPath:error:
+00022a18  mov      x29, x29                                    
+00022a1c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022a20  mov      x20, x0                                     
+00022a24  bl       #0x293a0                                    ; objc_msgSend$fileModificationDate
+00022a28  mov      x29, x29                                    
+00022a2c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022a30  mov      x21, x0                                     
+00022a34  cbz      x0, #0x22a48                                
+00022a38  mov      x0, x21                                     
+00022a3c  bl       #0x28004                                    ; _objc_retain
+00022a40  str      x21, [sp, #0x28]                            
+00022a44  b        #0x22a60                                    ; sub_22a60
+00022a48  adrp     x8, #0x43000                                
+00022a4c  ldr      x0, [x8, #0x160]                            ; [0x43160] classref -> NSDate (= import _OBJC_CLASS_$_NSDate)
+00022a50  bl       #0x290c0                                    ; objc_msgSend$date
+00022a54  mov      x29, x29                                    
+00022a58  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022a5c  str      x0, [sp, #0x28]                             
+00022a60  str      x27, [sp, #0x50]                            
+00022a64  str      x26, [sp, #0x30]                            
+00022a68  mov      x0, x21                                     
+00022a6c  bl       #0x27ff8                                    ; _objc_release
+00022a70  mov      x0, x20                                     
+00022a74  bl       #0x27ff8                                    ; _objc_release
+00022a78  mov      x0, x19                                     
+00022a7c  bl       #0x27ff8                                    ; _objc_release
+00022a80  ldr      x0, [x22, #0xab0]                           ; [0x43ab0] __DATA,__bss+0x310
+00022a84  bl       #0x281b4                                    ; _unlink
+00022a88  movi     v0.16b, #0                                  
+00022a8c  stp      q0, q0, [sp, #0xc0]                         
+00022a90  stp      q0, q0, [sp, #0xe0]                         
+00022a94  adrp     x2, #0x39000                                
+00022a98  add      x2, x2, #0x4d8                              ; @"
+"
+00022a9c  ldr      x0, [sp, #0x40]                             
+00022aa0  bl       #0x28e80                                    ; objc_msgSend$componentsSeparatedByString:
+00022aa4  mov      x29, x29                                    
+00022aa8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022aac  add      x2, sp, #0xc0                               
+00022ab0  add      x3, sp, #0x250                              
+00022ab4  str      x0, [sp, #0x68]                             
+00022ab8  mov      w4, #0x10                                   
+00022abc  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00022ac0  cbz      x0, #0x22cd4                                
+00022ac4  mov      x23, x0                                     
+00022ac8  mov      x26, #0                                     
+00022acc  str      xzr, [sp, #0x78]                            
+00022ad0  ldr      x8, [sp, #0xd0]                             
+00022ad4  mov      x27, #0x7fffffffffffffff                    
+00022ad8  ldr      x22, [x8]                                   ; [0x43000] classref -> UILabel (= import _OBJC_CLASS_$_UILabel)
+00022adc  adrp     x24, #0x3b000                               
+00022ae0  add      x24, x24, #0xb98                            ; @"omc-crash "
+00022ae4  adrp     x21, #0x3b000                               
+00022ae8  add      x21, x21, #0xbb8                            ; @"age="
+00022aec  adrp     x19, #0x3b000                               
+00022af0  add      x19, x19, #0xbd8                            ; @"suspect="
+00022af4  str      x22, [sp, #0x58]                            
+00022af8  mov      x25, #0                                     
+00022afc  str      x23, [sp, #0x60]                            
+00022b00  ldr      x8, [sp, #0xd0]                             
+00022b04  ldr      x8, [x8]                                    ; [0x43000] classref -> UILabel (= import _OBJC_CLASS_$_UILabel)
+00022b08  cmp      x8, x22                                     
+00022b0c  b.eq     #0x22b18                                    
+00022b10  ldr      x0, [sp, #0x68]                             
+00022b14  bl       #0x27f68                                    ; _objc_enumerationMutation
+00022b18  ldr      x8, [sp, #0xc8]                             
+00022b1c  ldr      x20, [x8, x25, lsl #3]                      ; [0x43000] classref -> UILabel (= import _OBJC_CLASS_$_UILabel)
+00022b20  mov      x0, x20                                     
+00022b24  mov      x2, x24                                     
+00022b28  bl       #0x29600                                    ; objc_msgSend$hasPrefix:
+00022b2c  cbz      w0, #0x22ca8                                
+00022b30  str      x25, [sp, #0x70]                            
+00022b34  movi     v0.16b, #0                                  
+00022b38  stp      q0, q0, [sp, #0xa0]                         
+00022b3c  stp      q0, q0, [sp, #0x80]                         
+00022b40  mov      x0, x20                                     
+00022b44  adrp     x2, #0x39000                                
+00022b48  add      x2, x2, #0x4f8                              ; @" "
+00022b4c  bl       #0x28e80                                    ; objc_msgSend$componentsSeparatedByString:
+00022b50  mov      x29, x29                                    
+00022b54  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022b58  mov      x20, x0                                     
+00022b5c  add      x2, sp, #0x80                               
+00022b60  add      x3, sp, #0x1d0                              
+00022b64  mov      w4, #0x10                                   
+00022b68  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00022b6c  cbz      x0, #0x22c90                                
+00022b70  mov      x24, x0                                     
+00022b74  ldr      x8, [sp, #0x90]                             
+00022b78  ldr      x28, [x8]                                   ; [0x43000] classref -> UILabel (= import _OBJC_CLASS_$_UILabel)
+00022b7c  mov      x22, #0                                     
+00022b80  ldr      x8, [sp, #0x90]                             
+00022b84  ldr      x8, [x8]                                    ; [0x43000] classref -> UILabel (= import _OBJC_CLASS_$_UILabel)
+00022b88  cmp      x8, x28                                     
+00022b8c  b.eq     #0x22b98                                    
+00022b90  mov      x0, x20                                     
+00022b94  bl       #0x27f68                                    ; _objc_enumerationMutation
+00022b98  ldr      x8, [sp, #0x88]                             
+00022b9c  ldr      x25, [x8, x22, lsl #3]                      ; [0x43000] classref -> UILabel (= import _OBJC_CLASS_$_UILabel)
+00022ba0  mov      x0, x25                                     
+00022ba4  mov      x2, x21                                     
+00022ba8  bl       #0x29600                                    ; objc_msgSend$hasPrefix:
+00022bac  cbz      w0, #0x22be4                                
+00022bb0  mov      x0, x25                                     
+00022bb4  mov      w2, #4                                      
+00022bb8  bl       #0x2c3c0                                    ; objc_msgSend$substringFromIndex:
+00022bbc  mov      x29, x29                                    
+00022bc0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022bc4  mov      x25, x0                                     
+00022bc8  bl       #0x29960                                    ; objc_msgSend$integerValue
+00022bcc  mov      x23, x0                                     
+00022bd0  mov      x0, x25                                     
+00022bd4  bl       #0x27ff8                                    ; _objc_release
+00022bd8  cmp      x27, x23                                    
+00022bdc  csel     x27, x27, x23, lt                           
+00022be0  b        #0x22c68                                    ; sub_22c68
+00022be4  mov      x0, x25                                     
+00022be8  mov      x2, x19                                     
+00022bec  bl       #0x29600                                    ; objc_msgSend$hasPrefix:
+00022bf0  cbz      w0, #0x22c08                                
+00022bf4  mov      x0, x25                                     
+00022bf8  bl       #0x29ba0                                    ; objc_msgSend$length
+00022bfc  cmp      x0, #9                                      
+00022c00  ccmp     x26, #0, #0, hs                             
+00022c04  b.eq     #0x22c50                                    
+00022c08  mov      x0, x25                                     
+00022c0c  adrp     x2, #0x3b000                                
+00022c10  add      x2, x2, #0xbf8                              ; @"last="
+00022c14  bl       #0x29600                                    ; objc_msgSend$hasPrefix:
+00022c18  cbz      w0, #0x22c68                                
+00022c1c  mov      x0, x25                                     
+00022c20  bl       #0x29ba0                                    ; objc_msgSend$length
+00022c24  cmp      x0, #6                                      
+00022c28  ldr      x8, [sp, #0x78]                             
+00022c2c  ccmp     x8, #0, #0, hs                              
+00022c30  b.ne     #0x22c68                                    
+00022c34  mov      x0, x25                                     
+00022c38  mov      w2, #5                                      
+00022c3c  bl       #0x2c3c0                                    ; objc_msgSend$substringFromIndex:
+00022c40  mov      x29, x29                                    
+00022c44  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022c48  str      x0, [sp, #0x78]                             
+00022c4c  b        #0x22c68                                    ; sub_22c68
+00022c50  mov      x0, x25                                     
+00022c54  mov      w2, #8                                      
+00022c58  bl       #0x2c3c0                                    ; objc_msgSend$substringFromIndex:
+00022c5c  mov      x29, x29                                    
+00022c60  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022c64  mov      x26, x0                                     
+00022c68  add      x22, x22, #1                                ; __DATA,__objc_classrefs+0xb1
+00022c6c  cmp      x24, x22                                    
+00022c70  b.ne     #0x22b80                                    
+00022c74  add      x2, sp, #0x80                               
+00022c78  add      x3, sp, #0x1d0                              
+00022c7c  mov      x0, x20                                     
+00022c80  mov      w4, #0x10                                   
+00022c84  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00022c88  mov      x24, x0                                     
+00022c8c  cbnz     x0, #0x22b7c                                
+00022c90  mov      x0, x20                                     
+00022c94  bl       #0x27ff8                                    ; _objc_release
+00022c98  ldp      x22, x23, [sp, #0x58]                       
+00022c9c  adrp     x24, #0x3b000                               
+00022ca0  add      x24, x24, #0xb98                            ; @"omc-crash "
+00022ca4  ldr      x25, [sp, #0x70]                            
+00022ca8  add      x25, x25, #1                                
+00022cac  cmp      x25, x23                                    
+00022cb0  b.ne     #0x22b00                                    
+00022cb4  add      x2, sp, #0xc0                               
+00022cb8  add      x3, sp, #0x250                              
+00022cbc  ldr      x0, [sp, #0x68]                             
+00022cc0  mov      w4, #0x10                                   
+00022cc4  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00022cc8  mov      x23, x0                                     
+00022ccc  cbnz     x0, #0x22af8                                
+00022cd0  b        #0x22ce0                                    ; sub_22ce0
+00022cd4  mov      x26, #0                                     
+00022cd8  str      xzr, [sp, #0x78]                            
+00022cdc  mov      x27, #0x7fffffffffffffff                    
+00022ce0  ldr      x0, [sp, #0x68]                             
+00022ce4  bl       #0x27ff8                                    ; _objc_release
+00022ce8  cmp      x26, #0                                     
+00022cec  ldr      x8, [sp, #0x78]                             
+00022cf0  csel     x20, x8, x26, eq                            
+00022cf4  mov      x0, x20                                     
+00022cf8  bl       #0x28004                                    ; _objc_retain
+00022cfc  mov      x0, x20                                     
+00022d00  bl       #0x29ba0                                    ; objc_msgSend$length
+00022d04  cbz      x0, #0x22d7c                                
+00022d08  mov      x0, x20                                     
+00022d0c  mov      w2, #1                                      
+00022d10  bl       #0x2c3e0                                    ; objc_msgSend$substringToIndex:
+00022d14  mov      x29, x29                                    
+00022d18  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022d1c  mov      x21, x0                                     
+00022d20  bl       #0x29d00                                    ; objc_msgSend$lowercaseString
+00022d24  mov      x29, x29                                    
+00022d28  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022d2c  mov      x22, x0                                     
+00022d30  mov      x0, x20                                     
+00022d34  mov      w2, #1                                      
+00022d38  bl       #0x2c3c0                                    ; objc_msgSend$substringFromIndex:
+00022d3c  mov      x29, x29                                    
+00022d40  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022d44  mov      x23, x0                                     
+00022d48  mov      x0, x22                                     
+00022d4c  mov      x2, x23                                     
+00022d50  bl       #0x2c240                                    ; objc_msgSend$stringByAppendingString:
+00022d54  mov      x29, x29                                    
+00022d58  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022d5c  mov      x19, x0                                     
+00022d60  mov      x0, x23                                     
+00022d64  bl       #0x27ff8                                    ; _objc_release
+00022d68  mov      x0, x22                                     
+00022d6c  bl       #0x27ff8                                    ; _objc_release
+00022d70  mov      x0, x21                                     
+00022d74  bl       #0x27ff8                                    ; _objc_release
+00022d78  b        #0x22d80                                    ; sub_22d80
+00022d7c  mov      x19, #0                                     
+00022d80  mov      x0, x20                                     
+00022d84  bl       #0x27ff8                                    ; _objc_release
+00022d88  adrp     x8, #0x3b000                                
+00022d8c  add      x8, x8, #0xab8                              ; @"date"
+00022d90  ldr      x22, [sp, #0x28]                            
+00022d94  stp      x8, x22, [sp, #0x1c0]                       
+00022d98  adrp     x8, #0x42000                                
+00022d9c  ldr      x0, [x8, #0xfa8]                            ; [0x42fa8] classref -> NSDictionary (= import _OBJC_CLASS_$_NSDictionary)
+00022da0  add      x2, sp, #0x1c8                              
+00022da4  add      x3, sp, #0x1c0                              
+00022da8  mov      w4, #1                                      
+00022dac  bl       #0x29240                                    ; objc_msgSend$dictionaryWithObjects:forKeys:count:
+00022db0  mov      x29, x29                                    
+00022db4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022db8  mov      x21, x0                                     
+00022dbc  bl       #0x29f20                                    ; objc_msgSend$mutableCopy
+00022dc0  mov      x20, x0                                     
+00022dc4  mov      x0, x21                                     
+00022dc8  bl       #0x27ff8                                    ; _objc_release
+00022dcc  mov      x8, #0x7fffffffffffffff                     
+00022dd0  cmp      x27, x8                                     
+00022dd4  b.eq     #0x22e10                                    
+00022dd8  adrp     x8, #0x42000                                
+00022ddc  ldr      x0, [x8, #0xfc0]                            ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+00022de0  mov      x2, x27                                     
+00022de4  bl       #0x2a0a0                                    ; objc_msgSend$numberWithLong:
+00022de8  mov      x29, x29                                    
+00022dec  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022df0  mov      x21, x0                                     
+00022df4  adrp     x3, #0x3b000                                
+00022df8  add      x3, x3, #0xc18                              ; @"age"
+00022dfc  mov      x0, x20                                     
+00022e00  mov      x2, x21                                     
+00022e04  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00022e08  mov      x0, x21                                     
+00022e0c  bl       #0x27ff8                                    ; _objc_release
+00022e10  cbz      x19, #0x22e6c                               
+00022e14  adrp     x3, #0x3b000                                
+00022e18  add      x3, x3, #0xc38                              ; @"suspect"
+00022e1c  mov      x0, x20                                     
+00022e20  mov      x2, x19                                     
+00022e24  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00022e28  adrp     x0, #0x3b000                                
+00022e2c  add      x0, x0, #0xc58                              ; @"diagLastCrash"
+00022e30  adrp     x2, #0x3b000                                
+00022e34  add      x2, x2, #0x138                              ; @"com.anlai.omnicar"
+00022e38  mov      x1, x20                                     
+00022e3c  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+00022e40  cmp      x27, #0x3b                                  
+00022e44  ldr      x21, [sp, #0x38]                            
+00022e48  b.gt     #0x233a4                                    
+00022e4c  ldr      x0, [sp, #0x50]                             
+00022e50  mov      x2, x19                                     
+00022e54  bl       #0x28ee0                                    ; objc_msgSend$containsObject:
+00022e58  tbnz     w0, #0, #0x22e88                            
+00022e5c  ldr      x0, [sp, #0x50]                             
+00022e60  mov      x2, x19                                     
+00022e64  bl       #0x28440                                    ; objc_msgSend$addObject:
+00022e68  b        #0x22e88                                    ; sub_22e88
+00022e6c  adrp     x0, #0x3b000                                
+00022e70  add      x0, x0, #0xc58                              ; @"diagLastCrash"
+00022e74  adrp     x2, #0x3b000                                
+00022e78  add      x2, x2, #0x138                              ; @"com.anlai.omnicar"
+00022e7c  mov      x1, x20                                     
+00022e80  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+00022e84  ldr      x21, [sp, #0x38]                            
+00022e88  mov      x0, x20                                     
+00022e8c  bl       #0x27ff8                                    ; _objc_release
+00022e90  mov      x0, x19                                     
+00022e94  bl       #0x27ff8                                    ; _objc_release
+00022e98  ldr      x0, [sp, #0x78]                             
+00022e9c  bl       #0x27ff8                                    ; _objc_release
+00022ea0  mov      x0, x26                                     
+00022ea4  bl       #0x27ff8                                    ; _objc_release
+00022ea8  mov      x0, x22                                     
+00022eac  bl       #0x27ff8                                    ; _objc_release
+00022eb0  cmp      x27, #0x3c                                  
+00022eb4  ldr      x26, [sp, #0x30]                            
+00022eb8  ldr      x27, [sp, #0x50]                            
+00022ebc  adrp     x20, #0x42000                               
+00022ec0  b.ge     #0x233d8                                    
+00022ec4  ldr      x8, [sp, #0x20]                             
+00022ec8  cmp      x8, #1                                      
+00022ecc  b.lt     #0x23884                                    
+00022ed0  adrp     x2, #0x3b000                                
+00022ed4  add      x2, x2, #0x8f8                              ; @"features"
+00022ed8  mov      x0, x21                                     
+00022edc  bl       #0x2a140                                    ; objc_msgSend$objectForKeyedSubscript:
+00022ee0  mov      x29, x29                                    
+00022ee4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022ee8  cmp      x0, #0                                      
+00022eec  adrp     x8, #0x38000                                
+00022ef0  ldr      x8, [x8, #0x1d0]                            ; [0x381d0] __DATA_CONST,__got+0x1d0 (= import ___NSArray0__struct)
+00022ef4  str      x0, [sp, #0x78]                             
+00022ef8  csel     x24, x8, x0, eq                             
+00022efc  mov      x0, x27                                     
+00022f00  bl       #0x28004                                    ; _objc_retain
+00022f04  mov      x0, x24                                     
+00022f08  bl       #0x28004                                    ; _objc_retain
+00022f0c  adrp     x0, #0x3b000                                
+00022f10  add      x0, x0, #0x138                              ; @"com.anlai.omnicar"
+00022f14  bl       #0x27adc                                    ; _CFPreferencesAppSynchronize
+00022f18  adrp     x28, #0x43000                               
+00022f1c  ldr      x0, [x28, #0x168]                           ; [0x43168] classref -> NSMutableOrderedSet (= import _OBJC_CLASS_$_NSMutableOrderedSet)
+00022f20  bl       #0x2a180                                    ; objc_msgSend$orderedSet
+00022f24  mov      x29, x29                                    
+00022f28  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022f2c  mov      x23, x0                                     
+00022f30  movi     v0.16b, #0                                  
+00022f34  stp      q0, q0, [sp, #0x180]                        
+00022f38  stp      q0, q0, [sp, #0x1a0]                        
+00022f3c  mov      x0, x27                                     
+00022f40  bl       #0x28004                                    ; _objc_retain
+00022f44  add      x2, sp, #0x180                              
+00022f48  sub      x3, x29, #0xe0                              
+00022f4c  mov      x0, x27                                     
+00022f50  mov      w4, #0x10                                   
+00022f54  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00022f58  cbz      x0, #0x22fd0                                
+00022f5c  mov      x19, x0                                     
+00022f60  ldr      x8, [sp, #0x190]                            
+00022f64  ldr      x21, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00022f68  mov      x22, #0                                     
+00022f6c  ldr      x8, [sp, #0x190]                            
+00022f70  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00022f74  cmp      x8, x21                                     
+00022f78  b.eq     #0x22f84                                    
+00022f7c  mov      x0, x27                                     
+00022f80  bl       #0x27f68                                    ; _objc_enumerationMutation
+00022f84  ldr      x8, [sp, #0x188]                            
+00022f88  ldr      x20, [x8, x22, lsl #3]                      ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00022f8c  mov      x0, x24                                     
+00022f90  mov      x2, x20                                     
+00022f94  bl       #0x28ee0                                    ; objc_msgSend$containsObject:
+00022f98  cbz      w0, #0x22fa8                                
+00022f9c  mov      x0, x23                                     
+00022fa0  mov      x2, x20                                     
+00022fa4  bl       #0x28440                                    ; objc_msgSend$addObject:
+00022fa8  add      x22, x22, #1                                ; __DATA,__objc_classrefs+0xb2
+00022fac  cmp      x19, x22                                    
+00022fb0  b.ne     #0x22f6c                                    
+00022fb4  add      x2, sp, #0x180                              
+00022fb8  sub      x3, x29, #0xe0                              
+00022fbc  mov      x0, x27                                     
+00022fc0  mov      w4, #0x10                                   
+00022fc4  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00022fc8  mov      x19, x0                                     
+00022fcc  cbnz     x0, #0x22f68                                
+00022fd0  mov      x0, x27                                     
+00022fd4  bl       #0x27ff8                                    ; _objc_release
+00022fd8  mov      x0, x23                                     
+00022fdc  bl       #0x29000                                    ; objc_msgSend$count
+00022fe0  mov      x25, x23                                    
+00022fe4  cbnz     x0, #0x230ec                                
+00022fe8  movi     v0.16b, #0                                  
+00022fec  stp      q0, q0, [sp, #0x160]                        
+00022ff0  stp      q0, q0, [sp, #0x140]                        
+00022ff4  mov      x0, x24                                     
+00022ff8  bl       #0x28004                                    ; _objc_retain
+00022ffc  add      x2, sp, #0x140                              
+00023000  add      x3, sp, #0x370                              
+00023004  mov      x26, x24                                    
+00023008  mov      x0, x24                                     
+0002300c  mov      w4, #0x10                                   
+00023010  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00023014  cbz      x0, #0x230d8                                
+00023018  mov      x21, x0                                     
+0002301c  ldr      x8, [sp, #0x150]                            
+00023020  ldr      x24, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00023024  adrp     x20, #0x38000                               
+00023028  ldr      x20, [x20, #0x1e8]                          ; [0x381e8] __DATA_CONST,__got+0x1e8 (= import ___kCFBooleanTrue)
+0002302c  mov      x19, #0                                     
+00023030  ldr      x8, [sp, #0x150]                            
+00023034  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00023038  cmp      x8, x24                                     
+0002303c  b.eq     #0x23048                                    
+00023040  mov      x0, x26                                     
+00023044  bl       #0x27f68                                    ; _objc_enumerationMutation
+00023048  ldr      x8, [sp, #0x148]                            
+0002304c  ldr      x22, [x8, x19, lsl #3]                      ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00023050  mov      x0, x22                                     
+00023054  adrp     x2, #0x3b000                                
+00023058  add      x2, x2, #0x3f8                              ; @"Enabled"
+0002305c  bl       #0x2c240                                    ; objc_msgSend$stringByAppendingString:
+00023060  mov      x29, x29                                    
+00023064  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023068  mov      x23, x0                                     
+0002306c  mov      x1, x20                                     
+00023070  bl       #0x20eac                                    ; _OMCPref
+00023074  mov      x29, x29                                    
+00023078  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002307c  mov      x27, x0                                     
+00023080  bl       #0x28a60                                    ; objc_msgSend$boolValue
+00023084  mov      x28, x0                                     
+00023088  mov      x0, x27                                     
+0002308c  bl       #0x27ff8                                    ; _objc_release
+00023090  mov      x0, x23                                     
+00023094  bl       #0x27ff8                                    ; _objc_release
+00023098  mov      x23, x25                                    
+0002309c  cbz      w28, #0x230ac                               
+000230a0  mov      x0, x23                                     
+000230a4  mov      x2, x22                                     
+000230a8  bl       #0x28440                                    ; objc_msgSend$addObject:
+000230ac  add      x19, x19, #1                                ; __DATA_CONST,__cfstring+0x2ca1
+000230b0  cmp      x21, x19                                    
+000230b4  ldr      x27, [sp, #0x50]                            
+000230b8  b.ne     #0x23030                                    
+000230bc  add      x2, sp, #0x140                              
+000230c0  add      x3, sp, #0x370                              
+000230c4  mov      x0, x26                                     
+000230c8  mov      w4, #0x10                                   
+000230cc  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+000230d0  mov      x21, x0                                     
+000230d4  cbnz     x0, #0x2302c                                
+000230d8  mov      x24, x26                                    
+000230dc  mov      x0, x26                                     
+000230e0  bl       #0x27ff8                                    ; _objc_release
+000230e4  ldr      x26, [sp, #0x30]                            
+000230e8  adrp     x28, #0x43000                               
+000230ec  mov      x0, x23                                     
+000230f0  bl       #0x29000                                    ; objc_msgSend$count
+000230f4  cbz      x0, #0x2336c                                
+000230f8  str      x24, [sp, #0x70]                            
+000230fc  adrp     x0, #0x3b000                                
+00023100  add      x0, x0, #0x918                              ; @"rescueFeatures"
+00023104  mov      x1, #0                                      
+00023108  bl       #0x20eac                                    ; _OMCPref
+0002310c  mov      x29, x29                                    
+00023110  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023114  mov      x19, x0                                     
+00023118  ldr      x20, [x28, #0x168]                          ; [0x43168] classref -> NSMutableOrderedSet (= import _OBJC_CLASS_$_NSMutableOrderedSet)
+0002311c  adrp     x8, #0x42000                                
+00023120  ldr      x0, [x8, #0xf80]                            ; [0x42f80] classref -> NSArray (= import _OBJC_CLASS_$_NSArray)
+00023124  bl       #0x27fbc                                    ; _objc_opt_class
+00023128  mov      x1, x0                                      
+0002312c  mov      x0, x19                                     
+00023130  bl       #0x27fc8                                    ; _objc_opt_isKindOfClass
+00023134  tst      w0, #1                                      
+00023138  adrp     x8, #0x38000                                
+0002313c  ldr      x8, [x8, #0x1d0]                            ; [0x381d0] __DATA_CONST,__got+0x1d0 (= import ___NSArray0__struct)
+00023140  str      x19, [sp, #0x68]                            
+00023144  csel     x2, x19, x8, ne                             
+00023148  mov      x0, x20                                     
+0002314c  bl       #0x2a1a0                                    ; objc_msgSend$orderedSetWithArray:
+00023150  mov      x29, x29                                    
+00023154  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023158  mov      x20, x0                                     
+0002315c  movi     v0.16b, #0                                  
+00023160  stp      q0, q0, [sp, #0x100]                        
+00023164  stp      q0, q0, [sp, #0x120]                        
+00023168  mov      x0, x23                                     
+0002316c  bl       #0x28004                                    ; _objc_retain
+00023170  add      x2, sp, #0x100                              
+00023174  add      x3, sp, #0x2f0                              
+00023178  mov      x0, x23                                     
+0002317c  mov      w4, #0x10                                   
+00023180  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00023184  cbz      x0, #0x23230                                
+00023188  mov      x27, x0                                     
+0002318c  ldr      x8, [sp, #0x110]                            
+00023190  ldr      x19, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00023194  adrp     x21, #0x3b000                               
+00023198  add      x21, x21, #0x3f8                            ; @"Enabled"
+0002319c  adrp     x22, #0x38000                               
+000231a0  ldr      x22, [x22, #0x1e0]                          ; [0x381e0] __DATA_CONST,__got+0x1e0 (= import ___kCFBooleanFalse)
+000231a4  adrp     x23, #0x3b000                               
+000231a8  add      x23, x23, #0x138                            ; @"com.anlai.omnicar"
+000231ac  mov      x26, #0                                     
+000231b0  ldr      x8, [sp, #0x110]                            
+000231b4  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000231b8  cmp      x8, x19                                     
+000231bc  b.eq     #0x231c8                                    
+000231c0  mov      x0, x25                                     
+000231c4  bl       #0x27f68                                    ; _objc_enumerationMutation
+000231c8  ldr      x8, [sp, #0x108]                            
+000231cc  ldr      x28, [x8, x26, lsl #3]                      ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000231d0  mov      x0, x28                                     
+000231d4  mov      x2, x21                                     
+000231d8  bl       #0x2c240                                    ; objc_msgSend$stringByAppendingString:
+000231dc  mov      x29, x29                                    
+000231e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000231e4  mov      x24, x0                                     
+000231e8  mov      x1, x22                                     
+000231ec  mov      x2, x23                                     
+000231f0  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+000231f4  mov      x0, x24                                     
+000231f8  bl       #0x27ff8                                    ; _objc_release
+000231fc  mov      x0, x20                                     
+00023200  mov      x2, x28                                     
+00023204  bl       #0x28440                                    ; objc_msgSend$addObject:
+00023208  add      x26, x26, #1                                
+0002320c  cmp      x27, x26                                    
+00023210  b.ne     #0x231b0                                    
+00023214  add      x2, sp, #0x100                              
+00023218  add      x3, sp, #0x2f0                              
+0002321c  mov      x0, x25                                     
+00023220  mov      w4, #0x10                                   
+00023224  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00023228  mov      x27, x0                                     
+0002322c  cbnz     x0, #0x231ac                                
+00023230  mov      x0, x25                                     
+00023234  bl       #0x27ff8                                    ; _objc_release
+00023238  mov      x0, x20                                     
+0002323c  bl       #0x28820                                    ; objc_msgSend$array
+00023240  mov      x29, x29                                    
+00023244  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023248  mov      x21, x0                                     
+0002324c  adrp     x0, #0x3b000                                
+00023250  add      x0, x0, #0x918                              ; @"rescueFeatures"
+00023254  adrp     x22, #0x3b000                               
+00023258  add      x22, x22, #0x138                            ; @"com.anlai.omnicar"
+0002325c  mov      x1, x21                                     
+00023260  mov      x2, x22                                     
+00023264  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+00023268  mov      x0, x21                                     
+0002326c  bl       #0x27ff8                                    ; _objc_release
+00023270  adrp     x8, #0x43000                                
+00023274  ldr      x0, [x8, #0x160]                            ; [0x43160] classref -> NSDate (= import _OBJC_CLASS_$_NSDate)
+00023278  bl       #0x290c0                                    ; objc_msgSend$date
+0002327c  mov      x29, x29                                    
+00023280  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023284  mov      x21, x0                                     
+00023288  adrp     x0, #0x3b000                                
+0002328c  add      x0, x0, #0x958                              ; @"rescueDate"
+00023290  mov      x1, x21                                     
+00023294  mov      x2, x22                                     
+00023298  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+0002329c  mov      x0, x21                                     
+000232a0  bl       #0x27ff8                                    ; _objc_release
+000232a4  mov      x0, x22                                     
+000232a8  bl       #0x27adc                                    ; _CFPreferencesAppSynchronize
+000232ac  adrp     x8, #0x42000                                
+000232b0  ldr      x21, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000232b4  mov      x0, x25                                     
+000232b8  bl       #0x28820                                    ; objc_msgSend$array
+000232bc  mov      x29, x29                                    
+000232c0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000232c4  mov      x22, x0                                     
+000232c8  adrp     x2, #0x3b000                                
+000232cc  add      x2, x2, #0x758                              ; @", "
+000232d0  bl       #0x28e40                                    ; objc_msgSend$componentsJoinedByString:
+000232d4  mov      x29, x29                                    
+000232d8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000232dc  mov      x23, x0                                     
+000232e0  mov      w8, #0x3c                                   
+000232e4  mov      w9, #2                                      
+000232e8  stp      x8, x0, [sp, #8]                            
+000232ec  str      x9, [sp]                                    
+000232f0  adrp     x2, #0x3b000                                
+000232f4  add      x2, x2, #0xcd8                              ; @"CHE DO CUU: CarPlay sap %d lan lien trong %ds dau -> tat %@"
+000232f8  mov      x0, x21                                     
+000232fc  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00023300  mov      x29, x29                                    
+00023304  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023308  mov      x21, x0                                     
+0002330c  adrp     x0, #0x3b000                                
+00023310  add      x0, x0, #0x8b8                              ; @"Core"
+00023314  mov      x1, x21                                     
+00023318  bl       #0x2155c                                    ; _OMCLogWrite
+0002331c  mov      x0, x21                                     
+00023320  bl       #0x27ff8                                    ; _objc_release
+00023324  mov      x0, x23                                     
+00023328  mov      x23, x25                                    
+0002332c  bl       #0x27ff8                                    ; _objc_release
+00023330  mov      x0, x22                                     
+00023334  bl       #0x27ff8                                    ; _objc_release
+00023338  adrp     x0, #0x2f000                                
+0002333c  add      x0, x0, #0x675                              ; "com.anlai.omnicar/rescue"
+00023340  bl       #0x27ed8                                    ; _notify_post
+00023344  adrp     x0, #0x2e000                                
+00023348  add      x0, x0, #0x474                              ; "com.anlai.omnicar/prefschanged"
+0002334c  bl       #0x27ed8                                    ; _notify_post
+00023350  mov      x0, x20                                     
+00023354  bl       #0x27ff8                                    ; _objc_release
+00023358  ldr      x0, [sp, #0x68]                             
+0002335c  bl       #0x27ff8                                    ; _objc_release
+00023360  ldr      x26, [sp, #0x30]                            
+00023364  ldr      x27, [sp, #0x50]                            
+00023368  ldr      x24, [sp, #0x70]                            
+0002336c  mov      x0, x23                                     
+00023370  bl       #0x27ff8                                    ; _objc_release
+00023374  mov      x0, x24                                     
+00023378  bl       #0x27ff8                                    ; _objc_release
+0002337c  mov      x0, x27                                     
+00023380  bl       #0x27ff8                                    ; _objc_release
+00023384  ldr      x0, [sp, #0x78]                             
+00023388  bl       #0x27ff8                                    ; _objc_release
+0002338c  mov      x0, x27                                     
+00023390  bl       #0x2a560                                    ; objc_msgSend$removeAllObjects
+00023394  mov      x19, #0                                     
+00023398  ldr      x21, [sp, #0x38]                            
+0002339c  adrp     x20, #0x42000                               
+000233a0  b        #0x233e4                                    ; sub_233e4
+000233a4  mov      x0, x20                                     
+000233a8  bl       #0x27ff8                                    ; _objc_release
+000233ac  mov      x0, x19                                     
+000233b0  bl       #0x27ff8                                    ; _objc_release
+000233b4  ldr      x0, [sp, #0x78]                             
+000233b8  bl       #0x27ff8                                    ; _objc_release
+000233bc  mov      x0, x26                                     
+000233c0  bl       #0x27ff8                                    ; _objc_release
+000233c4  mov      x0, x22                                     
+000233c8  bl       #0x27ff8                                    ; _objc_release
+000233cc  ldr      x26, [sp, #0x30]                            
+000233d0  ldr      x27, [sp, #0x50]                            
+000233d4  adrp     x20, #0x42000                               
+000233d8  mov      x0, x27                                     
+000233dc  bl       #0x2a560                                    ; objc_msgSend$removeAllObjects
+000233e0  mov      x19, #0                                     
+000233e4  ldr      x0, [x20, #0xfc0]                           ; [0x42fc0] classref -> NSNumber (= import _OBJC_CLASS_$_NSNumber)
+000233e8  mov      x2, x19                                     
+000233ec  bl       #0x2a080                                    ; objc_msgSend$numberWithInteger:
+000233f0  mov      x29, x29                                    
+000233f4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000233f8  mov      x19, x0                                     
+000233fc  adrp     x3, #0x3b000                                
+00023400  add      x3, x3, #0xb38                              ; @"early"
+00023404  mov      x0, x21                                     
+00023408  mov      x2, x19                                     
+0002340c  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00023410  mov      x0, x19                                     
+00023414  bl       #0x27ff8                                    ; _objc_release
+00023418  adrp     x3, #0x3b000                                
+0002341c  add      x3, x3, #0xb58                              ; @"suspects"
+00023420  mov      x0, x21                                     
+00023424  mov      x2, x27                                     
+00023428  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+0002342c  bl       #0x23954                                    ; sub_23954
+00023430  mov      x29, x29                                    
+00023434  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023438  mov      x19, x0                                     
+0002343c  mov      x0, x21                                     
+00023440  mov      x2, x19                                     
+00023444  mov      w3, #1                                      
+00023448  bl       #0x2c9e0                                    ; objc_msgSend$writeToFile:atomically:
+0002344c  mov      x0, x19                                     
+00023450  bl       #0x27ff8                                    ; _objc_release
+00023454  bl       #0x27c14                                    ; _NSGetUncaughtExceptionHandler
+00023458  adrp     x8, #0x43000                                
+0002345c  str      x0, [x8, #0xab8]                            
+00023460  adrp     x0, #0x23000                                
+00023464  add      x0, x0, #0xcf0                              ; __TEXT,__text+0x1fcf0
+00023468  bl       #0x27c38                                    ; _NSSetUncaughtExceptionHandler
+0002346c  mov      x19, #0                                     
+00023470  adrp     x8, #0x23000                                
+00023474  add      x8, x8, #0xf50                              ; __TEXT,__text+0x1ff50
+00023478  stur     x8, [x29, #-0xe0]                           
+0002347c  adrp     x8, #0x32000                                
+00023480  ldr      d0, [x8, #0xe10]                            ; [0x32e10] __const[0x32e10] double=1.35807730622e-312 float=0.0
+00023484  stur     d0, [x29, #-0xd8]                           
+00023488  adrp     x20, #0x32000                               
+0002348c  add      x20, x20, #0xe20                            ; __const[0x32e20] double=2.1219957915e-313 float=1.5414283107572988e-44
+00023490  ldr      w0, [x20, x19]                              ; [0x32e20] __const[0x32e20] double=2.1219957915e-313 float=1.5414283107572988e-44
+00023494  sub      x1, x29, #0xe0                              
+00023498  mov      x2, #0                                      
+0002349c  bl       #0x280f4                                    ; _sigaction
+000234a0  add      x19, x19, #4                                ; __DATA_CONST,__cfstring+0x2ca5
+000234a4  cmp      x19, #0x18                                  
+000234a8  b.ne     #0x23490                                    
+000234ac  adrp     x22, #0x42000                               
+000234b0  ldr      x0, [x22, #0xfd0]                           ; [0x42fd0] classref -> NSNotificationCenter (= import _OBJC_CLASS_$_NSNotificationCenter)
+000234b4  bl       #0x29160                                    ; objc_msgSend$defaultCenter
+000234b8  mov      x29, x29                                    
+000234bc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000234c0  mov      x19, x0                                     
+000234c4  adrp     x8, #0x38000                                
+000234c8  ldr      x8, [x8, #0x268]                            ; [0x38268] __DATA_CONST,__got+0x268 (= import _UIScreenDidConnectNotification)
+000234cc  ldr      x20, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000234d0  adrp     x23, #0x42000                               
+000234d4  ldr      x0, [x23, #0xfd8]                           ; [0x42fd8] classref -> NSOperationQueue (= import _OBJC_CLASS_$_NSOperationQueue)
+000234d8  bl       #0x29d40                                    ; objc_msgSend$mainQueue
+000234dc  mov      x29, x29                                    
+000234e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000234e4  mov      x21, x0                                     
+000234e8  adrp     x5, #0x38000                                
+000234ec  add      x5, x5, #0xdb8                              ; __const[0x38db8] double=-4.4501477170146e-308 float=2.802596928649634e-43
+000234f0  mov      x0, x19                                     
+000234f4  mov      x2, x20                                     
+000234f8  mov      x3, #0                                      
+000234fc  mov      x4, x21                                     
+00023500  bl       #0x28480                                    ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+00023504  mov      x29, x29                                    
+00023508  bl       #0x28070                                    ; _objc_unsafeClaimAutoreleasedReturnValue
+0002350c  mov      x0, x21                                     
+00023510  bl       #0x27ff8                                    ; _objc_release
+00023514  mov      x0, x19                                     
+00023518  bl       #0x27ff8                                    ; _objc_release
+0002351c  ldr      x0, [x22, #0xfd0]                           ; [0x42fd0] classref -> NSNotificationCenter (= import _OBJC_CLASS_$_NSNotificationCenter)
+00023520  bl       #0x29160                                    ; objc_msgSend$defaultCenter
+00023524  mov      x29, x29                                    
+00023528  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002352c  mov      x19, x0                                     
+00023530  adrp     x8, #0x38000                                
+00023534  ldr      x8, [x8, #0x270]                            ; [0x38270] __DATA_CONST,__got+0x270 (= import _UIScreenDidDisconnectNotification)
+00023538  ldr      x20, [x8]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0002353c  ldr      x0, [x23, #0xfd8]                           ; [0x42fd8] classref -> NSOperationQueue (= import _OBJC_CLASS_$_NSOperationQueue)
+00023540  bl       #0x29d40                                    ; objc_msgSend$mainQueue
+00023544  mov      x29, x29                                    
+00023548  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002354c  mov      x21, x0                                     
+00023550  adrp     x5, #0x38000                                
+00023554  add      x5, x5, #0xdd8                              ; __const[0x38dd8] double=-4.4501477170146e-308 float=2.802596928649634e-43
+00023558  mov      x0, x19                                     
+0002355c  mov      x2, x20                                     
+00023560  mov      x3, #0                                      
+00023564  mov      x4, x21                                     
+00023568  bl       #0x28480                                    ; objc_msgSend$addObserverForName:object:queue:usingBlock:
+0002356c  mov      x29, x29                                    
+00023570  bl       #0x28070                                    ; _objc_unsafeClaimAutoreleasedReturnValue
+00023574  mov      x0, x21                                     
+00023578  bl       #0x27ff8                                    ; _objc_release
+0002357c  mov      x0, x19                                     
+00023580  bl       #0x27ff8                                    ; _objc_release
+00023584  bl       #0x24178                                    ; sub_24178
+00023588  ldr      x0, [sp, #0x40]                             
+0002358c  bl       #0x27ff8                                    ; _objc_release
+00023590  mov      x0, x27                                     
+00023594  bl       #0x27ff8                                    ; _objc_release
+00023598  ldr      x0, [sp, #0x38]                             
+0002359c  bl       #0x27ff8                                    ; _objc_release
+000235a0  ldr      x0, [sp, #0x48]                             
+000235a4  bl       #0x27ff8                                    ; _objc_release
+000235a8  adrp     x22, #0x42000                               
+000235ac  adrp     x20, #0x43000                               
+000235b0  ldr      x19, [x20, #0x68]                           ; [0x43068] classref -> NSMutableDictionary (= import _OBJC_CLASS_$_NSMutableDictionary)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+000235b4  bl       #0x23954                                    ; sub_23954
+000235b8  mov      x29, x29                                    
+000235bc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000235c0  mov      x23, x20                                    
+000235c4  mov      x20, x0                                     
+000235c8  mov      x0, x19                                     
+000235cc  mov      x2, x20                                     
+000235d0  bl       #0x29220                                    ; objc_msgSend$dictionaryWithContentsOfFile:
+000235d4  mov      x29, x29                                    
+000235d8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000235dc  mov      x21, x0                                     
+000235e0  cbz      x0, #0x235f4                                
+000235e4  mov      x0, x21                                     
+000235e8  bl       #0x28004                                    ; _objc_retain
+000235ec  mov      x19, x21                                    
+000235f0  b        #0x23608                                    ; sub_23608
+000235f4  ldr      x0, [x23, #0x68]                            ; [0x42068] selref -> @getRed:green:blue:alpha:
+000235f8  bl       #0x29200                                    ; objc_msgSend$dictionary
+000235fc  mov      x29, x29                                    
+00023600  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023604  mov      x19, x0                                     
+00023608  mov      x0, x21                                     
+0002360c  bl       #0x27ff8                                    ; _objc_release
+00023610  mov      x0, x20                                     
+00023614  bl       #0x27ff8                                    ; _objc_release
+00023618  adrp     x2, #0x3b000                                
+0002361c  add      x2, x2, #0x8f8                              ; @"features"
+00023620  mov      x0, x19                                     
+00023624  bl       #0x2a140                                    ; objc_msgSend$objectForKeyedSubscript:
+00023628  mov      x29, x29                                    
+0002362c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023630  mov      x21, x0                                     
+00023634  cmp      x0, #0                                      
+00023638  adrp     x8, #0x38000                                
+0002363c  ldr      x8, [x8, #0x1d0]                            ; [0x381d0] __DATA_CONST,__got+0x1d0 (= import ___NSArray0__struct)
+00023640  csel     x20, x8, x0, eq                             
+00023644  mov      x0, x20                                     
+00023648  bl       #0x28004                                    ; _objc_retain
+0002364c  mov      x0, x21                                     
+00023650  bl       #0x27ff8                                    ; _objc_release
+00023654  mov      x0, x20                                     
+00023658  mov      x2, x26                                     
+0002365c  bl       #0x28ee0                                    ; objc_msgSend$containsObject:
+00023660  tbnz     w0, #0, #0x236c0                            
+00023664  mov      x0, x20                                     
+00023668  mov      x2, x26                                     
+0002366c  bl       #0x28840                                    ; objc_msgSend$arrayByAddingObject:
+00023670  mov      x29, x29                                    
+00023674  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023678  mov      x21, x0                                     
+0002367c  adrp     x3, #0x3b000                                
+00023680  add      x3, x3, #0x8f8                              ; @"features"
+00023684  mov      x0, x19                                     
+00023688  mov      x2, x21                                     
+0002368c  bl       #0x2b4e0                                    ; objc_msgSend$setObject:forKeyedSubscript:
+00023690  mov      x0, x21                                     
+00023694  bl       #0x27ff8                                    ; _objc_release
+00023698  bl       #0x23954                                    ; sub_23954
+0002369c  mov      x29, x29                                    
+000236a0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000236a4  mov      x21, x0                                     
+000236a8  mov      x0, x19                                     
+000236ac  mov      x2, x21                                     
+000236b0  mov      w3, #1                                      
+000236b4  bl       #0x2c9e0                                    ; objc_msgSend$writeToFile:atomically:
+000236b8  mov      x0, x21                                     
+000236bc  bl       #0x27ff8                                    ; _objc_release
+000236c0  adrp     x0, #0x3b000                                
+000236c4  add      x0, x0, #0x138                              ; @"com.anlai.omnicar"
+000236c8  bl       #0x27adc                                    ; _CFPreferencesAppSynchronize
+000236cc  adrp     x0, #0x3b000                                
+000236d0  add      x0, x0, #0x918                              ; @"rescueFeatures"
+000236d4  mov      x1, #0                                      
+000236d8  bl       #0x20eac                                    ; _OMCPref
+000236dc  mov      x29, x29                                    
+000236e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000236e4  mov      x21, x0                                     
+000236e8  ldr      x0, [x22, #0xf80]                           ; [0x42f80] classref -> NSArray (= import _OBJC_CLASS_$_NSArray)
+000236ec  bl       #0x27fbc                                    ; _objc_opt_class
+000236f0  mov      x1, x0                                      
+000236f4  mov      x0, x21                                     
+000236f8  bl       #0x27fc8                                    ; _objc_opt_isKindOfClass
+000236fc  tbz      w0, #0, #0x237bc                            
+00023700  mov      x0, x21                                     
+00023704  mov      x2, x26                                     
+00023708  bl       #0x28ee0                                    ; objc_msgSend$containsObject:
+0002370c  cbz      w0, #0x237bc                                
+00023710  adrp     x2, #0x3b000                                
+00023714  add      x2, x2, #0x3f8                              ; @"Enabled"
+00023718  mov      x0, x26                                     
+0002371c  bl       #0x2c240                                    ; objc_msgSend$stringByAppendingString:
+00023720  mov      x29, x29                                    
+00023724  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023728  mov      x23, x0                                     
+0002372c  adrp     x1, #0x38000                                
+00023730  ldr      x1, [x1, #0x1e8]                            ; [0x381e8] __DATA_CONST,__got+0x1e8 (= import ___kCFBooleanTrue)
+00023734  bl       #0x20eac                                    ; _OMCPref
+00023738  mov      x29, x29                                    
+0002373c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023740  mov      x24, x0                                     
+00023744  bl       #0x28a60                                    ; objc_msgSend$boolValue
+00023748  mov      x22, x0                                     
+0002374c  mov      x0, x24                                     
+00023750  bl       #0x27ff8                                    ; _objc_release
+00023754  mov      x0, x23                                     
+00023758  bl       #0x27ff8                                    ; _objc_release
+0002375c  tbz      w22, #0, #0x237c4                           
+00023760  mov      x0, x21                                     
+00023764  bl       #0x29f20                                    ; objc_msgSend$mutableCopy
+00023768  mov      x23, x0                                     
+0002376c  mov      x2, x26                                     
+00023770  bl       #0x2a600                                    ; objc_msgSend$removeObject:
+00023774  mov      x0, x23                                     
+00023778  bl       #0x29000                                    ; objc_msgSend$count
+0002377c  cmp      x0, #0                                      
+00023780  csel     x1, xzr, x23, eq                            
+00023784  adrp     x0, #0x3b000                                
+00023788  add      x0, x0, #0x918                              ; @"rescueFeatures"
+0002378c  adrp     x24, #0x3b000                               
+00023790  add      x24, x24, #0x138                            ; @"com.anlai.omnicar"
+00023794  mov      x2, x24                                     
+00023798  bl       #0x27af4                                    ; _CFPreferencesSetAppValue
+0002379c  mov      x0, x24                                     
+000237a0  bl       #0x27adc                                    ; _CFPreferencesAppSynchronize
+000237a4  adrp     x8, #0x42000                                
+000237a8  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000237ac  str      x26, [sp]                                   
+000237b0  adrp     x2, #0x3b000                                
+000237b4  add      x2, x2, #0x978                              ; @"%@ bat lai sau che do cuu"
+000237b8  b        #0x237f8                                    ; sub_237f8
+000237bc  mov      w22, #1                                     
+000237c0  b        #0x23828                                    ; sub_23828
+000237c4  adrp     x8, #0x42000                                
+000237c8  ldr      x24, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000237cc  adrp     x0, #0x3b000                                
+000237d0  add      x0, x0, #0x958                              ; @"rescueDate"
+000237d4  mov      x1, #0                                      
+000237d8  bl       #0x20eac                                    ; _OMCPref
+000237dc  mov      x29, x29                                    
+000237e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000237e4  mov      x23, x0                                     
+000237e8  stp      x26, x0, [sp]                               
+000237ec  adrp     x2, #0x3b000                                
+000237f0  add      x2, x2, #0x938                              ; @"%@ dang tat boi che do cuu (tu %@): khong cai hook trong CarPlay"
+000237f4  mov      x0, x24                                     
+000237f8  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000237fc  mov      x29, x29                                    
+00023800  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023804  mov      x24, x0                                     
+00023808  adrp     x0, #0x3b000                                
+0002380c  add      x0, x0, #0x8b8                              ; @"Core"
+00023810  mov      x1, x24                                     
+00023814  bl       #0x2155c                                    ; _OMCLogWrite
+00023818  mov      x0, x24                                     
+0002381c  bl       #0x27ff8                                    ; _objc_release
+00023820  mov      x0, x23                                     
+00023824  bl       #0x27ff8                                    ; _objc_release
+00023828  mov      x0, x21                                     
+0002382c  bl       #0x27ff8                                    ; _objc_release
+00023830  mov      x0, x20                                     
+00023834  bl       #0x27ff8                                    ; _objc_release
+00023838  mov      x0, x19                                     
+0002383c  bl       #0x27ff8                                    ; _objc_release
+00023840  mov      x0, x26                                     
+00023844  bl       #0x27ff8                                    ; _objc_release
+00023848  ldur     x8, [x29, #-0x60]                           
+0002384c  adrp     x9, #0x38000                                
+00023850  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00023854  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00023858  cmp      x9, x8                                      
+0002385c  b.ne     #0x2390c                                    
+00023860  mov      x0, x22                                     
+00023864  add      sp, sp, #0x480                              
+00023868  ldp      x29, x30, [sp, #0x50]                       
+0002386c  ldp      x20, x19, [sp, #0x40]                       
+00023870  ldp      x22, x21, [sp, #0x30]                       
+00023874  ldp      x24, x23, [sp, #0x20]                       
+00023878  ldp      x26, x25, [sp, #0x10]                       
+0002387c  ldp      x28, x27, [sp], #0x60                       
+00023880  ret                                                  
+00023884  add      x19, x8, #1                                 ; __DATA,__objc_selrefs+0x4c9
+00023888  cbz      x19, #0x233e4                               
+0002388c  adrp     x8, #0x42000                                
+00023890  ldr      x20, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00023894  adrp     x2, #0x3b000                                
+00023898  add      x2, x2, #0x758                              ; @", "
+0002389c  mov      x0, x27                                     
+000238a0  bl       #0x28e40                                    ; objc_msgSend$componentsJoinedByString:
+000238a4  mov      x29, x29                                    
+000238a8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000238ac  mov      x21, x0                                     
+000238b0  mov      w8, #2                                      
+000238b4  stp      x8, x0, [sp, #8]                            
+000238b8  str      x19, [sp]                                   
+000238bc  adrp     x2, #0x3b000                                
+000238c0  add      x2, x2, #0xc78                              ; @"CarPlay sap som %ld/%d lan lien (nghi: %@)"
+000238c4  mov      x0, x20                                     
+000238c8  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000238cc  mov      x29, x29                                    
+000238d0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000238d4  mov      x20, x0                                     
+000238d8  adrp     x0, #0x3b000                                
+000238dc  add      x0, x0, #0x8b8                              ; @"Core"
+000238e0  mov      x1, x20                                     
+000238e4  bl       #0x2155c                                    ; _OMCLogWrite
+000238e8  mov      x0, x20                                     
+000238ec  adrp     x20, #0x42000                               
+000238f0  bl       #0x27ff8                                    ; _objc_release
+000238f4  mov      x0, x21                                     
+000238f8  ldr      x21, [sp, #0x38]                            
+000238fc  bl       #0x27ff8                                    ; _objc_release
+00023900  b        #0x233e4                                    ; sub_233e4
+00023904  bl       #0x27a58                                    ; sub_27a58
+00023908  b        #0x227c4                                    ; sub_227c4
+0002390c  bl       #0x27ca4                                    ; ___stack_chk_fail

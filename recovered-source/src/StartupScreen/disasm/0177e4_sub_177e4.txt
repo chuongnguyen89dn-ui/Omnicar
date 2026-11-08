@@ -1,0 +1,37 @@
+; sub_177e4
+; VA 0x177e4  size 136
+
+0x000177e4:  str      d0, [sp, #0x58]
+0x000177e8:  adrp     x9, #0x28000
+0x000177ec:  ldr      d15, [x9, #0xe60]
+0x000177f0:  adrp     x9, #0x28000
+0x000177f4:  ldr      d10, [x9, #0xe70]
+0x000177f8:  ldr      x8, [x8]
+0x000177fc:  str      x8, [sp, #0x50]
+0x00017800:  tst      w28, #1
+0x00017804:  ldp      d2, d0, [sp, #0x78]
+0x00017808:  fcsel    d0, d0, d9, ne
+0x0001780c:  cmp      x28, #2
+0x00017810:  ccmp     x27, #3, #0, eq
+0x00017814:  lsr      x8, x28, #1
+0x00017818:  mov      w9, #0xf0
+0x0001781c:  mov      x10, #0x46
+0x00017820:  madd     x8, x8, x9, x10
+0x00017824:  ucvtf    d1, x8
+0x00017828:  fcsel    d12, d2, d0, eq
+0x0001782c:  cmp      x27, #2
+0x00017830:  ldr      d0, [sp, #0x70]
+0x00017834:  fcsel    d14, d0, d1, eq
+0x00017838:  adrp     x8, #0x3a000
+0x0001783c:  ldr      x0, [x8, #0xa10]    ; class(UIView)
+0x00017840:  bl       #0x22024    ; -> _objc_alloc
+0x00017844:  ldr      d0, [x19, x21]
+0x00017848:  ldr      d1, [sp, #0x108]
+0x0001784c:  fmadd    d0, d12, d1, d0
+0x00017850:  ldr      d1, [x19, x20]
+0x00017854:  ldr      d2, [sp, #0x108]
+0x00017858:  fmadd    d1, d14, d2, d1
+0x0001785c:  ldp      d3, d2, [sp, #0xe8]
+0x00017860:  bl       #0x23780    ; -> _objc_msgSend(initWithFrame:)
+0x00017864:  mov      x26, x0
+0x00017868:  ldr      x0, [x22, #0x9d8]

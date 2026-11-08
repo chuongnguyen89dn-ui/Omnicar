@@ -1,0 +1,48 @@
+; -[SSStartupView initWithFrame:]
+; VA 0xc630  size 180
+
+0x0000c630:  sub      sp, sp, #0x40
+0x0000c634:  stp      x22, x21, [sp, #0x10]
+0x0000c638:  stp      x20, x19, [sp, #0x20]
+0x0000c63c:  stp      x29, x30, [sp, #0x30]
+0x0000c640:  add      x29, sp, #0x30
+0x0000c644:  adrp     x8, #0x3a000
+0x0000c648:  ldr      x8, [x8, #0xc00]
+0x0000c64c:  stp      x0, x8, [sp]
+0x0000c650:  adrp     x8, #0x39000
+0x0000c654:  ldr      x1, [x8, #0xda8]    ; selref(initWithFrame:)
+0x0000c658:  mov      x0, sp
+0x0000c65c:  bl       #0x220d8    ; -> _objc_msgSendSuper2
+0x0000c660:  mov      x19, x0
+0x0000c664:  cbz      x0, #0xc6cc
+0x0000c668:  mov      w21, #1
+0x0000c66c:  mov      x0, x19
+0x0000c670:  mov      w2, #1
+0x0000c674:  bl       #0x24640    ; -> _objc_msgSend(setClipsToBounds:)
+0x0000c678:  adrp     x8, #0x3a000
+0x0000c67c:  ldr      x0, [x8, #0x9d8]    ; class(UIColor)
+0x0000c680:  bl       #0x22860    ; -> _objc_msgSend(blackColor)
+0x0000c684:  mov      x29, x29
+0x0000c688:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000c68c:  mov      x20, x0
+0x0000c690:  mov      x0, x19
+0x0000c694:  mov      x2, x20
+0x0000c698:  bl       #0x24500    ; -> _objc_msgSend(setBackgroundColor:)
+0x0000c69c:  mov      x0, x20
+0x0000c6a0:  bl       #0x22120    ; -> _objc_release
+0x0000c6a4:  adrp     x8, #0x3a000
+0x0000c6a8:  ldrsw    x8, [x8, #0xca8]
+0x0000c6ac:  mov      x9, #-1
+0x0000c6b0:  str      x9, [x19, x8]
+0x0000c6b4:  adrp     x8, #0x3a000
+0x0000c6b8:  ldrsw    x8, [x8, #0xcac]
+0x0000c6bc:  str      x21, [x19, x8]
+0x0000c6c0:  adrp     x8, #0x3a000
+0x0000c6c4:  ldrsw    x8, [x8, #0xcb0]
+0x0000c6c8:  str      x9, [x19, x8]
+0x0000c6cc:  mov      x0, x19
+0x0000c6d0:  ldp      x29, x30, [sp, #0x30]
+0x0000c6d4:  ldp      x20, x19, [sp, #0x20]
+0x0000c6d8:  ldp      x22, x21, [sp, #0x10]
+0x0000c6dc:  add      sp, sp, #0x40
+0x0000c6e0:  ret      

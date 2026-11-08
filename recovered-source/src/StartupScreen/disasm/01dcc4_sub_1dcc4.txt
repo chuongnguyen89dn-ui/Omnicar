@@ -1,0 +1,15 @@
+; sub_1dcc4
+; VA 0x1dcc4  size 48
+
+0x0001dcc4:  stp      x29, x30, [sp, #-0x10]!
+0x0001dcc8:  mov      x29, sp
+0x0001dccc:  adrp     x0, #0x28000
+0x0001dcd0:  add      x0, x0, #0x650    ; "com.anlai.omnicar.log"
+0x0001dcd4:  mov      x1, #0
+0x0001dcd8:  bl       #0x21eb0    ; -> _dispatch_queue_create
+0x0001dcdc:  adrp     x9, #0x3b000
+0x0001dce0:  ldr      x8, [x9, #0x230]
+0x0001dce4:  str      x0, [x9, #0x230]
+0x0001dce8:  mov      x0, x8
+0x0001dcec:  ldp      x29, x30, [sp], #0x10
+0x0001dcf0:  b        #0x22120    ; -> _objc_release

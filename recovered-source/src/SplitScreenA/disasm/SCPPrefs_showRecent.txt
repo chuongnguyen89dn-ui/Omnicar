@@ -1,0 +1,27 @@
+; +[SCPPrefs showRecent]
+0x04ddf8  stp      x20, x19, [sp, #-0x20]!
+0x04ddfc  stp      x29, x30, [sp, #0x10]
+0x04de00  add      x29, sp, #0x10
+0x04de04  adrp     x0, #0x7e000
+0x04de08  add      x0, x0, #0x500 ; -> 0x7e500 @"splitScreenShowRecent"
+0x04de0c  bl       #0x4dab8 ; -> sub_4dab8
+0x04de10  mov      x29, x29
+0x04de14  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04de18  mov      x19, x0
+0x04de1c  cbz      x0, #0x4de30
+0x04de20  mov      x0, x19
+0x04de24  bl       #0x572e0 ; objc_msgSend$boolValue
+0x04de28  mov      x20, x0
+0x04de2c  b        #0x4de34
+0x04de30  mov      w20, #1
+0x04de34  mov      x0, x19
+0x04de38  bl       #0x567b8 ; call _objc_release
+0x04de3c  mov      x0, x20
+0x04de40  ldp      x29, x30, [sp, #0x10]
+0x04de44  ldp      x20, x19, [sp], #0x20
+0x04de48  ret      
+0x04de4c  mov      x20, x0
+0x04de50  mov      x0, x19
+0x04de54  bl       #0x567b8 ; call _objc_release
+0x04de58  mov      x0, x20
+0x04de5c  bl       #0x563e0 ; call __Unwind_Resume

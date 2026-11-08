@@ -1,0 +1,13 @@
+; -[SCPCarPane setVc:]
+0x00f8f0  stp      x20, x19, [sp, #-0x20]!
+0x00f8f4  stp      x29, x30, [sp, #0x10]
+0x00f8f8  add      x29, sp, #0x10
+0x00f8fc  mov      x19, x2
+0x00f900  mov      x20, x0
+0x00f904  mov      x0, x2
+0x00f908  bl       #0x567c4 ; call _objc_retain
+0x00f90c  ldr      x0, [x20, #0x18]
+0x00f910  str      x19, [x20, #0x18]
+0x00f914  ldp      x29, x30, [sp, #0x10]
+0x00f918  ldp      x20, x19, [sp], #0x20
+0x00f91c  b        #0x567b8 ; call _objc_release

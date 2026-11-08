@@ -1,0 +1,66 @@
+; __init_2 (0x843c)
+0x00843c  stp      x22, x21, [sp, #-0x30]!
+0x008440  stp      x20, x19, [sp, #0x10]
+0x008444  stp      x29, x30, [sp, #0x20]
+0x008448  add      x29, sp, #0x20
+0x00844c  adrp     x8, #0x87000
+0x008450  ldr      x0, [x8, #0x670] ; [0x87670] class:NSBundle
+0x008454  bl       #0x591c0 ; objc_msgSend$mainBundle
+0x008458  mov      x29, x29
+0x00845c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008460  mov      x19, x0
+0x008464  bl       #0x57440 ; objc_msgSend$bundleIdentifier
+0x008468  mov      x29, x29
+0x00846c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x008470  mov      x20, x0
+0x008474  adrp     x2, #0x79000
+0x008478  add      x2, x2, #0xfe0 ; -> 0x79fe0 @"com.apple.springboard"
+0x00847c  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x008480  mov      x21, x0
+0x008484  mov      x0, x20
+0x008488  bl       #0x567b8 ; call _objc_release
+0x00848c  mov      x0, x19
+0x008490  bl       #0x567b8 ; call _objc_release
+0x008494  tbz      w21, #0, #0x8504
+0x008498  adrp     x8, #0x87000
+0x00849c  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x0084a0  adrp     x2, #0x7a000
+0x0084a4  add      x2, x2, #0 ; -> 0x7a000 @"loaded into SpringBoard"
+0x0084a8  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x0084ac  mov      x29, x29
+0x0084b0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0084b4  mov      x19, x0
+0x0084b8  adrp     x0, #0x79000
+0x0084bc  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x0084c0  mov      x1, x19
+0x0084c4  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x0084c8  mov      x0, x19
+0x0084cc  bl       #0x567b8 ; call _objc_release
+0x0084d0  adrp     x0, #0x5f000
+0x0084d4  add      x0, x0, #0x3fd ; -> 0x5f3fd "SpringBoard"
+0x0084d8  bl       #0x56734 ; call _objc_getClass
+0x0084dc  adrp     x8, #0x85000
+0x0084e0  ldr      x1, [x8, #0xb18] ; [0x85b18] sel:applicationDidFinishLaunching:
+0x0084e4  adrp     x2, #0x8000
+0x0084e8  add      x2, x2, #0x540 ; -> 0x8540 sub_8540
+0x0084ec  adrp     x3, #0x88000
+0x0084f0  add      x3, x3, #0xb0 ; -> 0x880b0
+0x0084f4  ldp      x29, x30, [sp, #0x20]
+0x0084f8  ldp      x20, x19, [sp, #0x10]
+0x0084fc  ldp      x22, x21, [sp], #0x30
+0x008500  b        #0x56344 ; call _MSHookMessageEx
+0x008504  ldp      x29, x30, [sp, #0x20]
+0x008508  ldp      x20, x19, [sp, #0x10]
+0x00850c  ldp      x22, x21, [sp], #0x30
+0x008510  ret      
+0x008514  b        #0x852c
+0x008518  mov      x1, x20
+0x00851c  mov      x20, x0
+0x008520  mov      x0, x1
+0x008524  bl       #0x567b8 ; call _objc_release
+0x008528  b        #0x8530
+0x00852c  mov      x20, x0
+0x008530  mov      x0, x19
+0x008534  bl       #0x567b8 ; call _objc_release
+0x008538  mov      x0, x20
+0x00853c  bl       #0x563e0 ; call __Unwind_Resume

@@ -1,0 +1,45 @@
+; ==== -[SCPCarSplit activateWithLayout:]  @0x15c2c..0x15cdc (176 bytes) ====
+00015c2c  stp      x20, x19, [sp, #-0x20]!                      
+00015c30  stp      x29, x30, [sp, #0x10]                        
+00015c34  add      x29, sp, #0x10                               
+00015c38  mov      x20, x2                                      
+00015c3c  mov      x19, x0                                      
+00015c40  bl       #0x56b60                                     ; msgSend "active"
+00015c44  cbz      w0, #0x15c58                                 
+00015c48  mov      x0, x19                                      
+00015c4c  mov      x2, x20                                      
+00015c50  bl       #0x5c580                                     ; msgSend "switchToLayout:"
+00015c54  b        #0x15ccc                                     
+00015c58  and      w8, w20, #0xfffffffe                         
+00015c5c  cmp      w8, #2                                       
+00015c60  mov      w8, #2                                       
+00015c64  csel     w8, w20, w8, eq                              
+00015c68  cmp      w20, #0x1f                                   
+00015c6c  ccmp     w20, #0xd, #4, ne                            
+00015c70  mov      w9, #3                                       
+00015c74  csel     w2, w9, w8, eq                               
+00015c78  mov      x0, x19                                      
+00015c7c  bl       #0x56b20                                     ; msgSend "activateWithCount:"
+00015c80  cbz      w0, #0x15cd0                                 
+00015c84  cmp      w20, #0x1f                                   
+00015c88  b.eq     #0x15c94                                     
+00015c8c  cmp      w20, #0xd                                    
+00015c90  b.ne     #0x15ccc                                     
+00015c94  cmp      w20, #0x1f                                   
+00015c98  mov      w8, #2                                       
+00015c9c  csel     x8, x8, xzr, eq                              
+00015ca0  cmp      w20, #0xd                                    
+00015ca4  csinc    x2, x8, xzr, ne                              
+00015ca8  mov      x0, x19                                      
+00015cac  bl       #0x5b1a0                                     ; msgSend "setLayoutKind:"
+00015cb0  mov      x0, x19                                      
+00015cb4  bl       #0x5a460                                     ; msgSend "resetFractions"
+00015cb8  mov      x0, x19                                      
+00015cbc  bl       #0x5a020                                     ; msgSend "rebuildDividers"
+00015cc0  mov      x0, x19                                      
+00015cc4  mov      w2, #0                                       
+00015cc8  bl       #0x5a160                                     ; msgSend "relayoutAnimated:"
+00015ccc  mov      w0, #1                                       
+00015cd0  ldp      x29, x30, [sp, #0x10]                        
+00015cd4  ldp      x20, x19, [sp], #0x20                        
+00015cd8  ret                                                   

@@ -1,0 +1,44 @@
+; ==== BLOCK_ensureFloatPane_anim  @0x1f4f8..0x1f5a4 (172 bytes) ====
+0001f4f8  sub      sp, sp, #0x60                                
+0001f4fc  stp      x22, x21, [sp, #0x30]                        
+0001f500  stp      x20, x19, [sp, #0x40]                        
+0001f504  stp      x29, x30, [sp, #0x50]                        
+0001f508  add      x29, sp, #0x50                               
+0001f50c  mov      x19, x0                                      
+0001f510  ldr      x0, [x0, #0x20]                              
+0001f514  bl       #0x5cb60                                     ; msgSend "view"
+0001f518  mov      x29, x29                                     
+0001f51c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001f520  mov      x20, x0                                      
+0001f524  fmov     d0, #1.00000000                              
+0001f528  bl       #0x5a7c0                                     ; msgSend "setAlpha:"
+0001f52c  mov      x0, x20                                      
+0001f530  bl       #0x567b8                                     ; call _objc_release
+0001f534  adrp     x8, #0x78000                                 
+0001f538  ldr      x8, [x8, #0x598]                             
+0001f53c  ldp      q0, q1, [x8]                                 
+0001f540  stp      q0, q1, [sp]                                 
+0001f544  ldr      q0, [x8, #0x20]                              
+0001f548  str      q0, [sp, #0x20]                              
+0001f54c  ldr      x0, [x19, #0x20]                             
+0001f550  bl       #0x5cb60                                     ; msgSend "view"
+0001f554  mov      x29, x29                                     
+0001f558  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001f55c  mov      x19, x0                                      
+0001f560  mov      x2, sp                                       
+0001f564  bl       #0x5bc60                                     ; msgSend "setTransform:"
+0001f568  mov      x0, x19                                      
+0001f56c  bl       #0x567b8                                     ; call _objc_release
+0001f570  ldp      x29, x30, [sp, #0x50]                        
+0001f574  ldp      x20, x19, [sp, #0x40]                        
+0001f578  ldp      x22, x21, [sp, #0x30]                        
+0001f57c  add      sp, sp, #0x60                                
+0001f580  ret                                                   
+0001f584  mov      x21, x0                                      
+0001f588  mov      x0, x19                                      
+0001f58c  b        #0x1f598                                     
+0001f590  mov      x21, x0                                      
+0001f594  mov      x0, x20                                      
+0001f598  bl       #0x567b8                                     ; call _objc_release
+0001f59c  mov      x0, x21                                      
+0001f5a0  bl       #0x563e0                                     ; call __Unwind_Resume

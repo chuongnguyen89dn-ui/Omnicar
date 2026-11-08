@@ -1,0 +1,48 @@
+00012658  stp      x20, x19, [sp, #-0x20]!                      
+0001265c  stp      x29, x30, [sp, #0x10]                        
+00012660  add      x29, sp, #0x10                               
+00012664  bl       #0xe5b4                                      
+00012668  mov      x29, x29                                     
+0001266c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00012670  mov      x19, x0                                      
+00012674  cbz      x0, #0x126bc                                 
+00012678  mov      x0, x19                                      
+0001267c  bl       #0x567c4                                     ; call _objc_retain
+00012680  adrp     x0, #0x7d000                                 
+00012684  add      x0, x0, #0xa80                               
+00012688  bl       #0x56374                                     ; call _NSSelectorFromString
+0001268c  mov      x20, x0                                      
+00012690  mov      x0, x19                                      
+00012694  mov      x1, x20                                      
+00012698  bl       #0x567a0                                     ; call _objc_opt_respondsToSelector
+0001269c  tbz      w0, #0, #0x126c4                             
+000126a0  mov      x0, x19                                      
+000126a4  mov      x1, x20                                      
+000126a8  bl       #0x56758                                     ; call _objc_msgSend
+000126ac  mov      x29, x29                                     
+000126b0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000126b4  mov      x20, x0                                      
+000126b8  b        #0x126d8                                     
+000126bc  mov      x20, #0                                      
+000126c0  b        #0x126e0                                     
+000126c4  adrp     x1, #0x7d000                                 
+000126c8  add      x1, x1, #0xa80                               
+000126cc  mov      x0, x19                                      
+000126d0  bl       #0x4f330                                     
+000126d4  mov      x20, #0                                      
+000126d8  mov      x0, x19                                      
+000126dc  bl       #0x567b8                                     ; call _objc_release
+000126e0  mov      x0, x19                                      
+000126e4  bl       #0x567b8                                     ; call _objc_release
+000126e8  mov      x0, x20                                      
+000126ec  ldp      x29, x30, [sp, #0x10]                        
+000126f0  ldp      x20, x19, [sp], #0x20                        
+000126f4  b        #0x566e0                                     ; call _objc_autoreleaseReturnValue | tail _objc_autoreleaseReturnValue
+000126f8  b        #0x126fc                                     
+000126fc  mov      x20, x0                                      
+00012700  mov      x0, x19                                      
+00012704  bl       #0x567b8                                     ; call _objc_release
+00012708  mov      x0, x19                                      
+0001270c  bl       #0x567b8                                     ; call _objc_release
+00012710  mov      x0, x20                                      
+00012714  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,105 @@
+; _SCPIconHiddenOnCar
+0x00b5ec  stp      x22, x21, [sp, #-0x30]!
+0x00b5f0  stp      x20, x19, [sp, #0x10]
+0x00b5f4  stp      x29, x30, [sp, #0x20]
+0x00b5f8  add      x29, sp, #0x20
+0x00b5fc  mov      x19, x0
+0x00b600  bl       #0x567c4 ; call _objc_retain
+0x00b604  bl       #0xb78c ; -> sub_b78c
+0x00b608  mov      x29, x29
+0x00b60c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00b610  mov      x20, x0
+0x00b614  bl       #0x579e0 ; objc_msgSend$count
+0x00b618  mov      w22, #0
+0x00b61c  cbz      x19, #0xb71c
+0x00b620  cbz      x0, #0xb71c
+0x00b624  mov      x0, x19
+0x00b628  bl       #0xb82c ; -> sub_b82c
+0x00b62c  mov      x29, x29
+0x00b630  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00b634  mov      x21, x0
+0x00b638  cbz      x0, #0xb710
+0x00b63c  mov      x0, x20
+0x00b640  mov      x2, x21
+0x00b644  bl       #0x57820 ; objc_msgSend$containsObject:
+0x00b648  cbz      w0, #0xb710
+0x00b64c  mov      x0, x21
+0x00b650  bl       #0x567c4 ; call _objc_retain
+0x00b654  adrp     x8, #0x87000
+0x00b658  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x00b65c  bl       #0x5677c ; call _objc_opt_class
+0x00b660  mov      x1, x0
+0x00b664  mov      x0, x21
+0x00b668  bl       #0x56788 ; call _objc_opt_isKindOfClass
+0x00b66c  tbz      w0, #0, #0xb6b0
+0x00b670  mov      x0, x21
+0x00b674  bl       #0x590c0 ; objc_msgSend$length
+0x00b678  cbz      x0, #0xb6b0
+0x00b67c  adrp     x0, #0x80000
+0x00b680  add      x0, x0, #0x380 ; -> 0x80380
+0x00b684  mov      x2, x21
+0x00b688  bl       #0x57820 ; objc_msgSend$containsObject:
+0x00b68c  tbnz     w0, #0, #0xb6a4
+0x00b690  adrp     x2, #0x7a000
+0x00b694  add      x2, x2, #0xd40 ; -> 0x7ad40 @"com.apple.CarPlay"
+0x00b698  mov      x0, x21
+0x00b69c  bl       #0x58400 ; objc_msgSend$hasPrefix:
+0x00b6a0  tbz      w0, #0, #0xb6e8
+0x00b6a4  mov      x0, x21
+0x00b6a8  bl       #0x567b8 ; call _objc_release
+0x00b6ac  b        #0xb710
+0x00b6b0  mov      x0, x21
+0x00b6b4  bl       #0x567b8 ; call _objc_release
+0x00b6b8  mov      x0, x21
+0x00b6bc  bl       #0x9980 ; -> _SCPIsInjectedPhoneApp
+0x00b6c0  tbnz     w0, #0, #0xb710
+0x00b6c4  mov      x0, x21
+0x00b6c8  bl       #0xb310 ; -> sub_b310
+0x00b6cc  tbz      w0, #0, #0xb710
+0x00b6d0  adrp     x0, #0x7a000
+0x00b6d4  add      x0, x0, #0x720 ; -> 0x7a720 @"an khoi man chinh (isIconVisible: NO):"
+0x00b6d8  mov      x1, x21
+0x00b6dc  bl       #0xb9ac ; -> sub_b9ac
+0x00b6e0  mov      w22, #1
+0x00b6e4  b        #0xb714
+0x00b6e8  adrp     x2, #0x7a000
+0x00b6ec  add      x2, x2, #0xd60 ; -> 0x7ad60 @"NowPlaying"
+0x00b6f0  mov      x0, x21
+0x00b6f4  bl       #0x59ec0 ; objc_msgSend$rangeOfString:
+0x00b6f8  mov      x22, x0
+0x00b6fc  mov      x0, x21
+0x00b700  bl       #0x567b8 ; call _objc_release
+0x00b704  mov      x8, #0x7fffffffffffffff
+0x00b708  cmp      x22, x8
+0x00b70c  b.eq     #0xb6b8
+0x00b710  mov      w22, #0
+0x00b714  mov      x0, x21
+0x00b718  bl       #0x567b8 ; call _objc_release
+0x00b71c  mov      x0, x20
+0x00b720  bl       #0x567b8 ; call _objc_release
+0x00b724  mov      x0, x19
+0x00b728  bl       #0x567b8 ; call _objc_release
+0x00b72c  mov      x0, x22
+0x00b730  ldp      x29, x30, [sp, #0x20]
+0x00b734  ldp      x20, x19, [sp, #0x10]
+0x00b738  ldp      x22, x21, [sp], #0x30
+0x00b73c  ret      
+0x00b740  b        #0xb744
+0x00b744  mov      x22, x0
+0x00b748  mov      x0, x21
+0x00b74c  bl       #0x567b8 ; call _objc_release
+0x00b750  b        #0xb75c
+0x00b754  b        #0xb768
+0x00b758  mov      x22, x0
+0x00b75c  mov      x0, x21
+0x00b760  bl       #0x567b8 ; call _objc_release
+0x00b764  b        #0xb76c
+0x00b768  mov      x22, x0
+0x00b76c  mov      x0, x20
+0x00b770  bl       #0x567b8 ; call _objc_release
+0x00b774  b        #0xb77c
+0x00b778  mov      x22, x0
+0x00b77c  mov      x0, x19
+0x00b780  bl       #0x567b8 ; call _objc_release
+0x00b784  mov      x0, x22
+0x00b788  bl       #0x563e0 ; call __Unwind_Resume

@@ -1,0 +1,29 @@
+; sub_16f70
+; VA 0x16f70  size 104
+
+0x00016f70:  bl       #0x22120    ; -> _objc_release
+0x00016f74:  mov      x0, x23
+0x00016f78:  bl       #0x22120    ; -> _objc_release
+0x00016f7c:  adrp     x2, #0x32000
+0x00016f80:  add      x2, x2, #0x488    ; @"rain"
+0x00016f84:  mov      x0, x28
+0x00016f88:  bl       #0x23ea0    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x00016f8c:  mov      x29, x29
+0x00016f90:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016f94:  mov      x21, x0
+0x00016f98:  bl       #0x22120    ; -> _objc_release
+0x00016f9c:  adrp     x19, #0x3a000
+0x00016fa0:  adrp     x27, #0x3a000
+0x00016fa4:  cbz      x21, #0x1702c
+0x00016fa8:  ldr      x21, [x27, #0x9c0]    ; class(NSString)
+0x00016fac:  adrp     x0, #0x32000
+0x00016fb0:  add      x0, x0, #0xae8    ; @"b'%\x00l\x00d\x00%\x00%\x00 \x00k\x00h\x00\xa3\x1e'"
+0x00016fb4:  adrp     x1, #0x32000
+0x00016fb8:  add      x1, x1, #0xb08    ; @"%ld%% chance of rain"
+0x00016fbc:  bl       #0x21318    ; -> OMCTr
+0x00016fc0:  mov      x29, x29
+0x00016fc4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016fc8:  mov      x23, x0
+0x00016fcc:  adrp     x2, #0x32000
+0x00016fd0:  add      x2, x2, #0x488    ; @"rain"
+0x00016fd4:  mov      x0, x28

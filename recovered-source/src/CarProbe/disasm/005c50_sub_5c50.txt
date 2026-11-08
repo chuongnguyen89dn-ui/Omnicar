@@ -1,0 +1,16 @@
+; sub_5c50
+; VA 0x5c50  size 52
+
+0x00005c50:  stp      x29, x30, [sp, #-0x10]!
+0x00005c54:  mov      x29, sp
+0x00005c58:  adrp     x8, #0x14000
+0x00005c5c:  ldr      x0, [x8, #0x3b8]    ; class(NSMutableSet)
+0x00005c60:  bl       #0xbfe0    ; -> _objc_msgSend(set)
+0x00005c64:  mov      x29, x29
+0x00005c68:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00005c6c:  adrp     x9, #0x14000
+0x00005c70:  ldr      x8, [x9, #0x498]
+0x00005c74:  str      x0, [x9, #0x498]
+0x00005c78:  mov      x0, x8
+0x00005c7c:  ldp      x29, x30, [sp], #0x10
+0x00005c80:  b        #0xb410    ; -> _objc_release

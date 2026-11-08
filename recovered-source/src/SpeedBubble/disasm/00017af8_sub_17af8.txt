@@ -1,0 +1,47 @@
+# sub_17af8
+# addr 0x17af8 .. 0x17ba8  (176 bytes)
+
+00017af8  stp      x20, x19, [sp, #-0x20]!                     
+00017afc  stp      x29, x30, [sp, #0x10]                       
+00017b00  add      x29, sp, #0x10                              
+00017b04  adrp     x8, #0x43000                                
+00017b08  ldr      x0, [x8, #0x40]                             ; [0x43040] classref -> SPPBubble
+00017b0c  bl       #0x27fd4                                    ; _objc_opt_new
+00017b10  adrp     x19, #0x43000                               
+00017b14  ldr      x8, [x19, #0x930]                           ; [0x43930] __DATA,__bss+0x190
+00017b18  str      x0, [x19, #0x930]                           
+00017b1c  mov      x0, x8                                      
+00017b20  bl       #0x27ff8                                    ; _objc_release
+00017b24  ldr      x0, [x19, #0x930]                           ; [0x43930] __DATA,__bss+0x190
+00017b28  mov      w2, #-1                                     
+00017b2c  bl       #0x2b840                                    ; objc_msgSend$setSpeed:
+00017b30  ldr      x0, [x19, #0x930]                           ; [0x43930] __DATA,__bss+0x190
+00017b34  mov      w2, #-1                                     
+00017b38  bl       #0x2b1c0                                    ; objc_msgSend$setLimit:
+00017b3c  ldr      x0, [x19, #0x930]                           ; [0x43930] __DATA,__bss+0x190
+00017b40  mov      w2, #-1                                     
+00017b44  bl       #0x2b0c0                                    ; objc_msgSend$setIconApp:
+00017b48  adrp     x8, #0x43000                                
+00017b4c  ldr      x0, [x8, #0x38]                             ; [0x43038] classref -> SPPPrefs
+00017b50  mov      w2, #0                                      
+00017b54  bl       #0x2bee0                                    ; objc_msgSend$sizePercentForCar:
+00017b58  adrp     x8, #0x32000                                
+00017b5c  ldr      d1, [x8, #0x7e8]                            ; [0x327e8] __const[0x327e8] double=0.9 float=-107374184.0
+00017b60  fmul     d0, d0, d1                                  
+00017b64  mov      x8, #0x4059000000000000                     
+00017b68  fmov     d1, x8                                      
+00017b6c  fdiv     d0, d0, d1                                  
+00017b70  ldr      x0, [x19, #0x930]                           ; [0x43930] __DATA,__bss+0x190
+00017b74  bl       #0x2b6e0                                    ; objc_msgSend$setScale:
+00017b78  ldr      x0, [x19, #0x930]                           ; [0x43930] __DATA,__bss+0x190
+00017b7c  fmov     d0, #-1.00000000                            
+00017b80  fmov     d1, #-1.00000000                            
+00017b84  bl       #0x2b640                                    ; objc_msgSend$setPhoneFraction:
+00017b88  ldr      x0, [x19, #0x930]                           ; [0x43930] __DATA,__bss+0x190
+00017b8c  fmov     d0, #-1.00000000                            
+00017b90  fmov     d1, #-1.00000000                            
+00017b94  bl       #0x2abe0                                    ; objc_msgSend$setCarFraction:
+00017b98  ldr      x0, [x19, #0x930]                           ; [0x43930] __DATA,__bss+0x190
+00017b9c  ldp      x29, x30, [sp, #0x10]                       
+00017ba0  ldp      x20, x19, [sp], #0x20                       
+00017ba4  b        #0x2c0e0                                    ; objc_msgSend$startOrientationTracking

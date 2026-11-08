@@ -1,0 +1,58 @@
+# sub_21aa0
+# addr 0x21aa0 .. 0x21b7c  (220 bytes)
+
+00021aa0  sub      sp, sp, #0x50                               
+00021aa4  stp      x20, x19, [sp, #0x30]                       
+00021aa8  stp      x29, x30, [sp, #0x40]                       
+00021aac  add      x29, sp, #0x40                              
+00021ab0  mov      x0, x1                                      
+00021ab4  bl       #0x2c740                                    ; objc_msgSend$userInfo
+00021ab8  mov      x29, x29                                    
+00021abc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021ac0  mov      x20, x0                                     
+00021ac4  adrp     x2, #0x3b000                                
+00021ac8  add      x2, x2, #0x638                              ; @"line"
+00021acc  bl       #0x2a140                                    ; objc_msgSend$objectForKeyedSubscript:
+00021ad0  mov      x29, x29                                    
+00021ad4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021ad8  mov      x19, x0                                     
+00021adc  mov      x0, x20                                     
+00021ae0  bl       #0x27ff8                                    ; _objc_release
+00021ae4  adrp     x8, #0x42000                                
+00021ae8  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00021aec  bl       #0x27fbc                                    ; _objc_opt_class
+00021af0  mov      x1, x0                                      
+00021af4  mov      x0, x19                                     
+00021af8  bl       #0x27fc8                                    ; _objc_opt_isKindOfClass
+00021afc  tbz      w0, #0, #0x21b64                            
+00021b00  bl       #0x21764                                    ; sub_21764
+00021b04  mov      x29, x29                                    
+00021b08  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00021b0c  mov      x20, x0                                     
+00021b10  adrp     x8, #0x38000                                
+00021b14  ldr      x8, [x8, #0x318]                            ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+00021b18  str      x8, [sp, #8]                                
+00021b1c  adrp     x8, #0x32000                                
+00021b20  ldr      d0, [x8, #0x780]                            ; [0x32780] __const[0x32780] double=1.6080749353e-314 float=-32.0
+00021b24  str      d0, [sp, #0x10]                             
+00021b28  adrp     x8, #0x21000                                
+00021b2c  add      x8, x8, #0xb7c                              ; __TEXT,__text+0x1db7c
+00021b30  adrp     x9, #0x38000                                
+00021b34  add      x9, x9, #0xce8                              ; __const[0x38ce8] double=0.0 float=0.0
+00021b38  stp      x8, x9, [sp, #0x18]                         
+00021b3c  mov      x0, x19                                     
+00021b40  bl       #0x28004                                    ; _objc_retain
+00021b44  str      x19, [sp, #0x28]                            
+00021b48  add      x1, sp, #8                                  
+00021b4c  mov      x0, x20                                     
+00021b50  bl       #0x27d64                                    ; _dispatch_async
+00021b54  mov      x0, x20                                     
+00021b58  bl       #0x27ff8                                    ; _objc_release
+00021b5c  ldr      x0, [sp, #0x28]                             
+00021b60  bl       #0x27ff8                                    ; _objc_release
+00021b64  mov      x0, x19                                     
+00021b68  bl       #0x27ff8                                    ; _objc_release
+00021b6c  ldp      x29, x30, [sp, #0x40]                       
+00021b70  ldp      x20, x19, [sp, #0x30]                       
+00021b74  add      sp, sp, #0x50                               
+00021b78  ret                                                  

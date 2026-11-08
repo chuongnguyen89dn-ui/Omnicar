@@ -1,0 +1,50 @@
+=== -[ABHost frameOfApp:] @ 0xf5ec (size 196) ===
+0000f5ec  stp      d11, d10, [sp, #-0x50]!
+0000f5f0  stp      d9, d8, [sp, #0x10]
+0000f5f4  stp      x22, x21, [sp, #0x20]
+0000f5f8  stp      x20, x19, [sp, #0x30]
+0000f5fc  stp      x29, x30, [sp, #0x40]
+0000f600  add      x29, sp, #0x40
+0000f604  bl       #0x26520 ; objc_msgSend sel=paneFor:
+0000f608  mov      x29, x29
+0000f60c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000f610  mov      x19, x0
+0000f614  cbz      x0, #0xf64c
+0000f618  mov      x0, x19
+0000f61c  bl       #0x24f60 ; objc_msgSend sel=box
+0000f620  mov      x29, x29
+0000f624  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000f628  mov      x20, x0
+0000f62c  bl       #0x257c0 ; objc_msgSend sel=frame
+0000f630  mov      v8.16b, v0.16b
+0000f634  mov      v9.16b, v1.16b
+0000f638  mov      v10.16b, v2.16b
+0000f63c  mov      v11.16b, v3.16b
+0000f640  mov      x0, x20
+0000f644  bl       #0x2480c ; call _objc_release
+0000f648  b        #0xf65c ; call sub_f65c
+0000f64c  adrp     x8, #0x34000
+0000f650  ldr      x8, [x8, #0x560] ; -> _CGRectNull
+0000f654  ldp      d8, d9, [x8]
+0000f658  ldp      d10, d11, [x8, #0x10]
+0000f65c  mov      x0, x19
+0000f660  bl       #0x2480c ; call _objc_release
+0000f664  mov      v0.16b, v8.16b
+0000f668  mov      v1.16b, v9.16b
+0000f66c  mov      v2.16b, v10.16b
+0000f670  mov      v3.16b, v11.16b
+0000f674  ldp      x29, x30, [sp, #0x40]
+0000f678  ldp      x20, x19, [sp, #0x30]
+0000f67c  ldp      x22, x21, [sp, #0x20]
+0000f680  ldp      d9, d8, [sp, #0x10]
+0000f684  ldp      d11, d10, [sp], #0x50
+0000f688  ret      
+0000f68c  mov      x21, x0
+0000f690  mov      x0, x20
+0000f694  bl       #0x2480c ; call _objc_release
+0000f698  b        #0xf6a0 ; call sub_f6a0
+0000f69c  mov      x21, x0
+0000f6a0  mov      x0, x19
+0000f6a4  bl       #0x2480c ; call _objc_release
+0000f6a8  mov      x0, x21
+0000f6ac  bl       #0x24470 ; call __Unwind_Resume

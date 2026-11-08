@@ -1,0 +1,19 @@
+# sub_19540
+# addr 0x19540 .. 0x19580  (64 bytes)
+
+00019540  stp      x20, x19, [sp, #-0x20]!                     
+00019544  stp      x29, x30, [sp, #0x10]                       
+00019548  add      x29, sp, #0x10                              
+0001954c  add      x0, x0, #0x20                               
+00019550  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+00019554  mov      x19, x0                                     
+00019558  bl       #0x2a500                                    ; objc_msgSend$refresh
+0001955c  mov      x0, x19                                     
+00019560  ldp      x29, x30, [sp, #0x10]                       
+00019564  ldp      x20, x19, [sp], #0x20                       
+00019568  b        #0x27ff8                                    ; _objc_release
+0001956c  mov      x20, x0                                     
+00019570  mov      x0, x19                                     
+00019574  bl       #0x27ff8                                    ; _objc_release
+00019578  mov      x0, x20                                     
+0001957c  bl       #0x27c80                                    ; __Unwind_Resume

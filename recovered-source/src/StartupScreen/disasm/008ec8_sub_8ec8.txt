@@ -1,0 +1,16 @@
+; sub_8ec8
+; VA 0x8ec8  size 52
+
+0x00008ec8:  stp      x20, x19, [sp, #-0x20]!
+0x00008ecc:  stp      x29, x30, [sp, #0x10]
+0x00008ed0:  add      x29, sp, #0x10
+0x00008ed4:  mov      x19, x1
+0x00008ed8:  mov      x20, x0
+0x00008edc:  ldr      x0, [x1, #0x20]
+0x00008ee0:  bl       #0x2212c    ; -> _objc_retain
+0x00008ee4:  ldr      x1, [x19, #0x28]
+0x00008ee8:  add      x0, x20, #0x28
+0x00008eec:  mov      w2, #7
+0x00008ef0:  ldp      x29, x30, [sp, #0x10]
+0x00008ef4:  ldp      x20, x19, [sp], #0x20
+0x00008ef8:  b        #0x21da8    ; -> __Block_object_assign

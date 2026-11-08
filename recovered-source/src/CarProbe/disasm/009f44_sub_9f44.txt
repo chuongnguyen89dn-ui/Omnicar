@@ -1,0 +1,43 @@
+; sub_9f44
+; VA 0x9f44  size 160
+
+0x00009f44:  stp      x29, x30, [sp, #-0x10]!
+0x00009f48:  mov      x29, sp
+0x00009f4c:  bl       #0x9190    ; -> sub_9190
+0x00009f50:  adrp     x8, #0x14000
+0x00009f54:  ldr      d1, [x8, #0x550]
+0x00009f58:  fcmp     d1, #0.0
+0x00009f5c:  b.le     #0x9fd8
+0x00009f60:  fsub     d1, d0, d1
+0x00009f64:  adrp     x9, #0x14000
+0x00009f68:  ldr      d3, [x9, #0x530]
+0x00009f6c:  fmov     d2, #1.50000000
+0x00009f70:  fmul     d4, d3, d2
+0x00009f74:  fmov     d2, xzr
+0x00009f78:  fcmp     d1, d4
+0x00009f7c:  b.le     #0x9f90
+0x00009f80:  fdiv     d2, d1, d3
+0x00009f84:  frinta   d2, d2
+0x00009f88:  fmov     d3, #-1.00000000
+0x00009f8c:  fadd     d2, d2, d3
+0x00009f90:  fmov     d3, #1.00000000
+0x00009f94:  fadd     d3, d2, d3
+0x00009f98:  adrp     x9, #0x14000
+0x00009f9c:  ldr      d4, [x9, #0x548]
+0x00009fa0:  fadd     d3, d4, d3
+0x00009fa4:  str      d3, [x9, #0x548]
+0x00009fa8:  adrp     x9, #0x14000
+0x00009fac:  ldr      d3, [x9, #0x540]
+0x00009fb0:  fadd     d2, d2, d3
+0x00009fb4:  str      d2, [x9, #0x540]
+0x00009fb8:  adrp     x9, #0x14000
+0x00009fbc:  ldr      d2, [x9, #0x538]
+0x00009fc0:  adrp     x10, #0xd000
+0x00009fc4:  ldr      d3, [x10, #0x58]
+0x00009fc8:  fmul     d1, d1, d3
+0x00009fcc:  fcmp     d2, d1
+0x00009fd0:  fcsel    d1, d1, d2, mi
+0x00009fd4:  str      d1, [x9, #0x538]
+0x00009fd8:  str      d0, [x8, #0x550]
+0x00009fdc:  ldp      x29, x30, [sp], #0x10
+0x00009fe0:  ret      

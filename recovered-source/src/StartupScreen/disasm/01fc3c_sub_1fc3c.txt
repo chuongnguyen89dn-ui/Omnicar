@@ -1,0 +1,25 @@
+; sub_1fc3c
+; VA 0x1fc3c  size 88
+
+0x0001fc3c:  stp      x29, x30, [sp, #-0x10]!
+0x0001fc40:  mov      x29, sp
+0x0001fc44:  adrp     x8, #0x3b000
+0x0001fc48:  ldr      w8, [x8, #0x34c]
+0x0001fc4c:  cbnz     w8, #0x1fc5c
+0x0001fc50:  adrp     x0, #0x3b000
+0x0001fc54:  add      x0, x0, #0x348
+0x0001fc58:  bl       #0x21fd0    ; -> _mach_timebase_info
+0x0001fc5c:  bl       #0x21fac    ; -> _mach_absolute_time
+0x0001fc60:  ucvtf    d0, x0
+0x0001fc64:  adrp     x8, #0x3b000
+0x0001fc68:  add      x8, x8, #0x348
+0x0001fc6c:  ldp      s1, s2, [x8]
+0x0001fc70:  ucvtf    d1, d1
+0x0001fc74:  fmul     d0, d0, d1
+0x0001fc78:  ucvtf    d1, d2
+0x0001fc7c:  fdiv     d0, d0, d1
+0x0001fc80:  adrp     x8, #0x28000
+0x0001fc84:  ldr      d1, [x8, #0xdd8]
+0x0001fc88:  fdiv     d0, d0, d1
+0x0001fc8c:  ldp      x29, x30, [sp], #0x10
+0x0001fc90:  ret      

@@ -1,0 +1,44 @@
+=== -[ABHost setPassInsets:forApp:] @ 0x1038c (size 172) ===
+0001038c  stp      d11, d10, [sp, #-0x50]!
+00010390  stp      d9, d8, [sp, #0x10]
+00010394  stp      x22, x21, [sp, #0x20]
+00010398  stp      x20, x19, [sp, #0x30]
+0001039c  stp      x29, x30, [sp, #0x40]
+000103a0  add      x29, sp, #0x40
+000103a4  mov      v8.16b, v3.16b
+000103a8  mov      v9.16b, v2.16b
+000103ac  mov      v10.16b, v1.16b
+000103b0  mov      v11.16b, v0.16b
+000103b4  bl       #0x26520 ; objc_msgSend sel=paneFor:
+000103b8  mov      x29, x29
+000103bc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000103c0  mov      x19, x0
+000103c4  cbz      x0, #0x103f8
+000103c8  mov      x0, x19
+000103cc  bl       #0x24f60 ; objc_msgSend sel=box
+000103d0  mov      x29, x29
+000103d4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000103d8  mov      x20, x0
+000103dc  mov      v0.16b, v11.16b
+000103e0  mov      v1.16b, v10.16b
+000103e4  mov      v2.16b, v9.16b
+000103e8  mov      v3.16b, v8.16b
+000103ec  bl       #0x274c0 ; objc_msgSend sel=setPassInsets:
+000103f0  mov      x0, x20
+000103f4  bl       #0x2480c ; call _objc_release
+000103f8  mov      x0, x19
+000103fc  ldp      x29, x30, [sp, #0x40]
+00010400  ldp      x20, x19, [sp, #0x30]
+00010404  ldp      x22, x21, [sp, #0x20]
+00010408  ldp      d9, d8, [sp, #0x10]
+0001040c  ldp      d11, d10, [sp], #0x50
+00010410  b        #0x2480c ; call _objc_release
+00010414  mov      x21, x0
+00010418  mov      x0, x20
+0001041c  bl       #0x2480c ; call _objc_release
+00010420  b        #0x10428 ; call sub_10428
+00010424  mov      x21, x0
+00010428  mov      x0, x19
+0001042c  bl       #0x2480c ; call _objc_release
+00010430  mov      x0, x21
+00010434  bl       #0x24470 ; call __Unwind_Resume

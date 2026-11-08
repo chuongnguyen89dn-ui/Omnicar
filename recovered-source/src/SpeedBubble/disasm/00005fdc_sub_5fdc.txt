@@ -1,0 +1,15 @@
+# sub_5fdc
+# addr 0x5fdc .. 0x600c  (48 bytes)
+
+00005fdc  stp      x20, x19, [sp, #-0x20]!                     
+00005fe0  stp      x29, x30, [sp, #0x10]                       
+00005fe4  add      x29, sp, #0x10                              
+00005fe8  mov      x19, x0                                     
+00005fec  adrp     x8, #0x43000                                
+00005ff0  ldr      x8, [x8, #0x810]                            ; [0x43810] __DATA,__bss+0x70
+00005ff4  blr      x8                                          
+00005ff8  mov      x0, x19                                     
+00005ffc  mov      w1, #0                                      
+00006000  ldp      x29, x30, [sp, #0x10]                       
+00006004  ldp      x20, x19, [sp], #0x20                       
+00006008  b        #0x63f0                                     ; sub_63f0

@@ -1,0 +1,147 @@
+; sub_77c0
+; VA 0x77c0  size 576
+
+0x000077c0:  sub      sp, sp, #0x60
+0x000077c4:  stp      x20, x19, [sp, #0x40]
+0x000077c8:  stp      x29, x30, [sp, #0x50]
+0x000077cc:  add      x29, sp, #0x50
+0x000077d0:  mov      x0, x1
+0x000077d4:  bl       #0xbde0    ; -> _objc_msgSend(object)
+0x000077d8:  mov      x29, x29
+0x000077dc:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x000077e0:  mov      x19, x0
+0x000077e4:  adrp     x8, #0x14000
+0x000077e8:  ldr      x0, [x8, #0x3e8]    ; class(UIScreen)
+0x000077ec:  bl       #0xbc60    ; -> _objc_msgSend(mainScreen)
+0x000077f0:  mov      x29, x29
+0x000077f4:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x000077f8:  mov      x20, x0
+0x000077fc:  bl       #0xb410    ; -> _objc_release
+0x00007800:  mov      x0, x19
+0x00007804:  bl       #0xb410    ; -> _objc_release
+0x00007808:  cmp      x19, x20
+0x0000780c:  b.eq     #0x78bc
+0x00007810:  adrp     x20, #0x14000
+0x00007814:  ldr      x8, [x20, #0x4a8]
+0x00007818:  cbz      x8, #0x7934
+0x0000781c:  adrp     x19, #0x14000
+0x00007820:  ldr      x0, [x19, #0x4b8]
+0x00007824:  cbz      x0, #0x7830
+0x00007828:  bl       #0xb224    ; -> _dispatch_source_cancel
+0x0000782c:  ldr      x0, [x19, #0x4b8]
+0x00007830:  str      xzr, [x19, #0x4b8]
+0x00007834:  bl       #0xb410    ; -> _objc_release
+0x00007838:  adrp     x19, #0x14000
+0x0000783c:  ldr      x0, [x19, #0x4b0]
+0x00007840:  bl       #0xbb00    ; -> _objc_msgSend(invalidate)
+0x00007844:  ldr      x0, [x19, #0x4b0]
+0x00007848:  str      xzr, [x19, #0x4b0]
+0x0000784c:  bl       #0xb410    ; -> _objc_release
+0x00007850:  adrp     x8, #0x14000
+0x00007854:  ldr      x9, [x8, #0x528]
+0x00007858:  add      x9, x9, #1
+0x0000785c:  str      x9, [x8, #0x528]
+0x00007860:  bl       #0x9810    ; -> sub_9810
+0x00007864:  adrp     x8, #0x14000
+0x00007868:  ldr      x19, [x8, #0x378]    ; class(NSString)
+0x0000786c:  adrp     x8, #0x14000
+0x00007870:  ldr      x0, [x8, #0x4c0]
+0x00007874:  bl       #0xc260    ; -> _objc_msgSend(timeIntervalSinceNow)
+0x00007878:  fneg     d0, d0
+0x0000787c:  adrp     x8, #0x14000
+0x00007880:  ldr      d1, [x8, #0x540]
+0x00007884:  adrp     x8, #0x14000
+0x00007888:  ldr      d2, [x8, #0x548]
+0x0000788c:  adrp     x8, #0x14000
+0x00007890:  ldr      d3, [x8, #0x568]
+0x00007894:  adrp     x8, #0x14000
+0x00007898:  ldr      d4, [x8, #0x558]
+0x0000789c:  adrp     x8, #0x14000
+0x000078a0:  ldr      x8, [x8, #0x5a0]
+0x000078a4:  cbz      x8, #0x78cc
+0x000078a8:  adrp     x9, #0x14000
+0x000078ac:  ldr      d5, [x9, #0x588]
+0x000078b0:  ucvtf    d6, x8
+0x000078b4:  fdiv     d5, d5, d6
+0x000078b8:  b        #0x78d0    ; -> sub_78d0
+0x000078bc:  ldp      x29, x30, [sp, #0x50]
+0x000078c0:  ldp      x20, x19, [sp, #0x40]
+0x000078c4:  add      sp, sp, #0x60
+0x000078c8:  ret      
+0x000078cc:  fmov     d5, xzr
+0x000078d0:  adrp     x8, #0x14000
+0x000078d4:  ldr      d6, [x8, #0x570]
+0x000078d8:  stp      d5, d6, [sp, #0x28]
+0x000078dc:  stp      d3, d4, [sp, #0x18]
+0x000078e0:  stp      d1, d2, [sp, #8]
+0x000078e4:  adrp     x2, #0x11000
+0x000078e8:  add      x2, x2, #0x9d8    ; @"do hieu nang: %.0fs, tre %.0f/%.0f khung, do %.0f lan (max %.0f ms), CPU tb %.0f%%, RAM %.0f MB"
+0x000078ec:  str      d0, [sp]
+0x000078f0:  mov      x0, x19
+0x000078f4:  bl       #0xc180    ; -> _objc_msgSend(stringWithFormat:)
+0x000078f8:  mov      x29, x29
+0x000078fc:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00007900:  mov      x19, x0
+0x00007904:  adrp     x0, #0x10000
+0x00007908:  add      x0, x0, #0xc18    ; @"Core"
+0x0000790c:  mov      x1, x19
+0x00007910:  bl       #0x4b64    ; -> OMCLogWrite
+0x00007914:  mov      x0, x19
+0x00007918:  bl       #0xb410    ; -> _objc_release
+0x0000791c:  mov      w0, #0
+0x00007920:  mov      x1, #0
+0x00007924:  bl       #0x9d8c    ; -> sub_9d8c
+0x00007928:  ldr      x0, [x20, #0x4a8]
+0x0000792c:  str      xzr, [x20, #0x4a8]
+0x00007930:  bl       #0xb410    ; -> _objc_release
+0x00007934:  adrp     x0, #0x10000
+0x00007938:  add      x0, x0, #0x758    ; @"diagCar"
+0x0000793c:  mov      x1, #0
+0x00007940:  bl       #0x44b4    ; -> OMCPref
+0x00007944:  mov      x29, x29
+0x00007948:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x0000794c:  mov      x20, x0
+0x00007950:  bl       #0xbcc0    ; -> _objc_msgSend(mutableCopy)
+0x00007954:  mov      x19, x0
+0x00007958:  mov      x0, x20
+0x0000795c:  bl       #0xb410    ; -> _objc_release
+0x00007960:  adrp     x8, #0x14000
+0x00007964:  ldr      x0, [x8, #0x3a8]    ; class(NSMutableDictionary)
+0x00007968:  bl       #0xb3d4    ; -> _objc_opt_class
+0x0000796c:  mov      x1, x0
+0x00007970:  mov      x0, x19
+0x00007974:  bl       #0xb3e0    ; -> _objc_opt_isKindOfClass
+0x00007978:  tbz      w0, #0, #0x79ec
+0x0000797c:  adrp     x2, #0x10000
+0x00007980:  ldr      x2, [x2, #0x170]    ; got(___kCFBooleanFalse)
+0x00007984:  adrp     x3, #0x11000
+0x00007988:  add      x3, x3, #0x78    ; @"connected"
+0x0000798c:  mov      x0, x19
+0x00007990:  bl       #0xc060    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x00007994:  adrp     x8, #0x14000
+0x00007998:  ldr      x0, [x8, #0x388]    ; class(NSDate)
+0x0000799c:  bl       #0xb8c0    ; -> _objc_msgSend(date)
+0x000079a0:  mov      x29, x29
+0x000079a4:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x000079a8:  mov      x20, x0
+0x000079ac:  adrp     x3, #0x11000
+0x000079b0:  add      x3, x3, #0x98    ; @"disconnected"
+0x000079b4:  mov      x0, x19
+0x000079b8:  mov      x2, x20
+0x000079bc:  bl       #0xc060    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x000079c0:  mov      x0, x20
+0x000079c4:  bl       #0xb410    ; -> _objc_release
+0x000079c8:  adrp     x0, #0x10000
+0x000079cc:  add      x0, x0, #0x758    ; @"diagCar"
+0x000079d0:  adrp     x20, #0x10000
+0x000079d4:  add      x20, x20, #0x6d8    ; @"com.anlai.omnicar"
+0x000079d8:  mov      x1, x19
+0x000079dc:  mov      x2, x20
+0x000079e0:  bl       #0xb080    ; -> _CFPreferencesSetAppValue
+0x000079e4:  mov      x0, x20
+0x000079e8:  bl       #0xb068    ; -> _CFPreferencesAppSynchronize
+0x000079ec:  mov      x0, x19
+0x000079f0:  ldp      x29, x30, [sp, #0x50]
+0x000079f4:  ldp      x20, x19, [sp, #0x40]
+0x000079f8:  add      sp, sp, #0x60
+0x000079fc:  b        #0xb410    ; -> _objc_release

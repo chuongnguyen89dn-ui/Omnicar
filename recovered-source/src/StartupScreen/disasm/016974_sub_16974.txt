@@ -1,0 +1,100 @@
+; sub_16974
+; VA 0x16974  size 388
+
+0x00016974:  fmov     d2, #1.00000000
+0x00016978:  mov      v0.16b, v9.16b
+0x0001697c:  mov      v1.16b, v9.16b
+0x00016980:  bl       #0x21b2c    ; -> _CATransform3DScale
+0x00016984:  ldp      q0, q1, [x29, #-0xb0]
+0x00016988:  stp      q0, q1, [sp, #0xd0]
+0x0001698c:  ldp      q0, q1, [x29, #-0x90]
+0x00016990:  stp      q0, q1, [sp, #0xf0]
+0x00016994:  ldp      q0, q1, [x29, #-0xf0]
+0x00016998:  stp      q0, q1, [sp, #0x90]
+0x0001699c:  ldp      q0, q1, [x29, #-0xd0]
+0x000169a0:  stp      q0, q1, [sp, #0xb0]
+0x000169a4:  add      x2, sp, #0x90
+0x000169a8:  mov      x0, x21
+0x000169ac:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x000169b0:  mov      x0, x21
+0x000169b4:  mov      v0.16b, v10.16b
+0x000169b8:  bl       #0x251c0    ; -> _objc_msgSend(setStrokeEnd:)
+0x000169bc:  mov      x0, x21
+0x000169c0:  bl       #0x22120    ; -> _objc_release
+0x000169c4:  add      x20, x20, #1
+0x000169c8:  ldr      x0, [x19, x22]
+0x000169cc:  bl       #0x22e00    ; -> _objc_msgSend(count)
+0x000169d0:  cmp      x20, x0
+0x000169d4:  b.lo     #0x1692c
+0x000169d8:  fmov     d0, #3.00000000
+0x000169dc:  fmul     d0, d8, d0
+0x000169e0:  add      x8, sp, #0x10
+0x000169e4:  fmov     d1, xzr
+0x000169e8:  fmov     d2, xzr
+0x000169ec:  fmov     d3, #1.00000000
+0x000169f0:  bl       #0x21b20    ; -> _CATransform3DMakeRotation
+0x000169f4:  adrp     x8, #0x3a000
+0x000169f8:  ldrsw    x8, [x8, #0xd58]
+0x000169fc:  ldr      x0, [x19, x8]
+0x00016a00:  ldp      q0, q1, [sp, #0x50]
+0x00016a04:  stp      q0, q1, [sp, #0xd0]
+0x00016a08:  ldp      q0, q1, [sp, #0x70]
+0x00016a0c:  stp      q0, q1, [sp, #0xf0]
+0x00016a10:  ldp      q0, q1, [sp, #0x10]
+0x00016a14:  stp      q0, q1, [sp, #0x90]
+0x00016a18:  ldp      q0, q1, [sp, #0x30]
+0x00016a1c:  stp      q0, q1, [sp, #0xb0]
+0x00016a20:  add      x2, sp, #0x90
+0x00016a24:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x00016a28:  adrp     x8, #0x29000
+0x00016a2c:  ldr      d0, [x8, #0x240]
+0x00016a30:  fadd     d0, d8, d0
+0x00016a34:  adrp     x8, #0x29000
+0x00016a38:  ldr      d1, [x8, #0x248]
+0x00016a3c:  fdiv     d0, d0, d1
+0x00016a40:  fcmp     d0, d12
+0x00016a44:  fcsel    d1, d12, d0, gt
+0x00016a48:  fcmp     d0, #0.0
+0x00016a4c:  fcsel    d8, d11, d1, mi
+0x00016a50:  fsub     d0, d12, d8
+0x00016a54:  fmov     d1, #3.00000000
+0x00016a58:  bl       #0x221c8    ; -> _pow
+0x00016a5c:  fsub     d0, d12, d0
+0x00016a60:  mov      x8, #0x4059000000000000
+0x00016a64:  fmov     d1, x8
+0x00016a68:  fmul     d0, d0, d1
+0x00016a6c:  fcmp     d8, #0.0
+0x00016a70:  fcsel    d0, d11, d0, mi
+0x00016a74:  fcvtas   x8, d0
+0x00016a78:  adrp     x9, #0x3a000
+0x00016a7c:  ldrsw    x9, [x9, #0xd7c]
+0x00016a80:  ldr      x10, [x19, x9]
+0x00016a84:  cmp      x8, x10
+0x00016a88:  b.eq     #0x16ad0
+0x00016a8c:  str      x8, [x19, x9]
+0x00016a90:  adrp     x9, #0x3a000
+0x00016a94:  ldr      x0, [x9, #0x9c0]    ; class(NSString)
+0x00016a98:  str      x8, [sp]
+0x00016a9c:  adrp     x2, #0x32000
+0x00016aa0:  add      x2, x2, #0xa68    ; @"%ld%%"
+0x00016aa4:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00016aa8:  mov      x29, x29
+0x00016aac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016ab0:  mov      x20, x0
+0x00016ab4:  adrp     x8, #0x3a000
+0x00016ab8:  ldrsw    x8, [x8, #0xd78]
+0x00016abc:  ldr      x0, [x19, x8]
+0x00016ac0:  mov      x2, x20
+0x00016ac4:  bl       #0x25240    ; -> _objc_msgSend(setText:)
+0x00016ac8:  mov      x0, x20
+0x00016acc:  bl       #0x22120    ; -> _objc_release
+0x00016ad0:  add      sp, sp, #0x190
+0x00016ad4:  ldp      x29, x30, [sp, #0x70]
+0x00016ad8:  ldp      x20, x19, [sp, #0x60]
+0x00016adc:  ldp      x22, x21, [sp, #0x50]
+0x00016ae0:  ldp      x28, x27, [sp, #0x40]
+0x00016ae4:  ldp      d9, d8, [sp, #0x30]
+0x00016ae8:  ldp      d11, d10, [sp, #0x20]
+0x00016aec:  ldp      d13, d12, [sp, #0x10]
+0x00016af0:  ldp      d15, d14, [sp], #0x80
+0x00016af4:  ret      

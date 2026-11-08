@@ -1,0 +1,45 @@
+; ==== BLOCK_flashFocus_delayed  @0x13534..0x135e4 (176 bytes) ====
+00013534  stp      x22, x21, [sp, #-0x30]!                      
+00013538  stp      x20, x19, [sp, #0x10]                        
+0001353c  stp      x29, x30, [sp, #0x20]                        
+00013540  add      x29, sp, #0x20                               
+00013544  mov      x20, x0                                      
+00013548  add      x0, x0, #0x20                                
+0001354c  bl       #0x5674c                                     ; call _objc_loadWeakRetained
+00013550  mov      x19, x0                                      
+00013554  cbz      x0, #0x135a4                                 
+00013558  add      x0, x20, #0x28                               
+0001355c  bl       #0x5674c                                     ; call _objc_loadWeakRetained
+00013560  mov      x20, x0                                      
+00013564  bl       #0x57e20                                     ; msgSend "dragGhost"
+00013568  mov      x29, x29                                     
+0001356c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00013570  mov      x21, x0                                      
+00013574  bl       #0x567b8                                     ; call _objc_release
+00013578  mov      x0, x20                                      
+0001357c  bl       #0x567b8                                     ; call _objc_release
+00013580  cbnz     x21, #0x135a4                                
+00013584  mov      x0, x19                                      
+00013588  bl       #0x5cb60                                     ; msgSend "view"
+0001358c  mov      x29, x29                                     
+00013590  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00013594  mov      x20, x0                                      
+00013598  bl       #0x132cc                                     
+0001359c  mov      x0, x20                                      
+000135a0  bl       #0x567b8                                     ; call _objc_release
+000135a4  mov      x0, x19                                      
+000135a8  ldp      x29, x30, [sp, #0x20]                        
+000135ac  ldp      x20, x19, [sp, #0x10]                        
+000135b0  ldp      x22, x21, [sp], #0x30                        
+000135b4  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+000135b8  b        #0x135c4                                     
+000135bc  mov      x20, x0                                      
+000135c0  b        #0x135d4                                     
+000135c4  mov      x1, x20                                      
+000135c8  mov      x20, x0                                      
+000135cc  mov      x0, x1                                       
+000135d0  bl       #0x567b8                                     ; call _objc_release
+000135d4  mov      x0, x19                                      
+000135d8  bl       #0x567b8                                     ; call _objc_release
+000135dc  mov      x0, x20                                      
+000135e0  bl       #0x563e0                                     ; call __Unwind_Resume

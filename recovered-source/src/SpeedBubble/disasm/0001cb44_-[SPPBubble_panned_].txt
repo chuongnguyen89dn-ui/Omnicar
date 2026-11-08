@@ -1,0 +1,113 @@
+# -[SPPBubble panned:]
+# addr 0x1cb44 .. 0x1ccfc  (440 bytes)
+
+0001cb44  stp      d11, d10, [sp, #-0x60]!                     
+0001cb48  stp      d9, d8, [sp, #0x10]                         
+0001cb4c  stp      x24, x23, [sp, #0x20]                       
+0001cb50  stp      x22, x21, [sp, #0x30]                       
+0001cb54  stp      x20, x19, [sp, #0x40]                       
+0001cb58  stp      x29, x30, [sp, #0x50]                       
+0001cb5c  add      x29, sp, #0x50                              
+0001cb60  mov      x19, x2                                     
+0001cb64  mov      x20, x0                                     
+0001cb68  mov      x0, x2                                      
+0001cb6c  bl       #0x28004                                    ; _objc_retain
+0001cb70  mov      x0, x19                                     
+0001cb74  bl       #0x2c120                                    ; objc_msgSend$state
+0001cb78  cmp      x0, #1                                      
+0001cb7c  b.ne     #0x1cb88                                    
+0001cb80  mov      x0, x20                                     
+0001cb84  bl       #0x29640                                    ; objc_msgSend$hideMenu
+0001cb88  mov      x0, x20                                     
+0001cb8c  bl       #0x2c9a0                                    ; objc_msgSend$window
+0001cb90  mov      x29, x29                                    
+0001cb94  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001cb98  mov      x21, x0                                     
+0001cb9c  mov      x0, x19                                     
+0001cba0  mov      x2, x21                                     
+0001cba4  bl       #0x2c660                                    ; objc_msgSend$translationInView:
+0001cba8  mov      v9.16b, v0.16b                              
+0001cbac  mov      v8.16b, v1.16b                              
+0001cbb0  mov      x0, x21                                     
+0001cbb4  bl       #0x27ff8                                    ; _objc_release
+0001cbb8  mov      x0, x20                                     
+0001cbbc  bl       #0x28c60                                    ; objc_msgSend$card
+0001cbc0  mov      x29, x29                                    
+0001cbc4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001cbc8  mov      x21, x0                                     
+0001cbcc  bl       #0x28cc0                                    ; objc_msgSend$center
+0001cbd0  mov      v10.16b, v0.16b                             
+0001cbd4  mov      x0, x20                                     
+0001cbd8  bl       #0x28c60                                    ; objc_msgSend$card
+0001cbdc  mov      x29, x29                                    
+0001cbe0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001cbe4  mov      x22, x0                                     
+0001cbe8  bl       #0x28cc0                                    ; objc_msgSend$center
+0001cbec  mov      v11.16b, v1.16b                             
+0001cbf0  mov      x0, x20                                     
+0001cbf4  bl       #0x28c60                                    ; objc_msgSend$card
+0001cbf8  mov      x29, x29                                    
+0001cbfc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001cc00  mov      x23, x0                                     
+0001cc04  fadd     d0, d9, d10                                 
+0001cc08  fadd     d1, d8, d11                                 
+0001cc0c  bl       #0x2ac60                                    ; objc_msgSend$setCenter:
+0001cc10  mov      x0, x23                                     
+0001cc14  bl       #0x27ff8                                    ; _objc_release
+0001cc18  mov      x0, x22                                     
+0001cc1c  bl       #0x27ff8                                    ; _objc_release
+0001cc20  mov      x0, x21                                     
+0001cc24  bl       #0x27ff8                                    ; _objc_release
+0001cc28  mov      x0, x20                                     
+0001cc2c  bl       #0x28d20                                    ; objc_msgSend$clampCard
+0001cc30  adrp     x8, #0x38000                                
+0001cc34  ldr      x8, [x8, #0x5e8]                            ; [0x385e8] __DATA_CONST,__got+0x5e8 (= import _CGPointZero)
+0001cc38  ldp      d8, d9, [x8]                                
+0001cc3c  mov      x0, x20                                     
+0001cc40  bl       #0x2c9a0                                    ; objc_msgSend$window
+0001cc44  mov      x29, x29                                    
+0001cc48  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001cc4c  mov      x21, x0                                     
+0001cc50  mov      x0, x19                                     
+0001cc54  mov      v0.16b, v8.16b                              
+0001cc58  mov      v1.16b, v9.16b                              
+0001cc5c  mov      x2, x21                                     
+0001cc60  bl       #0x2bb60                                    ; objc_msgSend$setTranslation:inView:
+0001cc64  mov      x0, x21                                     
+0001cc68  bl       #0x27ff8                                    ; _objc_release
+0001cc6c  mov      x0, x19                                     
+0001cc70  bl       #0x2c120                                    ; objc_msgSend$state
+0001cc74  cmp      x0, #3                                      
+0001cc78  b.ne     #0x1cc84                                    
+0001cc7c  mov      x0, x20                                     
+0001cc80  bl       #0x2a740                                    ; objc_msgSend$saveCardPosition
+0001cc84  mov      x0, x19                                     
+0001cc88  ldp      x29, x30, [sp, #0x50]                       
+0001cc8c  ldp      x20, x19, [sp, #0x40]                       
+0001cc90  ldp      x22, x21, [sp, #0x30]                       
+0001cc94  ldp      x24, x23, [sp, #0x20]                       
+0001cc98  ldp      d9, d8, [sp, #0x10]                         
+0001cc9c  ldp      d11, d10, [sp], #0x60                       
+0001cca0  b        #0x27ff8                                    ; _objc_release
+0001cca4  b        #0x1ccc4                                    ; sub_1ccc4
+0001cca8  mov      x20, x0                                     
+0001ccac  mov      x0, x23                                     
+0001ccb0  bl       #0x27ff8                                    ; _objc_release
+0001ccb4  b        #0x1ccd4                                    ; sub_1ccd4
+0001ccb8  b        #0x1ccc4                                    ; sub_1ccc4
+0001ccbc  b        #0x1ccc4                                    ; sub_1ccc4
+0001ccc0  b        #0x1cce8                                    ; sub_1cce8
+0001ccc4  mov      x20, x0                                     
+0001ccc8  b        #0x1ccdc                                    ; sub_1ccdc
+0001cccc  b        #0x1cce8                                    ; sub_1cce8
+0001ccd0  mov      x20, x0                                     
+0001ccd4  mov      x0, x22                                     
+0001ccd8  bl       #0x27ff8                                    ; _objc_release
+0001ccdc  mov      x0, x21                                     
+0001cce0  bl       #0x27ff8                                    ; _objc_release
+0001cce4  b        #0x1ccec                                    ; sub_1ccec
+0001cce8  mov      x20, x0                                     
+0001ccec  mov      x0, x19                                     
+0001ccf0  bl       #0x27ff8                                    ; _objc_release
+0001ccf4  mov      x0, x20                                     
+0001ccf8  bl       #0x27c80                                    ; __Unwind_Resume

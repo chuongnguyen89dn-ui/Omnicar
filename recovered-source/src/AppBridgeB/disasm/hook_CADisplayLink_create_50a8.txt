@@ -1,0 +1,40 @@
+=== sub_50a8 @ 0x50a8 (size 156) ===
+000050a8  stp      x22, x21, [sp, #-0x30]!
+000050ac  stp      x20, x19, [sp, #0x10]
+000050b0  stp      x29, x30, [sp, #0x20]
+000050b4  add      x29, sp, #0x20
+000050b8  adrp     x8, #0x3e000
+000050bc  ldr      x8, [x8, #0x940]
+000050c0  blr      x8
+000050c4  mov      x29, x29
+000050c8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000050cc  mov      x19, x0
+000050d0  cbz      x0, #0x510c
+000050d4  bl       #0x5c64 ; call sub_5c64
+000050d8  mov      x29, x29
+000050dc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000050e0  mov      x20, x0
+000050e4  mov      x2, x19
+000050e8  bl       #0x24b20 ; objc_msgSend sel=addObject:
+000050ec  mov      x0, x20
+000050f0  bl       #0x2480c ; call _objc_release
+000050f4  adrp     x8, #0x3e000
+000050f8  ldr      w8, [x8, #0x9b0]
+000050fc  cmp      w8, #1
+00005100  b.lt     #0x510c
+00005104  mov      x0, x19
+00005108  bl       #0x5cbc ; call sub_5cbc
+0000510c  mov      x0, x19
+00005110  ldp      x29, x30, [sp, #0x20]
+00005114  ldp      x20, x19, [sp, #0x10]
+00005118  ldp      x22, x21, [sp], #0x30
+0000511c  b        #0x24734 ; call _objc_autoreleaseReturnValue
+00005120  mov      x21, x0
+00005124  mov      x0, x20
+00005128  bl       #0x2480c ; call _objc_release
+0000512c  b        #0x5134 ; call sub_5134
+00005130  mov      x21, x0
+00005134  mov      x0, x19
+00005138  bl       #0x2480c ; call _objc_release
+0000513c  mov      x0, x21
+00005140  bl       #0x24470 ; call __Unwind_Resume

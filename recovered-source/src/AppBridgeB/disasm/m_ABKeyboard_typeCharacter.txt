@@ -1,0 +1,235 @@
+=== -[ABKeyboard typeCharacter:] @ 0x1ca2c (size 936) ===
+0001ca2c  stp      x28, x27, [sp, #-0x60]!
+0001ca30  stp      x26, x25, [sp, #0x10]
+0001ca34  stp      x24, x23, [sp, #0x20]
+0001ca38  stp      x22, x21, [sp, #0x30]
+0001ca3c  stp      x20, x19, [sp, #0x40]
+0001ca40  stp      x29, x30, [sp, #0x50]
+0001ca44  add      x29, sp, #0x50
+0001ca48  mov      x19, x2
+0001ca4c  mov      x21, x0
+0001ca50  mov      x0, x2
+0001ca54  bl       #0x24818 ; call _objc_retain
+0001ca58  mov      x0, x21
+0001ca5c  bl       #0x28120 ; objc_msgSend sel=vietnamese
+0001ca60  cbz      w0, #0x1cabc
+0001ca64  mov      x0, x21
+0001ca68  bl       #0x28220 ; objc_msgSend sel=word
+0001ca6c  mov      x29, x29
+0001ca70  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001ca74  mov      x22, x0
+0001ca78  bl       #0x25fa0 ; objc_msgSend sel=length
+0001ca7c  add      x8, x0, #1
+0001ca80  cmp      x8, #0xb
+0001ca84  b.hi     #0x1cac4
+0001ca88  mov      x0, x21
+0001ca8c  bl       #0x28220 ; objc_msgSend sel=word
+0001ca90  mov      x29, x29
+0001ca94  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001ca98  mov      x23, x0
+0001ca9c  mov      x1, x19
+0001caa0  bl       #0x17538 ; call sym:_ABTelexApply
+0001caa4  mov      x29, x29
+0001caa8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001caac  mov      x20, x0
+0001cab0  mov      x0, x23
+0001cab4  bl       #0x2480c ; call _objc_release
+0001cab8  b        #0x1cac8 ; call sub_1cac8
+0001cabc  mov      x20, #0
+0001cac0  b        #0x1cad0 ; call sub_1cad0
+0001cac4  mov      x20, #0
+0001cac8  mov      x0, x22
+0001cacc  bl       #0x2480c ; call _objc_release
+0001cad0  adrp     x8, #0x3e000
+0001cad4  ldr      x0, [x8, #0x400] ; bind _OBJC_CLASS_$_NSCharacterSet
+0001cad8  bl       #0x25fc0 ; objc_msgSend sel=letterCharacterSet
+0001cadc  mov      x29, x29
+0001cae0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cae4  mov      x23, x0
+0001cae8  mov      x0, x19
+0001caec  mov      x2, #0
+0001caf0  bl       #0x25140 ; objc_msgSend sel=characterAtIndex:
+0001caf4  mov      x2, x0
+0001caf8  mov      x0, x23
+0001cafc  bl       #0x25160 ; objc_msgSend sel=characterIsMember:
+0001cb00  mov      x22, x0
+0001cb04  mov      x0, x23
+0001cb08  bl       #0x2480c ; call _objc_release
+0001cb0c  cbz      x20, #0x1cc70
+0001cb10  mov      x0, x21
+0001cb14  bl       #0x28220 ; objc_msgSend sel=word
+0001cb18  mov      x29, x29
+0001cb1c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cb20  mov      x22, x0
+0001cb24  bl       #0x25fa0 ; objc_msgSend sel=length
+0001cb28  mov      x3, x0
+0001cb2c  adrp     x2, #0x35000
+0001cb30  add      x2, x2, #0x190 = @"type"
+0001cb34  mov      x0, x21
+0001cb38  mov      x4, x20
+0001cb3c  bl       #0x26a80 ; objc_msgSend sel=send:del:text:
+0001cb40  mov      x0, x22
+0001cb44  bl       #0x2480c ; call _objc_release
+0001cb48  mov      x0, x21
+0001cb4c  bl       #0x28020 ; objc_msgSend sel=typed
+0001cb50  mov      x29, x29
+0001cb54  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cb58  mov      x22, x0
+0001cb5c  bl       #0x25fa0 ; objc_msgSend sel=length
+0001cb60  mov      x23, x0
+0001cb64  mov      x0, x21
+0001cb68  bl       #0x28220 ; objc_msgSend sel=word
+0001cb6c  mov      x29, x29
+0001cb70  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cb74  mov      x24, x0
+0001cb78  bl       #0x25fa0 ; objc_msgSend sel=length
+0001cb7c  mov      x25, x0
+0001cb80  mov      x0, x24
+0001cb84  bl       #0x2480c ; call _objc_release
+0001cb88  mov      x0, x22
+0001cb8c  bl       #0x2480c ; call _objc_release
+0001cb90  cmp      x23, x25
+0001cb94  b.lo     #0x1cc2c
+0001cb98  mov      x0, x21
+0001cb9c  bl       #0x28020 ; objc_msgSend sel=typed
+0001cba0  mov      x29, x29
+0001cba4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cba8  mov      x22, x0
+0001cbac  mov      x0, x21
+0001cbb0  bl       #0x28020 ; objc_msgSend sel=typed
+0001cbb4  mov      x29, x29
+0001cbb8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cbbc  mov      x23, x0
+0001cbc0  bl       #0x25fa0 ; objc_msgSend sel=length
+0001cbc4  mov      x25, x0
+0001cbc8  mov      x0, x21
+0001cbcc  bl       #0x28220 ; objc_msgSend sel=word
+0001cbd0  mov      x29, x29
+0001cbd4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cbd8  mov      x24, x0
+0001cbdc  bl       #0x25fa0 ; objc_msgSend sel=length
+0001cbe0  mov      x27, x0
+0001cbe4  mov      x0, x21
+0001cbe8  bl       #0x28220 ; objc_msgSend sel=word
+0001cbec  mov      x29, x29
+0001cbf0  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cbf4  mov      x26, x0
+0001cbf8  bl       #0x25fa0 ; objc_msgSend sel=length
+0001cbfc  mov      x3, x0
+0001cc00  sub      x2, x25, x27
+0001cc04  mov      x0, x22
+0001cc08  bl       #0x25540 ; objc_msgSend sel=deleteCharactersInRange:
+0001cc0c  mov      x0, x26
+0001cc10  bl       #0x2480c ; call _objc_release
+0001cc14  mov      x0, x24
+0001cc18  bl       #0x2480c ; call _objc_release
+0001cc1c  mov      x0, x23
+0001cc20  bl       #0x2480c ; call _objc_release
+0001cc24  mov      x0, x22
+0001cc28  bl       #0x2480c ; call _objc_release
+0001cc2c  mov      x0, x21
+0001cc30  bl       #0x28020 ; objc_msgSend sel=typed
+0001cc34  mov      x29, x29
+0001cc38  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cc3c  mov      x22, x0
+0001cc40  mov      x2, x20
+0001cc44  bl       #0x24d60 ; objc_msgSend sel=appendString:
+0001cc48  mov      x0, x22
+0001cc4c  bl       #0x2480c ; call _objc_release
+0001cc50  mov      x0, x21
+0001cc54  bl       #0x28220 ; objc_msgSend sel=word
+0001cc58  mov      x29, x29
+0001cc5c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cc60  mov      x22, x0
+0001cc64  mov      x2, x20
+0001cc68  bl       #0x27860 ; objc_msgSend sel=setString:
+0001cc6c  b        #0x1ccf0 ; call sub_1ccf0
+0001cc70  adrp     x2, #0x35000
+0001cc74  add      x2, x2, #0x190 = @"type"
+0001cc78  mov      x0, x21
+0001cc7c  mov      x3, #0
+0001cc80  mov      x4, x19
+0001cc84  bl       #0x26a80 ; objc_msgSend sel=send:del:text:
+0001cc88  mov      x0, x21
+0001cc8c  bl       #0x28020 ; objc_msgSend sel=typed
+0001cc90  mov      x29, x29
+0001cc94  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cc98  mov      x23, x0
+0001cc9c  mov      x2, x19
+0001cca0  bl       #0x24d60 ; objc_msgSend sel=appendString:
+0001cca4  mov      x0, x23
+0001cca8  bl       #0x2480c ; call _objc_release
+0001ccac  cbz      w22, #0x1ccd0
+0001ccb0  mov      x0, x21
+0001ccb4  bl       #0x28220 ; objc_msgSend sel=word
+0001ccb8  mov      x29, x29
+0001ccbc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001ccc0  mov      x22, x0
+0001ccc4  mov      x2, x19
+0001ccc8  bl       #0x24d60 ; objc_msgSend sel=appendString:
+0001cccc  b        #0x1ccf0 ; call sub_1ccf0
+0001ccd0  mov      x0, x21
+0001ccd4  bl       #0x28220 ; objc_msgSend sel=word
+0001ccd8  mov      x29, x29
+0001ccdc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0001cce0  mov      x22, x0
+0001cce4  adrp     x2, #0x36000
+0001cce8  add      x2, x2, #0x6f0 = @""
+0001ccec  bl       #0x27860 ; objc_msgSend sel=setString:
+0001ccf0  mov      x0, x22
+0001ccf4  bl       #0x2480c ; call _objc_release
+0001ccf8  mov      x0, x20
+0001ccfc  bl       #0x2480c ; call _objc_release
+0001cd00  mov      x0, x19
+0001cd04  ldp      x29, x30, [sp, #0x50]
+0001cd08  ldp      x20, x19, [sp, #0x40]
+0001cd0c  ldp      x22, x21, [sp, #0x30]
+0001cd10  ldp      x24, x23, [sp, #0x20]
+0001cd14  ldp      x26, x25, [sp, #0x10]
+0001cd18  ldp      x28, x27, [sp], #0x60
+0001cd1c  b        #0x2480c ; call _objc_release
+0001cd20  b        #0x1cd94 ; call sub_1cd94
+0001cd24  b        #0x1cd94 ; call sub_1cd94
+0001cd28  mov      x21, x0
+0001cd2c  mov      x0, x23
+0001cd30  bl       #0x2480c ; call _objc_release
+0001cd34  b        #0x1cd88 ; call sub_1cd88
+0001cd38  b        #0x1cd94 ; call sub_1cd94
+0001cd3c  b        #0x1cda8 ; call sub_1cda8
+0001cd40  b        #0x1cd94 ; call sub_1cd94
+0001cd44  mov      x21, x0
+0001cd48  mov      x0, x26
+0001cd4c  bl       #0x2480c ; call _objc_release
+0001cd50  b        #0x1cd5c ; call sub_1cd5c
+0001cd54  b        #0x1cd94 ; call sub_1cd94
+0001cd58  mov      x21, x0
+0001cd5c  mov      x0, x24
+0001cd60  bl       #0x2480c ; call _objc_release
+0001cd64  b        #0x1cd6c ; call sub_1cd6c
+0001cd68  mov      x21, x0
+0001cd6c  mov      x0, x23
+0001cd70  b        #0x1cd7c ; call sub_1cd7c
+0001cd74  mov      x21, x0
+0001cd78  mov      x0, x24
+0001cd7c  bl       #0x2480c ; call _objc_release
+0001cd80  b        #0x1cd98 ; call sub_1cd98
+0001cd84  mov      x21, x0
+0001cd88  mov      x0, x22
+0001cd8c  b        #0x1cdc0 ; call sub_1cdc0
+0001cd90  b        #0x1cd94 ; call sub_1cd94
+0001cd94  mov      x21, x0
+0001cd98  mov      x0, x22
+0001cd9c  b        #0x1cdb0 ; call sub_1cdb0
+0001cda0  mov      x21, x0
+0001cda4  b        #0x1cdc4 ; call sub_1cdc4
+0001cda8  mov      x21, x0
+0001cdac  mov      x0, x23
+0001cdb0  bl       #0x2480c ; call _objc_release
+0001cdb4  b        #0x1cdbc ; call sub_1cdbc
+0001cdb8  mov      x21, x0
+0001cdbc  mov      x0, x20
+0001cdc0  bl       #0x2480c ; call _objc_release
+0001cdc4  mov      x0, x19
+0001cdc8  bl       #0x2480c ; call _objc_release
+0001cdcc  mov      x0, x21
+0001cdd0  bl       #0x24470 ; call __Unwind_Resume

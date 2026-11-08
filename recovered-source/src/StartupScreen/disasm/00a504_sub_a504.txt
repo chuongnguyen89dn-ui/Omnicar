@@ -1,0 +1,37 @@
+; sub_a504
+; VA 0xa504  size 136
+
+0x0000a504:  stp      d9, d8, [sp, #-0x30]!
+0x0000a508:  stp      x20, x19, [sp, #0x10]
+0x0000a50c:  stp      x29, x30, [sp, #0x20]
+0x0000a510:  add      x29, sp, #0x20
+0x0000a514:  mov      x19, x0
+0x0000a518:  ldr      x0, [x0, #0x20]
+0x0000a51c:  cbz      x0, #0xa564
+0x0000a520:  ldr      x8, [x19, #0x28]
+0x0000a524:  cbz      x8, #0xa564
+0x0000a528:  ldr      x20, [x19, #0x38]
+0x0000a52c:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x0000a530:  mov      v8.16b, v0.16b
+0x0000a534:  ldr      x0, [x19, #0x28]
+0x0000a538:  bl       #0x231c0    ; -> _objc_msgSend(doubleValue)
+0x0000a53c:  mov      v1.16b, v0.16b
+0x0000a540:  ldr      x8, [x19, #0x30]
+0x0000a544:  adrp     x9, #0x31000
+0x0000a548:  add      x9, x9, #0xf88    ; @"?"
+0x0000a54c:  cmp      x8, #0
+0x0000a550:  csel     x1, x9, x8, eq
+0x0000a554:  ldr      x2, [x20, #0x10]
+0x0000a558:  mov      x0, x20
+0x0000a55c:  mov      v0.16b, v8.16b
+0x0000a560:  b        #0xa57c    ; -> sub_a57c
+0x0000a564:  ldr      x0, [x19, #0x38]
+0x0000a568:  ldr      x2, [x0, #0x10]
+0x0000a56c:  mov      x8, #0x7ff8000000000000
+0x0000a570:  fmov     d0, x8
+0x0000a574:  mov      v1.16b, v0.16b
+0x0000a578:  mov      x1, #0
+0x0000a57c:  ldp      x29, x30, [sp, #0x20]
+0x0000a580:  ldp      x20, x19, [sp, #0x10]
+0x0000a584:  ldp      d9, d8, [sp], #0x30
+0x0000a588:  br       x2

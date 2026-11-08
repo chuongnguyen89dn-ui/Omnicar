@@ -1,0 +1,80 @@
+; ==== SCPCarSplit__removeCoverFromPane_  @0x2a668..0x2a7a4 (316 bytes) ====
+0002a668  sub      sp, sp, #0x90                                
+0002a66c  stp      d9, d8, [sp, #0x50]                          
+0002a670  stp      x22, x21, [sp, #0x60]                        
+0002a674  stp      x20, x19, [sp, #0x70]                        
+0002a678  stp      x29, x30, [sp, #0x80]                        
+0002a67c  add      x29, sp, #0x80                               
+0002a680  mov      x19, x2                                      
+0002a684  mov      x0, x2                                       
+0002a688  bl       #0x567c4                                     ; call _objc_retain
+0002a68c  mov      x0, x19                                      
+0002a690  bl       #0x57a20                                     ; msgSend "cover"
+0002a694  mov      x29, x29                                     
+0002a698  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002a69c  mov      x20, x0                                      
+0002a6a0  mov      x0, x19                                      
+0002a6a4  mov      x2, #0                                       
+0002a6a8  bl       #0x5aac0                                     ; msgSend "setCover:"
+0002a6ac  cbz      x20, #0x2a740                                
+0002a6b0  adrp     x8, #0x87000                                 
+0002a6b4  ldr      x21, [x8, #0x710]                            ; classref UIView
+0002a6b8  adrp     x22, #0x78000                                
+0002a6bc  ldr      x22, [x22, #0x338]                           
+0002a6c0  str      x22, [sp, #0x28]                             
+0002a6c4  adrp     x8, #0x6e000                                 
+0002a6c8  ldr      d8, [x8, #0xff8]                             ; double 1.6080749353e-314
+0002a6cc  str      d8, [sp, #0x30]                              
+0002a6d0  adrp     x8, #0x2a000                                 
+0002a6d4  add      x8, x8, #0x7a4                               
+0002a6d8  adrp     x9, #0x78000                                 
+0002a6dc  add      x9, x9, #0x910                               
+0002a6e0  stp      x8, x9, [sp, #0x38]                          
+0002a6e4  mov      x0, x20                                      
+0002a6e8  bl       #0x567c4                                     ; call _objc_retain
+0002a6ec  str      x20, [sp, #0x48]                             
+0002a6f0  str      x22, [sp]                                    
+0002a6f4  str      d8, [sp, #8]                                 
+0002a6f8  adrp     x8, #0x2a000                                 
+0002a6fc  add      x8, x8, #0x7b0                               
+0002a700  adrp     x9, #0x78000                                 
+0002a704  add      x9, x9, #0xab0                               
+0002a708  stp      x8, x9, [sp, #0x10]                          
+0002a70c  mov      x0, x20                                      
+0002a710  bl       #0x567c4                                     ; call _objc_retain
+0002a714  str      x20, [sp, #0x20]                             
+0002a718  adrp     x8, #0x6f000                                 
+0002a71c  ldr      d0, [x8, #0x190]                             ; double 0.22
+0002a720  add      x2, sp, #0x28                                
+0002a724  mov      x3, sp                                       
+0002a728  mov      x0, x21                                      
+0002a72c  bl       #0x56ec0                                     ; msgSend "animateWithDuration:animations:completion:"
+0002a730  ldr      x0, [sp, #0x20]                              
+0002a734  bl       #0x567b8                                     ; call _objc_release
+0002a738  ldr      x0, [sp, #0x48]                              
+0002a73c  bl       #0x567b8                                     ; call _objc_release
+0002a740  mov      x0, x20                                      
+0002a744  bl       #0x567b8                                     ; call _objc_release
+0002a748  mov      x0, x19                                      
+0002a74c  bl       #0x567b8                                     ; call _objc_release
+0002a750  ldp      x29, x30, [sp, #0x80]                        
+0002a754  ldp      x20, x19, [sp, #0x70]                        
+0002a758  ldp      x22, x21, [sp, #0x60]                        
+0002a75c  ldp      d9, d8, [sp, #0x50]                          
+0002a760  add      sp, sp, #0x90                                
+0002a764  ret                                                   
+0002a768  mov      x21, x0                                      
+0002a76c  ldr      x0, [sp, #0x20]                              
+0002a770  bl       #0x567b8                                     ; call _objc_release
+0002a774  ldr      x0, [sp, #0x48]                              
+0002a778  bl       #0x567b8                                     ; call _objc_release
+0002a77c  b        #0x2a784                                     
+0002a780  mov      x21, x0                                      
+0002a784  mov      x0, x20                                      
+0002a788  bl       #0x567b8                                     ; call _objc_release
+0002a78c  b        #0x2a794                                     
+0002a790  mov      x21, x0                                      
+0002a794  mov      x0, x19                                      
+0002a798  bl       #0x567b8                                     ; call _objc_release
+0002a79c  mov      x0, x21                                      
+0002a7a0  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,51 @@
+; sub_1b984
+; VA 0x1b984  size 192
+
+0x0001b984:  stp      x22, x21, [sp, #-0x30]!
+0x0001b988:  stp      x20, x19, [sp, #0x10]
+0x0001b98c:  stp      x29, x30, [sp, #0x20]
+0x0001b990:  add      x29, sp, #0x20
+0x0001b994:  adrp     x8, #0x3a000
+0x0001b998:  ldr      x0, [x8, #0xa30]    ; class(NSFileManager)
+0x0001b99c:  bl       #0x23080    ; -> _objc_msgSend(defaultManager)
+0x0001b9a0:  mov      x29, x29
+0x0001b9a4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b9a8:  mov      x19, x0
+0x0001b9ac:  adrp     x2, #0x33000
+0x0001b9b0:  add      x2, x2, #0xae8    ; @"/var/mobile/Documents/OmniCar.log"
+0x0001b9b4:  mov      x3, #0
+0x0001b9b8:  bl       #0x22720    ; -> _objc_msgSend(attributesOfItemAtPath:error:)
+0x0001b9bc:  mov      x29, x29
+0x0001b9c0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b9c4:  mov      x20, x0
+0x0001b9c8:  bl       #0x23300    ; -> _objc_msgSend(fileSize)
+0x0001b9cc:  mov      x21, x0
+0x0001b9d0:  mov      x0, x20
+0x0001b9d4:  bl       #0x22120    ; -> _objc_release
+0x0001b9d8:  cmp      x21, #0x200, lsl #12
+0x0001b9dc:  b.lo     #0x1ba30
+0x0001b9e0:  adrp     x20, #0x33000
+0x0001b9e4:  add      x20, x20, #0xae8    ; @"/var/mobile/Documents/OmniCar.log"
+0x0001b9e8:  adrp     x2, #0x34000
+0x0001b9ec:  add      x2, x2, #8    ; @".old"
+0x0001b9f0:  mov      x0, x20
+0x0001b9f4:  bl       #0x25b40    ; -> _objc_msgSend(stringByAppendingString:)
+0x0001b9f8:  mov      x29, x29
+0x0001b9fc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ba00:  mov      x21, x0
+0x0001ba04:  mov      x0, x19
+0x0001ba08:  mov      x2, x21
+0x0001ba0c:  mov      x3, #0
+0x0001ba10:  bl       #0x24200    ; -> _objc_msgSend(removeItemAtPath:error:)
+0x0001ba14:  mov      x0, x19
+0x0001ba18:  mov      x2, x20
+0x0001ba1c:  mov      x3, x21
+0x0001ba20:  mov      x4, #0
+0x0001ba24:  bl       #0x23c40    ; -> _objc_msgSend(moveItemAtPath:toPath:error:)
+0x0001ba28:  mov      x0, x21
+0x0001ba2c:  bl       #0x22120    ; -> _objc_release
+0x0001ba30:  mov      x0, x19
+0x0001ba34:  ldp      x29, x30, [sp, #0x20]
+0x0001ba38:  ldp      x20, x19, [sp, #0x10]
+0x0001ba3c:  ldp      x22, x21, [sp], #0x30
+0x0001ba40:  b        #0x22120    ; -> _objc_release

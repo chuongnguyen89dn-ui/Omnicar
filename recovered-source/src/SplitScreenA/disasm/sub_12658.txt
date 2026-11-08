@@ -1,0 +1,49 @@
+; sub_12658
+0x012658  stp      x20, x19, [sp, #-0x20]!
+0x01265c  stp      x29, x30, [sp, #0x10]
+0x012660  add      x29, sp, #0x10
+0x012664  bl       #0xe5b4 ; -> sub_e5b4
+0x012668  mov      x29, x29
+0x01266c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x012670  mov      x19, x0
+0x012674  cbz      x0, #0x126bc
+0x012678  mov      x0, x19
+0x01267c  bl       #0x567c4 ; call _objc_retain
+0x012680  adrp     x0, #0x7d000
+0x012684  add      x0, x0, #0xa80 ; -> 0x7da80 @"rootViewController"
+0x012688  bl       #0x56374 ; call _NSSelectorFromString
+0x01268c  mov      x20, x0
+0x012690  mov      x0, x19
+0x012694  mov      x1, x20
+0x012698  bl       #0x567a0 ; call _objc_opt_respondsToSelector
+0x01269c  tbz      w0, #0, #0x126c4
+0x0126a0  mov      x0, x19
+0x0126a4  mov      x1, x20
+0x0126a8  bl       #0x56758 ; call _objc_msgSend
+0x0126ac  mov      x29, x29
+0x0126b0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0126b4  mov      x20, x0
+0x0126b8  b        #0x126d8
+0x0126bc  mov      x20, #0
+0x0126c0  b        #0x126e0
+0x0126c4  adrp     x1, #0x7d000
+0x0126c8  add      x1, x1, #0xa80 ; -> 0x7da80 @"rootViewController"
+0x0126cc  mov      x0, x19
+0x0126d0  bl       #0x4f330 ; -> _SCPMissingSelector
+0x0126d4  mov      x20, #0
+0x0126d8  mov      x0, x19
+0x0126dc  bl       #0x567b8 ; call _objc_release
+0x0126e0  mov      x0, x19
+0x0126e4  bl       #0x567b8 ; call _objc_release
+0x0126e8  mov      x0, x20
+0x0126ec  ldp      x29, x30, [sp, #0x10]
+0x0126f0  ldp      x20, x19, [sp], #0x20
+0x0126f4  b        #0x566e0 ; call _objc_autoreleaseReturnValue
+0x0126f8  b        #0x126fc
+0x0126fc  mov      x20, x0
+0x012700  mov      x0, x19
+0x012704  bl       #0x567b8 ; call _objc_release
+0x012708  mov      x0, x19
+0x01270c  bl       #0x567b8 ; call _objc_release
+0x012710  mov      x0, x20
+0x012714  bl       #0x563e0 ; call __Unwind_Resume

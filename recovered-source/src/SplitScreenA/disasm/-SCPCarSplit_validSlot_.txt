@@ -1,0 +1,14 @@
+; -[SCPCarSplit validSlot:]
+0x0107cc  stp      x20, x19, [sp, #-0x20]!
+0x0107d0  stp      x29, x30, [sp, #0x10]
+0x0107d4  add      x29, sp, #0x10
+0x0107d8  bl       #0x597e0 ; objc_msgSend$paneAtSlot:
+0x0107dc  mov      x29, x29
+0x0107e0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0107e4  cmp      x0, #0
+0x0107e8  cset     w19, ne
+0x0107ec  bl       #0x567b8 ; call _objc_release
+0x0107f0  mov      x0, x19
+0x0107f4  ldp      x29, x30, [sp, #0x10]
+0x0107f8  ldp      x20, x19, [sp], #0x20
+0x0107fc  ret      

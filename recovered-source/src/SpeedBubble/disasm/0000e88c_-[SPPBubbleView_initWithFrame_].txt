@@ -1,0 +1,39 @@
+# -[SPPBubbleView initWithFrame:]
+# addr 0xe88c .. 0xe91c  (144 bytes)
+
+0000e88c  sub      sp, sp, #0x30                               
+0000e890  stp      x20, x19, [sp, #0x10]                       
+0000e894  stp      x29, x30, [sp, #0x20]                       
+0000e898  add      x29, sp, #0x20                              
+0000e89c  adrp     x8, #0x43000                                
+0000e8a0  ldr      x8, [x8, #0x1b8]                            ; [0x431b8] __DATA,__objc_superrefs+0x18
+0000e8a4  stp      x0, x8, [sp]                                
+0000e8a8  adrp     x8, #0x42000                                
+0000e8ac  ldr      x1, [x8, #0x100]                            ; [0x42100] selref -> @initWithFrame:
+0000e8b0  mov      x0, sp                                      
+0000e8b4  bl       #0x27fb0                                    ; _objc_msgSendSuper2
+0000e8b8  mov      x19, x0                                     
+0000e8bc  cbz      x0, #0xe908                                 
+0000e8c0  adrp     x8, #0x43000                                
+0000e8c4  ldrsw    x8, [x8, #0x1fc]                            
+0000e8c8  mov      x9, #-1                                     
+0000e8cc  str      x9, [x19, x8]                               
+0000e8d0  adrp     x8, #0x43000                                
+0000e8d4  ldrsw    x8, [x8, #0x200]                            
+0000e8d8  mov      w9, #-1                                     
+0000e8dc  str      w9, [x19, x8]                               
+0000e8e0  adrp     x8, #0x43000                                
+0000e8e4  ldrsw    x8, [x8, #0x204]                            
+0000e8e8  str      w9, [x19, x8]                               
+0000e8ec  adrp     x8, #0x43000                                
+0000e8f0  ldrsw    x8, [x8, #0x208]                            
+0000e8f4  mov      w9, #1                                      
+0000e8f8  strb     w9, [x19, x8]                               
+0000e8fc  mov      x0, x19                                     
+0000e900  mov      w2, #0                                      
+0000e904  bl       #0x2bbc0                                    ; objc_msgSend$setUserInteractionEnabled:
+0000e908  mov      x0, x19                                     
+0000e90c  ldp      x29, x30, [sp, #0x20]                       
+0000e910  ldp      x20, x19, [sp, #0x10]                       
+0000e914  add      sp, sp, #0x30                               
+0000e918  ret                                                  

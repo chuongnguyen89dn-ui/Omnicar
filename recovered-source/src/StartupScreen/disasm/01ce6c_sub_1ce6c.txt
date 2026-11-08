@@ -1,0 +1,66 @@
+; sub_1ce6c
+; VA 0x1ce6c  size 252
+
+0x0001ce6c:  mov      w4, #1
+0x0001ce70:  bl       #0x23100    ; -> _objc_msgSend(dictionaryWithObjects:forKeys:count:)
+0x0001ce74:  mov      x29, x29
+0x0001ce78:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ce7c:  mov      x21, x0
+0x0001ce80:  bl       #0x23ca0    ; -> _objc_msgSend(mutableCopy)
+0x0001ce84:  mov      x20, x0
+0x0001ce88:  mov      x0, x21
+0x0001ce8c:  bl       #0x22120    ; -> _objc_release
+0x0001ce90:  mov      x8, #0x7fffffffffffffff
+0x0001ce94:  cmp      x27, x8
+0x0001ce98:  b.eq     #0x1ced4
+0x0001ce9c:  adrp     x8, #0x3a000
+0x0001cea0:  ldr      x0, [x8, #0xa70]    ; class(NSNumber)
+0x0001cea4:  mov      x2, x27
+0x0001cea8:  bl       #0x23e20    ; -> _objc_msgSend(numberWithLong:)
+0x0001ceac:  mov      x29, x29
+0x0001ceb0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ceb4:  mov      x21, x0
+0x0001ceb8:  adrp     x3, #0x34000
+0x0001cebc:  add      x3, x3, #0x168    ; @"age"
+0x0001cec0:  mov      x0, x20
+0x0001cec4:  mov      x2, x21
+0x0001cec8:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x0001cecc:  mov      x0, x21
+0x0001ced0:  bl       #0x22120    ; -> _objc_release
+0x0001ced4:  cbz      x19, #0x1cf30
+0x0001ced8:  adrp     x3, #0x34000
+0x0001cedc:  add      x3, x3, #0x188    ; @"suspect"
+0x0001cee0:  mov      x0, x20
+0x0001cee4:  mov      x2, x19
+0x0001cee8:  bl       #0x24dc0    ; -> _objc_msgSend(setObject:forKeyedSubscript:)
+0x0001ceec:  adrp     x0, #0x34000
+0x0001cef0:  add      x0, x0, #0x1a8    ; @"diagLastCrash"
+0x0001cef4:  adrp     x2, #0x32000
+0x0001cef8:  add      x2, x2, #0x1c8    ; @"com.anlai.omnicar"
+0x0001cefc:  mov      x1, x20
+0x0001cf00:  bl       #0x21b80    ; -> _CFPreferencesSetAppValue
+0x0001cf04:  cmp      x27, #0x3b
+0x0001cf08:  ldr      x21, [sp, #0x38]
+0x0001cf0c:  b.gt     #0x1d468
+0x0001cf10:  ldr      x0, [sp, #0x50]
+0x0001cf14:  mov      x2, x19
+0x0001cf18:  bl       #0x22d20    ; -> _objc_msgSend(containsObject:)
+0x0001cf1c:  tbnz     w0, #0, #0x1cf4c
+0x0001cf20:  ldr      x0, [sp, #0x50]
+0x0001cf24:  mov      x2, x19
+0x0001cf28:  bl       #0x22480    ; -> _objc_msgSend(addObject:)
+0x0001cf2c:  b        #0x1cf4c    ; -> sub_1cf4c
+0x0001cf30:  adrp     x0, #0x34000
+0x0001cf34:  add      x0, x0, #0x1a8    ; @"diagLastCrash"
+0x0001cf38:  adrp     x2, #0x32000
+0x0001cf3c:  add      x2, x2, #0x1c8    ; @"com.anlai.omnicar"
+0x0001cf40:  mov      x1, x20
+0x0001cf44:  bl       #0x21b80    ; -> _CFPreferencesSetAppValue
+0x0001cf48:  ldr      x21, [sp, #0x38]
+0x0001cf4c:  mov      x0, x20
+0x0001cf50:  bl       #0x22120    ; -> _objc_release
+0x0001cf54:  mov      x0, x19
+0x0001cf58:  bl       #0x22120    ; -> _objc_release
+0x0001cf5c:  ldr      x0, [sp, #0x78]
+0x0001cf60:  bl       #0x22120    ; -> _objc_release
+0x0001cf64:  mov      x0, x26

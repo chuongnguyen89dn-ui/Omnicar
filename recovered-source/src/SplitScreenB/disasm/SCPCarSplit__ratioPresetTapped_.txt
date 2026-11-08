@@ -1,0 +1,135 @@
+; ==== SCPCarSplit__ratioPresetTapped_  @0x31194..0x313ac (536 bytes) ====
+00031194  sub      sp, sp, #0x50                                
+00031198  stp      x24, x23, [sp, #0x10]                        
+0003119c  stp      x22, x21, [sp, #0x20]                        
+000311a0  stp      x20, x19, [sp, #0x30]                        
+000311a4  stp      x29, x30, [sp, #0x40]                        
+000311a8  add      x29, sp, #0x40                               
+000311ac  mov      x19, x2                                      
+000311b0  mov      x20, x0                                      
+000311b4  mov      x0, x2                                       
+000311b8  bl       #0x567c4                                     ; call _objc_retain
+000311bc  mov      x0, x20                                      
+000311c0  bl       #0x59fc0                                     ; msgSend "ratioPresets"
+000311c4  mov      x29, x29                                     
+000311c8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000311cc  mov      x21, x0                                      
+000311d0  mov      x0, x19                                      
+000311d4  bl       #0x5c620                                     ; msgSend "tag"
+000311d8  tbnz     x0, #0x3f, #0x3126c                          
+000311dc  mov      x0, x19                                      
+000311e0  bl       #0x5c620                                     ; msgSend "tag"
+000311e4  mov      x22, x0                                      
+000311e8  mov      x0, x21                                      
+000311ec  bl       #0x579e0                                     ; msgSend "count"
+000311f0  cmp      x22, x0                                      
+000311f4  b.ge     #0x3126c                                     
+000311f8  mov      x0, x20                                      
+000311fc  bl       #0x58460                                     ; msgSend "hideRatioMenu"
+00031200  mov      x0, x20                                      
+00031204  bl       #0x57200                                     ; msgSend "beginResize"
+00031208  mov      x0, x19                                      
+0003120c  bl       #0x5c620                                     ; msgSend "tag"
+00031210  mov      x2, x0                                       
+00031214  mov      x0, x21                                      
+00031218  bl       #0x59620                                     ; msgSend "objectAtIndexedSubscript:"
+0003121c  mov      x29, x29                                     
+00031220  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00031224  mov      x23, x0                                      
+00031228  bl       #0x593e0                                     ; msgSend "mutableCopy"
+0003122c  mov      x22, x0                                      
+00031230  mov      x0, x20                                      
+00031234  mov      x2, x22                                      
+00031238  bl       #0x5ae00                                     ; msgSend "setFractions:"
+0003123c  mov      x0, x22                                      
+00031240  bl       #0x567b8                                     ; call _objc_release
+00031244  mov      x0, x23                                      
+00031248  bl       #0x567b8                                     ; call _objc_release
+0003124c  mov      x0, x20                                      
+00031250  mov      w2, #1                                       
+00031254  bl       #0x5a160                                     ; msgSend "relayoutAnimated:"
+00031258  mov      x0, x20                                      
+0003125c  bl       #0x5a560                                     ; msgSend "saveRatio"
+00031260  mov      x0, x20                                      
+00031264  bl       #0x57f00                                     ; msgSend "endResize"
+00031268  b        #0x31274                                     
+0003126c  mov      x0, x20                                      
+00031270  bl       #0x58460                                     ; msgSend "hideRatioMenu"
+00031274  mov      x0, x21                                      
+00031278  bl       #0x567b8                                     ; call _objc_release
+0003127c  mov      x0, x19                                      
+00031280  ldp      x29, x30, [sp, #0x40]                        
+00031284  ldp      x20, x19, [sp, #0x30]                        
+00031288  ldp      x22, x21, [sp, #0x20]                        
+0003128c  ldp      x24, x23, [sp, #0x10]                        
+00031290  add      sp, sp, #0x50                                
+00031294  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+00031298  mov      x24, x1                                      
+0003129c  mov      x1, x22                                      
+000312a0  mov      x22, x0                                      
+000312a4  mov      x0, x1                                       
+000312a8  bl       #0x567b8                                     ; call _objc_release
+000312ac  b        #0x312b8                                     
+000312b0  mov      x24, x1                                      
+000312b4  mov      x22, x0                                      
+000312b8  mov      x0, x23                                      
+000312bc  bl       #0x567b8                                     ; call _objc_release
+000312c0  b        #0x312d8                                     
+000312c4  mov      x24, x1                                      
+000312c8  mov      x22, x0                                      
+000312cc  b        #0x312e0                                     
+000312d0  mov      x24, x1                                      
+000312d4  mov      x22, x0                                      
+000312d8  mov      x0, x21                                      
+000312dc  bl       #0x567b8                                     ; call _objc_release
+000312e0  cmp      w24, #1                                      
+000312e4  b.ne     #0x3139c                                     
+000312e8  mov      x0, x22                                      
+000312ec  bl       #0x566ec                                     ; call _objc_begin_catch
+000312f0  mov      x21, x0                                      
+000312f4  bl       #0x567c4                                     ; call _objc_retain
+000312f8  adrp     x8, #0x87000                                 
+000312fc  ldr      x22, [x8, #0x678]                            ; classref NSString
+00031300  mov      x0, x21                                      
+00031304  bl       #0x574a0                                     ; msgSend "callStackSymbols"
+00031308  mov      x29, x29                                     
+0003130c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00031310  mov      x23, x0                                      
+00031314  stp      x21, x0, [sp]                                
+00031318  adrp     x2, #0x7c000                                 
+0003131c  add      x2, x2, #0x700                               
+00031320  mov      x0, x22                                      
+00031324  bl       #0x5c440                                     ; msgSend "stringWithFormat:"
+00031328  mov      x29, x29                                     
+0003132c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00031330  mov      x24, x0                                      
+00031334  adrp     x0, #0x79000                                 
+00031338  add      x0, x0, #0x5c0                               
+0003133c  mov      x1, x24                                      
+00031340  bl       #0x4fbf4                                     
+00031344  mov      x0, x24                                      
+00031348  bl       #0x567b8                                     ; call _objc_release
+0003134c  mov      x0, x23                                      
+00031350  bl       #0x567b8                                     ; call _objc_release
+00031354  mov      x0, x20                                      
+00031358  bl       #0x58460                                     ; msgSend "hideRatioMenu"
+0003135c  mov      x0, x21                                      
+00031360  bl       #0x567b8                                     ; call _objc_release
+00031364  bl       #0x56710                                     ; call _objc_end_catch
+00031368  b        #0x3127c                                     
+0003136c  mov      x22, x0                                      
+00031370  mov      x0, x24                                      
+00031374  bl       #0x567b8                                     ; call _objc_release
+00031378  b        #0x31380                                     
+0003137c  mov      x22, x0                                      
+00031380  mov      x0, x23                                      
+00031384  bl       #0x567b8                                     ; call _objc_release
+00031388  b        #0x31390                                     
+0003138c  mov      x22, x0                                      
+00031390  mov      x0, x21                                      
+00031394  bl       #0x567b8                                     ; call _objc_release
+00031398  bl       #0x56710                                     ; call _objc_end_catch
+0003139c  mov      x0, x19                                      
+000313a0  bl       #0x567b8                                     ; call _objc_release
+000313a4  mov      x0, x22                                      
+000313a8  bl       #0x563e0                                     ; call __Unwind_Resume

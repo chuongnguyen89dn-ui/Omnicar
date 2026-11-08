@@ -1,0 +1,33 @@
+; sub_9a84
+; VA 0x9a84  size 120
+
+0x00009a84:  stp      x20, x19, [sp, #-0x20]!
+0x00009a88:  stp      x29, x30, [sp, #0x10]
+0x00009a8c:  add      x29, sp, #0x10
+0x00009a90:  adrp     x8, #0x3a000
+0x00009a94:  ldr      x0, [x8, #0xac8]    ; class(AVAudioSession)
+0x00009a98:  bl       #0x25500    ; -> _objc_msgSend(sharedInstance)
+0x00009a9c:  mov      x29, x29
+0x00009aa0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009aa4:  mov      x19, x0
+0x00009aa8:  mov      w2, #0
+0x00009aac:  mov      w3, #1
+0x00009ab0:  mov      x4, #0
+0x00009ab4:  bl       #0x243a0    ; -> _objc_msgSend(setActive:withOptions:error:)
+0x00009ab8:  adrp     x20, #0x3b000
+0x00009abc:  ldr      x2, [x20, #0x180]
+0x00009ac0:  cbz      x2, #0x9ae0
+0x00009ac4:  adrp     x8, #0x3b000
+0x00009ac8:  ldr      x3, [x8, #0x1a0]
+0x00009acc:  mov      x0, x19
+0x00009ad0:  mov      x4, #0
+0x00009ad4:  bl       #0x24600    ; -> _objc_msgSend(setCategory:withOptions:error:)
+0x00009ad8:  ldr      x0, [x20, #0x180]
+0x00009adc:  b        #0x9ae4    ; -> sub_9ae4
+0x00009ae0:  mov      x0, #0
+0x00009ae4:  str      xzr, [x20, #0x180]
+0x00009ae8:  bl       #0x22120    ; -> _objc_release
+0x00009aec:  mov      x0, x19
+0x00009af0:  ldp      x29, x30, [sp, #0x10]
+0x00009af4:  ldp      x20, x19, [sp], #0x20
+0x00009af8:  b        #0x22120    ; -> _objc_release

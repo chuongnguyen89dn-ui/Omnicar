@@ -1,0 +1,103 @@
+# sub_1a5e8
+# addr 0x1a5e8 .. 0x1a778  (400 bytes)
+
+0001a5e8  stp      x22, x21, [sp, #-0x30]!                     
+0001a5ec  stp      x20, x19, [sp, #0x10]                       
+0001a5f0  stp      x29, x30, [sp, #0x20]                       
+0001a5f4  add      x29, sp, #0x20                              
+0001a5f8  mov      x19, x1                                     
+0001a5fc  mov      x20, x0                                     
+0001a600  mov      x0, x1                                      
+0001a604  bl       #0x28004                                    ; _objc_retain
+0001a608  ldr      x8, [x20, #0x20]                            
+0001a60c  ldr      x8, [x8, #8]                                
+0001a610  ldr      w9, [x8, #0x18]                             
+0001a614  add      w9, w9, #1                                  
+0001a618  str      w9, [x8, #0x18]                             
+0001a61c  ldr      x8, [x20, #0x20]                            
+0001a620  ldr      x8, [x8, #8]                                
+0001a624  ldr      w8, [x8, #0x18]                             
+0001a628  cmp      w8, #0x15                                   
+0001a62c  b.lt     #0x1a6f4                                    
+0001a630  mov      x0, x19                                     
+0001a634  bl       #0x29980                                    ; objc_msgSend$invalidate
+0001a638  add      x0, x20, #0x28                              
+0001a63c  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+0001a640  mov      x21, x0                                     
+0001a644  mov      x2, #0                                      
+0001a648  bl       #0x2ae00                                    ; objc_msgSend$setDemoTimer:
+0001a64c  mov      x0, x21                                     
+0001a650  bl       #0x27ff8                                    ; _objc_release
+0001a654  add      x0, x20, #0x28                              
+0001a658  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+0001a65c  mov      x21, x0                                     
+0001a660  mov      w2, #-1                                     
+0001a664  bl       #0x2b840                                    ; objc_msgSend$setSpeed:
+0001a668  mov      x0, x21                                     
+0001a66c  bl       #0x27ff8                                    ; _objc_release
+0001a670  add      x0, x20, #0x28                              
+0001a674  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+0001a678  mov      x21, x0                                     
+0001a67c  mov      w2, #-1                                     
+0001a680  bl       #0x2b1c0                                    ; objc_msgSend$setLimit:
+0001a684  mov      x0, x21                                     
+0001a688  bl       #0x27ff8                                    ; _objc_release
+0001a68c  add      x0, x20, #0x28                              
+0001a690  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+0001a694  mov      x21, x0                                     
+0001a698  fmov     d0, xzr                                     
+0001a69c  bl       #0x2b860                                    ; objc_msgSend$setSpeedAt:
+0001a6a0  mov      x0, x21                                     
+0001a6a4  bl       #0x27ff8                                    ; _objc_release
+0001a6a8  add      x0, x20, #0x28                              
+0001a6ac  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+0001a6b0  mov      x21, x0                                     
+0001a6b4  fmov     d0, xzr                                     
+0001a6b8  bl       #0x2b1e0                                    ; objc_msgSend$setLimitAt:
+0001a6bc  mov      x0, x21                                     
+0001a6c0  bl       #0x27ff8                                    ; _objc_release
+0001a6c4  add      x0, x20, #0x28                              
+0001a6c8  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+0001a6cc  mov      x21, x0                                     
+0001a6d0  fmov     d0, xzr                                     
+0001a6d4  bl       #0x2b1a0                                    ; objc_msgSend$setLastUpdate:
+0001a6d8  mov      x0, x21                                     
+0001a6dc  bl       #0x27ff8                                    ; _objc_release
+0001a6e0  add      x0, x20, #0x28                              
+0001a6e4  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+0001a6e8  mov      x20, x0                                     
+0001a6ec  bl       #0x2a500                                    ; objc_msgSend$refresh
+0001a6f0  b        #0x1a710                                    ; sub_1a710
+0001a6f4  lsl      w21, w8, #1                                 
+0001a6f8  add      x0, x20, #0x28                              
+0001a6fc  bl       #0x27f8c                                    ; _objc_loadWeakRetained
+0001a700  mov      x20, x0                                     
+0001a704  add      w2, w21, #0x28                              
+0001a708  mov      w3, #0x3c                                   
+0001a70c  bl       #0x2c6e0                                    ; objc_msgSend$updateSpeed:limit:
+0001a710  mov      x0, x20                                     
+0001a714  bl       #0x27ff8                                    ; _objc_release
+0001a718  mov      x0, x19                                     
+0001a71c  ldp      x29, x30, [sp, #0x20]                       
+0001a720  ldp      x20, x19, [sp, #0x10]                       
+0001a724  ldp      x22, x21, [sp], #0x30                       
+0001a728  b        #0x27ff8                                    ; _objc_release
+0001a72c  b        #0x1a750                                    ; sub_1a750
+0001a730  b        #0x1a744                                    ; sub_1a744
+0001a734  b        #0x1a744                                    ; sub_1a744
+0001a738  b        #0x1a744                                    ; sub_1a744
+0001a73c  b        #0x1a744                                    ; sub_1a744
+0001a740  b        #0x1a744                                    ; sub_1a744
+0001a744  mov      x20, x0                                     
+0001a748  mov      x0, x21                                     
+0001a74c  b        #0x1a75c                                    ; sub_1a75c
+0001a750  mov      x1, x20                                     
+0001a754  mov      x20, x0                                     
+0001a758  mov      x0, x1                                      
+0001a75c  bl       #0x27ff8                                    ; _objc_release
+0001a760  mov      x0, x19                                     
+0001a764  bl       #0x27ff8                                    ; _objc_release
+0001a768  mov      x0, x20                                     
+0001a76c  bl       #0x27c80                                    ; __Unwind_Resume
+0001a770  mov      x20, x0                                     
+0001a774  b        #0x1a760                                    ; sub_1a760

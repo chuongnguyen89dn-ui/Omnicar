@@ -1,0 +1,75 @@
+; sub_1ae44
+; VA 0x1ae44  size 288
+
+0x0001ae44:  stp      d9, d8, [sp, #-0x40]!
+0x0001ae48:  stp      x22, x21, [sp, #0x10]
+0x0001ae4c:  stp      x20, x19, [sp, #0x20]
+0x0001ae50:  stp      x29, x30, [sp, #0x30]
+0x0001ae54:  add      x29, sp, #0x30
+0x0001ae58:  mov      x19, x1
+0x0001ae5c:  fmov     d0, #24.00000000
+0x0001ae60:  fmov     d1, #24.00000000
+0x0001ae64:  mov      x0, x1
+0x0001ae68:  bl       #0x21c88    ; -> _CGContextTranslateCTM
+0x0001ae6c:  adrp     x21, #0x3a000
+0x0001ae70:  ldr      x0, [x21, #0x9d8]    ; class(UIColor)
+0x0001ae74:  adrp     x8, #0x29000
+0x0001ae78:  ldr      d1, [x8, #0x3f8]
+0x0001ae7c:  adrp     x8, #0x29000
+0x0001ae80:  ldr      d2, [x8, #0x2c8]
+0x0001ae84:  fmov     d0, #1.00000000
+0x0001ae88:  fmov     d3, #1.00000000
+0x0001ae8c:  bl       #0x22b00    ; -> _objc_msgSend(colorWithRed:green:blue:alpha:)
+0x0001ae90:  mov      x29, x29
+0x0001ae94:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ae98:  mov      x20, x0
+0x0001ae9c:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0001aea0:  bl       #0x22300    ; -> _objc_msgSend(CGColor)
+0x0001aea4:  mov      x1, x0
+0x0001aea8:  mov      x0, x19
+0x0001aeac:  bl       #0x21c70    ; -> _CGContextSetFillColorWithColor
+0x0001aeb0:  mov      x0, x20
+0x0001aeb4:  bl       #0x22120    ; -> _objc_release
+0x0001aeb8:  mov      w20, #5
+0x0001aebc:  adrp     x8, #0x29000
+0x0001aec0:  ldr      d8, [x8, #0x400]
+0x0001aec4:  mov      x0, x19
+0x0001aec8:  mov      v0.16b, v8.16b
+0x0001aecc:  bl       #0x21c4c    ; -> _CGContextRotateCTM
+0x0001aed0:  fmov     d0, #-7.00000000
+0x0001aed4:  fmov     d1, #-22.00000000
+0x0001aed8:  fmov     d2, #14.00000000
+0x0001aedc:  fmov     d3, #22.00000000
+0x0001aee0:  mov      x0, x19
+0x0001aee4:  bl       #0x21c28    ; -> _CGContextFillEllipseInRect
+0x0001aee8:  subs     w20, w20, #1
+0x0001aeec:  b.ne     #0x1aec4
+0x0001aef0:  ldr      x0, [x21, #0x9d8]
+0x0001aef4:  adrp     x8, #0x29000
+0x0001aef8:  ldr      d0, [x8, #0x408]
+0x0001aefc:  adrp     x8, #0x29000
+0x0001af00:  ldr      d1, [x8, #0x410]
+0x0001af04:  adrp     x8, #0x29000
+0x0001af08:  ldr      d2, [x8, #0x418]
+0x0001af0c:  fmov     d3, #1.00000000
+0x0001af10:  bl       #0x22b00    ; -> _objc_msgSend(colorWithRed:green:blue:alpha:)
+0x0001af14:  mov      x29, x29
+0x0001af18:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001af1c:  mov      x20, x0
+0x0001af20:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0001af24:  bl       #0x22300    ; -> _objc_msgSend(CGColor)
+0x0001af28:  mov      x1, x0
+0x0001af2c:  mov      x0, x19
+0x0001af30:  bl       #0x21c70    ; -> _CGContextSetFillColorWithColor
+0x0001af34:  mov      x0, x20
+0x0001af38:  bl       #0x22120    ; -> _objc_release
+0x0001af3c:  fmov     d0, #-4.50000000
+0x0001af40:  fmov     d1, #-4.50000000
+0x0001af44:  fmov     d2, #9.00000000
+0x0001af48:  fmov     d3, #9.00000000
+0x0001af4c:  mov      x0, x19
+0x0001af50:  ldp      x29, x30, [sp, #0x30]
+0x0001af54:  ldp      x20, x19, [sp, #0x20]
+0x0001af58:  ldp      x22, x21, [sp, #0x10]
+0x0001af5c:  ldp      d9, d8, [sp], #0x40
+0x0001af60:  b        #0x21c28    ; -> _CGContextFillEllipseInRect

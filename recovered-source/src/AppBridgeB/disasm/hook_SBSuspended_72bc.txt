@@ -1,0 +1,127 @@
+=== sub_72bc @ 0x72bc (size 504) ===
+000072bc  stp      x24, x23, [sp, #-0x40]!
+000072c0  stp      x22, x21, [sp, #0x10]
+000072c4  stp      x20, x19, [sp, #0x20]
+000072c8  stp      x29, x30, [sp, #0x30]
+000072cc  add      x29, sp, #0x30
+000072d0  mov      x20, x3
+000072d4  mov      x19, x2
+000072d8  mov      x21, x1
+000072dc  mov      x22, x0
+000072e0  mov      x0, x2
+000072e4  bl       #0x24818 ; call _objc_retain
+000072e8  mov      x0, x20
+000072ec  bl       #0x24818 ; call _objc_retain
+000072f0  adrp     x8, #0x3e000
+000072f4  ldr      x8, [x8, #0x9f8]
+000072f8  mov      x0, x22
+000072fc  mov      x1, x21
+00007300  mov      x2, x19
+00007304  mov      x3, x20
+00007308  blr      x8
+0000730c  cbz      w0, #0x7354
+00007310  mov      x0, x19
+00007314  bl       #0x24818 ; call _objc_retain
+00007318  adrp     x0, #0x35000
+0000731c  add      x0, x0, #0x910 = @"clientProcess"
+00007320  bl       #0x2441c ; call _NSSelectorFromString
+00007324  mov      x21, x0
+00007328  mov      x0, x19
+0000732c  mov      x1, x21
+00007330  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+00007334  tbz      w0, #0, #0x735c
+00007338  mov      x0, x19
+0000733c  mov      x1, x21
+00007340  bl       #0x247ac ; call _objc_msgSend
+00007344  mov      x29, x29
+00007348  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000734c  mov      x21, x0
+00007350  b        #0x7370 ; call sub_7370
+00007354  mov      w21, #0
+00007358  b        #0x7470 ; call sub_7470
+0000735c  adrp     x1, #0x35000
+00007360  add      x1, x1, #0x910 = @"clientProcess"
+00007364  mov      x0, x19
+00007368  bl       #0x9698 ; call sym:_ABMissingSelector
+0000736c  mov      x21, #0
+00007370  mov      x0, x19
+00007374  bl       #0x2480c ; call _objc_release
+00007378  adrp     x0, #0x35000
+0000737c  add      x0, x0, #0x930 = @"bundleIdentifier"
+00007380  bl       #0x2441c ; call _NSSelectorFromString
+00007384  mov      x22, x0
+00007388  mov      x0, x21
+0000738c  mov      x1, x22
+00007390  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+00007394  tbz      w0, #0, #0x73b4
+00007398  mov      x0, x21
+0000739c  mov      x1, x22
+000073a0  bl       #0x247ac ; call _objc_msgSend
+000073a4  mov      x29, x29
+000073a8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000073ac  mov      x23, x0
+000073b0  b        #0x73c8 ; call sub_73c8
+000073b4  adrp     x1, #0x35000
+000073b8  add      x1, x1, #0x930 = @"bundleIdentifier"
+000073bc  mov      x0, x21
+000073c0  bl       #0x9698 ; call sym:_ABMissingSelector
+000073c4  mov      x23, #0
+000073c8  mov      x0, x21
+000073cc  bl       #0x2480c ; call _objc_release
+000073d0  cbz      x23, #0x746c
+000073d4  adrp     x8, #0x3e000
+000073d8  ldr      x0, [x8, #0x2e0] ; class ABHost
+000073dc  bl       #0x27b20 ; objc_msgSend sel=shared
+000073e0  mov      x29, x29
+000073e4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000073e8  mov      x21, x0
+000073ec  mov      x2, x23
+000073f0  bl       #0x25960 ; objc_msgSend sel=hostsApp:
+000073f4  mov      x22, x0
+000073f8  mov      x0, x21
+000073fc  bl       #0x2480c ; call _objc_release
+00007400  eor      w21, w22, #1
+00007404  mov      x0, x23
+00007408  bl       #0x2480c ; call _objc_release
+0000740c  b        #0x7470 ; call sub_7470
+00007410  mov      x22, x0
+00007414  mov      x0, x21
+00007418  bl       #0x2480c ; call _objc_release
+0000741c  b        #0x7424 ; call sub_7424
+00007420  mov      x22, x0
+00007424  mov      x0, x23
+00007428  bl       #0x2480c ; call _objc_release
+0000742c  b        #0x749c ; call sub_749c
+00007430  b        #0x7438 ; call sub_7438
+00007434  b        #0x7444 ; call sub_7444
+00007438  mov      x23, x1
+0000743c  mov      x22, x0
+00007440  b        #0x7450 ; call sub_7450
+00007444  mov      x23, x1
+00007448  mov      x22, x0
+0000744c  mov      x21, x19
+00007450  mov      x0, x21
+00007454  bl       #0x2480c ; call _objc_release
+00007458  cmp      w23, #1
+0000745c  b.ne     #0x749c
+00007460  mov      x0, x22
+00007464  bl       #0x24740 ; call _objc_begin_catch
+00007468  bl       #0x24764 ; call _objc_end_catch
+0000746c  mov      w21, #1
+00007470  mov      x0, x20
+00007474  bl       #0x2480c ; call _objc_release
+00007478  mov      x0, x19
+0000747c  bl       #0x2480c ; call _objc_release
+00007480  and      w0, w21, #1
+00007484  ldp      x29, x30, [sp, #0x30]
+00007488  ldp      x20, x19, [sp, #0x20]
+0000748c  ldp      x22, x21, [sp, #0x10]
+00007490  ldp      x24, x23, [sp], #0x40
+00007494  ret      
+00007498  mov      x22, x0
+0000749c  mov      x0, x20
+000074a0  bl       #0x2480c ; call _objc_release
+000074a4  mov      x0, x19
+000074a8  bl       #0x2480c ; call _objc_release
+000074ac  mov      x0, x22
+000074b0  bl       #0x24470 ; call __Unwind_Resume

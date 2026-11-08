@@ -1,0 +1,71 @@
+# _OMCCarLaunchInfo
+# addr 0x2266c .. 0x2277c  (272 bytes)
+
+0002266c  sub      sp, sp, #0x40                               
+00022670  stp      x22, x21, [sp, #0x10]                       
+00022674  stp      x20, x19, [sp, #0x20]                       
+00022678  stp      x29, x30, [sp, #0x30]                       
+0002267c  add      x29, sp, #0x30                              
+00022680  mov      x19, x0                                     
+00022684  bl       #0x28004                                    ; _objc_retain
+00022688  cbz      x19, #0x22758                               
+0002268c  adrp     x0, #0x2f000                                
+00022690  add      x0, x0, #0x3bf                              ; "DBApplicationLaunchInfo"
+00022694  bl       #0x21c54                                    ; _OMCCarClass
+00022698  mov      x20, x0                                     
+0002269c  adrp     x0, #0x3b000                                
+000226a0  add      x0, x0, #0x878                              ; @"launchInfoForApplication:"
+000226a4  bl       #0x27c2c                                    ; _NSSelectorFromString
+000226a8  mov      x22, x0                                     
+000226ac  adrp     x0, #0x3b000                                
+000226b0  add      x0, x0, #0x898                              ; @"launchInfoForApplication:withActivationSettings:"
+000226b4  bl       #0x27c2c                                    ; _NSSelectorFromString
+000226b8  mov      x21, x0                                     
+000226bc  mov      x0, x20                                     
+000226c0  mov      x1, x22                                     
+000226c4  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+000226c8  tbz      w0, #0, #0x226e8                            
+000226cc  mov      x0, x20                                     
+000226d0  mov      x1, x22                                     
+000226d4  mov      x2, x19                                     
+000226d8  bl       #0x27f98                                    ; _objc_msgSend
+000226dc  mov      x29, x29                                    
+000226e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000226e4  b        #0x22714                                    ; sub_22714
+000226e8  mov      x0, x20                                     
+000226ec  mov      x1, x21                                     
+000226f0  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+000226f4  tbz      w0, #0, #0x2271c                            
+000226f8  mov      x0, x20                                     
+000226fc  mov      x1, x21                                     
+00022700  mov      x2, x19                                     
+00022704  mov      x3, #0                                      
+00022708  bl       #0x27f98                                    ; _objc_msgSend
+0002270c  mov      x29, x29                                    
+00022710  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00022714  mov      x20, x0                                     
+00022718  b        #0x2275c                                    ; sub_2275c
+0002271c  adrp     x8, #0x42000                                
+00022720  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00022724  str      x20, [sp]                                   
+00022728  adrp     x2, #0x3b000                                
+0002272c  add      x2, x2, #0x8d8                              ; @"THIEU METHOD: %@ khong tao duoc launchInfo"
+00022730  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00022734  mov      x29, x29                                    
+00022738  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0002273c  mov      x20, x0                                     
+00022740  adrp     x0, #0x3b000                                
+00022744  add      x0, x0, #0x8b8                              ; @"Core"
+00022748  mov      x1, x20                                     
+0002274c  bl       #0x2155c                                    ; _OMCLogWrite
+00022750  mov      x0, x20                                     
+00022754  bl       #0x27ff8                                    ; _objc_release
+00022758  mov      x20, #0                                     
+0002275c  mov      x0, x19                                     
+00022760  bl       #0x27ff8                                    ; _objc_release
+00022764  mov      x0, x20                                     
+00022768  ldp      x29, x30, [sp, #0x30]                       
+0002276c  ldp      x20, x19, [sp, #0x20]                       
+00022770  ldp      x22, x21, [sp, #0x10]                       
+00022774  add      sp, sp, #0x40                               
+00022778  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue

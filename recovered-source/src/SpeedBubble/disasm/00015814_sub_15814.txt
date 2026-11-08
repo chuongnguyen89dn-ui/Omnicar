@@ -1,0 +1,21 @@
+# sub_15814
+# addr 0x15814 .. 0x1585c  (72 bytes)
+
+00015814  stp      d9, d8, [sp, #-0x20]!                       
+00015818  stp      x29, x30, [sp, #0x10]                       
+0001581c  add      x29, sp, #0x10                              
+00015820  mov      v8.16b, v0.16b                              
+00015824  ldr      d9, [x0, #0x20]                             
+00015828  adrp     x8, #0x32000                                
+0001582c  ldr      d0, [x8, #0xa78]                            ; [0x32a78] __const[0x32a78] double=3.141592653589793 float=3370280550400.0
+00015830  fmul     d0, d1, d0                                  
+00015834  adrp     x8, #0x32000                                
+00015838  ldr      d1, [x8, #0xa80]                            ; [0x32a80] __const[0x32a80] double=180.0 float=0.0
+0001583c  fdiv     d0, d0, d1                                  
+00015840  bl       #0x27c98                                    ; ___sincos_stret
+00015844  fmadd    d2, d8, d1, d9                              
+00015848  fmadd    d1, d8, d0, d9                              
+0001584c  mov      v0.16b, v2.16b                              
+00015850  ldp      x29, x30, [sp, #0x10]                       
+00015854  ldp      d9, d8, [sp], #0x20                         
+00015858  ret                                                  

@@ -1,0 +1,55 @@
+PARTITION B — claimed by Prefs agent B (OmniCarPrefs reconstruction, wave 2.5)
+Written: 2026-11-08 ~09:20 ICT, BEFORE any B source.
+Protocol: B claims the complement of PARTITION_A.txt. A claimed 7 classes
+(100 methods) + OMCCommon (42 C functions) + shared infra. Everything else
+is B's. A: please check this file before starting any class listed here.
+
+== CLASSES CLAIMED BY B (22 classes, 637 instance methods + class methods;
+   counts from metadata objc.json / disasm index.json attribution) ==
+- OMCAppBridgeAppsController        105 methods  (app-picker / chosen-apps UI)
+- OMCStartupScreenController         83 methods
+- SSStartupView                      70 methods
+- OMCSpeedBubbleController           67 methods
+- SPPBubbleView                      59 methods
+- OMCOnboardingController            41 methods
+- OMCSplitScreenController           37 methods
+- OMCHSPreview                       22 methods
+- OMCCarProfilesController           21 methods
+- OMCSplitScreenAppPickerController  19 methods
+- SSFade                             18 methods
+- SSGauge                            17 methods
+- OMCSSStyleTileCell                 14 methods
+- OMCWhatsNewController              11 methods
+- SPPIconView                        11 methods
+- OMCSplitPreview                    11 methods
+- SPPGlassView                       10 methods
+- SPPSignView                         8 methods
+- SPPSoundDelegate                    4 methods
+- SSLinkTarget                        4 methods
+- SSCanvasView                        4 methods
+- OMCHomeScreenController             1 method (one 4244-byte method)
+
+== SHARED INFRA A OWNS (B consumes, does not redo) ==
+- disasm/*.asm + index.json + classes.json (all 809 functions)
+- tools/ (disasm.py, condense.py, dump_consts.py, gen_headers.py)
+- OMCPrefs/OMCCommon.h/.m (42 C functions incl. SPP*/SS* C helpers)
+
+== B DELIVERABLES ==
+- Source: src/Prefs/OMCPrefs/<ClassName>.h/.m for each class above
+  (class-name filenames; no collision with A's files)
+- Report: src/Prefs/PrefsB_REPORT.md (B classes only + B-proved pref keys)
+
+== CALIBRATION ADDENDUM (coordinator broadcast, checked by B) ==
+Wave-1 objc.json import/classref/superclass NAMES are shifted by one ordinal
+(App/IPC agent, delta=1, 212/212). Cross-checks run by B:
+- A asm import annotations vs metadata/xref/OmniCarPrefs.json: 11,076/11,076
+  import call sites AGREE (A disasm.py is calibrated-correct).
+- Superclass slots decoded via A disasm.py agree with classes.json for all
+  22 B classes. Wave-1 superclass names were WRONG for 18 of them, e.g.
+  SSStartupView 'UIColor'->UIView, OMCOnboardingController
+  'UIFontMetrics'->UIViewController, SSFade/SSGauge/SPPSoundDelegate/
+  SSLinkTarget 'NSSortDescriptor'->NSObject, OMCSSStyleTileCell
+  '_OBJC_METACLASS_$_PSTableCell'->UICollectionViewCell,
+  OMCAppBridgeAppsController/OMCCarProfilesController/
+  OMCSplitScreenAppPickerController '__objc_empty_cache'->PSViewController.
+  B uses the calibrated (A/xref) names everywhere.

@@ -1,0 +1,1027 @@
+// slice: arm64
+@interface SPPSpeedGPS : NSRunLoop <CLLocationManagerDelegate>
+    // ivar _loggedFirst : B (offset 8)
+    // ivar _stopPending : B (offset 9)
+    // ivar _mgr : @"CLLocationManager" (offset 16)
+    // ivar _last : @"CLLocation" (offset 24)
+    // ivar _appManagers : @"NSHashTable" (offset 32)
+    // ivar _stopToken : Q (offset 40)
+    @property (T@"CLLocationManager",&,N,V_mgr) mgr;
+    @property (T@"CLLocation",&,N,V_last) last;
+    @property (T@"NSHashTable",&,N,V_appManagers) appManagers;
+    @property (TB,N,V_loggedFirst) loggedFirst;
+    @property (TQ,N,V_stopToken) stopToken;
+    @property (TB,N,V_stopPending) stopPending;
+    @property (TQ,R) hash;
+    @property (T#,R) superclass;
+    @property (T@"NSString",R,C) description;
+    @property (T@"NSString",?,R,C) debugDescription;
+    - (v28@0:8@16B24) appManager:running:;  // imp 19168
+    - (v16@0:8) scheduleStop;  // imp 19628
+    - (v16@0:8) start;  // imp 20008
+    - (v16@0:8) stop;  // imp 20476
+    - (v32@0:8@16@24) locationManager:didUpdateLocations:;  // imp 20672
+    - (v32@0:8@16@24) locationManager:didFailWithError:;  // imp 22424
+    - (@16@0:8) mgr;  // imp 22588
+    - (v24@0:8@16) setMgr:;  // imp 22596
+    - (@16@0:8) last;  // imp 22644
+    - (v24@0:8@16) setLast:;  // imp 22652
+    - (@16@0:8) appManagers;  // imp 22700
+    - (v24@0:8@16) setAppManagers:;  // imp 22708
+    - (B16@0:8) loggedFirst;  // imp 22756
+    - (v20@0:8B16) setLoggedFirst:;  // imp 22764
+    - (Q16@0:8) stopToken;  // imp 22772
+    - (v24@0:8Q16) setStopToken:;  // imp 22780
+    - (B16@0:8) stopPending;  // imp 22788
+    - (v20@0:8B16) setStopPending:;  // imp 22796
+    - (v16@0:8) .cxx_destruct;  // imp 22804
+    + (@16@0:8) shared;  // imp 19056
+@end
+
+@interface SPPGlassView : NSValue
+    // ivar _fill : @"CAGradientLayer" (offset 8)
+    // ivar _sheen : @"CAGradientLayer" (offset 16)
+    // ivar _corner : d (offset 24)
+    @property (T@"CAGradientLayer",&,N,V_fill) fill;
+    @property (T@"CAGradientLayer",&,N,V_sheen) sheen;
+    @property (Td,N,V_corner) corner;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 54104
+    - (v32@0:8@16@24) setTop:bottom:;  // imp 54996
+    - (v24@0:8d16) setCorner:;  // imp 55224
+    - (v16@0:8) layoutSubviews;  // imp 55240
+    - (@16@0:8) fill;  // imp 55696
+    - (v24@0:8@16) setFill:;  // imp 55712
+    - (@16@0:8) sheen;  // imp 55776
+    - (v24@0:8@16) setSheen:;  // imp 55792
+    - (d16@0:8) corner;  // imp 55856
+    - (v16@0:8) .cxx_destruct;  // imp 55872
+@end
+
+@interface SPPIconView : NSValue
+    // ivar _imageView : @"UIImageView" (offset 8)
+    // ivar _shape : q (offset 16)
+    // ivar _tileCorner : d (offset 24)
+    // ivar _tileMask : Q (offset 32)
+    @property (T@"UIImageView",&,N,V_imageView) imageView;
+    @property (Tq,N,V_shape) shape;
+    @property (Td,N,V_tileCorner) tileCorner;
+    @property (TQ,N,V_tileMask) tileMask;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 55936
+    - (v24@0:8q16) setShape:;  // imp 56548
+    - (v16@0:8) layoutSubviews;  // imp 56564
+    - (@16@0:8) imageView;  // imp 57228
+    - (v24@0:8@16) setImageView:;  // imp 57244
+    - (q16@0:8) shape;  // imp 57308
+    - (d16@0:8) tileCorner;  // imp 57324
+    - (v24@0:8d16) setTileCorner:;  // imp 57340
+    - (Q16@0:8) tileMask;  // imp 57356
+    - (v24@0:8Q16) setTileMask:;  // imp 57372
+    - (v16@0:8) .cxx_destruct;  // imp 57388
+@end
+
+@interface SPPSignView : NSValue
+    // ivar _muted : B (offset 8)
+    // ivar _label : @"UILabel" (offset 16)
+    @property (T@"UILabel",&,N,V_label) label;
+    @property (TB,N,V_muted) muted;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 57408
+    - (v16@0:8) applyColors;  // imp 58524
+    - (v20@0:8B16) setMuted:;  // imp 58844
+    - (v16@0:8) layoutSubviews;  // imp 58980
+    - (@16@0:8) label;  // imp 59416
+    - (v24@0:8@16) setLabel:;  // imp 59432
+    - (B16@0:8) muted;  // imp 59496
+    - (v16@0:8) .cxx_destruct;  // imp 59512
+@end
+
+@interface SPPBubbleView : NSValue
+    // ivar _showIcon : B (offset 8)
+    // ivar _speed : i (offset 12)
+    // ivar _limit : i (offset 16)
+    // ivar _style : q (offset 24)
+    // ivar _iconImage : @"UIImage" (offset 32)
+    // ivar _color : q (offset 40)
+    // ivar _log : @? (offset 48)
+    // ivar _builtStyle : q (offset 56)
+    // ivar _outlineCorner : d (offset 64)
+    // ivar _speedLabel : @"UILabel" (offset 72)
+    // ivar _glass : @"SPPGlassView" (offset 80)
+    // ivar _iconView : @"SPPIconView" (offset 88)
+    // ivar _sign : @"SPPSignView" (offset 96)
+    // ivar _unitLabel : @"UILabel" (offset 104)
+    // ivar _deco : @"UIView" (offset 112)
+    // ivar _parts : @"NSMutableDictionary" (offset 120)
+    // ivar _bits : @"NSMutableDictionary" (offset 128)
+    // ivar _tickLabels : @"NSArray" (offset 136)
+    // ivar _flashView : @"UIView" (offset 144)
+    // ivar _contentSize : {CGSize="width"d"height"d} (offset 152)
+    // ivar _outlineRect : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 168)
+    @property (Tq,N,V_builtStyle) builtStyle;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_outlineRect) outlineRect;
+    @property (Td,N,V_outlineCorner) outlineCorner;
+    @property (T{CGSize=dd},N,V_contentSize) contentSize;
+    @property (T@"SPPGlassView",&,N,V_glass) glass;
+    @property (T@"SPPIconView",&,N,V_iconView) iconView;
+    @property (T@"SPPSignView",&,N,V_sign) sign;
+    @property (T@"UILabel",&,N,V_speedLabel) speedLabel;
+    @property (T@"UILabel",&,N,V_unitLabel) unitLabel;
+    @property (T@"UIView",&,N,V_deco) deco;
+    @property (T@"NSMutableDictionary",&,N,V_parts) parts;
+    @property (T@"NSMutableDictionary",&,N,V_bits) bits;
+    @property (T@"NSArray",&,N,V_tickLabels) tickLabels;
+    @property (T@"UIView",&,N,V_flashView) flashView;
+    @property (Tq,N,V_style) style;
+    @property (Ti,N,V_speed) speed;
+    @property (Ti,N,V_limit) limit;
+    @property (TB,N,V_showIcon) showIcon;
+    @property (T@"UIImage",&,N,V_iconImage) iconImage;
+    @property (Tq,N,V_color) color;
+    @property (T@?,C,N,V_log) log;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 59532
+    - (i16@0:8) speedState;  // imp 59676
+    - (@16@0:8) stateColor;  // imp 59860
+    - (d16@0:8) speedRatio;  // imp 59992
+    - (@24@0:8@16) bit:;  // imp 60116
+    - (@32@0:8@16@24) addBit:to:;  // imp 60224
+    - (@48@0:8@16@24@32d40) shapePart:in:stroke:width:;  // imp 60384
+    - (v24@0:8q16) buildStyle:;  // imp 60676
+    - (v20@0:8B16) setOverLimitWarning:;  // imp 70796
+    - (@16@0:8) numberColor;  // imp 71588
+    - (v20@0:8i16) applyColor:;  // imp 71924
+    - (v40@0:8d16d24d32) stackNumberAt:top:width:;  // imp 73448
+    - (d16@0:8) stackHeight;  // imp 73752
+    - (v16@0:8) renderStyle;  // imp 73928
+    - ({CGSize=dd}16@0:8) render;  // imp 88156
+    - (v16@0:8) rebuild;  // imp 88268
+    - (v24@0:8q16) setColor:;  // imp 88276
+    - (q16@0:8) style;  // imp 88308
+    - (v24@0:8q16) setStyle:;  // imp 88324
+    - (i16@0:8) speed;  // imp 88340
+    - (v20@0:8i16) setSpeed:;  // imp 88356
+    - (i16@0:8) limit;  // imp 88372
+    - (v20@0:8i16) setLimit:;  // imp 88388
+    - (B16@0:8) showIcon;  // imp 88404
+    - (v20@0:8B16) setShowIcon:;  // imp 88420
+    - (@16@0:8) iconImage;  // imp 88436
+    - (v24@0:8@16) setIconImage:;  // imp 88452
+    - (q16@0:8) color;  // imp 88516
+    - (@?16@0:8) log;  // imp 88532
+    - (v24@0:8@?16) setLog:;  // imp 88548
+    - (q16@0:8) builtStyle;  // imp 88560
+    - (v24@0:8q16) setBuiltStyle:;  // imp 88576
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) outlineRect;  // imp 88592
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setOutlineRect:;  // imp 88616
+    - (d16@0:8) outlineCorner;  // imp 88640
+    - (v24@0:8d16) setOutlineCorner:;  // imp 88656
+    - (@16@0:8) speedLabel;  // imp 88672
+    - (v24@0:8@16) setSpeedLabel:;  // imp 88688
+    - ({CGSize=dd}16@0:8) contentSize;  // imp 88752
+    - (v32@0:8{CGSize=dd}16) setContentSize:;  // imp 88772
+    - (@16@0:8) glass;  // imp 88792
+    - (v24@0:8@16) setGlass:;  // imp 88808
+    - (@16@0:8) iconView;  // imp 88872
+    - (v24@0:8@16) setIconView:;  // imp 88888
+    - (@16@0:8) sign;  // imp 88952
+    - (v24@0:8@16) setSign:;  // imp 88968
+    - (@16@0:8) unitLabel;  // imp 89032
+    - (v24@0:8@16) setUnitLabel:;  // imp 89048
+    - (@16@0:8) deco;  // imp 89112
+    - (v24@0:8@16) setDeco:;  // imp 89128
+    - (@16@0:8) parts;  // imp 89192
+    - (v24@0:8@16) setParts:;  // imp 89208
+    - (@16@0:8) bits;  // imp 89272
+    - (v24@0:8@16) setBits:;  // imp 89288
+    - (@16@0:8) tickLabels;  // imp 89352
+    - (v24@0:8@16) setTickLabels:;  // imp 89368
+    - (@16@0:8) flashView;  // imp 89432
+    - (v24@0:8@16) setFlashView:;  // imp 89448
+    - (v16@0:8) .cxx_destruct;  // imp 89512
+@end
+
+@interface SPPSoundDelegate : NSRunLoop <AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate>
+    @property (TQ,R) hash;
+    @property (T#,R) superclass;
+    @property (T@"NSString",R,C) description;
+    @property (T@"NSString",?,R,C) debugDescription;
+    - (v28@0:8@16B24) audioPlayerDidFinishPlaying:successfully:;  // imp 90532
+    - (v32@0:8@16@24) audioPlayerDecodeErrorDidOccur:error:;  // imp 90684
+    - (v32@0:8@16@24) speechSynthesizer:didFinishSpeechUtterance:;  // imp 90776
+    - (v32@0:8@16@24) speechSynthesizer:didCancelSpeechUtterance:;  // imp 90780
+@end
+
+@interface SPPBubble : NSRunLoop
+    // ivar _builtLite : B (offset 8)
+    // ivar _onPhone : B (offset 9)
+    // ivar _carBusy : B (offset 10)
+    // ivar _pinching : B (offset 11)
+    // ivar _holdDragging : B (offset 12)
+    // ivar _speed : i (offset 16)
+    // ivar _limit : i (offset 20)
+    // ivar _app : i (offset 24)
+    // ivar _iconApp : i (offset 28)
+    // ivar _window : @"UIWindow" (offset 32)
+    // ivar _card : @"UIView" (offset 40)
+    // ivar _bubbleView : @"SPPBubbleView" (offset 48)
+    // ivar _timer : @"NSTimer" (offset 56)
+    // ivar _timerInterval : d (offset 64)
+    // ivar _lastUpdate : d (offset 72)
+    // ivar _speedAt : d (offset 80)
+    // ivar _limitAt : d (offset 88)
+    // ivar _carLostAt : d (offset 96)
+    // ivar _scale : d (offset 104)
+    // ivar _menu : @"UIView" (offset 112)
+    // ivar _menuShield : @"UIView" (offset 120)
+    // ivar _menuTimer : @"NSTimer" (offset 128)
+    // ivar _outlineCorner : d (offset 136)
+    // ivar _demoTimer : @"NSTimer" (offset 144)
+    // ivar _staleTimer : @"NSTimer" (offset 152)
+    // ivar _appliedRotation : d (offset 160)
+    // ivar _displayScale : d (offset 168)
+    // ivar _holdStart : {CGPoint="x"d"y"d} (offset 176)
+    // ivar _phoneFraction : {CGPoint="x"d"y"d} (offset 192)
+    // ivar _carFraction : {CGPoint="x"d"y"d} (offset 208)
+    // ivar _outlineRect : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 224)
+    @property (T@"UIWindow",&,N,V_window) window;
+    @property (T@"UIView",&,N,V_card) card;
+    @property (T@"SPPBubbleView",&,N,V_bubbleView) bubbleView;
+    @property (T@"NSTimer",&,N,V_timer) timer;
+    @property (Td,N,V_timerInterval) timerInterval;
+    @property (TB,N,V_builtLite) builtLite;
+    @property (Ti,N,V_speed) speed;
+    @property (Ti,N,V_limit) limit;
+    @property (Td,N,V_lastUpdate) lastUpdate;
+    @property (Td,N,V_speedAt) speedAt;
+    @property (Td,N,V_limitAt) limitAt;
+    @property (Td,N,V_carLostAt) carLostAt;
+    @property (TB,N,V_onPhone) onPhone;
+    @property (TB,N,V_carBusy) carBusy;
+    @property (Td,N,V_scale) scale;
+    @property (TB,N,V_pinching) pinching;
+    @property (Ti,N,V_app) app;
+    @property (Ti,N,V_iconApp) iconApp;
+    @property (T@"UIView",&,N,V_menu) menu;
+    @property (T@"UIView",&,N,V_menuShield) menuShield;
+    @property (T@"NSTimer",&,N,V_menuTimer) menuTimer;
+    @property (T{CGPoint=dd},N,V_holdStart) holdStart;
+    @property (TB,N,V_holdDragging) holdDragging;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_outlineRect) outlineRect;
+    @property (Td,N,V_outlineCorner) outlineCorner;
+    @property (T@"NSTimer",&,N,V_demoTimer) demoTimer;
+    @property (T@"NSTimer",&,N,V_staleTimer) staleTimer;
+    @property (Td,N,V_appliedRotation) appliedRotation;
+    @property (Td,N,V_displayScale) displayScale;
+    @property (T{CGPoint=dd},N,V_phoneFraction) phoneFraction;
+    @property (T{CGPoint=dd},N,V_carFraction) carFraction;
+    - ({CGAffineTransform=dddddd}16@0:8) baseTransform;  // imp 97192
+    - (d16@0:8) savedScale;  // imp 97260
+    - (v16@0:8) applySavedScale;  // imp 97332
+    - ({CGAffineTransform=dddddd}24@0:8d16) baseScaled:;  // imp 97564
+    - (v20@0:8i16) setSpeed:;  // imp 97636
+    - (v16@0:8) feedWarning;  // imp 97820
+    - (v20@0:8i16) sourceStopped:;  // imp 98560
+    - (v24@0:8i16i20) updateSpeed:limit:;  // imp 98900
+    - (v28@0:8i16i20B24) updateSpeed:limit:appForeground:;  // imp 98908
+    - (B16@0:8) anyAppForeground;  // imp 98980
+    - (v32@0:8i16i20B24i28) updateSpeed:limit:appForeground:app:;  // imp 99076
+    - (i16@0:8) sourceAppState;  // imp 100172
+    - (v16@0:8) refresh;  // imp 101156
+    - (v20@0:8B16) setCarBusy:;  // imp 103808
+    - (v16@0:8) hide;  // imp 103984
+    - (i16@0:8) speedState;  // imp 104652
+    - (v16@0:8) renderBubble;  // imp 104732
+    - (v20@0:8B16) setWarnShake:;  // imp 106028
+    - (v16@0:8) resetLayout;  // imp 107268
+    - (v16@0:8) runDemo;  // imp 107592
+    - (v24@0:8@16) longPressed:;  // imp 108508
+    - (@24@0:8q16) menuButton:;  // imp 109092
+    - (v28@0:8@16B24) setMenuButton:off:;  // imp 110108
+    - (v16@0:8) showMenu;  // imp 111308
+    - (v16@0:8) armMenuTimer;  // imp 113304
+    - (v20@0:8B16) placeMenuAnimated:;  // imp 113648
+    - (v16@0:8) hideMenu;  // imp 114364
+    - (v24@0:8@16) menuTapped:;  // imp 114856
+    - (v16@0:8) quitSourceApp;  // imp 116224
+    - (v24@0:8@16) pinched:;  // imp 117008
+    - (v24@0:8@16) panned:;  // imp 117572
+    - (v24@0:8@16) tapped:;  // imp 118012
+    - (v16@0:8) ensureWindow;  // imp 119152
+    - (v16@0:8) startOrientationTracking;  // imp 121164
+    - (d16@0:8) phoneRotation;  // imp 121656
+    - (v20@0:8B16) applyPhoneOrientationForce:;  // imp 121824
+    - ({CGPoint=dd}16@0:8) defaultCardCenter;  // imp 122552
+    - (v16@0:8) saveCardPosition;  // imp 122724
+    - (v16@0:8) restoreCardPosition;  // imp 123032
+    - (v16@0:8) clampCard;  // imp 123240
+    - (v16@0:8) applyCrispScale;  // imp 123640
+    - (@16@0:8) window;  // imp 124556
+    - (v24@0:8@16) setWindow:;  // imp 124564
+    - (@16@0:8) card;  // imp 124612
+    - (v24@0:8@16) setCard:;  // imp 124620
+    - (@16@0:8) bubbleView;  // imp 124668
+    - (v24@0:8@16) setBubbleView:;  // imp 124676
+    - (@16@0:8) timer;  // imp 124724
+    - (v24@0:8@16) setTimer:;  // imp 124732
+    - (d16@0:8) timerInterval;  // imp 124780
+    - (v24@0:8d16) setTimerInterval:;  // imp 124788
+    - (B16@0:8) builtLite;  // imp 124796
+    - (v20@0:8B16) setBuiltLite:;  // imp 124804
+    - (i16@0:8) speed;  // imp 124812
+    - (i16@0:8) limit;  // imp 124820
+    - (v20@0:8i16) setLimit:;  // imp 124828
+    - (d16@0:8) lastUpdate;  // imp 124836
+    - (v24@0:8d16) setLastUpdate:;  // imp 124844
+    - (d16@0:8) speedAt;  // imp 124852
+    - (v24@0:8d16) setSpeedAt:;  // imp 124860
+    - (d16@0:8) limitAt;  // imp 124868
+    - (v24@0:8d16) setLimitAt:;  // imp 124876
+    - (d16@0:8) carLostAt;  // imp 124884
+    - (v24@0:8d16) setCarLostAt:;  // imp 124892
+    - (B16@0:8) onPhone;  // imp 124900
+    - (v20@0:8B16) setOnPhone:;  // imp 124908
+    - (B16@0:8) carBusy;  // imp 124916
+    - (d16@0:8) scale;  // imp 124924
+    - (v24@0:8d16) setScale:;  // imp 124932
+    - (B16@0:8) pinching;  // imp 124940
+    - (v20@0:8B16) setPinching:;  // imp 124948
+    - (i16@0:8) app;  // imp 124956
+    - (v20@0:8i16) setApp:;  // imp 124964
+    - (i16@0:8) iconApp;  // imp 124972
+    - (v20@0:8i16) setIconApp:;  // imp 124980
+    - (@16@0:8) menu;  // imp 124988
+    - (v24@0:8@16) setMenu:;  // imp 124996
+    - (@16@0:8) menuShield;  // imp 125044
+    - (v24@0:8@16) setMenuShield:;  // imp 125052
+    - (@16@0:8) menuTimer;  // imp 125100
+    - (v24@0:8@16) setMenuTimer:;  // imp 125108
+    - ({CGPoint=dd}16@0:8) holdStart;  // imp 125156
+    - (v32@0:8{CGPoint=dd}16) setHoldStart:;  // imp 125164
+    - (B16@0:8) holdDragging;  // imp 125172
+    - (v20@0:8B16) setHoldDragging:;  // imp 125180
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) outlineRect;  // imp 125188
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setOutlineRect:;  // imp 125200
+    - (d16@0:8) outlineCorner;  // imp 125212
+    - (v24@0:8d16) setOutlineCorner:;  // imp 125220
+    - (@16@0:8) demoTimer;  // imp 125228
+    - (v24@0:8@16) setDemoTimer:;  // imp 125236
+    - (@16@0:8) staleTimer;  // imp 125284
+    - (v24@0:8@16) setStaleTimer:;  // imp 125292
+    - (d16@0:8) appliedRotation;  // imp 125340
+    - (v24@0:8d16) setAppliedRotation:;  // imp 125348
+    - (d16@0:8) displayScale;  // imp 125356
+    - (v24@0:8d16) setDisplayScale:;  // imp 125364
+    - ({CGPoint=dd}16@0:8) phoneFraction;  // imp 125372
+    - (v32@0:8{CGPoint=dd}16) setPhoneFraction:;  // imp 125380
+    - ({CGPoint=dd}16@0:8) carFraction;  // imp 125388
+    - (v32@0:8{CGPoint=dd}16) setCarFraction:;  // imp 125396
+    - (v16@0:8) .cxx_destruct;  // imp 125404
+    + (@16@0:8) shared;  // imp 96948
+@end
+
+@interface SPPPrefs : NSRunLoop
+    + (B16@0:8) enabled;  // imp 126248
+    + (q16@0:8) style;  // imp 126276
+    + (B16@0:8) showAppIcon;  // imp 126476
+    + (d20@0:8B16) sizePercentForCar:;  // imp 126580
+    + (v28@0:8d16B24) setSizePercent:forCar:;  // imp 126736
+    + (v24@0:8q16) setWarnMode:;  // imp 126904
+    + (q16@0:8) warnMode;  // imp 127028
+    + (q16@0:8) warnFx;  // imp 127224
+    + (B16@0:8) warnVoice;  // imp 127356
+    + (q16@0:8) warnTone;  // imp 127396
+    + (q16@0:8) warnVoiceLine;  // imp 127412
+    + (@16@0:8) warnVoiceText;  // imp 127428
+    + (q16@0:8) color;  // imp 127556
+    + (d16@0:8) warnMarginKmh;  // imp 127572
+    + (i16@0:8) source;  // imp 127704
+    + (B20@0:8i16) appEnabled:;  // imp 128048
+@end
+
+@interface SPPOverspeed : NSRunLoop
+    // ivar _enabled : B (offset 8)
+    // ivar _voice : B (offset 9)
+    // ivar _over : B (offset 10)
+    // ivar _armed : B (offset 11)
+    // ivar _speed : i (offset 12)
+    // ivar _limit : i (offset 16)
+    // ivar _window : @"UIWindow" (offset 24)
+    // ivar _glow : @"UIImageView" (offset 32)
+    // ivar _flash : @"UIView" (offset 40)
+    // ivar _shownFx : q (offset 48)
+    // ivar _displayID : @"NSString" (offset 56)
+    // ivar _mode : q (offset 64)
+    // ivar _marginKmh : d (offset 72)
+    // ivar _fx : q (offset 80)
+    // ivar _tone : q (offset 88)
+    // ivar _voiceLine : q (offset 96)
+    // ivar _voiceText : @"NSString" (offset 104)
+    // ivar _belowSince : d (offset 112)
+    @property (T@"UIWindow",&,N,V_window) window;
+    @property (T@"UIImageView",&,N,V_glow) glow;
+    @property (T@"UIView",&,N,V_flash) flash;
+    @property (Tq,N,V_shownFx) shownFx;
+    @property (T@"NSString",C,N,V_displayID) displayID;
+    @property (Ti,N,V_speed) speed;
+    @property (Ti,N,V_limit) limit;
+    @property (TB,N,V_enabled) enabled;
+    @property (Tq,N,V_mode) mode;
+    @property (Td,N,V_marginKmh) marginKmh;
+    @property (Tq,N,V_fx) fx;
+    @property (TB,N,V_voice) voice;
+    @property (Tq,N,V_tone) tone;
+    @property (Tq,N,V_voiceLine) voiceLine;
+    @property (T@"NSString",C,N,V_voiceText) voiceText;
+    @property (TB,N,V_over) over;
+    @property (TB,N,V_armed) armed;
+    @property (Td,N,V_belowSince) belowSince;
+    - (v16@0:8) loadPrefs;  // imp 128264
+    - (v16@0:8) reloadPrefs;  // imp 128488
+    - (v16@0:8) carChanged;  // imp 128524
+    - (v24@0:8i16i20) updateSpeed:limit:;  // imp 128588
+    - (v16@0:8) evaluate;  // imp 128640
+    - (B16@0:8) ensureWindow;  // imp 129720
+    - (v16@0:8) dropWindow;  // imp 131152
+    - (v24@0:8q16) showFx:;  // imp 131480
+    - (@16@0:8) window;  // imp 133476
+    - (v24@0:8@16) setWindow:;  // imp 133484
+    - (@16@0:8) glow;  // imp 133532
+    - (v24@0:8@16) setGlow:;  // imp 133540
+    - (@16@0:8) flash;  // imp 133588
+    - (v24@0:8@16) setFlash:;  // imp 133596
+    - (q16@0:8) shownFx;  // imp 133644
+    - (v24@0:8q16) setShownFx:;  // imp 133652
+    - (@16@0:8) displayID;  // imp 133660
+    - (v24@0:8@16) setDisplayID:;  // imp 133668
+    - (i16@0:8) speed;  // imp 133676
+    - (v20@0:8i16) setSpeed:;  // imp 133684
+    - (i16@0:8) limit;  // imp 133692
+    - (v20@0:8i16) setLimit:;  // imp 133700
+    - (B16@0:8) enabled;  // imp 133708
+    - (v20@0:8B16) setEnabled:;  // imp 133716
+    - (q16@0:8) mode;  // imp 133724
+    - (v24@0:8q16) setMode:;  // imp 133732
+    - (d16@0:8) marginKmh;  // imp 133740
+    - (v24@0:8d16) setMarginKmh:;  // imp 133748
+    - (q16@0:8) fx;  // imp 133756
+    - (v24@0:8q16) setFx:;  // imp 133764
+    - (B16@0:8) voice;  // imp 133772
+    - (v20@0:8B16) setVoice:;  // imp 133780
+    - (q16@0:8) tone;  // imp 133788
+    - (v24@0:8q16) setTone:;  // imp 133796
+    - (q16@0:8) voiceLine;  // imp 133804
+    - (v24@0:8q16) setVoiceLine:;  // imp 133812
+    - (@16@0:8) voiceText;  // imp 133820
+    - (v24@0:8@16) setVoiceText:;  // imp 133828
+    - (B16@0:8) over;  // imp 133836
+    - (v20@0:8B16) setOver:;  // imp 133844
+    - (B16@0:8) armed;  // imp 133852
+    - (v20@0:8B16) setArmed:;  // imp 133860
+    - (d16@0:8) belowSince;  // imp 133868
+    - (v24@0:8d16) setBelowSince:;  // imp 133876
+    - (v16@0:8) .cxx_destruct;  // imp 133884
+    + (@16@0:8) shared;  // imp 128088
+@end
+
+@protocol NSObject
+    - (B24@0:8@16) isEqual:;
+    - (#16@0:8) class;
+    - (@16@0:8) self;
+    - (@24@0:8:16) performSelector:;
+    - (@32@0:8:16@24) performSelector:withObject:;
+    - (@40@0:8:16@24@32) performSelector:withObject:withObject:;
+    - (B16@0:8) isProxy;
+    - (B24@0:8#16) isKindOfClass:;
+    - (B24@0:8#16) isMemberOfClass:;
+    - (B24@0:8@16) conformsToProtocol:;
+    - (B24@0:8:16) respondsToSelector:;
+    - (@16@0:8) retain;
+    - (Vv16@0:8) release;
+    - (@16@0:8) autorelease;
+    - (Q16@0:8) retainCount;
+    - (^{_NSZone=}16@0:8) zone;
+    - (Q16@0:8) hash;
+    - (#16@0:8) superclass;
+    - (@16@0:8) description;
+@end
+
+@protocol CLLocationManagerDelegate
+@end
+
+@protocol AVAudioPlayerDelegate
+@end
+
+@protocol AVSpeechSynthesizerDelegate
+@end
+
+// slice: arm64e
+@interface SPPSpeedGPS : NSRunLoop <CLLocationManagerDelegate>
+    // ivar _loggedFirst : B (offset 8)
+    // ivar _stopPending : B (offset 9)
+    // ivar _mgr : @"CLLocationManager" (offset 16)
+    // ivar _last : @"CLLocation" (offset 24)
+    // ivar _appManagers : @"NSHashTable" (offset 32)
+    // ivar _stopToken : Q (offset 40)
+    @property (T@"CLLocationManager",&,N,V_mgr) mgr;
+    @property (T@"CLLocation",&,N,V_last) last;
+    @property (T@"NSHashTable",&,N,V_appManagers) appManagers;
+    @property (TB,N,V_loggedFirst) loggedFirst;
+    @property (TQ,N,V_stopToken) stopToken;
+    @property (TB,N,V_stopPending) stopPending;
+    @property (TQ,R) hash;
+    @property (T#,R) superclass;
+    @property (T@"NSString",R,C) description;
+    @property (T@"NSString",?,R,C) debugDescription;
+    - (v28@0:8@16B24) appManager:running:;  // imp 19348
+    - (v16@0:8) scheduleStop;  // imp 19828
+    - (v16@0:8) start;  // imp 20256
+    - (v16@0:8) stop;  // imp 20744
+    - (v32@0:8@16@24) locationManager:didUpdateLocations:;  // imp 20960
+    - (v32@0:8@16@24) locationManager:didFailWithError:;  // imp 22748
+    - (@16@0:8) mgr;  // imp 22932
+    - (v24@0:8@16) setMgr:;  // imp 22940
+    - (@16@0:8) last;  // imp 23008
+    - (v24@0:8@16) setLast:;  // imp 23016
+    - (@16@0:8) appManagers;  // imp 23084
+    - (v24@0:8@16) setAppManagers:;  // imp 23092
+    - (B16@0:8) loggedFirst;  // imp 23160
+    - (v20@0:8B16) setLoggedFirst:;  // imp 23168
+    - (Q16@0:8) stopToken;  // imp 23176
+    - (v24@0:8Q16) setStopToken:;  // imp 23184
+    - (B16@0:8) stopPending;  // imp 23192
+    - (v20@0:8B16) setStopPending:;  // imp 23200
+    - (v16@0:8) .cxx_destruct;  // imp 23208
+    + (@16@0:8) shared;  // imp 19196
+@end
+
+@interface SPPGlassView : NSValue
+    // ivar _fill : @"CAGradientLayer" (offset 8)
+    // ivar _sheen : @"CAGradientLayer" (offset 16)
+    // ivar _corner : d (offset 24)
+    @property (T@"CAGradientLayer",&,N,V_fill) fill;
+    @property (T@"CAGradientLayer",&,N,V_sheen) sheen;
+    @property (Td,N,V_corner) corner;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 55304
+    - (v32@0:8@16@24) setTop:bottom:;  // imp 56208
+    - (v24@0:8d16) setCorner:;  // imp 56440
+    - (v16@0:8) layoutSubviews;  // imp 56460
+    - (@16@0:8) fill;  // imp 56920
+    - (v24@0:8@16) setFill:;  // imp 56940
+    - (@16@0:8) sheen;  // imp 57016
+    - (v24@0:8@16) setSheen:;  // imp 57036
+    - (d16@0:8) corner;  // imp 57112
+    - (v16@0:8) .cxx_destruct;  // imp 57132
+@end
+
+@interface SPPIconView : NSValue
+    // ivar _imageView : @"UIImageView" (offset 8)
+    // ivar _shape : q (offset 16)
+    // ivar _tileCorner : d (offset 24)
+    // ivar _tileMask : Q (offset 32)
+    @property (T@"UIImageView",&,N,V_imageView) imageView;
+    @property (Tq,N,V_shape) shape;
+    @property (Td,N,V_tileCorner) tileCorner;
+    @property (TQ,N,V_tileMask) tileMask;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 57216
+    - (v24@0:8q16) setShape:;  // imp 57836
+    - (v16@0:8) layoutSubviews;  // imp 57856
+    - (@16@0:8) imageView;  // imp 58524
+    - (v24@0:8@16) setImageView:;  // imp 58544
+    - (q16@0:8) shape;  // imp 58620
+    - (d16@0:8) tileCorner;  // imp 58640
+    - (v24@0:8d16) setTileCorner:;  // imp 58660
+    - (Q16@0:8) tileMask;  // imp 58680
+    - (v24@0:8Q16) setTileMask:;  // imp 58700
+    - (v16@0:8) .cxx_destruct;  // imp 58720
+@end
+
+@interface SPPSignView : NSValue
+    // ivar _muted : B (offset 8)
+    // ivar _label : @"UILabel" (offset 16)
+    @property (T@"UILabel",&,N,V_label) label;
+    @property (TB,N,V_muted) muted;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 58740
+    - (v16@0:8) applyColors;  // imp 59904
+    - (v20@0:8B16) setMuted:;  // imp 60244
+    - (v16@0:8) layoutSubviews;  // imp 60404
+    - (@16@0:8) label;  // imp 60848
+    - (v24@0:8@16) setLabel:;  // imp 60868
+    - (B16@0:8) muted;  // imp 60944
+    - (v16@0:8) .cxx_destruct;  // imp 60964
+@end
+
+@interface SPPBubbleView : NSValue
+    // ivar _showIcon : B (offset 8)
+    // ivar _speed : i (offset 12)
+    // ivar _limit : i (offset 16)
+    // ivar _style : q (offset 24)
+    // ivar _iconImage : @"UIImage" (offset 32)
+    // ivar _color : q (offset 40)
+    // ivar _log : @? (offset 48)
+    // ivar _builtStyle : q (offset 56)
+    // ivar _outlineCorner : d (offset 64)
+    // ivar _speedLabel : @"UILabel" (offset 72)
+    // ivar _glass : @"SPPGlassView" (offset 80)
+    // ivar _iconView : @"SPPIconView" (offset 88)
+    // ivar _sign : @"SPPSignView" (offset 96)
+    // ivar _unitLabel : @"UILabel" (offset 104)
+    // ivar _deco : @"UIView" (offset 112)
+    // ivar _parts : @"NSMutableDictionary" (offset 120)
+    // ivar _bits : @"NSMutableDictionary" (offset 128)
+    // ivar _tickLabels : @"NSArray" (offset 136)
+    // ivar _flashView : @"UIView" (offset 144)
+    // ivar _contentSize : {CGSize="width"d"height"d} (offset 152)
+    // ivar _outlineRect : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 168)
+    @property (Tq,N,V_builtStyle) builtStyle;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_outlineRect) outlineRect;
+    @property (Td,N,V_outlineCorner) outlineCorner;
+    @property (T{CGSize=dd},N,V_contentSize) contentSize;
+    @property (T@"SPPGlassView",&,N,V_glass) glass;
+    @property (T@"SPPIconView",&,N,V_iconView) iconView;
+    @property (T@"SPPSignView",&,N,V_sign) sign;
+    @property (T@"UILabel",&,N,V_speedLabel) speedLabel;
+    @property (T@"UILabel",&,N,V_unitLabel) unitLabel;
+    @property (T@"UIView",&,N,V_deco) deco;
+    @property (T@"NSMutableDictionary",&,N,V_parts) parts;
+    @property (T@"NSMutableDictionary",&,N,V_bits) bits;
+    @property (T@"NSArray",&,N,V_tickLabels) tickLabels;
+    @property (T@"UIView",&,N,V_flashView) flashView;
+    @property (Tq,N,V_style) style;
+    @property (Ti,N,V_speed) speed;
+    @property (Ti,N,V_limit) limit;
+    @property (TB,N,V_showIcon) showIcon;
+    @property (T@"UIImage",&,N,V_iconImage) iconImage;
+    @property (Tq,N,V_color) color;
+    @property (T@?,C,N,V_log) log;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 60984
+    - (i16@0:8) speedState;  // imp 61148
+    - (@16@0:8) stateColor;  // imp 61336
+    - (d16@0:8) speedRatio;  // imp 61488
+    - (@24@0:8@16) bit:;  // imp 61616
+    - (@32@0:8@16@24) addBit:to:;  // imp 61744
+    - (@48@0:8@16@24@32d40) shapePart:in:stroke:width:;  // imp 61924
+    - (v24@0:8q16) buildStyle:;  // imp 62236
+    - (v20@0:8B16) setOverLimitWarning:;  // imp 72456
+    - (@16@0:8) numberColor;  // imp 73272
+    - (v20@0:8i16) applyColor:;  // imp 73628
+    - (v40@0:8d16d24d32) stackNumberAt:top:width:;  // imp 75160
+    - (d16@0:8) stackHeight;  // imp 75484
+    - (v16@0:8) renderStyle;  // imp 75664
+    - ({CGSize=dd}16@0:8) render;  // imp 90160
+    - (v16@0:8) rebuild;  // imp 90292
+    - (v24@0:8q16) setColor:;  // imp 90300
+    - (q16@0:8) style;  // imp 90336
+    - (v24@0:8q16) setStyle:;  // imp 90356
+    - (i16@0:8) speed;  // imp 90376
+    - (v20@0:8i16) setSpeed:;  // imp 90396
+    - (i16@0:8) limit;  // imp 90416
+    - (v20@0:8i16) setLimit:;  // imp 90436
+    - (B16@0:8) showIcon;  // imp 90456
+    - (v20@0:8B16) setShowIcon:;  // imp 90476
+    - (@16@0:8) iconImage;  // imp 90496
+    - (v24@0:8@16) setIconImage:;  // imp 90516
+    - (q16@0:8) color;  // imp 90592
+    - (@?16@0:8) log;  // imp 90612
+    - (v24@0:8@?16) setLog:;  // imp 90632
+    - (q16@0:8) builtStyle;  // imp 90644
+    - (v24@0:8q16) setBuiltStyle:;  // imp 90664
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) outlineRect;  // imp 90684
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setOutlineRect:;  // imp 90708
+    - (d16@0:8) outlineCorner;  // imp 90732
+    - (v24@0:8d16) setOutlineCorner:;  // imp 90752
+    - (@16@0:8) speedLabel;  // imp 90772
+    - (v24@0:8@16) setSpeedLabel:;  // imp 90792
+    - ({CGSize=dd}16@0:8) contentSize;  // imp 90868
+    - (v32@0:8{CGSize=dd}16) setContentSize:;  // imp 90888
+    - (@16@0:8) glass;  // imp 90908
+    - (v24@0:8@16) setGlass:;  // imp 90928
+    - (@16@0:8) iconView;  // imp 91004
+    - (v24@0:8@16) setIconView:;  // imp 91024
+    - (@16@0:8) sign;  // imp 91100
+    - (v24@0:8@16) setSign:;  // imp 91120
+    - (@16@0:8) unitLabel;  // imp 91196
+    - (v24@0:8@16) setUnitLabel:;  // imp 91216
+    - (@16@0:8) deco;  // imp 91292
+    - (v24@0:8@16) setDeco:;  // imp 91312
+    - (@16@0:8) parts;  // imp 91388
+    - (v24@0:8@16) setParts:;  // imp 91408
+    - (@16@0:8) bits;  // imp 91484
+    - (v24@0:8@16) setBits:;  // imp 91504
+    - (@16@0:8) tickLabels;  // imp 91580
+    - (v24@0:8@16) setTickLabels:;  // imp 91600
+    - (@16@0:8) flashView;  // imp 91676
+    - (v24@0:8@16) setFlashView:;  // imp 91696
+    - (v16@0:8) .cxx_destruct;  // imp 91772
+@end
+
+@interface SPPSoundDelegate : NSRunLoop <AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate>
+    @property (TQ,R) hash;
+    @property (T#,R) superclass;
+    @property (T@"NSString",R,C) description;
+    @property (T@"NSString",?,R,C) debugDescription;
+    - (v28@0:8@16B24) audioPlayerDidFinishPlaying:successfully:;  // imp 92872
+    - (v32@0:8@16@24) audioPlayerDecodeErrorDidOccur:error:;  // imp 93044
+    - (v32@0:8@16@24) speechSynthesizer:didFinishSpeechUtterance:;  // imp 93156
+    - (v32@0:8@16@24) speechSynthesizer:didCancelSpeechUtterance:;  // imp 93160
+@end
+
+@interface SPPBubble : NSRunLoop
+    // ivar _builtLite : B (offset 8)
+    // ivar _onPhone : B (offset 9)
+    // ivar _carBusy : B (offset 10)
+    // ivar _pinching : B (offset 11)
+    // ivar _holdDragging : B (offset 12)
+    // ivar _speed : i (offset 16)
+    // ivar _limit : i (offset 20)
+    // ivar _app : i (offset 24)
+    // ivar _iconApp : i (offset 28)
+    // ivar _window : @"UIWindow" (offset 32)
+    // ivar _card : @"UIView" (offset 40)
+    // ivar _bubbleView : @"SPPBubbleView" (offset 48)
+    // ivar _timer : @"NSTimer" (offset 56)
+    // ivar _timerInterval : d (offset 64)
+    // ivar _lastUpdate : d (offset 72)
+    // ivar _speedAt : d (offset 80)
+    // ivar _limitAt : d (offset 88)
+    // ivar _carLostAt : d (offset 96)
+    // ivar _scale : d (offset 104)
+    // ivar _menu : @"UIView" (offset 112)
+    // ivar _menuShield : @"UIView" (offset 120)
+    // ivar _menuTimer : @"NSTimer" (offset 128)
+    // ivar _outlineCorner : d (offset 136)
+    // ivar _demoTimer : @"NSTimer" (offset 144)
+    // ivar _staleTimer : @"NSTimer" (offset 152)
+    // ivar _appliedRotation : d (offset 160)
+    // ivar _displayScale : d (offset 168)
+    // ivar _holdStart : {CGPoint="x"d"y"d} (offset 176)
+    // ivar _phoneFraction : {CGPoint="x"d"y"d} (offset 192)
+    // ivar _carFraction : {CGPoint="x"d"y"d} (offset 208)
+    // ivar _outlineRect : {CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}} (offset 224)
+    @property (T@"UIWindow",&,N,V_window) window;
+    @property (T@"UIView",&,N,V_card) card;
+    @property (T@"SPPBubbleView",&,N,V_bubbleView) bubbleView;
+    @property (T@"NSTimer",&,N,V_timer) timer;
+    @property (Td,N,V_timerInterval) timerInterval;
+    @property (TB,N,V_builtLite) builtLite;
+    @property (Ti,N,V_speed) speed;
+    @property (Ti,N,V_limit) limit;
+    @property (Td,N,V_lastUpdate) lastUpdate;
+    @property (Td,N,V_speedAt) speedAt;
+    @property (Td,N,V_limitAt) limitAt;
+    @property (Td,N,V_carLostAt) carLostAt;
+    @property (TB,N,V_onPhone) onPhone;
+    @property (TB,N,V_carBusy) carBusy;
+    @property (Td,N,V_scale) scale;
+    @property (TB,N,V_pinching) pinching;
+    @property (Ti,N,V_app) app;
+    @property (Ti,N,V_iconApp) iconApp;
+    @property (T@"UIView",&,N,V_menu) menu;
+    @property (T@"UIView",&,N,V_menuShield) menuShield;
+    @property (T@"NSTimer",&,N,V_menuTimer) menuTimer;
+    @property (T{CGPoint=dd},N,V_holdStart) holdStart;
+    @property (TB,N,V_holdDragging) holdDragging;
+    @property (T{CGRect={CGPoint=dd}{CGSize=dd}},N,V_outlineRect) outlineRect;
+    @property (Td,N,V_outlineCorner) outlineCorner;
+    @property (T@"NSTimer",&,N,V_demoTimer) demoTimer;
+    @property (T@"NSTimer",&,N,V_staleTimer) staleTimer;
+    @property (Td,N,V_appliedRotation) appliedRotation;
+    @property (Td,N,V_displayScale) displayScale;
+    @property (T{CGPoint=dd},N,V_phoneFraction) phoneFraction;
+    @property (T{CGPoint=dd},N,V_carFraction) carFraction;
+    - ({CGAffineTransform=dddddd}16@0:8) baseTransform;  // imp 99784
+    - (d16@0:8) savedScale;  // imp 99872
+    - (v16@0:8) applySavedScale;  // imp 99948
+    - ({CGAffineTransform=dddddd}24@0:8d16) baseScaled:;  // imp 100184
+    - (v20@0:8i16) setSpeed:;  // imp 100276
+    - (v16@0:8) feedWarning;  // imp 100480
+    - (v20@0:8i16) sourceStopped:;  // imp 101280
+    - (v24@0:8i16i20) updateSpeed:limit:;  // imp 101640
+    - (v28@0:8i16i20B24) updateSpeed:limit:appForeground:;  // imp 101648
+    - (B16@0:8) anyAppForeground;  // imp 101740
+    - (v32@0:8i16i20B24i28) updateSpeed:limit:appForeground:app:;  // imp 101848
+    - (i16@0:8) sourceAppState;  // imp 102992
+    - (v16@0:8) refresh;  // imp 103988
+    - (v20@0:8B16) setCarBusy:;  // imp 106772
+    - (v16@0:8) hide;  // imp 106968
+    - (i16@0:8) speedState;  // imp 107712
+    - (v16@0:8) renderBubble;  // imp 107796
+    - (v20@0:8B16) setWarnShake:;  // imp 109128
+    - (v16@0:8) resetLayout;  // imp 110372
+    - (v16@0:8) runDemo;  // imp 110700
+    - (v24@0:8@16) longPressed:;  // imp 111700
+    - (@24@0:8q16) menuButton:;  // imp 112304
+    - (v28@0:8@16B24) setMenuButton:off:;  // imp 113340
+    - (v16@0:8) showMenu;  // imp 114548
+    - (v16@0:8) armMenuTimer;  // imp 116576
+    - (v20@0:8B16) placeMenuAnimated:;  // imp 116964
+    - (v16@0:8) hideMenu;  // imp 117708
+    - (v24@0:8@16) menuTapped:;  // imp 118256
+    - (v16@0:8) quitSourceApp;  // imp 119800
+    - (v24@0:8@16) pinched:;  // imp 120604
+    - (v24@0:8@16) panned:;  // imp 121172
+    - (v24@0:8@16) tapped:;  // imp 121632
+    - (v16@0:8) ensureWindow;  // imp 122888
+    - (v16@0:8) startOrientationTracking;  // imp 124908
+    - (d16@0:8) phoneRotation;  // imp 125444
+    - (v20@0:8B16) applyPhoneOrientationForce:;  // imp 125632
+    - ({CGPoint=dd}16@0:8) defaultCardCenter;  // imp 126364
+    - (v16@0:8) saveCardPosition;  // imp 126540
+    - (v16@0:8) restoreCardPosition;  // imp 126884
+    - (v16@0:8) clampCard;  // imp 127112
+    - (v16@0:8) applyCrispScale;  // imp 127532
+    - (@16@0:8) window;  // imp 128476
+    - (v24@0:8@16) setWindow:;  // imp 128484
+    - (@16@0:8) card;  // imp 128552
+    - (v24@0:8@16) setCard:;  // imp 128560
+    - (@16@0:8) bubbleView;  // imp 128628
+    - (v24@0:8@16) setBubbleView:;  // imp 128636
+    - (@16@0:8) timer;  // imp 128704
+    - (v24@0:8@16) setTimer:;  // imp 128712
+    - (d16@0:8) timerInterval;  // imp 128780
+    - (v24@0:8d16) setTimerInterval:;  // imp 128788
+    - (B16@0:8) builtLite;  // imp 128796
+    - (v20@0:8B16) setBuiltLite:;  // imp 128804
+    - (i16@0:8) speed;  // imp 128812
+    - (i16@0:8) limit;  // imp 128820
+    - (v20@0:8i16) setLimit:;  // imp 128828
+    - (d16@0:8) lastUpdate;  // imp 128836
+    - (v24@0:8d16) setLastUpdate:;  // imp 128844
+    - (d16@0:8) speedAt;  // imp 128852
+    - (v24@0:8d16) setSpeedAt:;  // imp 128860
+    - (d16@0:8) limitAt;  // imp 128868
+    - (v24@0:8d16) setLimitAt:;  // imp 128876
+    - (d16@0:8) carLostAt;  // imp 128884
+    - (v24@0:8d16) setCarLostAt:;  // imp 128892
+    - (B16@0:8) onPhone;  // imp 128900
+    - (v20@0:8B16) setOnPhone:;  // imp 128908
+    - (B16@0:8) carBusy;  // imp 128916
+    - (d16@0:8) scale;  // imp 128924
+    - (v24@0:8d16) setScale:;  // imp 128932
+    - (B16@0:8) pinching;  // imp 128940
+    - (v20@0:8B16) setPinching:;  // imp 128948
+    - (i16@0:8) app;  // imp 128956
+    - (v20@0:8i16) setApp:;  // imp 128964
+    - (i16@0:8) iconApp;  // imp 128972
+    - (v20@0:8i16) setIconApp:;  // imp 128980
+    - (@16@0:8) menu;  // imp 128988
+    - (v24@0:8@16) setMenu:;  // imp 128996
+    - (@16@0:8) menuShield;  // imp 129064
+    - (v24@0:8@16) setMenuShield:;  // imp 129072
+    - (@16@0:8) menuTimer;  // imp 129140
+    - (v24@0:8@16) setMenuTimer:;  // imp 129148
+    - ({CGPoint=dd}16@0:8) holdStart;  // imp 129216
+    - (v32@0:8{CGPoint=dd}16) setHoldStart:;  // imp 129224
+    - (B16@0:8) holdDragging;  // imp 129232
+    - (v20@0:8B16) setHoldDragging:;  // imp 129240
+    - ({CGRect={CGPoint=dd}{CGSize=dd}}16@0:8) outlineRect;  // imp 129248
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) setOutlineRect:;  // imp 129260
+    - (d16@0:8) outlineCorner;  // imp 129272
+    - (v24@0:8d16) setOutlineCorner:;  // imp 129280
+    - (@16@0:8) demoTimer;  // imp 129288
+    - (v24@0:8@16) setDemoTimer:;  // imp 129296
+    - (@16@0:8) staleTimer;  // imp 129364
+    - (v24@0:8@16) setStaleTimer:;  // imp 129372
+    - (d16@0:8) appliedRotation;  // imp 129440
+    - (v24@0:8d16) setAppliedRotation:;  // imp 129448
+    - (d16@0:8) displayScale;  // imp 129456
+    - (v24@0:8d16) setDisplayScale:;  // imp 129464
+    - ({CGPoint=dd}16@0:8) phoneFraction;  // imp 129472
+    - (v32@0:8{CGPoint=dd}16) setPhoneFraction:;  // imp 129480
+    - ({CGPoint=dd}16@0:8) carFraction;  // imp 129488
+    - (v32@0:8{CGPoint=dd}16) setCarFraction:;  // imp 129496
+    - (v16@0:8) .cxx_destruct;  // imp 129504
+    + (@16@0:8) shared;  // imp 99500
+@end
+
+@interface SPPPrefs : NSRunLoop
+    + (B16@0:8) enabled;  // imp 130372
+    + (q16@0:8) style;  // imp 130420
+    + (B16@0:8) showAppIcon;  // imp 130644
+    + (d20@0:8B16) sizePercentForCar:;  // imp 130752
+    + (v28@0:8d16B24) setSizePercent:forCar:;  // imp 130912
+    + (v24@0:8q16) setWarnMode:;  // imp 131100
+    + (q16@0:8) warnMode;  // imp 131244
+    + (q16@0:8) warnFx;  // imp 131444
+    + (B16@0:8) warnVoice;  // imp 131580
+    + (q16@0:8) warnTone;  // imp 131624
+    + (q16@0:8) warnVoiceLine;  // imp 131640
+    + (@16@0:8) warnVoiceText;  // imp 131656
+    + (q16@0:8) color;  // imp 131804
+    + (d16@0:8) warnMarginKmh;  // imp 131820
+    + (i16@0:8) source;  // imp 131956
+    + (B20@0:8i16) appEnabled:;  // imp 132304
+@end
+
+@interface SPPOverspeed : NSRunLoop
+    // ivar _enabled : B (offset 8)
+    // ivar _voice : B (offset 9)
+    // ivar _over : B (offset 10)
+    // ivar _armed : B (offset 11)
+    // ivar _speed : i (offset 12)
+    // ivar _limit : i (offset 16)
+    // ivar _window : @"UIWindow" (offset 24)
+    // ivar _glow : @"UIImageView" (offset 32)
+    // ivar _flash : @"UIView" (offset 40)
+    // ivar _shownFx : q (offset 48)
+    // ivar _displayID : @"NSString" (offset 56)
+    // ivar _mode : q (offset 64)
+    // ivar _marginKmh : d (offset 72)
+    // ivar _fx : q (offset 80)
+    // ivar _tone : q (offset 88)
+    // ivar _voiceLine : q (offset 96)
+    // ivar _voiceText : @"NSString" (offset 104)
+    // ivar _belowSince : d (offset 112)
+    @property (T@"UIWindow",&,N,V_window) window;
+    @property (T@"UIImageView",&,N,V_glow) glow;
+    @property (T@"UIView",&,N,V_flash) flash;
+    @property (Tq,N,V_shownFx) shownFx;
+    @property (T@"NSString",C,N,V_displayID) displayID;
+    @property (Ti,N,V_speed) speed;
+    @property (Ti,N,V_limit) limit;
+    @property (TB,N,V_enabled) enabled;
+    @property (Tq,N,V_mode) mode;
+    @property (Td,N,V_marginKmh) marginKmh;
+    @property (Tq,N,V_fx) fx;
+    @property (TB,N,V_voice) voice;
+    @property (Tq,N,V_tone) tone;
+    @property (Tq,N,V_voiceLine) voiceLine;
+    @property (T@"NSString",C,N,V_voiceText) voiceText;
+    @property (TB,N,V_over) over;
+    @property (TB,N,V_armed) armed;
+    @property (Td,N,V_belowSince) belowSince;
+    - (v16@0:8) loadPrefs;  // imp 132564
+    - (v16@0:8) reloadPrefs;  // imp 132808
+    - (v16@0:8) carChanged;  // imp 132864
+    - (v24@0:8i16i20) updateSpeed:limit:;  // imp 132948
+    - (v16@0:8) evaluate;  // imp 133020
+    - (B16@0:8) ensureWindow;  // imp 134120
+    - (v16@0:8) dropWindow;  // imp 135600
+    - (v24@0:8q16) showFx:;  // imp 135948
+    - (@16@0:8) window;  // imp 138052
+    - (v24@0:8@16) setWindow:;  // imp 138060
+    - (@16@0:8) glow;  // imp 138128
+    - (v24@0:8@16) setGlow:;  // imp 138136
+    - (@16@0:8) flash;  // imp 138204
+    - (v24@0:8@16) setFlash:;  // imp 138212
+    - (q16@0:8) shownFx;  // imp 138280
+    - (v24@0:8q16) setShownFx:;  // imp 138288
+    - (@16@0:8) displayID;  // imp 138296
+    - (v24@0:8@16) setDisplayID:;  // imp 138304
+    - (i16@0:8) speed;  // imp 138312
+    - (v20@0:8i16) setSpeed:;  // imp 138320
+    - (i16@0:8) limit;  // imp 138328
+    - (v20@0:8i16) setLimit:;  // imp 138336
+    - (B16@0:8) enabled;  // imp 138344
+    - (v20@0:8B16) setEnabled:;  // imp 138352
+    - (q16@0:8) mode;  // imp 138360
+    - (v24@0:8q16) setMode:;  // imp 138368
+    - (d16@0:8) marginKmh;  // imp 138376
+    - (v24@0:8d16) setMarginKmh:;  // imp 138384
+    - (q16@0:8) fx;  // imp 138392
+    - (v24@0:8q16) setFx:;  // imp 138400
+    - (B16@0:8) voice;  // imp 138408
+    - (v20@0:8B16) setVoice:;  // imp 138416
+    - (q16@0:8) tone;  // imp 138424
+    - (v24@0:8q16) setTone:;  // imp 138432
+    - (q16@0:8) voiceLine;  // imp 138440
+    - (v24@0:8q16) setVoiceLine:;  // imp 138448
+    - (@16@0:8) voiceText;  // imp 138456
+    - (v24@0:8@16) setVoiceText:;  // imp 138464
+    - (B16@0:8) over;  // imp 138472
+    - (v20@0:8B16) setOver:;  // imp 138480
+    - (B16@0:8) armed;  // imp 138488
+    - (v20@0:8B16) setArmed:;  // imp 138496
+    - (d16@0:8) belowSince;  // imp 138504
+    - (v24@0:8d16) setBelowSince:;  // imp 138512
+    - (v16@0:8) .cxx_destruct;  // imp 138520
+    + (@16@0:8) shared;  // imp 132348
+@end
+
+@protocol NSObject
+    - (B24@0:8@16) isEqual:;
+    - (#16@0:8) class;
+    - (@16@0:8) self;
+    - (@24@0:8:16) performSelector:;
+    - (@32@0:8:16@24) performSelector:withObject:;
+    - (@40@0:8:16@24@32) performSelector:withObject:withObject:;
+    - (B16@0:8) isProxy;
+    - (B24@0:8#16) isKindOfClass:;
+    - (B24@0:8#16) isMemberOfClass:;
+    - (B24@0:8@16) conformsToProtocol:;
+    - (B24@0:8:16) respondsToSelector:;
+    - (@16@0:8) retain;
+    - (Vv16@0:8) release;
+    - (@16@0:8) autorelease;
+    - (Q16@0:8) retainCount;
+    - (^{_NSZone=}16@0:8) zone;
+    - (Q16@0:8) hash;
+    - (#16@0:8) superclass;
+    - (@16@0:8) description;
+@end
+
+@protocol CLLocationManagerDelegate
+@end
+
+@protocol AVAudioPlayerDelegate
+@end
+
+@protocol AVSpeechSynthesizerDelegate
+@end

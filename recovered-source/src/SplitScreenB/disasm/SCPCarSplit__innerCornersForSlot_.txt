@@ -1,0 +1,76 @@
+; ==== SCPCarSplit__innerCornersForSlot_  @0x118d8..0x11a04 (300 bytes) ====
+000118d8  stp      d15, d14, [sp, #-0x70]!                      
+000118dc  stp      d13, d12, [sp, #0x10]                        
+000118e0  stp      d11, d10, [sp, #0x20]                        
+000118e4  stp      d9, d8, [sp, #0x30]                          
+000118e8  stp      x22, x21, [sp, #0x40]                        
+000118ec  stp      x20, x19, [sp, #0x50]                        
+000118f0  stp      x29, x30, [sp, #0x60]                        
+000118f4  add      x29, sp, #0x60                               
+000118f8  mov      x21, x2                                      
+000118fc  mov      x20, x0                                      
+00011900  bl       #0x5cca0                                     ; msgSend "zoomedSlot"
+00011904  mov      x29, x29                                     
+00011908  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001190c  mov      x19, x0                                      
+00011910  bl       #0x567b8                                     ; call _objc_release
+00011914  cbz      x19, #0x11920                                
+00011918  mov      x0, #0                                       
+0001191c  b        #0x119d0                                     
+00011920  mov      x0, x20                                      
+00011924  mov      x2, x21                                      
+00011928  bl       #0x59440                                     ; msgSend "neighbourCornersForSlot:"
+0001192c  cbz      x0, #0x119d0                                 
+00011930  mov      x19, x0                                      
+00011934  mov      x0, x20                                      
+00011938  mov      x2, x21                                      
+0001193c  bl       #0x58360                                     ; msgSend "frameForSlot:"
+00011940  mov      v8.16b, v0.16b                               
+00011944  mov      v9.16b, v1.16b                               
+00011948  mov      v10.16b, v2.16b                              
+0001194c  mov      v11.16b, v3.16b                              
+00011950  mov      x0, x20                                      
+00011954  bl       #0x57800                                     ; msgSend "container"
+00011958  mov      x29, x29                                     
+0001195c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00011960  mov      x20, x0                                      
+00011964  bl       #0x57320                                     ; msgSend "bounds"
+00011968  fmov     d4, xzr                                      
+0001196c  fmov     d5, xzr                                      
+00011970  bl       #0x562fc                                     ; call _CGRectInset
+00011974  mov      v12.16b, v0.16b                              
+00011978  mov      v13.16b, v1.16b                              
+0001197c  mov      v14.16b, v2.16b                              
+00011980  mov      v15.16b, v3.16b                              
+00011984  mov      x0, x20                                      
+00011988  bl       #0x567b8                                     ; call _objc_release
+0001198c  mov      v0.16b, v8.16b                               
+00011990  mov      v1.16b, v9.16b                               
+00011994  mov      v2.16b, v10.16b                              
+00011998  mov      v3.16b, v11.16b                              
+0001199c  bl       #0x562e4                                     ; call _CGRectGetMinX
+000119a0  mov      v8.16b, v0.16b                               
+000119a4  mov      v0.16b, v12.16b                              
+000119a8  mov      v1.16b, v13.16b                              
+000119ac  mov      v2.16b, v14.16b                              
+000119b0  mov      v3.16b, v15.16b                              
+000119b4  bl       #0x562e4                                     ; call _CGRectGetMinX
+000119b8  fmov     d1, #0.50000000                              
+000119bc  fadd     d0, d0, d1                                   
+000119c0  mov      w8, #5                                       
+000119c4  orr      x8, x19, x8                                  
+000119c8  fcmp     d8, d0                                       
+000119cc  csel     x0, x19, x8, hi                              
+000119d0  ldp      x29, x30, [sp, #0x60]                        
+000119d4  ldp      x20, x19, [sp, #0x50]                        
+000119d8  ldp      x22, x21, [sp, #0x40]                        
+000119dc  ldp      d9, d8, [sp, #0x30]                          
+000119e0  ldp      d11, d10, [sp, #0x20]                        
+000119e4  ldp      d13, d12, [sp, #0x10]                        
+000119e8  ldp      d15, d14, [sp], #0x70                        
+000119ec  ret                                                   
+000119f0  mov      x19, x0                                      
+000119f4  mov      x0, x20                                      
+000119f8  bl       #0x567b8                                     ; call _objc_release
+000119fc  mov      x0, x19                                      
+00011a00  bl       #0x563e0                                     ; call __Unwind_Resume

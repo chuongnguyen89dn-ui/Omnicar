@@ -1,0 +1,95 @@
+; _SCPAppIconsBeginInjection
+0x00c37c  sub      sp, sp, #0x40
+0x00c380  stp      x22, x21, [sp, #0x10]
+0x00c384  stp      x20, x19, [sp, #0x20]
+0x00c388  stp      x29, x30, [sp, #0x30]
+0x00c38c  add      x29, sp, #0x30
+0x00c390  bl       #0x4f538 ; -> _OMCPrefsSync
+0x00c394  adrp     x0, #0x7a000
+0x00c398  add      x0, x0, #0x860 ; -> 0x7a860 @"splitScreenIconsPending"
+0x00c39c  mov      x1, #0
+0x00c3a0  bl       #0x4f544 ; -> _OMCPref
+0x00c3a4  mov      x29, x29
+0x00c3a8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00c3ac  mov      x19, x0
+0x00c3b0  bl       #0x572e0 ; objc_msgSend$boolValue
+0x00c3b4  mov      x20, x0
+0x00c3b8  mov      x0, x19
+0x00c3bc  bl       #0x567b8 ; call _objc_release
+0x00c3c0  cbz      w20, #0xc42c
+0x00c3c4  adrp     x8, #0x7a000
+0x00c3c8  add      x8, x8, #0x840 ; -> 0x7a840 @"1.0.3"
+0x00c3cc  adrp     x9, #0x87000
+0x00c3d0  ldr      x0, [x9, #0x678] ; [0x87678] class:NSString
+0x00c3d4  str      x8, [sp]
+0x00c3d8  adrp     x2, #0x7a000
+0x00c3dc  add      x2, x2, #0x880 ; -> 0x7a880 @"AppIcons: lan truoc CarPlay sap sau khi chen icon -> tat chen icon o ban %@ (doi danh sach app de thu lai)"
+0x00c3e0  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x00c3e4  mov      x29, x29
+0x00c3e8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00c3ec  mov      x19, x0
+0x00c3f0  adrp     x0, #0x79000
+0x00c3f4  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x00c3f8  mov      x1, x19
+0x00c3fc  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00c400  mov      x0, x19
+0x00c404  bl       #0x567b8 ; call _objc_release
+0x00c408  adrp     x0, #0x7a000
+0x00c40c  add      x0, x0, #0x8a0 ; -> 0x7a8a0 @"splitScreenIconsCrashed"
+0x00c410  adrp     x1, #0x7a000
+0x00c414  add      x1, x1, #0x840 ; -> 0x7a840 @"1.0.3"
+0x00c418  bl       #0xc4f4 ; -> sub_c4f4
+0x00c41c  adrp     x0, #0x7a000
+0x00c420  add      x0, x0, #0x860 ; -> 0x7a860 @"splitScreenIconsPending"
+0x00c424  mov      x1, #0
+0x00c428  bl       #0xc4f4 ; -> sub_c4f4
+0x00c42c  adrp     x0, #0x7a000
+0x00c430  add      x0, x0, #0x8a0 ; -> 0x7a8a0 @"splitScreenIconsCrashed"
+0x00c434  mov      x1, #0
+0x00c438  bl       #0x4f544 ; -> _OMCPref
+0x00c43c  mov      x29, x29
+0x00c440  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00c444  mov      x19, x0
+0x00c448  adrp     x21, #0x7a000
+0x00c44c  add      x21, x21, #0x840 ; -> 0x7a840 @"1.0.3"
+0x00c450  mov      x2, x21
+0x00c454  bl       #0x58c80 ; objc_msgSend$isEqual:
+0x00c458  mov      x20, x0
+0x00c45c  mov      x0, x19
+0x00c460  bl       #0x567b8 ; call _objc_release
+0x00c464  cbz      w20, #0xc4a8
+0x00c468  adrp     x8, #0x87000
+0x00c46c  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x00c470  str      x21, [sp]
+0x00c474  adrp     x2, #0x7a000
+0x00c478  add      x2, x2, #0x8c0 ; -> 0x7a8c0 @"AppIcons: dang tat vi tung sap o ban %@"
+0x00c47c  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x00c480  mov      x29, x29
+0x00c484  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00c488  mov      x19, x0
+0x00c48c  adrp     x0, #0x79000
+0x00c490  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x00c494  mov      x1, x19
+0x00c498  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00c49c  mov      x0, x19
+0x00c4a0  bl       #0x567b8 ; call _objc_release
+0x00c4a4  b        #0xc4bc
+0x00c4a8  adrp     x0, #0x7a000
+0x00c4ac  add      x0, x0, #0x860 ; -> 0x7a860 @"splitScreenIconsPending"
+0x00c4b0  adrp     x1, #0x78000
+0x00c4b4  ldr      x1, [x1, #0x250] ; [0x78250] ___kCFBooleanTrue
+0x00c4b8  bl       #0xc4f4 ; -> sub_c4f4
+0x00c4bc  eor      w0, w20, #1
+0x00c4c0  ldp      x29, x30, [sp, #0x30]
+0x00c4c4  ldp      x20, x19, [sp, #0x20]
+0x00c4c8  ldp      x22, x21, [sp, #0x10]
+0x00c4cc  add      sp, sp, #0x40
+0x00c4d0  ret      
+0x00c4d4  b        #0xc4e0
+0x00c4d8  b        #0xc4e0
+0x00c4dc  b        #0xc4e0
+0x00c4e0  mov      x20, x0
+0x00c4e4  mov      x0, x19
+0x00c4e8  bl       #0x567b8 ; call _objc_release
+0x00c4ec  mov      x0, x20
+0x00c4f0  bl       #0x563e0 ; call __Unwind_Resume

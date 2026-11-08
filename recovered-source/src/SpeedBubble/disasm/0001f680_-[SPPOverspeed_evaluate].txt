@@ -1,0 +1,273 @@
+# -[SPPOverspeed evaluate]
+# addr 0x1f680 .. 0x1fab8  (1080 bytes)
+
+0001f680  sub      sp, sp, #0x80                               
+0001f684  stp      d11, d10, [sp, #0x20]                       
+0001f688  stp      d9, d8, [sp, #0x30]                         
+0001f68c  stp      x24, x23, [sp, #0x40]                       
+0001f690  stp      x22, x21, [sp, #0x50]                       
+0001f694  stp      x20, x19, [sp, #0x60]                       
+0001f698  stp      x29, x30, [sp, #0x70]                       
+0001f69c  add      x29, sp, #0x70                              
+0001f6a0  mov      x19, x0                                     
+0001f6a4  bl       #0x27ad0                                    ; _CFAbsoluteTimeGetCurrent
+0001f6a8  mov      v8.16b, v0.16b                              
+0001f6ac  mov      x0, x19                                     
+0001f6b0  bl       #0x2bfc0                                    ; objc_msgSend$speed
+0001f6b4  mov      x22, x0                                     
+0001f6b8  mov      x0, x19                                     
+0001f6bc  bl       #0x29bc0                                    ; objc_msgSend$limit
+0001f6c0  mov      x20, x0                                     
+0001f6c4  cmn      w22, #1                                     
+0001f6c8  ccmp     w0, #0, #4, gt                              
+0001f6cc  cset     w23, gt                                     
+0001f6d0  scvtf    d9, w0                                      
+0001f6d4  mov      x0, x19                                     
+0001f6d8  bl       #0x29da0                                    ; objc_msgSend$marginKmh
+0001f6dc  fadd     d9, d0, d9                                  
+0001f6e0  ucvtf    d10, w22                                    
+0001f6e4  cmp      w23, #1                                     
+0001f6e8  b.ne     #0x1f77c                                    
+0001f6ec  fcmp     d9, d10                                     
+0001f6f0  b.lt     #0x1f77c                                    
+0001f6f4  mov      x0, x19                                     
+0001f6f8  bl       #0x28960                                    ; objc_msgSend$belowSince
+0001f6fc  fcmp     d0, #0.0                                    
+0001f700  b.hi     #0x1f710                                    
+0001f704  mov      x0, x19                                     
+0001f708  mov      v0.16b, v8.16b                              
+0001f70c  bl       #0x2aac0                                    ; objc_msgSend$setBelowSince:
+0001f710  mov      x0, x19                                     
+0001f714  bl       #0x28800                                    ; objc_msgSend$armed
+0001f718  tbnz     w0, #0, #0x1f788                            
+0001f71c  mov      x0, x19                                     
+0001f720  bl       #0x28960                                    ; objc_msgSend$belowSince
+0001f724  fsub     d0, d8, d0                                  
+0001f728  fmov     d1, #5.00000000                             
+0001f72c  fcmp     d0, d1                                      
+0001f730  b.lt     #0x1f788                                    
+0001f734  mov      x0, x19                                     
+0001f738  mov      w2, #1                                      
+0001f73c  bl       #0x2aa40                                    ; objc_msgSend$setArmed:
+0001f740  adrp     x8, #0x42000                                
+0001f744  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001f748  adrp     x2, #0x3b000                                
+0001f74c  add      x2, x2, #0x2f8                              ; @"canh bao: da cham lai duoi nguong -> lan vuot sau se keu"
+0001f750  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001f754  mov      x29, x29                                    
+0001f758  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f75c  mov      x21, x0                                     
+0001f760  adrp     x0, #0x38000                                
+0001f764  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001f768  mov      x1, x21                                     
+0001f76c  bl       #0x2155c                                    ; _OMCLogWrite
+0001f770  mov      x0, x21                                     
+0001f774  bl       #0x27ff8                                    ; _objc_release
+0001f778  b        #0x1f788                                    ; sub_1f788
+0001f77c  fmov     d0, xzr                                     
+0001f780  mov      x0, x19                                     
+0001f784  bl       #0x2aac0                                    ; objc_msgSend$setBelowSince:
+0001f788  bl       #0x16ebc                                    ; _SPPGetCarPlayCADisplay
+0001f78c  mov      x29, x29                                    
+0001f790  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f794  mov      x21, x0                                     
+0001f798  bl       #0x27ff8                                    ; _objc_release
+0001f79c  mov      x0, x19                                     
+0001f7a0  bl       #0x29320                                    ; objc_msgSend$enabled
+0001f7a4  cbz      w0, #0x1f854                                
+0001f7a8  mov      x0, x19                                     
+0001f7ac  bl       #0x29ea0                                    ; objc_msgSend$mode
+0001f7b0  cmp      x0, #0                                      
+0001f7b4  ccmp     x21, #0, #4, gt                             
+0001f7b8  cset     w8, ne                                      
+0001f7bc  and      w8, w8, w23                                 
+0001f7c0  tbz      w8, #0, #0x1f854                            
+0001f7c4  fcmp     d9, d10                                     
+0001f7c8  cset     w21, mi                                     
+0001f7cc  mov      x0, x19                                     
+0001f7d0  bl       #0x2a240                                    ; objc_msgSend$over
+0001f7d4  cmp      w21, w0                                     
+0001f7d8  b.eq     #0x1f93c                                    
+0001f7dc  fcmp     d9, d10                                     
+0001f7e0  b.pl     #0x1f860                                    
+0001f7e4  adrp     x8, #0x42000                                
+0001f7e8  ldr      x21, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001f7ec  mov      x0, x19                                     
+0001f7f0  bl       #0x29da0                                    ; objc_msgSend$marginKmh
+0001f7f4  mov      v8.16b, v0.16b                              
+0001f7f8  mov      x0, x19                                     
+0001f7fc  bl       #0x29ea0                                    ; objc_msgSend$mode
+0001f800  str      x0, [sp, #0x18]                             
+0001f804  str      d8, [sp, #0x10]                             
+0001f808  mov      x8, x20                                     
+0001f80c  stp      x22, x8, [sp]                               
+0001f810  adrp     x2, #0x3b000                                
+0001f814  add      x2, x2, #0x318                              ; @"canh bao: %d km/h > gioi han %d %+.0f -> vien do (che do %ld)"
+0001f818  mov      x0, x21                                     
+0001f81c  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001f820  mov      x29, x29                                    
+0001f824  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f828  mov      x21, x0                                     
+0001f82c  adrp     x0, #0x38000                                
+0001f830  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001f834  mov      x1, x21                                     
+0001f838  bl       #0x2155c                                    ; _OMCLogWrite
+0001f83c  mov      x0, x21                                     
+0001f840  bl       #0x27ff8                                    ; _objc_release
+0001f844  mov      x0, x19                                     
+0001f848  mov      w2, #1                                      
+0001f84c  bl       #0x2b5a0                                    ; objc_msgSend$setOver:
+0001f850  b        #0x1f954                                    ; sub_1f954
+0001f854  mov      x0, x19                                     
+0001f858  bl       #0x2a240                                    ; objc_msgSend$over
+0001f85c  tbz      w0, #0, #0x1f89c                            
+0001f860  adrp     x8, #0x42000                                
+0001f864  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001f868  stp      x22, x20, [sp]                              
+0001f86c  adrp     x2, #0x3b000                                
+0001f870  add      x2, x2, #0x338                              ; @"canh bao: het vuot (toc do %d, gioi han %d)"
+0001f874  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001f878  mov      x29, x29                                    
+0001f87c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f880  mov      x21, x0                                     
+0001f884  adrp     x0, #0x38000                                
+0001f888  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001f88c  mov      x1, x21                                     
+0001f890  bl       #0x2155c                                    ; _OMCLogWrite
+0001f894  mov      x0, x21                                     
+0001f898  bl       #0x27ff8                                    ; _objc_release
+0001f89c  mov      x0, x19                                     
+0001f8a0  mov      w2, #0                                      
+0001f8a4  bl       #0x2b5a0                                    ; objc_msgSend$setOver:
+0001f8a8  mov      w20, #0                                     
+0001f8ac  adrp     x8, #0x43000                                
+0001f8b0  ldr      x0, [x8, #0x40]                             ; [0x43040] classref -> SPPBubble
+0001f8b4  bl       #0x2bd80                                    ; objc_msgSend$shared
+0001f8b8  mov      x29, x29                                    
+0001f8bc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f8c0  mov      x21, x0                                     
+0001f8c4  cbz      w20, #0x1f8dc                               
+0001f8c8  mov      x0, x19                                     
+0001f8cc  bl       #0x29580                                    ; objc_msgSend$fx
+0001f8d0  cmp      x0, #3                                      
+0001f8d4  cset     w2, eq                                      
+0001f8d8  b        #0x1f8e0                                    ; sub_1f8e0
+0001f8dc  mov      w2, #0                                      
+0001f8e0  mov      x0, x21                                     
+0001f8e4  bl       #0x2bcc0                                    ; objc_msgSend$setWarnShake:
+0001f8e8  mov      x0, x21                                     
+0001f8ec  bl       #0x27ff8                                    ; _objc_release
+0001f8f0  cbz      w20, #0x1f904                               
+0001f8f4  mov      x0, x19                                     
+0001f8f8  bl       #0x29580                                    ; objc_msgSend$fx
+0001f8fc  cmp      x0, #3                                      
+0001f900  b.ne     #0x1f90c                                    
+0001f904  mov      x2, #-1                                     
+0001f908  b        #0x1f918                                    ; sub_1f918
+0001f90c  mov      x0, x19                                     
+0001f910  bl       #0x29580                                    ; objc_msgSend$fx
+0001f914  mov      x2, x0                                      
+0001f918  mov      x0, x19                                     
+0001f91c  ldp      x29, x30, [sp, #0x70]                       
+0001f920  ldp      x20, x19, [sp, #0x60]                       
+0001f924  ldp      x22, x21, [sp, #0x50]                       
+0001f928  ldp      x24, x23, [sp, #0x40]                       
+0001f92c  ldp      d9, d8, [sp, #0x30]                         
+0001f930  ldp      d11, d10, [sp, #0x20]                       
+0001f934  add      sp, sp, #0x80                               
+0001f938  b        #0x2be40                                    ; objc_msgSend$showFx:
+0001f93c  fcmp     d9, d10                                     
+0001f940  cset     w2, mi                                      
+0001f944  mov      x0, x19                                     
+0001f948  bl       #0x2b5a0                                    ; objc_msgSend$setOver:
+0001f94c  fcmp     d9, d10                                     
+0001f950  b.pl     #0x1f8a8                                    
+0001f954  mov      x0, x19                                     
+0001f958  bl       #0x28800                                    ; objc_msgSend$armed
+0001f95c  cbz      w0, #0x1fa58                                
+0001f960  mov      x0, x19                                     
+0001f964  bl       #0x29ea0                                    ; objc_msgSend$mode
+0001f968  tbz      w0, #1, #0x1fa58                            
+0001f96c  mov      x0, x19                                     
+0001f970  bl       #0x2c7e0                                    ; objc_msgSend$voice
+0001f974  cbz      w0, #0x1fa04                                
+0001f978  mov      x0, x19                                     
+0001f97c  bl       #0x2c800                                    ; objc_msgSend$voiceLine
+0001f980  mov      x21, x0                                     
+0001f984  mov      x0, x19                                     
+0001f988  bl       #0x2c820                                    ; objc_msgSend$voiceText
+0001f98c  mov      x29, x29                                    
+0001f990  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f994  mov      x22, x0                                     
+0001f998  mov      x0, x21                                     
+0001f99c  mov      x1, x22                                     
+0001f9a0  mov      x2, x20                                     
+0001f9a4  bl       #0x16028                                    ; _SPPVoiceLine
+0001f9a8  mov      x29, x29                                    
+0001f9ac  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f9b0  mov      x21, x0                                     
+0001f9b4  mov      x0, x22                                     
+0001f9b8  bl       #0x27ff8                                    ; _objc_release
+0001f9bc  mov      x0, x21                                     
+0001f9c0  bl       #0x16ca4                                    ; _SPPSpeak
+0001f9c4  adrp     x8, #0x42000                                
+0001f9c8  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001f9cc  str      x21, [sp]                                   
+0001f9d0  adrp     x2, #0x3b000                                
+0001f9d4  add      x2, x2, #0x358                              ; @"canh bao: noi "%@""
+0001f9d8  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001f9dc  mov      x29, x29                                    
+0001f9e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001f9e4  mov      x20, x0                                     
+0001f9e8  adrp     x0, #0x38000                                
+0001f9ec  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001f9f0  mov      x1, x20                                     
+0001f9f4  bl       #0x2155c                                    ; _OMCLogWrite
+0001f9f8  mov      x0, x20                                     
+0001f9fc  bl       #0x27ff8                                    ; _objc_release
+0001fa00  b        #0x1fa50                                    ; sub_1fa50
+0001fa04  mov      x0, x19                                     
+0001fa08  bl       #0x2c640                                    ; objc_msgSend$tone
+0001fa0c  bl       #0x162a0                                    ; _SPPPlayTone
+0001fa10  adrp     x8, #0x42000                                
+0001fa14  ldr      x20, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001fa18  mov      x0, x19                                     
+0001fa1c  bl       #0x2c640                                    ; objc_msgSend$tone
+0001fa20  str      x0, [sp]                                    
+0001fa24  adrp     x2, #0x3b000                                
+0001fa28  add      x2, x2, #0x378                              ; @"canh bao: phat am bao %ld"
+0001fa2c  mov      x0, x20                                     
+0001fa30  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001fa34  mov      x29, x29                                    
+0001fa38  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001fa3c  mov      x21, x0                                     
+0001fa40  adrp     x0, #0x38000                                
+0001fa44  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001fa48  mov      x1, x21                                     
+0001fa4c  bl       #0x2155c                                    ; _OMCLogWrite
+0001fa50  mov      x0, x21                                     
+0001fa54  bl       #0x27ff8                                    ; _objc_release
+0001fa58  mov      x0, x19                                     
+0001fa5c  mov      w2, #0                                      
+0001fa60  bl       #0x2aa40                                    ; objc_msgSend$setArmed:
+0001fa64  mov      x0, x19                                     
+0001fa68  bl       #0x29ea0                                    ; objc_msgSend$mode
+0001fa6c  and      w20, w0, #1                                 
+0001fa70  b        #0x1f8ac                                    ; sub_1f8ac
+0001fa74  mov      x19, x0                                     
+0001fa78  mov      x0, x20                                     
+0001fa7c  bl       #0x27ff8                                    ; _objc_release
+0001fa80  b        #0x1faa8                                    ; sub_1faa8
+0001fa84  b        #0x1faa4                                    ; sub_1faa4
+0001fa88  mov      x19, x0                                     
+0001fa8c  mov      x21, x22                                    
+0001fa90  b        #0x1faa8                                    ; sub_1faa8
+0001fa94  b        #0x1faa4                                    ; sub_1faa4
+0001fa98  b        #0x1faa4                                    ; sub_1faa4
+0001fa9c  b        #0x1faa4                                    ; sub_1faa4
+0001faa0  b        #0x1faa4                                    ; sub_1faa4
+0001faa4  mov      x19, x0                                     
+0001faa8  mov      x0, x21                                     
+0001faac  bl       #0x27ff8                                    ; _objc_release
+0001fab0  mov      x0, x19                                     
+0001fab4  bl       #0x27c80                                    ; __Unwind_Resume

@@ -1,0 +1,82 @@
+# sub_4170
+# addr 0x4170 .. 0x42ac  (316 bytes)
+
+00004170  stp      x24, x23, [sp, #-0x40]!                     
+00004174  stp      x22, x21, [sp, #0x10]                       
+00004178  stp      x20, x19, [sp, #0x20]                       
+0000417c  stp      x29, x30, [sp, #0x30]                       
+00004180  add      x29, sp, #0x30                              
+00004184  adrp     x0, #0x2d000                                
+00004188  add      x0, x0, #0xa2a                              ; "@rpath/libroot.dylib"
+0000418c  mov      w1, #2                                      
+00004190  bl       #0x27ddc                                    ; _dlopen
+00004194  adrp     x24, #0x43000                               
+00004198  adrp     x23, #0x43000                               
+0000419c  adrp     x22, #0x43000                               
+000041a0  adrp     x21, #0x43000                               
+000041a4  adrp     x20, #0x43000                               
+000041a8  cbz      x0, #0x4210                                 
+000041ac  mov      x19, x0                                     
+000041b0  adrp     x1, #0x2d000                                
+000041b4  add      x1, x1, #0xa3f                              ; "libroot_get_root_prefix"
+000041b8  bl       #0x27de8                                    ; _dlsym
+000041bc  str      x0, [x24, #0x7a0]                           
+000041c0  adrp     x1, #0x2d000                                
+000041c4  add      x1, x1, #0xa57                              ; "libroot_get_jbroot_prefix"
+000041c8  mov      x0, x19                                     
+000041cc  bl       #0x27de8                                    ; _dlsym
+000041d0  str      x0, [x23, #0x7a8]                           
+000041d4  adrp     x1, #0x2d000                                
+000041d8  add      x1, x1, #0xa71                              ; "libroot_get_boot_uuid"
+000041dc  mov      x0, x19                                     
+000041e0  bl       #0x27de8                                    ; _dlsym
+000041e4  str      x0, [x22, #0x7b0]                           
+000041e8  adrp     x1, #0x2d000                                
+000041ec  add      x1, x1, #0xa87                              ; "libroot_jbrootpath"
+000041f0  mov      x0, x19                                     
+000041f4  bl       #0x27de8                                    ; _dlsym
+000041f8  str      x0, [x21, #0x7c0]                           
+000041fc  adrp     x1, #0x2d000                                
+00004200  add      x1, x1, #0xa9a                              ; "libroot_rootfspath"
+00004204  mov      x0, x19                                     
+00004208  bl       #0x27de8                                    ; _dlsym
+0000420c  str      x0, [x20, #0x7b8]                           
+00004210  ldr      x8, [x24, #0x7a0]                           ; [0x437a0] __DATA,__bss+0x0
+00004214  cbz      x8, #0x424c                                 
+00004218  ldr      x8, [x23, #0x7a8]                           ; [0x437a8] __DATA,__bss+0x8
+0000421c  cbz      x8, #0x4260                                 
+00004220  ldr      x8, [x22, #0x7b0]                           ; [0x437b0] __DATA,__bss+0x10
+00004224  cbz      x8, #0x4274                                 
+00004228  ldr      x8, [x21, #0x7c0]                           ; [0x437c0] __DATA,__bss+0x20
+0000422c  cbz      x8, #0x4288                                 
+00004230  ldr      x8, [x20, #0x7b8]                           ; [0x437b8] __DATA,__bss+0x18
+00004234  cbz      x8, #0x429c                                 
+00004238  ldp      x29, x30, [sp, #0x30]                       
+0000423c  ldp      x20, x19, [sp, #0x20]                       
+00004240  ldp      x22, x21, [sp, #0x10]                       
+00004244  ldp      x24, x23, [sp], #0x40                       
+00004248  ret                                                  
+0000424c  adrp     x8, #0x4000                                 
+00004250  add      x8, x8, #0x2ac                              ; __TEXT,__text+0x2ac
+00004254  str      x8, [x24, #0x7a0]                           
+00004258  ldr      x8, [x23, #0x7a8]                           ; [0x437a8] __DATA,__bss+0x8
+0000425c  cbnz     x8, #0x4220                                 
+00004260  adrp     x8, #0x4000                                 
+00004264  add      x8, x8, #0x2b8                              ; __TEXT,__text+0x2b8
+00004268  str      x8, [x23, #0x7a8]                           
+0000426c  ldr      x8, [x22, #0x7b0]                           ; [0x437b0] __DATA,__bss+0x10
+00004270  cbnz     x8, #0x4228                                 
+00004274  adrp     x8, #0x4000                                 
+00004278  add      x8, x8, #0x2c4                              ; __TEXT,__text+0x2c4
+0000427c  str      x8, [x22, #0x7b0]                           
+00004280  ldr      x8, [x21, #0x7c0]                           ; [0x437c0] __DATA,__bss+0x20
+00004284  cbnz     x8, #0x4230                                 
+00004288  adrp     x8, #0x4000                                 
+0000428c  add      x8, x8, #0x2d0                              ; __TEXT,__text+0x2d0
+00004290  str      x8, [x21, #0x7c0]                           
+00004294  ldr      x8, [x20, #0x7b8]                           ; [0x437b8] __DATA,__bss+0x18
+00004298  cbnz     x8, #0x4238                                 
+0000429c  adrp     x8, #0x4000                                 
+000042a0  add      x8, x8, #0x384                              ; __TEXT,__text+0x384
+000042a4  str      x8, [x20, #0x7b8]                           
+000042a8  b        #0x4238                                     ; sub_4238

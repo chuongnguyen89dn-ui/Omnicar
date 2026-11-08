@@ -1,0 +1,76 @@
+# sub_4384
+# addr 0x4384 .. 0x44a8  (292 bytes)
+
+00004384  stp      x24, x23, [sp, #-0x40]!                     
+00004388  stp      x22, x21, [sp, #0x10]                       
+0000438c  stp      x20, x19, [sp, #0x20]                       
+00004390  stp      x29, x30, [sp, #0x30]                       
+00004394  add      x29, sp, #0x30                              
+00004398  cbz      x0, #0x443c                                 
+0000439c  mov      x19, x1                                     
+000043a0  mov      x20, x0                                     
+000043a4  cbnz     x1, #0x43b4                                 
+000043a8  mov      w0, #0x400                                  
+000043ac  bl       #0x27eb4                                    ; _malloc
+000043b0  mov      x19, x0                                     
+000043b4  adrp     x22, #0x43000                               
+000043b8  ldr      x8, [x22, #0x7c8]                           ; [0x437c8] __DATA,__bss+0x28
+000043bc  cmn      x8, #1                                      
+000043c0  b.ne     #0x4478                                     
+000043c4  adrp     x8, #0x43000                                
+000043c8  ldr      x8, [x8, #0x7a0]                            ; [0x437a0] __DATA,__bss+0x0
+000043cc  blr      x8                                          
+000043d0  mov      x21, x0                                     
+000043d4  ldr      x8, [x22, #0x7c8]                           ; [0x437c8] __DATA,__bss+0x28
+000043d8  cmn      x8, #1                                      
+000043dc  b.ne     #0x4490                                     
+000043e0  adrp     x8, #0x43000                                
+000043e4  ldr      x8, [x8, #0x7a8]                            ; [0x437a8] __DATA,__bss+0x8
+000043e8  blr      x8                                          
+000043ec  mov      x23, x0                                     
+000043f0  bl       #0x28148                                    ; _strlen
+000043f4  ldrb     w8, [x20]                                   
+000043f8  cmp      w8, #0x2f                                   
+000043fc  b.ne     #0x4444                                     
+00004400  mov      x22, x0                                     
+00004404  mov      x0, x20                                     
+00004408  mov      x1, x23                                     
+0000440c  mov      x2, x22                                     
+00004410  bl       #0x28154                                    ; _strncmp
+00004414  cbz      w0, #0x4450                                 
+00004418  mov      x0, x19                                     
+0000441c  mov      x1, x21                                     
+00004420  mov      w2, #0x400                                  
+00004424  bl       #0x2813c                                    ; _strlcpy
+00004428  mov      x0, x19                                     
+0000442c  mov      x1, x20                                     
+00004430  mov      w2, #0x400                                  
+00004434  bl       #0x28130                                    ; _strlcat
+00004438  b        #0x4460                                     ; sub_4460
+0000443c  mov      x19, #0                                     
+00004440  b        #0x4460                                     ; sub_4460
+00004444  mov      x0, x19                                     
+00004448  mov      x1, x20                                     
+0000444c  b        #0x4458                                     ; sub_4458
+00004450  add      x1, x20, x22                                
+00004454  mov      x0, x19                                     
+00004458  mov      w2, #0x400                                  
+0000445c  bl       #0x2813c                                    ; _strlcpy
+00004460  mov      x0, x19                                     
+00004464  ldp      x29, x30, [sp, #0x30]                       
+00004468  ldp      x20, x19, [sp, #0x20]                       
+0000446c  ldp      x22, x21, [sp, #0x10]                       
+00004470  ldp      x24, x23, [sp], #0x40                       
+00004474  ret                                                  
+00004478  adrp     x0, #0x43000                                
+0000447c  add      x0, x0, #0x7c8                              ; __DATA,__bss+0x28
+00004480  adrp     x1, #0x38000                                
+00004484  add      x1, x1, #0x668                              ; __const[0x38668] double=-4.4501477170146e-308 float=2.802596928649634e-43
+00004488  bl       #0x27d70                                    ; _dispatch_once
+0000448c  b        #0x43c4                                     ; sub_43c4
+00004490  adrp     x0, #0x43000                                
+00004494  add      x0, x0, #0x7c8                              ; __DATA,__bss+0x28
+00004498  adrp     x1, #0x38000                                
+0000449c  add      x1, x1, #0x668                              ; __const[0x38668] double=-4.4501477170146e-308 float=2.802596928649634e-43
+000044a0  bl       #0x27d70                                    ; _dispatch_once
+000044a4  b        #0x43e0                                     ; sub_43e0

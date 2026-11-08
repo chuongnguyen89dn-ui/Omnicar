@@ -1,0 +1,25 @@
+; sub_ba08
+; VA 0xba08  size 88
+
+0x0000ba08:  stp      x20, x19, [sp, #-0x20]!
+0x0000ba0c:  stp      x29, x30, [sp, #0x10]
+0x0000ba10:  add      x29, sp, #0x10
+0x0000ba14:  mov      x19, x0
+0x0000ba18:  adrp     x8, #0x3a000
+0x0000ba1c:  ldr      x20, [x8, #0xa70]    ; class(NSNumber)
+0x0000ba20:  bl       #0x2212c    ; -> _objc_retain
+0x0000ba24:  mov      x0, x20
+0x0000ba28:  bl       #0x220e4    ; -> _objc_opt_class
+0x0000ba2c:  mov      x1, x0
+0x0000ba30:  mov      x0, x19
+0x0000ba34:  bl       #0x220f0    ; -> _objc_opt_isKindOfClass
+0x0000ba38:  tst      w0, #1
+0x0000ba3c:  csel     x20, x19, xzr, ne
+0x0000ba40:  mov      x0, x20
+0x0000ba44:  bl       #0x2212c    ; -> _objc_retain
+0x0000ba48:  mov      x0, x19
+0x0000ba4c:  bl       #0x22120    ; -> _objc_release
+0x0000ba50:  mov      x0, x20
+0x0000ba54:  ldp      x29, x30, [sp, #0x10]
+0x0000ba58:  ldp      x20, x19, [sp], #0x20
+0x0000ba5c:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

@@ -1,0 +1,169 @@
+# -[SPPIconView layoutSubviews]
+# addr 0xdcf4 .. 0xdf8c  (664 bytes)
+
+0000dcf4  sub      sp, sp, #0x70                               
+0000dcf8  stp      d13, d12, [sp, #0x10]                       
+0000dcfc  stp      d11, d10, [sp, #0x20]                       
+0000dd00  stp      d9, d8, [sp, #0x30]                         
+0000dd04  stp      x22, x21, [sp, #0x40]                       
+0000dd08  stp      x20, x19, [sp, #0x50]                       
+0000dd0c  stp      x29, x30, [sp, #0x60]                       
+0000dd10  add      x29, sp, #0x60                              
+0000dd14  mov      x19, x0                                     
+0000dd18  adrp     x8, #0x43000                                
+0000dd1c  ldr      x8, [x8, #0x1a8]                            ; [0x431a8] __DATA,__objc_superrefs+0x8
+0000dd20  stp      x0, x8, [sp]                                
+0000dd24  adrp     x8, #0x41000                                
+0000dd28  ldr      x1, [x8, #0xb40]                            ; [0x41b40] selref -> @layoutSubviews
+0000dd2c  mov      x0, sp                                      
+0000dd30  bl       #0x27fb0                                    ; _objc_msgSendSuper2
+0000dd34  mov      x0, x19                                     
+0000dd38  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0000dd3c  mov      v8.16b, v2.16b                              
+0000dd40  mov      v9.16b, v3.16b                              
+0000dd44  mov      x0, x19                                     
+0000dd48  bl       #0x2bd40                                    ; objc_msgSend$shape
+0000dd4c  cmp      x0, #1                                      
+0000dd50  b.ne     #0xdd68                                     
+0000dd54  fcmp     d8, d9                                      
+0000dd58  fcsel    d0, d8, d9, mi                              
+0000dd5c  fmov     d1, #0.50000000                             
+0000dd60  fmul     d8, d0, d1                                  
+0000dd64  b        #0xdda0                                     ; sub_dda0
+0000dd68  mov      x0, x19                                     
+0000dd6c  bl       #0x2bd40                                    ; objc_msgSend$shape
+0000dd70  cmp      x0, #2                                      
+0000dd74  b.ne     #0xdd94                                     
+0000dd78  mov      x0, x19                                     
+0000dd7c  bl       #0x2c540                                    ; objc_msgSend$tileCorner
+0000dd80  mov      v8.16b, v0.16b                              
+0000dd84  mov      x0, x19                                     
+0000dd88  bl       #0x2c560                                    ; objc_msgSend$tileMask
+0000dd8c  mov      x20, x0                                     
+0000dd90  b        #0xdda4                                     ; sub_dda4
+0000dd94  adrp     x8, #0x32000                                
+0000dd98  ldr      d0, [x8, #0x820]                            ; [0x32820] __const[0x32820] double=0.225 float=-107374184.0
+0000dd9c  fmul     d8, d8, d0                                  
+0000dda0  mov      w20, #0xf                                   
+0000dda4  mov      x0, x19                                     
+0000dda8  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0000ddac  mov      v9.16b, v0.16b                              
+0000ddb0  mov      v10.16b, v1.16b                             
+0000ddb4  mov      v11.16b, v2.16b                             
+0000ddb8  mov      v12.16b, v3.16b                             
+0000ddbc  mov      x0, x19                                     
+0000ddc0  bl       #0x29740                                    ; objc_msgSend$imageView
+0000ddc4  mov      x29, x29                                    
+0000ddc8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000ddcc  mov      x21, x0                                     
+0000ddd0  mov      v0.16b, v9.16b                              
+0000ddd4  mov      v1.16b, v10.16b                             
+0000ddd8  mov      v2.16b, v11.16b                             
+0000dddc  mov      v3.16b, v12.16b                             
+0000dde0  bl       #0x2afc0                                    ; objc_msgSend$setFrame:
+0000dde4  mov      x0, x21                                     
+0000dde8  bl       #0x27ff8                                    ; _objc_release
+0000ddec  mov      x0, x19                                     
+0000ddf0  bl       #0x29740                                    ; objc_msgSend$imageView
+0000ddf4  mov      x29, x29                                    
+0000ddf8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000ddfc  mov      x21, x0                                     
+0000de00  bl       #0x29b80                                    ; objc_msgSend$layer
+0000de04  mov      x29, x29                                    
+0000de08  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000de0c  mov      x22, x0                                     
+0000de10  mov      v0.16b, v8.16b                              
+0000de14  bl       #0x2ad80                                    ; objc_msgSend$setCornerRadius:
+0000de18  mov      x0, x22                                     
+0000de1c  bl       #0x27ff8                                    ; _objc_release
+0000de20  mov      x0, x21                                     
+0000de24  bl       #0x27ff8                                    ; _objc_release
+0000de28  mov      x0, x19                                     
+0000de2c  bl       #0x29740                                    ; objc_msgSend$imageView
+0000de30  mov      x29, x29                                    
+0000de34  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000de38  mov      x21, x0                                     
+0000de3c  bl       #0x29b80                                    ; objc_msgSend$layer
+0000de40  mov      x29, x29                                    
+0000de44  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000de48  mov      x22, x0                                     
+0000de4c  mov      x2, x20                                     
+0000de50  bl       #0x2b300                                    ; objc_msgSend$setMaskedCorners:
+0000de54  mov      x0, x22                                     
+0000de58  bl       #0x27ff8                                    ; _objc_release
+0000de5c  mov      x0, x21                                     
+0000de60  bl       #0x27ff8                                    ; _objc_release
+0000de64  mov      x0, x19                                     
+0000de68  bl       #0x2bd40                                    ; objc_msgSend$shape
+0000de6c  cmp      x0, #2                                      
+0000de70  fmov     d0, #0.75000000                             
+0000de74  fmov     d1, xzr                                     
+0000de78  fcsel    d9, d1, d0, eq                              
+0000de7c  mov      x0, x19                                     
+0000de80  bl       #0x29740                                    ; objc_msgSend$imageView
+0000de84  mov      x29, x29                                    
+0000de88  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000de8c  mov      x20, x0                                     
+0000de90  bl       #0x29b80                                    ; objc_msgSend$layer
+0000de94  mov      x29, x29                                    
+0000de98  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000de9c  mov      x21, x0                                     
+0000dea0  mov      v0.16b, v9.16b                              
+0000dea4  bl       #0x2ab20                                    ; objc_msgSend$setBorderWidth:
+0000dea8  mov      x0, x21                                     
+0000deac  bl       #0x27ff8                                    ; _objc_release
+0000deb0  mov      x0, x20                                     
+0000deb4  bl       #0x27ff8                                    ; _objc_release
+0000deb8  mov      x0, x19                                     
+0000debc  bl       #0x2bd40                                    ; objc_msgSend$shape
+0000dec0  cmp      x0, #2                                      
+0000dec4  b.ne     #0xdf0c                                     
+0000dec8  mov      x0, x19                                     
+0000decc  bl       #0x29b80                                    ; objc_msgSend$layer
+0000ded0  mov      x29, x29                                    
+0000ded4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000ded8  mov      x20, x0                                     
+0000dedc  fmov     s0, wzr                                     
+0000dee0  bl       #0x2b740                                    ; objc_msgSend$setShadowOpacity:
+0000dee4  mov      x0, x20                                     
+0000dee8  bl       #0x27ff8                                    ; _objc_release
+0000deec  mov      x0, x19                                     
+0000def0  bl       #0x29b80                                    ; objc_msgSend$layer
+0000def4  mov      x29, x29                                    
+0000def8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000defc  mov      x20, x0                                     
+0000df00  mov      x2, #0                                      
+0000df04  bl       #0x2b760                                    ; objc_msgSend$setShadowPath:
+0000df08  b        #0xdf64                                     ; sub_df64
+0000df0c  adrp     x8, #0x43000                                
+0000df10  ldr      x20, [x8, #0x60]                            ; [0x43060] classref -> UIBezierPath (= import _OBJC_CLASS_$_UIBezierPath)
+0000df14  mov      x0, x19                                     
+0000df18  bl       #0x28ac0                                    ; objc_msgSend$bounds
+0000df1c  mov      x0, x20                                     
+0000df20  mov      v4.16b, v8.16b                              
+0000df24  bl       #0x289e0                                    ; objc_msgSend$bezierPathWithRoundedRect:cornerRadius:
+0000df28  mov      x29, x29                                    
+0000df2c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000df30  mov      x20, x0                                     
+0000df34  bl       #0x28010                                    ; _objc_retainAutorelease
+0000df38  bl       #0x28220                                    ; objc_msgSend$CGPath
+0000df3c  mov      x21, x0                                     
+0000df40  mov      x0, x19                                     
+0000df44  bl       #0x29b80                                    ; objc_msgSend$layer
+0000df48  mov      x29, x29                                    
+0000df4c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000df50  mov      x19, x0                                     
+0000df54  mov      x2, x21                                     
+0000df58  bl       #0x2b760                                    ; objc_msgSend$setShadowPath:
+0000df5c  mov      x0, x19                                     
+0000df60  bl       #0x27ff8                                    ; _objc_release
+0000df64  mov      x0, x20                                     
+0000df68  bl       #0x27ff8                                    ; _objc_release
+0000df6c  ldp      x29, x30, [sp, #0x60]                       
+0000df70  ldp      x20, x19, [sp, #0x50]                       
+0000df74  ldp      x22, x21, [sp, #0x40]                       
+0000df78  ldp      d9, d8, [sp, #0x30]                         
+0000df7c  ldp      d11, d10, [sp, #0x20]                       
+0000df80  ldp      d13, d12, [sp, #0x10]                       
+0000df84  add      sp, sp, #0x70                               
+0000df88  ret                                                  

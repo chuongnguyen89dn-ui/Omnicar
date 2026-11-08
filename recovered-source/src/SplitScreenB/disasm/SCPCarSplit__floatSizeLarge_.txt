@@ -1,0 +1,54 @@
+; ==== SCPCarSplit__floatSizeLarge_  @0x1f5a4..0x1f678 (212 bytes) ====
+0001f5a4  sub      sp, sp, #0x40                                
+0001f5a8  stp      x20, x19, [sp, #0x20]                        
+0001f5ac  stp      x29, x30, [sp, #0x30]                        
+0001f5b0  add      x29, sp, #0x30                               
+0001f5b4  mov      x19, x2                                      
+0001f5b8  bl       #0x57800                                     ; msgSend "container"
+0001f5bc  mov      x29, x29                                     
+0001f5c0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0001f5c4  mov      x20, x0                                      
+0001f5c8  bl       #0x57320                                     ; msgSend "bounds"
+0001f5cc  stp      q3, q2, [sp]                                 
+0001f5d0  mov      x0, x20                                      
+0001f5d4  bl       #0x567b8                                     ; call _objc_release
+0001f5d8  dup      v0.2s, w19                                   
+0001f5dc  ushll    v0.2d, v0.2s, #0                             
+0001f5e0  shl      v0.2d, v0.2d, #0x3f                          
+0001f5e4  cmlt     v0.2d, v0.2d, #0                             
+0001f5e8  adrp     x8, #0x6f000                                 
+0001f5ec  ldr      q1, [x8, #0x370]                             ; double 0.3
+0001f5f0  adrp     x8, #0x6f000                                 
+0001f5f4  ldr      q2, [x8, #0x380]                             ; double 0.45
+0001f5f8  bit      v1.16b, v2.16b, v0.16b                       
+0001f5fc  adrp     x8, #0x6f000                                 
+0001f600  ldr      q2, [x8, #0x390]                             ; double 160.0
+0001f604  adrp     x8, #0x6f000                                 
+0001f608  ldr      q3, [x8, #0x3a0]                             ; double 220.0
+0001f60c  bit      v2.16b, v3.16b, v0.16b                       
+0001f610  adrp     x8, #0x6f000                                 
+0001f614  ldr      q3, [x8, #0x3b0]                             ; double 240.0
+0001f618  adrp     x8, #0x6f000                                 
+0001f61c  ldr      q4, [x8, #0x3c0]                             ; double 360.0
+0001f620  bsl      v0.16b, v4.16b, v3.16b                       
+0001f624  ldp      q3, q4, [sp]                                 
+0001f628  mov      v4.d[1], v3.d[0]                             
+0001f62c  fmul     v1.2d, v4.2d, v1.2d                          
+0001f630  fcmgt    v3.2d, v2.2d, v1.2d                          
+0001f634  bit      v1.16b, v2.16b, v3.16b                       
+0001f638  fcmgt    v2.2d, v0.2d, v1.2d                          
+0001f63c  bit      v0.16b, v1.16b, v2.16b                       
+0001f640  fmov     v1.2d, #-16.00000000                         
+0001f644  fadd     v1.2d, v4.2d, v1.2d                          
+0001f648  fcmgt    v2.2d, v1.2d, v0.2d                          
+0001f64c  bif      v0.16b, v1.16b, v2.16b                       
+0001f650  mov      d1, v0.d[1]                                  
+0001f654  ldp      x29, x30, [sp, #0x30]                        
+0001f658  ldp      x20, x19, [sp, #0x20]                        
+0001f65c  add      sp, sp, #0x40                                
+0001f660  ret                                                   
+0001f664  mov      x19, x0                                      
+0001f668  mov      x0, x20                                      
+0001f66c  bl       #0x567b8                                     ; call _objc_release
+0001f670  mov      x0, x19                                      
+0001f674  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,160 @@
+=== sub_6ad4 @ 0x6ad4 (size 636) ===
+00006ad4  sub      sp, sp, #0x60
+00006ad8  stp      x26, x25, [sp, #0x10]
+00006adc  stp      x24, x23, [sp, #0x20]
+00006ae0  stp      x22, x21, [sp, #0x30]
+00006ae4  stp      x20, x19, [sp, #0x40]
+00006ae8  stp      x29, x30, [sp, #0x50]
+00006aec  add      x29, sp, #0x50
+00006af0  mov      x19, x1
+00006af4  mov      x20, x0
+00006af8  mov      x0, x1
+00006afc  bl       #0x24818 ; call _objc_retain
+00006b00  adrp     x21, #0x3e000
+00006b04  ldr      w8, [x21, #0x9e8]
+00006b08  cbnz     w8, #0x6b20
+00006b0c  adrp     x0, #0x29000
+00006b10  add      x0, x0, #0x1bc ; "com.anlai.omnicar/appbridge.keyboard"
+00006b14  adrp     x1, #0x3e000
+00006b18  add      x1, x1, #0x9e8
+00006b1c  bl       #0x246f8 ; call _notify_register_check
+00006b20  mov      x0, x19
+00006b24  bl       #0x24818 ; call _objc_retain
+00006b28  cbz      w20, #0x6b54
+00006b2c  adrp     x8, #0x3d000
+00006b30  ldr      x1, [x8, #0x7c8] ; selref @keyboardType
+00006b34  mov      x0, x19
+00006b38  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+00006b3c  tbz      w0, #0, #0x6b5c
+00006b40  mov      x0, x19
+00006b44  bl       #0x25e20 ; objc_msgSend sel=keyboardType
+00006b48  mov      w24, w20
+00006b4c  bfi      x24, x0, #1, #7
+00006b50  b        #0x6b60 ; call sub_6b60
+00006b54  mov      x24, #0
+00006b58  b        #0x6b80 ; call sub_6b80
+00006b5c  mov      w24, #1
+00006b60  adrp     x8, #0x3d000
+00006b64  ldr      x1, [x8, #0xaa0] ; selref @returnKeyType
+00006b68  mov      x0, x19
+00006b6c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+00006b70  tbz      w0, #0, #0x6b80
+00006b74  mov      x0, x19
+00006b78  bl       #0x26980 ; objc_msgSend sel=returnKeyType
+00006b7c  bfi      x24, x0, #8, #8
+00006b80  ldr      w23, [x21, #0x9e8]
+00006b84  adrp     x8, #0x3e000
+00006b88  ldr      x0, [x8, #0x280] ; bind _OBJC_CLASS_$_NSBundle
+00006b8c  bl       #0x26080 ; objc_msgSend sel=mainBundle
+00006b90  mov      x29, x29
+00006b94  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00006b98  mov      x21, x0
+00006b9c  bl       #0x25040 ; objc_msgSend sel=bundleIdentifier
+00006ba0  mov      x29, x29
+00006ba4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00006ba8  mov      x22, x0
+00006bac  bl       #0x24818 ; call _objc_retain
+00006bb0  mov      x0, x22
+00006bb4  bl       #0x24824 ; call _objc_retainAutorelease
+00006bb8  bl       #0x24a40 ; objc_msgSend sel=UTF8String
+00006bbc  mov      x25, #0xc5000000
+00006bc0  movk     x25, #0x1c9d, lsl #32
+00006bc4  movk     x25, #0x81, lsl #48
+00006bc8  cbz      x0, #0x6bfc
+00006bcc  ldrb     w8, [x0]
+00006bd0  cbz      w8, #0x6bfc
+00006bd4  add      x10, x0, #1
+00006bd8  mov      w9, #0x9dc5
+00006bdc  movk     w9, #0x811c, lsl #16
+00006be0  mov      w11, #0x193
+00006be4  movk     w11, #0x100, lsl #16
+00006be8  eor      w8, w9, w8
+00006bec  mul      w9, w8, w11
+00006bf0  ldrb     w8, [x10], #1
+00006bf4  cbnz     w8, #0x6be8
+00006bf8  ubfiz    x25, x9, #0x18, #0x20
+00006bfc  mov      x0, x22
+00006c00  bl       #0x2480c ; call _objc_release
+00006c04  orr      x1, x25, x24
+00006c08  mov      x0, x23
+00006c0c  bl       #0x24710 ; call _notify_set_state
+00006c10  mov      x0, x22
+00006c14  bl       #0x2480c ; call _objc_release
+00006c18  mov      x0, x21
+00006c1c  bl       #0x2480c ; call _objc_release
+00006c20  adrp     x0, #0x29000
+00006c24  add      x0, x0, #0x1bc ; "com.anlai.omnicar/appbridge.keyboard"
+00006c28  bl       #0x246ec ; call _notify_post
+00006c2c  adrp     x8, #0x3e000
+00006c30  ldr      x22, [x8, #0x290] ; bind _OBJC_CLASS_$_NSString
+00006c34  adrp     x8, #0x35000
+00006c38  add      x8, x8, #0x70 = @"an"
+00006c3c  adrp     x9, #0x35000
+00006c40  add      x9, x9, #0x50 = @"hien"
+00006c44  cmp      w20, #0
+00006c48  csel     x20, x9, x8, ne
+00006c4c  cbz      x19, #0x6c6c
+00006c50  mov      x0, x19
+00006c54  bl       #0x247d0 ; call _objc_opt_class
+00006c58  bl       #0x2444c ; call _NSStringFromClass
+00006c5c  mov      x29, x29
+00006c60  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00006c64  mov      x21, x0
+00006c68  b        #0x6c74 ; call sub_6c74
+00006c6c  adrp     x21, #0x35000
+00006c70  add      x21, x21, #0x90 = @"-"
+00006c74  stp      x20, x21, [sp]
+00006c78  adrp     x2, #0x35000
+00006c7c  add      x2, x2, #0x30 = @"ban phim xe: %@ (%@)"
+00006c80  mov      x0, x22
+00006c84  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+00006c88  mov      x29, x29
+00006c8c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00006c90  mov      x22, x0
+00006c94  adrp     x0, #0x34000
+00006c98  add      x0, x0, #0xef0 = @"AppBridge"
+00006c9c  mov      x1, x22
+00006ca0  bl       #0x1dd30 ; call sym:_OMCLogWrite
+00006ca4  mov      x0, x22
+00006ca8  bl       #0x2480c ; call _objc_release
+00006cac  cbz      x19, #0x6cb8
+00006cb0  mov      x0, x21
+00006cb4  bl       #0x2480c ; call _objc_release
+00006cb8  mov      x0, x19
+00006cbc  bl       #0x2480c ; call _objc_release
+00006cc0  mov      x0, x19
+00006cc4  ldp      x29, x30, [sp, #0x50]
+00006cc8  ldp      x20, x19, [sp, #0x40]
+00006ccc  ldp      x22, x21, [sp, #0x30]
+00006cd0  ldp      x24, x23, [sp, #0x20]
+00006cd4  ldp      x26, x25, [sp, #0x10]
+00006cd8  add      sp, sp, #0x60
+00006cdc  b        #0x2480c ; call _objc_release
+00006ce0  mov      x20, x0
+00006ce4  b        #0x6d40 ; call sub_6d40
+00006ce8  mov      x20, x0
+00006cec  mov      x0, x22
+00006cf0  bl       #0x2480c ; call _objc_release
+00006cf4  b        #0x6cfc ; call sub_6cfc
+00006cf8  mov      x20, x0
+00006cfc  cbnz     x19, #0x6d28
+00006d00  b        #0x6d38 ; call sub_6d38
+00006d04  mov      x20, x0
+00006d08  b        #0x6d18 ; call sub_6d18
+00006d0c  mov      x20, x0
+00006d10  mov      x0, x22
+00006d14  bl       #0x2480c ; call _objc_release
+00006d18  mov      x0, x22
+00006d1c  bl       #0x2480c ; call _objc_release
+00006d20  b        #0x6d28 ; call sub_6d28
+00006d24  mov      x20, x0
+00006d28  mov      x0, x21
+00006d2c  bl       #0x2480c ; call _objc_release
+00006d30  b        #0x6d38 ; call sub_6d38
+00006d34  mov      x20, x0
+00006d38  mov      x0, x19
+00006d3c  bl       #0x2480c ; call _objc_release
+00006d40  mov      x0, x19
+00006d44  bl       #0x2480c ; call _objc_release
+00006d48  mov      x0, x20
+00006d4c  bl       #0x24470 ; call __Unwind_Resume

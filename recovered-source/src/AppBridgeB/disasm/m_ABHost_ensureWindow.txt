@@ -1,0 +1,400 @@
+=== -[ABHost ensureWindow] @ 0xaea8 (size 1596) ===
+0000aea8  sub      sp, sp, #0x70
+0000aeac  stp      x28, x27, [sp, #0x10]
+0000aeb0  stp      x26, x25, [sp, #0x20]
+0000aeb4  stp      x24, x23, [sp, #0x30]
+0000aeb8  stp      x22, x21, [sp, #0x40]
+0000aebc  stp      x20, x19, [sp, #0x50]
+0000aec0  stp      x29, x30, [sp, #0x60]
+0000aec4  add      x29, sp, #0x60
+0000aec8  mov      x21, x0
+0000aecc  bl       #0xb4e4 ; call sub_b4e4
+0000aed0  mov      x29, x29
+0000aed4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000aed8  mov      x19, x0
+0000aedc  cbz      x0, #0xaf24
+0000aee0  mov      x0, x19
+0000aee4  bl       #0x24818 ; call _objc_retain
+0000aee8  adrp     x0, #0x35000
+0000aeec  add      x0, x0, #0xa90 = @"uniqueId"
+0000aef0  bl       #0x2441c ; call _NSSelectorFromString
+0000aef4  mov      x20, x0
+0000aef8  mov      x0, x19
+0000aefc  mov      x1, x20
+0000af00  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000af04  tbz      w0, #0, #0xaf2c
+0000af08  mov      x0, x19
+0000af0c  mov      x1, x20
+0000af10  bl       #0x247ac ; call _objc_msgSend
+0000af14  mov      x29, x29
+0000af18  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000af1c  mov      x20, x0
+0000af20  b        #0xaf40 ; call sub_af40
+0000af24  mov      x20, #0
+0000af28  b        #0xaff0 ; call sub_aff0
+0000af2c  adrp     x1, #0x35000
+0000af30  add      x1, x1, #0xa90 = @"uniqueId"
+0000af34  mov      x0, x19
+0000af38  bl       #0x9698 ; call sym:_ABMissingSelector
+0000af3c  mov      x20, #0
+0000af40  mov      x0, x19
+0000af44  bl       #0x2480c ; call _objc_release
+0000af48  cbz      x20, #0xaff0
+0000af4c  mov      x0, x21
+0000af50  bl       #0x281e0 ; objc_msgSend sel=window
+0000af54  mov      x29, x29
+0000af58  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000af5c  mov      x22, x0
+0000af60  cbz      x0, #0xafcc
+0000af64  mov      x0, x21
+0000af68  bl       #0x255e0 ; objc_msgSend sel=displayID
+0000af6c  mov      x29, x29
+0000af70  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000af74  mov      x23, x0
+0000af78  mov      x0, x20
+0000af7c  mov      x2, x23
+0000af80  bl       #0x25cc0 ; objc_msgSend sel=isEqualToString:
+0000af84  mov      x24, x0
+0000af88  mov      x0, x23
+0000af8c  bl       #0x2480c ; call _objc_release
+0000af90  mov      x0, x22
+0000af94  bl       #0x2480c ; call _objc_release
+0000af98  tbnz     w24, #0, #0xafcc
+0000af9c  mov      x0, x21
+0000afa0  bl       #0x281e0 ; objc_msgSend sel=window
+0000afa4  mov      x29, x29
+0000afa8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000afac  mov      x22, x0
+0000afb0  mov      w2, #1
+0000afb4  bl       #0x270a0 ; objc_msgSend sel=setHidden:
+0000afb8  mov      x0, x22
+0000afbc  bl       #0x2480c ; call _objc_release
+0000afc0  mov      x0, x21
+0000afc4  mov      x2, #0
+0000afc8  bl       #0x27a80 ; objc_msgSend sel=setWindow:
+0000afcc  mov      x0, x21
+0000afd0  bl       #0x281e0 ; objc_msgSend sel=window
+0000afd4  mov      x29, x29
+0000afd8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000afdc  mov      x22, x0
+0000afe0  bl       #0x2480c ; call _objc_release
+0000afe4  cbz      x22, #0xb028
+0000afe8  mov      w22, #1
+0000afec  b        #0xaff4 ; call sub_aff4
+0000aff0  mov      w22, #0
+0000aff4  mov      x0, x20
+0000aff8  bl       #0x2480c ; call _objc_release
+0000affc  mov      x0, x19
+0000b000  bl       #0x2480c ; call _objc_release
+0000b004  mov      x0, x22
+0000b008  ldp      x29, x30, [sp, #0x60]
+0000b00c  ldp      x20, x19, [sp, #0x50]
+0000b010  ldp      x22, x21, [sp, #0x40]
+0000b014  ldp      x24, x23, [sp, #0x30]
+0000b018  ldp      x26, x25, [sp, #0x20]
+0000b01c  ldp      x28, x27, [sp, #0x10]
+0000b020  add      sp, sp, #0x70
+0000b024  ret      
+0000b028  bl       #0xb4e4 ; call sub_b4e4
+0000b02c  mov      x29, x29
+0000b030  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b034  mov      x22, x0
+0000b038  adrp     x28, #0x3e000
+0000b03c  cbz      x0, #0xb0f4
+0000b040  adrp     x0, #0x2a000
+0000b044  add      x0, x0, #0x217 ; "FBSDisplayConfiguration"
+0000b048  bl       #0x24788 ; call _objc_getClass
+0000b04c  bl       #0x2471c ; call _objc_alloc
+0000b050  mov      x23, x0
+0000b054  adrp     x0, #0x36000
+0000b058  add      x0, x0, #0x7f0 = @"initWithCADisplay:isMainDisplay:"
+0000b05c  bl       #0x2441c ; call _NSSelectorFromString
+0000b060  mov      x24, x0
+0000b064  mov      x0, x23
+0000b068  mov      x1, x24
+0000b06c  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000b070  tbz      w0, #0, #0xb128
+0000b074  mov      x0, x23
+0000b078  mov      x1, x24
+0000b07c  mov      x2, x22
+0000b080  mov      w3, #0
+0000b084  bl       #0x247ac ; call _objc_msgSend
+0000b088  mov      x29, x29
+0000b08c  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b090  mov      x24, x0
+0000b094  mov      x0, x23
+0000b098  bl       #0x2480c ; call _objc_release
+0000b09c  cbz      x24, #0xb140
+0000b0a0  adrp     x0, #0x2a000
+0000b0a4  add      x0, x0, #0x277 ; "UIRootSceneWindow"
+0000b0a8  bl       #0x24788 ; call _objc_getClass
+0000b0ac  bl       #0x2471c ; call _objc_alloc
+0000b0b0  mov      x23, x0
+0000b0b4  adrp     x0, #0x36000
+0000b0b8  add      x0, x0, #0x830 = @"initWithDisplayConfiguration:"
+0000b0bc  bl       #0x2441c ; call _NSSelectorFromString
+0000b0c0  mov      x25, x0
+0000b0c4  mov      x0, x23
+0000b0c8  mov      x1, x25
+0000b0cc  bl       #0x247f4 ; call _objc_opt_respondsToSelector
+0000b0d0  tbz      w0, #0, #0xb34c
+0000b0d4  mov      x0, x23
+0000b0d8  mov      x1, x25
+0000b0dc  mov      x2, x24
+0000b0e0  bl       #0x247ac ; call _objc_msgSend
+0000b0e4  mov      x29, x29
+0000b0e8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b0ec  mov      x25, x0
+0000b0f0  b        #0xb360 ; call sub_b360
+0000b0f4  ldr      x0, [x28, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000b0f8  adrp     x2, #0x36000
+0000b0fc  add      x2, x2, #0x7d0 = @"khong tim thay CADisplay cua CarPlay"
+0000b100  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000b104  mov      x29, x29
+0000b108  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b10c  mov      x24, x0
+0000b110  adrp     x0, #0x34000
+0000b114  add      x0, x0, #0xef0 = @"AppBridge"
+0000b118  mov      x1, x24
+0000b11c  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000b120  mov      x23, #0
+0000b124  b        #0xb17c ; call sub_b17c
+0000b128  adrp     x1, #0x36000
+0000b12c  add      x1, x1, #0x7f0 = @"initWithCADisplay:isMainDisplay:"
+0000b130  mov      x0, x23
+0000b134  bl       #0x9698 ; call sym:_ABMissingSelector
+0000b138  mov      x0, x23
+0000b13c  bl       #0x2480c ; call _objc_release
+0000b140  ldr      x0, [x28, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000b144  adrp     x2, #0x36000
+0000b148  add      x2, x2, #0x810 = @"khong tao duoc FBSDisplayConfiguration"
+0000b14c  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000b150  mov      x29, x29
+0000b154  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b158  mov      x25, x0
+0000b15c  adrp     x0, #0x34000
+0000b160  add      x0, x0, #0xef0 = @"AppBridge"
+0000b164  mov      x1, x25
+0000b168  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000b16c  mov      x24, #0
+0000b170  mov      x23, #0
+0000b174  mov      x0, x25
+0000b178  bl       #0x2480c ; call _objc_release
+0000b17c  mov      x0, x24
+0000b180  bl       #0x2480c ; call _objc_release
+0000b184  mov      x0, x22
+0000b188  bl       #0x2480c ; call _objc_release
+0000b18c  cmp      x23, #0
+0000b190  cset     w22, ne
+0000b194  cbz      x23, #0xb340
+0000b198  mov      x0, x23
+0000b19c  bl       #0x24818 ; call _objc_retain
+0000b1a0  mov      x0, x23
+0000b1a4  bl       #0x2489c ; call _object_getClass
+0000b1a8  mov      x25, x0
+0000b1ac  ldr      x24, [x28, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000b1b0  bl       #0x2444c ; call _NSStringFromClass
+0000b1b4  mov      x29, x29
+0000b1b8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b1bc  mov      x26, x0
+0000b1c0  str      x0, [sp]
+0000b1c4  adrp     x2, #0x36000
+0000b1c8  add      x2, x2, #0x870 = @"ABPassThrough_%@"
+0000b1cc  mov      x0, x24
+0000b1d0  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000b1d4  mov      x29, x29
+0000b1d8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b1dc  mov      x24, x0
+0000b1e0  mov      x0, x26
+0000b1e4  bl       #0x2480c ; call _objc_release
+0000b1e8  mov      x0, x24
+0000b1ec  bl       #0x24824 ; call _objc_retainAutorelease
+0000b1f0  bl       #0x24a40 ; objc_msgSend sel=UTF8String
+0000b1f4  bl       #0x24788 ; call _objc_getClass
+0000b1f8  mov      x26, x0
+0000b1fc  cbnz     x0, #0xb258
+0000b200  mov      x0, x24
+0000b204  bl       #0x24824 ; call _objc_retainAutorelease
+0000b208  bl       #0x24a40 ; objc_msgSend sel=UTF8String
+0000b20c  mov      x1, x0
+0000b210  mov      x0, x25
+0000b214  mov      x2, #0
+0000b218  bl       #0x24728 ; call _objc_allocateClassPair
+0000b21c  mov      x26, x0
+0000b220  adrp     x8, #0x3d000
+0000b224  ldr      x27, [x8, #0x2a0] ; selref @hitTest:withEvent:
+0000b228  mov      x0, x25
+0000b22c  mov      x1, x27
+0000b230  bl       #0x24524 ; call _class_getInstanceMethod
+0000b234  bl       #0x246d4 ; call _method_getTypeEncoding
+0000b238  mov      x3, x0
+0000b23c  adrp     x2, #0x16000
+0000b240  add      x2, x2, #0x7dc
+0000b244  mov      x0, x26
+0000b248  mov      x1, x27
+0000b24c  bl       #0x244f4 ; call _class_addMethod
+0000b250  mov      x0, x26
+0000b254  bl       #0x24800 ; call _objc_registerClassPair
+0000b258  mov      x0, x23
+0000b25c  mov      x1, x26
+0000b260  bl       #0x248a8 ; call _object_setClass
+0000b264  mov      x0, x24
+0000b268  bl       #0x2480c ; call _objc_release
+0000b26c  mov      x0, x23
+0000b270  bl       #0x2480c ; call _objc_release
+0000b274  adrp     x8, #0x34000
+0000b278  ldr      x8, [x8, #0x248] ; -> _UIWindowLevelStatusBar
+0000b27c  ldr      d0, [x8]
+0000b280  mov      x8, #0x404e000000000000
+0000b284  fmov     d1, x8
+0000b288  fadd     d0, d0, d1
+0000b28c  mov      x0, x23
+0000b290  bl       #0x27aa0 ; objc_msgSend sel=setWindowLevel:
+0000b294  adrp     x8, #0x3e000
+0000b298  ldr      x0, [x8, #0x320] ; bind _OBJC_CLASS_$_UIColor
+0000b29c  bl       #0x251a0 ; objc_msgSend sel=clearColor
+0000b2a0  mov      x29, x29
+0000b2a4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b2a8  mov      x24, x0
+0000b2ac  mov      x0, x23
+0000b2b0  mov      x2, x24
+0000b2b4  bl       #0x26c20 ; objc_msgSend sel=setBackgroundColor:
+0000b2b8  mov      x0, x24
+0000b2bc  bl       #0x2480c ; call _objc_release
+0000b2c0  mov      x0, x23
+0000b2c4  mov      w2, #0
+0000b2c8  bl       #0x270a0 ; objc_msgSend sel=setHidden:
+0000b2cc  mov      x0, x21
+0000b2d0  mov      x2, x23
+0000b2d4  bl       #0x27a80 ; objc_msgSend sel=setWindow:
+0000b2d8  mov      x0, x21
+0000b2dc  mov      x2, x20
+0000b2e0  bl       #0x26ea0 ; objc_msgSend sel=setDisplayID:
+0000b2e4  ldr      x21, [x28, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000b2e8  mov      x0, x23
+0000b2ec  bl       #0x24f40 ; objc_msgSend sel=bounds
+0000b2f0  bl       #0x24440 ; call _NSStringFromCGRect
+0000b2f4  mov      x29, x29
+0000b2f8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b2fc  mov      x24, x0
+0000b300  stp      x0, x20, [sp]
+0000b304  adrp     x2, #0x35000
+0000b308  add      x2, x2, #0xab0 = @"cua so tren man xe %@ (%@)"
+0000b30c  mov      x0, x21
+0000b310  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000b314  mov      x29, x29
+0000b318  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b31c  mov      x25, x0
+0000b320  adrp     x0, #0x34000
+0000b324  add      x0, x0, #0xef0 = @"AppBridge"
+0000b328  mov      x1, x25
+0000b32c  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000b330  mov      x0, x25
+0000b334  bl       #0x2480c ; call _objc_release
+0000b338  mov      x0, x24
+0000b33c  bl       #0x2480c ; call _objc_release
+0000b340  mov      x0, x23
+0000b344  bl       #0x2480c ; call _objc_release
+0000b348  b        #0xaff4 ; call sub_aff4
+0000b34c  adrp     x1, #0x36000
+0000b350  add      x1, x1, #0x830 = @"initWithDisplayConfiguration:"
+0000b354  mov      x0, x23
+0000b358  bl       #0x9698 ; call sym:_ABMissingSelector
+0000b35c  mov      x25, #0
+0000b360  mov      x0, x23
+0000b364  bl       #0x2480c ; call _objc_release
+0000b368  adrp     x8, #0x3e000
+0000b36c  ldr      x0, [x8, #0x380] ; bind _OBJC_CLASS_$_UIWindow
+0000b370  bl       #0x247d0 ; call _objc_opt_class
+0000b374  mov      x1, x0
+0000b378  mov      x0, x25
+0000b37c  bl       #0x247dc ; call _objc_opt_isKindOfClass
+0000b380  tbz      w0, #0, #0xb394
+0000b384  mov      x0, x25
+0000b388  bl       #0x24818 ; call _objc_retain
+0000b38c  mov      x23, x25
+0000b390  b        #0xb174 ; call sub_b174
+0000b394  ldr      x0, [x28, #0x290] ; bind _OBJC_CLASS_$_NSString
+0000b398  str      x25, [sp]
+0000b39c  adrp     x2, #0x36000
+0000b3a0  add      x2, x2, #0x850 = @"khong tao duoc UIRootSceneWindow: %@"
+0000b3a4  bl       #0x27d20 ; objc_msgSend sel=stringWithFormat:
+0000b3a8  mov      x29, x29
+0000b3ac  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000b3b0  mov      x23, x0
+0000b3b4  adrp     x0, #0x34000
+0000b3b8  add      x0, x0, #0xef0 = @"AppBridge"
+0000b3bc  mov      x1, x23
+0000b3c0  bl       #0x1dd30 ; call sym:_OMCLogWrite
+0000b3c4  mov      x0, x23
+0000b3c8  bl       #0x2480c ; call _objc_release
+0000b3cc  b        #0xb170 ; call sub_b170
+0000b3d0  mov      x21, x0
+0000b3d4  mov      x0, x23
+0000b3d8  bl       #0x2480c ; call _objc_release
+0000b3dc  b        #0xb414 ; call sub_b414
+0000b3e0  b        #0xb3ec ; call sub_b3ec
+0000b3e4  b        #0xb3f8 ; call sub_b3f8
+0000b3e8  b        #0xb484 ; call sub_b484
+0000b3ec  mov      x21, x0
+0000b3f0  mov      x0, x23
+0000b3f4  b        #0xb418 ; call sub_b418
+0000b3f8  mov      x21, x0
+0000b3fc  b        #0xb41c ; call sub_b41c
+0000b400  mov      x21, x0
+0000b404  mov      x0, x25
+0000b408  b        #0xb47c ; call sub_b47c
+0000b40c  b        #0xb484 ; call sub_b484
+0000b410  mov      x21, x0
+0000b414  mov      x0, x25
+0000b418  bl       #0x2480c ; call _objc_release
+0000b41c  mov      x0, x24
+0000b420  b        #0xb47c ; call sub_b47c
+0000b424  mov      x21, x0
+0000b428  mov      x0, x25
+0000b42c  bl       #0x2480c ; call _objc_release
+0000b430  b        #0xb43c ; call sub_b43c
+0000b434  b        #0xb438 ; call sub_b438
+0000b438  mov      x21, x0
+0000b43c  mov      x0, x24
+0000b440  b        #0xb4a0 ; call sub_b4a0
+0000b444  mov      x21, x0
+0000b448  mov      x0, x26
+0000b44c  b        #0xb498 ; call sub_b498
+0000b450  b        #0xb454 ; call sub_b454
+0000b454  mov      x21, x0
+0000b458  b        #0xb49c ; call sub_b49c
+0000b45c  b        #0xb474 ; call sub_b474
+0000b460  b        #0xb484 ; call sub_b484
+0000b464  b        #0xb490 ; call sub_b490
+0000b468  b        #0xb4bc ; call sub_b4bc
+0000b46c  b        #0xb474 ; call sub_b474
+0000b470  b        #0xb484 ; call sub_b484
+0000b474  mov      x21, x0
+0000b478  mov      x0, x23
+0000b47c  bl       #0x2480c ; call _objc_release
+0000b480  b        #0xb488 ; call sub_b488
+0000b484  mov      x21, x0
+0000b488  mov      x0, x22
+0000b48c  b        #0xb4b4 ; call sub_b4b4
+0000b490  mov      x21, x0
+0000b494  mov      x0, x24
+0000b498  bl       #0x2480c ; call _objc_release
+0000b49c  mov      x0, x23
+0000b4a0  bl       #0x2480c ; call _objc_release
+0000b4a4  b        #0xb4b0 ; call sub_b4b0
+0000b4a8  b        #0xb4c4 ; call sub_b4c4
+0000b4ac  mov      x21, x0
+0000b4b0  mov      x0, x23
+0000b4b4  bl       #0x2480c ; call _objc_release
+0000b4b8  b        #0xb4cc ; call sub_b4cc
+0000b4bc  mov      x21, x0
+0000b4c0  b        #0xb4cc ; call sub_b4cc
+0000b4c4  mov      x21, x0
+0000b4c8  mov      x20, x19
+0000b4cc  mov      x0, x20
+0000b4d0  bl       #0x2480c ; call _objc_release
+0000b4d4  mov      x0, x19
+0000b4d8  bl       #0x2480c ; call _objc_release
+0000b4dc  mov      x0, x21
+0000b4e0  bl       #0x24470 ; call __Unwind_Resume

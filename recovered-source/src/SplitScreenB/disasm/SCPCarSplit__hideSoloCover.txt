@@ -1,0 +1,70 @@
+; ==== SCPCarSplit__hideSoloCover  @0x21390..0x214a4 (276 bytes) ====
+00021390  sub      sp, sp, #0x90                                
+00021394  stp      d9, d8, [sp, #0x50]                          
+00021398  stp      x22, x21, [sp, #0x60]                        
+0002139c  stp      x20, x19, [sp, #0x70]                        
+000213a0  stp      x29, x30, [sp, #0x80]                        
+000213a4  add      x29, sp, #0x80                               
+000213a8  mov      x20, x0                                      
+000213ac  bl       #0x5c1c0                                     ; msgSend "soloCover"
+000213b0  mov      x29, x29                                     
+000213b4  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000213b8  mov      x19, x0                                      
+000213bc  mov      x0, x20                                      
+000213c0  mov      x2, #0                                       
+000213c4  bl       #0x5b9c0                                     ; msgSend "setSoloCover:"
+000213c8  cbz      x19, #0x21458                                
+000213cc  adrp     x8, #0x87000                                 
+000213d0  ldr      x20, [x8, #0x710]                            ; classref UIView
+000213d4  adrp     x21, #0x78000                                
+000213d8  ldr      x21, [x21, #0x338]                           
+000213dc  str      x21, [sp, #0x28]                             
+000213e0  adrp     x8, #0x6e000                                 
+000213e4  ldr      d8, [x8, #0xff8]                             ; double 1.6080749353e-314
+000213e8  str      d8, [sp, #0x30]                              
+000213ec  adrp     x8, #0x21000                                 
+000213f0  add      x8, x8, #0x4a4                               
+000213f4  adrp     x9, #0x78000                                 
+000213f8  add      x9, x9, #0x910                               
+000213fc  stp      x8, x9, [sp, #0x38]                          
+00021400  mov      x0, x19                                      
+00021404  bl       #0x567c4                                     ; call _objc_retain
+00021408  str      x19, [sp, #0x48]                             
+0002140c  str      x21, [sp]                                    
+00021410  str      d8, [sp, #8]                                 
+00021414  adrp     x8, #0x21000                                 
+00021418  add      x8, x8, #0x4b0                               
+0002141c  adrp     x9, #0x78000                                 
+00021420  add      x9, x9, #0xab0                               
+00021424  stp      x8, x9, [sp, #0x10]                          
+00021428  mov      x0, x19                                      
+0002142c  bl       #0x567c4                                     ; call _objc_retain
+00021430  str      x19, [sp, #0x20]                             
+00021434  fmov     d0, #0.25000000                              
+00021438  add      x2, sp, #0x28                                
+0002143c  mov      x3, sp                                       
+00021440  mov      x0, x20                                      
+00021444  bl       #0x56ec0                                     ; msgSend "animateWithDuration:animations:completion:"
+00021448  ldr      x0, [sp, #0x20]                              
+0002144c  bl       #0x567b8                                     ; call _objc_release
+00021450  ldr      x0, [sp, #0x48]                              
+00021454  bl       #0x567b8                                     ; call _objc_release
+00021458  mov      x0, x19                                      
+0002145c  bl       #0x567b8                                     ; call _objc_release
+00021460  ldp      x29, x30, [sp, #0x80]                        
+00021464  ldp      x20, x19, [sp, #0x70]                        
+00021468  ldp      x22, x21, [sp, #0x60]                        
+0002146c  ldp      d9, d8, [sp, #0x50]                          
+00021470  add      sp, sp, #0x90                                
+00021474  ret                                                   
+00021478  mov      x20, x0                                      
+0002147c  ldr      x0, [sp, #0x20]                              
+00021480  bl       #0x567b8                                     ; call _objc_release
+00021484  ldr      x0, [sp, #0x48]                              
+00021488  bl       #0x567b8                                     ; call _objc_release
+0002148c  b        #0x21494                                     
+00021490  mov      x20, x0                                      
+00021494  mov      x0, x19                                      
+00021498  bl       #0x567b8                                     ; call _objc_release
+0002149c  mov      x0, x20                                      
+000214a0  bl       #0x563e0                                     ; call __Unwind_Resume

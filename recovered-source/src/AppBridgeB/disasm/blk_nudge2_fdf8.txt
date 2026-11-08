@@ -1,0 +1,29 @@
+=== sub_fdf8 @ 0xfdf8 (size 112) ===
+0000fdf8  stp      x22, x21, [sp, #-0x30]!
+0000fdfc  stp      x20, x19, [sp, #0x10]
+0000fe00  stp      x29, x30, [sp, #0x20]
+0000fe04  add      x29, sp, #0x20
+0000fe08  mov      x20, x0
+0000fe0c  add      x0, x0, #0x20
+0000fe10  bl       #0x247a0 ; call _objc_loadWeakRetained
+0000fe14  mov      x19, x0
+0000fe18  cbz      x0, #0xfe38
+0000fe1c  add      x0, x20, #0x28
+0000fe20  bl       #0x247a0 ; call _objc_loadWeakRetained
+0000fe24  mov      x20, x0
+0000fe28  mov      x2, x19
+0000fe2c  bl       #0x25f60 ; objc_msgSend sel=layoutPane:
+0000fe30  mov      x0, x20
+0000fe34  bl       #0x2480c ; call _objc_release
+0000fe38  mov      x0, x19
+0000fe3c  ldp      x29, x30, [sp, #0x20]
+0000fe40  ldp      x20, x19, [sp, #0x10]
+0000fe44  ldp      x22, x21, [sp], #0x30
+0000fe48  b        #0x2480c ; call _objc_release
+0000fe4c  mov      x21, x0
+0000fe50  mov      x0, x20
+0000fe54  bl       #0x2480c ; call _objc_release
+0000fe58  mov      x0, x19
+0000fe5c  bl       #0x2480c ; call _objc_release
+0000fe60  mov      x0, x21
+0000fe64  bl       #0x24470 ; call __Unwind_Resume

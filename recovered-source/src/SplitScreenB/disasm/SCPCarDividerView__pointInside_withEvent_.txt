@@ -1,0 +1,80 @@
+; ==== SCPCarDividerView__pointInside_withEvent_  @0xf174..0xf2b0 (316 bytes) ====
+0000f174  stp      d9, d8, [sp, #-0x50]!                        
+0000f178  stp      x24, x23, [sp, #0x10]                        
+0000f17c  stp      x22, x21, [sp, #0x20]                        
+0000f180  stp      x20, x19, [sp, #0x30]                        
+0000f184  stp      x29, x30, [sp, #0x40]                        
+0000f188  add      x29, sp, #0x40                               
+0000f18c  mov      v8.16b, v1.16b                               
+0000f190  mov      v9.16b, v0.16b                               
+0000f194  mov      x20, x0                                      
+0000f198  bl       #0x58e00                                     ; msgSend "knob"
+0000f19c  mov      x29, x29                                     
+0000f1a0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0000f1a4  cbz      x0, #0xf248                                  
+0000f1a8  mov      x19, x0                                      
+0000f1ac  mov      x0, x20                                      
+0000f1b0  bl       #0x58e00                                     ; msgSend "knob"
+0000f1b4  mov      x29, x29                                     
+0000f1b8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0000f1bc  mov      x21, x0                                      
+0000f1c0  bl       #0x58d20                                     ; msgSend "isHidden"
+0000f1c4  cbz      w0, #0xf1dc                                  
+0000f1c8  mov      x0, x21                                      
+0000f1cc  bl       #0x567b8                                     ; call _objc_release
+0000f1d0  mov      x0, x19                                      
+0000f1d4  bl       #0x567b8                                     ; call _objc_release
+0000f1d8  b        #0xf248                                      
+0000f1dc  mov      x0, x20                                      
+0000f1e0  bl       #0x58e00                                     ; msgSend "knob"
+0000f1e4  mov      x29, x29                                     
+0000f1e8  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0000f1ec  mov      x22, x0                                      
+0000f1f0  bl       #0x58340                                     ; msgSend "frame"
+0000f1f4  fmov     d4, #-26.00000000                            
+0000f1f8  fmov     d5, #-26.00000000                            
+0000f1fc  bl       #0x562fc                                     ; call _CGRectInset
+0000f200  mov      v4.16b, v9.16b                               
+0000f204  mov      v5.16b, v8.16b                               
+0000f208  bl       #0x56290                                     ; call _CGRectContainsPoint
+0000f20c  mov      x23, x0                                      
+0000f210  mov      x0, x22                                      
+0000f214  bl       #0x567b8                                     ; call _objc_release
+0000f218  mov      x0, x21                                      
+0000f21c  bl       #0x567b8                                     ; call _objc_release
+0000f220  mov      x0, x19                                      
+0000f224  bl       #0x567b8                                     ; call _objc_release
+0000f228  tbz      w23, #0, #0xf248                             
+0000f22c  mov      w0, #1                                       
+0000f230  ldp      x29, x30, [sp, #0x40]                        
+0000f234  ldp      x20, x19, [sp, #0x30]                        
+0000f238  ldp      x22, x21, [sp, #0x20]                        
+0000f23c  ldp      x24, x23, [sp, #0x10]                        
+0000f240  ldp      d9, d8, [sp], #0x50                          
+0000f244  ret                                                   
+0000f248  mov      x0, x20                                      
+0000f24c  bl       #0x57320                                     ; msgSend "bounds"
+0000f250  fmov     d4, #-6.00000000                             
+0000f254  fmov     d5, #-6.00000000                             
+0000f258  bl       #0x562fc                                     ; call _CGRectInset
+0000f25c  mov      v4.16b, v9.16b                               
+0000f260  mov      v5.16b, v8.16b                               
+0000f264  ldp      x29, x30, [sp, #0x40]                        
+0000f268  ldp      x20, x19, [sp, #0x30]                        
+0000f26c  ldp      x22, x21, [sp, #0x20]                        
+0000f270  ldp      x24, x23, [sp, #0x10]                        
+0000f274  ldp      d9, d8, [sp], #0x50                          
+0000f278  b        #0x56290                                     ; call _CGRectContainsPoint | tail _CGRectContainsPoint
+0000f27c  mov      x20, x0                                      
+0000f280  b        #0xf2a0                                      
+0000f284  mov      x20, x0                                      
+0000f288  mov      x0, x22                                      
+0000f28c  bl       #0x567b8                                     ; call _objc_release
+0000f290  b        #0xf298                                      
+0000f294  mov      x20, x0                                      
+0000f298  mov      x0, x21                                      
+0000f29c  bl       #0x567b8                                     ; call _objc_release
+0000f2a0  mov      x0, x19                                      
+0000f2a4  bl       #0x567b8                                     ; call _objc_release
+0000f2a8  mov      x0, x20                                      
+0000f2ac  bl       #0x563e0                                     ; call __Unwind_Resume

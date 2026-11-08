@@ -1,0 +1,16 @@
+=== -[ABHost carWindow] @ 0xf3d0 (size 60) ===
+0000f3d0  stp      x20, x19, [sp, #-0x20]!
+0000f3d4  stp      x29, x30, [sp, #0x10]
+0000f3d8  add      x29, sp, #0x10
+0000f3dc  mov      x19, x0
+0000f3e0  bl       #0x256c0 ; objc_msgSend sel=ensureWindow
+0000f3e4  cbz      w0, #0xf3fc
+0000f3e8  mov      x0, x19
+0000f3ec  bl       #0x281e0 ; objc_msgSend sel=window
+0000f3f0  mov      x29, x29
+0000f3f4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000f3f8  b        #0xf400 ; call sub_f400
+0000f3fc  mov      x0, #0
+0000f400  ldp      x29, x30, [sp, #0x10]
+0000f404  ldp      x20, x19, [sp], #0x20
+0000f408  b        #0x24734 ; call _objc_autoreleaseReturnValue

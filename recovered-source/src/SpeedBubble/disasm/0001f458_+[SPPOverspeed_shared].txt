@@ -1,0 +1,20 @@
+# +[SPPOverspeed shared]
+# addr 0x1f458 .. 0x1f49c  (68 bytes)
+
+0001f458  stp      x20, x19, [sp, #-0x20]!                     
+0001f45c  stp      x29, x30, [sp, #0x10]                       
+0001f460  add      x29, sp, #0x10                              
+0001f464  adrp     x8, #0x43000                                
+0001f468  ldr      x8, [x8, #0x9f0]                            ; [0x439f0] __DATA,__bss+0x250
+0001f46c  cmn      x8, #1                                      
+0001f470  b.ne     #0x1f494                                    
+0001f474  adrp     x8, #0x43000                                
+0001f478  ldr      x19, [x8, #0x9e8]                           ; [0x439e8] __DATA,__bss+0x248
+0001f47c  mov      x0, x19                                     
+0001f480  bl       #0x28004                                    ; _objc_retain
+0001f484  mov      x0, x19                                     
+0001f488  ldp      x29, x30, [sp, #0x10]                       
+0001f48c  ldp      x20, x19, [sp], #0x20                       
+0001f490  b        #0x27f2c                                    ; _objc_autoreleaseReturnValue
+0001f494  bl       #0x279fc                                    ; sub_279fc
+0001f498  b        #0x1f474                                    ; sub_1f474

@@ -1,0 +1,70 @@
+# sub_538c
+# addr 0x538c .. 0x5498  (268 bytes)
+
+0000538c  stp      d9, d8, [sp, #-0x40]!                       
+00005390  stp      x22, x21, [sp, #0x10]                       
+00005394  stp      x20, x19, [sp, #0x20]                       
+00005398  stp      x29, x30, [sp, #0x30]                       
+0000539c  add      x29, sp, #0x30                              
+000053a0  mov      x20, x1                                     
+000053a4  mov      x19, x0                                     
+000053a8  bl       #0x28004                                    ; _objc_retain
+000053ac  cbz      x19, #0x5464                                
+000053b0  mov      x0, x19                                     
+000053b4  bl       #0x2c620                                    ; objc_msgSend$timestamp
+000053b8  mov      x29, x29                                    
+000053bc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000053c0  mov      x21, x0                                     
+000053c4  bl       #0x2c5a0                                    ; objc_msgSend$timeIntervalSinceNow
+000053c8  fneg     d8, d0                                      
+000053cc  mov      x0, x21                                     
+000053d0  bl       #0x27ff8                                    ; _objc_release
+000053d4  cbz      x20, #0x53dc                                
+000053d8  str      d8, [x20]                                   
+000053dc  mov      w20, #-1                                    
+000053e0  cbz      x19, #0x5444                                
+000053e4  fmov     d0, #3.00000000                             
+000053e8  fcmp     d8, d0                                      
+000053ec  b.gt     #0x5444                                     
+000053f0  mov      x0, x19                                     
+000053f4  bl       #0x296a0                                    ; objc_msgSend$horizontalAccuracy
+000053f8  fcmp     d0, #0.0                                    
+000053fc  b.mi     #0x5444                                     
+00005400  mov      x0, x19                                     
+00005404  bl       #0x296a0                                    ; objc_msgSend$horizontalAccuracy
+00005408  mov      x8, #0x4059000000000000                     
+0000540c  fmov     d1, x8                                      
+00005410  fcmp     d0, d1                                      
+00005414  b.gt     #0x5444                                     
+00005418  mov      x0, x19                                     
+0000541c  bl       #0x2bfc0                                    ; objc_msgSend$speed
+00005420  fcmp     d0, #0.0                                    
+00005424  fmov     d1, xzr                                     
+00005428  fcsel    d0, d1, d0, mi                              
+0000542c  adrp     x8, #0x32000                                
+00005430  ldr      d1, [x8, #0x790]                            ; [0x32790] __const[0x32790] double=3.6 float=-107374184.0
+00005434  fmul     d0, d0, d1                                  
+00005438  fcvtas   x8, d0                                      
+0000543c  cmp      w8, #0x12c                                  
+00005440  csinv    w20, w8, wzr, le                            
+00005444  mov      x0, x19                                     
+00005448  bl       #0x27ff8                                    ; _objc_release
+0000544c  mov      x0, x20                                     
+00005450  ldp      x29, x30, [sp, #0x30]                       
+00005454  ldp      x20, x19, [sp, #0x20]                       
+00005458  ldp      x22, x21, [sp, #0x10]                       
+0000545c  ldp      d9, d8, [sp], #0x40                         
+00005460  ret                                                  
+00005464  fmov     d8, #-1.00000000                            
+00005468  cbnz     x20, #0x53d8                                
+0000546c  b        #0x53dc                                     ; sub_53dc
+00005470  b        #0x5484                                     ; sub_5484
+00005474  mov      x20, x0                                     
+00005478  mov      x0, x21                                     
+0000547c  bl       #0x27ff8                                    ; _objc_release
+00005480  b        #0x5488                                     ; sub_5488
+00005484  mov      x20, x0                                     
+00005488  mov      x0, x19                                     
+0000548c  bl       #0x27ff8                                    ; _objc_release
+00005490  mov      x0, x20                                     
+00005494  bl       #0x27c80                                    ; __Unwind_Resume

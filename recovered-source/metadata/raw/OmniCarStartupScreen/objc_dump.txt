@@ -1,0 +1,785 @@
+// slice: arm64
+@interface SSLocationOnce : NSMutableSet <CLLocationManagerDelegate>
+    // ivar _manager : @"CLLocationManager" (offset 8)
+    // ivar _done : @? (offset 16)
+    @property (T@"CLLocationManager",&,N,V_manager) manager;
+    @property (T@?,C,N,V_done) done;
+    @property (TQ,R) hash;
+    @property (T#,R) superclass;
+    @property (T@"NSString",R,C) description;
+    @property (T@"NSString",?,R,C) debugDescription;
+    - (v32@0:8@16@24) locationManager:didUpdateLocations:;  // imp 17576
+    - (v32@0:8@16@24) locationManager:didFailWithError:;  // imp 17640
+    - (v24@0:8@16) finish:;  // imp 17836
+    - (@16@0:8) manager;  // imp 17980
+    - (v24@0:8@16) setManager:;  // imp 17988
+    - (@?16@0:8) done;  // imp 18036
+    - (v24@0:8@?16) setDone:;  // imp 18044
+    - (v16@0:8) .cxx_destruct;  // imp 18052
+@end
+
+@interface SSSplashWindow : _OBJC_METACLASS_$_UIWindow
+@end
+
+@interface SSSplash : NSMutableSet
+    // ivar _loop : B (offset 8)
+    // ivar _decoding : B (offset 9)
+    // ivar _finished : B (offset 10)
+    // ivar _window : @"UIWindow" (offset 16)
+    // ivar _style : q (offset 24)
+    // ivar _imageView : @"UIImageView" (offset 32)
+    // ivar _startView : @"SSStartupView" (offset 40)
+    // ivar _screen : @"UIScreen" (offset 48)
+    // ivar _framesDir : @"NSString" (offset 56)
+    // ivar _frameCount : Q (offset 64)
+    // ivar _fps : d (offset 72)
+    // ivar _buffer : @"NSMutableArray" (offset 80)
+    // ivar _decodeQueue : @"NSObject<OS_dispatch_queue>" (offset 88)
+    // ivar _queuedFrames : Q (offset 96)
+    // ivar _shownFrames : Q (offset 104)
+    // ivar _failedFrames : Q (offset 112)
+    // ivar _startTime : d (offset 120)
+    // ivar _displayLink : @"CADisplayLink" (offset 128)
+    // ivar _endReason : @"NSString" (offset 136)
+    // ivar _shownAt : d (offset 144)
+    @property (T@"UIWindow",&,N,V_window) window;
+    @property (Tq,N,V_style) style;
+    @property (T@"UIImageView",&,N,V_imageView) imageView;
+    @property (T@"SSStartupView",&,N,V_startView) startView;
+    @property (T@"UIScreen",W,N,V_screen) screen;
+    @property (T@"NSString",C,N,V_framesDir) framesDir;
+    @property (TQ,N,V_frameCount) frameCount;
+    @property (Td,N,V_fps) fps;
+    @property (TB,N,V_loop) loop;
+    @property (T@"NSMutableArray",&,N,V_buffer) buffer;
+    @property (T@"NSObject<OS_dispatch_queue>",&,N,V_decodeQueue) decodeQueue;
+    @property (TB,N,V_decoding) decoding;
+    @property (TQ,N,V_queuedFrames) queuedFrames;
+    @property (TQ,N,V_shownFrames) shownFrames;
+    @property (TQ,N,V_failedFrames) failedFrames;
+    @property (Td,N,V_startTime) startTime;
+    @property (T@"CADisplayLink",&,N,V_displayLink) displayLink;
+    @property (TB,N,V_finished) finished;
+    @property (T@"NSString",C,N,V_endReason) endReason;
+    @property (Td,N,V_shownAt) shownAt;
+    - (@72@0:8@16@24q32q40@48Q56d64) initWithScreen:scene:style:occasion:framesDir:frameCount:fps:;  // imp 18100
+    - (v16@0:8) start;  // imp 23588
+    - (v16@0:8) decodeMore;  // imp 24624
+    - (v16@0:8) refreshWeather;  // imp 25652
+    - (v16@0:8) tick;  // imp 26876
+    - (v16@0:8) startCountdown;  // imp 27672
+    - (v24@0:8@16) tapped:;  // imp 28184
+    - (v16@0:8) dismiss;  // imp 28248
+    - (v24@0:8@16) dismissBecause:;  // imp 28260
+    - (v16@0:8) tearDown;  // imp 28724
+    - (@16@0:8) window;  // imp 29156
+    - (v24@0:8@16) setWindow:;  // imp 29164
+    - (q16@0:8) style;  // imp 29212
+    - (v24@0:8q16) setStyle:;  // imp 29220
+    - (@16@0:8) imageView;  // imp 29228
+    - (v24@0:8@16) setImageView:;  // imp 29236
+    - (@16@0:8) startView;  // imp 29284
+    - (v24@0:8@16) setStartView:;  // imp 29292
+    - (@16@0:8) screen;  // imp 29340
+    - (v24@0:8@16) setScreen:;  // imp 29364
+    - (@16@0:8) framesDir;  // imp 29376
+    - (v24@0:8@16) setFramesDir:;  // imp 29384
+    - (Q16@0:8) frameCount;  // imp 29392
+    - (v24@0:8Q16) setFrameCount:;  // imp 29400
+    - (d16@0:8) fps;  // imp 29408
+    - (v24@0:8d16) setFps:;  // imp 29416
+    - (B16@0:8) loop;  // imp 29424
+    - (v20@0:8B16) setLoop:;  // imp 29432
+    - (@16@0:8) buffer;  // imp 29440
+    - (v24@0:8@16) setBuffer:;  // imp 29448
+    - (@16@0:8) decodeQueue;  // imp 29496
+    - (v24@0:8@16) setDecodeQueue:;  // imp 29504
+    - (B16@0:8) decoding;  // imp 29552
+    - (v20@0:8B16) setDecoding:;  // imp 29560
+    - (Q16@0:8) queuedFrames;  // imp 29568
+    - (v24@0:8Q16) setQueuedFrames:;  // imp 29576
+    - (Q16@0:8) shownFrames;  // imp 29584
+    - (v24@0:8Q16) setShownFrames:;  // imp 29592
+    - (Q16@0:8) failedFrames;  // imp 29600
+    - (v24@0:8Q16) setFailedFrames:;  // imp 29608
+    - (d16@0:8) startTime;  // imp 29616
+    - (v24@0:8d16) setStartTime:;  // imp 29624
+    - (@16@0:8) displayLink;  // imp 29632
+    - (v24@0:8@16) setDisplayLink:;  // imp 29640
+    - (B16@0:8) finished;  // imp 29688
+    - (v20@0:8B16) setFinished:;  // imp 29696
+    - (@16@0:8) endReason;  // imp 29704
+    - (v24@0:8@16) setEndReason:;  // imp 29712
+    - (d16@0:8) shownAt;  // imp 29720
+    - (v24@0:8d16) setShownAt:;  // imp 29728
+    - (v16@0:8) .cxx_destruct;  // imp 29736
+@end
+
+@interface SSFade : NSMutableSet
+    // ivar _outEase : B (offset 8)
+    // ivar _view : @"UIView" (offset 16)
+    // ivar _inA : d (offset 24)
+    // ivar _inB : d (offset 32)
+    // ivar _outA : d (offset 40)
+    // ivar _outB : d (offset 48)
+    // ivar _alpha : d (offset 56)
+    // ivar _rise : d (offset 64)
+    @property (T@"UIView",&,N,V_view) view;
+    @property (Td,N,V_inA) inA;
+    @property (Td,N,V_inB) inB;
+    @property (Td,N,V_outA) outA;
+    @property (Td,N,V_outB) outB;
+    @property (Td,N,V_alpha) alpha;
+    @property (Td,N,V_rise) rise;
+    @property (TB,N,V_outEase) outEase;
+    - (v24@0:8d16) applyTime:;  // imp 49456
+    - (@16@0:8) view;  // imp 49884
+    - (v24@0:8@16) setView:;  // imp 49892
+    - (d16@0:8) inA;  // imp 49940
+    - (v24@0:8d16) setInA:;  // imp 49948
+    - (d16@0:8) inB;  // imp 49956
+    - (v24@0:8d16) setInB:;  // imp 49964
+    - (d16@0:8) outA;  // imp 49972
+    - (v24@0:8d16) setOutA:;  // imp 49980
+    - (d16@0:8) outB;  // imp 49988
+    - (v24@0:8d16) setOutB:;  // imp 49996
+    - (d16@0:8) alpha;  // imp 50004
+    - (v24@0:8d16) setAlpha:;  // imp 50012
+    - (d16@0:8) rise;  // imp 50020
+    - (v24@0:8d16) setRise:;  // imp 50028
+    - (B16@0:8) outEase;  // imp 50036
+    - (v20@0:8B16) setOutEase:;  // imp 50044
+    - (v16@0:8) .cxx_destruct;  // imp 50052
+@end
+
+@interface SSGauge : NSMutableSet
+    // ivar _hot : B (offset 8)
+    // ivar _arc : @"CAShapeLayer" (offset 16)
+    // ivar _fill : @"CAGradientLayer" (offset 24)
+    // ivar _needle : @"CALayer" (offset 32)
+    // ivar _number : @"UILabel" (offset 40)
+    // ivar _max : d (offset 48)
+    // ivar _red : d (offset 56)
+    // ivar _shown : q (offset 64)
+    @property (T@"CAShapeLayer",&,N,V_arc) arc;
+    @property (T@"CAGradientLayer",&,N,V_fill) fill;
+    @property (T@"CALayer",&,N,V_needle) needle;
+    @property (T@"UILabel",&,N,V_number) number;
+    @property (Td,N,V_max) max;
+    @property (Td,N,V_red) red;
+    @property (Tq,N,V_shown) shown;
+    @property (TB,N,V_hot) hot;
+    - (@16@0:8) arc;  // imp 50064
+    - (v24@0:8@16) setArc:;  // imp 50072
+    - (@16@0:8) fill;  // imp 50120
+    - (v24@0:8@16) setFill:;  // imp 50128
+    - (@16@0:8) needle;  // imp 50176
+    - (v24@0:8@16) setNeedle:;  // imp 50184
+    - (@16@0:8) number;  // imp 50232
+    - (v24@0:8@16) setNumber:;  // imp 50240
+    - (d16@0:8) max;  // imp 50288
+    - (v24@0:8d16) setMax:;  // imp 50296
+    - (d16@0:8) red;  // imp 50304
+    - (v24@0:8d16) setRed:;  // imp 50312
+    - (q16@0:8) shown;  // imp 50320
+    - (v24@0:8q16) setShown:;  // imp 50328
+    - (B16@0:8) hot;  // imp 50336
+    - (v20@0:8B16) setHot:;  // imp 50344
+    - (v16@0:8) .cxx_destruct;  // imp 50352
+@end
+
+@interface SSLinkTarget : NSMutableSet
+    // ivar _owner : @"SSStartupView" (offset 8)
+    @property (T@"SSStartupView",W,N,V_owner) owner;
+    - (v24@0:8@16) step:;  // imp 50424
+    - (@16@0:8) owner;  // imp 50520
+    - (v24@0:8@16) setOwner:;  // imp 50544
+    - (v16@0:8) .cxx_destruct;  // imp 50556
+@end
+
+@interface SSCanvasView : NSRunLoop
+    // ivar _owner : @"SSStartupView" (offset 8)
+    @property (T@"SSStartupView",W,N,V_owner) owner;
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) drawRect:;  // imp 50564
+    - (@16@0:8) owner;  // imp 50656
+    - (v24@0:8@16) setOwner:;  // imp 50688
+    - (v16@0:8) .cxx_destruct;  // imp 50708
+@end
+
+@interface SSStartupView : NSRunLoop
+    // ivar _unit : d (offset 8)
+    // ivar _stack : @"UIStackView" (offset 16)
+    // ivar _logoView : @"UIImageView" (offset 24)
+    // ivar _posterView : @"UIImageView" (offset 32)
+    // ivar _timeLabel : @"UILabel" (offset 40)
+    // ivar _titleLabel : @"UILabel" (offset 48)
+    // ivar _dateLabel : @"UILabel" (offset 56)
+    // ivar _tempLabel : @"UILabel" (offset 64)
+    // ivar _condLabel : @"UILabel" (offset 72)
+    // ivar _rangeLabel : @"UILabel" (offset 80)
+    // ivar _rainLabel : @"UILabel" (offset 88)
+    // ivar _updatedLabel : @"UILabel" (offset 96)
+    // ivar _iconView : @"UIImageView" (offset 104)
+    // ivar _row : @"UIStackView" (offset 112)
+    // ivar _cardStack : @"UIStackView" (offset 120)
+    // ivar _card : @"UIVisualEffectView" (offset 128)
+    // ivar _iconW : @"NSLayoutConstraint" (offset 136)
+    // ivar _iconH : @"NSLayoutConstraint" (offset 144)
+    // ivar _stackMaxWidth : @"NSLayoutConstraint" (offset 152)
+    // ivar _cardInsets : @"NSArray" (offset 160)
+    // ivar _sceneStyle : q (offset 168)
+    // ivar _sky : q (offset 176)
+    // ivar _sceneSize : {CGSize="width"d"height"d} (offset 184)
+    // ivar _sceneBuilt : B (offset 200)
+    // ivar _k : d (offset 208)
+    // ivar _ox : d (offset 216)
+    // ivar _oy : d (offset 224)
+    // ivar _restTime : d (offset 232)
+    // ivar _linkEnd : d (offset 240)
+    // ivar _tempoScale : d (offset 248)
+    // ivar _t0 : d (offset 256)
+    // ivar _playing : B (offset 264)
+    // ivar _link : @"CADisplayLink" (offset 272)
+    // ivar _scene : @"UIView" (offset 280)
+    // ivar _glass : @"UIView" (offset 288)
+    // ivar _canvas : @"SSCanvasView" (offset 296)
+    // ivar _fades : @"NSMutableArray" (offset 304)
+    // ivar _motes : @"NSMutableData" (offset 312)
+    // ivar _moteLayers : @"NSMutableArray" (offset 320)
+    // ivar _gauges : @"NSMutableArray" (offset 328)
+    // ivar _particles : @"NSMutableData" (offset 336)
+    // ivar _dot : d (offset 344)
+    // ivar _bursts : @"NSMutableData" (offset 352)
+    // ivar _outline : @"CAShapeLayer" (offset 360)
+    // ivar _wheels : @"CAShapeLayer" (offset 368)
+    // ivar _flash : @"CALayer" (offset 376)
+    // ivar _horizon : @"CALayer" (offset 384)
+    // ivar _rays : @"CALayer" (offset 392)
+    // ivar _wiper : @"CALayer" (offset 400)
+    // ivar _lightning : @"CALayer" (offset 408)
+    // ivar _radar : @"CALayer" (offset 416)
+    // ivar _wetMask : @"CAShapeLayer" (offset 424)
+    // ivar _wiperLength : d (offset 432)
+    // ivar _cleared : d (offset 440)
+    // ivar _wiperPivot : {CGPoint="x"d"y"d} (offset 448)
+    // ivar _rings : @"NSMutableArray" (offset 464)
+    // ivar _percentLabel : @"UILabel" (offset 472)
+    // ivar _percentShown : q (offset 480)
+    // ivar _imageFits : B (offset 488)
+    // ivar _style : q (offset 496)
+    // ivar _image : @"UIImage" (offset 504)
+    // ivar _logoEffect : q (offset 512)
+    // ivar _name : @"NSString" (offset 520)
+    // ivar _weather : @"NSDictionary" (offset 528)
+    // ivar _date : @"NSDate" (offset 536)
+    // ivar _carName : @"NSString" (offset 544)
+    // ivar _tempo : q (offset 552)
+    // ivar _occasion : q (offset 560)
+    // ivar _hud : @"NSArray" (offset 568)
+    // ivar _nextEvent : @"NSDictionary" (offset 576)
+    // ivar _batteryPercent : q (offset 584)
+    // ivar _duration : d (offset 592)
+    @property (Tq,N,V_style) style;
+    @property (T@"UIImage",&,N,V_image) image;
+    @property (TB,N,V_imageFits) imageFits;
+    @property (Tq,N,V_logoEffect) logoEffect;
+    @property (T@"NSString",C,N,V_name) name;
+    @property (T@"NSDictionary",C,N,V_weather) weather;
+    @property (T@"NSDate",&,N,V_date) date;
+    @property (T@"NSString",C,N,V_carName) carName;
+    @property (Tq,N,V_tempo) tempo;
+    @property (Tq,N,V_occasion) occasion;
+    @property (T@"NSArray",C,N,V_hud) hud;
+    @property (T@"NSDictionary",C,N,V_nextEvent) nextEvent;
+    @property (Tq,N,V_batteryPercent) batteryPercent;
+    @property (Td,N,V_duration) duration;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 50736
+    - (v16@0:8) dealloc;  // imp 50916
+    - (v16@0:8) clearContent;  // imp 50996
+    - (v16@0:8) reload;  // imp 51700
+    - (@16@0:8) ss_sceneColors;  // imp 54656
+    - (v32@0:8@16q24) buildGreetingWithDate:period:;  // imp 55332
+    - (v24@0:8q16) buildWeatherWithPeriod:;  // imp 56540
+    - (v16@0:8) layoutSubviews;  // imp 61180
+    - (v24@0:8d16) applyUnit:;  // imp 61712
+    - (v16@0:8) playIntro;  // imp 63336
+    - (d16@0:8) ss_now;  // imp 65076
+    - (v16@0:8) didMoveToWindow;  // imp 65160
+    - (v16@0:8) ss_startLink;  // imp 65268
+    - (v16@0:8) ss_stopLink;  // imp 65660
+    - (v16@0:8) ss_step;  // imp 65712
+    - (v24@0:8d16) ss_applyTime:;  // imp 65852
+    - (v16@0:8) ss_clearScene;  // imp 66320
+    - (v16@0:8) ss_buildScene;  // imp 66928
+    - (@16@0:8) ss_host;  // imp 67468
+    - (v16@0:8) ss_addCanvas;  // imp 67572
+    - (@84@0:8@16{CGPoint=dd}24d40d48@56B64@68d76) ss_label:at:size:weight:color:left:in:maxWidth:;  // imp 67784
+    - (@48@0:8@16d24d32d40) ss_fade:from:to:alpha:;  // imp 68532
+    - (v88@0:8{?=qdddddd}16@72@80) ss_addMote:layer:to:;  // imp 68704
+    - (v24@0:8d16) ss_applyMotes:;  // imp 68848
+    - (v16@0:8) ss_buildSky;  // imp 69924
+    - (v24@0:8d16) ss_applySky:;  // imp 75440
+    - (@80@0:8{CGPoint=dd}16d32@40@48d56d64@72) ss_gaugeAt:radius:label:unit:max:red:in:;  // imp 76440
+    - (v16@0:8) ss_buildEngine;  // imp 79032
+    - (v32@0:8@16d24) ss_setGauge:value:;  // imp 81760
+    - (v24@0:8d16) ss_applyEngine:;  // imp 82264
+    - (v16@0:8) ss_buildWelcome;  // imp 82820
+    - (v24@0:8d16) ss_applyWelcome:;  // imp 84856
+    - (v16@0:8) ss_buildParticles;  // imp 85328
+    - (v32@0:8^{CGContext=}16d24) ss_drawParticles:t:;  // imp 87592
+    - (v16@0:8) ss_buildHud;  // imp 88784
+    - (v24@0:8d16) ss_applyHud:;  // imp 92256
+    - (v16@0:8) ss_buildBriefing;  // imp 92920
+    - (v16@0:8) ss_buildLiquid;  // imp 97204
+    - (v16@0:8) ss_buildFestive;  // imp 101104
+    - (v32@0:8^{CGContext=}16d24) ss_drawFireworks:t:;  // imp 106316
+    - (v40@0:8^{CGContext=}16{CGSize=dd}24) ss_drawCanvas:size:;  // imp 107276
+    - (q16@0:8) style;  // imp 107428
+    - (v24@0:8q16) setStyle:;  // imp 107444
+    - (@16@0:8) image;  // imp 107460
+    - (v24@0:8@16) setImage:;  // imp 107476
+    - (B16@0:8) imageFits;  // imp 107540
+    - (v20@0:8B16) setImageFits:;  // imp 107556
+    - (q16@0:8) logoEffect;  // imp 107572
+    - (v24@0:8q16) setLogoEffect:;  // imp 107588
+    - (@16@0:8) name;  // imp 107604
+    - (v24@0:8@16) setName:;  // imp 107620
+    - (@16@0:8) weather;  // imp 107632
+    - (v24@0:8@16) setWeather:;  // imp 107648
+    - (@16@0:8) date;  // imp 107660
+    - (v24@0:8@16) setDate:;  // imp 107676
+    - (@16@0:8) carName;  // imp 107740
+    - (v24@0:8@16) setCarName:;  // imp 107756
+    - (q16@0:8) tempo;  // imp 107768
+    - (v24@0:8q16) setTempo:;  // imp 107784
+    - (q16@0:8) occasion;  // imp 107800
+    - (v24@0:8q16) setOccasion:;  // imp 107816
+    - (@16@0:8) hud;  // imp 107832
+    - (v24@0:8@16) setHud:;  // imp 107848
+    - (@16@0:8) nextEvent;  // imp 107860
+    - (v24@0:8@16) setNextEvent:;  // imp 107876
+    - (q16@0:8) batteryPercent;  // imp 107888
+    - (v24@0:8q16) setBatteryPercent:;  // imp 107904
+    - (d16@0:8) duration;  // imp 107920
+    - (v24@0:8d16) setDuration:;  // imp 107936
+    - (v16@0:8) .cxx_destruct;  // imp 107952
+    + (#16@0:8) layerClass;  // imp 50724
+@end
+
+@protocol NSObject
+    - (B24@0:8@16) isEqual:;
+    - (#16@0:8) class;
+    - (@16@0:8) self;
+    - (@24@0:8:16) performSelector:;
+    - (@32@0:8:16@24) performSelector:withObject:;
+    - (@40@0:8:16@24@32) performSelector:withObject:withObject:;
+    - (B16@0:8) isProxy;
+    - (B24@0:8#16) isKindOfClass:;
+    - (B24@0:8#16) isMemberOfClass:;
+    - (B24@0:8@16) conformsToProtocol:;
+    - (B24@0:8:16) respondsToSelector:;
+    - (@16@0:8) retain;
+    - (Vv16@0:8) release;
+    - (@16@0:8) autorelease;
+    - (Q16@0:8) retainCount;
+    - (^{_NSZone=}16@0:8) zone;
+    - (Q16@0:8) hash;
+    - (#16@0:8) superclass;
+    - (@16@0:8) description;
+@end
+
+@protocol CLLocationManagerDelegate
+@end
+
+// slice: arm64e
+@interface SSLocationOnce : NSMutableSet <CLLocationManagerDelegate>
+    // ivar _manager : @"CLLocationManager" (offset 8)
+    // ivar _done : @? (offset 16)
+    @property (T@"CLLocationManager",&,N,V_manager) manager;
+    @property (T@?,C,N,V_done) done;
+    @property (TQ,R) hash;
+    @property (T#,R) superclass;
+    @property (T@"NSString",R,C) description;
+    @property (T@"NSString",?,R,C) debugDescription;
+    - (v32@0:8@16@24) locationManager:didUpdateLocations:;  // imp 17708
+    - (v32@0:8@16@24) locationManager:didFailWithError:;  // imp 17792
+    - (v24@0:8@16) finish:;  // imp 18008
+    - (@16@0:8) manager;  // imp 18176
+    - (v24@0:8@16) setManager:;  // imp 18184
+    - (@?16@0:8) done;  // imp 18252
+    - (v24@0:8@?16) setDone:;  // imp 18260
+    - (v16@0:8) .cxx_destruct;  // imp 18268
+@end
+
+@interface SSSplashWindow : _OBJC_METACLASS_$_UIWindow
+@end
+
+@interface SSSplash : NSMutableSet
+    // ivar _loop : B (offset 8)
+    // ivar _decoding : B (offset 9)
+    // ivar _finished : B (offset 10)
+    // ivar _window : @"UIWindow" (offset 16)
+    // ivar _style : q (offset 24)
+    // ivar _imageView : @"UIImageView" (offset 32)
+    // ivar _startView : @"SSStartupView" (offset 40)
+    // ivar _screen : @"UIScreen" (offset 48)
+    // ivar _framesDir : @"NSString" (offset 56)
+    // ivar _frameCount : Q (offset 64)
+    // ivar _fps : d (offset 72)
+    // ivar _buffer : @"NSMutableArray" (offset 80)
+    // ivar _decodeQueue : @"NSObject<OS_dispatch_queue>" (offset 88)
+    // ivar _queuedFrames : Q (offset 96)
+    // ivar _shownFrames : Q (offset 104)
+    // ivar _failedFrames : Q (offset 112)
+    // ivar _startTime : d (offset 120)
+    // ivar _displayLink : @"CADisplayLink" (offset 128)
+    // ivar _endReason : @"NSString" (offset 136)
+    // ivar _shownAt : d (offset 144)
+    @property (T@"UIWindow",&,N,V_window) window;
+    @property (Tq,N,V_style) style;
+    @property (T@"UIImageView",&,N,V_imageView) imageView;
+    @property (T@"SSStartupView",&,N,V_startView) startView;
+    @property (T@"UIScreen",W,N,V_screen) screen;
+    @property (T@"NSString",C,N,V_framesDir) framesDir;
+    @property (TQ,N,V_frameCount) frameCount;
+    @property (Td,N,V_fps) fps;
+    @property (TB,N,V_loop) loop;
+    @property (T@"NSMutableArray",&,N,V_buffer) buffer;
+    @property (T@"NSObject<OS_dispatch_queue>",&,N,V_decodeQueue) decodeQueue;
+    @property (TB,N,V_decoding) decoding;
+    @property (TQ,N,V_queuedFrames) queuedFrames;
+    @property (TQ,N,V_shownFrames) shownFrames;
+    @property (TQ,N,V_failedFrames) failedFrames;
+    @property (Td,N,V_startTime) startTime;
+    @property (T@"CADisplayLink",&,N,V_displayLink) displayLink;
+    @property (TB,N,V_finished) finished;
+    @property (T@"NSString",C,N,V_endReason) endReason;
+    @property (Td,N,V_shownAt) shownAt;
+    - (@72@0:8@16@24q32q40@48Q56d64) initWithScreen:scene:style:occasion:framesDir:frameCount:fps:;  // imp 18336
+    - (v16@0:8) start;  // imp 23864
+    - (v16@0:8) decodeMore;  // imp 24944
+    - (v16@0:8) refreshWeather;  // imp 26128
+    - (v16@0:8) tick;  // imp 27496
+    - (v16@0:8) startCountdown;  // imp 28368
+    - (v24@0:8@16) tapped:;  // imp 28924
+    - (v16@0:8) dismiss;  // imp 29008
+    - (v24@0:8@16) dismissBecause:;  // imp 29020
+    - (v16@0:8) tearDown;  // imp 29568
+    - (@16@0:8) window;  // imp 30020
+    - (v24@0:8@16) setWindow:;  // imp 30028
+    - (q16@0:8) style;  // imp 30096
+    - (v24@0:8q16) setStyle:;  // imp 30104
+    - (@16@0:8) imageView;  // imp 30112
+    - (v24@0:8@16) setImageView:;  // imp 30120
+    - (@16@0:8) startView;  // imp 30188
+    - (v24@0:8@16) setStartView:;  // imp 30196
+    - (@16@0:8) screen;  // imp 30264
+    - (v24@0:8@16) setScreen:;  // imp 30308
+    - (@16@0:8) framesDir;  // imp 30320
+    - (v24@0:8@16) setFramesDir:;  // imp 30328
+    - (Q16@0:8) frameCount;  // imp 30336
+    - (v24@0:8Q16) setFrameCount:;  // imp 30344
+    - (d16@0:8) fps;  // imp 30352
+    - (v24@0:8d16) setFps:;  // imp 30360
+    - (B16@0:8) loop;  // imp 30368
+    - (v20@0:8B16) setLoop:;  // imp 30376
+    - (@16@0:8) buffer;  // imp 30384
+    - (v24@0:8@16) setBuffer:;  // imp 30392
+    - (@16@0:8) decodeQueue;  // imp 30460
+    - (v24@0:8@16) setDecodeQueue:;  // imp 30468
+    - (B16@0:8) decoding;  // imp 30536
+    - (v20@0:8B16) setDecoding:;  // imp 30544
+    - (Q16@0:8) queuedFrames;  // imp 30552
+    - (v24@0:8Q16) setQueuedFrames:;  // imp 30560
+    - (Q16@0:8) shownFrames;  // imp 30568
+    - (v24@0:8Q16) setShownFrames:;  // imp 30576
+    - (Q16@0:8) failedFrames;  // imp 30584
+    - (v24@0:8Q16) setFailedFrames:;  // imp 30592
+    - (d16@0:8) startTime;  // imp 30600
+    - (v24@0:8d16) setStartTime:;  // imp 30608
+    - (@16@0:8) displayLink;  // imp 30616
+    - (v24@0:8@16) setDisplayLink:;  // imp 30624
+    - (B16@0:8) finished;  // imp 30692
+    - (v20@0:8B16) setFinished:;  // imp 30700
+    - (@16@0:8) endReason;  // imp 30708
+    - (v24@0:8@16) setEndReason:;  // imp 30716
+    - (d16@0:8) shownAt;  // imp 30724
+    - (v24@0:8d16) setShownAt:;  // imp 30732
+    - (v16@0:8) .cxx_destruct;  // imp 30740
+@end
+
+@interface SSFade : NSMutableSet
+    // ivar _outEase : B (offset 8)
+    // ivar _view : @"UIView" (offset 16)
+    // ivar _inA : d (offset 24)
+    // ivar _inB : d (offset 32)
+    // ivar _outA : d (offset 40)
+    // ivar _outB : d (offset 48)
+    // ivar _alpha : d (offset 56)
+    // ivar _rise : d (offset 64)
+    @property (T@"UIView",&,N,V_view) view;
+    @property (Td,N,V_inA) inA;
+    @property (Td,N,V_inB) inB;
+    @property (Td,N,V_outA) outA;
+    @property (Td,N,V_outB) outB;
+    @property (Td,N,V_alpha) alpha;
+    @property (Td,N,V_rise) rise;
+    @property (TB,N,V_outEase) outEase;
+    - (v24@0:8d16) applyTime:;  // imp 51456
+    - (@16@0:8) view;  // imp 51888
+    - (v24@0:8@16) setView:;  // imp 51896
+    - (d16@0:8) inA;  // imp 51964
+    - (v24@0:8d16) setInA:;  // imp 51972
+    - (d16@0:8) inB;  // imp 51980
+    - (v24@0:8d16) setInB:;  // imp 51988
+    - (d16@0:8) outA;  // imp 51996
+    - (v24@0:8d16) setOutA:;  // imp 52004
+    - (d16@0:8) outB;  // imp 52012
+    - (v24@0:8d16) setOutB:;  // imp 52020
+    - (d16@0:8) alpha;  // imp 52028
+    - (v24@0:8d16) setAlpha:;  // imp 52036
+    - (d16@0:8) rise;  // imp 52044
+    - (v24@0:8d16) setRise:;  // imp 52052
+    - (B16@0:8) outEase;  // imp 52060
+    - (v20@0:8B16) setOutEase:;  // imp 52068
+    - (v16@0:8) .cxx_destruct;  // imp 52076
+@end
+
+@interface SSGauge : NSMutableSet
+    // ivar _hot : B (offset 8)
+    // ivar _arc : @"CAShapeLayer" (offset 16)
+    // ivar _fill : @"CAGradientLayer" (offset 24)
+    // ivar _needle : @"CALayer" (offset 32)
+    // ivar _number : @"UILabel" (offset 40)
+    // ivar _max : d (offset 48)
+    // ivar _red : d (offset 56)
+    // ivar _shown : q (offset 64)
+    @property (T@"CAShapeLayer",&,N,V_arc) arc;
+    @property (T@"CAGradientLayer",&,N,V_fill) fill;
+    @property (T@"CALayer",&,N,V_needle) needle;
+    @property (T@"UILabel",&,N,V_number) number;
+    @property (Td,N,V_max) max;
+    @property (Td,N,V_red) red;
+    @property (Tq,N,V_shown) shown;
+    @property (TB,N,V_hot) hot;
+    - (@16@0:8) arc;  // imp 52088
+    - (v24@0:8@16) setArc:;  // imp 52096
+    - (@16@0:8) fill;  // imp 52164
+    - (v24@0:8@16) setFill:;  // imp 52172
+    - (@16@0:8) needle;  // imp 52240
+    - (v24@0:8@16) setNeedle:;  // imp 52248
+    - (@16@0:8) number;  // imp 52316
+    - (v24@0:8@16) setNumber:;  // imp 52324
+    - (d16@0:8) max;  // imp 52392
+    - (v24@0:8d16) setMax:;  // imp 52400
+    - (d16@0:8) red;  // imp 52408
+    - (v24@0:8d16) setRed:;  // imp 52416
+    - (q16@0:8) shown;  // imp 52424
+    - (v24@0:8q16) setShown:;  // imp 52432
+    - (B16@0:8) hot;  // imp 52440
+    - (v20@0:8B16) setHot:;  // imp 52448
+    - (v16@0:8) .cxx_destruct;  // imp 52456
+@end
+
+@interface SSLinkTarget : NSMutableSet
+    // ivar _owner : @"SSStartupView" (offset 8)
+    @property (T@"SSStartupView",W,N,V_owner) owner;
+    - (v24@0:8@16) step:;  // imp 52548
+    - (@16@0:8) owner;  // imp 52664
+    - (v24@0:8@16) setOwner:;  // imp 52708
+    - (v16@0:8) .cxx_destruct;  // imp 52720
+@end
+
+@interface SSCanvasView : NSRunLoop
+    // ivar _owner : @"SSStartupView" (offset 8)
+    @property (T@"SSStartupView",W,N,V_owner) owner;
+    - (v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) drawRect:;  // imp 52728
+    - (@16@0:8) owner;  // imp 52840
+    - (v24@0:8@16) setOwner:;  // imp 52892
+    - (v16@0:8) .cxx_destruct;  // imp 52912
+@end
+
+@interface SSStartupView : NSRunLoop
+    // ivar _unit : d (offset 8)
+    // ivar _stack : @"UIStackView" (offset 16)
+    // ivar _logoView : @"UIImageView" (offset 24)
+    // ivar _posterView : @"UIImageView" (offset 32)
+    // ivar _timeLabel : @"UILabel" (offset 40)
+    // ivar _titleLabel : @"UILabel" (offset 48)
+    // ivar _dateLabel : @"UILabel" (offset 56)
+    // ivar _tempLabel : @"UILabel" (offset 64)
+    // ivar _condLabel : @"UILabel" (offset 72)
+    // ivar _rangeLabel : @"UILabel" (offset 80)
+    // ivar _rainLabel : @"UILabel" (offset 88)
+    // ivar _updatedLabel : @"UILabel" (offset 96)
+    // ivar _iconView : @"UIImageView" (offset 104)
+    // ivar _row : @"UIStackView" (offset 112)
+    // ivar _cardStack : @"UIStackView" (offset 120)
+    // ivar _card : @"UIVisualEffectView" (offset 128)
+    // ivar _iconW : @"NSLayoutConstraint" (offset 136)
+    // ivar _iconH : @"NSLayoutConstraint" (offset 144)
+    // ivar _stackMaxWidth : @"NSLayoutConstraint" (offset 152)
+    // ivar _cardInsets : @"NSArray" (offset 160)
+    // ivar _sceneStyle : q (offset 168)
+    // ivar _sky : q (offset 176)
+    // ivar _sceneSize : {CGSize="width"d"height"d} (offset 184)
+    // ivar _sceneBuilt : B (offset 200)
+    // ivar _k : d (offset 208)
+    // ivar _ox : d (offset 216)
+    // ivar _oy : d (offset 224)
+    // ivar _restTime : d (offset 232)
+    // ivar _linkEnd : d (offset 240)
+    // ivar _tempoScale : d (offset 248)
+    // ivar _t0 : d (offset 256)
+    // ivar _playing : B (offset 264)
+    // ivar _link : @"CADisplayLink" (offset 272)
+    // ivar _scene : @"UIView" (offset 280)
+    // ivar _glass : @"UIView" (offset 288)
+    // ivar _canvas : @"SSCanvasView" (offset 296)
+    // ivar _fades : @"NSMutableArray" (offset 304)
+    // ivar _motes : @"NSMutableData" (offset 312)
+    // ivar _moteLayers : @"NSMutableArray" (offset 320)
+    // ivar _gauges : @"NSMutableArray" (offset 328)
+    // ivar _particles : @"NSMutableData" (offset 336)
+    // ivar _dot : d (offset 344)
+    // ivar _bursts : @"NSMutableData" (offset 352)
+    // ivar _outline : @"CAShapeLayer" (offset 360)
+    // ivar _wheels : @"CAShapeLayer" (offset 368)
+    // ivar _flash : @"CALayer" (offset 376)
+    // ivar _horizon : @"CALayer" (offset 384)
+    // ivar _rays : @"CALayer" (offset 392)
+    // ivar _wiper : @"CALayer" (offset 400)
+    // ivar _lightning : @"CALayer" (offset 408)
+    // ivar _radar : @"CALayer" (offset 416)
+    // ivar _wetMask : @"CAShapeLayer" (offset 424)
+    // ivar _wiperLength : d (offset 432)
+    // ivar _cleared : d (offset 440)
+    // ivar _wiperPivot : {CGPoint="x"d"y"d} (offset 448)
+    // ivar _rings : @"NSMutableArray" (offset 464)
+    // ivar _percentLabel : @"UILabel" (offset 472)
+    // ivar _percentShown : q (offset 480)
+    // ivar _imageFits : B (offset 488)
+    // ivar _style : q (offset 496)
+    // ivar _image : @"UIImage" (offset 504)
+    // ivar _logoEffect : q (offset 512)
+    // ivar _name : @"NSString" (offset 520)
+    // ivar _weather : @"NSDictionary" (offset 528)
+    // ivar _date : @"NSDate" (offset 536)
+    // ivar _carName : @"NSString" (offset 544)
+    // ivar _tempo : q (offset 552)
+    // ivar _occasion : q (offset 560)
+    // ivar _hud : @"NSArray" (offset 568)
+    // ivar _nextEvent : @"NSDictionary" (offset 576)
+    // ivar _batteryPercent : q (offset 584)
+    // ivar _duration : d (offset 592)
+    @property (Tq,N,V_style) style;
+    @property (T@"UIImage",&,N,V_image) image;
+    @property (TB,N,V_imageFits) imageFits;
+    @property (Tq,N,V_logoEffect) logoEffect;
+    @property (T@"NSString",C,N,V_name) name;
+    @property (T@"NSDictionary",C,N,V_weather) weather;
+    @property (T@"NSDate",&,N,V_date) date;
+    @property (T@"NSString",C,N,V_carName) carName;
+    @property (Tq,N,V_tempo) tempo;
+    @property (Tq,N,V_occasion) occasion;
+    @property (T@"NSArray",C,N,V_hud) hud;
+    @property (T@"NSDictionary",C,N,V_nextEvent) nextEvent;
+    @property (Tq,N,V_batteryPercent) batteryPercent;
+    @property (Td,N,V_duration) duration;
+    - (@48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16) initWithFrame:;  // imp 52940
+    - (v16@0:8) dealloc;  // imp 53136
+    - (v16@0:8) clearContent;  // imp 53224
+    - (v16@0:8) reload;  // imp 54024
+    - (@16@0:8) ss_sceneColors;  // imp 57056
+    - (v32@0:8@16q24) buildGreetingWithDate:period:;  // imp 57776
+    - (v24@0:8q16) buildWeatherWithPeriod:;  // imp 59064
+    - (v16@0:8) layoutSubviews;  // imp 63808
+    - (v24@0:8d16) applyUnit:;  // imp 64360
+    - (v16@0:8) playIntro;  // imp 66080
+    - (d16@0:8) ss_now;  // imp 67960
+    - (v16@0:8) didMoveToWindow;  // imp 68060
+    - (v16@0:8) ss_startLink;  // imp 68172
+    - (v16@0:8) ss_stopLink;  // imp 68600
+    - (v16@0:8) ss_step;  // imp 68672
+    - (v24@0:8d16) ss_applyTime:;  // imp 68840
+    - (v16@0:8) ss_clearScene;  // imp 69332
+    - (v16@0:8) ss_buildScene;  // imp 70036
+    - (@16@0:8) ss_host;  // imp 70624
+    - (v16@0:8) ss_addCanvas;  // imp 70752
+    - (@84@0:8@16{CGPoint=dd}24d40d48@56B64@68d76) ss_label:at:size:weight:color:left:in:maxWidth:;  // imp 70992
+    - (@48@0:8@16d24d32d40) ss_fade:from:to:alpha:;  // imp 71764
+    - (v88@0:8{?=qdddddd}16@72@80) ss_addMote:layer:to:;  // imp 71960
+    - (v24@0:8d16) ss_applyMotes:;  // imp 72132
+    - (v16@0:8) ss_buildSky;  // imp 73224
+    - (v24@0:8d16) ss_applySky:;  // imp 78844
+    - (@80@0:8{CGPoint=dd}16d32@40@48d56d64@72) ss_gaugeAt:radius:label:unit:max:red:in:;  // imp 79872
+    - (v16@0:8) ss_buildEngine;  // imp 82492
+    - (v32@0:8@16d24) ss_setGauge:value:;  // imp 85288
+    - (v24@0:8d16) ss_applyEngine:;  // imp 85796
+    - (v16@0:8) ss_buildWelcome;  // imp 86376
+    - (v24@0:8d16) ss_applyWelcome:;  // imp 88508
+    - (v16@0:8) ss_buildParticles;  // imp 89020
+    - (v32@0:8^{CGContext=}16d24) ss_drawParticles:t:;  // imp 91336
+    - (v16@0:8) ss_buildHud;  // imp 92544
+    - (v24@0:8d16) ss_applyHud:;  // imp 96072
+    - (v16@0:8) ss_buildBriefing;  // imp 96756
+    - (v16@0:8) ss_buildLiquid;  // imp 101060
+    - (v16@0:8) ss_buildFestive;  // imp 105000
+    - (v32@0:8^{CGContext=}16d24) ss_drawFireworks:t:;  // imp 110256
+    - (v40@0:8^{CGContext=}16{CGSize=dd}24) ss_drawCanvas:size:;  // imp 111228
+    - (q16@0:8) style;  // imp 111412
+    - (v24@0:8q16) setStyle:;  // imp 111432
+    - (@16@0:8) image;  // imp 111452
+    - (v24@0:8@16) setImage:;  // imp 111472
+    - (B16@0:8) imageFits;  // imp 111548
+    - (v20@0:8B16) setImageFits:;  // imp 111568
+    - (q16@0:8) logoEffect;  // imp 111588
+    - (v24@0:8q16) setLogoEffect:;  // imp 111608
+    - (@16@0:8) name;  // imp 111628
+    - (v24@0:8@16) setName:;  // imp 111648
+    - (@16@0:8) weather;  // imp 111660
+    - (v24@0:8@16) setWeather:;  // imp 111680
+    - (@16@0:8) date;  // imp 111692
+    - (v24@0:8@16) setDate:;  // imp 111712
+    - (@16@0:8) carName;  // imp 111788
+    - (v24@0:8@16) setCarName:;  // imp 111808
+    - (q16@0:8) tempo;  // imp 111820
+    - (v24@0:8q16) setTempo:;  // imp 111840
+    - (q16@0:8) occasion;  // imp 111860
+    - (v24@0:8q16) setOccasion:;  // imp 111880
+    - (@16@0:8) hud;  // imp 111900
+    - (v24@0:8@16) setHud:;  // imp 111920
+    - (@16@0:8) nextEvent;  // imp 111932
+    - (v24@0:8@16) setNextEvent:;  // imp 111952
+    - (q16@0:8) batteryPercent;  // imp 111964
+    - (v24@0:8q16) setBatteryPercent:;  // imp 111984
+    - (d16@0:8) duration;  // imp 112004
+    - (v24@0:8d16) setDuration:;  // imp 112024
+    - (v16@0:8) .cxx_destruct;  // imp 112044
+    + (#16@0:8) layerClass;  // imp 52928
+@end
+
+@protocol NSObject
+    - (B24@0:8@16) isEqual:;
+    - (#16@0:8) class;
+    - (@16@0:8) self;
+    - (@24@0:8:16) performSelector:;
+    - (@32@0:8:16@24) performSelector:withObject:;
+    - (@40@0:8:16@24@32) performSelector:withObject:withObject:;
+    - (B16@0:8) isProxy;
+    - (B24@0:8#16) isKindOfClass:;
+    - (B24@0:8#16) isMemberOfClass:;
+    - (B24@0:8@16) conformsToProtocol:;
+    - (B24@0:8:16) respondsToSelector:;
+    - (@16@0:8) retain;
+    - (Vv16@0:8) release;
+    - (@16@0:8) autorelease;
+    - (Q16@0:8) retainCount;
+    - (^{_NSZone=}16@0:8) zone;
+    - (Q16@0:8) hash;
+    - (#16@0:8) superclass;
+    - (@16@0:8) description;
+@end
+
+@protocol CLLocationManagerDelegate
+@end

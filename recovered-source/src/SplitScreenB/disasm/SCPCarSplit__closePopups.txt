@@ -1,0 +1,111 @@
+; ==== SCPCarSplit__closePopups  @0x25894..0x25a4c (440 bytes) ====
+00025894  sub      sp, sp, #0x70                                
+00025898  stp      x26, x25, [sp, #0x20]                        
+0002589c  stp      x24, x23, [sp, #0x30]                        
+000258a0  stp      x22, x21, [sp, #0x40]                        
+000258a4  stp      x20, x19, [sp, #0x50]                        
+000258a8  stp      x29, x30, [sp, #0x60]                        
+000258ac  add      x29, sp, #0x60                               
+000258b0  mov      x20, x0                                      
+000258b4  bl       #0x59c20                                     ; msgSend "popupOpen"
+000258b8  cbz      w0, #0x259ec                                 
+000258bc  bl       #0x56164                                     ; call _CFAbsoluteTimeGetCurrent
+000258c0  mov      x0, x20                                      
+000258c4  bl       #0x5b6e0                                     ; msgSend "setPopupsClosedAt:"
+000258c8  adrp     x8, #0x87000                                 
+000258cc  ldr      x23, [x8, #0x678]                            ; classref NSString
+000258d0  mov      x0, x20                                      
+000258d4  bl       #0x5c820                                     ; msgSend "tray"
+000258d8  mov      x29, x29                                     
+000258dc  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+000258e0  mov      x19, x0                                      
+000258e4  adrp     x8, #0x7c000                                 
+000258e8  add      x8, x8, #0x140                               
+000258ec  adrp     x25, #0x7b000                                
+000258f0  add      x25, x25, #0x2a0                             
+000258f4  cmp      x0, #0                                       
+000258f8  csel     x24, x25, x8, eq                             
+000258fc  mov      x0, x20                                      
+00025900  bl       #0x59f80                                     ; msgSend "ratioMenu"
+00025904  mov      x29, x29                                     
+00025908  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002590c  mov      x21, x0                                      
+00025910  adrp     x8, #0x7c000                                 
+00025914  add      x8, x8, #0x160                               
+00025918  cmp      x0, #0                                       
+0002591c  csel     x26, x25, x8, eq                             
+00025920  mov      x0, x20                                      
+00025924  bl       #0x59a40                                     ; msgSend "pickerSheet"
+00025928  mov      x29, x29                                     
+0002592c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00025930  mov      x22, x0                                      
+00025934  mov      x0, x20                                      
+00025938  bl       #0x56f40                                     ; msgSend "anyBarVisible"
+0002593c  adrp     x8, #0x7c000                                 
+00025940  add      x8, x8, #0x180                               
+00025944  cmp      x22, #0                                      
+00025948  csel     x8, x25, x8, eq                              
+0002594c  adrp     x9, #0x7c000                                 
+00025950  add      x9, x9, #0x1a0                               
+00025954  cmp      w0, #0                                       
+00025958  csel     x9, x9, x25, ne                              
+0002595c  stp      x8, x9, [sp, #0x10]                          
+00025960  stp      x24, x26, [sp]                               
+00025964  adrp     x2, #0x7c000                                 
+00025968  add      x2, x2, #0x120                               
+0002596c  mov      x0, x23                                      
+00025970  bl       #0x5c440                                     ; msgSend "stringWithFormat:"
+00025974  mov      x29, x29                                     
+00025978  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002597c  mov      x23, x0                                      
+00025980  adrp     x0, #0x79000                                 
+00025984  add      x0, x0, #0x5c0                               
+00025988  mov      x1, x23                                      
+0002598c  bl       #0x4fbf4                                     
+00025990  mov      x0, x23                                      
+00025994  bl       #0x567b8                                     ; call _objc_release
+00025998  mov      x0, x22                                      
+0002599c  bl       #0x567b8                                     ; call _objc_release
+000259a0  mov      x0, x21                                      
+000259a4  bl       #0x567b8                                     ; call _objc_release
+000259a8  mov      x0, x19                                      
+000259ac  bl       #0x567b8                                     ; call _objc_release
+000259b0  mov      x0, x20                                      
+000259b4  bl       #0x57680                                     ; msgSend "collapseAppTray"
+000259b8  mov      x0, x20                                      
+000259bc  bl       #0x58460                                     ; msgSend "hideRatioMenu"
+000259c0  mov      x0, x20                                      
+000259c4  bl       #0x5a400                                     ; msgSend "removePickerSheet"
+000259c8  mov      x0, x20                                      
+000259cc  mov      x2, #0                                       
+000259d0  ldp      x29, x30, [sp, #0x60]                        
+000259d4  ldp      x20, x19, [sp, #0x50]                        
+000259d8  ldp      x22, x21, [sp, #0x40]                        
+000259dc  ldp      x24, x23, [sp, #0x30]                        
+000259e0  ldp      x26, x25, [sp, #0x20]                        
+000259e4  add      sp, sp, #0x70                                
+000259e8  b        #0x58440                                     ; msgSend "hideBarsForTouchOn:" | tail-msgSend "hideBarsForTouchOn:"
+000259ec  ldp      x29, x30, [sp, #0x60]                        
+000259f0  ldp      x20, x19, [sp, #0x50]                        
+000259f4  ldp      x22, x21, [sp, #0x40]                        
+000259f8  ldp      x24, x23, [sp, #0x30]                        
+000259fc  ldp      x26, x25, [sp, #0x20]                        
+00025a00  add      sp, sp, #0x70                                
+00025a04  ret                                                   
+00025a08  mov      x20, x0                                      
+00025a0c  mov      x0, x23                                      
+00025a10  bl       #0x567b8                                     ; call _objc_release
+00025a14  b        #0x25a2c                                     
+00025a18  mov      x20, x0                                      
+00025a1c  b        #0x25a34                                     
+00025a20  mov      x20, x0                                      
+00025a24  b        #0x25a3c                                     
+00025a28  mov      x20, x0                                      
+00025a2c  mov      x0, x22                                      
+00025a30  bl       #0x567b8                                     ; call _objc_release
+00025a34  mov      x0, x21                                      
+00025a38  bl       #0x567b8                                     ; call _objc_release
+00025a3c  mov      x0, x19                                      
+00025a40  bl       #0x567b8                                     ; call _objc_release
+00025a44  mov      x0, x20                                      
+00025a48  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,32 @@
+; sub_c4f4
+0x00c4f4  stp      x22, x21, [sp, #-0x30]!
+0x00c4f8  stp      x20, x19, [sp, #0x10]
+0x00c4fc  stp      x29, x30, [sp, #0x20]
+0x00c500  add      x29, sp, #0x20
+0x00c504  mov      x20, x1
+0x00c508  mov      x19, x0
+0x00c50c  bl       #0x567c4 ; call _objc_retain
+0x00c510  mov      x0, x20
+0x00c514  bl       #0x567c4 ; call _objc_retain
+0x00c518  adrp     x2, #0x7a000
+0x00c51c  add      x2, x2, #0x360 ; -> 0x7a360 @"com.anlai.omnicar"
+0x00c520  mov      x0, x19
+0x00c524  mov      x1, x20
+0x00c528  bl       #0x561a0 ; call _CFPreferencesSetAppValue
+0x00c52c  adrp     x0, #0x7a000
+0x00c530  add      x0, x0, #0x360 ; -> 0x7a360 @"com.anlai.omnicar"
+0x00c534  bl       #0x56170 ; call _CFPreferencesAppSynchronize
+0x00c538  mov      x0, x20
+0x00c53c  bl       #0x567b8 ; call _objc_release
+0x00c540  mov      x0, x19
+0x00c544  ldp      x29, x30, [sp, #0x20]
+0x00c548  ldp      x20, x19, [sp, #0x10]
+0x00c54c  ldp      x22, x21, [sp], #0x30
+0x00c550  b        #0x567b8 ; call _objc_release
+0x00c554  mov      x21, x0
+0x00c558  mov      x0, x20
+0x00c55c  bl       #0x567b8 ; call _objc_release
+0x00c560  mov      x0, x19
+0x00c564  bl       #0x567b8 ; call _objc_release
+0x00c568  mov      x0, x21
+0x00c56c  bl       #0x563e0 ; call __Unwind_Resume

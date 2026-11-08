@@ -1,0 +1,67 @@
+; sub_50b8
+; VA 0x50b8  size 256
+
+0x000050b8:  sub      sp, sp, #0x50
+0x000050bc:  stp      x20, x19, [sp, #0x30]
+0x000050c0:  stp      x29, x30, [sp, #0x40]
+0x000050c4:  add      x29, sp, #0x40
+0x000050c8:  mov      x0, x1
+0x000050cc:  bl       #0xc2e0    ; -> _objc_msgSend(userInfo)
+0x000050d0:  mov      x29, x29
+0x000050d4:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x000050d8:  mov      x20, x0
+0x000050dc:  adrp     x2, #0x10000
+0x000050e0:  add      x2, x2, #0x958    ; @"line"
+0x000050e4:  bl       #0xbe20    ; -> _objc_msgSend(objectForKeyedSubscript:)
+0x000050e8:  mov      x29, x29
+0x000050ec:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x000050f0:  mov      x19, x0
+0x000050f4:  mov      x0, x20
+0x000050f8:  bl       #0xb410    ; -> _objc_release
+0x000050fc:  adrp     x8, #0x14000
+0x00005100:  ldr      x0, [x8, #0x378]    ; class(NSString)
+0x00005104:  bl       #0xb3d4    ; -> _objc_opt_class
+0x00005108:  mov      x1, x0
+0x0000510c:  mov      x0, x19
+0x00005110:  bl       #0xb3e0    ; -> _objc_opt_isKindOfClass
+0x00005114:  tbz      w0, #0, #0x517c
+0x00005118:  bl       #0x4d6c    ; -> sub_4d6c
+0x0000511c:  mov      x29, x29
+0x00005120:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00005124:  mov      x20, x0
+0x00005128:  adrp     x8, #0x10000
+0x0000512c:  ldr      x8, [x8, #0x190]    ; got(__NSConcreteStackBlock)
+0x00005130:  str      x8, [sp, #8]
+0x00005134:  adrp     x8, #0xd000
+0x00005138:  ldr      d0, [x8, #0x40]
+0x0000513c:  str      d0, [sp, #0x10]
+0x00005140:  adrp     x8, #0x5000
+0x00005144:  add      x8, x8, #0x194
+0x00005148:  adrp     x9, #0x10000
+0x0000514c:  add      x9, x9, #0x468
+0x00005150:  stp      x8, x9, [sp, #0x18]
+0x00005154:  mov      x0, x19
+0x00005158:  bl       #0xb41c    ; -> _objc_retain
+0x0000515c:  str      x19, [sp, #0x28]
+0x00005160:  add      x1, sp, #8
+0x00005164:  mov      x0, x20
+0x00005168:  bl       #0xb1f4    ; -> _dispatch_async
+0x0000516c:  mov      x0, x20
+0x00005170:  bl       #0xb410    ; -> _objc_release
+0x00005174:  ldr      x0, [sp, #0x28]
+0x00005178:  bl       #0xb410    ; -> _objc_release
+0x0000517c:  mov      x0, x19
+0x00005180:  bl       #0xb410    ; -> _objc_release
+0x00005184:  ldp      x29, x30, [sp, #0x40]
+0x00005188:  ldp      x20, x19, [sp, #0x30]
+0x0000518c:  add      sp, sp, #0x50
+0x00005190:  ret      
+0x00005194:  stp      x20, x19, [sp, #-0x20]!
+0x00005198:  stp      x29, x30, [sp, #0x10]
+0x0000519c:  add      x29, sp, #0x10
+0x000051a0:  mov      x19, x0
+0x000051a4:  bl       #0x4ec8    ; -> sub_4ec8
+0x000051a8:  ldr      x0, [x19, #0x20]
+0x000051ac:  ldp      x29, x30, [sp, #0x10]
+0x000051b0:  ldp      x20, x19, [sp], #0x20
+0x000051b4:  b        #0x4f88    ; -> sub_4f88

@@ -1,0 +1,67 @@
+; ==== SCPCarSplit__endResize  @0x2c25c..0x2c364 (264 bytes) ====
+0002c25c  sub      sp, sp, #0x70                                
+0002c260  stp      x22, x21, [sp, #0x40]                        
+0002c264  stp      x20, x19, [sp, #0x50]                        
+0002c268  stp      x29, x30, [sp, #0x60]                        
+0002c26c  add      x29, sp, #0x60                               
+0002c270  mov      x20, x0                                      
+0002c274  bl       #0x5a480                                     ; msgSend "resizing"
+0002c278  cbz      w0, #0x2c33c                                 
+0002c27c  mov      x0, x20                                      
+0002c280  mov      w2, #0                                       
+0002c284  bl       #0x5b800                                     ; msgSend "setResizing:"
+0002c288  mov      x0, x20                                      
+0002c28c  mov      w2, #0                                       
+0002c290  bl       #0x59de0                                     ; msgSend "pushHostFramesLive:"
+0002c294  mov      x0, x20                                      
+0002c298  bl       #0x5c160                                     ; msgSend "slots"
+0002c29c  mov      x29, x29                                     
+0002c2a0  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0002c2a4  mov      x21, x0                                      
+0002c2a8  bl       #0x579a0                                     ; msgSend "copy"
+0002c2ac  mov      x19, x0                                      
+0002c2b0  mov      x0, x21                                      
+0002c2b4  bl       #0x567b8                                     ; call _objc_release
+0002c2b8  sub      x0, x29, #0x28                               
+0002c2bc  mov      x1, x20                                      
+0002c2c0  bl       #0x56740                                     ; call _objc_initWeak
+0002c2c4  adrp     x8, #0x78000                                 
+0002c2c8  ldr      x8, [x8, #0x338]                             
+0002c2cc  str      x8, [sp, #8]                                 
+0002c2d0  adrp     x8, #0x6e000                                 
+0002c2d4  ldr      d0, [x8, #0xff8]                             ; double 1.6080749353e-314
+0002c2d8  adrp     x8, #0x2c000                                 
+0002c2dc  add      x8, x8, #0x364                               
+0002c2e0  str      d0, [sp, #0x10]                              
+0002c2e4  adrp     x9, #0x78000                                 
+0002c2e8  add      x9, x9, #0xb40                               
+0002c2ec  stp      x8, x9, [sp, #0x18]                          
+0002c2f0  add      x20, sp, #8                                  
+0002c2f4  add      x0, x20, #0x28                               
+0002c2f8  sub      x1, x29, #0x28                               
+0002c2fc  bl       #0x566f8                                     ; call _objc_copyWeak
+0002c300  str      x19, [sp, #0x28]                             
+0002c304  mov      x0, x19                                      
+0002c308  bl       #0x567c4                                     ; call _objc_retain
+0002c30c  adrp     x8, #0x6f000                                 
+0002c310  ldr      d0, [x8, #0xb8]                              ; double 0.45
+0002c314  add      x0, sp, #8                                   
+0002c318  bl       #0x12efc                                     
+0002c31c  ldr      x0, [sp, #0x28]                              
+0002c320  bl       #0x567b8                                     ; call _objc_release
+0002c324  mov      x0, x19                                      
+0002c328  bl       #0x567b8                                     ; call _objc_release
+0002c32c  add      x0, x20, #0x28                               
+0002c330  bl       #0x56704                                     ; call _objc_destroyWeak
+0002c334  sub      x0, x29, #0x28                               
+0002c338  bl       #0x56704                                     ; call _objc_destroyWeak
+0002c33c  ldp      x29, x30, [sp, #0x60]                        
+0002c340  ldp      x20, x19, [sp, #0x50]                        
+0002c344  ldp      x22, x21, [sp, #0x40]                        
+0002c348  add      sp, sp, #0x70                                
+0002c34c  ret                                                   
+0002c350  mov      x19, x0                                      
+0002c354  mov      x0, x21                                      
+0002c358  bl       #0x567b8                                     ; call _objc_release
+0002c35c  mov      x0, x19                                      
+0002c360  bl       #0x563e0                                     ; call __Unwind_Resume

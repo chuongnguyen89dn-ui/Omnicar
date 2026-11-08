@@ -1,0 +1,71 @@
+; OMCCarLaunchInfo
+; VA 0x5c84  size 272
+
+0x00005c84:  sub      sp, sp, #0x40
+0x00005c88:  stp      x22, x21, [sp, #0x10]
+0x00005c8c:  stp      x20, x19, [sp, #0x20]
+0x00005c90:  stp      x29, x30, [sp, #0x30]
+0x00005c94:  add      x29, sp, #0x30
+0x00005c98:  mov      x19, x0
+0x00005c9c:  bl       #0xb41c    ; -> _objc_retain
+0x00005ca0:  cbz      x19, #0x5d70
+0x00005ca4:  adrp     x0, #0xc000
+0x00005ca8:  add      x0, x0, #0x61b    ; "DBApplicationLaunchInfo"
+0x00005cac:  bl       #0x526c    ; -> OMCCarClass
+0x00005cb0:  mov      x20, x0
+0x00005cb4:  adrp     x0, #0x10000
+0x00005cb8:  add      x0, x0, #0xbd8    ; @"launchInfoForApplication:"
+0x00005cbc:  bl       #0xb0f8    ; -> _NSSelectorFromString
+0x00005cc0:  mov      x22, x0
+0x00005cc4:  adrp     x0, #0x10000
+0x00005cc8:  add      x0, x0, #0xbf8    ; @"launchInfoForApplication:withActivationSettings:"
+0x00005ccc:  bl       #0xb0f8    ; -> _NSSelectorFromString
+0x00005cd0:  mov      x21, x0
+0x00005cd4:  mov      x0, x20
+0x00005cd8:  mov      x1, x22
+0x00005cdc:  bl       #0xb3f8    ; -> _objc_opt_respondsToSelector
+0x00005ce0:  tbz      w0, #0, #0x5d00
+0x00005ce4:  mov      x0, x20
+0x00005ce8:  mov      x1, x22
+0x00005cec:  mov      x2, x19
+0x00005cf0:  bl       #0xb3c8    ; -> _objc_msgSend
+0x00005cf4:  mov      x29, x29
+0x00005cf8:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00005cfc:  b        #0x5d2c    ; -> sub_5d2c
+0x00005d00:  mov      x0, x20
+0x00005d04:  mov      x1, x21
+0x00005d08:  bl       #0xb3f8    ; -> _objc_opt_respondsToSelector
+0x00005d0c:  tbz      w0, #0, #0x5d34
+0x00005d10:  mov      x0, x20
+0x00005d14:  mov      x1, x21
+0x00005d18:  mov      x2, x19
+0x00005d1c:  mov      x3, #0
+0x00005d20:  bl       #0xb3c8    ; -> _objc_msgSend
+0x00005d24:  mov      x29, x29
+0x00005d28:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00005d2c:  mov      x20, x0
+0x00005d30:  b        #0x5d74    ; -> sub_5d74
+0x00005d34:  adrp     x8, #0x14000
+0x00005d38:  ldr      x0, [x8, #0x378]    ; class(NSString)
+0x00005d3c:  str      x20, [sp]
+0x00005d40:  adrp     x2, #0x10000
+0x00005d44:  add      x2, x2, #0xc38    ; @"THIEU METHOD: %@ khong tao duoc launchInfo"
+0x00005d48:  bl       #0xc180    ; -> _objc_msgSend(stringWithFormat:)
+0x00005d4c:  mov      x29, x29
+0x00005d50:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00005d54:  mov      x20, x0
+0x00005d58:  adrp     x0, #0x10000
+0x00005d5c:  add      x0, x0, #0xc18    ; @"Core"
+0x00005d60:  mov      x1, x20
+0x00005d64:  bl       #0x4b64    ; -> OMCLogWrite
+0x00005d68:  mov      x0, x20
+0x00005d6c:  bl       #0xb410    ; -> _objc_release
+0x00005d70:  mov      x20, #0
+0x00005d74:  mov      x0, x19
+0x00005d78:  bl       #0xb410    ; -> _objc_release
+0x00005d7c:  mov      x0, x20
+0x00005d80:  ldp      x29, x30, [sp, #0x30]
+0x00005d84:  ldp      x20, x19, [sp, #0x20]
+0x00005d88:  ldp      x22, x21, [sp, #0x10]
+0x00005d8c:  add      sp, sp, #0x40
+0x00005d90:  b        #0xb38c    ; -> _objc_autoreleaseReturnValue

@@ -1,0 +1,108 @@
+; sub_1ea0c
+; VA 0x1ea0c  size 420
+
+0x0001ea0c:  sub      sp, sp, #0x40
+0x0001ea10:  stp      x22, x21, [sp, #0x10]
+0x0001ea14:  stp      x20, x19, [sp, #0x20]
+0x0001ea18:  stp      x29, x30, [sp, #0x30]
+0x0001ea1c:  add      x29, sp, #0x30
+0x0001ea20:  mov      x19, x0
+0x0001ea24:  ldr      x20, [x0, #0x20]
+0x0001ea28:  adrp     x0, #0x7b000
+0x0001ea2c:  add      x0, x0, #0x960    ; @"foregroundSceneWithSettings:completion:"
+0x0001ea30:  bl       #0x56374    ; -> _NSSelectorFromString
+0x0001ea34:  mov      x1, x0
+0x0001ea38:  adrp     x3, #0x78000
+0x0001ea3c:  add      x3, x3, #0xcb0    ; block_lit(invoke=0x1ebb0 sub_1ebb0, sig=v8@?0)
+0x0001ea40:  mov      x0, x20
+0x0001ea44:  mov      x2, #0
+0x0001ea48:  bl       #0x56758    ; -> _objc_msgSend
+0x0001ea4c:  adrp     x8, #0x87000
+0x0001ea50:  ldr      x20, [x8, #0x678]    ; class(NSString)
+0x0001ea54:  ldp      x0, x21, [x19, #0x20]
+0x0001ea58:  bl       #0x5cb60    ; -> _objc_msgSend(view)
+0x0001ea5c:  mov      x29, x29
+0x0001ea60:  bl       #0x567dc    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ea64:  mov      x19, x0
+0x0001ea68:  bl       #0x57320    ; -> _objc_msgSend(bounds)
+0x0001ea6c:  mov      v0.16b, v2.16b
+0x0001ea70:  mov      v1.16b, v3.16b
+0x0001ea74:  bl       #0x563a4    ; -> _NSStringFromCGSize
+0x0001ea78:  mov      x29, x29
+0x0001ea7c:  bl       #0x567dc    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ea80:  mov      x22, x0
+0x0001ea84:  stp      x21, x0, [sp]
+0x0001ea88:  adrp     x2, #0x7b000
+0x0001ea8c:  add      x2, x2, #0xb40    ; @"CarSplit: scene %@ -> toan man %@"
+0x0001ea90:  mov      x0, x20
+0x0001ea94:  bl       #0x5c440    ; -> _objc_msgSend(stringWithFormat:)
+0x0001ea98:  mov      x29, x29
+0x0001ea9c:  bl       #0x567dc    ; -> _objc_retainAutoreleasedReturnValue
+0x0001eaa0:  mov      x20, x0
+0x0001eaa4:  adrp     x0, #0x79000
+0x0001eaa8:  add      x0, x0, #0x5c0    ; @"SplitScreen"
+0x0001eaac:  mov      x1, x20
+0x0001eab0:  bl       #0x4fbf4    ; -> OMCLogWrite
+0x0001eab4:  mov      x0, x20
+0x0001eab8:  bl       #0x567b8    ; -> _objc_release
+0x0001eabc:  mov      x0, x22
+0x0001eac0:  bl       #0x567b8    ; -> _objc_release
+0x0001eac4:  mov      x0, x19
+0x0001eac8:  ldp      x29, x30, [sp, #0x30]
+0x0001eacc:  ldp      x20, x19, [sp, #0x20]
+0x0001ead0:  ldp      x22, x21, [sp, #0x10]
+0x0001ead4:  add      sp, sp, #0x40
+0x0001ead8:  b        #0x567b8    ; -> _objc_release
+0x0001eadc:  mov      x21, x1
+0x0001eae0:  mov      x1, x20
+0x0001eae4:  mov      x20, x0
+0x0001eae8:  mov      x0, x1
+0x0001eaec:  bl       #0x567b8    ; -> _objc_release
+0x0001eaf0:  b        #0x1eafc    ; -> sub_1eafc
+0x0001eaf4:  mov      x21, x1
+0x0001eaf8:  mov      x20, x0
+0x0001eafc:  mov      x0, x22
+0x0001eb00:  bl       #0x567b8    ; -> _objc_release
+0x0001eb04:  b        #0x1eb24    ; -> sub_1eb24
+0x0001eb08:  b        #0x1eb10    ; -> sub_1eb10
+0x0001eb0c:  b        #0x1eb10
+0x0001eb10:  mov      x21, x1
+0x0001eb14:  mov      x20, x0
+0x0001eb18:  b        #0x1eb2c    ; -> sub_1eb2c
+0x0001eb1c:  mov      x21, x1
+0x0001eb20:  mov      x20, x0
+0x0001eb24:  mov      x0, x19
+0x0001eb28:  bl       #0x567b8    ; -> _objc_release
+0x0001eb2c:  cmp      w21, #1
+0x0001eb30:  b.ne     #0x1eba8
+0x0001eb34:  mov      x0, x20
+0x0001eb38:  bl       #0x566ec    ; -> _objc_begin_catch
+0x0001eb3c:  adrp     x8, #0x87000
+0x0001eb40:  ldr      x8, [x8, #0x678]    ; class(NSString)
+0x0001eb44:  str      x0, [sp]
+0x0001eb48:  adrp     x2, #0x7b000
+0x0001eb4c:  add      x2, x2, #0xb60    ; @"CarSplit: foregroundScene toan man loi %@"
+0x0001eb50:  mov      x0, x8
+0x0001eb54:  bl       #0x5c440    ; -> _objc_msgSend(stringWithFormat:)
+0x0001eb58:  mov      x29, x29
+0x0001eb5c:  bl       #0x567dc    ; -> _objc_retainAutoreleasedReturnValue
+0x0001eb60:  mov      x19, x0
+0x0001eb64:  adrp     x0, #0x79000
+0x0001eb68:  add      x0, x0, #0x5c0    ; @"SplitScreen"
+0x0001eb6c:  mov      x1, x19
+0x0001eb70:  bl       #0x4fbf4    ; -> OMCLogWrite
+0x0001eb74:  mov      x0, x19
+0x0001eb78:  bl       #0x567b8    ; -> _objc_release
+0x0001eb7c:  ldp      x29, x30, [sp, #0x30]
+0x0001eb80:  ldp      x20, x19, [sp, #0x20]
+0x0001eb84:  ldp      x22, x21, [sp, #0x10]
+0x0001eb88:  add      sp, sp, #0x40
+0x0001eb8c:  b        #0x56710    ; -> _objc_end_catch
+0x0001eb90:  mov      x20, x0
+0x0001eb94:  mov      x0, x19
+0x0001eb98:  bl       #0x567b8    ; -> _objc_release
+0x0001eb9c:  b        #0x1eba4    ; -> sub_1eba4
+0x0001eba0:  mov      x20, x0
+0x0001eba4:  bl       #0x56710    ; -> _objc_end_catch
+0x0001eba8:  mov      x0, x20
+0x0001ebac:  bl       #0x563e0    ; -> __Unwind_Resume

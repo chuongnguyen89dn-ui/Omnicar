@@ -1,0 +1,43 @@
+; sub_1a26c
+; VA 0x1a26c  size 160
+
+0x0001a26c:  fdiv     d0, d13, d0
+0x0001a270:  ldr      d1, [x23, #0xf48]
+0x0001a274:  fmul     d0, d0, d1
+0x0001a278:  fadd     d0, d0, d0
+0x0001a27c:  bl       #0x21dcc    ; -> ___sincos_stret
+0x0001a280:  fmadd    d1, d1, d8, d14
+0x0001a284:  fmadd    d0, d0, d8, d15
+0x0001a288:  fmadd    d2, d11, d10, d0
+0x0001a28c:  fsub     d0, d1, d12
+0x0001a290:  fsub     d1, d2, d12
+0x0001a294:  mov      x0, x19
+0x0001a298:  mov      v2.16b, v9.16b
+0x0001a29c:  mov      v3.16b, v9.16b
+0x0001a2a0:  bl       #0x21c28    ; -> _CGContextFillEllipseInRect
+0x0001a2a4:  fmov     d3, #1.00000000
+0x0001a2a8:  fadd     d13, d13, d3
+0x0001a2ac:  subs     w24, w24, #1
+0x0001a2b0:  b.ne     #0x1a268
+0x0001a2b4:  add      x21, x21, #1
+0x0001a2b8:  cmp      x21, x22
+0x0001a2bc:  b.ne     #0x1a0bc
+0x0001a2c0:  ldr      x8, [sp, #0xa0]
+0x0001a2c4:  adrp     x9, #0x30000
+0x0001a2c8:  ldr      x9, [x9, #0x378]    ; got(___stack_chk_guard)
+0x0001a2cc:  ldr      x9, [x9]
+0x0001a2d0:  cmp      x9, x8
+0x0001a2d4:  b.ne     #0x1a308
+0x0001a2d8:  ldp      x29, x30, [sp, #0x140]
+0x0001a2dc:  ldp      x20, x19, [sp, #0x130]
+0x0001a2e0:  ldp      x22, x21, [sp, #0x120]
+0x0001a2e4:  ldp      x24, x23, [sp, #0x110]
+0x0001a2e8:  ldp      x26, x25, [sp, #0x100]
+0x0001a2ec:  ldp      x28, x27, [sp, #0xf0]
+0x0001a2f0:  ldp      d9, d8, [sp, #0xe0]
+0x0001a2f4:  ldp      d11, d10, [sp, #0xd0]
+0x0001a2f8:  ldp      d13, d12, [sp, #0xc0]
+0x0001a2fc:  ldp      d15, d14, [sp, #0xb0]
+0x0001a300:  add      sp, sp, #0x150
+0x0001a304:  ret      
+0x0001a308:  bl       #0x21dd8    ; -> ___stack_chk_fail

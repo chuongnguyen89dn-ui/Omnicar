@@ -1,0 +1,90 @@
+; OMCLiteActive
+; VA 0x4608  size 348
+
+0x00004608:  sub      sp, sp, #0x30
+0x0000460c:  stp      x20, x19, [sp, #0x10]
+0x00004610:  stp      x29, x30, [sp, #0x20]
+0x00004614:  add      x29, sp, #0x20
+0x00004618:  bl       #0xb05c    ; -> _CFAbsoluteTimeGetCurrent
+0x0000461c:  adrp     x8, #0x14000
+0x00004620:  ldr      d1, [x8, #0x478]
+0x00004624:  fsub     d2, d0, d1
+0x00004628:  fcmp     d1, #0.0
+0x0000462c:  fmov     d1, #3.00000000
+0x00004630:  fccmp    d2, d1, #0, ne
+0x00004634:  b.mi     #0x46cc
+0x00004638:  str      d0, [x8, #0x478]
+0x0000463c:  adrp     x0, #0x10000
+0x00004640:  add      x0, x0, #0x6d8    ; @"com.anlai.omnicar"
+0x00004644:  bl       #0xb068    ; -> _CFPreferencesAppSynchronize
+0x00004648:  adrp     x0, #0x10000
+0x0000464c:  add      x0, x0, #0x738    ; @"liteMode"
+0x00004650:  adrp     x1, #0x11000
+0x00004654:  add      x1, x1, #0xea0
+0x00004658:  bl       #0x44b4    ; -> OMCPref
+0x0000465c:  mov      x29, x29
+0x00004660:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00004664:  mov      x20, x0
+0x00004668:  bl       #0xbae0    ; -> _objc_msgSend(integerValue)
+0x0000466c:  mov      x19, x0
+0x00004670:  mov      x0, x20
+0x00004674:  bl       #0xb410    ; -> _objc_release
+0x00004678:  cmp      x19, #1
+0x0000467c:  b.eq     #0x46e0
+0x00004680:  cmp      x19, #2
+0x00004684:  b.ne     #0x46d8
+0x00004688:  bl       #0x451c    ; -> OMCEnabled
+0x0000468c:  tbz      w0, #0, #0x46d8
+0x00004690:  adrp     x8, #0x14000
+0x00004694:  ldr      x0, [x8, #0x368]    ; class(NSProcessInfo)
+0x00004698:  bl       #0xbee0    ; -> _objc_msgSend(processInfo)
+0x0000469c:  mov      x29, x29
+0x000046a0:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x000046a4:  mov      x19, x0
+0x000046a8:  bl       #0xc220    ; -> _objc_msgSend(thermalState)
+0x000046ac:  mov      x20, x0
+0x000046b0:  mov      x0, x19
+0x000046b4:  bl       #0xb410    ; -> _objc_release
+0x000046b8:  cmp      x20, #2
+0x000046bc:  b.lt     #0x4700
+0x000046c0:  adrp     x8, #0x14000
+0x000046c4:  mov      w0, #1
+0x000046c8:  b        #0x46e8    ; -> sub_46e8
+0x000046cc:  adrp     x8, #0x14000
+0x000046d0:  ldrb     w0, [x8, #0x470]
+0x000046d4:  b        #0x46ec    ; -> sub_46ec
+0x000046d8:  mov      w0, #0
+0x000046dc:  b        #0x46e4    ; -> sub_46e4
+0x000046e0:  bl       #0x451c    ; -> OMCEnabled
+0x000046e4:  adrp     x8, #0x14000
+0x000046e8:  strb     w0, [x8, #0x470]
+0x000046ec:  and      w0, w0, #1
+0x000046f0:  ldp      x29, x30, [sp, #0x20]
+0x000046f4:  ldp      x20, x19, [sp, #0x10]
+0x000046f8:  add      sp, sp, #0x30
+0x000046fc:  ret      
+0x00004700:  adrp     x19, #0x14000
+0x00004704:  ldr      w0, [x19, #0x430]
+0x00004708:  cmn      w0, #1
+0x0000470c:  b.eq     #0x472c
+0x00004710:  str      xzr, [sp, #8]
+0x00004714:  add      x1, sp, #8
+0x00004718:  bl       #0xb344    ; -> _notify_get_state
+0x0000471c:  ldr      x8, [sp, #8]
+0x00004720:  cmp      x8, #0
+0x00004724:  cset     w0, ne
+0x00004728:  b        #0x46e4    ; -> sub_46e4
+0x0000472c:  adrp     x0, #0xc000
+0x00004730:  add      x0, x0, #0x428    ; "com.anlai.omnicar/lite"
+0x00004734:  adrp     x1, #0x14000
+0x00004738:  add      x1, x1, #0x430
+0x0000473c:  bl       #0xb35c    ; -> _notify_register_check
+0x00004740:  cbz      w0, #0x475c
+0x00004744:  mov      w0, #0
+0x00004748:  mov      w8, #-1
+0x0000474c:  str      w8, [x19, #0x430]
+0x00004750:  adrp     x8, #0x14000
+0x00004754:  strb     wzr, [x8, #0x470]
+0x00004758:  b        #0x46ec    ; -> sub_46ec
+0x0000475c:  ldr      w0, [x19, #0x430]
+0x00004760:  b        #0x4710    ; -> sub_4710

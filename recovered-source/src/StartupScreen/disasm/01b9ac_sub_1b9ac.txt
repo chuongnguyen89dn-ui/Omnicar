@@ -1,0 +1,80 @@
+; sub_1b9ac
+; VA 0x1b9ac  size 308
+
+0x0001b9ac:  adrp     x2, #0x33000
+0x0001b9b0:  add      x2, x2, #0xae8    ; @"/var/mobile/Documents/OmniCar.log"
+0x0001b9b4:  mov      x3, #0
+0x0001b9b8:  bl       #0x22720    ; -> _objc_msgSend(attributesOfItemAtPath:error:)
+0x0001b9bc:  mov      x29, x29
+0x0001b9c0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001b9c4:  mov      x20, x0
+0x0001b9c8:  bl       #0x23300    ; -> _objc_msgSend(fileSize)
+0x0001b9cc:  mov      x21, x0
+0x0001b9d0:  mov      x0, x20
+0x0001b9d4:  bl       #0x22120    ; -> _objc_release
+0x0001b9d8:  cmp      x21, #0x200, lsl #12
+0x0001b9dc:  b.lo     #0x1ba30
+0x0001b9e0:  adrp     x20, #0x33000
+0x0001b9e4:  add      x20, x20, #0xae8    ; @"/var/mobile/Documents/OmniCar.log"
+0x0001b9e8:  adrp     x2, #0x34000
+0x0001b9ec:  add      x2, x2, #8    ; @".old"
+0x0001b9f0:  mov      x0, x20
+0x0001b9f4:  bl       #0x25b40    ; -> _objc_msgSend(stringByAppendingString:)
+0x0001b9f8:  mov      x29, x29
+0x0001b9fc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001ba00:  mov      x21, x0
+0x0001ba04:  mov      x0, x19
+0x0001ba08:  mov      x2, x21
+0x0001ba0c:  mov      x3, #0
+0x0001ba10:  bl       #0x24200    ; -> _objc_msgSend(removeItemAtPath:error:)
+0x0001ba14:  mov      x0, x19
+0x0001ba18:  mov      x2, x20
+0x0001ba1c:  mov      x3, x21
+0x0001ba20:  mov      x4, #0
+0x0001ba24:  bl       #0x23c40    ; -> _objc_msgSend(moveItemAtPath:toPath:error:)
+0x0001ba28:  mov      x0, x21
+0x0001ba2c:  bl       #0x22120    ; -> _objc_release
+0x0001ba30:  mov      x0, x19
+0x0001ba34:  ldp      x29, x30, [sp, #0x20]
+0x0001ba38:  ldp      x20, x19, [sp, #0x10]
+0x0001ba3c:  ldp      x22, x21, [sp], #0x30
+0x0001ba40:  b        #0x22120    ; -> _objc_release
+0x0001ba44:  stp      x20, x19, [sp, #-0x20]!
+0x0001ba48:  stp      x29, x30, [sp, #0x10]
+0x0001ba4c:  add      x29, sp, #0x10
+0x0001ba50:  mov      x19, x0
+0x0001ba54:  bl       #0x2212c    ; -> _objc_retain
+0x0001ba58:  adrp     x0, #0x33000
+0x0001ba5c:  add      x0, x0, #0xae8    ; @"/var/mobile/Documents/OmniCar.log"
+0x0001ba60:  bl       #0x23320    ; -> _objc_msgSend(fileSystemRepresentation)
+0x0001ba64:  adrp     x1, #0x28000
+0x0001ba68:  add      x1, x1, #0x66b    ; "a"
+0x0001ba6c:  bl       #0x21f40    ; -> _fopen
+0x0001ba70:  mov      x20, x0
+0x0001ba74:  cbz      x0, #0x1ba94
+0x0001ba78:  mov      x0, x19
+0x0001ba7c:  bl       #0x22138    ; -> _objc_retainAutorelease
+0x0001ba80:  bl       #0x223c0    ; -> _objc_msgSend(UTF8String)
+0x0001ba84:  mov      x1, x20
+0x0001ba88:  bl       #0x21f4c    ; -> _fputs
+0x0001ba8c:  mov      x0, x20
+0x0001ba90:  bl       #0x21f34    ; -> _fclose
+0x0001ba94:  cmp      x20, #0
+0x0001ba98:  cset     w20, ne
+0x0001ba9c:  mov      x0, x19
+0x0001baa0:  bl       #0x22120    ; -> _objc_release
+0x0001baa4:  mov      x0, x20
+0x0001baa8:  ldp      x29, x30, [sp, #0x10]
+0x0001baac:  ldp      x20, x19, [sp], #0x20
+0x0001bab0:  ret      
+0x0001bab4:  stp      x29, x30, [sp, #-0x10]!
+0x0001bab8:  mov      x29, sp
+0x0001babc:  adrp     x0, #0x34000
+0x0001bac0:  add      x0, x0, #0x28    ; @"NSDistributedNotificationCenter"
+0x0001bac4:  bl       #0x21d24    ; -> _NSClassFromString
+0x0001bac8:  cbz      x0, #0x1bad8
+0x0001bacc:  bl       #0x23060    ; -> _objc_msgSend(defaultCenter)
+0x0001bad0:  mov      x29, x29
+0x0001bad4:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0001bad8:  ldp      x29, x30, [sp], #0x10
+0x0001badc:  b        #0x22054    ; -> _objc_autoreleaseReturnValue

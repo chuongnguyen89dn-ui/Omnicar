@@ -1,0 +1,35 @@
+; sub_9f1c
+; VA 0x9f1c  size 128
+
+0x00009f1c:  sub      sp, sp, #0x40
+0x00009f20:  stp      d9, d8, [sp, #0x10]
+0x00009f24:  stp      x20, x19, [sp, #0x20]
+0x00009f28:  stp      x29, x30, [sp, #0x30]
+0x00009f2c:  add      x29, sp, #0x30
+0x00009f30:  mov      v8.16b, v1.16b
+0x00009f34:  mov      v9.16b, v0.16b
+0x00009f38:  adrp     x8, #0x3a000
+0x00009f3c:  ldr      x8, [x8, #0x9c0]    ; class(NSString)
+0x00009f40:  str      x0, [sp]
+0x00009f44:  adrp     x2, #0x31000
+0x00009f48:  add      x2, x2, #0xfa8    ; @"weather: SpringBoard fetching with the %@ position"
+0x00009f4c:  mov      x0, x8
+0x00009f50:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00009f54:  mov      x29, x29
+0x00009f58:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00009f5c:  mov      x19, x0
+0x00009f60:  adrp     x0, #0x30000
+0x00009f64:  add      x0, x0, #0xf28    ; @"StartupScreen"
+0x00009f68:  mov      x1, x19
+0x00009f6c:  bl       #0x1b620    ; -> OMCLogWrite
+0x00009f70:  mov      x0, x19
+0x00009f74:  bl       #0x22120    ; -> _objc_release
+0x00009f78:  adrp     x0, #0x30000
+0x00009f7c:  add      x0, x0, #0xb88    ; block_lit(invoke=0xa608 sub_a608, sig=v16@?0@"NSDictionary"8)
+0x00009f80:  mov      v0.16b, v9.16b
+0x00009f84:  mov      v1.16b, v8.16b
+0x00009f88:  ldp      x29, x30, [sp, #0x30]
+0x00009f8c:  ldp      x20, x19, [sp, #0x20]
+0x00009f90:  ldp      d9, d8, [sp, #0x10]
+0x00009f94:  add      sp, sp, #0x40
+0x00009f98:  b        #0x88e4    ; -> sub_88e4

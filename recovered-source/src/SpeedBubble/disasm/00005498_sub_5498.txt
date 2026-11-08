@@ -1,0 +1,170 @@
+# sub_5498
+# addr 0x5498 .. 0x5734  (668 bytes)
+
+00005498  sub      sp, sp, #0x140                              
+0000549c  stp      x28, x27, [sp, #0xe0]                       
+000054a0  stp      x26, x25, [sp, #0xf0]                       
+000054a4  stp      x24, x23, [sp, #0x100]                      
+000054a8  stp      x22, x21, [sp, #0x110]                      
+000054ac  stp      x20, x19, [sp, #0x120]                      
+000054b0  stp      x29, x30, [sp, #0x130]                      
+000054b4  add      x29, sp, #0x130                             
+000054b8  mov      x20, x1                                     
+000054bc  mov      x19, x0                                     
+000054c0  adrp     x8, #0x38000                                
+000054c4  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+000054c8  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000054cc  stur     x8, [x29, #-0x60]                           
+000054d0  adrp     x8, #0x43000                                
+000054d4  ldr      w8, [x8, #0x818]                            ; [0x43818] __DATA,__bss+0x78
+000054d8  cbnz     w8, #0x54f0                                 
+000054dc  adrp     x0, #0x2d000                                
+000054e0  add      x0, x0, #0xd79                              ; "com.anlai.omnicar/speedbubble.speed"
+000054e4  adrp     x1, #0x43000                                
+000054e8  add      x1, x1, #0x818                              ; __DATA,__bss+0x78
+000054ec  bl       #0x27ee4                                    ; _notify_register_check
+000054f0  adrp     x8, #0x43000                                
+000054f4  str      w19, [x8, #0x6a8]                           
+000054f8  adrp     x8, #0x43000                                
+000054fc  str      w20, [x8, #0x6ac]                           
+00005500  adrp     x8, #0x42000                                
+00005504  ldr      x0, [x8, #0xf90]                            ; [0x42f90] classref -> NSThread (= import _OBJC_CLASS_$_NSThread)
+00005508  bl       #0x29a80                                    ; objc_msgSend$isMainThread
+0000550c  cbz      w0, #0x5630                                 
+00005510  movi     v0.16b, #0                                  
+00005514  stp      q0, q0, [sp, #0x30]                         
+00005518  stp      q0, q0, [sp, #0x10]                         
+0000551c  adrp     x8, #0x42000                                
+00005520  ldr      x0, [x8, #0xf60]                            ; [0x42f60] classref -> UIApplication (= import _OBJC_CLASS_$_UIApplication)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+00005524  bl       #0x2bda0                                    ; objc_msgSend$sharedApplication
+00005528  mov      x29, x29                                    
+0000552c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005530  mov      x22, x0                                     
+00005534  bl       #0x28ec0                                    ; objc_msgSend$connectedScenes
+00005538  mov      x29, x29                                    
+0000553c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00005540  mov      x21, x0                                     
+00005544  mov      x0, x22                                     
+00005548  bl       #0x27ff8                                    ; _objc_release
+0000554c  add      x2, sp, #0x10                               
+00005550  add      x3, sp, #0x50                               
+00005554  mov      x0, x21                                     
+00005558  mov      w4, #0x10                                   
+0000555c  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00005560  mov      x23, x0                                     
+00005564  cbz      x0, #0x561c                                 
+00005568  ldr      x8, [sp, #0x20]                             
+0000556c  ldr      x27, [x8]                                   ; [0x42000] selref -> @fileURLWithPath:
+00005570  adrp     x22, #0x39000                               
+00005574  add      x22, x22, #0x238                            ; @"InstrumentCluster"
+00005578  mov      w8, #4                                      
+0000557c  str      x8, [sp, #8]                                
+00005580  mov      x28, #0                                     
+00005584  ldr      x8, [sp, #0x20]                             
+00005588  ldr      x8, [x8]                                    ; [0x42000] selref -> @fileURLWithPath:
+0000558c  cmp      x8, x27                                     
+00005590  b.eq     #0x559c                                     
+00005594  mov      x0, x21                                     
+00005598  bl       #0x27f68                                    ; _objc_enumerationMutation
+0000559c  ldr      x8, [sp, #0x18]                             
+000055a0  ldr      x24, [x8, x28, lsl #3]                      ; [0x42000] selref -> @fileURLWithPath:
+000055a4  mov      x0, x24                                     
+000055a8  bl       #0x283a0                                    ; objc_msgSend$activationState
+000055ac  cbnz     x0, #0x55f4                                 
+000055b0  mov      x0, x24                                     
+000055b4  bl       #0x2a880                                    ; objc_msgSend$session
+000055b8  mov      x29, x29                                    
+000055bc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000055c0  mov      x24, x0                                     
+000055c4  bl       #0x2a6e0                                    ; objc_msgSend$role
+000055c8  mov      x29, x29                                    
+000055cc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000055d0  mov      x25, x0                                     
+000055d4  mov      x2, x22                                     
+000055d8  bl       #0x28f00                                    ; objc_msgSend$containsString:
+000055dc  mov      x26, x0                                     
+000055e0  mov      x0, x25                                     
+000055e4  bl       #0x27ff8                                    ; _objc_release
+000055e8  mov      x0, x24                                     
+000055ec  bl       #0x27ff8                                    ; _objc_release
+000055f0  tbz      w26, #0, #0x5620                            
+000055f4  add      x28, x28, #1                                
+000055f8  cmp      x23, x28                                    
+000055fc  b.ne     #0x5584                                     
+00005600  add      x2, sp, #0x10                               
+00005604  add      x3, sp, #0x50                               
+00005608  mov      x0, x21                                     
+0000560c  mov      w4, #0x10                                   
+00005610  bl       #0x29020                                    ; objc_msgSend$countByEnumeratingWithState:objects:count:
+00005614  mov      x23, x0                                     
+00005618  cbnz     x0, #0x5580                                 
+0000561c  str      xzr, [sp, #8]                               
+00005620  mov      x0, x21                                     
+00005624  bl       #0x27ff8                                    ; _objc_release
+00005628  ldr      x13, [sp, #8]                               
+0000562c  b        #0x5634                                     ; sub_5634
+00005630  mov      x13, #0                                     
+00005634  adrp     x8, #0x43000                                
+00005638  ldr      w8, [x8, #0x800]                            ; [0x43800] __DATA,__bss+0x60
+0000563c  cmp      w19, #0xff                                  
+00005640  mov      w9, #0xff                                   
+00005644  csel     w10, w19, w9, lo                            
+00005648  lsl      w10, w10, #8                                
+0000564c  cmp      w19, #0                                     
+00005650  csel     w10, wzr, w10, lt                           
+00005654  bic      w11, w20, w20, asr #31                      
+00005658  cmp      w11, #0xff                                  
+0000565c  csel     w9, w11, w9, lt                             
+00005660  cmp      w20, #0                                     
+00005664  mov      w11, #2                                     
+00005668  csel     x11, xzr, x11, lt                           
+0000566c  mvn      w12, w19                                    
+00005670  lsr      w12, w12, #0x1f                             
+00005674  orr      x11, x11, x12                               
+00005678  add      x11, x11, x13                               
+0000567c  ubfiz    x8, x8, #3, #3                              
+00005680  add      x8, x11, x8                                 
+00005684  orr      w9, w9, w10                                 
+00005688  orr      x1, x9, x8, lsl #16                         
+0000568c  adrp     x8, #0x43000                                
+00005690  ldr      w0, [x8, #0x818]                            ; [0x43818] __DATA,__bss+0x78
+00005694  bl       #0x27efc                                    ; _notify_set_state
+00005698  adrp     x0, #0x2d000                                
+0000569c  add      x0, x0, #0xd79                              ; "com.anlai.omnicar/speedbubble.speed"
+000056a0  bl       #0x27ed8                                    ; _notify_post
+000056a4  ldur     x8, [x29, #-0x60]                           
+000056a8  adrp     x9, #0x38000                                
+000056ac  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+000056b0  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000056b4  cmp      x9, x8                                      
+000056b8  b.ne     #0x56dc                                     
+000056bc  ldp      x29, x30, [sp, #0x130]                      
+000056c0  ldp      x20, x19, [sp, #0x120]                      
+000056c4  ldp      x22, x21, [sp, #0x110]                      
+000056c8  ldp      x24, x23, [sp, #0x100]                      
+000056cc  ldp      x26, x25, [sp, #0xf0]                       
+000056d0  ldp      x28, x27, [sp, #0xe0]                       
+000056d4  add      sp, sp, #0x140                              
+000056d8  ret                                                  
+000056dc  bl       #0x27ca4                                    ; ___stack_chk_fail
+000056e0  b        #0x5718                                     ; sub_5718
+000056e4  mov      x19, x0                                     
+000056e8  mov      x0, x22                                     
+000056ec  bl       #0x27ff8                                    ; _objc_release
+000056f0  b        #0x572c                                     ; sub_572c
+000056f4  b        #0x5718                                     ; sub_5718
+000056f8  mov      x19, x0                                     
+000056fc  b        #0x570c                                     ; sub_570c
+00005700  mov      x19, x0                                     
+00005704  mov      x0, x25                                     
+00005708  bl       #0x27ff8                                    ; _objc_release
+0000570c  mov      x0, x24                                     
+00005710  bl       #0x27ff8                                    ; _objc_release
+00005714  b        #0x571c                                     ; sub_571c
+00005718  mov      x19, x0                                     
+0000571c  mov      x0, x21                                     
+00005720  bl       #0x27ff8                                    ; _objc_release
+00005724  b        #0x572c                                     ; sub_572c
+00005728  mov      x19, x0                                     
+0000572c  mov      x0, x19                                     
+00005730  bl       #0x27c80                                    ; __Unwind_Resume

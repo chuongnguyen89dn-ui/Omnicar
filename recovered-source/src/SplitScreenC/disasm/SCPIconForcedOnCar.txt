@@ -1,0 +1,74 @@
+; _SCPIconForcedOnCar
+0x00bb20  stp      x24, x23, [sp, #-0x40]!
+0x00bb24  stp      x22, x21, [sp, #0x10]
+0x00bb28  stp      x20, x19, [sp, #0x20]
+0x00bb2c  stp      x29, x30, [sp, #0x30]
+0x00bb30  add      x29, sp, #0x30
+0x00bb34  mov      x19, x0
+0x00bb38  bl       #0x567c4 ; call _objc_retain
+0x00bb3c  bl       #0xbc44 ; -> sub_bc44
+0x00bb40  mov      x29, x29
+0x00bb44  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00bb48  mov      x20, x0
+0x00bb4c  bl       #0x579e0 ; objc_msgSend$count
+0x00bb50  mov      w22, #0
+0x00bb54  cbz      x19, #0xbbb8
+0x00bb58  cbz      x0, #0xbbb8
+0x00bb5c  mov      x0, x19
+0x00bb60  bl       #0xb82c ; -> sub_b82c
+0x00bb64  mov      x29, x29
+0x00bb68  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00bb6c  mov      x21, x0
+0x00bb70  cbz      x0, #0xbbac
+0x00bb74  mov      x0, x20
+0x00bb78  mov      x2, x21
+0x00bb7c  bl       #0x57820 ; objc_msgSend$containsObject:
+0x00bb80  cbz      w0, #0xbbac
+0x00bb84  bl       #0xb78c ; -> sub_b78c
+0x00bb88  mov      x29, x29
+0x00bb8c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00bb90  mov      x22, x0
+0x00bb94  mov      x2, x21
+0x00bb98  bl       #0x57820 ; objc_msgSend$containsObject:
+0x00bb9c  mov      x23, x0
+0x00bba0  mov      x0, x22
+0x00bba4  bl       #0x567b8 ; call _objc_release
+0x00bba8  tbz      w23, #0, #0xbbe0
+0x00bbac  mov      w22, #0
+0x00bbb0  mov      x0, x21
+0x00bbb4  bl       #0x567b8 ; call _objc_release
+0x00bbb8  mov      x0, x20
+0x00bbbc  bl       #0x567b8 ; call _objc_release
+0x00bbc0  mov      x0, x19
+0x00bbc4  bl       #0x567b8 ; call _objc_release
+0x00bbc8  mov      x0, x22
+0x00bbcc  ldp      x29, x30, [sp, #0x30]
+0x00bbd0  ldp      x20, x19, [sp, #0x20]
+0x00bbd4  ldp      x22, x21, [sp, #0x10]
+0x00bbd8  ldp      x24, x23, [sp], #0x40
+0x00bbdc  ret      
+0x00bbe0  adrp     x0, #0x7a000
+0x00bbe4  add      x0, x0, #0x740 ; -> 0x7a740 @"hien lai (iOS da bo trong Tuy chinh, isIconVisible: YES):"
+0x00bbe8  mov      x1, x21
+0x00bbec  bl       #0xb9ac ; -> sub_b9ac
+0x00bbf0  mov      w22, #1
+0x00bbf4  b        #0xbbb0
+0x00bbf8  mov      x1, x22
+0x00bbfc  mov      x22, x0
+0x00bc00  mov      x0, x1
+0x00bc04  bl       #0x567b8 ; call _objc_release
+0x00bc08  b        #0xbc14
+0x00bc0c  b        #0xbc20
+0x00bc10  mov      x22, x0
+0x00bc14  mov      x0, x21
+0x00bc18  bl       #0x567b8 ; call _objc_release
+0x00bc1c  b        #0xbc24
+0x00bc20  mov      x22, x0
+0x00bc24  mov      x0, x20
+0x00bc28  bl       #0x567b8 ; call _objc_release
+0x00bc2c  b        #0xbc34
+0x00bc30  mov      x22, x0
+0x00bc34  mov      x0, x19
+0x00bc38  bl       #0x567b8 ; call _objc_release
+0x00bc3c  mov      x0, x22
+0x00bc40  bl       #0x563e0 ; call __Unwind_Resume

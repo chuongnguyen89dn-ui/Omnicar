@@ -1,0 +1,21 @@
+# -[SPPBubble baseScaled:]
+# addr 0x17d1c .. 0x17d64  (72 bytes)
+
+00017d1c  stp      d9, d8, [sp, #-0x30]!                       
+00017d20  stp      x20, x19, [sp, #0x10]                       
+00017d24  stp      x29, x30, [sp, #0x20]                       
+00017d28  add      x29, sp, #0x20                              
+00017d2c  mov      v8.16b, v0.16b                              
+00017d30  mov      x19, x0                                     
+00017d34  mov      x20, x8                                     
+00017d38  bl       #0x2a780                                    ; objc_msgSend$scale
+00017d3c  fmul     d9, d8, d0                                  
+00017d40  mov      x0, x19                                     
+00017d44  bl       #0x2a780                                    ; objc_msgSend$scale
+00017d48  fmul     d1, d8, d0                                  
+00017d4c  mov      x8, x20                                     
+00017d50  mov      v0.16b, v9.16b                              
+00017d54  ldp      x29, x30, [sp, #0x20]                       
+00017d58  ldp      x20, x19, [sp, #0x10]                       
+00017d5c  ldp      d9, d8, [sp], #0x30                         
+00017d60  b        #0x27b18                                    ; _CGAffineTransformMakeScale

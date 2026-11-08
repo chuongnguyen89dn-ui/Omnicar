@@ -1,0 +1,74 @@
+=== -[ABHost setHole:forApp:] @ 0x12ce4 (size 292) ===
+00012ce4  stp      d13, d12, [sp, #-0x50]!
+00012ce8  stp      d11, d10, [sp, #0x10]
+00012cec  stp      d9, d8, [sp, #0x20]
+00012cf0  stp      x20, x19, [sp, #0x30]
+00012cf4  stp      x29, x30, [sp, #0x40]
+00012cf8  add      x29, sp, #0x40
+00012cfc  mov      v8.16b, v3.16b
+00012d00  mov      v9.16b, v2.16b
+00012d04  mov      v10.16b, v1.16b
+00012d08  mov      v11.16b, v0.16b
+00012d0c  bl       #0x26520 ; objc_msgSend sel=paneFor:
+00012d10  mov      x29, x29
+00012d14  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012d18  mov      x19, x0
+00012d1c  cbz      x0, #0x12dbc
+00012d20  mov      v0.16b, v11.16b
+00012d24  mov      v1.16b, v10.16b
+00012d28  mov      v2.16b, v9.16b
+00012d2c  mov      v3.16b, v8.16b
+00012d30  bl       #0x243c8 ; call _CGRectIsEmpty
+00012d34  cbz      w0, #0x12d4c
+00012d38  adrp     x8, #0x34000
+00012d3c  ldr      x8, [x8, #0x570] ; -> _CGRectZero
+00012d40  ldp      d8, d9, [x8]
+00012d44  ldp      d10, d11, [x8, #0x10]
+00012d48  b        #0x12d8c ; call sub_12d8c
+00012d4c  mov      x0, x19
+00012d50  bl       #0x257c0 ; objc_msgSend sel=frame
+00012d54  mov      v12.16b, v0.16b
+00012d58  mov      x0, x19
+00012d5c  bl       #0x257c0 ; objc_msgSend sel=frame
+00012d60  fneg     d4, d12
+00012d64  fneg     d5, d1
+00012d68  mov      v0.16b, v11.16b
+00012d6c  mov      v1.16b, v10.16b
+00012d70  mov      v2.16b, v9.16b
+00012d74  mov      v3.16b, v8.16b
+00012d78  bl       #0x243d4 ; call _CGRectOffset
+00012d7c  mov      v8.16b, v0.16b
+00012d80  mov      v9.16b, v1.16b
+00012d84  mov      v10.16b, v2.16b
+00012d88  mov      v11.16b, v3.16b
+00012d8c  mov      x0, x19
+00012d90  bl       #0x24f60 ; objc_msgSend sel=box
+00012d94  mov      x29, x29
+00012d98  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00012d9c  mov      x20, x0
+00012da0  mov      v0.16b, v8.16b
+00012da4  mov      v1.16b, v9.16b
+00012da8  mov      v2.16b, v10.16b
+00012dac  mov      v3.16b, v11.16b
+00012db0  bl       #0x27100 ; objc_msgSend sel=setHole:
+00012db4  mov      x0, x20
+00012db8  bl       #0x2480c ; call _objc_release
+00012dbc  mov      x0, x19
+00012dc0  ldp      x29, x30, [sp, #0x40]
+00012dc4  ldp      x20, x19, [sp, #0x30]
+00012dc8  ldp      d9, d8, [sp, #0x20]
+00012dcc  ldp      d11, d10, [sp, #0x10]
+00012dd0  ldp      d13, d12, [sp], #0x50
+00012dd4  b        #0x2480c ; call _objc_release
+00012dd8  b        #0x12df4 ; call sub_12df4
+00012ddc  mov      x1, x20
+00012de0  mov      x20, x0
+00012de4  mov      x0, x1
+00012de8  bl       #0x2480c ; call _objc_release
+00012dec  b        #0x12df8 ; call sub_12df8
+00012df0  b        #0x12df4 ; call sub_12df4
+00012df4  mov      x20, x0
+00012df8  mov      x0, x19
+00012dfc  bl       #0x2480c ; call _objc_release
+00012e00  mov      x0, x20
+00012e04  bl       #0x24470 ; call __Unwind_Resume

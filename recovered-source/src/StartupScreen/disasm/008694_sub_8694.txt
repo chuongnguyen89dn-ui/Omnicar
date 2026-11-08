@@ -1,0 +1,18 @@
+; sub_8694
+; VA 0x8694  size 60
+
+0x00008694:  stp      x20, x19, [sp, #-0x20]!
+0x00008698:  stp      x29, x30, [sp, #0x10]
+0x0000869c:  add      x29, sp, #0x10
+0x000086a0:  mov      x0, x1
+0x000086a4:  bl       #0x23e60    ; -> _objc_msgSend(object)
+0x000086a8:  mov      x29, x29
+0x000086ac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000086b0:  mov      x19, x0
+0x000086b4:  adrp     x1, #0x31000
+0x000086b8:  add      x1, x1, #0x3a8    ; @"sceneActivate"
+0x000086bc:  bl       #0x84b8    ; -> sub_84b8
+0x000086c0:  mov      x0, x19
+0x000086c4:  ldp      x29, x30, [sp, #0x10]
+0x000086c8:  ldp      x20, x19, [sp], #0x20
+0x000086cc:  b        #0x22120    ; -> _objc_release

@@ -1,0 +1,20 @@
+; ==== BLOCK_endPaneDrag_completion  @0x27de8..0x27e34 (76 bytes) ====
+00027de8  stp      x20, x19, [sp, #-0x20]!                      
+00027dec  stp      x29, x30, [sp, #0x10]                        
+00027df0  add      x29, sp, #0x10                               
+00027df4  mov      x19, x0                                      
+00027df8  ldr      x0, [x0, #0x20]                              
+00027dfc  bl       #0x5a2c0                                     ; msgSend "removeFromSuperview"
+00027e00  add      x0, x19, #0x28                               
+00027e04  bl       #0x5674c                                     ; call _objc_loadWeakRetained
+00027e08  mov      x19, x0                                      
+00027e0c  bl       #0x584a0                                     ; msgSend "hideTrayWindowIfIdle"
+00027e10  mov      x0, x19                                      
+00027e14  ldp      x29, x30, [sp, #0x10]                        
+00027e18  ldp      x20, x19, [sp], #0x20                        
+00027e1c  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+00027e20  mov      x20, x0                                      
+00027e24  mov      x0, x19                                      
+00027e28  bl       #0x567b8                                     ; call _objc_release
+00027e2c  mov      x0, x20                                      
+00027e30  bl       #0x563e0                                     ; call __Unwind_Resume

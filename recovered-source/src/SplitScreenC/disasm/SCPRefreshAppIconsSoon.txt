@@ -1,0 +1,33 @@
+; _SCPRefreshAppIconsSoon
+0x00aa10  sub      sp, sp, #0x50
+0x00aa14  stp      x20, x19, [sp, #0x30]
+0x00aa18  stp      x29, x30, [sp, #0x40]
+0x00aa1c  add      x29, sp, #0x40
+0x00aa20  adrp     x8, #0x88000
+0x00aa24  ldr      x9, [x8, #0xd8]
+0x00aa28  add      x19, x9, #1
+0x00aa2c  str      x19, [x8, #0xd8]
+0x00aa30  mov      x0, #0
+0x00aa34  mov      w1, #0x800
+0x00aa38  movk     w1, #0x2faf, lsl #16
+0x00aa3c  bl       #0x56548 ; call _dispatch_time
+0x00aa40  adrp     x8, #0x78000
+0x00aa44  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x00aa48  str      x8, [sp, #8]
+0x00aa4c  adrp     x8, #0x6f000
+0x00aa50  ldr      d0, [x8, #8]
+0x00aa54  adrp     x8, #0xa000
+0x00aa58  add      x8, x8, #0xa90 ; -> 0xaa90 sub_aa90
+0x00aa5c  str      d0, [sp, #0x10]
+0x00aa60  adrp     x9, #0x78000
+0x00aa64  add      x9, x9, #0x9a0 ; -> 0x789a0
+0x00aa68  stp      x8, x9, [sp, #0x18]
+0x00aa6c  str      x19, [sp, #0x28]
+0x00aa70  adrp     x1, #0x78000
+0x00aa74  ldr      x1, [x1, #0x370] ; [0x78370] __dispatch_main_q
+0x00aa78  add      x2, sp, #8
+0x00aa7c  bl       #0x564d0 ; call _dispatch_after
+0x00aa80  ldp      x29, x30, [sp, #0x40]
+0x00aa84  ldp      x20, x19, [sp, #0x30]
+0x00aa88  add      sp, sp, #0x50
+0x00aa8c  ret      

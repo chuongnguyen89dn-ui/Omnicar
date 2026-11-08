@@ -1,0 +1,17 @@
+; sub_6ff4
+; VA 0x6ff4  size 56
+
+0x00006ff4:  stp      x20, x19, [sp, #-0x20]!
+0x00006ff8:  stp      x29, x30, [sp, #0x10]
+0x00006ffc:  add      x29, sp, #0x10
+0x00007000:  ldr      x0, [x0, #0x20]
+0x00007004:  bl       #0x260a0    ; -> _objc_msgSend(window)
+0x00007008:  mov      x29, x29
+0x0000700c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00007010:  mov      x19, x0
+0x00007014:  fmov     d0, xzr
+0x00007018:  bl       #0x24420    ; -> _objc_msgSend(setAlpha:)
+0x0000701c:  mov      x0, x19
+0x00007020:  ldp      x29, x30, [sp, #0x10]
+0x00007024:  ldp      x20, x19, [sp], #0x20
+0x00007028:  b        #0x22120    ; -> _objc_release

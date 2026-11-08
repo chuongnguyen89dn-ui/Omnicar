@@ -1,0 +1,27 @@
+# sub_23c90
+# addr 0x23c90 .. 0x23cf0  (96 bytes)
+
+00023c90  stp      x20, x19, [sp, #-0x20]!                     
+00023c94  stp      x29, x30, [sp, #0x10]                       
+00023c98  add      x29, sp, #0x10                              
+00023c9c  adrp     x8, #0x42000                                
+00023ca0  ldr      x0, [x8, #0xf50]                            ; [0x42f50] classref -> NSBundle (= import _OBJC_CLASS_$_NSBundle)
+00023ca4  bl       #0x29d20                                    ; objc_msgSend$mainBundle
+00023ca8  mov      x29, x29                                    
+00023cac  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023cb0  mov      x19, x0                                     
+00023cb4  bl       #0x28b60                                    ; objc_msgSend$bundleIdentifier
+00023cb8  mov      x29, x29                                    
+00023cbc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00023cc0  mov      x20, x0                                     
+00023cc4  adrp     x2, #0x38000                                
+00023cc8  add      x2, x2, #0xf38                              ; @"com.apple.CarPlayApp"
+00023ccc  bl       #0x29a00                                    ; objc_msgSend$isEqualToString:
+00023cd0  adrp     x8, #0x43000                                
+00023cd4  strb     w0, [x8, #0xaa0]                            
+00023cd8  mov      x0, x20                                     
+00023cdc  bl       #0x27ff8                                    ; _objc_release
+00023ce0  mov      x0, x19                                     
+00023ce4  ldp      x29, x30, [sp, #0x10]                       
+00023ce8  ldp      x20, x19, [sp], #0x20                       
+00023cec  b        #0x27ff8                                    ; _objc_release

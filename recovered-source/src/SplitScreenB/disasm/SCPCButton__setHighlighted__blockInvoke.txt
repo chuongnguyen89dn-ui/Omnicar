@@ -1,0 +1,31 @@
+0000e810  sub      sp, sp, #0x80                                
+0000e814  stp      x20, x19, [sp, #0x60]                        
+0000e818  stp      x29, x30, [sp, #0x70]                        
+0000e81c  add      x29, sp, #0x70                               
+0000e820  mov      x19, x0                                      
+0000e824  ldrb     w8, [x0, #0x28]                              
+0000e828  cmp      w8, #1                                       
+0000e82c  b.ne     #0xe848                                      
+0000e830  adrp     x8, #0x6f000                                 
+0000e834  ldr      d0, [x8, #0x28]                              ; double 0.9
+0000e838  add      x8, sp, #0x30                                
+0000e83c  mov      v1.16b, v0.16b                               
+0000e840  bl       #0x561dc                                     ; call _CGAffineTransformMakeScale
+0000e844  b        #0xe860                                      
+0000e848  adrp     x8, #0x78000                                 
+0000e84c  ldr      x8, [x8, #0x598]                             
+0000e850  ldp      q0, q1, [x8]                                 
+0000e854  stp      q0, q1, [sp, #0x30]                          
+0000e858  ldr      q0, [x8, #0x20]                              
+0000e85c  str      q0, [sp, #0x50]                              
+0000e860  ldp      q0, q1, [sp, #0x30]                          
+0000e864  stp      q0, q1, [sp]                                 
+0000e868  ldr      q0, [sp, #0x50]                              
+0000e86c  str      q0, [sp, #0x20]                              
+0000e870  ldr      x0, [x19, #0x20]                             
+0000e874  mov      x2, sp                                       
+0000e878  bl       #0x5bc60                                     ; msgSend "setTransform:"
+0000e87c  ldp      x29, x30, [sp, #0x70]                        
+0000e880  ldp      x20, x19, [sp, #0x60]                        
+0000e884  add      sp, sp, #0x80                                
+0000e888  ret                                                   

@@ -1,0 +1,30 @@
+; -[SCPCarSplit closeApp:]
+0x0215a4  stp      x20, x19, [sp, #-0x20]!
+0x0215a8  stp      x29, x30, [sp, #0x10]
+0x0215ac  add      x29, sp, #0x10
+0x0215b0  mov      x20, x0
+0x0215b4  bl       #0x59820 ; objc_msgSend$paneForBundle:
+0x0215b8  mov      x29, x29
+0x0215bc  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0215c0  mov      x19, x0
+0x0215c4  mov      x0, x20
+0x0215c8  bl       #0x56b60 ; objc_msgSend$active
+0x0215cc  cmp      x19, #0
+0x0215d0  csel     w8, wzr, w0, eq
+0x0215d4  cmp      w8, #1
+0x0215d8  b.ne     #0x215f4
+0x0215dc  mov      x0, x19
+0x0215e0  bl       #0x5c100 ; objc_msgSend$slot
+0x0215e4  mov      x2, x0
+0x0215e8  mov      x0, x20
+0x0215ec  mov      w3, #1
+0x0215f0  bl       #0x57660 ; objc_msgSend$closeSlot:background:
+0x0215f4  mov      x0, x19
+0x0215f8  ldp      x29, x30, [sp, #0x10]
+0x0215fc  ldp      x20, x19, [sp], #0x20
+0x021600  b        #0x567b8 ; call _objc_release
+0x021604  mov      x20, x0
+0x021608  mov      x0, x19
+0x02160c  bl       #0x567b8 ; call _objc_release
+0x021610  mov      x0, x20
+0x021614  bl       #0x563e0 ; call __Unwind_Resume

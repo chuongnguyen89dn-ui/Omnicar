@@ -1,0 +1,77 @@
+# sub_b0ec
+# addr 0xb0ec .. 0xb214  (296 bytes)
+
+0000b0ec  stp      x22, x21, [sp, #-0x30]!                     
+0000b0f0  stp      x20, x19, [sp, #0x10]                       
+0000b0f4  stp      x29, x30, [sp, #0x20]                       
+0000b0f8  add      x29, sp, #0x20                              
+0000b0fc  mov      x19, x0                                     
+0000b100  bl       #0x28004                                    ; _objc_retain
+0000b104  cbz      x19, #0xb1b4                                
+0000b108  mov      x0, x19                                     
+0000b10c  bl       #0x29720                                    ; objc_msgSend$image
+0000b110  mov      x29, x29                                    
+0000b114  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000b118  mov      x20, x0                                     
+0000b11c  bl       #0x27ff8                                    ; _objc_release
+0000b120  cbz      x20, #0xb1b4                                
+0000b124  mov      x0, x19                                     
+0000b128  bl       #0x29720                                    ; objc_msgSend$image
+0000b12c  mov      x29, x29                                    
+0000b130  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000b134  mov      x21, x0                                     
+0000b138  bl       #0xb720                                     ; sub_b720
+0000b13c  mov      x29, x29                                    
+0000b140  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000b144  mov      x22, x0                                     
+0000b148  bl       #0xb4f0                                     ; sub_b4f0
+0000b14c  mov      x20, x0                                     
+0000b150  mov      x0, x22                                     
+0000b154  bl       #0x27ff8                                    ; _objc_release
+0000b158  mov      x0, x21                                     
+0000b15c  bl       #0x27ff8                                    ; _objc_release
+0000b160  tbz      w20, #0x1f, #0xb1b8                         
+0000b164  mov      x0, x19                                     
+0000b168  bl       #0x28340                                    ; objc_msgSend$accessibilityIdentifier
+0000b16c  mov      x29, x29                                    
+0000b170  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000b174  mov      x21, x0                                     
+0000b178  bl       #0xb4f0                                     ; sub_b4f0
+0000b17c  mov      x20, x0                                     
+0000b180  mov      x0, x21                                     
+0000b184  bl       #0x27ff8                                    ; _objc_release
+0000b188  tbz      w20, #0x1f, #0xb1b8                         
+0000b18c  mov      x0, x19                                     
+0000b190  bl       #0x28360                                    ; objc_msgSend$accessibilityLabel
+0000b194  mov      x29, x29                                    
+0000b198  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0000b19c  mov      x21, x0                                     
+0000b1a0  bl       #0xb4f0                                     ; sub_b4f0
+0000b1a4  mov      x20, x0                                     
+0000b1a8  mov      x0, x21                                     
+0000b1ac  bl       #0x27ff8                                    ; _objc_release
+0000b1b0  b        #0xb1b8                                     ; sub_b1b8
+0000b1b4  mov      w20, #-1                                    
+0000b1b8  mov      x0, x19                                     
+0000b1bc  bl       #0x27ff8                                    ; _objc_release
+0000b1c0  mov      x0, x20                                     
+0000b1c4  ldp      x29, x30, [sp, #0x20]                       
+0000b1c8  ldp      x20, x19, [sp, #0x10]                       
+0000b1cc  ldp      x22, x21, [sp], #0x30                       
+0000b1d0  ret                                                  
+0000b1d4  b        #0xb1ec                                     ; sub_b1ec
+0000b1d8  b        #0xb1ec                                     ; sub_b1ec
+0000b1dc  mov      x20, x0                                     
+0000b1e0  mov      x0, x22                                     
+0000b1e4  bl       #0x27ff8                                    ; _objc_release
+0000b1e8  b        #0xb1f0                                     ; sub_b1f0
+0000b1ec  mov      x20, x0                                     
+0000b1f0  mov      x0, x21                                     
+0000b1f4  bl       #0x27ff8                                    ; _objc_release
+0000b1f8  b        #0xb204                                     ; sub_b204
+0000b1fc  b        #0xb200                                     ; sub_b200
+0000b200  mov      x20, x0                                     
+0000b204  mov      x0, x19                                     
+0000b208  bl       #0x27ff8                                    ; _objc_release
+0000b20c  mov      x0, x20                                     
+0000b210  bl       #0x27c80                                    ; __Unwind_Resume

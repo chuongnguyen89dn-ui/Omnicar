@@ -1,0 +1,62 @@
+; +[SCPPrefs english]
+0x04dc00  stp      x22, x21, [sp, #-0x30]!
+0x04dc04  stp      x20, x19, [sp, #0x10]
+0x04dc08  stp      x29, x30, [sp, #0x20]
+0x04dc0c  add      x29, sp, #0x20
+0x04dc10  adrp     x0, #0x7e000
+0x04dc14  add      x0, x0, #0x440 ; -> 0x7e440 @"language"
+0x04dc18  bl       #0x4dcf4 ; -> sub_4dcf4
+0x04dc1c  mov      x29, x29
+0x04dc20  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04dc24  mov      x19, x0
+0x04dc28  adrp     x2, #0x7e000
+0x04dc2c  add      x2, x2, #0x460 ; -> 0x7e460 @"vi"
+0x04dc30  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x04dc34  tbz      w0, #0, #0x4dc40
+0x04dc38  mov      w21, #0
+0x04dc3c  b        #0x4dca4
+0x04dc40  adrp     x2, #0x7e000
+0x04dc44  add      x2, x2, #0x480 ; -> 0x7e480 @"en"
+0x04dc48  mov      x0, x19
+0x04dc4c  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x04dc50  tbz      w0, #0, #0x4dc5c
+0x04dc54  mov      w21, #1
+0x04dc58  b        #0x4dca4
+0x04dc5c  adrp     x8, #0x87000
+0x04dc60  ldr      x0, [x8, #0x898] ; [0x87898] class:NSLocale
+0x04dc64  bl       #0x59ca0 ; objc_msgSend$preferredLanguages
+0x04dc68  mov      x29, x29
+0x04dc6c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04dc70  mov      x20, x0
+0x04dc74  bl       #0x58100 ; objc_msgSend$firstObject
+0x04dc78  mov      x29, x29
+0x04dc7c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04dc80  mov      x22, x0
+0x04dc84  adrp     x2, #0x7e000
+0x04dc88  add      x2, x2, #0x460 ; -> 0x7e460 @"vi"
+0x04dc8c  bl       #0x58400 ; objc_msgSend$hasPrefix:
+0x04dc90  eor      w21, w0, #1
+0x04dc94  mov      x0, x22
+0x04dc98  bl       #0x567b8 ; call _objc_release
+0x04dc9c  mov      x0, x20
+0x04dca0  bl       #0x567b8 ; call _objc_release
+0x04dca4  mov      x0, x19
+0x04dca8  bl       #0x567b8 ; call _objc_release
+0x04dcac  mov      x0, x21
+0x04dcb0  ldp      x29, x30, [sp, #0x20]
+0x04dcb4  ldp      x20, x19, [sp, #0x10]
+0x04dcb8  ldp      x22, x21, [sp], #0x30
+0x04dcbc  ret      
+0x04dcc0  mov      x21, x0
+0x04dcc4  mov      x0, x22
+0x04dcc8  bl       #0x567b8 ; call _objc_release
+0x04dccc  b        #0x4dcd4
+0x04dcd0  mov      x21, x0
+0x04dcd4  mov      x0, x20
+0x04dcd8  bl       #0x567b8 ; call _objc_release
+0x04dcdc  b        #0x4dce4
+0x04dce0  mov      x21, x0
+0x04dce4  mov      x0, x19
+0x04dce8  bl       #0x567b8 ; call _objc_release
+0x04dcec  mov      x0, x21
+0x04dcf0  bl       #0x563e0 ; call __Unwind_Resume

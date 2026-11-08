@@ -1,0 +1,14 @@
+; +[SCPPrefs enabled]
+0x04da2c  stp      x29, x30, [sp, #-0x10]!
+0x04da30  mov      x29, sp
+0x04da34  adrp     x8, #0x88000
+0x04da38  ldr      x8, [x8, #0x200]
+0x04da3c  cmn      x8, #1
+0x04da40  b.ne     #0x4da58
+0x04da44  bl       #0x4f538 ; -> _OMCPrefsSync
+0x04da48  adrp     x0, #0x79000
+0x04da4c  add      x0, x0, #0x5a0 ; -> 0x795a0 @"splitScreen"
+0x04da50  ldp      x29, x30, [sp], #0x10
+0x04da54  b        #0x4f608 ; -> _OMCFeatureEnabled
+0x04da58  bl       #0x560b8 ; -> sub_560b8
+0x04da5c  b        #0x4da44

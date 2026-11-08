@@ -1,0 +1,29 @@
+; sub_53f20
+0x053f20  stp      x20, x19, [sp, #-0x20]!
+0x053f24  stp      x29, x30, [sp, #0x10]
+0x053f28  add      x29, sp, #0x10
+0x053f2c  mov      x19, x0
+0x053f30  adrp     x20, #0x87000
+0x053f34  ldr      w0, [x20, #0xf58]
+0x053f38  cmn      w0, #1
+0x053f3c  b.eq     #0x53f4c
+0x053f40  mov      w1, w19
+0x053f44  bl       #0x566b0 ; call _notify_set_state
+0x053f48  b        #0x53f6c
+0x053f4c  adrp     x0, #0x62000
+0x053f50  add      x0, x0, #0x701 ; -> 0x62701 "com.anlai.omnicar/lite"
+0x053f54  adrp     x1, #0x87000
+0x053f58  add      x1, x1, #0xf58 ; -> 0x87f58
+0x053f5c  bl       #0x56698 ; call _notify_register_check
+0x053f60  cbz      w0, #0x53f80
+0x053f64  mov      w8, #-1
+0x053f68  str      w8, [x20, #0xf58]
+0x053f6c  adrp     x0, #0x62000
+0x053f70  add      x0, x0, #0x701 ; -> 0x62701 "com.anlai.omnicar/lite"
+0x053f74  ldp      x29, x30, [sp, #0x10]
+0x053f78  ldp      x20, x19, [sp], #0x20
+0x053f7c  b        #0x5668c ; call _notify_post
+0x053f80  ldr      w0, [x20, #0xf58]
+0x053f84  cmn      w0, #1
+0x053f88  b.ne     #0x53f40
+0x053f8c  b        #0x53f6c

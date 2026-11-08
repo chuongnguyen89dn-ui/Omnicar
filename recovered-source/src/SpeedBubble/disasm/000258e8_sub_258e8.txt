@@ -1,0 +1,167 @@
+# sub_258e8
+# addr 0x258e8 .. 0x25b78  (656 bytes)
+
+000258e8  stp      d11, d10, [sp, #-0x60]!                     
+000258ec  stp      d9, d8, [sp, #0x10]                         
+000258f0  stp      x28, x27, [sp, #0x20]                       
+000258f4  stp      x22, x21, [sp, #0x30]                       
+000258f8  stp      x20, x19, [sp, #0x40]                       
+000258fc  stp      x29, x30, [sp, #0x50]                       
+00025900  add      x29, sp, #0x50                              
+00025904  sub      sp, sp, #0x1a0                              
+00025908  bl       #0x25b78                                    ; sub_25b78
+0002590c  adrp     x8, #0x43000                                
+00025910  add      x8, x8, #0xb91                              ; __DATA,__bss+0x3f1
+00025914  mov      w9, #1                                      
+00025918  ldaxrb   w10, [x8]                                   
+0002591c  cbnz     w10, #0x2596c                               
+00025920  stlxrb   w10, w9, [x8]                               
+00025924  cbnz     w10, #0x25918                               
+00025928  adrp     x8, #0x38000                                
+0002592c  ldr      x8, [x8, #0x318]                            ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+00025930  str      x8, [sp]                                    
+00025934  adrp     x8, #0x32000                                
+00025938  ldr      d1, [x8, #0xa30]                            ; [0x32a30] __const[0x32a30] double=1.591496843e-314 float=-2.0
+0002593c  adrp     x8, #0x25000                                
+00025940  add      x8, x8, #0xbd0                              ; __TEXT,__text+0x21bd0
+00025944  str      d1, [sp, #8]                                
+00025948  adrp     x9, #0x38000                                
+0002594c  add      x9, x9, #0xe38                              ; __const[0x38e38] double=0.0 float=0.0
+00025950  stp      x8, x9, [sp, #0x10]                         
+00025954  str      d0, [sp, #0x20]                             
+00025958  adrp     x0, #0x38000                                
+0002595c  ldr      x0, [x0, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+00025960  mov      x1, sp                                      
+00025964  bl       #0x27d64                                    ; _dispatch_async
+00025968  b        #0x25970                                    ; sub_25970
+0002596c  clrex                                                
+00025970  adrp     x8, #0x43000                                
+00025974  ldr      w9, [x8, #0xb94]                            ; [0x43b94] __DATA,__bss+0x3f4
+00025978  add      w9, w9, #1                                  
+0002597c  str      w9, [x8, #0xb94]                            
+00025980  mov      w8, #0xcccd                                 
+00025984  movk     w8, #0xcccc, lsl #16                        
+00025988  mul      w8, w9, w8                                  
+0002598c  ror      w8, w8, #2                                  
+00025990  mov      w9, #0xcccc                                 
+00025994  movk     w9, #0xccc, lsl #16                         
+00025998  cmp      w8, w9                                      
+0002599c  b.hi     #0x25b58                                    
+000259a0  str      wzr, [sp, #0x2c]                            
+000259a4  adrp     x19, #0x38000                               
+000259a8  ldr      x19, [x19, #0x478]                          ; [0x38478] __DATA_CONST,__got+0x478 (= import _mach_task_self_)
+000259ac  ldr      w0, [x19]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000259b0  add      x1, sp, #0x30                               
+000259b4  add      x2, sp, #0x2c                               
+000259b8  bl       #0x28190                                    ; _task_threads
+000259bc  fmov     d9, #-1.00000000                            
+000259c0  fmov     d8, #-1.00000000                            
+000259c4  cbnz     w0, #0x25a64                                
+000259c8  ldr      w8, [sp, #0x2c]                             
+000259cc  cbz      w8, #0x25a50                                
+000259d0  mov      x20, #0                                     
+000259d4  fmov     d8, xzr                                     
+000259d8  mov      w21, #0xa                                   
+000259dc  mov      x22, #0x4059000000000000                    
+000259e0  adrp     x8, #0x32000                                
+000259e4  ldr      d10, [x8, #0xe18]                           ; [0x32e18] __const[0x32e18] double=1000.0 float=0.0
+000259e8  str      w21, [sp, #0x28]                            
+000259ec  ldr      x8, [sp, #0x30]                             
+000259f0  ldr      w0, [x8, x20, lsl #2]                       ; [0x32000] __TEXT,__gcc_except_tab+0x2338
+000259f4  add      x2, sp, #0x38                               
+000259f8  add      x3, sp, #0x28                               
+000259fc  mov      w1, #3                                      
+00025a00  bl       #0x2819c                                    ; _thread_info
+00025a04  cbnz     w0, #0x25a28                                
+00025a08  ldrb     w8, [sp, #0x54]                             
+00025a0c  tbnz     w8, #1, #0x25a28                            
+00025a10  ldr      w8, [sp, #0x48]                             
+00025a14  scvtf    d0, w8                                      
+00025a18  fmov     d1, x22                                     
+00025a1c  fmul     d0, d0, d1                                  
+00025a20  fdiv     d0, d0, d10                                 
+00025a24  fadd     d8, d8, d0                                  
+00025a28  ldr      w0, [x19]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00025a2c  ldr      x8, [sp, #0x30]                             
+00025a30  ldr      w1, [x8, x20, lsl #2]                       ; [0x32000] __TEXT,__gcc_except_tab+0x2338
+00025a34  bl       #0x27e9c                                    ; _mach_port_deallocate
+00025a38  add      x20, x20, #1                                
+00025a3c  ldr      w8, [sp, #0x2c]                             
+00025a40  cmp      x20, x8                                     
+00025a44  b.lo     #0x259e8                                    
+00025a48  lsl      x2, x8, #2                                  
+00025a4c  b        #0x25a58                                    ; sub_25a58
+00025a50  mov      x2, #0                                      
+00025a54  fmov     d8, xzr                                     
+00025a58  ldr      w0, [x19]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00025a5c  ldr      x1, [sp, #0x30]                             
+00025a60  bl       #0x281c0                                    ; _vm_deallocate
+00025a64  mov      w8, #0x59                                   
+00025a68  str      w8, [sp, #0x30]                             
+00025a6c  ldr      w0, [x19]                                   ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00025a70  add      x2, sp, #0x38                               
+00025a74  add      x3, sp, #0x30                               
+00025a78  mov      w1, #0x16                                   
+00025a7c  bl       #0x28184                                    ; _task_info
+00025a80  ldr      d0, [sp, #0xc8]                             
+00025a84  ucvtf    d0, d0                                      
+00025a88  mov      x8, #0x3eb0000000000000                     
+00025a8c  fmov     d1, x8                                      
+00025a90  fmul     d0, d0, d1                                  
+00025a94  cmp      w0, #0                                      
+00025a98  fcsel    d9, d0, d9, eq                              
+00025a9c  adrp     x19, #0x43000                               
+00025aa0  ldr      w0, [x19, #0xba0]                           ; [0x43ba0] __DATA,__bss+0x400
+00025aa4  cbnz     w0, #0x25ac0                                
+00025aa8  bl       #0x27e90                                    ; _mach_host_self
+00025aac  str      w0, [x19, #0xba0]                           
+00025ab0  adrp     x1, #0x43000                                
+00025ab4  add      x1, x1, #0xba8                              ; __DATA,__bss+0x408
+00025ab8  bl       #0x27e54                                    ; _host_page_size
+00025abc  ldr      w0, [x19, #0xba0]                           ; [0x43ba0] __DATA,__bss+0x400
+00025ac0  mov      w8, #0x26                                   
+00025ac4  str      w8, [sp, #0x30]                             
+00025ac8  add      x2, sp, #0x38                               
+00025acc  add      x3, sp, #0x30                               
+00025ad0  mov      w1, #4                                      
+00025ad4  bl       #0x27e60                                    ; _host_statistics64
+00025ad8  fmov     d10, #-1.00000000                           
+00025adc  cbnz     w0, #0x25b0c                                
+00025ae0  ldr      w8, [sp, #0x38]                             
+00025ae4  ldr      w9, [sp, #0x40]                             
+00025ae8  add      w8, w9, w8                                  
+00025aec  ucvtf    d0, w8                                      
+00025af0  adrp     x8, #0x43000                                
+00025af4  ldr      d1, [x8, #0xba8]                            ; [0x43ba8] __DATA,__bss+0x408
+00025af8  ucvtf    d1, d1                                      
+00025afc  fmul     d0, d0, d1                                  
+00025b00  mov      x8, #0x3eb0000000000000                     
+00025b04  fmov     d1, x8                                      
+00025b08  fmul     d10, d0, d1                                 
+00025b0c  bl       #0x280a0                                    ; _os_proc_available_memory
+00025b10  ucvtf    d0, x0, #0x14                               
+00025b14  adrp     x8, #0x38000                                
+00025b18  ldr      x8, [x8, #0x318]                            ; [0x38318] __DATA_CONST,__got+0x318 (= import __NSConcreteStackBlock)
+00025b1c  str      x8, [sp, #0x38]                             
+00025b20  adrp     x8, #0x32000                                
+00025b24  ldr      d1, [x8, #0xa30]                            ; [0x32a30] __const[0x32a30] double=1.591496843e-314 float=-2.0
+00025b28  str      d1, [sp, #0x40]                             
+00025b2c  adrp     x8, #0x25000                                
+00025b30  add      x8, x8, #0xda0                              ; __TEXT,__text+0x21da0
+00025b34  adrp     x9, #0x38000                                
+00025b38  add      x9, x9, #0xe58                              ; __const[0x38e58] double=0.0 float=0.0
+00025b3c  stp      x8, x9, [sp, #0x48]                         
+00025b40  stp      d8, d9, [sp, #0x58]                         
+00025b44  stp      d0, d10, [sp, #0x68]                        
+00025b48  adrp     x0, #0x38000                                
+00025b4c  ldr      x0, [x0, #0x350]                            ; [0x38350] __DATA_CONST,__got+0x350 (= import __dispatch_main_q)
+00025b50  add      x1, sp, #0x38                               
+00025b54  bl       #0x27d64                                    ; _dispatch_async
+00025b58  add      sp, sp, #0x1a0                              
+00025b5c  ldp      x29, x30, [sp, #0x50]                       
+00025b60  ldp      x20, x19, [sp, #0x40]                       
+00025b64  ldp      x22, x21, [sp, #0x30]                       
+00025b68  ldp      x28, x27, [sp, #0x20]                       
+00025b6c  ldp      d9, d8, [sp, #0x10]                         
+00025b70  ldp      d11, d10, [sp], #0x60                       
+00025b74  ret                                                  

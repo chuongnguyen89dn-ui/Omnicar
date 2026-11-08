@@ -1,0 +1,40 @@
+# sub_1cfe4
+# addr 0x1cfe4 .. 0x1d078  (148 bytes)
+
+0001cfe4  sub      sp, sp, #0x80                               
+0001cfe8  stp      x20, x19, [sp, #0x60]                       
+0001cfec  stp      x29, x30, [sp, #0x70]                       
+0001cff0  add      x29, sp, #0x70                              
+0001cff4  mov      x19, x0                                     
+0001cff8  ldr      x0, [x0, #0x20]                             
+0001cffc  cbz      x0, #0x1d018                                
+0001d000  adrp     x8, #0x32000                                
+0001d004  ldr      d0, [x8, #0xd78]                            ; [0x32d78] __const[0x32d78] double=0.92 float=-151996493463552.0
+0001d008  add      x8, sp, #0x30                               
+0001d00c  bl       #0x288e0                                    ; objc_msgSend$baseScaled:
+0001d010  ldr      x0, [x19, #0x20]                            
+0001d014  b        #0x1d024                                    ; sub_1d024
+0001d018  movi     v0.16b, #0                                  
+0001d01c  stp      q0, q0, [sp, #0x40]                         
+0001d020  str      q0, [sp, #0x30]                             
+0001d024  ldp      q0, q1, [sp, #0x30]                         
+0001d028  stp      q0, q1, [sp]                                
+0001d02c  ldr      q0, [sp, #0x50]                             
+0001d030  str      q0, [sp, #0x20]                             
+0001d034  bl       #0x28c60                                    ; objc_msgSend$card
+0001d038  mov      x29, x29                                    
+0001d03c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001d040  mov      x19, x0                                     
+0001d044  mov      x2, sp                                      
+0001d048  bl       #0x2bb40                                    ; objc_msgSend$setTransform:
+0001d04c  mov      x0, x19                                     
+0001d050  bl       #0x27ff8                                    ; _objc_release
+0001d054  ldp      x29, x30, [sp, #0x70]                       
+0001d058  ldp      x20, x19, [sp, #0x60]                       
+0001d05c  add      sp, sp, #0x80                               
+0001d060  ret                                                  
+0001d064  mov      x20, x0                                     
+0001d068  mov      x0, x19                                     
+0001d06c  bl       #0x27ff8                                    ; _objc_release
+0001d070  mov      x0, x20                                     
+0001d074  bl       #0x27c80                                    ; __Unwind_Resume

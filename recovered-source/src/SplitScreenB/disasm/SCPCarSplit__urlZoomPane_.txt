@@ -1,0 +1,23 @@
+; ==== SCPCarSplit__urlZoomPane_  @0x24ff0..0x25048 (88 bytes) ====
+00024ff0  stp      x20, x19, [sp, #-0x20]!                      
+00024ff4  stp      x29, x30, [sp, #0x10]                        
+00024ff8  add      x29, sp, #0x10                               
+00024ffc  mov      x20, x0                                      
+00025000  sub      w2, w2, #1                                   
+00025004  bl       #0x597e0                                     ; msgSend "paneAtSlot:"
+00025008  mov      x29, x29                                     
+0002500c  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00025010  mov      x19, x0                                      
+00025014  cbz      x0, #0x25024                                 
+00025018  mov      x0, x20                                      
+0002501c  mov      x2, x19                                      
+00025020  bl       #0x5c780                                     ; msgSend "toggleZoomForPane:"
+00025024  mov      x0, x19                                      
+00025028  ldp      x29, x30, [sp, #0x10]                        
+0002502c  ldp      x20, x19, [sp], #0x20                        
+00025030  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+00025034  mov      x20, x0                                      
+00025038  mov      x0, x19                                      
+0002503c  bl       #0x567b8                                     ; call _objc_release
+00025040  mov      x0, x20                                      
+00025044  bl       #0x563e0                                     ; call __Unwind_Resume

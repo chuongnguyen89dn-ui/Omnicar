@@ -1,0 +1,14 @@
+; sub_d68c
+0x00d68c  stp      x29, x30, [sp, #-0x10]!
+0x00d690  mov      x29, sp
+0x00d694  adrp     x8, #0x87000
+0x00d698  ldr      x0, [x8, #0x690] ; [0x87690] class:NSMutableSet
+0x00d69c  bl       #0x5a6e0 ; objc_msgSend$set
+0x00d6a0  mov      x29, x29
+0x00d6a4  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00d6a8  adrp     x9, #0x88000
+0x00d6ac  ldr      x8, [x9, #0xc0]
+0x00d6b0  str      x0, [x9, #0xc0]
+0x00d6b4  mov      x0, x8
+0x00d6b8  ldp      x29, x30, [sp], #0x10
+0x00d6bc  b        #0x567b8 ; call _objc_release

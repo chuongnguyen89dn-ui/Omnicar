@@ -1,0 +1,64 @@
+0004a450  stp      x20, x19, [sp, #-0x20]!                      
+0004a454  stp      x29, x30, [sp, #0x10]                        
+0004a458  add      x29, sp, #0x10                               
+0004a45c  ldp      x0, x20, [x0, #0x20]                         
+0004a460  bl       #0x587e0                                     ; msgSend "image"
+0004a464  mov      x29, x29                                     
+0004a468  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0004a46c  mov      x19, x0                                      
+0004a470  mov      x2, x20                                      
+0004a474  bl       #0x5b000                                     ; msgSend "setImage:"
+0004a478  mov      x0, x19                                      
+0004a47c  ldp      x29, x30, [sp, #0x10]                        
+0004a480  ldp      x20, x19, [sp], #0x20                        
+0004a484  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+0004a488  mov      x20, x0                                      
+0004a48c  mov      x0, x19                                      
+0004a490  bl       #0x567b8                                     ; call _objc_release
+0004a494  mov      x0, x20                                      
+0004a498  bl       #0x563e0                                     ; call __Unwind_Resume
+0004a49c  adrp     x8, #0x87000                                 
+0004a4a0  ldrsw    x8, [x8, #0xa6c]                             
+0004a4a4  ldr      x0, [x0, x8]                                 
+0004a4a8  ret                                                   
+0004a4ac  stp      x22, x21, [sp, #-0x30]!                      
+0004a4b0  stp      x20, x19, [sp, #0x10]                        
+0004a4b4  stp      x29, x30, [sp, #0x20]                        
+0004a4b8  add      x29, sp, #0x20                               
+0004a4bc  mov      x19, x2                                      
+0004a4c0  mov      x20, x0                                      
+0004a4c4  adrp     x8, #0x87000                                 
+0004a4c8  ldrsw    x21, [x8, #0xa6c]                            
+0004a4cc  mov      x0, x2                                       
+0004a4d0  bl       #0x567c4                                     ; call _objc_retain
+0004a4d4  ldr      x0, [x20, x21]                               
+0004a4d8  str      x19, [x20, x21]                              
+0004a4dc  ldp      x29, x30, [sp, #0x20]                        
+0004a4e0  ldp      x20, x19, [sp, #0x10]                        
+0004a4e4  ldp      x22, x21, [sp], #0x30                        
+0004a4e8  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+0004a4ec  adrp     x8, #0x87000                                 
+0004a4f0  ldrsw    x8, [x8, #0xa70]                             
+0004a4f4  ldr      x0, [x0, x8]                                 
+0004a4f8  ret                                                   
+0004a4fc  stp      x22, x21, [sp, #-0x30]!                      
+0004a500  stp      x20, x19, [sp, #0x10]                        
+0004a504  stp      x29, x30, [sp, #0x20]                        
+0004a508  add      x29, sp, #0x20                               
+0004a50c  mov      x19, x2                                      
+0004a510  mov      x20, x0                                      
+0004a514  adrp     x8, #0x87000                                 
+0004a518  ldrsw    x21, [x8, #0xa70]                            
+0004a51c  mov      x0, x2                                       
+0004a520  bl       #0x567c4                                     ; call _objc_retain
+0004a524  ldr      x0, [x20, x21]                               
+0004a528  str      x19, [x20, x21]                              
+0004a52c  ldp      x29, x30, [sp, #0x20]                        
+0004a530  ldp      x20, x19, [sp, #0x10]                        
+0004a534  ldp      x22, x21, [sp], #0x30                        
+0004a538  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+0004a53c  adrp     x8, #0x87000                                 
+0004a540  ldrsw    x8, [x8, #0xa74]                             
+0004a544  ldr      x0, [x0, x8]                                 
+0004a548  ret                                                   
+0004a54c  stp      x22, x21, [sp, #-0x30]!                      

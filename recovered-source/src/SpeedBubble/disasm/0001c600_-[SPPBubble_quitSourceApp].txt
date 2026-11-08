@@ -1,0 +1,199 @@
+# -[SPPBubble quitSourceApp]
+# addr 0x1c600 .. 0x1c910  (784 bytes)
+
+0001c600  sub      sp, sp, #0x50                               
+0001c604  stp      x24, x23, [sp, #0x10]                       
+0001c608  stp      x22, x21, [sp, #0x20]                       
+0001c60c  stp      x20, x19, [sp, #0x30]                       
+0001c610  stp      x29, x30, [sp, #0x40]                       
+0001c614  add      x29, sp, #0x40                              
+0001c618  mov      x20, x0                                     
+0001c61c  bl       #0x29640                                    ; objc_msgSend$hideMenu
+0001c620  mov      x0, x20                                     
+0001c624  bl       #0x28640                                    ; objc_msgSend$app
+0001c628  cmp      w0, #3                                      
+0001c62c  b.hi     #0x1c650                                    
+0001c630  mov      w2, w0                                      
+0001c634  adrp     x0, #0x3c000                                
+0001c638  add      x0, x0, #0xec0                              ; __DATA_CONST,__objc_arrayobj+0x180
+0001c63c  bl       #0x2a100                                    ; objc_msgSend$objectAtIndexedSubscript:
+0001c640  mov      x29, x29                                    
+0001c644  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001c648  mov      x19, x0                                     
+0001c64c  b        #0x1c658                                    ; sub_1c658
+0001c650  adrp     x19, #0x39000                               
+0001c654  add      x19, x19, #0xb8                             ; @"vn.vietmap.live"
+0001c658  adrp     x23, #0x42000                               
+0001c65c  ldr      x0, [x23, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001c660  str      x19, [sp]                                   
+0001c664  adrp     x2, #0x3a000                                
+0001c668  add      x2, x2, #0xeb8                              ; @"bubble: menu -> thoat han %@"
+0001c66c  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001c670  mov      x29, x29                                    
+0001c674  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001c678  mov      x21, x0                                     
+0001c67c  adrp     x0, #0x38000                                
+0001c680  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001c684  mov      x1, x21                                     
+0001c688  bl       #0x2155c                                    ; _OMCLogWrite
+0001c68c  mov      x0, x21                                     
+0001c690  bl       #0x27ff8                                    ; _objc_release
+0001c694  adrp     x8, #0x43000                                
+0001c698  ldr      x0, [x8, #0x110]                            ; [0x43110] classref -> UINotificationFeedbackGenerator (= import _OBJC_CLASS_$_UINotificationFeedbackGenerator)
+0001c69c  bl       #0x27f14                                    ; _objc_alloc_init
+0001c6a0  mov      x21, x0                                     
+0001c6a4  mov      x2, #0                                      
+0001c6a8  bl       #0x29fc0                                    ; objc_msgSend$notificationOccurred:
+0001c6ac  mov      x0, x21                                     
+0001c6b0  bl       #0x27ff8                                    ; _objc_release
+0001c6b4  mov      x0, x19                                     
+0001c6b8  bl       #0x28004                                    ; _objc_retain
+0001c6bc  adrp     x0, #0x2e000                                
+0001c6c0  add      x0, x0, #0xe52                              ; "FBSSystemService"
+0001c6c4  bl       #0x27f74                                    ; _objc_getClass
+0001c6c8  mov      x29, x29                                    
+0001c6cc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001c6d0  mov      x22, x0                                     
+0001c6d4  adrp     x0, #0x3a000                                
+0001c6d8  add      x0, x0, #0xfd8                              ; @"sharedService"
+0001c6dc  bl       #0x27c2c                                    ; _NSSelectorFromString
+0001c6e0  mov      x21, x0                                     
+0001c6e4  mov      x0, x22                                     
+0001c6e8  mov      x1, x21                                     
+0001c6ec  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001c6f0  tbz      w0, #0, #0x1c710                            
+0001c6f4  mov      x0, x22                                     
+0001c6f8  mov      x1, x21                                     
+0001c6fc  bl       #0x27f98                                    ; _objc_msgSend
+0001c700  mov      x29, x29                                    
+0001c704  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001c708  mov      x21, x0                                     
+0001c70c  b        #0x1c72c                                    ; sub_1c72c
+0001c710  adrp     x0, #0x38000                                
+0001c714  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001c718  adrp     x2, #0x3a000                                
+0001c71c  add      x2, x2, #0xfd8                              ; @"sharedService"
+0001c720  mov      x1, x22                                     
+0001c724  bl       #0x2248c                                    ; _OMCMissingSelector
+0001c728  mov      x21, #0                                     
+0001c72c  mov      x0, x22                                     
+0001c730  bl       #0x27ff8                                    ; _objc_release
+0001c734  adrp     x0, #0x3a000                                
+0001c738  add      x0, x0, #0xff8                              ; @"terminateApplication:forReason:andReport:withDescription:"
+0001c73c  bl       #0x27c2c                                    ; _NSSelectorFromString
+0001c740  cbz      x21, #0x1c7ac                               
+0001c744  mov      x22, x0                                     
+0001c748  mov      x0, x21                                     
+0001c74c  mov      x1, x22                                     
+0001c750  bl       #0x27fe0                                    ; _objc_opt_respondsToSelector
+0001c754  tbz      w0, #0, #0x1c7ac                            
+0001c758  adrp     x5, #0x3b000                                
+0001c75c  add      x5, x5, #0x18                               ; @"OmniCar: user closed"
+0001c760  mov      x0, x21                                     
+0001c764  mov      x1, x22                                     
+0001c768  mov      x2, x19                                     
+0001c76c  mov      w3, #1                                      
+0001c770  mov      w4, #0                                      
+0001c774  bl       #0x27f98                                    ; _objc_msgSend
+0001c778  ldr      x0, [x23, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001c77c  str      x19, [sp]                                   
+0001c780  adrp     x2, #0x3b000                                
+0001c784  add      x2, x2, #0x38                               ; @"terminate %@ (FBSSystemService)"
+0001c788  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001c78c  mov      x29, x29                                    
+0001c790  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001c794  mov      x22, x0                                     
+0001c798  adrp     x0, #0x38000                                
+0001c79c  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001c7a0  mov      x1, x22                                     
+0001c7a4  bl       #0x2155c                                    ; _OMCLogWrite
+0001c7a8  b        #0x1c840                                    ; sub_1c840
+0001c7ac  adrp     x1, #0x2e000                                
+0001c7b0  add      x1, x1, #0xee0                              ; "BKSTerminateApplicationForReasonAndReportWithDescription"
+0001c7b4  mov      x0, #-2                                     
+0001c7b8  bl       #0x27de8                                    ; _dlsym
+0001c7bc  mov      x8, x0                                      
+0001c7c0  cbz      x0, #0x1c810                                
+0001c7c4  adrp     x3, #0x3b000                                
+0001c7c8  add      x3, x3, #0x58                               ; @"OmniCar"
+0001c7cc  mov      x0, x19                                     
+0001c7d0  mov      w1, #1                                      
+0001c7d4  mov      w2, #0                                      
+0001c7d8  blr      x8                                          
+0001c7dc  ldr      x0, [x23, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001c7e0  str      x19, [sp]                                   
+0001c7e4  adrp     x2, #0x3b000                                
+0001c7e8  add      x2, x2, #0x78                               ; @"terminate %@ (BKS)"
+0001c7ec  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001c7f0  mov      x29, x29                                    
+0001c7f4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001c7f8  mov      x22, x0                                     
+0001c7fc  adrp     x0, #0x38000                                
+0001c800  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001c804  mov      x1, x22                                     
+0001c808  bl       #0x2155c                                    ; _OMCLogWrite
+0001c80c  b        #0x1c840                                    ; sub_1c840
+0001c810  ldr      x0, [x23, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+0001c814  str      x19, [sp]                                   
+0001c818  adrp     x2, #0x3b000                                
+0001c81c  add      x2, x2, #0x98                               ; @"khong tim thay API terminate cho %@"
+0001c820  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+0001c824  mov      x29, x29                                    
+0001c828  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001c82c  mov      x22, x0                                     
+0001c830  adrp     x0, #0x38000                                
+0001c834  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+0001c838  mov      x1, x22                                     
+0001c83c  bl       #0x2155c                                    ; _OMCLogWrite
+0001c840  mov      x0, x22                                     
+0001c844  bl       #0x27ff8                                    ; _objc_release
+0001c848  mov      x0, x21                                     
+0001c84c  bl       #0x27ff8                                    ; _objc_release
+0001c850  mov      x0, x19                                     
+0001c854  bl       #0x27ff8                                    ; _objc_release
+0001c858  mov      x0, x20                                     
+0001c85c  mov      w2, #-1                                     
+0001c860  bl       #0x2b840                                    ; objc_msgSend$setSpeed:
+0001c864  mov      x0, x20                                     
+0001c868  mov      w2, #-1                                     
+0001c86c  bl       #0x2b1c0                                    ; objc_msgSend$setLimit:
+0001c870  fmov     d0, xzr                                     
+0001c874  mov      x0, x20                                     
+0001c878  bl       #0x2b1a0                                    ; objc_msgSend$setLastUpdate:
+0001c87c  mov      x0, x20                                     
+0001c880  bl       #0x29620                                    ; objc_msgSend$hide
+0001c884  mov      x0, x19                                     
+0001c888  ldp      x29, x30, [sp, #0x40]                       
+0001c88c  ldp      x20, x19, [sp, #0x30]                       
+0001c890  ldp      x22, x21, [sp, #0x20]                       
+0001c894  ldp      x24, x23, [sp, #0x10]                       
+0001c898  add      sp, sp, #0x50                               
+0001c89c  b        #0x27ff8                                    ; _objc_release
+0001c8a0  b        #0x1c8a8                                    ; sub_1c8a8
+0001c8a4  b        #0x1c8a8                                    ; sub_1c8a8
+0001c8a8  mov      x20, x0                                     
+0001c8ac  mov      x0, x22                                     
+0001c8b0  bl       #0x27ff8                                    ; _objc_release
+0001c8b4  b        #0x1c8e8                                    ; sub_1c8e8
+0001c8b8  b        #0x1c8d8                                    ; sub_1c8d8
+0001c8bc  mov      x20, x0                                     
+0001c8c0  b        #0x1c8f0                                    ; sub_1c8f0
+0001c8c4  b        #0x1c8c8                                    ; sub_1c8c8
+0001c8c8  mov      x20, x0                                     
+0001c8cc  mov      x0, x21                                     
+0001c8d0  b        #0x1c8f4                                    ; sub_1c8f4
+0001c8d4  b        #0x1c8e4                                    ; sub_1c8e4
+0001c8d8  mov      x20, x0                                     
+0001c8dc  mov      x0, x22                                     
+0001c8e0  b        #0x1c8ec                                    ; sub_1c8ec
+0001c8e4  mov      x20, x0                                     
+0001c8e8  mov      x0, x21                                     
+0001c8ec  bl       #0x27ff8                                    ; _objc_release
+0001c8f0  mov      x0, x19                                     
+0001c8f4  bl       #0x27ff8                                    ; _objc_release
+0001c8f8  b        #0x1c900                                    ; sub_1c900
+0001c8fc  mov      x20, x0                                     
+0001c900  mov      x0, x19                                     
+0001c904  bl       #0x27ff8                                    ; _objc_release
+0001c908  mov      x0, x20                                     
+0001c90c  bl       #0x27c80                                    ; __Unwind_Resume

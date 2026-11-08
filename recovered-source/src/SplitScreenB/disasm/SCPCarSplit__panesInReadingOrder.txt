@@ -1,0 +1,39 @@
+; ==== SCPCarSplit__panesInReadingOrder  @0x31ba0..0x31c38 (152 bytes) ====
+00031ba0  sub      sp, sp, #0x50                                
+00031ba4  stp      x20, x19, [sp, #0x30]                        
+00031ba8  stp      x29, x30, [sp, #0x40]                        
+00031bac  add      x29, sp, #0x40                               
+00031bb0  mov      x20, x0                                      
+00031bb4  bl       #0x56e20                                     ; msgSend "allPanes"
+00031bb8  mov      x29, x29                                     
+00031bbc  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00031bc0  mov      x19, x0                                      
+00031bc4  adrp     x8, #0x78000                                 
+00031bc8  ldr      x8, [x8, #0x338]                             
+00031bcc  str      x8, [sp, #8]                                 
+00031bd0  adrp     x8, #0x6e000                                 
+00031bd4  ldr      d0, [x8, #0xff8]                             ; double 1.6080749353e-314
+00031bd8  adrp     x8, #0x31000                                 
+00031bdc  add      x8, x8, #0xc38                               
+00031be0  str      d0, [sp, #0x10]                              
+00031be4  adrp     x9, #0x78000                                 
+00031be8  add      x9, x9, #0xee0                               
+00031bec  stp      x8, x9, [sp, #0x18]                          
+00031bf0  str      x20, [sp, #0x28]                             
+00031bf4  add      x2, sp, #8                                   
+00031bf8  bl       #0x5c2a0                                     ; msgSend "sortedArrayUsingComparator:"
+00031bfc  mov      x29, x29                                     
+00031c00  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+00031c04  mov      x20, x0                                      
+00031c08  mov      x0, x19                                      
+00031c0c  bl       #0x567b8                                     ; call _objc_release
+00031c10  mov      x0, x20                                      
+00031c14  ldp      x29, x30, [sp, #0x40]                        
+00031c18  ldp      x20, x19, [sp, #0x30]                        
+00031c1c  add      sp, sp, #0x50                                
+00031c20  b        #0x566e0                                     ; call _objc_autoreleaseReturnValue | tail _objc_autoreleaseReturnValue
+00031c24  mov      x20, x0                                      
+00031c28  mov      x0, x19                                      
+00031c2c  bl       #0x567b8                                     ; call _objc_release
+00031c30  mov      x0, x20                                      
+00031c34  bl       #0x563e0                                     ; call __Unwind_Resume

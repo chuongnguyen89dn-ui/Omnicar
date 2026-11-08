@@ -1,0 +1,44 @@
+; -[SCPCarSplit reindexPanes]
+0x014154  stp      x22, x21, [sp, #-0x30]!
+0x014158  stp      x20, x19, [sp, #0x10]
+0x01415c  stp      x29, x30, [sp, #0x20]
+0x014160  add      x29, sp, #0x20
+0x014164  mov      x19, x0
+0x014168  bl       #0x59800 ; objc_msgSend$paneCount
+0x01416c  cmp      w0, #1
+0x014170  b.lt     #0x141cc
+0x014174  mov      x20, #0
+0x014178  mov      x0, x19
+0x01417c  bl       #0x5c160 ; objc_msgSend$slots
+0x014180  mov      x29, x29
+0x014184  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x014188  mov      x21, x0
+0x01418c  mov      x2, x20
+0x014190  bl       #0x59620 ; objc_msgSend$objectAtIndexedSubscript:
+0x014194  mov      x29, x29
+0x014198  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01419c  mov      x22, x0
+0x0141a0  mov      x2, x20
+0x0141a4  bl       #0x5b960 ; objc_msgSend$setSlot:
+0x0141a8  mov      x0, x22
+0x0141ac  bl       #0x567b8 ; call _objc_release
+0x0141b0  mov      x0, x21
+0x0141b4  bl       #0x567b8 ; call _objc_release
+0x0141b8  add      x20, x20, #1
+0x0141bc  mov      x0, x19
+0x0141c0  bl       #0x59800 ; objc_msgSend$paneCount
+0x0141c4  cmp      x20, w0, sxtw
+0x0141c8  b.lt     #0x14178
+0x0141cc  ldp      x29, x30, [sp, #0x20]
+0x0141d0  ldp      x20, x19, [sp, #0x10]
+0x0141d4  ldp      x22, x21, [sp], #0x30
+0x0141d8  ret      
+0x0141dc  mov      x19, x0
+0x0141e0  b        #0x141f0
+0x0141e4  mov      x19, x0
+0x0141e8  mov      x0, x22
+0x0141ec  bl       #0x567b8 ; call _objc_release
+0x0141f0  mov      x0, x21
+0x0141f4  bl       #0x567b8 ; call _objc_release
+0x0141f8  mov      x0, x19
+0x0141fc  bl       #0x563e0 ; call __Unwind_Resume

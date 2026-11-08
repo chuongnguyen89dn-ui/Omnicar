@@ -1,0 +1,145 @@
+# sub_16a1c
+# addr 0x16a1c .. 0x16c54  (568 bytes)
+
+00016a1c  sub      sp, sp, #0x70                               
+00016a20  stp      x26, x25, [sp, #0x20]                       
+00016a24  stp      x24, x23, [sp, #0x30]                       
+00016a28  stp      x22, x21, [sp, #0x40]                       
+00016a2c  stp      x20, x19, [sp, #0x50]                       
+00016a30  stp      x29, x30, [sp, #0x60]                       
+00016a34  add      x29, sp, #0x60                              
+00016a38  adrp     x8, #0x43000                                
+00016a3c  ldr      x0, [x8, #0xc8]                             ; [0x430c8] classref -> AVAudioSession (= import _OBJC_CLASS_$_AVAudioSession)
+00016a40  bl       #0x2bdc0                                    ; objc_msgSend$sharedInstance
+00016a44  mov      x29, x29                                    
+00016a48  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016a4c  mov      x19, x0                                     
+00016a50  adrp     x8, #0x43000                                
+00016a54  ldr      w9, [x8, #0x918]                            ; [0x43918] __DATA,__bss+0x178
+00016a58  add      w10, w9, #1                                 
+00016a5c  str      w10, [x8, #0x918]                           
+00016a60  adrp     x20, #0x43000                               
+00016a64  ldr      x8, [x20, #0x910]                           ; [0x43910] __DATA,__bss+0x170
+00016a68  cmp      w9, #0                                      
+00016a6c  ccmp     x8, #0, #0, eq                              
+00016a70  b.ne     #0x16aa4                                    
+00016a74  mov      x0, x19                                     
+00016a78  bl       #0x28c80                                    ; objc_msgSend$category
+00016a7c  mov      x29, x29                                    
+00016a80  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016a84  ldr      x8, [x20, #0x910]                           ; [0x43910] __DATA,__bss+0x170
+00016a88  str      x0, [x20, #0x910]                           
+00016a8c  mov      x0, x8                                      
+00016a90  bl       #0x27ff8                                    ; _objc_release
+00016a94  mov      x0, x19                                     
+00016a98  bl       #0x28ca0                                    ; objc_msgSend$categoryOptions
+00016a9c  adrp     x8, #0x43000                                
+00016aa0  str      x0, [x8, #0x920]                            
+00016aa4  adrp     x8, #0x38000                                
+00016aa8  ldr      x8, [x8, #0x570]                            ; [0x38570] __DATA_CONST,__got+0x570 (= import _AVAudioSessionCategoryPlayback)
+00016aac  ldr      x2, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00016ab0  str      xzr, [sp, #0x18]                            
+00016ab4  add      x4, sp, #0x18                               
+00016ab8  mov      x0, x19                                     
+00016abc  mov      w3, #3                                      
+00016ac0  bl       #0x2ac40                                    ; objc_msgSend$setCategory:withOptions:error:
+00016ac4  mov      x21, x0                                     
+00016ac8  ldr      x20, [sp, #0x18]                            
+00016acc  mov      x0, x20                                     
+00016ad0  bl       #0x28004                                    ; _objc_retain
+00016ad4  adrp     x22, #0x42000                               
+00016ad8  tbnz     w21, #0, #0x16b14                           
+00016adc  ldr      x0, [x22, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00016ae0  str      x20, [sp]                                   
+00016ae4  adrp     x2, #0x3a000                                
+00016ae8  add      x2, x2, #0x558                              ; @"am thanh: khong dat duoc phien Playback: %@"
+00016aec  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00016af0  mov      x29, x29                                    
+00016af4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016af8  mov      x21, x0                                     
+00016afc  adrp     x0, #0x38000                                
+00016b00  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00016b04  mov      x1, x21                                     
+00016b08  bl       #0x2155c                                    ; _OMCLogWrite
+00016b0c  mov      x0, x21                                     
+00016b10  bl       #0x27ff8                                    ; _objc_release
+00016b14  mov      x0, x20                                     
+00016b18  bl       #0x27ff8                                    ; _objc_release
+00016b1c  str      xzr, [sp, #0x10]                            
+00016b20  add      x3, sp, #0x10                               
+00016b24  mov      x0, x19                                     
+00016b28  mov      w2, #1                                      
+00016b2c  bl       #0x2a8c0                                    ; objc_msgSend$setActive:error:
+00016b30  mov      x21, x0                                     
+00016b34  ldr      x20, [sp, #0x10]                            
+00016b38  mov      x0, x20                                     
+00016b3c  bl       #0x28004                                    ; _objc_retain
+00016b40  ldr      x22, [x22, #0xf58]                          ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+00016b44  tbz      w21, #0, #0x16bf0                           
+00016b48  mov      x0, x19                                     
+00016b4c  bl       #0x29060                                    ; objc_msgSend$currentRoute
+00016b50  mov      x29, x29                                    
+00016b54  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016b58  mov      x21, x0                                     
+00016b5c  bl       #0x2a220                                    ; objc_msgSend$outputs
+00016b60  mov      x29, x29                                    
+00016b64  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016b68  mov      x23, x0                                     
+00016b6c  bl       #0x29440                                    ; objc_msgSend$firstObject
+00016b70  mov      x29, x29                                    
+00016b74  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016b78  mov      x24, x0                                     
+00016b7c  bl       #0x2a340                                    ; objc_msgSend$portType
+00016b80  mov      x29, x29                                    
+00016b84  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016b88  mov      x25, x0                                     
+00016b8c  adrp     x8, #0x39000                                
+00016b90  add      x8, x8, #0x2d8                              ; @"?"
+00016b94  cmp      x0, #0                                      
+00016b98  csel     x8, x8, x0, eq                              
+00016b9c  str      x8, [sp]                                    
+00016ba0  adrp     x2, #0x3a000                                
+00016ba4  add      x2, x2, #0x598                              ; @"am thanh: phien bat, ra %@"
+00016ba8  mov      x0, x22                                     
+00016bac  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00016bb0  mov      x29, x29                                    
+00016bb4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016bb8  mov      x22, x0                                     
+00016bbc  adrp     x0, #0x38000                                
+00016bc0  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00016bc4  mov      x1, x22                                     
+00016bc8  bl       #0x2155c                                    ; _OMCLogWrite
+00016bcc  mov      x0, x22                                     
+00016bd0  bl       #0x27ff8                                    ; _objc_release
+00016bd4  mov      x0, x25                                     
+00016bd8  bl       #0x27ff8                                    ; _objc_release
+00016bdc  mov      x0, x24                                     
+00016be0  bl       #0x27ff8                                    ; _objc_release
+00016be4  mov      x0, x23                                     
+00016be8  bl       #0x27ff8                                    ; _objc_release
+00016bec  b        #0x16c20                                    ; sub_16c20
+00016bf0  str      x20, [sp]                                   
+00016bf4  adrp     x2, #0x3a000                                
+00016bf8  add      x2, x2, #0x578                              ; @"am thanh: khong bat duoc phien: %@"
+00016bfc  mov      x0, x22                                     
+00016c00  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+00016c04  mov      x29, x29                                    
+00016c08  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00016c0c  mov      x21, x0                                     
+00016c10  adrp     x0, #0x38000                                
+00016c14  add      x0, x0, #0xf78                              ; @"SpeedBubble"
+00016c18  mov      x1, x21                                     
+00016c1c  bl       #0x2155c                                    ; _OMCLogWrite
+00016c20  mov      x0, x21                                     
+00016c24  bl       #0x27ff8                                    ; _objc_release
+00016c28  mov      x0, x20                                     
+00016c2c  bl       #0x27ff8                                    ; _objc_release
+00016c30  mov      x0, x19                                     
+00016c34  bl       #0x27ff8                                    ; _objc_release
+00016c38  ldp      x29, x30, [sp, #0x60]                       
+00016c3c  ldp      x20, x19, [sp, #0x50]                       
+00016c40  ldp      x22, x21, [sp, #0x40]                       
+00016c44  ldp      x24, x23, [sp, #0x30]                       
+00016c48  ldp      x26, x25, [sp, #0x20]                       
+00016c4c  add      sp, sp, #0x70                               
+00016c50  ret                                                  

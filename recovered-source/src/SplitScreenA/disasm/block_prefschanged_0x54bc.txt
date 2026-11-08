@@ -1,0 +1,26 @@
+; sub_54bc
+0x0054bc  stp      x20, x19, [sp, #-0x20]!
+0x0054c0  stp      x29, x30, [sp, #0x10]
+0x0054c4  add      x29, sp, #0x10
+0x0054c8  bl       #0xaa10 ; -> _SCPRefreshAppIconsSoon
+0x0054cc  bl       #0xc008 ; -> _SCPRefreshHiddenAppsSoon
+0x0054d0  bl       #0x4b598 ; -> _SCPHomeRefresh
+0x0054d4  ldp      x29, x30, [sp, #0x10]
+0x0054d8  ldp      x20, x19, [sp], #0x20
+0x0054dc  ret      
+0x0054e0  mov      x19, x0
+0x0054e4  cmp      w1, #1
+0x0054e8  b.ne     #0x5518
+0x0054ec  mov      x0, x19
+0x0054f0  bl       #0x566ec ; call _objc_begin_catch
+0x0054f4  mov      x1, x0
+0x0054f8  adrp     x0, #0x5e000
+0x0054fc  add      x0, x0, #0xaaf ; -> 0x5eaaf "SCPHomeRefresh"
+0x005500  bl       #0x5520 ; -> sub_5520
+0x005504  ldp      x29, x30, [sp, #0x10]
+0x005508  ldp      x20, x19, [sp], #0x20
+0x00550c  b        #0x56710 ; call _objc_end_catch
+0x005510  mov      x19, x0
+0x005514  bl       #0x56710 ; call _objc_end_catch
+0x005518  mov      x0, x19
+0x00551c  bl       #0x563e0 ; call __Unwind_Resume

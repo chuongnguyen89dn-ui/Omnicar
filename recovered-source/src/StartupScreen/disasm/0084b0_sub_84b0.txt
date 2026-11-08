@@ -1,0 +1,45 @@
+; sub_84b0
+; VA 0x84b0  size 168
+
+0x000084b0:  add      x1, x1, #0x388
+0x000084b4:  b        #0x84b8
+0x000084b8:  sub      sp, sp, #0x70
+0x000084bc:  stp      x26, x25, [sp, #0x20]
+0x000084c0:  stp      x24, x23, [sp, #0x30]
+0x000084c4:  stp      x22, x21, [sp, #0x40]
+0x000084c8:  stp      x20, x19, [sp, #0x50]
+0x000084cc:  stp      x29, x30, [sp, #0x60]
+0x000084d0:  add      x29, sp, #0x60
+0x000084d4:  mov      x20, x1
+0x000084d8:  mov      x19, x0
+0x000084dc:  bl       #0x2212c    ; -> _objc_retain
+0x000084e0:  mov      x0, x20
+0x000084e4:  bl       #0x2212c    ; -> _objc_retain
+0x000084e8:  adrp     x25, #0x3a000
+0x000084ec:  ldr      x21, [x25, #0x9c0]    ; class(NSString)
+0x000084f0:  mov      x0, x19
+0x000084f4:  bl       #0x220e4    ; -> _objc_opt_class
+0x000084f8:  bl       #0x21d6c    ; -> _NSStringFromClass
+0x000084fc:  mov      x29, x29
+0x00008500:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008504:  mov      x22, x0
+0x00008508:  mov      x0, x19
+0x0000850c:  bl       #0x24320    ; -> _objc_msgSend(session)
+0x00008510:  mov      x29, x29
+0x00008514:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008518:  mov      x23, x0
+0x0000851c:  bl       #0x242a0    ; -> _objc_msgSend(role)
+0x00008520:  mov      x29, x29
+0x00008524:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00008528:  mov      x24, x0
+0x0000852c:  stp      x22, x0, [sp, #8]
+0x00008530:  str      x20, [sp]
+0x00008534:  adrp     x2, #0x32000
+0x00008538:  add      x2, x2, #0x2a8    ; @"%@: %@ role=%@"
+0x0000853c:  mov      x0, x21
+0x00008540:  bl       #0x25c20    ; -> _objc_msgSend(stringWithFormat:)
+0x00008544:  mov      x29, x29
+0x00008548:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000854c:  mov      x21, x0
+0x00008550:  adrp     x0, #0x30000
+0x00008554:  add      x0, x0, #0xf28    ; @"StartupScreen"

@@ -1,0 +1,16 @@
+; sub_21a50
+; VA 0x21a50  size 52
+
+0x00021a50:  stp      x29, x30, [sp, #-0x10]!
+0x00021a54:  mov      x29, sp
+0x00021a58:  adrp     x8, #0x3a000
+0x00021a5c:  ldr      x0, [x8, #0xa98]    ; class(NSMutableDictionary)
+0x00021a60:  bl       #0x230c0    ; -> _objc_msgSend(dictionary)
+0x00021a64:  mov      x29, x29
+0x00021a68:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00021a6c:  adrp     x9, #0x3b000
+0x00021a70:  ldr      x8, [x9, #0x3a8]
+0x00021a74:  str      x0, [x9, #0x3a8]
+0x00021a78:  mov      x0, x8
+0x00021a7c:  ldp      x29, x30, [sp], #0x10
+0x00021a80:  b        #0x22120    ; -> _objc_release

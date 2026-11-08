@@ -1,0 +1,23 @@
+; ==== SCPCarSplit__urlSwap  @0x24f98..0x24ff0 (88 bytes) ====
+00024f98  stp      x20, x19, [sp, #-0x20]!                      
+00024f9c  stp      x29, x30, [sp, #0x10]                        
+00024fa0  add      x29, sp, #0x10                               
+00024fa4  mov      x19, x0                                      
+00024fa8  bl       #0x56b60                                     ; msgSend "active"
+00024fac  cbz      w0, #0x24fc0                                 
+00024fb0  mov      x0, x19                                      
+00024fb4  bl       #0x59800                                     ; msgSend "paneCount"
+00024fb8  cmp      w0, #2                                       
+00024fbc  b.ge     #0x24fcc                                     
+00024fc0  ldp      x29, x30, [sp, #0x10]                        
+00024fc4  ldp      x20, x19, [sp], #0x20                        
+00024fc8  ret                                                   
+00024fcc  mov      x0, x19                                      
+00024fd0  mov      w2, #0                                       
+00024fd4  mov      w3, #1                                       
+00024fd8  bl       #0x5c560                                     ; msgSend "swapSlot:with:"
+00024fdc  mov      x0, x19                                      
+00024fe0  mov      w2, #1                                       
+00024fe4  ldp      x29, x30, [sp, #0x10]                        
+00024fe8  ldp      x20, x19, [sp], #0x20                        
+00024fec  b        #0x5a160                                     ; msgSend "relayoutAnimated:" | tail-msgSend "relayoutAnimated:"

@@ -1,0 +1,15 @@
+# -[SPPBubble setMenuTimer:]
+# addr 0x1e8b4 .. 0x1e8e4  (48 bytes)
+
+0001e8b4  stp      x20, x19, [sp, #-0x20]!                     
+0001e8b8  stp      x29, x30, [sp, #0x10]                       
+0001e8bc  add      x29, sp, #0x10                              
+0001e8c0  mov      x19, x2                                     
+0001e8c4  mov      x20, x0                                     
+0001e8c8  mov      x0, x2                                      
+0001e8cc  bl       #0x28004                                    ; _objc_retain
+0001e8d0  ldr      x0, [x20, #0x80]                            
+0001e8d4  str      x19, [x20, #0x80]                           
+0001e8d8  ldp      x29, x30, [sp, #0x10]                       
+0001e8dc  ldp      x20, x19, [sp], #0x20                       
+0001e8e0  b        #0x27ff8                                    ; _objc_release

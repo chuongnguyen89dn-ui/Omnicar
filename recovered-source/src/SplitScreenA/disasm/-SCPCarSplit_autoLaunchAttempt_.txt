@@ -1,0 +1,73 @@
+; -[SCPCarSplit autoLaunchAttempt:]
+0x044dc4  sub      sp, sp, #0x80
+0x044dc8  stp      x20, x19, [sp, #0x60]
+0x044dcc  stp      x29, x30, [sp, #0x70]
+0x044dd0  add      x29, sp, #0x70
+0x044dd4  mov      x19, x2
+0x044dd8  mov      x20, x0
+0x044ddc  sub      x0, x29, #0x18
+0x044de0  mov      x1, x20
+0x044de4  bl       #0x56740 ; call _objc_initWeak
+0x044de8  mov      x0, x20
+0x044dec  bl       #0x56b60 ; objc_msgSend$active
+0x044df0  tbnz     w0, #0, #0x44eb8
+0x044df4  bl       #0x12658 ; -> sub_12658
+0x044df8  mov      x29, x29
+0x044dfc  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x044e00  mov      x20, x0
+0x044e04  bl       #0x567b8 ; call _objc_release
+0x044e08  cmp      w19, #0x27
+0x044e0c  b.gt     #0x44e64
+0x044e10  cbnz     x20, #0x44e64
+0x044e14  adrp     x8, #0x78000
+0x044e18  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x044e1c  str      x8, [sp, #0x28]
+0x044e20  adrp     x8, #0x6e000
+0x044e24  ldr      d0, [x8, #0xff8]
+0x044e28  str      d0, [sp, #0x30]
+0x044e2c  adrp     x8, #0x44000
+0x044e30  add      x8, x8, #0xee4 ; -> 0x44ee4 sub_44ee4
+0x044e34  adrp     x9, #0x78000
+0x044e38  add      x9, x9, #0xfd0 ; -> 0x78fd0
+0x044e3c  stp      x8, x9, [sp, #0x38]
+0x044e40  add      x8, sp, #0x28
+0x044e44  add      x20, x8, #0x20 ; -> 0x44020
+0x044e48  sub      x1, x29, #0x18
+0x044e4c  mov      x0, x20
+0x044e50  bl       #0x566f8 ; call _objc_copyWeak
+0x044e54  str      w19, [sp, #0x50]
+0x044e58  fmov     d0, #1.00000000
+0x044e5c  add      x0, sp, #0x28
+0x044e60  b        #0x44eac
+0x044e64  adrp     x8, #0x78000
+0x044e68  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x044e6c  str      x8, [sp]
+0x044e70  adrp     x8, #0x6e000
+0x044e74  ldr      d0, [x8, #0xff8]
+0x044e78  str      d0, [sp, #8]
+0x044e7c  adrp     x8, #0x44000
+0x044e80  add      x8, x8, #0xf30 ; -> 0x44f30 sub_44f30
+0x044e84  adrp     x9, #0x78000
+0x044e88  add      x9, x9, #0xcd0 ; -> 0x78cd0
+0x044e8c  stp      x8, x9, [sp, #0x10]
+0x044e90  mov      x8, sp
+0x044e94  add      x20, x8, #0x20 ; -> 0x44020
+0x044e98  sub      x1, x29, #0x18
+0x044e9c  mov      x0, x20
+0x044ea0  bl       #0x566f8 ; call _objc_copyWeak
+0x044ea4  fmov     d0, #1.50000000
+0x044ea8  mov      x0, sp
+0x044eac  bl       #0x12efc ; -> sub_12efc
+0x044eb0  mov      x0, x20
+0x044eb4  bl       #0x56704 ; call _objc_destroyWeak
+0x044eb8  sub      x0, x29, #0x18
+0x044ebc  bl       #0x56704 ; call _objc_destroyWeak
+0x044ec0  ldp      x29, x30, [sp, #0x70]
+0x044ec4  ldp      x20, x19, [sp, #0x60]
+0x044ec8  add      sp, sp, #0x80
+0x044ecc  ret      
+0x044ed0  mov      x19, x0
+0x044ed4  sub      x0, x29, #0x18
+0x044ed8  bl       #0x56704 ; call _objc_destroyWeak
+0x044edc  mov      x0, x19
+0x044ee0  bl       #0x563e0 ; call __Unwind_Resume

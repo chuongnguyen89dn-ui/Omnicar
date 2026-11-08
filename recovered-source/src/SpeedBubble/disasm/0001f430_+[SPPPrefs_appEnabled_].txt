@@ -1,0 +1,13 @@
+# +[SPPPrefs appEnabled:]
+# addr 0x1f430 .. 0x1f458  (40 bytes)
+
+0001f430  stp      x20, x19, [sp, #-0x20]!                     
+0001f434  stp      x29, x30, [sp, #0x10]                       
+0001f438  add      x29, sp, #0x10                              
+0001f43c  mov      x19, x2                                     
+0001f440  bl       #0x2bf40                                    ; objc_msgSend$source
+0001f444  cmp      w19, w0                                     
+0001f448  cset     w0, eq                                      
+0001f44c  ldp      x29, x30, [sp, #0x10]                       
+0001f450  ldp      x20, x19, [sp], #0x20                       
+0001f454  ret                                                  

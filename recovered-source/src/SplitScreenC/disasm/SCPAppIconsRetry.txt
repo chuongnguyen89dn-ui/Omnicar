@@ -1,0 +1,42 @@
+; _SCPAppIconsRetry
+0x00b044  stp      x20, x19, [sp, #-0x20]!
+0x00b048  stp      x29, x30, [sp, #0x10]
+0x00b04c  add      x29, sp, #0x10
+0x00b050  bl       #0x4f538 ; -> _OMCPrefsSync
+0x00b054  adrp     x0, #0x7a000
+0x00b058  add      x0, x0, #0x8a0 ; -> 0x7a8a0 @"splitScreenIconsCrashed"
+0x00b05c  mov      x1, #0
+0x00b060  bl       #0x4f544 ; -> _OMCPref
+0x00b064  mov      x29, x29
+0x00b068  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00b06c  mov      x19, x0
+0x00b070  bl       #0x567b8 ; call _objc_release
+0x00b074  cbz      x19, #0xb0c8
+0x00b078  adrp     x0, #0x7a000
+0x00b07c  add      x0, x0, #0x8a0 ; -> 0x7a8a0 @"splitScreenIconsCrashed"
+0x00b080  mov      x1, #0
+0x00b084  bl       #0xc4f4 ; -> sub_c4f4
+0x00b088  adrp     x8, #0x87000
+0x00b08c  ldr      x0, [x8, #0x678] ; [0x87678] class:NSString
+0x00b090  adrp     x2, #0x7a000
+0x00b094  add      x2, x2, #0x900 ; -> 0x7a900 @"AppIcons: danh sach app doi -> cho phep chen icon lai"
+0x00b098  bl       #0x5c440 ; objc_msgSend$stringWithFormat:
+0x00b09c  mov      x29, x29
+0x00b0a0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00b0a4  mov      x19, x0
+0x00b0a8  adrp     x0, #0x79000
+0x00b0ac  add      x0, x0, #0x5c0 ; -> 0x795c0 @"SplitScreen"
+0x00b0b0  mov      x1, x19
+0x00b0b4  bl       #0x4fbf4 ; -> _OMCLogWrite
+0x00b0b8  mov      x0, x19
+0x00b0bc  ldp      x29, x30, [sp, #0x10]
+0x00b0c0  ldp      x20, x19, [sp], #0x20
+0x00b0c4  b        #0x567b8 ; call _objc_release
+0x00b0c8  ldp      x29, x30, [sp, #0x10]
+0x00b0cc  ldp      x20, x19, [sp], #0x20
+0x00b0d0  ret      
+0x00b0d4  mov      x20, x0
+0x00b0d8  mov      x0, x19
+0x00b0dc  bl       #0x567b8 ; call _objc_release
+0x00b0e0  mov      x0, x20
+0x00b0e4  bl       #0x563e0 ; call __Unwind_Resume

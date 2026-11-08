@@ -1,0 +1,67 @@
+# sub_2788c
+# addr 0x2788c .. 0x2798c  (256 bytes)
+
+0002788c  stp      x20, x19, [sp, #-0x20]!                     
+00027890  stp      x29, x30, [sp, #0x10]                       
+00027894  add      x29, sp, #0x10                              
+00027898  adrp     x0, #0x3c000                                
+0002789c  add      x0, x0, #0x778                              ; @"2027-04-30"
+000278a0  bl       #0x29ba0                                    ; objc_msgSend$length
+000278a4  cbz      x0, #0x27980                                
+000278a8  adrp     x8, #0x43000                                
+000278ac  ldr      x0, [x8, #0x158]                            ; [0x43158] classref -> NSDateFormatter (= import _OBJC_CLASS_$_NSDateFormatter)
+000278b0  bl       #0x27fd4                                    ; _objc_opt_new
+000278b4  mov      x19, x0                                     
+000278b8  adrp     x8, #0x43000                                
+000278bc  ldr      x0, [x8, #0x188]                            ; [0x43188] classref -> NSLocale (= import _OBJC_CLASS_$_NSLocale)
+000278c0  adrp     x2, #0x3c000                                
+000278c4  add      x2, x2, #0x798                              ; @"en_US_POSIX"
+000278c8  bl       #0x29c60                                    ; objc_msgSend$localeWithLocaleIdentifier:
+000278cc  mov      x29, x29                                    
+000278d0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000278d4  mov      x20, x0                                     
+000278d8  mov      x0, x19                                     
+000278dc  mov      x2, x20                                     
+000278e0  bl       #0x2b240                                    ; objc_msgSend$setLocale:
+000278e4  mov      x0, x20                                     
+000278e8  bl       #0x27ff8                                    ; _objc_release
+000278ec  adrp     x8, #0x43000                                
+000278f0  ldr      x0, [x8, #0x198]                            ; [0x43198] classref -> NSTimeZone (= import _OBJC_CLASS_$_NSTimeZone)  [slot name corrected per ANNOTATION_AUDIT ground truth]
+000278f4  mov      w2, #0x6270                                 
+000278f8  bl       #0x2c5c0                                    ; objc_msgSend$timeZoneForSecondsFromGMT:
+000278fc  mov      x29, x29                                    
+00027900  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00027904  mov      x20, x0                                     
+00027908  mov      x0, x19                                     
+0002790c  mov      x2, x20                                     
+00027910  bl       #0x2ba40                                    ; objc_msgSend$setTimeZone:
+00027914  mov      x0, x20                                     
+00027918  bl       #0x27ff8                                    ; _objc_release
+0002791c  adrp     x2, #0x3c000                                
+00027920  add      x2, x2, #0x7b8                              ; @"yyyy-MM-dd"
+00027924  mov      x0, x19                                     
+00027928  bl       #0x2ada0                                    ; objc_msgSend$setDateFormat:
+0002792c  adrp     x2, #0x3c000                                
+00027930  add      x2, x2, #0x778                              ; @"2027-04-30"
+00027934  mov      x0, x19                                     
+00027938  bl       #0x290e0                                    ; objc_msgSend$dateFromString:
+0002793c  mov      x29, x29                                    
+00027940  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00027944  mov      x20, x0                                     
+00027948  cbz      x0, #0x27968                                
+0002794c  mov      x0, x20                                     
+00027950  bl       #0x2c580                                    ; objc_msgSend$timeIntervalSince1970
+00027954  adrp     x8, #0x32000                                
+00027958  ldr      d1, [x8, #0xe68]                            ; [0x32e68] __const[0x32e68] double=86400.0 float=0.0
+0002795c  fadd     d0, d0, d1                                  
+00027960  adrp     x8, #0x43000                                
+00027964  str      d0, [x8, #0xbe8]                            
+00027968  mov      x0, x20                                     
+0002796c  bl       #0x27ff8                                    ; _objc_release
+00027970  mov      x0, x19                                     
+00027974  ldp      x29, x30, [sp, #0x10]                       
+00027978  ldp      x20, x19, [sp], #0x20                       
+0002797c  b        #0x27ff8                                    ; _objc_release
+00027980  ldp      x29, x30, [sp, #0x10]                       
+00027984  ldp      x20, x19, [sp], #0x20                       
+00027988  ret                                                  

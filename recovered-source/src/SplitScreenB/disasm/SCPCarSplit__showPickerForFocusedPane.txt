@@ -1,0 +1,60 @@
+; ==== SCPCarSplit__showPickerForFocusedPane  @0x3b04c..0x3b138 (236 bytes) ====
+0003b04c  stp      x22, x21, [sp, #-0x30]!                      
+0003b050  stp      x20, x19, [sp, #0x10]                        
+0003b054  stp      x29, x30, [sp, #0x20]                        
+0003b058  add      x29, sp, #0x20                               
+0003b05c  mov      x19, x0                                      
+0003b060  bl       #0x56b60                                     ; msgSend "active"
+0003b064  tbz      w0, #0, #0x3b09c                             
+0003b068  mov      x0, x19                                      
+0003b06c  bl       #0x582c0                                     ; msgSend "focusedSlot"
+0003b070  tbnz     w0, #0x1f, #0x3b0b4                          
+0003b074  mov      x0, x19                                      
+0003b078  bl       #0x582c0                                     ; msgSend "focusedSlot"
+0003b07c  mov      x20, x0                                      
+0003b080  mov      x0, x19                                      
+0003b084  bl       #0x59800                                     ; msgSend "paneCount"
+0003b088  cmp      w20, w0                                      
+0003b08c  b.ge     #0x3b0b4                                     
+0003b090  mov      x0, x19                                      
+0003b094  bl       #0x582c0                                     ; msgSend "focusedSlot"
+0003b098  b        #0x3b0bc                                     
+0003b09c  mov      x0, x19                                      
+0003b0a0  mov      w2, #-1                                      
+0003b0a4  ldp      x29, x30, [sp, #0x20]                        
+0003b0a8  ldp      x20, x19, [sp, #0x10]                        
+0003b0ac  ldp      x22, x21, [sp], #0x30                        
+0003b0b0  b        #0x5bfe0                                     ; msgSend "showPickerForSlot:" | tail-msgSend "showPickerForSlot:"
+0003b0b4  mov      x0, x19                                      
+0003b0b8  bl       #0x57140                                     ; msgSend "autoSlot"
+0003b0bc  mov      x20, x0                                      
+0003b0c0  mov      x0, x19                                      
+0003b0c4  mov      x2, x20                                      
+0003b0c8  bl       #0x5bfe0                                     ; msgSend "showPickerForSlot:"
+0003b0cc  mov      x0, x19                                      
+0003b0d0  mov      x2, x20                                      
+0003b0d4  bl       #0x597e0                                     ; msgSend "paneAtSlot:"
+0003b0d8  mov      x29, x29                                     
+0003b0dc  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003b0e0  mov      x20, x0                                      
+0003b0e4  bl       #0x599e0                                     ; msgSend "picker"
+0003b0e8  mov      x29, x29                                     
+0003b0ec  bl       #0x567dc                                     ; call _objc_retainAutoreleasedReturnValue
+0003b0f0  mov      x21, x0                                      
+0003b0f4  bl       #0x567b8                                     ; call _objc_release
+0003b0f8  cbz      x21, #0x3b110                                
+0003b0fc  mov      x0, x19                                      
+0003b100  mov      x2, x20                                      
+0003b104  bl       #0x5b620                                     ; msgSend "setPickerSheetPane:"
+0003b108  mov      x0, x19                                      
+0003b10c  bl       #0x5a100                                     ; msgSend "refreshPickerSheetSoon"
+0003b110  mov      x0, x20                                      
+0003b114  ldp      x29, x30, [sp, #0x20]                        
+0003b118  ldp      x20, x19, [sp, #0x10]                        
+0003b11c  ldp      x22, x21, [sp], #0x30                        
+0003b120  b        #0x567b8                                     ; call _objc_release | tail _objc_release
+0003b124  mov      x19, x0                                      
+0003b128  mov      x0, x20                                      
+0003b12c  bl       #0x567b8                                     ; call _objc_release
+0003b130  mov      x0, x19                                      
+0003b134  bl       #0x563e0                                     ; call __Unwind_Resume

@@ -1,0 +1,13 @@
+; -[SCPCarSplit setCancelledLaunches:]
+0x045824  stp      x20, x19, [sp, #-0x20]!
+0x045828  stp      x29, x30, [sp, #0x10]
+0x04582c  add      x29, sp, #0x10
+0x045830  mov      x19, x2
+0x045834  mov      x20, x0
+0x045838  mov      x0, x2
+0x04583c  bl       #0x567c4 ; call _objc_retain
+0x045840  ldr      x0, [x20, #0x30]
+0x045844  str      x19, [x20, #0x30]
+0x045848  ldp      x29, x30, [sp, #0x10]
+0x04584c  ldp      x20, x19, [sp], #0x20
+0x045850  b        #0x567b8 ; call _objc_release

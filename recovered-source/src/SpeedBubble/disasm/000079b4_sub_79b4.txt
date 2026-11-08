@@ -1,0 +1,26 @@
+# sub_79b4
+# addr 0x79b4 .. 0x7a10  (92 bytes)
+
+000079b4  stp      x20, x19, [sp, #-0x20]!                     
+000079b8  stp      x29, x30, [sp, #0x10]                       
+000079bc  add      x29, sp, #0x10                              
+000079c0  adrp     x8, #0x42000                                
+000079c4  ldr      x0, [x8, #0xfd0]                            ; [0x42fd0] classref -> NSNotificationCenter (= import _OBJC_CLASS_$_NSNotificationCenter)
+000079c8  bl       #0x29160                                    ; objc_msgSend$defaultCenter
+000079cc  mov      x29, x29                                    
+000079d0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000079d4  mov      x19, x0                                     
+000079d8  adrp     x8, #0x38000                                
+000079dc  ldr      x8, [x8, #0x208]                            ; [0x38208] __DATA_CONST,__got+0x208 (= import _UIAccessibilitySwitchControlStatusDidChangeNotification)
+000079e0  ldr      x2, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+000079e4  mov      x3, #0                                      
+000079e8  bl       #0x2a360                                    ; objc_msgSend$postNotificationName:object:
+000079ec  mov      x0, x19                                     
+000079f0  ldp      x29, x30, [sp, #0x10]                       
+000079f4  ldp      x20, x19, [sp], #0x20                       
+000079f8  b        #0x27ff8                                    ; _objc_release
+000079fc  mov      x20, x0                                     
+00007a00  mov      x0, x19                                     
+00007a04  bl       #0x27ff8                                    ; _objc_release
+00007a08  mov      x0, x20                                     
+00007a0c  bl       #0x27c80                                    ; __Unwind_Resume

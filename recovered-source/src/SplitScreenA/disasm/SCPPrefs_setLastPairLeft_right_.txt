@@ -1,0 +1,78 @@
+; +[SCPPrefs setLastPairLeft:right:]
+0x04eea4  stp      x24, x23, [sp, #-0x40]!
+0x04eea8  stp      x22, x21, [sp, #0x10]
+0x04eeac  stp      x20, x19, [sp, #0x20]
+0x04eeb0  stp      x29, x30, [sp, #0x30]
+0x04eeb4  add      x29, sp, #0x30
+0x04eeb8  mov      x20, x3
+0x04eebc  mov      x19, x2
+0x04eec0  mov      x0, x2
+0x04eec4  bl       #0x567c4 ; call _objc_retain
+0x04eec8  mov      x0, x20
+0x04eecc  bl       #0x567c4 ; call _objc_retain
+0x04eed0  mov      x0, x19
+0x04eed4  bl       #0x590c0 ; objc_msgSend$length
+0x04eed8  cbz      x0, #0x4ef78
+0x04eedc  mov      x0, x20
+0x04eee0  bl       #0x590c0 ; objc_msgSend$length
+0x04eee4  cbz      x0, #0x4ef78
+0x04eee8  adrp     x0, #0x7e000
+0x04eeec  add      x0, x0, #0x4a0 ; -> 0x7e4a0 @"splitScreenLastLeft"
+0x04eef0  bl       #0x4dcf4 ; -> sub_4dcf4
+0x04eef4  mov      x29, x29
+0x04eef8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04eefc  mov      x21, x0
+0x04ef00  mov      x0, x19
+0x04ef04  mov      x2, x21
+0x04ef08  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x04ef0c  tbz      w0, #0, #0x4ef50
+0x04ef10  adrp     x0, #0x7e000
+0x04ef14  add      x0, x0, #0x4c0 ; -> 0x7e4c0 @"splitScreenLastRight"
+0x04ef18  bl       #0x4dcf4 ; -> sub_4dcf4
+0x04ef1c  mov      x29, x29
+0x04ef20  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x04ef24  mov      x22, x0
+0x04ef28  mov      x0, x20
+0x04ef2c  mov      x2, x22
+0x04ef30  bl       #0x58d00 ; objc_msgSend$isEqualToString:
+0x04ef34  mov      x23, x0
+0x04ef38  mov      x0, x22
+0x04ef3c  bl       #0x567b8 ; call _objc_release
+0x04ef40  mov      x0, x21
+0x04ef44  bl       #0x567b8 ; call _objc_release
+0x04ef48  tbz      w23, #0, #0x4ef58
+0x04ef4c  b        #0x4ef78
+0x04ef50  mov      x0, x21
+0x04ef54  bl       #0x567b8 ; call _objc_release
+0x04ef58  adrp     x0, #0x7e000
+0x04ef5c  add      x0, x0, #0x4a0 ; -> 0x7e4a0 @"splitScreenLastLeft"
+0x04ef60  mov      x1, x19
+0x04ef64  bl       #0x4db84 ; -> sub_4db84
+0x04ef68  adrp     x0, #0x7e000
+0x04ef6c  add      x0, x0, #0x4c0 ; -> 0x7e4c0 @"splitScreenLastRight"
+0x04ef70  mov      x1, x20
+0x04ef74  bl       #0x4db84 ; -> sub_4db84
+0x04ef78  mov      x0, x20
+0x04ef7c  bl       #0x567b8 ; call _objc_release
+0x04ef80  mov      x0, x19
+0x04ef84  ldp      x29, x30, [sp, #0x30]
+0x04ef88  ldp      x20, x19, [sp, #0x20]
+0x04ef8c  ldp      x22, x21, [sp, #0x10]
+0x04ef90  ldp      x24, x23, [sp], #0x40
+0x04ef94  b        #0x567b8 ; call _objc_release
+0x04ef98  mov      x1, x22
+0x04ef9c  mov      x22, x0
+0x04efa0  mov      x0, x1
+0x04efa4  bl       #0x567b8 ; call _objc_release
+0x04efa8  b        #0x4efb0
+0x04efac  mov      x22, x0
+0x04efb0  mov      x0, x21
+0x04efb4  bl       #0x567b8 ; call _objc_release
+0x04efb8  b        #0x4efc0
+0x04efbc  mov      x22, x0
+0x04efc0  mov      x0, x20
+0x04efc4  bl       #0x567b8 ; call _objc_release
+0x04efc8  mov      x0, x19
+0x04efcc  bl       #0x567b8 ; call _objc_release
+0x04efd0  mov      x0, x22
+0x04efd4  bl       #0x563e0 ; call __Unwind_Resume

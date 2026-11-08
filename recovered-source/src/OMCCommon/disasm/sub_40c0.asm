@@ -1,0 +1,23 @@
+; === sub_40c0 @ 0x40c0 size=88 ===
+0x000040c0  stp      x20, x19, [sp, #-0x20]!
+0x000040c4  stp      x29, x30, [sp, #0x10]
+0x000040c8  add      x29, sp, #0x10
+0x000040cc  mov      x19, x1
+0x000040d0  mov      x20, x0
+0x000040d4  adrp     x8, #0x18000
+0x000040d8  ldr      x8, [x8, #0x528] ; -> [__DATA,__bss+0x28]
+0x000040dc  cmn      x8, #1
+0x000040e0  b.ne     #0x4100
+0x000040e4  adrp     x8, #0x18000
+0x000040e8  ldr      x2, [x8, #0x518] ; -> [__DATA,__bss+0x18]
+0x000040ec  mov      x0, x20
+0x000040f0  mov      x1, x19
+0x000040f4  ldp      x29, x30, [sp, #0x10]
+0x000040f8  ldp      x20, x19, [sp], #0x20
+0x000040fc  br       x2
+0x00004100  adrp     x0, #0x18000
+0x00004104  add      x0, x0, #0x528 ; -> __DATA,__bss+0x28
+0x00004108  adrp     x1, #0x14000
+0x0000410c  add      x1, x1, #0x428 ; -> __DATA_CONST,__const+0x20 [u64=0x8020000000000080 f64=-4.450147717014529e-308]
+0x00004110  bl       #0xd284 ; call stub:_dispatch_once
+0x00004114  b        #0x40e4

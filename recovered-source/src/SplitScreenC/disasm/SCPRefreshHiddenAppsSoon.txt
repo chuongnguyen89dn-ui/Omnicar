@@ -1,0 +1,33 @@
+; _SCPRefreshHiddenAppsSoon
+0x00c008  sub      sp, sp, #0x50
+0x00c00c  stp      x20, x19, [sp, #0x30]
+0x00c010  stp      x29, x30, [sp, #0x40]
+0x00c014  add      x29, sp, #0x40
+0x00c018  adrp     x8, #0x88000
+0x00c01c  ldr      x9, [x8, #0xf8]
+0x00c020  add      x19, x9, #1
+0x00c024  str      x19, [x8, #0xf8]
+0x00c028  mov      x0, #0
+0x00c02c  mov      w1, #0x800
+0x00c030  movk     w1, #0x2faf, lsl #16
+0x00c034  bl       #0x56548 ; call _dispatch_time
+0x00c038  adrp     x8, #0x78000
+0x00c03c  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x00c040  str      x8, [sp, #8]
+0x00c044  adrp     x8, #0x6f000
+0x00c048  ldr      d0, [x8, #8]
+0x00c04c  adrp     x8, #0xc000
+0x00c050  add      x8, x8, #0x88 ; -> 0xc088 sub_c088
+0x00c054  str      d0, [sp, #0x10]
+0x00c058  adrp     x9, #0x78000
+0x00c05c  add      x9, x9, #0x9a0 ; -> 0x789a0
+0x00c060  stp      x8, x9, [sp, #0x18]
+0x00c064  str      x19, [sp, #0x28]
+0x00c068  adrp     x1, #0x78000
+0x00c06c  ldr      x1, [x1, #0x370] ; [0x78370] __dispatch_main_q
+0x00c070  add      x2, sp, #8
+0x00c074  bl       #0x564d0 ; call _dispatch_after
+0x00c078  ldp      x29, x30, [sp, #0x40]
+0x00c07c  ldp      x20, x19, [sp, #0x30]
+0x00c080  add      sp, sp, #0x50
+0x00c084  ret      

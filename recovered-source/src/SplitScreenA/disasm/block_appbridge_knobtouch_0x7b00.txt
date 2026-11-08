@@ -1,0 +1,60 @@
+; sub_7b00
+0x007b00  stp      x22, x21, [sp, #-0x30]!
+0x007b04  stp      x20, x19, [sp, #0x10]
+0x007b08  stp      x29, x30, [sp, #0x20]
+0x007b0c  add      x29, sp, #0x20
+0x007b10  mov      x19, x1
+0x007b14  mov      x0, x1
+0x007b18  bl       #0x567c4 ; call _objc_retain
+0x007b1c  adrp     x8, #0x87000
+0x007b20  ldr      x0, [x8, #0x688] ; [0x87688] class:SCPCarSplit
+0x007b24  bl       #0x5bea0 ; objc_msgSend$shared
+0x007b28  mov      x29, x29
+0x007b2c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x007b30  mov      x20, x0
+0x007b34  mov      x0, x19
+0x007b38  bl       #0x5ca20 ; objc_msgSend$userInfo
+0x007b3c  mov      x29, x29
+0x007b40  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x007b44  mov      x21, x0
+0x007b48  mov      x0, x20
+0x007b4c  mov      x2, x21
+0x007b50  bl       #0x5a1e0 ; objc_msgSend$remoteKnobTouch:
+0x007b54  mov      x0, x21
+0x007b58  bl       #0x567b8 ; call _objc_release
+0x007b5c  mov      x0, x20
+0x007b60  bl       #0x567b8 ; call _objc_release
+0x007b64  mov      x0, x19
+0x007b68  ldp      x29, x30, [sp, #0x20]
+0x007b6c  ldp      x20, x19, [sp, #0x10]
+0x007b70  ldp      x22, x21, [sp], #0x30
+0x007b74  b        #0x567b8 ; call _objc_release
+0x007b78  mov      x22, x1
+0x007b7c  mov      x1, x21
+0x007b80  mov      x21, x0
+0x007b84  mov      x0, x1
+0x007b88  bl       #0x567b8 ; call _objc_release
+0x007b8c  b        #0x7b98
+0x007b90  mov      x22, x1
+0x007b94  mov      x21, x0
+0x007b98  mov      x0, x20
+0x007b9c  bl       #0x567b8 ; call _objc_release
+0x007ba0  b        #0x7bac
+0x007ba4  mov      x22, x1
+0x007ba8  mov      x21, x0
+0x007bac  cmp      w22, #1
+0x007bb0  b.ne     #0x7bdc
+0x007bb4  mov      x0, x21
+0x007bb8  bl       #0x566ec ; call _objc_begin_catch
+0x007bbc  mov      x1, x0
+0x007bc0  adrp     x0, #0x5f000
+0x007bc4  add      x0, x0, #0x35 ; -> 0x5f035 "AB_KNOB_TOUCH"
+0x007bc8  bl       #0x75cc ; -> sub_75cc
+0x007bcc  bl       #0x56710 ; call _objc_end_catch
+0x007bd0  b        #0x7b64
+0x007bd4  mov      x21, x0
+0x007bd8  bl       #0x56710 ; call _objc_end_catch
+0x007bdc  mov      x0, x19
+0x007be0  bl       #0x567b8 ; call _objc_release
+0x007be4  mov      x0, x21
+0x007be8  bl       #0x563e0 ; call __Unwind_Resume

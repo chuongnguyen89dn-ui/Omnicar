@@ -1,0 +1,24 @@
+; sub_fd2c
+; VA 0xfd2c  size 84
+
+0x0000fd2c:  sub      sp, sp, #0x50
+0x0000fd30:  stp      x20, x19, [sp, #0x30]
+0x0000fd34:  stp      x29, x30, [sp, #0x40]
+0x0000fd38:  add      x29, sp, #0x40
+0x0000fd3c:  mov      x19, x0
+0x0000fd40:  ldr      x0, [x0, #0x20]
+0x0000fd44:  fmov     d0, #1.00000000
+0x0000fd48:  bl       #0x24420    ; -> _objc_msgSend(setAlpha:)
+0x0000fd4c:  ldr      x0, [x19, #0x20]
+0x0000fd50:  adrp     x8, #0x30000
+0x0000fd54:  ldr      x8, [x8, #0x5a8]    ; got(_CGAffineTransformIdentity)
+0x0000fd58:  ldp      q0, q1, [x8]
+0x0000fd5c:  stp      q0, q1, [sp]
+0x0000fd60:  ldr      q0, [x8, #0x20]    ; got(_class_getInstanceMethod)
+0x0000fd64:  str      q0, [sp, #0x20]
+0x0000fd68:  mov      x2, sp
+0x0000fd6c:  bl       #0x25380    ; -> _objc_msgSend(setTransform:)
+0x0000fd70:  ldp      x29, x30, [sp, #0x40]
+0x0000fd74:  ldp      x20, x19, [sp, #0x30]
+0x0000fd78:  add      sp, sp, #0x50
+0x0000fd7c:  ret      

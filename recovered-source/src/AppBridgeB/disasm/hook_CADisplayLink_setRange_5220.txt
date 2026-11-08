@@ -1,0 +1,136 @@
+=== sub_5220 @ 0x5220 (size 540) ===
+00005220  sub      sp, sp, #0x80
+00005224  stp      d11, d10, [sp, #0x20]
+00005228  stp      d9, d8, [sp, #0x30]
+0000522c  stp      x24, x23, [sp, #0x40]
+00005230  stp      x22, x21, [sp, #0x50]
+00005234  stp      x20, x19, [sp, #0x60]
+00005238  stp      x29, x30, [sp, #0x70]
+0000523c  add      x29, sp, #0x70
+00005240  mov      v8.16b, v2.16b
+00005244  mov      v9.16b, v1.16b
+00005248  mov      v10.16b, v0.16b
+0000524c  mov      x21, x1
+00005250  mov      x20, x0
+00005254  adrp     x8, #0x34000
+00005258  ldr      x8, [x8, #0x278] ; -> ___stack_chk_guard
+0000525c  ldr      x8, [x8]
+00005260  str      x8, [sp, #0x18]
+00005264  adrp     x8, #0x3e000
+00005268  ldrb     w8, [x8, #0x9c0]
+0000526c  cmp      w8, #1
+00005270  b.ne     #0x52c8
+00005274  adrp     x8, #0x3e000
+00005278  ldr      x2, [x8, #0x950]
+0000527c  ldr      x8, [sp, #0x18]
+00005280  adrp     x9, #0x34000
+00005284  ldr      x9, [x9, #0x278] ; -> ___stack_chk_guard
+00005288  ldr      x9, [x9]
+0000528c  cmp      x9, x8
+00005290  b.ne     #0x53ec
+00005294  mov      x0, x20
+00005298  mov      x1, x21
+0000529c  mov      v0.16b, v10.16b
+000052a0  mov      v1.16b, v9.16b
+000052a4  mov      v2.16b, v8.16b
+000052a8  ldp      x29, x30, [sp, #0x70]
+000052ac  ldp      x20, x19, [sp, #0x60]
+000052b0  ldp      x22, x21, [sp, #0x50]
+000052b4  ldp      x24, x23, [sp, #0x40]
+000052b8  ldp      d9, d8, [sp, #0x30]
+000052bc  ldp      d11, d10, [sp, #0x20]
+000052c0  add      sp, sp, #0x80
+000052c4  br       x2
+000052c8  adrp     x23, #0x3e000
+000052cc  ldr      x0, [x23, #0x2a0] ; bind _OBJC_CLASS_$_NSNumber
+000052d0  mov      v0.16b, v10.16b
+000052d4  bl       #0x26300 ; objc_msgSend sel=numberWithFloat:
+000052d8  mov      x29, x29
+000052dc  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000052e0  mov      x19, x0
+000052e4  str      x0, [sp]
+000052e8  ldr      x0, [x23, #0x2a0] ; bind _OBJC_CLASS_$_NSNumber
+000052ec  mov      v0.16b, v9.16b
+000052f0  bl       #0x26300 ; objc_msgSend sel=numberWithFloat:
+000052f4  mov      x29, x29
+000052f8  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000052fc  mov      x22, x0
+00005300  str      x0, [sp, #8]
+00005304  ldr      x0, [x23, #0x2a0] ; bind _OBJC_CLASS_$_NSNumber
+00005308  mov      v0.16b, v8.16b
+0000530c  bl       #0x26300 ; objc_msgSend sel=numberWithFloat:
+00005310  mov      x29, x29
+00005314  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+00005318  mov      x23, x0
+0000531c  str      x0, [sp, #0x10]
+00005320  adrp     x8, #0x3e000
+00005324  ldr      x0, [x8, #0x2a8] ; bind _OBJC_CLASS_$_NSArray
+00005328  mov      x2, sp
+0000532c  mov      w3, #3
+00005330  bl       #0x24e20 ; objc_msgSend sel=arrayWithObjects:count:
+00005334  mov      x29, x29
+00005338  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+0000533c  mov      x24, x0
+00005340  adrp     x1, #0x3e000
+00005344  add      x1, x1, #0x9c1
+00005348  mov      x0, x20
+0000534c  mov      x2, x24
+00005350  mov      w3, #1
+00005354  bl       #0x24848 ; call _objc_setAssociatedObject
+00005358  mov      x0, x24
+0000535c  bl       #0x2480c ; call _objc_release
+00005360  mov      x0, x23
+00005364  bl       #0x2480c ; call _objc_release
+00005368  mov      x0, x22
+0000536c  bl       #0x2480c ; call _objc_release
+00005370  mov      x0, x19
+00005374  bl       #0x2480c ; call _objc_release
+00005378  adrp     x8, #0x3e000
+0000537c  ldr      w8, [x8, #0x9b0]
+00005380  cmp      w8, #1
+00005384  b.lt     #0x5394
+00005388  mov      x0, x20
+0000538c  bl       #0x5cbc ; call sub_5cbc
+00005390  b        #0x53b4 ; call sub_53b4
+00005394  adrp     x8, #0x3e000
+00005398  ldr      x8, [x8, #0x950]
+0000539c  mov      x0, x20
+000053a0  mov      x1, x21
+000053a4  mov      v0.16b, v10.16b
+000053a8  mov      v1.16b, v9.16b
+000053ac  mov      v2.16b, v8.16b
+000053b0  blr      x8
+000053b4  ldr      x8, [sp, #0x18]
+000053b8  adrp     x9, #0x34000
+000053bc  ldr      x9, [x9, #0x278] ; -> ___stack_chk_guard
+000053c0  ldr      x9, [x9]
+000053c4  cmp      x9, x8
+000053c8  b.ne     #0x53ec
+000053cc  ldp      x29, x30, [sp, #0x70]
+000053d0  ldp      x20, x19, [sp, #0x60]
+000053d4  ldp      x22, x21, [sp, #0x50]
+000053d8  ldp      x24, x23, [sp, #0x40]
+000053dc  ldp      d9, d8, [sp, #0x30]
+000053e0  ldp      d11, d10, [sp, #0x20]
+000053e4  add      sp, sp, #0x80
+000053e8  ret      
+000053ec  bl       #0x24488 ; call ___stack_chk_fail
+000053f0  mov      x20, x0
+000053f4  mov      x0, x24
+000053f8  bl       #0x2480c ; call _objc_release
+000053fc  b        #0x5404 ; call sub_5404
+00005400  mov      x20, x0
+00005404  mov      x0, x23
+00005408  bl       #0x2480c ; call _objc_release
+0000540c  b        #0x5414 ; call sub_5414
+00005410  mov      x20, x0
+00005414  mov      x0, x22
+00005418  bl       #0x2480c ; call _objc_release
+0000541c  b        #0x5424 ; call sub_5424
+00005420  mov      x20, x0
+00005424  mov      x0, x19
+00005428  bl       #0x2480c ; call _objc_release
+0000542c  b        #0x5434 ; call sub_5434
+00005430  mov      x20, x0
+00005434  mov      x0, x20
+00005438  bl       #0x24470 ; call __Unwind_Resume

@@ -1,0 +1,24 @@
+; ==== SCPCarSplit__showPickersForEmptySlots  @0x15648..0x156a4 (92 bytes) ====
+00015648  stp      x20, x19, [sp, #-0x20]!                      
+0001564c  stp      x29, x30, [sp, #0x10]                        
+00015650  add      x29, sp, #0x10                               
+00015654  mov      x19, x0                                      
+00015658  bl       #0x59800                                     ; msgSend "paneCount"
+0001565c  cmp      w0, #1                                       
+00015660  b.lt     #0x15698                                     
+00015664  mov      w20, #0                                      
+00015668  mov      x0, x19                                      
+0001566c  mov      x2, x20                                      
+00015670  bl       #0x5c140                                     ; msgSend "slotOccupied:"
+00015674  tbnz     w0, #0, #0x15684                             
+00015678  mov      x0, x19                                      
+0001567c  mov      x2, x20                                      
+00015680  bl       #0x5bfe0                                     ; msgSend "showPickerForSlot:"
+00015684  add      w20, w20, #1                                 
+00015688  mov      x0, x19                                      
+0001568c  bl       #0x59800                                     ; msgSend "paneCount"
+00015690  cmp      w20, w0                                      
+00015694  b.lt     #0x15668                                     
+00015698  ldp      x29, x30, [sp, #0x10]                        
+0001569c  ldp      x20, x19, [sp], #0x20                        
+000156a0  ret                                                   

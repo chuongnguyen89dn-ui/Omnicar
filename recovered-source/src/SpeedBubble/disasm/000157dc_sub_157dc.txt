@@ -1,0 +1,17 @@
+# sub_157dc
+# addr 0x157dc .. 0x15814  (56 bytes)
+
+000157dc  fmov     d1, xzr                                     
+000157e0  fmaxnm   d0, d0, d1                                  
+000157e4  ldr      d1, [x0, #0x20]                             
+000157e8  fdiv     d0, d0, d1                                  
+000157ec  adrp     x8, #0x32000                                
+000157f0  ldr      d1, [x8, #0xbe0]                            ; [0x32be0] __const[0x32be0] double=1.04 float=9.121204334167384e-33
+000157f4  fcmp     d0, d1                                      
+000157f8  fcsel    d0, d1, d0, gt                              
+000157fc  adrp     x8, #0x32000                                
+00015800  ldr      d1, [x8, #0xbe8]                            ; [0x32be8] __const[0x32be8] double=150.0 float=0.0
+00015804  mov      x8, #0x406e000000000000                     
+00015808  fmov     d2, x8                                      
+0001580c  fmadd    d0, d0, d2, d1                              
+00015810  ret                                                  

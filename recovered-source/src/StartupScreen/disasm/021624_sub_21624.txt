@@ -1,0 +1,70 @@
+; sub_21624
+; VA 0x21624  size 268
+
+0x00021624:  sub      sp, sp, #0x70
+0x00021628:  stp      d9, d8, [sp, #0x30]
+0x0002162c:  stp      x22, x21, [sp, #0x40]
+0x00021630:  stp      x20, x19, [sp, #0x50]
+0x00021634:  stp      x29, x30, [sp, #0x60]
+0x00021638:  add      x29, sp, #0x60
+0x0002163c:  mov      x19, x0
+0x00021640:  ldrb     w8, [x0, #0x24]
+0x00021644:  cmp      w8, #0
+0x00021648:  adrp     x8, #0x28000
+0x0002164c:  ldr      d0, [x8, #0xf20]
+0x00021650:  fmov     d1, #1.00000000
+0x00021654:  fcsel    d8, d1, d0, ne
+0x00021658:  adrp     x8, #0x3a000
+0x0002165c:  ldr      x0, [x8, #0xbc8]    ; class(UIGraphicsImageRendererFormat)
+0x00021660:  bl       #0x24080    ; -> _objc_msgSend(preferredFormat)
+0x00021664:  mov      x29, x29
+0x00021668:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0002166c:  mov      x20, x0
+0x00021670:  fmov     d0, #1.00000000
+0x00021674:  bl       #0x25000    ; -> _objc_msgSend(setScale:)
+0x00021678:  ldrb     w2, [x19, #0x24]
+0x0002167c:  mov      x0, x20
+0x00021680:  bl       #0x24e20    ; -> _objc_msgSend(setOpaque:)
+0x00021684:  adrp     x8, #0x3a000
+0x00021688:  ldr      x0, [x8, #0xbd0]    ; class(UIGraphicsImageRenderer)
+0x0002168c:  bl       #0x22024    ; -> _objc_alloc
+0x00021690:  mov      x8, #0x4058000000000000
+0x00021694:  fmov     d0, x8
+0x00021698:  mov      v1.16b, v0.16b
+0x0002169c:  mov      x2, x20
+0x000216a0:  bl       #0x237e0    ; -> _objc_msgSend(initWithSize:format:)
+0x000216a4:  mov      x21, x0
+0x000216a8:  adrp     x8, #0x30000
+0x000216ac:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x000216b0:  str      x8, [sp]
+0x000216b4:  adrp     x8, #0x28000
+0x000216b8:  ldr      d0, [x8, #0xde0]
+0x000216bc:  adrp     x8, #0x21000
+0x000216c0:  add      x8, x8, #0x730    ; func sub_21730
+0x000216c4:  adrp     x9, #0x30000
+0x000216c8:  add      x9, x9, #0xea8
+0x000216cc:  str      d0, [sp, #8]
+0x000216d0:  stp      x8, x9, [sp, #0x10]
+0x000216d4:  ldrb     w8, [x19, #0x24]
+0x000216d8:  strb     w8, [sp, #0x28]
+0x000216dc:  str      d8, [sp, #0x20]
+0x000216e0:  mov      x2, sp
+0x000216e4:  bl       #0x23620    ; -> _objc_msgSend(imageWithActions:)
+0x000216e8:  mov      x29, x29
+0x000216ec:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x000216f0:  ldrsw    x9, [x19, #0x20]
+0x000216f4:  adrp     x10, #0x3b000
+0x000216f8:  add      x10, x10, #0x378
+0x000216fc:  ldr      x8, [x10, x9, lsl #3]
+0x00021700:  str      x0, [x10, x9, lsl #3]
+0x00021704:  mov      x0, x8
+0x00021708:  bl       #0x22120    ; -> _objc_release
+0x0002170c:  mov      x0, x21
+0x00021710:  bl       #0x22120    ; -> _objc_release
+0x00021714:  mov      x0, x20
+0x00021718:  ldp      x29, x30, [sp, #0x60]
+0x0002171c:  ldp      x20, x19, [sp, #0x50]
+0x00021720:  ldp      x22, x21, [sp, #0x40]
+0x00021724:  ldp      d9, d8, [sp, #0x30]
+0x00021728:  add      sp, sp, #0x70
+0x0002172c:  b        #0x22120    ; -> _objc_release

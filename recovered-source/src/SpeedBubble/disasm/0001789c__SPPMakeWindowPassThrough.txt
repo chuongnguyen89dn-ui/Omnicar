@@ -1,0 +1,84 @@
+# _SPPMakeWindowPassThrough
+# addr 0x1789c .. 0x179e0  (324 bytes)
+
+0001789c  sub      sp, sp, #0x50                               
+000178a0  stp      x24, x23, [sp, #0x10]                       
+000178a4  stp      x22, x21, [sp, #0x20]                       
+000178a8  stp      x20, x19, [sp, #0x30]                       
+000178ac  stp      x29, x30, [sp, #0x40]                       
+000178b0  add      x29, sp, #0x40                              
+000178b4  mov      x19, x0                                     
+000178b8  bl       #0x28004                                    ; _objc_retain
+000178bc  mov      x0, x19                                     
+000178c0  bl       #0x2807c                                    ; _object_getClass
+000178c4  mov      x21, x0                                     
+000178c8  adrp     x8, #0x42000                                
+000178cc  ldr      x20, [x8, #0xf58]                           ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000178d0  bl       #0x27c44                                    ; _NSStringFromClass
+000178d4  mov      x29, x29                                    
+000178d8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000178dc  mov      x22, x0                                     
+000178e0  str      x0, [sp]                                    
+000178e4  adrp     x2, #0x3a000                                
+000178e8  add      x2, x2, #0xab8                              ; @"SPPPassThrough_%@"
+000178ec  mov      x0, x20                                     
+000178f0  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000178f4  mov      x29, x29                                    
+000178f8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000178fc  mov      x20, x0                                     
+00017900  mov      x0, x22                                     
+00017904  bl       #0x27ff8                                    ; _objc_release
+00017908  mov      x0, x20                                     
+0001790c  bl       #0x28010                                    ; _objc_retainAutorelease
+00017910  bl       #0x28280                                    ; objc_msgSend$UTF8String
+00017914  bl       #0x27f74                                    ; _objc_getClass
+00017918  mov      x22, x0                                     
+0001791c  cbnz     x0, #0x17978                                
+00017920  mov      x0, x20                                     
+00017924  bl       #0x28010                                    ; _objc_retainAutorelease
+00017928  bl       #0x28280                                    ; objc_msgSend$UTF8String
+0001792c  mov      x1, x0                                      
+00017930  mov      x0, x21                                     
+00017934  mov      x2, #0                                      
+00017938  bl       #0x27f20                                    ; _objc_allocateClassPair
+0001793c  mov      x22, x0                                     
+00017940  adrp     x8, #0x41000                                
+00017944  ldr      x23, [x8, #0xb48]                           ; [0x41b48] selref -> @hitTest:withEvent:
+00017948  mov      x0, x21                                     
+0001794c  mov      x1, x23                                     
+00017950  bl       #0x27d34                                    ; _class_getInstanceMethod
+00017954  bl       #0x27ec0                                    ; _method_getTypeEncoding
+00017958  mov      x3, x0                                      
+0001795c  adrp     x2, #0x17000                                
+00017960  add      x2, x2, #0x9e0                              ; __TEXT,__text+0x139e0
+00017964  mov      x0, x22                                     
+00017968  mov      x1, x23                                     
+0001796c  bl       #0x27d10                                    ; _class_addMethod
+00017970  mov      x0, x22                                     
+00017974  bl       #0x27fec                                    ; _objc_registerClassPair
+00017978  mov      x0, x19                                     
+0001797c  mov      x1, x22                                     
+00017980  bl       #0x28088                                    ; _object_setClass
+00017984  mov      x0, x20                                     
+00017988  bl       #0x27ff8                                    ; _objc_release
+0001798c  mov      x0, x19                                     
+00017990  ldp      x29, x30, [sp, #0x40]                       
+00017994  ldp      x20, x19, [sp, #0x30]                       
+00017998  ldp      x22, x21, [sp, #0x20]                       
+0001799c  ldp      x24, x23, [sp, #0x10]                       
+000179a0  add      sp, sp, #0x50                               
+000179a4  b        #0x27ff8                                    ; _objc_release
+000179a8  mov      x21, x0                                     
+000179ac  mov      x0, x22                                     
+000179b0  b        #0x179cc                                    ; sub_179cc
+000179b4  b        #0x179b8                                    ; sub_179b8
+000179b8  mov      x21, x0                                     
+000179bc  b        #0x179d0                                    ; sub_179d0
+000179c0  b        #0x179c4                                    ; sub_179c4
+000179c4  mov      x21, x0                                     
+000179c8  mov      x0, x20                                     
+000179cc  bl       #0x27ff8                                    ; _objc_release
+000179d0  mov      x0, x19                                     
+000179d4  bl       #0x27ff8                                    ; _objc_release
+000179d8  mov      x0, x21                                     
+000179dc  bl       #0x27c80                                    ; __Unwind_Resume

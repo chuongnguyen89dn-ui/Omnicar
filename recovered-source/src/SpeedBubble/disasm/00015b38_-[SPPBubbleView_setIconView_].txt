@@ -1,0 +1,19 @@
+# -[SPPBubbleView setIconView:]
+# addr 0x15b38 .. 0x15b78  (64 bytes)
+
+00015b38  stp      x22, x21, [sp, #-0x30]!                     
+00015b3c  stp      x20, x19, [sp, #0x10]                       
+00015b40  stp      x29, x30, [sp, #0x20]                       
+00015b44  add      x29, sp, #0x20                              
+00015b48  mov      x19, x2                                     
+00015b4c  mov      x20, x0                                     
+00015b50  adrp     x8, #0x43000                                
+00015b54  ldrsw    x21, [x8, #0x230]                           
+00015b58  mov      x0, x2                                      
+00015b5c  bl       #0x28004                                    ; _objc_retain
+00015b60  ldr      x0, [x20, x21]                              
+00015b64  str      x19, [x20, x21]                             
+00015b68  ldp      x29, x30, [sp, #0x20]                       
+00015b6c  ldp      x20, x19, [sp, #0x10]                       
+00015b70  ldp      x22, x21, [sp], #0x30                       
+00015b74  b        #0x27ff8                                    ; _objc_release

@@ -1,0 +1,103 @@
+; sub_7434
+0x007434  stp      x26, x25, [sp, #-0x50]!
+0x007438  stp      x24, x23, [sp, #0x10]
+0x00743c  stp      x22, x21, [sp, #0x20]
+0x007440  stp      x20, x19, [sp, #0x30]
+0x007444  stp      x29, x30, [sp, #0x40]
+0x007448  add      x29, sp, #0x40
+0x00744c  mov      x19, x1
+0x007450  mov      x0, x1
+0x007454  bl       #0x567c4 ; call _objc_retain
+0x007458  adrp     x8, #0x87000
+0x00745c  ldr      x0, [x8, #0x688] ; [0x87688] class:SCPCarSplit
+0x007460  bl       #0x5bea0 ; objc_msgSend$shared
+0x007464  mov      x29, x29
+0x007468  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x00746c  mov      x20, x0
+0x007470  mov      x0, x19
+0x007474  bl       #0x5ca20 ; objc_msgSend$userInfo
+0x007478  mov      x29, x29
+0x00747c  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x007480  mov      x21, x0
+0x007484  adrp     x2, #0x79000
+0x007488  add      x2, x2, #0xb80 ; -> 0x79b80 @"identifier"
+0x00748c  bl       #0x59660 ; objc_msgSend$objectForKeyedSubscript:
+0x007490  mov      x29, x29
+0x007494  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x007498  mov      x23, x0
+0x00749c  mov      x0, x19
+0x0074a0  bl       #0x5ca20 ; objc_msgSend$userInfo
+0x0074a4  mov      x29, x29
+0x0074a8  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0074ac  mov      x25, x0
+0x0074b0  adrp     x2, #0x79000
+0x0074b4  add      x2, x2, #0xba0 ; -> 0x79ba0 @"state"
+0x0074b8  bl       #0x59660 ; objc_msgSend$objectForKeyedSubscript:
+0x0074bc  mov      x29, x29
+0x0074c0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x0074c4  mov      x22, x0
+0x0074c8  mov      x0, x20
+0x0074cc  mov      x2, x23
+0x0074d0  mov      x3, x22
+0x0074d4  bl       #0x58760 ; objc_msgSend$hostedApp:state:
+0x0074d8  mov      x0, x22
+0x0074dc  bl       #0x567b8 ; call _objc_release
+0x0074e0  mov      x0, x25
+0x0074e4  bl       #0x567b8 ; call _objc_release
+0x0074e8  mov      x0, x23
+0x0074ec  bl       #0x567b8 ; call _objc_release
+0x0074f0  mov      x0, x21
+0x0074f4  bl       #0x567b8 ; call _objc_release
+0x0074f8  mov      x0, x20
+0x0074fc  bl       #0x567b8 ; call _objc_release
+0x007500  mov      x0, x19
+0x007504  ldp      x29, x30, [sp, #0x40]
+0x007508  ldp      x20, x19, [sp, #0x30]
+0x00750c  ldp      x22, x21, [sp, #0x20]
+0x007510  ldp      x24, x23, [sp, #0x10]
+0x007514  ldp      x26, x25, [sp], #0x50
+0x007518  b        #0x567b8 ; call _objc_release
+0x00751c  mov      x24, x1
+0x007520  mov      x1, x22
+0x007524  mov      x22, x0
+0x007528  mov      x0, x1
+0x00752c  bl       #0x567b8 ; call _objc_release
+0x007530  b        #0x753c
+0x007534  mov      x24, x1
+0x007538  mov      x22, x0
+0x00753c  mov      x0, x25
+0x007540  bl       #0x567b8 ; call _objc_release
+0x007544  b        #0x7550
+0x007548  mov      x24, x1
+0x00754c  mov      x22, x0
+0x007550  mov      x0, x23
+0x007554  bl       #0x567b8 ; call _objc_release
+0x007558  b        #0x7564
+0x00755c  mov      x24, x1
+0x007560  mov      x22, x0
+0x007564  mov      x0, x21
+0x007568  bl       #0x567b8 ; call _objc_release
+0x00756c  b        #0x7578
+0x007570  mov      x24, x1
+0x007574  mov      x22, x0
+0x007578  mov      x0, x20
+0x00757c  bl       #0x567b8 ; call _objc_release
+0x007580  cmp      w24, #1
+0x007584  b.ne     #0x75b0
+0x007588  mov      x0, x22
+0x00758c  bl       #0x566ec ; call _objc_begin_catch
+0x007590  mov      x1, x0
+0x007594  adrp     x0, #0x5e000
+0x007598  add      x0, x0, #0xf2b ; -> 0x5ef2b "AB_STATE"
+0x00759c  bl       #0x75cc ; -> sub_75cc
+0x0075a0  bl       #0x56710 ; call _objc_end_catch
+0x0075a4  b        #0x7500
+0x0075a8  mov      x22, x0
+0x0075ac  bl       #0x56710 ; call _objc_end_catch
+0x0075b0  mov      x0, x19
+0x0075b4  bl       #0x567b8 ; call _objc_release
+0x0075b8  mov      x0, x22
+0x0075bc  bl       #0x563e0 ; call __Unwind_Resume
+0x0075c0  mov      x24, x1
+0x0075c4  mov      x22, x0
+0x0075c8  b        #0x7580

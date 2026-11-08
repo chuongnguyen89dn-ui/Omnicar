@@ -1,0 +1,16 @@
+; -[SSStartupView ss_stopLink]
+; VA 0x1007c  size 52
+
+0x0001007c:  stp      x20, x19, [sp, #-0x20]!
+0x00010080:  stp      x29, x30, [sp, #0x10]
+0x00010084:  add      x29, sp, #0x10
+0x00010088:  mov      x19, x0
+0x0001008c:  adrp     x8, #0x3a000
+0x00010090:  ldrsw    x20, [x8, #0xcb4]
+0x00010094:  ldr      x0, [x0, x20]
+0x00010098:  bl       #0x23880    ; -> _objc_msgSend(invalidate)
+0x0001009c:  ldr      x0, [x19, x20]
+0x000100a0:  str      xzr, [x19, x20]
+0x000100a4:  ldp      x29, x30, [sp, #0x10]
+0x000100a8:  ldp      x20, x19, [sp], #0x20
+0x000100ac:  b        #0x22120    ; -> _objc_release

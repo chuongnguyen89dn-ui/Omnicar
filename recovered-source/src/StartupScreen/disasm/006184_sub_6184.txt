@@ -1,0 +1,45 @@
+; sub_6184
+; VA 0x6184  size 168
+
+0x00006184:  mov      x20, x0
+0x00006188:  adrp     x8, #0x30000
+0x0000618c:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x00006190:  str      x8, [sp, #0x10]
+0x00006194:  adrp     x8, #0x28000
+0x00006198:  ldr      d0, [x8, #0xdd0]
+0x0000619c:  str      d0, [sp, #0x18]
+0x000061a0:  adrp     x8, #0x6000
+0x000061a4:  add      x8, x8, #0x1f8
+0x000061a8:  adrp     x9, #0x30000
+0x000061ac:  add      x9, x9, #0x758
+0x000061b0:  stp      x8, x9, [sp, #0x20]
+0x000061b4:  stp      x22, x19, [sp, #0x30]
+0x000061b8:  mov      x0, x22
+0x000061bc:  bl       #0x2212c    ; -> _objc_retain
+0x000061c0:  add      x1, sp, #0x10
+0x000061c4:  mov      x0, x20
+0x000061c8:  bl       #0x21e98    ; -> _dispatch_async
+0x000061cc:  mov      x0, x20
+0x000061d0:  bl       #0x22120    ; -> _objc_release
+0x000061d4:  ldr      x0, [sp, #0x30]
+0x000061d8:  bl       #0x22120    ; -> _objc_release
+0x000061dc:  mov      x0, x22
+0x000061e0:  bl       #0x22120    ; -> _objc_release
+0x000061e4:  ldp      x29, x30, [sp, #0x60]
+0x000061e8:  ldp      x20, x19, [sp, #0x50]
+0x000061ec:  ldp      x22, x21, [sp, #0x40]
+0x000061f0:  add      sp, sp, #0x70
+0x000061f4:  ret      
+0x000061f8:  sub      sp, sp, #0x60
+0x000061fc:  stp      x20, x19, [sp, #0x40]
+0x00006200:  stp      x29, x30, [sp, #0x50]
+0x00006204:  add      x29, sp, #0x50
+0x00006208:  mov      x19, x0
+0x0000620c:  ldr      x0, [x0, #0x20]
+0x00006210:  bl       #0x5a5c    ; -> sub_5a5c
+0x00006214:  mov      x29, x29
+0x00006218:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000621c:  mov      x20, x0
+0x00006220:  adrp     x8, #0x30000
+0x00006224:  ldr      x8, [x8, #0x350]    ; got(__NSConcreteStackBlock)
+0x00006228:  str      x8, [sp, #8]

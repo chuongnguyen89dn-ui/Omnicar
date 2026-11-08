@@ -1,0 +1,74 @@
+; sub_ff60
+; VA 0xff60  size 284
+
+0x0000ff60:  adrp     x8, #0x3a000
+0x0000ff64:  ldrsw    x8, [x8, #0xd10]
+0x0000ff68:  ldr      d1, [x19, x8]
+0x0000ff6c:  fcmp     d0, d1
+0x0000ff70:  b.le     #0xff88
+0x0000ff74:  ldp      x29, x30, [sp, #0x30]
+0x0000ff78:  ldp      x20, x19, [sp, #0x20]
+0x0000ff7c:  ldp      x22, x21, [sp, #0x10]
+0x0000ff80:  ldp      x24, x23, [sp], #0x40
+0x0000ff84:  ret      
+0x0000ff88:  adrp     x8, #0x3a000
+0x0000ff8c:  ldr      x0, [x8, #0xb48]    ; class(SSLinkTarget)
+0x0000ff90:  bl       #0x220fc    ; -> _objc_opt_new
+0x0000ff94:  mov      x20, x0
+0x0000ff98:  mov      x2, x19
+0x0000ff9c:  bl       #0x24ea0    ; -> _objc_msgSend(setOwner:)
+0x0000ffa0:  mov      x0, x19
+0x0000ffa4:  bl       #0x260a0    ; -> _objc_msgSend(window)
+0x0000ffa8:  mov      x29, x29
+0x0000ffac:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000ffb0:  mov      x22, x0
+0x0000ffb4:  bl       #0x242e0    ; -> _objc_msgSend(screen)
+0x0000ffb8:  mov      x29, x29
+0x0000ffbc:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000ffc0:  mov      x21, x0
+0x0000ffc4:  mov      x0, x22
+0x0000ffc8:  bl       #0x22120    ; -> _objc_release
+0x0000ffcc:  adrp     x8, #0x3a000
+0x0000ffd0:  ldr      x8, [x8, #0xa00]    ; class(CADisplayLink)
+0x0000ffd4:  cmp      x21, #0
+0x0000ffd8:  csel     x0, x8, x21, eq
+0x0000ffdc:  adrp     x8, #0x39000
+0x0000ffe0:  ldr      x3, [x8, #0x880]    ; selref(step:)
+0x0000ffe4:  mov      x2, x20
+0x0000ffe8:  bl       #0x23160    ; -> _objc_msgSend(displayLinkWithTarget:selector:)
+0x0000ffec:  mov      x29, x29
+0x0000fff0:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x0000fff4:  ldr      x8, [x19, x23]
+0x0000fff8:  str      x0, [x19, x23]
+0x0000fffc:  mov      x0, x8
+0x00010000:  bl       #0x22120    ; -> _objc_release
+0x00010004:  mov      w8, #0x42700000
+0x00010008:  fmov     s1, w8
+0x0001000c:  fmov     s0, #30.00000000
+0x00010010:  mov      v2.16b, v1.16b
+0x00010014:  bl       #0x21b14    ; -> _CAFrameRateRangeMake
+0x00010018:  ldr      x0, [x19, x23]
+0x0001001c:  bl       #0x24f00    ; -> _objc_msgSend(setPreferredFrameRateRange:)
+0x00010020:  ldr      x19, [x19, x23]
+0x00010024:  adrp     x8, #0x3a000
+0x00010028:  ldr      x0, [x8, #0xa08]    ; class(NSRunLoop)
+0x0001002c:  bl       #0x23b80    ; -> _objc_msgSend(mainRunLoop)
+0x00010030:  mov      x29, x29
+0x00010034:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00010038:  mov      x22, x0
+0x0001003c:  adrp     x8, #0x30000
+0x00010040:  ldr      x8, [x8, #0x1f8]    ; got(_NSRunLoopCommonModes)
+0x00010044:  ldr      x3, [x8]
+0x00010048:  mov      x0, x19
+0x0001004c:  mov      x2, x22
+0x00010050:  bl       #0x22540    ; -> _objc_msgSend(addToRunLoop:forMode:)
+0x00010054:  mov      x0, x22
+0x00010058:  bl       #0x22120    ; -> _objc_release
+0x0001005c:  mov      x0, x21
+0x00010060:  bl       #0x22120    ; -> _objc_release
+0x00010064:  mov      x0, x20
+0x00010068:  ldp      x29, x30, [sp, #0x30]
+0x0001006c:  ldp      x20, x19, [sp, #0x20]
+0x00010070:  ldp      x22, x21, [sp, #0x10]
+0x00010074:  ldp      x24, x23, [sp], #0x40
+0x00010078:  b        #0x22120    ; -> _objc_release

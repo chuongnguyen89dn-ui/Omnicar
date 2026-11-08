@@ -1,0 +1,37 @@
+; sub_16414
+; VA 0x16414  size 136
+
+0x00016414:  adrp     x0, #0x32000
+0x00016418:  add      x0, x0, #0xa28    ; @"b'S\x00\xb4\x1eN\x00 \x00'"
+0x0001641c:  adrp     x1, #0x32000
+0x00016420:  add      x1, x1, #0xa48    ; @"READY"
+0x00016424:  bl       #0x21318    ; -> OMCTr
+0x00016428:  mov      x29, x29
+0x0001642c:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016430:  mov      x22, x0
+0x00016434:  ldp      x9, x8, [sp, #0x68]
+0x00016438:  ldr      d0, [x20, x9]
+0x0001643c:  ldr      d1, [x20, x8]
+0x00016440:  adrp     x8, #0x29000
+0x00016444:  ldr      d2, [x8, #0x228]
+0x00016448:  fmadd    d0, d1, d2, d0
+0x0001644c:  ldr      x8, [sp, #0x60]
+0x00016450:  ldr      d2, [x20, x8]
+0x00016454:  adrp     x8, #0x29000
+0x00016458:  ldr      d3, [x8, #0x1c8]
+0x0001645c:  fmadd    d1, d1, d3, d2
+0x00016460:  mov      x8, #0x404c000000000000
+0x00016464:  fmov     d2, x8
+0x00016468:  fmov     d4, xzr
+0x0001646c:  mov      x0, x20
+0x00016470:  mov      x2, x22
+0x00016474:  ldr      d3, [sp, #0x48]
+0x00016478:  ldr      x21, [sp, #8]
+0x0001647c:  mov      x3, x21
+0x00016480:  mov      w4, #0
+0x00016484:  mov      x5, x19
+0x00016488:  bl       #0x25920    ; -> _objc_msgSend(ss_label:at:size:weight:color:left:in:maxWidth:)
+0x0001648c:  mov      x29, x29
+0x00016490:  bl       #0x22144    ; -> _objc_retainAutoreleasedReturnValue
+0x00016494:  mov      x23, x0
+0x00016498:  mov      x0, x22

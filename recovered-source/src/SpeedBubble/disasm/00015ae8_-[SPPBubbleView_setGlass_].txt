@@ -1,0 +1,19 @@
+# -[SPPBubbleView setGlass:]
+# addr 0x15ae8 .. 0x15b28  (64 bytes)
+
+00015ae8  stp      x22, x21, [sp, #-0x30]!                     
+00015aec  stp      x20, x19, [sp, #0x10]                       
+00015af0  stp      x29, x30, [sp, #0x20]                       
+00015af4  add      x29, sp, #0x20                              
+00015af8  mov      x19, x2                                     
+00015afc  mov      x20, x0                                     
+00015b00  adrp     x8, #0x43000                                
+00015b04  ldrsw    x21, [x8, #0x22c]                           
+00015b08  mov      x0, x2                                      
+00015b0c  bl       #0x28004                                    ; _objc_retain
+00015b10  ldr      x0, [x20, x21]                              
+00015b14  str      x19, [x20, x21]                             
+00015b18  ldp      x29, x30, [sp, #0x20]                       
+00015b1c  ldp      x20, x19, [sp, #0x10]                       
+00015b20  ldp      x22, x21, [sp], #0x30                       
+00015b24  b        #0x27ff8                                    ; _objc_release

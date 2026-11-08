@@ -1,0 +1,95 @@
+# sub_243e8
+# addr 0x243e8 .. 0x24554  (364 bytes)
+
+000243e8  sub      sp, sp, #0xe0                               
+000243ec  stp      x26, x25, [sp, #0x90]                       
+000243f0  stp      x24, x23, [sp, #0xa0]                       
+000243f4  stp      x22, x21, [sp, #0xb0]                       
+000243f8  stp      x20, x19, [sp, #0xc0]                       
+000243fc  stp      x29, x30, [sp, #0xd0]                       
+00024400  add      x29, sp, #0xd0                              
+00024404  mov      x20, x1                                     
+00024408  mov      x19, x0                                     
+0002440c  adrp     x8, #0x38000                                
+00024410  ldr      x8, [x8, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00024414  ldr      x8, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00024418  stur     x8, [x29, #-0x48]                           
+0002441c  strb     wzr, [sp, #0x48]                            
+00024420  cmp      w3, #1                                      
+00024424  b.lt     #0x244e4                                    
+00024428  mov      x21, x2                                     
+0002442c  mov      w26, w3                                     
+00024430  adrp     x22, #0x2e000                               
+00024434  add      x22, x22, #0xf19                            ; "OmniCar"
+00024438  adrp     x23, #0x2f000                               
+0002443c  add      x23, x23, #0x6dc                            ; ".dylib"
+00024440  ldr      x0, [x21], #8                               
+00024444  add      x1, sp, #0x28                               
+00024448  bl       #0x27dd0                                    ; _dladdr
+0002444c  ldr      x24, [sp, #0x28]                            
+00024450  cmp      w0, #0                                      
+00024454  ccmp     x24, #0, #4, ne                             
+00024458  b.eq     #0x244ac                                    
+0002445c  mov      x0, x24                                     
+00024460  mov      w1, #0x2f                                   
+00024464  bl       #0x28160                                    ; _strrchr
+00024468  cmp      x0, #0                                      
+0002446c  csinc    x24, x24, x0, eq                            
+00024470  mov      x0, x24                                     
+00024474  bl       #0x28148                                    ; _strlen
+00024478  mov      x25, x0                                     
+0002447c  mov      x0, x24                                     
+00024480  mov      x1, x22                                     
+00024484  mov      w2, #7                                      
+00024488  bl       #0x28154                                    ; _strncmp
+0002448c  cmp      w0, #0                                      
+00024490  ccmp     x25, #0xe, #0, eq                           
+00024494  b.lo     #0x244ac                                    
+00024498  add      x8, x24, x25                                
+0002449c  sub      x0, x8, #6                                  
+000244a0  mov      x1, x23                                     
+000244a4  bl       #0x28124                                    ; _strcmp
+000244a8  cbz      w0, #0x244b8                                
+000244ac  subs     x26, x26, #1                                
+000244b0  b.ne     #0x24440                                    
+000244b4  b        #0x244e4                                    ; sub_244e4
+000244b8  sub      x8, x25, #0xd                               
+000244bc  cmp      x8, #0x3f                                   
+000244c0  mov      w9, #0x3f                                   
+000244c4  csel     x21, x8, x9, lo                             
+000244c8  add      x22, sp, #0x48                              
+000244cc  add      x0, sp, #0x48                               
+000244d0  add      x1, x24, #7                                 
+000244d4  mov      x2, x21                                     
+000244d8  mov      w3, #0x40                                   
+000244dc  bl       #0x27c8c                                    ; ___memcpy_chk
+000244e0  strb     wzr, [x22, x21]                             
+000244e4  mov      x0, #0                                      
+000244e8  bl       #0x281a8                                    ; _time
+000244ec  adrp     x8, #0x43000                                
+000244f0  ldr      x8, [x8, #0xab0]                            ; [0x43ab0] __DATA,__bss+0x310
+000244f4  ldr      x9, [x8, #0x440]                            ; [0x43440] __DATA,__objc_data+0x128 (SPPSignView metaclass cache field = __objc_empty_cache)  [annotation corrected per ANNOTATION_AUDIT ground truth]
+000244f8  sub      x9, x0, x9                                  
+000244fc  add      x8, x8, #0x400                              ; __DATA,__objc_data+0xe8
+00024500  stp      x8, x20, [sp, #0x10]                        
+00024504  add      x8, sp, #0x48                               
+00024508  stp      x9, x8, [sp]                                
+0002450c  adrp     x1, #0x2f000                                
+00024510  add      x1, x1, #0x6af                              ; "omc-crash age=%ld suspect=%s last=%s how=%s
+"
+00024514  mov      x0, x19                                     
+00024518  bl       #0x27df4                                    ; _dprintf
+0002451c  ldur     x8, [x29, #-0x48]                           
+00024520  adrp     x9, #0x38000                                
+00024524  ldr      x9, [x9, #0x340]                            ; [0x38340] __DATA_CONST,__got+0x340 (= import ___stack_chk_guard)
+00024528  ldr      x9, [x9]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+0002452c  cmp      x9, x8                                      
+00024530  b.ne     #0x24550                                    
+00024534  ldp      x29, x30, [sp, #0xd0]                       
+00024538  ldp      x20, x19, [sp, #0xc0]                       
+0002453c  ldp      x22, x21, [sp, #0xb0]                       
+00024540  ldp      x24, x23, [sp, #0xa0]                       
+00024544  ldp      x26, x25, [sp, #0x90]                       
+00024548  add      sp, sp, #0xe0                               
+0002454c  ret                                                  
+00024550  bl       #0x27ca4                                    ; ___stack_chk_fail

@@ -1,0 +1,201 @@
+# -[SPPBubbleView setOverLimitWarning:]
+# addr 0x1148c .. 0x117a4  (792 bytes)
+
+0001148c  stp      d9, d8, [sp, #-0x50]!                       
+00011490  stp      x24, x23, [sp, #0x10]                       
+00011494  stp      x22, x21, [sp, #0x20]                       
+00011498  stp      x20, x19, [sp, #0x30]                       
+0001149c  stp      x29, x30, [sp, #0x40]                       
+000114a0  add      x29, sp, #0x40                              
+000114a4  mov      x21, x2                                     
+000114a8  mov      x20, x0                                     
+000114ac  bl       #0x29480                                    ; objc_msgSend$flashView
+000114b0  mov      x29, x29                                    
+000114b4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000114b8  mov      x19, x0                                     
+000114bc  bl       #0x29b80                                    ; objc_msgSend$layer
+000114c0  mov      x29, x29                                    
+000114c4  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000114c8  mov      x22, x0                                     
+000114cc  adrp     x2, #0x3a000                                
+000114d0  add      x2, x2, #0x158                              ; @"sppFlash"
+000114d4  bl       #0x285e0                                    ; objc_msgSend$animationForKey:
+000114d8  mov      x29, x29                                    
+000114dc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000114e0  mov      x23, x0                                     
+000114e4  bl       #0x27ff8                                    ; _objc_release
+000114e8  mov      x0, x22                                     
+000114ec  bl       #0x27ff8                                    ; _objc_release
+000114f0  cmp      x23, #0                                     
+000114f4  cset     w8, eq                                      
+000114f8  eor      w8, w21, w8                                 
+000114fc  tbnz     w8, #0, #0x11788                            
+00011500  cbz      w21, #0x11714                               
+00011504  adrp     x23, #0x43000                               
+00011508  ldr      x0, [x23, #0x90]                            ; [0x43090] classref -> CABasicAnimation (= import _OBJC_CLASS_$_CABasicAnimation)
+0001150c  adrp     x2, #0x3a000                                
+00011510  add      x2, x2, #0x178                              ; @"opacity"
+00011514  bl       #0x28600                                    ; objc_msgSend$animationWithKeyPath:
+00011518  mov      x29, x29                                    
+0001151c  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011520  mov      x21, x0                                     
+00011524  adrp     x2, #0x3c000                                
+00011528  add      x2, x2, #0xfd8                              ; __DATA_CONST,__objc_doubleobj+0x40
+0001152c  bl       #0x2afe0                                    ; objc_msgSend$setFromValue:
+00011530  adrp     x2, #0x3c000                                
+00011534  add      x2, x2, #0xfc8                              ; __DATA_CONST,__objc_doubleobj+0x30
+00011538  mov      x0, x21                                     
+0001153c  bl       #0x2bae0                                    ; objc_msgSend$setToValue:
+00011540  fmov     d0, #0.50000000                             
+00011544  mov      x0, x21                                     
+00011548  bl       #0x2aec0                                    ; objc_msgSend$setDuration:
+0001154c  mov      x0, x21                                     
+00011550  mov      w2, #1                                      
+00011554  bl       #0x2aa80                                    ; objc_msgSend$setAutoreverses:
+00011558  mov      w8, #0x7f800000                             
+0001155c  fmov     s8, w8                                      
+00011560  mov      x0, x21                                     
+00011564  mov      v0.16b, v8.16b                              
+00011568  bl       #0x2b6c0                                    ; objc_msgSend$setRepeatCount:
+0001156c  adrp     x8, #0x43000                                
+00011570  ldr      x0, [x8, #0x98]                             ; [0x43098] classref -> CAMediaTimingFunction (= import _OBJC_CLASS_$_CAMediaTimingFunction)
+00011574  adrp     x8, #0x38000                                
+00011578  ldr      x8, [x8, #0x2d0]                            ; [0x382d0] __DATA_CONST,__got+0x2d0 (= import _kCAMediaTimingFunctionEaseInEaseOut)
+0001157c  ldr      x2, [x8]                                    ; [0x38000] __DATA_CONST,__got+0x0 (= import ___objc_personality_v0)
+00011580  bl       #0x29560                                    ; objc_msgSend$functionWithName:
+00011584  mov      x29, x29                                    
+00011588  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001158c  mov      x22, x0                                     
+00011590  mov      x0, x21                                     
+00011594  mov      x2, x22                                     
+00011598  bl       #0x2baa0                                    ; objc_msgSend$setTimingFunction:
+0001159c  mov      x0, x22                                     
+000115a0  bl       #0x27ff8                                    ; _objc_release
+000115a4  fmov     d0, #1.00000000                             
+000115a8  mov      x0, x19                                     
+000115ac  bl       #0x2a980                                    ; objc_msgSend$setAlpha:
+000115b0  mov      x0, x19                                     
+000115b4  bl       #0x29b80                                    ; objc_msgSend$layer
+000115b8  mov      x29, x29                                    
+000115bc  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000115c0  mov      x22, x0                                     
+000115c4  fmov     s0, wzr                                     
+000115c8  bl       #0x2b520                                    ; objc_msgSend$setOpacity:
+000115cc  mov      x0, x22                                     
+000115d0  bl       #0x27ff8                                    ; _objc_release
+000115d4  mov      x0, x19                                     
+000115d8  bl       #0x29b80                                    ; objc_msgSend$layer
+000115dc  mov      x29, x29                                    
+000115e0  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000115e4  mov      x22, x0                                     
+000115e8  adrp     x3, #0x3a000                                
+000115ec  add      x3, x3, #0x158                              ; @"sppFlash"
+000115f0  mov      x2, x21                                     
+000115f4  bl       #0x283c0                                    ; objc_msgSend$addAnimation:forKey:
+000115f8  mov      x0, x22                                     
+000115fc  bl       #0x27ff8                                    ; _objc_release
+00011600  ldr      x0, [x23, #0x90]                            ; [0x43090] classref -> CABasicAnimation (= import _OBJC_CLASS_$_CABasicAnimation)
+00011604  adrp     x2, #0x3a000                                
+00011608  add      x2, x2, #0x198                              ; @"transform.scale"
+0001160c  bl       #0x28600                                    ; objc_msgSend$animationWithKeyPath:
+00011610  mov      x29, x29                                    
+00011614  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011618  mov      x22, x0                                     
+0001161c  adrp     x2, #0x3c000                                
+00011620  add      x2, x2, #0xfe8                              ; __DATA_CONST,__objc_doubleobj+0x50
+00011624  bl       #0x2afe0                                    ; objc_msgSend$setFromValue:
+00011628  adrp     x2, #0x3c000                                
+0001162c  add      x2, x2, #0xff8                              ; __DATA_CONST,__objc_doubleobj+0x60
+00011630  mov      x0, x22                                     
+00011634  bl       #0x2bae0                                    ; objc_msgSend$setToValue:
+00011638  fmov     d0, #0.50000000                             
+0001163c  mov      x0, x22                                     
+00011640  bl       #0x2aec0                                    ; objc_msgSend$setDuration:
+00011644  mov      x0, x22                                     
+00011648  mov      w2, #1                                      
+0001164c  bl       #0x2aa80                                    ; objc_msgSend$setAutoreverses:
+00011650  mov      x0, x22                                     
+00011654  mov      v0.16b, v8.16b                              
+00011658  bl       #0x2b6c0                                    ; objc_msgSend$setRepeatCount:
+0001165c  mov      x0, x20                                     
+00011660  bl       #0x2bec0                                    ; objc_msgSend$sign
+00011664  mov      x29, x29                                    
+00011668  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001166c  mov      x23, x0                                     
+00011670  bl       #0x29b80                                    ; objc_msgSend$layer
+00011674  mov      x29, x29                                    
+00011678  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+0001167c  mov      x24, x0                                     
+00011680  adrp     x3, #0x3a000                                
+00011684  add      x3, x3, #0x1b8                              ; @"sppPulse"
+00011688  mov      x2, x22                                     
+0001168c  bl       #0x283c0                                    ; objc_msgSend$addAnimation:forKey:
+00011690  mov      x0, x24                                     
+00011694  bl       #0x27ff8                                    ; _objc_release
+00011698  mov      x0, x23                                     
+0001169c  bl       #0x27ff8                                    ; _objc_release
+000116a0  mov      x0, x20                                     
+000116a4  bl       #0x29cc0                                    ; objc_msgSend$log
+000116a8  mov      x29, x29                                    
+000116ac  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000116b0  mov      x23, x0                                     
+000116b4  bl       #0x27ff8                                    ; _objc_release
+000116b8  cbz      x23, #0x11778                               
+000116bc  mov      x0, x20                                     
+000116c0  bl       #0x29cc0                                    ; objc_msgSend$log
+000116c4  mov      x29, x29                                    
+000116c8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000116cc  mov      x20, x0                                     
+000116d0  adrp     x8, #0x42000                                
+000116d4  ldr      x0, [x8, #0xf58]                            ; [0x42f58] classref -> NSString (= import _OBJC_CLASS_$_NSString)
+000116d8  adrp     x2, #0x3a000                                
+000116dc  add      x2, x2, #0x1d8                              ; @"bubble: vuot gioi han -> nhay canh bao"
+000116e0  bl       #0x2c300                                    ; objc_msgSend$stringWithFormat:
+000116e4  mov      x29, x29                                    
+000116e8  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+000116ec  mov      x23, x0                                     
+000116f0  ldr      x8, [x20, #0x10]                            
+000116f4  mov      x0, x20                                     
+000116f8  mov      x1, x23                                     
+000116fc  blr      x8                                          
+00011700  mov      x0, x23                                     
+00011704  bl       #0x27ff8                                    ; _objc_release
+00011708  mov      x0, x20                                     
+0001170c  bl       #0x27ff8                                    ; _objc_release
+00011710  b        #0x11778                                    ; sub_11778
+00011714  mov      x0, x19                                     
+00011718  bl       #0x29b80                                    ; objc_msgSend$layer
+0001171c  mov      x29, x29                                    
+00011720  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011724  mov      x21, x0                                     
+00011728  adrp     x2, #0x3a000                                
+0001172c  add      x2, x2, #0x158                              ; @"sppFlash"
+00011730  bl       #0x2a580                                    ; objc_msgSend$removeAnimationForKey:
+00011734  mov      x0, x21                                     
+00011738  bl       #0x27ff8                                    ; _objc_release
+0001173c  fmov     d0, xzr                                     
+00011740  mov      x0, x19                                     
+00011744  bl       #0x2a980                                    ; objc_msgSend$setAlpha:
+00011748  mov      x0, x20                                     
+0001174c  bl       #0x2bec0                                    ; objc_msgSend$sign
+00011750  mov      x29, x29                                    
+00011754  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011758  mov      x21, x0                                     
+0001175c  bl       #0x29b80                                    ; objc_msgSend$layer
+00011760  mov      x29, x29                                    
+00011764  bl       #0x2801c                                    ; _objc_retainAutoreleasedReturnValue
+00011768  mov      x22, x0                                     
+0001176c  adrp     x2, #0x3a000                                
+00011770  add      x2, x2, #0x1b8                              ; @"sppPulse"
+00011774  bl       #0x2a580                                    ; objc_msgSend$removeAnimationForKey:
+00011778  mov      x0, x22                                     
+0001177c  bl       #0x27ff8                                    ; _objc_release
+00011780  mov      x0, x21                                     
+00011784  bl       #0x27ff8                                    ; _objc_release
+00011788  mov      x0, x19                                     
+0001178c  ldp      x29, x30, [sp, #0x40]                       
+00011790  ldp      x20, x19, [sp, #0x30]                       
+00011794  ldp      x22, x21, [sp, #0x20]                       
+00011798  ldp      x24, x23, [sp, #0x10]                       
+0001179c  ldp      d9, d8, [sp], #0x50                         
+000117a0  b        #0x27ff8                                    ; _objc_release

@@ -1,0 +1,15 @@
+# -[SPPBubble setMenuShield:]
+# addr 0x1e87c .. 0x1e8ac  (48 bytes)
+
+0001e87c  stp      x20, x19, [sp, #-0x20]!                     
+0001e880  stp      x29, x30, [sp, #0x10]                       
+0001e884  add      x29, sp, #0x10                              
+0001e888  mov      x19, x2                                     
+0001e88c  mov      x20, x0                                     
+0001e890  mov      x0, x2                                      
+0001e894  bl       #0x28004                                    ; _objc_retain
+0001e898  ldr      x0, [x20, #0x78]                            
+0001e89c  str      x19, [x20, #0x78]                           
+0001e8a0  ldp      x29, x30, [sp, #0x10]                       
+0001e8a4  ldp      x20, x19, [sp], #0x20                       
+0001e8a8  b        #0x27ff8                                    ; _objc_release

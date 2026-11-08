@@ -1,0 +1,53 @@
+=== sub_20184 @ 0x20184 (size 208) ===
+00020184  sub      sp, sp, #0x50
+00020188  stp      x20, x19, [sp, #0x30]
+0002018c  stp      x29, x30, [sp, #0x40]
+00020190  add      x29, sp, #0x40
+00020194  adrp     x8, #0x3e000
+00020198  ldr      x0, [x8, #0x408] ; bind _OBJC_CLASS_$_NSProcessInfo
+0002019c  bl       #0x266c0 ; objc_msgSend sel=processInfo
+000201a0  mov      x29, x29
+000201a4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000201a8  mov      x20, x0
+000201ac  bl       #0x266e0 ; objc_msgSend sel=processName
+000201b0  mov      x29, x29
+000201b4  bl       #0x24830 ; call _objc_retainAutoreleasedReturnValue
+000201b8  mov      x19, x0
+000201bc  mov      x0, x20
+000201c0  bl       #0x2480c ; call _objc_release
+000201c4  adrp     x2, #0x37000
+000201c8  add      x2, x2, #0xe30 = @"SpringBoard"
+000201cc  mov      x0, x19
+000201d0  bl       #0x25cc0 ; objc_msgSend sel=isEqualToString:
+000201d4  tbnz     w0, #0, #0x201ec
+000201d8  adrp     x2, #0x37000
+000201dc  add      x2, x2, #0xe50 = @"CarPlay"
+000201e0  mov      x0, x19
+000201e4  bl       #0x25cc0 ; objc_msgSend sel=isEqualToString:
+000201e8  cbz      w0, #0x2023c
+000201ec  adrp     x8, #0x34000
+000201f0  ldr      x8, [x8, #0x258] ; -> __NSConcreteStackBlock
+000201f4  str      x8, [sp, #8]
+000201f8  adrp     x8, #0x2b000
+000201fc  ldr      d0, [x8, #0x1d0] ; -> 0xc2000000
+00020200  str      d0, [sp, #0x10]
+00020204  adrp     x8, #0x20000
+00020208  add      x8, x8, #0x254
+0002020c  adrp     x9, #0x34000
+00020210  add      x9, x9, #0xba0
+00020214  stp      x8, x9, [sp, #0x18]
+00020218  mov      x0, x19
+0002021c  bl       #0x24818 ; call _objc_retain
+00020220  str      x19, [sp, #0x28]
+00020224  adrp     x0, #0x34000
+00020228  ldr      x0, [x0, #0x290] ; -> __dispatch_main_q
+0002022c  add      x1, sp, #8
+00020230  bl       #0x24554 ; call _dispatch_async
+00020234  ldr      x0, [sp, #0x28]
+00020238  bl       #0x2480c ; call _objc_release
+0002023c  mov      x0, x19
+00020240  bl       #0x2480c ; call _objc_release
+00020244  ldp      x29, x30, [sp, #0x40]
+00020248  ldp      x20, x19, [sp, #0x30]
+0002024c  add      sp, sp, #0x50
+00020250  ret      
