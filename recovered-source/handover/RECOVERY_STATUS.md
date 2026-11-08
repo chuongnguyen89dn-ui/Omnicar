@@ -1473,3 +1473,5 @@ Liquid splash laying out correctly, both bubble
 previews (car + Settings), Music and GOFA reaching
 the panes without the carPlayDeclaration exception,
 and the still-owed disconnect-while-splash run.
+
+S16 correction (see PATCH_NOTES S16H): tree control Version reverted to 1.0.3 after CI run 42503451473 failed its verify step on the fixed package filename; round identity is carried by the delivered filename, per prior-round convention. Local candidate unchanged.
