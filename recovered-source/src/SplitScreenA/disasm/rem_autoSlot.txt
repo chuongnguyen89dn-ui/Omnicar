@@ -1,0 +1,55 @@
+; -[SCPCarSplit autoSlot] @0x115a0-0x11674 (212 bytes)
+0x0115a0  stp      x22, x21, [sp, #-0x30]!
+0x0115a4  stp      x20, x19, [sp, #0x10]
+0x0115a8  stp      x29, x30, [sp, #0x20]
+0x0115ac  add      x29, sp, #0x20
+0x0115b0  mov      x19, x0
+0x0115b4  bl       #0x59800 ; selstub paneCount
+0x0115b8  cmp      w0, #1
+0x0115bc  b.lt     #0x115e8
+0x0115c0  mov      w20, #0
+0x0115c4  mov      x0, x19
+0x0115c8  mov      x2, x20
+0x0115cc  bl       #0x5c140 ; selstub slotOccupied:
+0x0115d0  cbz      w0, #0x11660
+0x0115d4  add      w20, w20, #1
+0x0115d8  mov      x0, x19
+0x0115dc  bl       #0x59800 ; selstub paneCount
+0x0115e0  cmp      w20, w0
+0x0115e4  b.lt     #0x115c4
+0x0115e8  mov      x0, x19
+0x0115ec  bl       #0x582c0 ; selstub focusedSlot
+0x0115f0  mov      x20, x0
+0x0115f4  mov      x0, x19
+0x0115f8  bl       #0x59800 ; selstub paneCount
+0x0115fc  cmp      w0, #1
+0x011600  csinc    w8, w0, wzr, gt
+0x011604  sub      w8, w8, #1
+0x011608  cmp      w20, w8
+0x01160c  csel     w20, w20, w8, lt
+0x011610  mov      x0, x19
+0x011614  mov      x2, x20
+0x011618  bl       #0x5c120 ; selstub slotIsPinned:
+0x01161c  cbz      w0, #0x11660
+0x011620  mov      x0, x19
+0x011624  bl       #0x59800 ; selstub paneCount
+0x011628  cmp      w0, #1
+0x01162c  b.lt     #0x11660
+0x011630  mov      w21, #0
+0x011634  mov      x0, x19
+0x011638  mov      x2, x21
+0x01163c  bl       #0x5c120 ; selstub slotIsPinned:
+0x011640  cbz      w0, #0x1165c
+0x011644  add      w21, w21, #1
+0x011648  mov      x0, x19
+0x01164c  bl       #0x59800 ; selstub paneCount
+0x011650  cmp      w21, w0
+0x011654  b.lt     #0x11634
+0x011658  b        #0x11660 ; -> sub_11660
+0x01165c  mov      x20, x21
+0x011660  mov      x0, x20
+0x011664  ldp      x29, x30, [sp, #0x20]
+0x011668  ldp      x20, x19, [sp, #0x10]
+0x01166c  ldp      x22, x21, [sp], #0x30
+0x011670  ret      
+; length check: OK

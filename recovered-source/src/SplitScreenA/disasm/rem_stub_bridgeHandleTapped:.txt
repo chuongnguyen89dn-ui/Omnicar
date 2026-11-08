@@ -1,0 +1,104 @@
+; -[SCPCarSplit bridgeHandleTapped:] @0x3f65c-0x3f7f4 (408 bytes)
+0x03f65c  stp      d9, d8, [sp, #-0x40]!                   
+0x03f660  stp      x22, x21, [sp, #0x10]                   
+0x03f664  stp      x20, x19, [sp, #0x20]                   
+0x03f668  stp      x29, x30, [sp, #0x30]                   
+0x03f66c  add      x29, sp, #0x30                          
+0x03f670  mov      x19, x2                                 
+0x03f674  mov      x21, x0                                 
+0x03f678  mov      x0, x2                                  
+0x03f67c  bl       #0x567c4                                ; stub _objc_retain
+0x03f680  mov      x0, x21                                 
+0x03f684  mov      x2, x19                                 
+0x03f688  bl       #0x59820                                ; selstub paneForBundle:
+0x03f68c  mov      x29, x29                                
+0x03f690  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03f694  mov      x20, x0                                 
+0x03f698  mov      x0, x21                                 
+0x03f69c  bl       #0x56b60                                ; selstub active
+0x03f6a0  cmp      x20, #0                                 
+0x03f6a4  csel     w8, wzr, w0, eq                         
+0x03f6a8  tbz      w8, #0, #0x3f794                        
+0x03f6ac  bl       #0x56164                                ; stub _CFAbsoluteTimeGetCurrent
+0x03f6b0  mov      v8.16b, v0.16b                          
+0x03f6b4  mov      x0, x21                                 
+0x03f6b8  bl       #0x58e40                                ; selstub lastBridgeTapBundle
+0x03f6bc  mov      x29, x29                                
+0x03f6c0  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03f6c4  mov      x22, x0                                 
+0x03f6c8  mov      x2, x19                                 
+0x03f6cc  bl       #0x58d00                                ; selstub isEqualToString:
+0x03f6d0  tbz      w0, #0, #0x3f700                        
+0x03f6d4  mov      x0, x21                                 
+0x03f6d8  bl       #0x58e20                                ; selstub lastBridgeTapAt
+0x03f6dc  fsub     d9, d8, d0                              
+0x03f6e0  mov      x0, x22                                 
+0x03f6e4  bl       #0x567b8                                ; stub _objc_release
+0x03f6e8  adrp     x8, #0x6f000                            
+0x03f6ec  ldr      d0, [x8, #0x98]                         ; [0x6f098] ptr 0x666666666 double=0.35
+0x03f6f0  fcmp     d9, d0                                  
+0x03f6f4  cset     w22, mi                                 
+0x03f6f8  csel     x2, xzr, x19, mi                        
+0x03f6fc  b        #0x3f710                                
+0x03f700  mov      x0, x22                                 
+0x03f704  bl       #0x567b8                                ; stub _objc_release
+0x03f708  mov      w22, #0                                 
+0x03f70c  mov      x2, x19                                 
+0x03f710  mov      x0, x21                                 
+0x03f714  bl       #0x5b0a0                                ; selstub setLastBridgeTapBundle:
+0x03f718  mov      x0, x21                                 
+0x03f71c  mov      v0.16b, v8.16b                          
+0x03f720  bl       #0x5b080                                ; selstub setLastBridgeTapAt:
+0x03f724  cbz      w22, #0x3f758                           
+0x03f728  mov      x0, x21                                 
+0x03f72c  bl       #0x58200                                ; selstub floatPane
+0x03f730  mov      x29, x29                                
+0x03f734  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03f738  mov      x22, x0                                 
+0x03f73c  bl       #0x567b8                                ; stub _objc_release
+0x03f740  cmp      x20, x22                                
+0x03f744  b.eq     #0x3f78c                                
+0x03f748  mov      x0, x21                                 
+0x03f74c  mov      x2, x20                                 
+0x03f750  bl       #0x5c780                                ; selstub toggleZoomForPane:
+0x03f754  b        #0x3f794                                
+0x03f758  mov      x0, x20                                 
+0x03f75c  bl       #0x57160                                ; selstub bar
+0x03f760  mov      x29, x29                                
+0x03f764  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03f768  mov      x22, x0                                 
+0x03f76c  bl       #0x58d20                                ; selstub isHidden
+0x03f770  mov      x2, x0                                  
+0x03f774  mov      x0, x21                                 
+0x03f778  mov      x3, x20                                 
+0x03f77c  bl       #0x5a8c0                                ; selstub setBarVisible:forPane:
+0x03f780  mov      x0, x22                                 
+0x03f784  bl       #0x567b8                                ; stub _objc_release
+0x03f788  b        #0x3f794                                
+0x03f78c  mov      x0, x21                                 
+0x03f790  bl       #0x5c760                                ; selstub toggleFloatSize
+0x03f794  mov      x0, x20                                 
+0x03f798  bl       #0x567b8                                ; stub _objc_release
+0x03f79c  mov      x0, x19                                 
+0x03f7a0  ldp      x29, x30, [sp, #0x30]                   
+0x03f7a4  ldp      x20, x19, [sp, #0x20]                   
+0x03f7a8  ldp      x22, x21, [sp, #0x10]                   
+0x03f7ac  ldp      d9, d8, [sp], #0x40                     
+0x03f7b0  b        #0x567b8                                ; stub _objc_release
+0x03f7b4  b        #0x3f7bc                                
+0x03f7b8  b        #0x3f7d8                                
+0x03f7bc  mov      x21, x0                                 
+0x03f7c0  mov      x0, x22                                 
+0x03f7c4  bl       #0x567b8                                ; stub _objc_release
+0x03f7c8  b        #0x3f7dc                                
+0x03f7cc  b        #0x3f7d8                                
+0x03f7d0  mov      x21, x0                                 
+0x03f7d4  b        #0x3f7e4                                
+0x03f7d8  mov      x21, x0                                 
+0x03f7dc  mov      x0, x20                                 
+0x03f7e0  bl       #0x567b8                                ; stub _objc_release
+0x03f7e4  mov      x0, x19                                 
+0x03f7e8  bl       #0x567b8                                ; stub _objc_release
+0x03f7ec  mov      x0, x21                                 
+0x03f7f0  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 408 of 408)

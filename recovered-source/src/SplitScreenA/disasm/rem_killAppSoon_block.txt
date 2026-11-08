@@ -1,0 +1,128 @@
+; killAppSoon block invoke @0x181b0-0x183a8 (504 bytes)
+0x0181b0  sub      sp, sp, #0x50                           
+0x0181b4  stp      x22, x21, [sp, #0x20]                   
+0x0181b8  stp      x20, x19, [sp, #0x30]                   
+0x0181bc  stp      x29, x30, [sp, #0x40]                   
+0x0181c0  add      x29, sp, #0x40                          
+0x0181c4  mov      x20, x0                                 
+0x0181c8  adrp     x8, #0x78000                            
+0x0181cc  ldr      x8, [x8, #0x360]                        ; [0x78360] got-sym ___stack_chk_guard
+0x0181d0  ldr      x8, [x8]                                ; [0x78000] got-sym ___objc_personality_v0
+0x0181d4  str      x8, [sp, #0x18]                         
+0x0181d8  add      x0, x0, #0x28                           
+0x0181dc  bl       #0x5674c                                ; stub _objc_loadWeakRetained
+0x0181e0  mov      x19, x0                                 
+0x0181e4  bl       #0x56b60                                ; selstub active
+0x0181e8  cbz      w0, #0x18260                            
+0x0181ec  ldr      x2, [x20, #0x20]                        
+0x0181f0  mov      x0, x19                                 
+0x0181f4  bl       #0x59820                                ; selstub paneForBundle:
+0x0181f8  mov      x29, x29                                
+0x0181fc  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x018200  cbz      x0, #0x1820c                            
+0x018204  bl       #0x567b8                                ; stub _objc_release
+0x018208  b        #0x1821c                                
+0x01820c  ldr      x2, [x20, #0x20]                        
+0x018210  mov      x0, x19                                 
+0x018214  bl       #0x599c0                                ; selstub pendingSlotForBundle:
+0x018218  tbnz     w0, #0x1f, #0x18260                     
+0x01821c  adrp     x8, #0x87000                            
+0x018220  ldr      x0, [x8, #0x678]                        ; [0x87678] class NSString
+0x018224  ldr      x8, [x20, #0x20]                        
+0x018228  str      x8, [sp]                                
+0x01822c  adrp     x2, #0x7b000                            
+0x018230  add      x2, x2, #0x780                          ; cfstring @0x7b780 = 'CarSplit: %@ vua mo lai -> khong tat'
+0x018234  bl       #0x5c440                                ; selstub stringWithFormat:
+0x018238  mov      x29, x29                                
+0x01823c  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x018240  mov      x21, x0                                 
+0x018244  adrp     x0, #0x79000                            
+0x018248  add      x0, x0, #0x5c0                          ; cfstring @0x795c0 = 'SplitScreen'
+0x01824c  mov      x1, x21                                 
+0x018250  bl       #0x4fbf4                                ; defined _OMCLogWrite
+0x018254  mov      x0, x21                                 
+0x018258  bl       #0x567b8                                ; stub _objc_release
+0x01825c  b        #0x18318                                
+0x018260  adrp     x8, #0x87000                            
+0x018264  ldr      x0, [x8, #0x678]                        ; [0x87678] class NSString
+0x018268  ldr      x8, [x20, #0x20]                        
+0x01826c  str      x8, [sp]                                
+0x018270  adrp     x2, #0x7b000                            
+0x018274  add      x2, x2, #0x7a0                          ; cfstring @0x7b7a0 = 'CarSplit: tat han %@'
+0x018278  bl       #0x5c440                                ; selstub stringWithFormat:
+0x01827c  mov      x29, x29                                
+0x018280  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x018284  mov      x21, x0                                 
+0x018288  adrp     x0, #0x79000                            
+0x01828c  add      x0, x0, #0x5c0                          ; cfstring @0x795c0 = 'SplitScreen'
+0x018290  mov      x1, x21                                 
+0x018294  bl       #0x4fbf4                                ; defined _OMCLogWrite
+0x018298  mov      x0, x21                                 
+0x01829c  bl       #0x567b8                                ; stub _objc_release
+0x0182a0  adrp     x0, #0x5e000                            
+0x0182a4  add      x0, x0, #0xebf                          ; [0x5eebf] ptr 0x36944534e
+0x0182a8  bl       #0x56734                                ; stub _objc_getClass
+0x0182ac  bl       #0x57ae0                                ; selstub defaultCenter
+0x0182b0  mov      x29, x29                                
+0x0182b4  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x0182b8  mov      x21, x0                                 
+0x0182bc  adrp     x8, #0x79000                            
+0x0182c0  add      x9, x8, #0xb80                          ; cfstring @0x79b80 = 'identifier'
+0x0182c4  ldr      x8, [x20, #0x20]                        
+0x0182c8  stp      x9, x8, [sp, #8]                        
+0x0182cc  adrp     x8, #0x87000                            
+0x0182d0  ldr      x0, [x8, #0x6b8]                        ; [0x876b8] class NSDictionary
+0x0182d4  add      x2, sp, #0x10                           
+0x0182d8  add      x3, sp, #8                              
+0x0182dc  mov      w4, #1                                  
+0x0182e0  bl       #0x57bc0                                ; selstub dictionaryWithObjects:forKeys:count:
+0x0182e4  mov      x29, x29                                
+0x0182e8  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x0182ec  mov      x20, x0                                 
+0x0182f0  adrp     x2, #0x7a000                            
+0x0182f4  add      x2, x2, #0x80                           ; cfstring @0x7a080 = 'com.anlai.omnicar/splitscreen.kill'
+0x0182f8  mov      x0, x21                                 
+0x0182fc  mov      x3, #0                                  
+0x018300  mov      x4, x20                                 
+0x018304  bl       #0x59c60                                ; selstub postNotificationName:object:userInfo:
+0x018308  mov      x0, x20                                 
+0x01830c  bl       #0x567b8                                ; stub _objc_release
+0x018310  mov      x0, x21                                 
+0x018314  bl       #0x567b8                                ; stub _objc_release
+0x018318  mov      x0, x19                                 
+0x01831c  bl       #0x567b8                                ; stub _objc_release
+0x018320  ldr      x8, [sp, #0x18]                         
+0x018324  adrp     x9, #0x78000                            
+0x018328  ldr      x9, [x9, #0x360]                        ; [0x78360] got-sym ___stack_chk_guard
+0x01832c  ldr      x9, [x9]                                ; [0x78000] got-sym ___objc_personality_v0
+0x018330  cmp      x9, x8                                  
+0x018334  b.ne     #0x1834c                                
+0x018338  ldp      x29, x30, [sp, #0x40]                   
+0x01833c  ldp      x20, x19, [sp, #0x30]                   
+0x018340  ldp      x22, x21, [sp, #0x20]                   
+0x018344  add      sp, sp, #0x50                           
+0x018348  ret                                              
+0x01834c  bl       #0x56404                                ; stub ___stack_chk_fail
+0x018350  b        #0x1838c                                
+0x018354  b        #0x1837c                                
+0x018358  mov      x1, x20                                 
+0x01835c  mov      x20, x0                                 
+0x018360  mov      x0, x1                                  
+0x018364  bl       #0x567b8                                ; stub _objc_release
+0x018368  b        #0x18370                                
+0x01836c  mov      x20, x0                                 
+0x018370  mov      x0, x21                                 
+0x018374  bl       #0x567b8                                ; stub _objc_release
+0x018378  b        #0x18390                                
+0x01837c  mov      x20, x0                                 
+0x018380  mov      x0, x21                                 
+0x018384  bl       #0x567b8                                ; stub _objc_release
+0x018388  b        #0x18390                                
+0x01838c  mov      x20, x0                                 
+0x018390  mov      x0, x19                                 
+0x018394  bl       #0x567b8                                ; stub _objc_release
+0x018398  b        #0x183a0                                
+0x01839c  mov      x20, x0                                 
+0x0183a0  mov      x0, x20                                 
+0x0183a4  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 504 of 504)

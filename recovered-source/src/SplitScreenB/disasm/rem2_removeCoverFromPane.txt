@@ -1,0 +1,82 @@
+# rem2 dump: removeCoverFromPane IMP 0x2a668 (orig OmniCarSplitScreen, arm64; macho_truth + capstone skipdata)
+# func bounds: 0x2a668..0x2a7a4 (316 bytes)
+0x0002a668  sub      sp, sp, #0x90                                  
+0x0002a66c  stp      d9, d8, [sp, #0x50]                            
+0x0002a670  stp      x22, x21, [sp, #0x60]                          
+0x0002a674  stp      x20, x19, [sp, #0x70]                          
+0x0002a678  stp      x29, x30, [sp, #0x80]                          
+0x0002a67c  add      x29, sp, #0x80                                 
+0x0002a680  mov      x19, x2                                        
+0x0002a684  mov      x0, x2                                         
+0x0002a688  bl       #0x567c4                                       ; _objc_retain
+0x0002a68c  mov      x0, x19                                        
+0x0002a690  bl       #0x57a20                                       ; cover
+0x0002a694  mov      x29, x29                                       
+0x0002a698  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a69c  mov      x20, x0                                        
+0x0002a6a0  mov      x0, x19                                        
+0x0002a6a4  mov      x2, #0                                         
+0x0002a6a8  bl       #0x5aac0                                       ; setCover:
+0x0002a6ac  cbz      x20, #0x2a740                                  
+0x0002a6b0  adrp     x8, #0x87000                                   
+0x0002a6b4  ldr      x21, [x8, #0x710]                              ; [0x87710] class UIView
+0x0002a6b8  adrp     x22, #0x78000                                  
+0x0002a6bc  ldr      x22, [x22, #0x338]                             ; [0x78338] got-sym __NSConcreteStackBlock
+0x0002a6c0  str      x22, [sp, #0x28]                               
+0x0002a6c4  adrp     x8, #0x6e000                                   
+0x0002a6c8  ldr      d8, [x8, #0xff8]                               ; [0x6eff8] const double=1.6080749353e-314 float=-32.0
+0x0002a6cc  str      d8, [sp, #0x30]                                
+0x0002a6d0  adrp     x8, #0x2a000                                   
+0x0002a6d4  add      x8, x8, #0x7a4                                 ; [0x2a7a4] got-sym ?ord4096
+0x0002a6d8  adrp     x9, #0x78000                                   
+0x0002a6dc  add      x9, x9, #0x910                                 ; [0x78910] ptr 0x0
+0x0002a6e0  stp      x8, x9, [sp, #0x38]                            
+0x0002a6e4  mov      x0, x20                                        
+0x0002a6e8  bl       #0x567c4                                       ; _objc_retain
+0x0002a6ec  str      x20, [sp, #0x48]                               
+0x0002a6f0  str      x22, [sp]                                      
+0x0002a6f4  str      d8, [sp, #8]                                   
+0x0002a6f8  adrp     x8, #0x2a000                                   
+0x0002a6fc  add      x8, x8, #0x7b0                                 ; [0x2a7b0] ptr 0x3f9401000
+0x0002a700  adrp     x9, #0x78000                                   
+0x0002a704  add      x9, x9, #0xab0                                 ; [0x78ab0] ptr 0x0
+0x0002a708  stp      x8, x9, [sp, #0x10]                            
+0x0002a70c  mov      x0, x20                                        
+0x0002a710  bl       #0x567c4                                       ; _objc_retain
+0x0002a714  str      x20, [sp, #0x20]                               
+0x0002a718  adrp     x8, #0x6f000                                   
+0x0002a71c  ldr      d0, [x8, #0x190]                               ; [0x6f190] const double=0.22 float=-71.68000030517578
+0x0002a720  add      x2, sp, #0x28                                  
+0x0002a724  mov      x3, sp                                         
+0x0002a728  mov      x0, x21                                        
+0x0002a72c  bl       #0x56ec0                                       ; animateWithDuration:animations:completion:
+0x0002a730  ldr      x0, [sp, #0x20]                                
+0x0002a734  bl       #0x567b8                                       ; _objc_release
+0x0002a738  ldr      x0, [sp, #0x48]                                
+0x0002a73c  bl       #0x567b8                                       ; _objc_release
+0x0002a740  mov      x0, x20                                        
+0x0002a744  bl       #0x567b8                                       ; _objc_release
+0x0002a748  mov      x0, x19                                        
+0x0002a74c  bl       #0x567b8                                       ; _objc_release
+0x0002a750  ldp      x29, x30, [sp, #0x80]                          
+0x0002a754  ldp      x20, x19, [sp, #0x70]                          
+0x0002a758  ldp      x22, x21, [sp, #0x60]                          
+0x0002a75c  ldp      d9, d8, [sp, #0x50]                            
+0x0002a760  add      sp, sp, #0x90                                  
+0x0002a764  ret                                                     
+0x0002a768  mov      x21, x0                                        
+0x0002a76c  ldr      x0, [sp, #0x20]                                
+0x0002a770  bl       #0x567b8                                       ; _objc_release
+0x0002a774  ldr      x0, [sp, #0x48]                                
+0x0002a778  bl       #0x567b8                                       ; _objc_release
+0x0002a77c  b        #0x2a784                                       ; sub_2a784
+0x0002a780  mov      x21, x0                                        
+0x0002a784  mov      x0, x20                                        
+0x0002a788  bl       #0x567b8                                       ; _objc_release
+0x0002a78c  b        #0x2a794                                       ; sub_2a794
+0x0002a790  mov      x21, x0                                        
+0x0002a794  mov      x0, x19                                        
+0x0002a798  bl       #0x567b8                                       ; _objc_release
+0x0002a79c  mov      x0, x21                                        
+0x0002a7a0  bl       #0x563e0                                       ; __Unwind_Resume
+# decoded: 79 insns, 316 bytes (range 316 bytes)

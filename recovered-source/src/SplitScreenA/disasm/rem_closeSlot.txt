@@ -1,0 +1,102 @@
+; -[SCPCarSplit closeSlot:background:] @0x1d9b8-0x1db48 (400 bytes)
+0x01d9b8  sub      sp, sp, #0x60                           
+0x01d9bc  stp      x24, x23, [sp, #0x20]                   
+0x01d9c0  stp      x22, x21, [sp, #0x30]                   
+0x01d9c4  stp      x20, x19, [sp, #0x40]                   
+0x01d9c8  stp      x29, x30, [sp, #0x50]                   
+0x01d9cc  add      x29, sp, #0x50                          
+0x01d9d0  mov      x22, x3                                 
+0x01d9d4  mov      x19, x0                                 
+0x01d9d8  cmp      w2, #9                                  
+0x01d9dc  b.ne     #0x1da00                                
+0x01d9e0  mov      x0, x19                                 
+0x01d9e4  mov      x2, x22                                 
+0x01d9e8  ldp      x29, x30, [sp, #0x50]                   
+0x01d9ec  ldp      x20, x19, [sp, #0x40]                   
+0x01d9f0  ldp      x22, x21, [sp, #0x30]                   
+0x01d9f4  ldp      x24, x23, [sp, #0x20]                   
+0x01d9f8  add      sp, sp, #0x60                           
+0x01d9fc  b        #0x575e0                                ; selstub closeFloat:
+0x01da00  mov      x21, x2                                 
+0x01da04  mov      x0, x19                                 
+0x01da08  bl       #0x56b60                                ; selstub active
+0x01da0c  tbnz     w21, #0x1f, #0x1daf0                    
+0x01da10  cbz      w0, #0x1daf0                            
+0x01da14  mov      x0, x19                                 
+0x01da18  bl       #0x59800                                ; selstub paneCount
+0x01da1c  cmp      w21, w0                                 
+0x01da20  b.ge     #0x1daf0                                
+0x01da24  mov      x0, x19                                 
+0x01da28  bl       #0x5c160                                ; selstub slots
+0x01da2c  mov      x29, x29                                
+0x01da30  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x01da34  mov      x23, x0                                 
+0x01da38  mov      w2, w21                                 
+0x01da3c  bl       #0x59620                                ; selstub objectAtIndexedSubscript:
+0x01da40  mov      x29, x29                                
+0x01da44  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x01da48  mov      x24, x0                                 
+0x01da4c  bl       #0x57420                                ; selstub bundleID
+0x01da50  mov      x29, x29                                
+0x01da54  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x01da58  mov      x20, x0                                 
+0x01da5c  mov      x0, x24                                 
+0x01da60  bl       #0x567b8                                ; stub _objc_release
+0x01da64  mov      x0, x23                                 
+0x01da68  bl       #0x567b8                                ; stub _objc_release
+0x01da6c  mov      x0, x19                                 
+0x01da70  mov      x2, x21                                 
+0x01da74  mov      x3, x22                                 
+0x01da78  bl       #0x5a3c0                                ; selstub removePaneAt:background:
+0x01da7c  adrp     x8, #0x87000                            
+0x01da80  ldr      x22, [x8, #0x678]                       ; [0x87678] class NSString
+0x01da84  mov      x0, x19                                 
+0x01da88  bl       #0x59800                                ; selstub paneCount
+0x01da8c  stp      x20, x0, [sp, #8]                       
+0x01da90  str      x21, [sp]                               
+0x01da94  adrp     x2, #0x7b000                            
+0x01da98  add      x2, x2, #0xa80                          ; cfstring @0x7ba80 = 'CarSplit: dong o %d (%@), con %d o'
+0x01da9c  mov      x0, x22                                 
+0x01daa0  bl       #0x5c440                                ; selstub stringWithFormat:
+0x01daa4  mov      x29, x29                                
+0x01daa8  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x01daac  mov      x21, x0                                 
+0x01dab0  adrp     x0, #0x79000                            
+0x01dab4  add      x0, x0, #0x5c0                          ; cfstring @0x795c0 = 'SplitScreen'
+0x01dab8  mov      x1, x21                                 
+0x01dabc  bl       #0x4fbf4                                ; defined _OMCLogWrite
+0x01dac0  mov      x0, x21                                 
+0x01dac4  bl       #0x567b8                                ; stub _objc_release
+0x01dac8  mov      x0, x19                                 
+0x01dacc  mov      x2, x20                                 
+0x01dad0  bl       #0x56de0                                ; selstub afterPaneRemoved:
+0x01dad4  mov      x0, x20                                 
+0x01dad8  ldp      x29, x30, [sp, #0x50]                   
+0x01dadc  ldp      x20, x19, [sp, #0x40]                   
+0x01dae0  ldp      x22, x21, [sp, #0x30]                   
+0x01dae4  ldp      x24, x23, [sp, #0x20]                   
+0x01dae8  add      sp, sp, #0x60                           
+0x01daec  b        #0x567b8                                ; stub _objc_release
+0x01daf0  ldp      x29, x30, [sp, #0x50]                   
+0x01daf4  ldp      x20, x19, [sp, #0x40]                   
+0x01daf8  ldp      x22, x21, [sp, #0x30]                   
+0x01dafc  ldp      x24, x23, [sp, #0x20]                   
+0x01db00  add      sp, sp, #0x60                           
+0x01db04  ret                                              
+0x01db08  mov      x19, x0                                 
+0x01db0c  mov      x0, x21                                 
+0x01db10  bl       #0x567b8                                ; stub _objc_release
+0x01db14  b        #0x1db38                                
+0x01db18  mov      x19, x0                                 
+0x01db1c  mov      x0, x24                                 
+0x01db20  bl       #0x567b8                                ; stub _objc_release
+0x01db24  b        #0x1db2c                                
+0x01db28  mov      x19, x0                                 
+0x01db2c  mov      x20, x23                                
+0x01db30  b        #0x1db38                                
+0x01db34  mov      x19, x0                                 
+0x01db38  mov      x0, x20                                 
+0x01db3c  bl       #0x567b8                                ; stub _objc_release
+0x01db40  mov      x0, x19                                 
+0x01db44  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 400 of 400)

@@ -7,7 +7,9 @@ prove the result against the original package.
 Reference input (the ONLY binary evidence for this project — never mix
 in any other build, e.g. QA20 or any Muse repack):
 
-- `input/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb`
+- `com.anlai.omnicar_1.0.3_iphoneos-arm64.deb` — in the published
+  layout this file sits at the root of the Omnicar repository, one
+  level above this `recovered-source/` tree.
 - SHA-256 `d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd`
   (verified before extraction; re-verify before trusting any payload
   comparison).
@@ -140,7 +142,7 @@ must be merged against the agents' partition lists, not by eye:
 
 ```sh
 export THEOS=~/theos
-cd ~/workspace/omnicar-re/project
+cd recovered-source/project   # from the root of your Omnicar checkout
 umask 022
 make package FINALPACKAGE=1
 ```
@@ -196,9 +198,11 @@ control/data members.
 ## 6. Verify the build against the original
 
 ```sh
-python3 project/tools/diff_payload.py <built.deb>
-# defaults: --orig-deb input/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
-#           --orig-tree payload/
+python3 recovered-source/project/tools/diff_payload.py <built.deb>
+# defaults (derived from the script's location in the checkout):
+#   --orig-deb  <repo-root>/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
+#   --orig-tree none — the original DEB is extracted to a temp dir;
+#               pass --orig-tree <dir> for a pre-extracted payload tree
 ```
 
 The harness compares: control fields field-by-field; the payload file

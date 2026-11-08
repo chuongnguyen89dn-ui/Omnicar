@@ -1,0 +1,52 @@
+# C9 Prefs conflicting-tweaks name normalizer @0x73a8
+# func bounds: 0x73a8..0x746c (196 bytes)
+0x000073a8  stp      x22, x21, [sp, #-0x30]!                        
+0x000073ac  stp      x20, x19, [sp, #0x10]                          
+0x000073b0  stp      x29, x30, [sp, #0x20]                          
+0x000073b4  add      x29, sp, #0x20                                 
+0x000073b8  mov      x19, x0                                        
+0x000073bc  adrp     x8, #0x8e000                                   
+0x000073c0  ldr      x20, [x8, #0x9e0]                              ; [0x8e9e0] class NSCharacterSet
+0x000073c4  bl       #0x55d84                                       ; _objc_retain
+0x000073c8  mov      x0, x20                                        
+0x000073cc  bl       #0x56300                                       ; alphanumericCharacterSet
+0x000073d0  mov      x29, x29                                       
+0x000073d4  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x000073d8  mov      x20, x0                                        
+0x000073dc  bl       #0x58760                                       ; invertedSet
+0x000073e0  mov      x29, x29                                       
+0x000073e4  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x000073e8  mov      x21, x0                                        
+0x000073ec  mov      x0, x20                                        
+0x000073f0  bl       #0x55d78                                       ; _objc_release
+0x000073f4  mov      x0, x19                                        
+0x000073f8  bl       #0x58ec0                                       ; lowercaseString
+0x000073fc  mov      x29, x29                                       
+0x00007400  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00007404  mov      x20, x0                                        
+0x00007408  mov      x0, x19                                        
+0x0000740c  bl       #0x55d78                                       ; _objc_release
+0x00007410  mov      x0, x20                                        
+0x00007414  mov      x2, x21                                        
+0x00007418  bl       #0x57020                                       ; componentsSeparatedByCharactersInSet:
+0x0000741c  mov      x29, x29                                       
+0x00007420  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00007424  mov      x19, x0                                        
+0x00007428  adrp     x2, #0x75000                                   
+0x0000742c  add      x2, x2, #0xd28                                 ; [0x75d28] @""
+0x00007430  bl       #0x57000                                       ; componentsJoinedByString:
+0x00007434  mov      x29, x29                                       
+0x00007438  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x0000743c  mov      x22, x0                                        
+0x00007440  mov      x0, x19                                        
+0x00007444  bl       #0x55d78                                       ; _objc_release
+0x00007448  mov      x0, x20                                        
+0x0000744c  bl       #0x55d78                                       ; _objc_release
+0x00007450  mov      x0, x21                                        
+0x00007454  bl       #0x55d78                                       ; _objc_release
+0x00007458  mov      x0, x22                                        
+0x0000745c  ldp      x29, x30, [sp, #0x20]                          
+0x00007460  ldp      x20, x19, [sp, #0x10]                          
+0x00007464  ldp      x22, x21, [sp], #0x30                          
+0x00007468  b        #0x55cb8                                       ; _objc_autoreleaseReturnValue
+# decoded: 49 insns, 196 bytes (range 196 bytes)

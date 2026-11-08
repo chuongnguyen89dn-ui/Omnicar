@@ -1,0 +1,42 @@
+; rem3 (integration, remediation round): the bridge handle-tap notification block @0x76a0
+; Resolved with verify/macho_truth.py objc_stub_map + chained-fixup cfstring read.
+; Call chain proven: x19 = note; [SCPCarSplit shared] -> x20;
+; [note userInfo] (stub 0x5ca20 = userInfo) -> x22;
+; [x22 objectForKeyedSubscript: cfstr@0x79b80] (stub 0x59660) -> x21;
+; cfstring @0x79b80 string bytes -> "identifier";
+; [x20 bridgeHandleTapped:x21] via stub 0x57380 @0x770c.
+; This is the ONLY call site of bridgeHandleTapped: in the binary
+; (full-text scan for bl #0x57380).
+
+0x0076a0  stp      x24, x23, [sp, #-0x40]!
+0x0076a4  stp      x22, x21, [sp, #0x10]
+0x0076a8  stp      x20, x19, [sp, #0x20]
+0x0076ac  stp      x29, x30, [sp, #0x30]
+0x0076b0  add      x29, sp, #0x30
+0x0076b4  mov      x19, x1
+0x0076b8  mov      x0, x1
+0x0076bc  bl       #0x567c4
+0x0076c0  adrp     x8, #0x87000
+0x0076c4  ldr      x0, [x8, #0x688]
+0x0076c8  bl       #0x5bea0  ; msgSend shared
+0x0076cc  mov      x29, x29
+0x0076d0  bl       #0x567dc
+0x0076d4  mov      x20, x0
+0x0076d8  mov      x0, x19
+0x0076dc  bl       #0x5ca20  ; msgSend userInfo
+0x0076e0  mov      x29, x29
+0x0076e4  bl       #0x567dc
+0x0076e8  mov      x22, x0
+0x0076ec  adrp     x2, #0x79000
+0x0076f0  add      x2, x2, #0xb80
+0x0076f4  bl       #0x59660  ; msgSend objectForKeyedSubscript:
+0x0076f8  mov      x29, x29
+0x0076fc  bl       #0x567dc
+0x007700  mov      x21, x0
+0x007704  mov      x0, x20
+0x007708  mov      x2, x21
+0x00770c  bl       #0x57380  ; msgSend bridgeHandleTapped:
+0x007710  mov      x0, x21
+0x007714  bl       #0x567b8
+0x007718  mov      x0, x22
+0x00771c  bl       #0x567b8

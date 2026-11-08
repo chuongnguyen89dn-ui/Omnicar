@@ -1,0 +1,160 @@
+# rem2 comparator block invoke @0x31c38 (created by -[SCPCarSplit panesInReadingOrder] @0x31ba0)
+# func bounds: 0x31c38..0x31eac (628 bytes)
+0x00031c38  sub      sp, sp, #0x90                                  
+0x00031c3c  stp      d15, d14, [sp, #0x10]                          
+0x00031c40  stp      d13, d12, [sp, #0x20]                          
+0x00031c44  stp      d11, d10, [sp, #0x30]                          
+0x00031c48  stp      d9, d8, [sp, #0x40]                            
+0x00031c4c  stp      x24, x23, [sp, #0x50]                          
+0x00031c50  stp      x22, x21, [sp, #0x60]                          
+0x00031c54  stp      x20, x19, [sp, #0x70]                          
+0x00031c58  stp      x29, x30, [sp, #0x80]                          
+0x00031c5c  add      x29, sp, #0x80                                 
+0x00031c60  mov      x20, x2                                        
+0x00031c64  mov      x19, x1                                        
+0x00031c68  mov      x21, x0                                        
+0x00031c6c  mov      x0, x1                                         
+0x00031c70  bl       #0x567c4                                       ; _objc_retain
+0x00031c74  mov      x0, x20                                        
+0x00031c78  bl       #0x567c4                                       ; _objc_retain
+0x00031c7c  ldr      x0, [x21, #0x20]                               
+0x00031c80  bl       #0x58200                                       ; floatPane
+0x00031c84  mov      x29, x29                                       
+0x00031c88  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x00031c8c  mov      x22, x0                                        
+0x00031c90  ldr      x0, [x21, #0x20]                               
+0x00031c94  bl       #0x58200                                       ; floatPane
+0x00031c98  mov      x29, x29                                       
+0x00031c9c  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x00031ca0  cmp      x19, x22                                       
+0x00031ca4  cset     w8, eq                                         
+0x00031ca8  cmp      x20, x0                                        
+0x00031cac  cset     w9, ne                                         
+0x00031cb0  eor      w23, w8, w9                                    
+0x00031cb4  bl       #0x567b8                                       ; _objc_release
+0x00031cb8  mov      x0, x22                                        
+0x00031cbc  bl       #0x567b8                                       ; _objc_release
+0x00031cc0  ldr      x22, [x21, #0x20]                              
+0x00031cc4  tbz      w23, #0, #0x31d80                              
+0x00031cc8  mov      x0, x19                                        
+0x00031ccc  bl       #0x5c100                                       ; slot
+0x00031cd0  mov      x2, x0                                         
+0x00031cd4  mov      x0, x22                                        
+0x00031cd8  bl       #0x58360                                       ; frameForSlot:
+0x00031cdc  str      d3, [sp, #8]                                   
+0x00031ce0  mov      v13.16b, v0.16b                                
+0x00031ce4  mov      v11.16b, v1.16b                                
+0x00031ce8  mov      v9.16b, v2.16b                                 
+0x00031cec  ldr      x21, [x21, #0x20]                              
+0x00031cf0  mov      x0, x20                                        
+0x00031cf4  bl       #0x5c100                                       ; slot
+0x00031cf8  mov      x2, x0                                         
+0x00031cfc  mov      x0, x21                                        
+0x00031d00  bl       #0x58360                                       ; frameForSlot:
+0x00031d04  mov      v15.16b, v0.16b                                
+0x00031d08  mov      v14.16b, v1.16b                                
+0x00031d0c  mov      v12.16b, v2.16b                                
+0x00031d10  mov      v10.16b, v3.16b                                
+0x00031d14  mov      v0.16b, v13.16b                                
+0x00031d18  mov      v1.16b, v11.16b                                
+0x00031d1c  mov      v2.16b, v9.16b                                 
+0x00031d20  ldr      d3, [sp, #8]                                   
+0x00031d24  bl       #0x562e4                                       ; _CGRectGetMinX
+0x00031d28  mov      v8.16b, v0.16b                                 
+0x00031d2c  mov      v0.16b, v15.16b                                
+0x00031d30  mov      v1.16b, v14.16b                                
+0x00031d34  mov      v2.16b, v12.16b                                
+0x00031d38  mov      v3.16b, v10.16b                                
+0x00031d3c  bl       #0x562e4                                       ; _CGRectGetMinX
+0x00031d40  fabd     d0, d8, d0                                     
+0x00031d44  fmov     d1, #1.00000000                                
+0x00031d48  fcmp     d0, d1                                         
+0x00031d4c  b.le     #0x31da4                                       
+0x00031d50  mov      v0.16b, v13.16b                                
+0x00031d54  mov      v1.16b, v11.16b                                
+0x00031d58  mov      v2.16b, v9.16b                                 
+0x00031d5c  ldr      d3, [sp, #8]                                   
+0x00031d60  bl       #0x562e4                                       ; _CGRectGetMinX
+0x00031d64  mov      v8.16b, v0.16b                                 
+0x00031d68  mov      v0.16b, v15.16b                                
+0x00031d6c  mov      v1.16b, v14.16b                                
+0x00031d70  mov      v2.16b, v12.16b                                
+0x00031d74  mov      v3.16b, v10.16b                                
+0x00031d78  bl       #0x562e4                                       ; _CGRectGetMinX
+0x00031d7c  b        #0x31e0c                                       ; sub_31e0c
+0x00031d80  mov      x0, x22                                        
+0x00031d84  bl       #0x58200                                       ; floatPane
+0x00031d88  mov      x29, x29                                       
+0x00031d8c  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x00031d90  cmp      x19, x0                                        
+0x00031d94  mov      w8, #1                                         
+0x00031d98  cneg     x21, x8, ne                                    
+0x00031d9c  bl       #0x567b8                                       ; _objc_release
+0x00031da0  b        #0x31e3c                                       ; sub_31e3c
+0x00031da4  mov      v0.16b, v13.16b                                
+0x00031da8  mov      v1.16b, v11.16b                                
+0x00031dac  mov      v2.16b, v9.16b                                 
+0x00031db0  ldr      d3, [sp, #8]                                   
+0x00031db4  bl       #0x562f0                                       ; _CGRectGetMinY
+0x00031db8  mov      v8.16b, v0.16b                                 
+0x00031dbc  mov      v0.16b, v15.16b                                
+0x00031dc0  mov      v1.16b, v14.16b                                
+0x00031dc4  mov      v2.16b, v12.16b                                
+0x00031dc8  mov      v3.16b, v10.16b                                
+0x00031dcc  bl       #0x562f0                                       ; _CGRectGetMinY
+0x00031dd0  fabd     d0, d8, d0                                     
+0x00031dd4  fmov     d1, #1.00000000                                
+0x00031dd8  fcmp     d0, d1                                         
+0x00031ddc  b.le     #0x31e1c                                       
+0x00031de0  mov      v0.16b, v13.16b                                
+0x00031de4  mov      v1.16b, v11.16b                                
+0x00031de8  mov      v2.16b, v9.16b                                 
+0x00031dec  ldr      d3, [sp, #8]                                   
+0x00031df0  bl       #0x562f0                                       ; _CGRectGetMinY
+0x00031df4  mov      v8.16b, v0.16b                                 
+0x00031df8  mov      v0.16b, v15.16b                                
+0x00031dfc  mov      v1.16b, v14.16b                                
+0x00031e00  mov      v2.16b, v12.16b                                
+0x00031e04  mov      v3.16b, v10.16b                                
+0x00031e08  bl       #0x562f0                                       ; _CGRectGetMinY
+0x00031e0c  fcmp     d8, d0                                         
+0x00031e10  mov      x8, #-1                                        
+0x00031e14  csinc    x21, x8, xzr, mi                               
+0x00031e18  b        #0x31e3c                                       ; sub_31e3c
+0x00031e1c  mov      x0, x19                                        
+0x00031e20  bl       #0x5c100                                       ; slot
+0x00031e24  mov      x21, x0                                        
+0x00031e28  mov      x0, x20                                        
+0x00031e2c  bl       #0x5c100                                       ; slot
+0x00031e30  cmp      w21, w0                                        
+0x00031e34  mov      x8, #-1                                        
+0x00031e38  cneg     x21, x8, ge                                    
+0x00031e3c  mov      x0, x20                                        
+0x00031e40  bl       #0x567b8                                       ; _objc_release
+0x00031e44  mov      x0, x19                                        
+0x00031e48  bl       #0x567b8                                       ; _objc_release
+0x00031e4c  mov      x0, x21                                        
+0x00031e50  ldp      x29, x30, [sp, #0x80]                          
+0x00031e54  ldp      x20, x19, [sp, #0x70]                          
+0x00031e58  ldp      x22, x21, [sp, #0x60]                          
+0x00031e5c  ldp      x24, x23, [sp, #0x50]                          
+0x00031e60  ldp      d9, d8, [sp, #0x40]                            
+0x00031e64  ldp      d11, d10, [sp, #0x30]                          
+0x00031e68  ldp      d13, d12, [sp, #0x20]                          
+0x00031e6c  ldp      d15, d14, [sp, #0x10]                          
+0x00031e70  add      sp, sp, #0x90                                  
+0x00031e74  ret                                                     
+0x00031e78  b        #0x31e90                                       ; sub_31e90
+0x00031e7c  mov      x21, x0                                        
+0x00031e80  mov      x0, x22                                        
+0x00031e84  bl       #0x567b8                                       ; _objc_release
+0x00031e88  b        #0x31e94                                       ; sub_31e94
+0x00031e8c  b        #0x31e90                                       ; sub_31e90
+0x00031e90  mov      x21, x0                                        
+0x00031e94  mov      x0, x20                                        
+0x00031e98  bl       #0x567b8                                       ; _objc_release
+0x00031e9c  mov      x0, x19                                        
+0x00031ea0  bl       #0x567b8                                       ; _objc_release
+0x00031ea4  mov      x0, x21                                        
+0x00031ea8  bl       #0x563e0                                       ; __Unwind_Resume
+# decoded: 157 insns, 628 bytes (range 628 bytes)

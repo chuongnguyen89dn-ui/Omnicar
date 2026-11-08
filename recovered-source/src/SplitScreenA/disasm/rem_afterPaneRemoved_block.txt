@@ -1,0 +1,22 @@
+; afterPaneRemoved retry block invoke @0x1e2ec-0x1e33c (80 bytes)
+0x01e2ec  stp      x20, x19, [sp, #-0x20]!                 
+0x01e2f0  stp      x29, x30, [sp, #0x10]                   
+0x01e2f4  add      x29, sp, #0x10                          
+0x01e2f8  mov      x20, x0                                 
+0x01e2fc  ldr      x0, [x0, #0x20]                         
+0x01e300  bl       #0x599a0                                ; selstub pending
+0x01e304  mov      x29, x29                                
+0x01e308  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x01e30c  mov      x19, x0                                 
+0x01e310  ldr      x2, [x20, #0x28]                        
+0x01e314  bl       #0x5a3a0                                ; selstub removeObjectForKey:
+0x01e318  mov      x0, x19                                 
+0x01e31c  ldp      x29, x30, [sp, #0x10]                   
+0x01e320  ldp      x20, x19, [sp], #0x20                   
+0x01e324  b        #0x567b8                                ; stub _objc_release
+0x01e328  mov      x20, x0                                 
+0x01e32c  mov      x0, x19                                 
+0x01e330  bl       #0x567b8                                ; stub _objc_release
+0x01e334  mov      x0, x20                                 
+0x01e338  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 80 of 80)

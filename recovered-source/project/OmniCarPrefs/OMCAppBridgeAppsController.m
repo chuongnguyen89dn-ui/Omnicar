@@ -466,6 +466,23 @@ static char kOMCSliderAssocKey;   // global at 0x90020 in the original
                                 : CGFLOAT_MIN;
 }
 
+// VERIFIED (CLOSURE-2; census items M1/M2; dump
+// disasm/rem2_M1M2_willDisplayShims.txt): both delegate methods are
+// 12-byte tail-call shims in the binary — IMP 0x20084:
+//   mov x0, x3; mov w1, #1; b _OMCStyleHeaderFooter
+// IMP 0x200f8: same with w1 = #0. They were missing from this
+// controller's reconstruction (rebuilt class 103 methods vs the
+// original's 105); sibling controllers carry the identical pair.
+- (void)tableView:(UITableView *)tv willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
+    // The binary passes a second argument (1 = header) to the styling
+    // helper; OMCCommon.h declares the one-argument form.
+    ((void (*)(UIView *, BOOL))OMCStyleHeaderFooter)(view, YES);
+}
+
+- (void)tableView:(UITableView *)tv willDisplayFooterView:(UIView *)view forSection:(NSInteger)section {
+    ((void (*)(UIView *, BOOL))OMCStyleHeaderFooter)(view, NO);
+}
+
 - (CGFloat)tableView:(UITableView *)tv heightForRowAtIndexPath:(NSIndexPath *)ip {
     CGFloat w = tv.bounds.size.width;
     if (ip.section == 0) return floor((w - 60) * 300.0 / 200.0) + 20;

@@ -7,6 +7,9 @@
 //                        applicationDidFinishLaunching: and, from the
 //                        replacement (sub_cc34), registers every channel
 //                        the display side consumes.
+//   __init_3 (0x239a0) — SpringBoard/CarPlay processes: main-queue
+//                        diag stamp (log line + diagLoaded preference).
+//                        Restored in CLOSURE-2 (census items C1/C2).
 // The SOURCE-APP side (what runs inside Vietmap/GOFA/Waze/Wyn, __init_1)
 // belongs to agent B. Status: VERIFIED from disassembly except where a
 // comment says INFERRED.
@@ -336,4 +339,38 @@ static void SPPDisplayInitSpringBoard(void) {
                     @selector(applicationDidFinishLaunching:),
                     (IMP)SPPAppDidFinishLaunching,
                     (IMP *)&SPPOrigAppDidFinishLaunching);
+}
+
+#pragma mark - Diag stamp (__init_3 @0x239a0, block invoke @0x23a70)
+
+// __init_3 @0x239a0 — VERIFIED (CLOSURE-2; census items C1/C2; dumps
+// disasm/rem2_C1_init3.txt + disasm/rem2_C2_init3_block.txt). The gate
+// is the PROCESS NAME (the only processName use in the module): in
+// SpringBoard and CarPlay processes the constructor dispatches one
+// block to the main queue; everywhere else it does nothing. The block
+// (@0x23a70, 400 B) logs the build string and writes the
+// diagLoaded.SpeedBubble@<processName> preference (domain
+// com.anlai.omnicar) with version/build/date — the same diag-stamp
+// pattern CarProbe uses. Constructor name INFERRED.
+__attribute__((constructor))
+static void SPPDisplayInitDiagStamp(void) {
+    NSString *processName = [NSProcessInfo processInfo].processName;
+    if (![processName isEqualToString:@"SpringBoard"] &&
+        ![processName isEqualToString:@"CarPlay"]) {
+        return;
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _OMCLogWrite(@"SpeedBubble",
+            [NSString stringWithFormat:@"build %s (%s) loaded into %@",
+                 "fbebb21", "1.0.3", processName]);
+        NSString *key = [NSString stringWithFormat:@"%@%s@%@",
+                            @"diagLoaded.", "SpeedBubble", processName];
+        NSDictionary *info = @{ @"version": @"1.0.3",
+                                @"build":   @"fbebb21",
+                                @"date":    [NSDate date] };
+        CFPreferencesSetAppValue((__bridge CFStringRef)key,
+                                 (__bridge CFPropertyListRef)info,
+                                 CFSTR("com.anlai.omnicar"));
+        CFPreferencesAppSynchronize(CFSTR("com.anlai.omnicar"));
+    });
 }

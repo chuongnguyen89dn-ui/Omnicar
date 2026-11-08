@@ -549,6 +549,23 @@ static NSString *OMCJBRoot(NSString *path) {
     return resolved ? [NSString stringWithUTF8String:resolved] : path;
 }
 
+// sub_73a8 [VERIFIED (CLOSURE-2; census item C9; dumps
+// disasm/rem2_C9_normalizer.txt + rem2_C9_caller_ConflictingTweaks.txt):
+// lowercase, then strip every non-alphanumeric character. Name
+// INFERRED. Call sites in _OMCConflictingTweaks: the dylib filename
+// stem (@0x6e98), and each installed package's Package/Name fields
+// (@0x6fbc / @0x6fe8, combined into "<id> <name>" signature strings
+// for the caller's second matching phase; the dpkg parse itself lives
+// in sub_746c). This reconstruction previously normalized with plain
+// lowercaseString only.]
+static NSString *OMCNormalizeTweakName(NSString *name) {
+    NSCharacterSet *stripped =
+        [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+    NSString *lower = [name lowercaseString];
+    return [[lower componentsSeparatedByCharactersInSet:stripped]
+        componentsJoinedByString:@""];
+}
+
 // _OMCConflictingTweaks 0x6c70 [VERIFIED: rule table decoded from
 // __objc_arraydata — four (display name, dylib id) pairs; dpkg status parsed
 // for versions; a tweak is "active" when its dylib is present in one of the
@@ -566,7 +583,10 @@ NSArray *OMCConflictingTweaks(void) {
     for (NSString *dir in @[@"/Library/MobileSubstrate/DynamicLibraries", @"/usr/lib/TweakInject"]) {
         for (NSString *file in [fm contentsOfDirectoryAtPath:OMCJBRoot(dir) error:nil]) {
             if ([[file pathExtension] isEqualToString:@"dylib"]) {
-                [dylibs addObject:[[file stringByDeletingPathExtension] lowercaseString]];
+                // VERIFIED (CLOSURE-2): the stem goes through the
+                // sub_73a8 normalizer (call site @0x6e98), not a plain
+                // lowercaseString.
+                [dylibs addObject:OMCNormalizeTweakName([file stringByDeletingPathExtension])];
             }
         }
     }
@@ -584,7 +604,15 @@ NSArray *OMCConflictingTweaks(void) {
     }
     NSMutableArray *result = [NSMutableArray array];
     for (NSDictionary *rule in rules) {
-        BOOL active = [dylibs containsObject:rule[@"id"]];
+        // VERIFIED (CLOSURE-2): the binary's test is a substring scan —
+        // a rule counts active when any collected dylib stem contains
+        // the rule id (@0x70f0-0x71b8 in _OMCConflictingTweaks); both
+        // sides live in the sub_73a8 normalized space.
+        NSString *normID = OMCNormalizeTweakName(rule[@"id"]);
+        BOOL active = NO;
+        for (NSString *stem in dylibs) {
+            if ([stem containsString:normID]) { active = YES; break; }
+        }
         NSMutableDictionary *entry = [@{@"name": rule[@"name"], @"id": rule[@"id"],
                                         @"active": @(active)} mutableCopy];
         NSString *ver = versions[rule[@"id"]];
@@ -732,6 +760,24 @@ NSDictionary *OMCDiagSummary(void) {
 
 #pragma mark - Share report
 
+// sub_10bf4 [VERIFIED (CLOSURE-2; census item C8; dumps
+// disasm/rem2_C8_shareSection.txt + rem2_C8_caller_ShareReport.txt):
+// reads the file as UTF-8, falls back to a Latin-1 decode of the raw
+// data, substitutes "(empty / not found)" when the result is empty,
+// and appends the "==== title (path) ====" section. Name INFERRED.]
+static void OMCShareAppendLogSection(NSMutableString *report, NSString *title,
+                                     NSString *path) {
+    NSString *content = [NSString stringWithContentsOfFile:path
+                                                  encoding:NSUTF8StringEncoding
+                                                     error:nil];
+    if (!content) {
+        content = [[NSString alloc] initWithData:[NSData dataWithContentsOfFile:path]
+                                        encoding:NSISOLatin1StringEncoding];
+    }
+    [report appendFormat:@"\n==== %@ (%@) ====\n%@\n", title, path,
+        content.length ? content : @"(empty / not found)"];
+}
+
 // _OMCShareReport [VERIFIED call graph: builds the plain-text report from
 // the summary + sections + checks, appends the raw logs and the installed
 // package list, writes NSTemporaryDirectory()/OmniCar-log-<date>.txt and
@@ -758,12 +804,14 @@ void OMCShareReport(UIViewController *presenter) {
         if (check[@"fix"]) [report appendFormat:@" -> %@", check[@"fix"]];
         [report appendString:@"\n"];
     }
-    NSString *log = [NSString stringWithContentsOfFile:@"/var/mobile/Documents/OmniCar.log"
-                                              encoding:NSUTF8StringEncoding error:nil];
-    if (log) [report appendFormat:@"\n== OmniCar.log ==\n%@\n", log];
-    NSString *oldLog = [NSString stringWithContentsOfFile:@"/var/mobile/Documents/OmniCar.log.old"
-                                                 encoding:NSUTF8StringEncoding error:nil];
-    if (oldLog) [report appendFormat:@"\n== OmniCar.log.old ==\n%@\n", oldLog];
+    // VERIFIED (CLOSURE-2): the binary appends the two log sections
+    // through the sub_10bf4 helper, .old first (call sites @0x107e4 /
+    // 0x10800 in _OMCShareReport) — not the inline "== … ==" variant
+    // this reconstruction previously folded here.
+    OMCShareAppendLogSection(report, @"OmniCar.log.old",
+                             @"/var/mobile/Documents/OmniCar.log.old");
+    OMCShareAppendLogSection(report, @"OmniCar.log",
+                             @"/var/mobile/Documents/OmniCar.log");
 
     NSDateFormatter *fileStamp = [NSDateFormatter new];
     fileStamp.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];

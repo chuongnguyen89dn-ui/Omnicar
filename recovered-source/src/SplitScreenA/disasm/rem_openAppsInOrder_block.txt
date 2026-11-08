@@ -1,0 +1,44 @@
+; openAppsInOrder stagger block invoke @0x18a48-0x18af0 (168 bytes)
+0x018a48  stp      x22, x21, [sp, #-0x30]!                 
+0x018a4c  stp      x20, x19, [sp, #0x10]                   
+0x018a50  stp      x29, x30, [sp, #0x20]                   
+0x018a54  add      x29, sp, #0x20                          
+0x018a58  mov      x20, x0                                 
+0x018a5c  add      x0, x0, #0x28                           
+0x018a60  bl       #0x5674c                                ; stub _objc_loadWeakRetained
+0x018a64  mov      x19, x0                                 
+0x018a68  bl       #0x56b60                                ; selstub active
+0x018a6c  cbz      w0, #0x18ab8                            
+0x018a70  ldr      w21, [x20, #0x30]                       
+0x018a74  mov      x0, x19                                 
+0x018a78  bl       #0x59800                                ; selstub paneCount
+0x018a7c  cmp      w21, w0                                 
+0x018a80  b.ge     #0x18ab8                                
+0x018a84  mov      x0, x19                                 
+0x018a88  bl       #0x599a0                                ; selstub pending
+0x018a8c  mov      x29, x29                                
+0x018a90  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x018a94  mov      x21, x0                                 
+0x018a98  ldr      x2, [x20, #0x20]                        
+0x018a9c  bl       #0x5a3a0                                ; selstub removeObjectForKey:
+0x018aa0  mov      x0, x21                                 
+0x018aa4  bl       #0x567b8                                ; stub _objc_release
+0x018aa8  ldr      x2, [x20, #0x20]                        
+0x018aac  ldr      w3, [x20, #0x30]                        
+0x018ab0  mov      x0, x19                                 
+0x018ab4  bl       #0x596a0                                ; selstub openApp:slot:
+0x018ab8  mov      x0, x19                                 
+0x018abc  ldp      x29, x30, [sp, #0x20]                   
+0x018ac0  ldp      x20, x19, [sp, #0x10]                   
+0x018ac4  ldp      x22, x21, [sp], #0x30                   
+0x018ac8  b        #0x567b8                                ; stub _objc_release
+0x018acc  mov      x20, x0                                 
+0x018ad0  mov      x0, x21                                 
+0x018ad4  bl       #0x567b8                                ; stub _objc_release
+0x018ad8  b        #0x18ae0                                
+0x018adc  mov      x20, x0                                 
+0x018ae0  mov      x0, x19                                 
+0x018ae4  bl       #0x567b8                                ; stub _objc_release
+0x018ae8  mov      x0, x20                                 
+0x018aec  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 168 of 168)

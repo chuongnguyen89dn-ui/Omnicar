@@ -192,7 +192,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)urlSwap;
 - (void)urlZoomPane:(int)n;
 - (void)soloBundle:(NSString *)bundleID;  // corrected to the binary ABI (IMP 0x1e33c: void, NSString* bundle ID) — final closure
-- (void)paneSolo:(SCPCarPane *)pane;
+- (void)paneSolo:(UIView *)view; // remediation (A): button-action entry point takes the tapped VIEW (IMP 0x287b8)
 - (void)runSoloForPane:(SCPCarPane *)pane;
 - (void)showSoloCoverForBundle:(NSString *)bundleID;
 - (void)hideSoloCover;
@@ -284,7 +284,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)bridgeOutsideTouched;
 - (BOOL)anyBarVisible;
 - (NSDictionary *)hostBarInfoForPane:(SCPCarPane *)pane;
-- (void)bridgeHandleTapped:(NSDictionary *)info;
+- (void)bridgeHandleTapped:(NSString *)bundle; // remediation (A): bundle string in the binary (IMP 0x3f65c), not a dictionary
 - (void)bridgeBarAction:(NSString *)action forBundle:(NSString *)bundleID;
 - (void)publishKnobsSoon;
 - (void)publishKnobsNow;

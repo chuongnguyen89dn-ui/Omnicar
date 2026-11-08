@@ -1,0 +1,46 @@
+; -[SCPCarSplit activateWithLayout:] @0x15c2c-0x15cdc (176 bytes)
+0x015c2c  stp      x20, x19, [sp, #-0x20]!
+0x015c30  stp      x29, x30, [sp, #0x10]
+0x015c34  add      x29, sp, #0x10
+0x015c38  mov      x20, x2
+0x015c3c  mov      x19, x0
+0x015c40  bl       #0x56b60 ; selstub active
+0x015c44  cbz      w0, #0x15c58
+0x015c48  mov      x0, x19
+0x015c4c  mov      x2, x20
+0x015c50  bl       #0x5c580 ; selstub switchToLayout:
+0x015c54  b        #0x15ccc ; -> sub_15ccc
+0x015c58  and      w8, w20, #0xfffffffe
+0x015c5c  cmp      w8, #2
+0x015c60  mov      w8, #2
+0x015c64  csel     w8, w20, w8, eq
+0x015c68  cmp      w20, #0x1f
+0x015c6c  ccmp     w20, #0xd, #4, ne
+0x015c70  mov      w9, #3
+0x015c74  csel     w2, w9, w8, eq
+0x015c78  mov      x0, x19
+0x015c7c  bl       #0x56b20 ; selstub activateWithCount:
+0x015c80  cbz      w0, #0x15cd0
+0x015c84  cmp      w20, #0x1f
+0x015c88  b.eq     #0x15c94
+0x015c8c  cmp      w20, #0xd
+0x015c90  b.ne     #0x15ccc
+0x015c94  cmp      w20, #0x1f
+0x015c98  mov      w8, #2
+0x015c9c  csel     x8, x8, xzr, eq
+0x015ca0  cmp      w20, #0xd
+0x015ca4  csinc    x2, x8, xzr, ne
+0x015ca8  mov      x0, x19
+0x015cac  bl       #0x5b1a0 ; selstub setLayoutKind:
+0x015cb0  mov      x0, x19
+0x015cb4  bl       #0x5a460 ; selstub resetFractions
+0x015cb8  mov      x0, x19
+0x015cbc  bl       #0x5a020 ; selstub rebuildDividers
+0x015cc0  mov      x0, x19
+0x015cc4  mov      w2, #0
+0x015cc8  bl       #0x5a160 ; selstub relayoutAnimated:
+0x015ccc  mov      w0, #1
+0x015cd0  ldp      x29, x30, [sp, #0x10]
+0x015cd4  ldp      x20, x19, [sp], #0x20
+0x015cd8  ret      
+; length check: OK

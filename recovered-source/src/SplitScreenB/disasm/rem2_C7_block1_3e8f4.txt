@@ -1,0 +1,143 @@
+# hostApp:inPane: delayed block #1 invoke @0x3e8f4 (delay 0.05)
+# func bounds: 0x3e8f4..0x3eb24 (560 bytes)
+0x0003e8f4  stp      d11, d10, [sp, #-0x50]!                        
+0x0003e8f8  stp      d9, d8, [sp, #0x10]                            
+0x0003e8fc  stp      x22, x21, [sp, #0x20]                          
+0x0003e900  stp      x20, x19, [sp, #0x30]                          
+0x0003e904  stp      x29, x30, [sp, #0x40]                          
+0x0003e908  add      x29, sp, #0x40                                 
+0x0003e90c  mov      x21, x0                                        
+0x0003e910  add      x0, x0, #0x28                                  
+0x0003e914  bl       #0x5674c                                       ; _objc_loadWeakRetained
+0x0003e918  mov      x19, x0                                        
+0x0003e91c  add      x0, x21, #0x30                                 
+0x0003e920  bl       #0x5674c                                       ; _objc_loadWeakRetained
+0x0003e924  mov      x20, x0                                        
+0x0003e928  mov      x0, x19                                        
+0x0003e92c  bl       #0x56b60                                       ; active
+0x0003e930  cmp      x20, #0                                        
+0x0003e934  csel     w8, wzr, w0, eq                                
+0x0003e938  cmp      w8, #1                                         
+0x0003e93c  b.ne     #0x3eaa0                                       
+0x0003e940  mov      x0, x20                                        
+0x0003e944  bl       #0x57420                                       ; bundleID
+0x0003e948  mov      x29, x29                                       
+0x0003e94c  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0003e950  mov      x22, x0                                        
+0x0003e954  ldr      x2, [x21, #0x20]                               
+0x0003e958  bl       #0x58d00                                       ; isEqualToString:
+0x0003e95c  mov      x21, x0                                        
+0x0003e960  mov      x0, x22                                        
+0x0003e964  bl       #0x567b8                                       ; _objc_release
+0x0003e968  tbz      w21, #0, #0x3eaa0                              
+0x0003e96c  mov      x0, x19                                        
+0x0003e970  mov      x2, x20                                        
+0x0003e974  bl       #0x58680                                       ; hostFrameForPane:
+0x0003e978  mov      v8.16b, v0.16b                                 
+0x0003e97c  mov      v9.16b, v1.16b                                 
+0x0003e980  mov      v10.16b, v2.16b                                
+0x0003e984  mov      v11.16b, v3.16b                                
+0x0003e988  bl       #0x56320                                       ; _CGRectIsEmpty
+0x0003e98c  cbz      w0, #0x3e9e8                                   
+0x0003e990  mov      x0, x20                                        
+0x0003e994  bl       #0x5cb60                                       ; view
+0x0003e998  mov      x29, x29                                       
+0x0003e99c  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0003e9a0  mov      x21, x0                                        
+0x0003e9a4  mov      x0, x20                                        
+0x0003e9a8  bl       #0x5cb60                                       ; view
+0x0003e9ac  mov      x29, x29                                       
+0x0003e9b0  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0003e9b4  mov      x22, x0                                        
+0x0003e9b8  bl       #0x57320                                       ; bounds
+0x0003e9bc  mov      x0, x21                                        
+0x0003e9c0  mov      x2, #0                                         
+0x0003e9c4  bl       #0x57960                                       ; convertRect:toView:
+0x0003e9c8  mov      v8.16b, v0.16b                                 
+0x0003e9cc  mov      v9.16b, v1.16b                                 
+0x0003e9d0  mov      v10.16b, v2.16b                                
+0x0003e9d4  mov      v11.16b, v3.16b                                
+0x0003e9d8  mov      x0, x22                                        
+0x0003e9dc  bl       #0x567b8                                       ; _objc_release
+0x0003e9e0  mov      x0, x21                                        
+0x0003e9e4  bl       #0x567b8                                       ; _objc_release
+0x0003e9e8  mov      x0, x20                                        
+0x0003e9ec  mov      v0.16b, v8.16b                                 
+0x0003e9f0  mov      v1.16b, v9.16b                                 
+0x0003e9f4  mov      v2.16b, v10.16b                                
+0x0003e9f8  mov      v3.16b, v11.16b                                
+0x0003e9fc  bl       #0x5af80                                       ; setHostFrame:
+0x0003ea00  mov      v0.16b, v8.16b                                 
+0x0003ea04  mov      v1.16b, v9.16b                                 
+0x0003ea08  mov      v2.16b, v10.16b                                
+0x0003ea0c  mov      v3.16b, v11.16b                                
+0x0003ea10  bl       #0x56320                                       ; _CGRectIsEmpty
+0x0003ea14  eor      w2, w0, #1                                     
+0x0003ea18  mov      x0, x20                                        
+0x0003ea1c  bl       #0x5afa0                                       ; setHostHandle:
+0x0003ea20  mov      x0, x20                                        
+0x0003ea24  bl       #0x57160                                       ; bar
+0x0003ea28  mov      x29, x29                                       
+0x0003ea2c  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0003ea30  mov      x21, x0                                        
+0x0003ea34  bl       #0x58d20                                       ; isHidden
+0x0003ea38  eor      w2, w0, #1                                     
+0x0003ea3c  mov      x0, x20                                        
+0x0003ea40  bl       #0x5af60                                       ; setHostBar:
+0x0003ea44  mov      x0, x21                                        
+0x0003ea48  bl       #0x567b8                                       ; _objc_release
+0x0003ea4c  mov      x0, x20                                        
+0x0003ea50  bl       #0x586c0                                       ; hostHandle
+0x0003ea54  mov      x4, x0                                         
+0x0003ea58  mov      x0, x19                                        
+0x0003ea5c  mov      v0.16b, v8.16b                                 
+0x0003ea60  mov      v1.16b, v9.16b                                 
+0x0003ea64  mov      v2.16b, v10.16b                                
+0x0003ea68  mov      v3.16b, v11.16b                                
+0x0003ea6c  mov      x2, x20                                        
+0x0003ea70  mov      w3, #0                                         
+0x0003ea74  bl       #0x586a0                                       ; hostFrameInfo:pane:live:handle:
+0x0003ea78  mov      x29, x29                                       
+0x0003ea7c  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0003ea80  mov      x21, x0                                        
+0x0003ea84  adrp     x2, #0x7d000                                   
+0x0003ea88  add      x2, x2, #0x400                                 ; [0x7d400] @"com.anlai.omnicar/appbridge.open"
+0x0003ea8c  mov      x0, x19                                        
+0x0003ea90  mov      x3, x21                                        
+0x0003ea94  bl       #0x58720                                       ; hostPost:info:
+0x0003ea98  mov      x0, x21                                        
+0x0003ea9c  bl       #0x567b8                                       ; _objc_release
+0x0003eaa0  mov      x0, x20                                        
+0x0003eaa4  bl       #0x567b8                                       ; _objc_release
+0x0003eaa8  mov      x0, x19                                        
+0x0003eaac  ldp      x29, x30, [sp, #0x40]                          
+0x0003eab0  ldp      x20, x19, [sp, #0x30]                          
+0x0003eab4  ldp      x22, x21, [sp, #0x20]                          
+0x0003eab8  ldp      d9, d8, [sp, #0x10]                            
+0x0003eabc  ldp      d11, d10, [sp], #0x50                          
+0x0003eac0  b        #0x567b8                                       ; _objc_release
+0x0003eac4  b        #0x3eae4                                       ; sub_3eae4
+0x0003eac8  b        #0x3eb08                                       ; sub_3eb08
+0x0003eacc  b        #0x3eae4                                       ; sub_3eae4
+0x0003ead0  mov      x1, x22                                        
+0x0003ead4  mov      x22, x0                                        
+0x0003ead8  mov      x0, x1                                         
+0x0003eadc  bl       #0x567b8                                       ; _objc_release
+0x0003eae0  b        #0x3eae8                                       ; sub_3eae8
+0x0003eae4  mov      x22, x0                                        
+0x0003eae8  mov      x0, x21                                        
+0x0003eaec  b        #0x3eafc                                       ; sub_3eafc
+0x0003eaf0  mov      x1, x22                                        
+0x0003eaf4  mov      x22, x0                                        
+0x0003eaf8  mov      x0, x1                                         
+0x0003eafc  bl       #0x567b8                                       ; _objc_release
+0x0003eb00  b        #0x3eb0c                                       ; sub_3eb0c
+0x0003eb04  b        #0x3eb08                                       ; sub_3eb08
+0x0003eb08  mov      x22, x0                                        
+0x0003eb0c  mov      x0, x20                                        
+0x0003eb10  bl       #0x567b8                                       ; _objc_release
+0x0003eb14  mov      x0, x19                                        
+0x0003eb18  bl       #0x567b8                                       ; _objc_release
+0x0003eb1c  mov      x0, x22                                        
+0x0003eb20  bl       #0x563e0                                       ; __Unwind_Resume
+# decoded: 140 insns, 560 bytes (range 560 bytes)

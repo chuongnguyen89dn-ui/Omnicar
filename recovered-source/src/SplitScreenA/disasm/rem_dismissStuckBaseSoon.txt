@@ -1,0 +1,42 @@
+; -[SCPCarSplit dismissStuckBaseSoon] @0x3ff28-0x3ffc8 (160 bytes)
+0x03ff28  sub      sp, sp, #0x50                           
+0x03ff2c  stp      x20, x19, [sp, #0x30]                   
+0x03ff30  stp      x29, x30, [sp, #0x40]                   
+0x03ff34  add      x29, sp, #0x40                          
+0x03ff38  mov      x19, x0                                 
+0x03ff3c  bl       #0x57c60                                ; selstub dismissStuckPending
+0x03ff40  tbnz     w0, #0, #0x3ffb8                        
+0x03ff44  mov      x0, x19                                 
+0x03ff48  mov      w2, #1                                  
+0x03ff4c  bl       #0x5ab40                                ; selstub setDismissStuckPending:
+0x03ff50  sub      x0, x29, #0x18                          
+0x03ff54  mov      x1, x19                                 
+0x03ff58  bl       #0x56740                                ; stub _objc_initWeak
+0x03ff5c  adrp     x8, #0x78000                            
+0x03ff60  ldr      x8, [x8, #0x338]                        ; [0x78338] got-sym __NSConcreteStackBlock
+0x03ff64  str      x8, [sp]                                
+0x03ff68  adrp     x8, #0x6e000                            
+0x03ff6c  ldr      d0, [x8, #0xff8]                        ; [0x6eff8] ptr 0xc2000000 double=1.6080749353e-314
+0x03ff70  adrp     x8, #0x3f000                            
+0x03ff74  add      x8, x8, #0xfc8                          ; [0x3ffc8] got-sym ?ord1023
+0x03ff78  str      d0, [sp, #8]                            
+0x03ff7c  adrp     x9, #0x78000                            
+0x03ff80  add      x9, x9, #0xcd0                          ; [0x78cd0] ptr 0x0
+0x03ff84  stp      x8, x9, [sp, #0x10]                     
+0x03ff88  mov      x19, sp                                 
+0x03ff8c  add      x0, x19, #0x20                          
+0x03ff90  sub      x1, x29, #0x18                          
+0x03ff94  bl       #0x566f8                                ; stub _objc_copyWeak
+0x03ff98  adrp     x8, #0x6f000                            
+0x03ff9c  ldr      d0, [x8, #0x98]                         ; [0x6f098] ptr 0x666666666 double=0.35
+0x03ffa0  mov      x0, sp                                  
+0x03ffa4  bl       #0x12efc                                ; -> sub_12efc
+0x03ffa8  add      x0, x19, #0x20                          
+0x03ffac  bl       #0x56704                                ; stub _objc_destroyWeak
+0x03ffb0  sub      x0, x29, #0x18                          
+0x03ffb4  bl       #0x56704                                ; stub _objc_destroyWeak
+0x03ffb8  ldp      x29, x30, [sp, #0x40]                   
+0x03ffbc  ldp      x20, x19, [sp, #0x30]                   
+0x03ffc0  add      sp, sp, #0x50                           
+0x03ffc4  ret                                              
+; length check: OK (decoded 160 of 160)

@@ -1,0 +1,26 @@
+# rem2 block invoke loaderFadeAnim @0x2bd9c (orig OmniCarSplitScreen; macho_truth + capstone skipdata)
+# func bounds: 0x2bd9c..0x2bdf8 (92 bytes)
+0x0002bd9c  sub      sp, sp, #0x80                                  
+0x0002bda0  stp      x20, x19, [sp, #0x60]                          
+0x0002bda4  stp      x29, x30, [sp, #0x70]                          
+0x0002bda8  add      x29, sp, #0x70                                 
+0x0002bdac  mov      x19, x0                                        
+0x0002bdb0  ldr      x0, [x0, #0x20]                                
+0x0002bdb4  fmov     d0, xzr                                        
+0x0002bdb8  bl       #0x5a7c0                                       ; setAlpha:
+0x0002bdbc  add      x8, sp, #0x30                                  
+0x0002bdc0  fmov     d0, #1.25000000                                
+0x0002bdc4  fmov     d1, #1.25000000                                
+0x0002bdc8  bl       #0x561dc                                       ; _CGAffineTransformMakeScale
+0x0002bdcc  ldp      q0, q1, [sp, #0x30]                            
+0x0002bdd0  stp      q0, q1, [sp]                                   
+0x0002bdd4  ldr      q0, [sp, #0x50]                                
+0x0002bdd8  str      q0, [sp, #0x20]                                
+0x0002bddc  ldr      x0, [x19, #0x28]                               
+0x0002bde0  mov      x2, sp                                         
+0x0002bde4  bl       #0x5bc60                                       ; setTransform:
+0x0002bde8  ldp      x29, x30, [sp, #0x70]                          
+0x0002bdec  ldp      x20, x19, [sp, #0x60]                          
+0x0002bdf0  add      sp, sp, #0x80                                  
+0x0002bdf4  ret                                                     
+# decoded: 23 insns, 92 bytes (range 92 bytes)

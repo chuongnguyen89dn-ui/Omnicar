@@ -1,0 +1,465 @@
+# caller of C9: _OMCConflictingTweaks @0x6c70 (orig OmniCarPrefs)
+# func bounds: 0x6c70..0x73a8 (1848 bytes)
+0x00006c70  stp      x28, x27, [sp, #-0x60]!                        
+0x00006c74  stp      x26, x25, [sp, #0x10]                          
+0x00006c78  stp      x24, x23, [sp, #0x20]                          
+0x00006c7c  stp      x22, x21, [sp, #0x30]                          
+0x00006c80  stp      x20, x19, [sp, #0x40]                          
+0x00006c84  stp      x29, x30, [sp, #0x50]                          
+0x00006c88  add      x29, sp, #0x50                                 
+0x00006c8c  sub      sp, sp, #0x8e0                                 
+0x00006c90  adrp     x8, #0x74000                                   
+0x00006c94  ldr      x8, [x8, #0x398]                               ; [0x74398] got-sym ___stack_chk_guard
+0x00006c98  ldr      x8, [x8]                                       ; [0x74000] got-sym ___objc_personality_v0
+0x00006c9c  stur     x8, [x29, #-0x60]                              
+0x00006ca0  adrp     x8, #0x8e000                                   
+0x00006ca4  ldr      x0, [x8, #0x988]                               ; [0x8e988] class NSMutableArray
+0x00006ca8  bl       #0x565c0                                       ; array
+0x00006cac  mov      x29, x29                                       
+0x00006cb0  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006cb4  mov      x19, x0                                        
+0x00006cb8  movi     v0.16b, #0                                     
+0x00006cbc  stp      q0, q0, [sp, #0x160]                           
+0x00006cc0  stp      q0, q0, [sp, #0x180]                           
+0x00006cc4  adrp     x0, #0x75000                                   
+0x00006cc8  add      x0, x0, #0x388                                 ; [0x75388] @"/Library/MobileSubstrate/DynamicLibraries"
+0x00006ccc  bl       #0x57b80                                       ; fileSystemRepresentation
+0x00006cd0  add      x1, sp, #0x440                                 
+0x00006cd4  bl       #0x4118                                        ; sub_4118
+0x00006cd8  adrp     x20, #0x8e000                                  
+0x00006cdc  cbz      x0, #0x6cfc                                    
+0x00006ce0  mov      x2, x0                                         
+0x00006ce4  ldr      x0, [x20, #0x958]                              ; [0x8e958] class NSString
+0x00006ce8  bl       #0x5d5a0                                       ; stringWithUTF8String:
+0x00006cec  mov      x29, x29                                       
+0x00006cf0  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006cf4  mov      x21, x0                                        
+0x00006cf8  b        #0x6d00                                        ; sub_6d00
+0x00006cfc  mov      x21, #0                                        
+0x00006d00  stur     x21, [x29, #-0xf0]                             
+0x00006d04  adrp     x0, #0x75000                                   
+0x00006d08  add      x0, x0, #0x3a8                                 ; [0x753a8] @"/usr/lib/TweakInject"
+0x00006d0c  bl       #0x57b80                                       ; fileSystemRepresentation
+0x00006d10  add      x1, sp, #0x440                                 
+0x00006d14  bl       #0x4118                                        ; sub_4118
+0x00006d18  cbz      x0, #0x6d38                                    
+0x00006d1c  mov      x2, x0                                         
+0x00006d20  ldr      x0, [x20, #0x958]                              ; [0x8e958] class NSString
+0x00006d24  bl       #0x5d5a0                                       ; stringWithUTF8String:
+0x00006d28  mov      x29, x29                                       
+0x00006d2c  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006d30  mov      x22, x0                                        
+0x00006d34  b        #0x6d3c                                        ; sub_6d3c
+0x00006d38  mov      x22, #0                                        
+0x00006d3c  stur     x22, [x29, #-0xe8]                             
+0x00006d40  adrp     x8, #0x8e000                                   
+0x00006d44  ldr      x0, [x8, #0x960]                               ; [0x8e960] class NSArray
+0x00006d48  sub      x2, x29, #0xf0                                 
+0x00006d4c  mov      w3, #2                                         
+0x00006d50  bl       #0x56640                                       ; arrayWithObjects:count:
+0x00006d54  mov      x29, x29                                       
+0x00006d58  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006d5c  mov      x20, x0                                        
+0x00006d60  mov      x0, x22                                        
+0x00006d64  bl       #0x55d78                                       ; _objc_release
+0x00006d68  mov      x0, x21                                        
+0x00006d6c  bl       #0x55d78                                       ; _objc_release
+0x00006d70  add      x2, sp, #0x160                                 
+0x00006d74  sub      x3, x29, #0xe0                                 
+0x00006d78  str      x20, [sp, #8]                                  
+0x00006d7c  mov      x0, x20                                        
+0x00006d80  mov      w4, #0x10                                      
+0x00006d84  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x00006d88  str      x0, [sp, #0x18]                                
+0x00006d8c  cbz      x0, #0x6f20                                    
+0x00006d90  ldr      x8, [sp, #0x170]                               
+0x00006d94  ldr      x8, [x8]                                       ; [0x8e000] sel whatsNewNavigationController
+0x00006d98  str      x8, [sp, #0x10]                                
+0x00006d9c  adrp     x22, #0x75000                                  
+0x00006da0  add      x22, x22, #0x3c8                               ; [0x753c8] @"dylib"
+0x00006da4  mov      x20, #0                                        
+0x00006da8  ldr      x8, [sp, #0x170]                               
+0x00006dac  ldr      x8, [x8]                                       ; [0x8e000] sel whatsNewNavigationController
+0x00006db0  ldr      x9, [sp, #0x10]                                
+0x00006db4  cmp      x8, x9                                         
+0x00006db8  b.eq     #0x6dc4                                        
+0x00006dbc  ldr      x0, [sp, #8]                                   
+0x00006dc0  bl       #0x55cf4                                       ; _objc_enumerationMutation
+0x00006dc4  ldr      x8, [sp, #0x168]                               
+0x00006dc8  ldr      x23, [x8, x20, lsl #3]                         ; [0x8e000] sel whatsNewNavigationController
+0x00006dcc  movi     v0.16b, #0                                     
+0x00006dd0  stp      q0, q0, [sp, #0x120]                           
+0x00006dd4  stp      q0, q0, [sp, #0x140]                           
+0x00006dd8  adrp     x8, #0x8e000                                   
+0x00006ddc  ldr      x0, [x8, #0x990]                               ; [0x8e990] class NSFileManager
+0x00006de0  bl       #0x576a0                                       ; defaultManager
+0x00006de4  mov      x29, x29                                       
+0x00006de8  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006dec  mov      x24, x0                                        
+0x00006df0  mov      x2, x23                                        
+0x00006df4  mov      x3, #0                                         
+0x00006df8  bl       #0x572a0                                       ; contentsOfDirectoryAtPath:error:
+0x00006dfc  mov      x29, x29                                       
+0x00006e00  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006e04  mov      x23, x0                                        
+0x00006e08  mov      x0, x24                                        
+0x00006e0c  bl       #0x55d78                                       ; _objc_release
+0x00006e10  add      x2, sp, #0x120                                 
+0x00006e14  add      x3, sp, #0x3c0                                 
+0x00006e18  mov      x0, x23                                        
+0x00006e1c  mov      w4, #0x10                                      
+0x00006e20  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x00006e24  cbz      x0, #0x6eec                                    
+0x00006e28  mov      x24, x0                                        
+0x00006e2c  ldr      x8, [sp, #0x130]                               
+0x00006e30  ldr      x28, [x8]                                      ; [0x8e000] sel whatsNewNavigationController
+0x00006e34  mov      x21, #0                                        
+0x00006e38  ldr      x8, [sp, #0x130]                               
+0x00006e3c  ldr      x8, [x8]                                       ; [0x8e000] sel whatsNewNavigationController
+0x00006e40  cmp      x8, x28                                        
+0x00006e44  b.eq     #0x6e50                                        
+0x00006e48  mov      x0, x23                                        
+0x00006e4c  bl       #0x55cf4                                       ; _objc_enumerationMutation
+0x00006e50  ldr      x8, [sp, #0x128]                               
+0x00006e54  ldr      x25, [x8, x21, lsl #3]                         ; [0x8e000] sel whatsNewNavigationController
+0x00006e58  mov      x0, x25                                        
+0x00006e5c  bl       #0x59620                                       ; pathExtension
+0x00006e60  mov      x29, x29                                       
+0x00006e64  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006e68  mov      x26, x0                                        
+0x00006e6c  mov      x2, x22                                        
+0x00006e70  bl       #0x58800                                       ; isEqualToString:
+0x00006e74  mov      x27, x0                                        
+0x00006e78  mov      x0, x26                                        
+0x00006e7c  bl       #0x55d78                                       ; _objc_release
+0x00006e80  cbz      w27, #0x6ec4                                   
+0x00006e84  mov      x0, x25                                        
+0x00006e88  bl       #0x5d480                                       ; stringByDeletingPathExtension
+0x00006e8c  mov      x29, x29                                       
+0x00006e90  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006e94  mov      x25, x0                                        
+0x00006e98  bl       #0x73a8                                        ; sub_73a8
+0x00006e9c  mov      x29, x29                                       
+0x00006ea0  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006ea4  mov      x26, x0                                        
+0x00006ea8  mov      x0, x19                                        
+0x00006eac  mov      x2, x26                                        
+0x00006eb0  bl       #0x56140                                       ; addObject:
+0x00006eb4  mov      x0, x26                                        
+0x00006eb8  bl       #0x55d78                                       ; _objc_release
+0x00006ebc  mov      x0, x25                                        
+0x00006ec0  bl       #0x55d78                                       ; _objc_release
+0x00006ec4  add      x21, x21, #1                                   
+0x00006ec8  cmp      x24, x21                                       
+0x00006ecc  b.ne     #0x6e38                                        
+0x00006ed0  add      x2, sp, #0x120                                 
+0x00006ed4  add      x3, sp, #0x3c0                                 
+0x00006ed8  mov      x0, x23                                        
+0x00006edc  mov      w4, #0x10                                      
+0x00006ee0  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x00006ee4  mov      x24, x0                                        
+0x00006ee8  cbnz     x0, #0x6e34                                    
+0x00006eec  mov      x0, x23                                        
+0x00006ef0  bl       #0x55d78                                       ; _objc_release
+0x00006ef4  add      x20, x20, #1                                   
+0x00006ef8  ldr      x8, [sp, #0x18]                                
+0x00006efc  cmp      x20, x8                                        
+0x00006f00  b.ne     #0x6da8                                        
+0x00006f04  add      x2, sp, #0x160                                 
+0x00006f08  sub      x3, x29, #0xe0                                 
+0x00006f0c  ldr      x0, [sp, #8]                                   
+0x00006f10  mov      w4, #0x10                                      
+0x00006f14  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x00006f18  str      x0, [sp, #0x18]                                
+0x00006f1c  cbnz     x0, #0x6da4                                    
+0x00006f20  ldr      x0, [sp, #8]                                   
+0x00006f24  bl       #0x55d78                                       ; _objc_release
+0x00006f28  adrp     x8, #0x8e000                                   
+0x00006f2c  ldr      x0, [x8, #0x988]                               ; [0x8e988] class NSMutableArray
+0x00006f30  bl       #0x565c0                                       ; array
+0x00006f34  mov      x29, x29                                       
+0x00006f38  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006f3c  mov      x20, x0                                        
+0x00006f40  movi     v0.16b, #0                                     
+0x00006f44  stp      q0, q0, [sp, #0xe0]                            
+0x00006f48  stp      q0, q0, [sp, #0x100]                           
+0x00006f4c  bl       #0x746c                                        ; sub_746c
+0x00006f50  mov      x29, x29                                       
+0x00006f54  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006f58  add      x2, sp, #0xe0                                  
+0x00006f5c  add      x3, sp, #0x340                                 
+0x00006f60  str      x0, [sp, #0x18]                                
+0x00006f64  mov      w4, #0x10                                      
+0x00006f68  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x00006f6c  cbz      x0, #0x7074                                    
+0x00006f70  mov      x25, x0                                        
+0x00006f74  ldr      x8, [sp, #0xf0]                                
+0x00006f78  ldr      x23, [x8]                                      ; [0x8e000] sel whatsNewNavigationController
+0x00006f7c  mov      x24, #0                                        
+0x00006f80  ldr      x8, [sp, #0xf0]                                
+0x00006f84  ldr      x8, [x8]                                       ; [0x8e000] sel whatsNewNavigationController
+0x00006f88  cmp      x8, x23                                        
+0x00006f8c  b.eq     #0x6f98                                        
+0x00006f90  ldr      x0, [sp, #0x18]                                
+0x00006f94  bl       #0x55cf4                                       ; _objc_enumerationMutation
+0x00006f98  ldr      x8, [sp, #0xe8]                                
+0x00006f9c  ldr      x26, [x8, x24, lsl #3]                         ; [0x8e000] sel whatsNewNavigationController
+0x00006fa0  mov      x0, x26                                        
+0x00006fa4  adrp     x2, #0x75000                                   
+0x00006fa8  add      x2, x2, #0x3e8                                 ; [0x753e8] @"id"
+0x00006fac  bl       #0x593c0                                       ; objectForKeyedSubscript:
+0x00006fb0  mov      x29, x29                                       
+0x00006fb4  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006fb8  mov      x27, x0                                        
+0x00006fbc  bl       #0x73a8                                        ; sub_73a8
+0x00006fc0  mov      x29, x29                                       
+0x00006fc4  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006fc8  mov      x28, x0                                        
+0x00006fcc  mov      x0, x26                                        
+0x00006fd0  adrp     x2, #0x75000                                   
+0x00006fd4  add      x2, x2, #0x1e8                                 ; [0x751e8] @"name"
+0x00006fd8  bl       #0x593c0                                       ; objectForKeyedSubscript:
+0x00006fdc  mov      x29, x29                                       
+0x00006fe0  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006fe4  mov      x26, x0                                        
+0x00006fe8  bl       #0x73a8                                        ; sub_73a8
+0x00006fec  mov      x29, x29                                       
+0x00006ff0  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00006ff4  mov      x21, x0                                        
+0x00006ff8  str      x0, [sp]                                       
+0x00006ffc  mov      x0, x28                                        
+0x00007000  adrp     x2, #0x75000                                   
+0x00007004  add      x2, x2, #0x408                                 ; [0x75408] @" %@"
+0x00007008  bl       #0x5d400                                       ; stringByAppendingFormat:
+0x0000700c  mov      x29, x29                                       
+0x00007010  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00007014  mov      x22, x0                                        
+0x00007018  mov      x0, x20                                        
+0x0000701c  mov      x2, x22                                        
+0x00007020  bl       #0x56140                                       ; addObject:
+0x00007024  mov      x0, x22                                        
+0x00007028  bl       #0x55d78                                       ; _objc_release
+0x0000702c  mov      x0, x21                                        
+0x00007030  bl       #0x55d78                                       ; _objc_release
+0x00007034  mov      x0, x26                                        
+0x00007038  bl       #0x55d78                                       ; _objc_release
+0x0000703c  mov      x0, x28                                        
+0x00007040  bl       #0x55d78                                       ; _objc_release
+0x00007044  mov      x0, x27                                        
+0x00007048  bl       #0x55d78                                       ; _objc_release
+0x0000704c  add      x24, x24, #1                                   
+0x00007050  cmp      x25, x24                                       
+0x00007054  b.ne     #0x6f80                                        
+0x00007058  add      x2, sp, #0xe0                                  
+0x0000705c  add      x3, sp, #0x340                                 
+0x00007060  ldr      x0, [sp, #0x18]                                
+0x00007064  mov      w4, #0x10                                      
+0x00007068  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x0000706c  mov      x25, x0                                        
+0x00007070  cbnz     x0, #0x6f7c                                    
+0x00007074  ldr      x0, [sp, #0x18]                                
+0x00007078  bl       #0x55d78                                       ; _objc_release
+0x0000707c  adrp     x8, #0x8e000                                   
+0x00007080  ldr      x0, [x8, #0x988]                               ; [0x8e988] class NSMutableArray
+0x00007084  bl       #0x565c0                                       ; array
+0x00007088  mov      x29, x29                                       
+0x0000708c  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00007090  str      x0, [sp, #8]                                   
+0x00007094  movi     v0.16b, #0                                     
+0x00007098  stp      q0, q0, [sp, #0xa0]                            
+0x0000709c  stp      q0, q0, [sp, #0xc0]                            
+0x000070a0  adrp     x0, #0x7f000                                   
+0x000070a4  add      x0, x0, #0x7e0                                 ; [0x7f7e0] got-sym _OBJC_CLASS_$_NSConstantArray
+0x000070a8  add      x2, sp, #0xa0                                  
+0x000070ac  add      x3, sp, #0x2c0                                 
+0x000070b0  mov      w4, #0x10                                      
+0x000070b4  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x000070b8  str      x0, [sp, #0x18]                                
+0x000070bc  cbz      x0, #0x7358                                    
+0x000070c0  ldr      x8, [sp, #0xb0]                                
+0x000070c4  ldr      x8, [x8]                                       ; [0x8e000] sel whatsNewNavigationController
+0x000070c8  str      x8, [sp, #0x10]                                
+0x000070cc  mov      x21, #0                                        
+0x000070d0  ldr      x8, [sp, #0xb0]                                
+0x000070d4  ldr      x8, [x8]                                       ; [0x8e000] sel whatsNewNavigationController
+0x000070d8  ldr      x9, [sp, #0x10]                                
+0x000070dc  cmp      x8, x9                                         
+0x000070e0  b.eq     #0x70f0                                        
+0x000070e4  adrp     x0, #0x7f000                                   
+0x000070e8  add      x0, x0, #0x7e0                                 ; [0x7f7e0] got-sym _OBJC_CLASS_$_NSConstantArray
+0x000070ec  bl       #0x55cf4                                       ; _objc_enumerationMutation
+0x000070f0  ldr      x8, [sp, #0xa8]                                
+0x000070f4  ldr      x24, [x8, x21, lsl #3]                         ; [0x8e000] sel whatsNewNavigationController
+0x000070f8  movi     v0.16b, #0                                     
+0x000070fc  stp      q0, q0, [sp, #0x60]                            
+0x00007100  stp      q0, q0, [sp, #0x80]                            
+0x00007104  mov      x0, x19                                        
+0x00007108  bl       #0x55d84                                       ; _objc_retain
+0x0000710c  add      x2, sp, #0x60                                  
+0x00007110  add      x3, sp, #0x240                                 
+0x00007114  mov      x0, x19                                        
+0x00007118  mov      w4, #0x10                                      
+0x0000711c  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x00007120  cbz      x0, #0x71b4                                    
+0x00007124  mov      x26, x0                                        
+0x00007128  ldr      x8, [sp, #0x70]                                
+0x0000712c  ldr      x23, [x8]                                      ; [0x8e000] sel whatsNewNavigationController
+0x00007130  mov      x22, #0                                        
+0x00007134  ldr      x8, [sp, #0x70]                                
+0x00007138  ldr      x8, [x8]                                       ; [0x8e000] sel whatsNewNavigationController
+0x0000713c  cmp      x8, x23                                        
+0x00007140  b.eq     #0x714c                                        
+0x00007144  mov      x0, x19                                        
+0x00007148  bl       #0x55cf4                                       ; _objc_enumerationMutation
+0x0000714c  ldr      x8, [sp, #0x68]                                
+0x00007150  ldr      x27, [x8, x22, lsl #3]                         ; [0x8e000] sel whatsNewNavigationController
+0x00007154  mov      w25, #1                                        
+0x00007158  mov      x0, x24                                        
+0x0000715c  mov      w2, #1                                         
+0x00007160  bl       #0x59380                                       ; objectAtIndexedSubscript:
+0x00007164  mov      x29, x29                                       
+0x00007168  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x0000716c  mov      x28, x0                                        
+0x00007170  mov      x0, x27                                        
+0x00007174  mov      x2, x28                                        
+0x00007178  bl       #0x571e0                                       ; containsString:
+0x0000717c  mov      x27, x0                                        
+0x00007180  mov      x0, x28                                        
+0x00007184  bl       #0x55d78                                       ; _objc_release
+0x00007188  tbnz     w27, #0, #0x71b8                               
+0x0000718c  add      x22, x22, #1                                   ; [0x75001] got-sym ?ord1871
+0x00007190  cmp      x26, x22                                       
+0x00007194  b.ne     #0x7134                                        
+0x00007198  add      x2, sp, #0x60                                  
+0x0000719c  add      x3, sp, #0x240                                 
+0x000071a0  mov      x0, x19                                        
+0x000071a4  mov      w4, #0x10                                      
+0x000071a8  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x000071ac  mov      x26, x0                                        
+0x000071b0  cbnz     x0, #0x7130                                    
+0x000071b4  mov      w25, #0                                        
+0x000071b8  mov      x0, x19                                        
+0x000071bc  bl       #0x55d78                                       ; _objc_release
+0x000071c0  movi     v0.16b, #0                                     
+0x000071c4  stp      q0, q0, [sp, #0x40]                            
+0x000071c8  stp      q0, q0, [sp, #0x20]                            
+0x000071cc  mov      x0, x20                                        
+0x000071d0  bl       #0x55d84                                       ; _objc_retain
+0x000071d4  add      x2, sp, #0x20                                  
+0x000071d8  add      x3, sp, #0x1c0                                 
+0x000071dc  mov      x0, x20                                        
+0x000071e0  mov      w4, #0x10                                      
+0x000071e4  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x000071e8  cbz      x0, #0x7278                                    
+0x000071ec  mov      x26, x0                                        
+0x000071f0  ldr      x8, [sp, #0x30]                                
+0x000071f4  ldr      x23, [x8]                                      ; [0x8e000] sel whatsNewNavigationController
+0x000071f8  mov      x22, #0                                        
+0x000071fc  ldr      x8, [sp, #0x30]                                
+0x00007200  ldr      x8, [x8]                                       ; [0x8e000] sel whatsNewNavigationController
+0x00007204  cmp      x8, x23                                        
+0x00007208  b.eq     #0x7214                                        
+0x0000720c  mov      x0, x20                                        
+0x00007210  bl       #0x55cf4                                       ; _objc_enumerationMutation
+0x00007214  ldr      x8, [sp, #0x28]                                
+0x00007218  ldr      x27, [x8, x22, lsl #3]                         ; [0x8e000] sel whatsNewNavigationController
+0x0000721c  mov      x0, x24                                        
+0x00007220  mov      w2, #1                                         
+0x00007224  bl       #0x59380                                       ; objectAtIndexedSubscript:
+0x00007228  mov      x29, x29                                       
+0x0000722c  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00007230  mov      x28, x0                                        
+0x00007234  mov      x0, x27                                        
+0x00007238  mov      x2, x28                                        
+0x0000723c  bl       #0x571e0                                       ; containsString:
+0x00007240  mov      x27, x0                                        
+0x00007244  mov      x0, x28                                        
+0x00007248  bl       #0x55d78                                       ; _objc_release
+0x0000724c  cbnz     w27, #0x7288                                   
+0x00007250  add      x22, x22, #1                                   ; [0x75001] got-sym ?ord1871
+0x00007254  cmp      x26, x22                                       
+0x00007258  b.ne     #0x71fc                                        
+0x0000725c  add      x2, sp, #0x20                                  
+0x00007260  add      x3, sp, #0x1c0                                 
+0x00007264  mov      x0, x20                                        
+0x00007268  mov      w4, #0x10                                      
+0x0000726c  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x00007270  mov      x26, x0                                        
+0x00007274  cbnz     x0, #0x71f8                                    
+0x00007278  mov      x0, x20                                        
+0x0000727c  bl       #0x55d78                                       ; _objc_release
+0x00007280  cbnz     w25, #0x7290                                   
+0x00007284  b        #0x7328                                        ; sub_7328
+0x00007288  mov      x0, x20                                        
+0x0000728c  bl       #0x55d78                                       ; _objc_release
+0x00007290  adrp     x8, #0x75000                                   
+0x00007294  add      x8, x8, #0x1e8                                 ; [0x751e8] @"name"
+0x00007298  str      x8, [sp, #0x1a0]                               
+0x0000729c  mov      x0, x24                                        
+0x000072a0  mov      x2, #0                                         
+0x000072a4  bl       #0x59380                                       ; objectAtIndexedSubscript:
+0x000072a8  mov      x29, x29                                       
+0x000072ac  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x000072b0  mov      x24, x0                                        
+0x000072b4  adrp     x8, #0x75000                                   
+0x000072b8  add      x8, x8, #0x428                                 ; [0x75428] @"active"
+0x000072bc  stp      x8, x0, [sp, #0x1a8]                           
+0x000072c0  adrp     x8, #0x8e000                                   
+0x000072c4  ldr      x0, [x8, #0x928]                               ; [0x8e928] class NSNumber
+0x000072c8  mov      x2, x25                                        
+0x000072cc  bl       #0x592c0                                       ; numberWithBool:
+0x000072d0  mov      x29, x29                                       
+0x000072d4  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x000072d8  mov      x25, x0                                        
+0x000072dc  str      x0, [sp, #0x1b8]                               
+0x000072e0  adrp     x8, #0x8e000                                   
+0x000072e4  ldr      x0, [x8, #0x970]                               ; [0x8e970] class NSDictionary
+0x000072e8  add      x2, sp, #0x1b0                                 
+0x000072ec  add      x3, sp, #0x1a0                                 
+0x000072f0  mov      w4, #2                                         
+0x000072f4  bl       #0x577e0                                       ; dictionaryWithObjects:forKeys:count:
+0x000072f8  mov      x29, x29                                       
+0x000072fc  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00007300  mov      x26, x0                                        
+0x00007304  ldr      x0, [sp, #8]                                   
+0x00007308  mov      x2, x26                                        
+0x0000730c  bl       #0x56140                                       ; addObject:
+0x00007310  mov      x0, x26                                        
+0x00007314  bl       #0x55d78                                       ; _objc_release
+0x00007318  mov      x0, x25                                        
+0x0000731c  bl       #0x55d78                                       ; _objc_release
+0x00007320  mov      x0, x24                                        
+0x00007324  bl       #0x55d78                                       ; _objc_release
+0x00007328  add      x21, x21, #1                                   
+0x0000732c  ldr      x8, [sp, #0x18]                                
+0x00007330  cmp      x21, x8                                        
+0x00007334  b.ne     #0x70d0                                        
+0x00007338  add      x2, sp, #0xa0                                  
+0x0000733c  add      x3, sp, #0x2c0                                 
+0x00007340  adrp     x0, #0x7f000                                   
+0x00007344  add      x0, x0, #0x7e0                                 ; [0x7f7e0] got-sym _OBJC_CLASS_$_NSConstantArray
+0x00007348  mov      w4, #0x10                                      
+0x0000734c  bl       #0x573e0                                       ; countByEnumeratingWithState:objects:count:
+0x00007350  str      x0, [sp, #0x18]                                
+0x00007354  cbnz     x0, #0x70cc                                    
+0x00007358  mov      x0, x20                                        
+0x0000735c  bl       #0x55d78                                       ; _objc_release
+0x00007360  mov      x0, x19                                        
+0x00007364  bl       #0x55d78                                       ; _objc_release
+0x00007368  ldur     x8, [x29, #-0x60]                              
+0x0000736c  adrp     x9, #0x74000                                   
+0x00007370  ldr      x9, [x9, #0x398]                               ; [0x74398] got-sym ___stack_chk_guard
+0x00007374  ldr      x9, [x9]                                       ; [0x74000] got-sym ___objc_personality_v0
+0x00007378  cmp      x9, x8                                         
+0x0000737c  b.ne     #0x73a4                                        
+0x00007380  ldr      x0, [sp, #8]                                   
+0x00007384  add      sp, sp, #0x8e0                                 
+0x00007388  ldp      x29, x30, [sp, #0x50]                          
+0x0000738c  ldp      x20, x19, [sp, #0x40]                          
+0x00007390  ldp      x22, x21, [sp, #0x30]                          
+0x00007394  ldp      x24, x23, [sp, #0x20]                          
+0x00007398  ldp      x26, x25, [sp, #0x10]                          
+0x0000739c  ldp      x28, x27, [sp], #0x60                          
+0x000073a0  b        #0x55cb8                                       ; _objc_autoreleaseReturnValue
+0x000073a4  bl       #0x55b98                                       ; ___stack_chk_fail
+# decoded: 462 insns, 1848 bytes (range 1848 bytes)

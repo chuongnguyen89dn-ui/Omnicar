@@ -17,7 +17,12 @@
 #import "SCPShared.h"
 #import "SCPPrefs.h"
 #import "SCPSmallClasses.h"
+#import "SCPCButton.h" // integration (remediation): the home/dock helpers
+// below use SCPCButton as a full class (buttonWithType:, UIView
+// properties) — the in-implementation forward declaration is not enough.
 #import <objc/message.h>
+#import <objc/runtime.h> // remediation: installLongPressIn:depth: uses associated objects (IMP 0x44344)
+#import <notify.h> // remediation: publishBusy uses notify_register_check/set_state/post (IMP 0x15834)
 
 static id SCPGuarded(id obj, NSString *selName) {
     SEL sel = NSSelectorFromString(selName);
@@ -64,16 +69,30 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 // -activate (0x15c24) VERIFIED: tail-call.
 - (BOOL)activate { return [self activateWithCount:2]; }
 
-// -activateWithLayout: INFERRED: same entry as activateWithCount: with the
-// layout preset first (its body parallels activateWithCount: and is called
-// by openSetupLayout:apps: between setSuppressReopen: toggles).
+// -activateWithLayout: (0x15c2c) VERIFIED (rem_activateWithLayout.txt):
+// when already active it just switches layout; otherwise it derives the
+// pane count from the layout id (13/31 -> 3, 2/3 -> itself, else 2),
+// activates, and only for the two stacked layouts (13/31) applies the
+// layout kind afterwards (13 -> 1, 31 -> 2 per the csinc in the binary).
 - (BOOL)activateWithLayout:(NSInteger)layout {
-    self.layoutKind = layout;
-    return [self activateWithCount:2];
+    if (self.active) {
+        [self switchToLayout:layout];
+        return YES;
+    }
+    NSInteger count = ((layout & ~1) == 2) ? layout : 2;
+    if (layout == 13 || layout == 31) count = 3;
+    if (![self activateWithCount:count]) return NO;
+    if (layout == 13 || layout == 31) {
+        self.layoutKind = (layout == 13) ? 1 : 2;
+        [self resetFractions];
+        [self rebuildDividers];
+        [self relayoutAnimated:NO];
+    }
+    return YES;
 }
 
-// -activateWithCount: (0x15cdc) VERIFIED (control flow read end-to-end;
-// the one bit-level subtlety is marked INFERRED inline).
+// -activateWithCount: (0x15cdc) VERIFIED (control flow read end-to-end,
+// remediation re-check rem_activateWithCount.txt + rem_suppressReopen_*).
 - (BOOL)activateWithCount:(NSInteger)count {
     if (![SCPPrefs enabled]) return NO;
     [self removeAppTab];
@@ -82,11 +101,11 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
     UIViewController *currentBase = SCPCurrentBaseViewController(self);
     // Decide whether the currently fullscreen app should be re-opened into
-    // the left pane: proven inputs are currentBase, self.suppressReopen,
-    // isAdoptableViewController:, and the bundle resolved through
-    // SCPRealBundleForInfos(appInfo, proxyInfo). INFERRED exact predicate
-    // shape (a csinc on suppressReopen in the disassembly): reopen happens
-    // when a base VC exists and suppressReopen is NO.
+    // the left pane. VERIFIED predicate (remediation): the csinc sequence
+    // at 0x15de0-0x15e00 skips the resolution exactly when currentBase is
+    // nil OR suppressReopen is set, so reopen resolution runs iff
+    // currentBase && !suppressReopen && isAdoptableViewController: — the
+    // shape below is the binary's, not an inference.
     NSString *reopenBundle = nil;
     if (currentBase && !self.suppressReopen && [self isAdoptableViewController:currentBase]) {
         id appInfo = SCPGuarded(currentBase, @"applicationInfo");
@@ -115,15 +134,14 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: bat split CarPlay (%d o)", (int)self.paneCount]);
     [self showTipSoon];
     [self relayoutAnimated:NO];
-    // Entry animation (VERIFIED): container starts invisible + scaled
-    // (scale constants in __const, ~0.9) and springs in via
-    // animateWithDuration:delay:usingSpringWithDamping:initialSpringVelocity:
-    // (duration/damping/velocity constants in __const, not decoded to exact
-    // values — INFERRED standard 0.35/0.85/0.0).
+    // Entry animation (VERIFIED, remediation: __const slots read directly
+    // — scale 0.97 @0x6f090, duration 0.35 @0x6f098, damping 0.9 @0x6f028,
+    // initialSpringVelocity 0.3 @0x6f010; block invoke @0x16428 dumped in
+    // rem_activate_anim_block.txt sets alpha 1 + identity transform).
     self.container.alpha = 0;
-    self.container.transform = CGAffineTransformMakeScale(0.92, 0.92);
-    [UIView animateWithDuration:0.35 delay:0 usingSpringWithDamping:0.85
-          initialSpringVelocity:0 options:0 animations:^{
+    self.container.transform = CGAffineTransformMakeScale(0.97, 0.97);
+    [UIView animateWithDuration:0.35 delay:0 usingSpringWithDamping:0.9
+          initialSpringVelocity:0.3 options:0 animations:^{
               self.container.alpha = 1;
               self.container.transform = CGAffineTransformIdentity;
           } completion:nil];
@@ -176,15 +194,15 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self refreshAppTab];
 }
 
-// -baseViewControllerPresented VERIFIED: a fullscreen app took over while a
-// hosted app was solo -> end the solo session; dismiss the solo cover
-// shortly after (deferred via SCPDispatchAfter; exact delay in the block
-// setup, INFERRED 0.3 s).
+// -baseViewControllerPresented (0x214b8) VERIFIED (remediation,
+// rem_baseVCPresented.txt + block @0x21564 rem_baseVCPresented_block.txt):
+// a fullscreen app took over while a hosted app was solo -> end the solo
+// session; dismiss the solo cover after 0.35 s (constant @0x6f098).
 - (void)baseViewControllerPresented {
     [self endHostedSolo];
     if (self.soloCover) {
         __weak SCPCarSplit *weakSelf = self;
-        SCPDispatchAfter(0.3, ^{ [weakSelf hideSoloCover]; });
+        SCPDispatchAfter(0.35, ^{ [weakSelf hideSoloCover]; });
     }
 }
 
@@ -309,27 +327,54 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
 }
 
+// -slotOccupied: (0x10df4) VERIFIED (remediation, rem_slotOccupied.txt —
+// the previous body was wrong and carried no label: it missed the picker
+// test and tested pending through the pane's own bundle only). A slot is
+// occupied when its pane has a VC, shows the picker, or any pending launch
+// targets this slot.
 - (BOOL)slotOccupied:(NSInteger)slot {
     SCPCarPane *pane = [self paneAtSlot:slot];
-    return pane.vc != nil || [self pendingSlotForBundle:pane.bundleID] >= 0;
+    if (!pane) return NO;
+    if (pane.vc) return YES;
+    if (pane.picker) return YES;
+    for (NSString *bundle in self.pending)
+        if ([self pendingSlotForBundle:bundle] == slot) return YES;
+    return NO;
 }
 
 - (NSInteger)paneCount { return (NSInteger)self.slots.count; }
 
-// -autoSlot INFERRED (from openApp:/adopt call sites): first slot with no
-// VC and no pending launch; 9 (the float slot) when every pane is taken.
+// -autoSlot (0x115a0) VERIFIED (remediation, rem_autoSlot.txt — replaces an
+// INFERRED body; there is NO float-slot/9 fallback in the binary): first
+// unoccupied slot; else the focused slot clamped into range when it is not
+// pinned; else the first unpinned slot; else the clamped focused slot.
 - (NSInteger)autoSlot {
     for (NSInteger i = 0; i < self.paneCount; i++)
         if (![self slotOccupied:i]) return i;
-    return 9;
+    NSInteger slot = MIN(self.focusedSlot, MAX(self.paneCount, 1) - 1);
+    if (![self slotIsPinned:slot]) return slot;
+    for (NSInteger i = 0; i < self.paneCount; i++)
+        if (![self slotIsPinned:i]) return i;
+    return slot;
 }
 
-// -markDismissSlot: INFERRED: records a cancellation so a late-arriving VC
-// for that slot's bundle is backgrounded by adoptViewController: (the
-// cancelledLaunches dictionary + 30 s window are VERIFIED there).
+// -markDismissSlot: (0x2be00) VERIFIED (remediation,
+// rem_markDismissSlot.txt — replaces an INFERRED body: this is a VISUAL
+// mark for the divider-drag dismiss candidate, not a cancellation record;
+// the cancelledLaunches mechanism lives in adoptViewController: and is not
+// touched here). The pane whose slot matches gets the highlight color, its
+// tag-77 cover subview dims to 0.35 and scales to 0.8; every other pane is
+// reset. Callers pass -1 to clear the mark.
 - (void)markDismissSlot:(NSInteger)slot {
-    SCPCarPane *pane = [self paneAtSlot:slot];
-    if (pane.bundleID) self.cancelledLaunches[pane.bundleID] = [NSDate date];
+    for (SCPCarPane *pane in self.slots) {
+        BOOL selected = (pane.slot == slot);
+        UIView *tagged = [pane.cover viewWithTag:77];
+        pane.cover.backgroundColor = selected
+            ? [UIColor colorWithRed:0.8509803921568627 green:0.8392156862745098 blue:0.9333333333333333 alpha:1.0]
+            : [UIColor colorWithRed:0.9333333333333333 green:0.9411764705882353 blue:0.984313725490196 alpha:1.0];
+        tagged.alpha = selected ? 0.35 : 1.0;
+        tagged.transform = selected ? CGAffineTransformMakeScale(0.8, 0.8) : CGAffineTransformIdentity;
+    }
 }
 
 #pragma mark - App identity
@@ -436,10 +481,12 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     id launchInfo = OMCCarLaunchInfo(bundleID);
     // Launch throttle (VERIFIED arithmetic): launches are spaced by a
     // per-launch interval kept in nextLaunchAt (constant at 0x6f0a0 in
-    // __const, INFERRED 0.35 s); wait = max(0, nextLaunchAt - now).
+    // __const = 1.2 s — remediation: read in the openApp: dump at 0x169f8
+    // and cross-confirmed as openAppsInOrder:'s step; replaces an
+    // INFERRED 0.35 s); wait = max(0, nextLaunchAt - now).
     CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
     double wait = MAX(0, self.nextLaunchAt - now);
-    self.nextLaunchAt = now + wait + 0.35;
+    self.nextLaunchAt = now + wait + 1.2;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"CarSplit: mo %@ vao ngan %d sau %.1fs (launchInfo=%@)", bundleID, (int)slot, wait, launchInfo]);
     if (launchInfo) {
@@ -525,13 +572,26 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self relayoutAnimated:YES];
 }
 
-// -killAppSoon: VERIFIED (skeleton): for a non-empty bundle, schedule the
-// splitscreen.kill distributed post (the SpringBoard side terminates the
-// app — see SCPSpringBoardHooks.m). The delay sits in the block setup;
-// INFERRED 1.0 s.
+// -killAppSoon: (0x180dc) VERIFIED (remediation, rem_killAppSoon.txt +
+// block @0x181b0 rem_killAppSoon_block.txt): after 0.6 s (constant
+// @0x6f0a8 — replaces an INFERRED 1.0 s), re-check: if the split is still
+// active and the app came back (present in a pane or pending again), log
+// and keep it; otherwise log and post splitscreen.kill so the SpringBoard
+// side terminates the app (see SCPSpringBoardHooks.m).
 - (void)killAppSoon:(NSString *)bundleID {
     if (!bundleID.length) return;
-    SCPDispatchAfter(1.0, ^{
+    __weak SCPCarSplit *weakSelf = self;
+    SCPDispatchAfter(0.6, ^{
+        SCPCarSplit *self = weakSelf;
+        if (self.active) {
+            if ([self paneForBundle:bundleID] || [self pendingSlotForBundle:bundleID] >= 0) {
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"CarSplit: %@ vua mo lai -> khong tat", bundleID]);
+                return;
+            }
+        }
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: tat han %@", bundleID]);
         [[NSDistributedNotificationCenter defaultCenter]
             postNotificationName:SCPNoteKillApp object:nil
                         userInfo:@{@"identifier": bundleID}];
@@ -552,22 +612,42 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self openAppsInOrder:@[left ?: (id)[NSNull null], right ?: (id)[NSNull null]]];
 }
 
-// -openAppsInOrder: VERIFIED (call sequence): per index — NSNull shows the
-// picker; hosted apps are seeded into pending + loader first and opened
-// deferred (so native scenes land first); native apps open immediately.
+// -openAppsInOrder: (0x1869c) VERIFIED (remediation,
+// rem_openAppsInOrder.txt + block @0x18a48 rem_openAppsInOrder_block.txt —
+// replaces a body whose branch polarity was INVERTED: the binary opens
+// HOSTED apps immediately and staggers NATIVE apps). Per slot index: a
+// missing or non-string entry shows the picker; a hosted app opens at
+// once; native apps open one immediately, then each subsequent one is
+// seeded into pending + loader and deferred by a growing delay
+// (step 1.2 s @0x6f0a0). The deferred block re-checks active and the
+// pane count, drops the pending entry, then opens.
 - (void)openAppsInOrder:(NSArray *)apps {
-    NSInteger n = MIN(self.paneCount, (NSInteger)apps.count);
-    for (NSInteger i = 0; i < n; i++) {
-        id app = apps[i];
-        if ([app isKindOfClass:[NSNull class]]) { [self showPickerForSlot:i]; continue; }
-        if (SCPIsHostedApp(app)) {
-            self.pending[app] = @[ @(i), [NSDate date] ];
-            [self showLoaderInPane:[self paneAtSlot:i] bundle:app];
-            __weak SCPCarSplit *weakSelf = self;
-            SCPDispatchAfter(0.5, ^{ [weakSelf openApp:app slot:i]; }); // INFERRED stagger 0.5 s
-        } else {
-            [self openApp:app slot:i];
+    double delay = 0;
+    double step = 1.2;
+    for (NSInteger i = 0; i < self.paneCount; i++) {
+        NSString *app = nil;
+        if (i < (NSInteger)apps.count) {
+            id entry = apps[i];
+            if ([entry isKindOfClass:[NSString class]]) app = entry;
         }
+        if (!app) { [self showPickerForSlot:i]; continue; }
+        if (SCPIsHostedApp(app)) { [self openApp:app slot:i]; continue; }
+        if (delay <= 0) {
+            [self openApp:app slot:i];
+            delay = step;
+            continue;
+        }
+        self.pending[app] = @[ @(i), [NSDate date] ];
+        [self showLoaderInPane:self.slots[i] bundle:app];
+        __weak SCPCarSplit *weakSelf = self;
+        SCPDispatchAfter(delay, ^{
+            SCPCarSplit *self = weakSelf;
+            if (!self.active) return;
+            if (i >= self.paneCount) return;
+            [self.pending removeObjectForKey:app];
+            [self openApp:app slot:i];
+        });
+        delay += step;
     }
     [self relayoutAnimated:YES];
 }
@@ -667,14 +747,17 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [SCPPrefs setLastPairLeft:self.slots[0].bundleID right:self.slots[1].bundleID];
 }
 
-// -rememberRecent INFERRED: snapshots the current layout + apps into
-// SCPPrefs recent layouts (called from adopt:slot: after every successful
-// placement). Body not individually read; contract from call sites +
-// SCPPrefs.addRecentLayout:apps:.
+// -rememberRecent (0x1a3d0) VERIFIED (remediation, rem_rememberRecent.txt
+// — replaces an INFERRED body): no-op for a single pane; otherwise
+// snapshots the CURRENT layout id (-layoutID, not layoutKind) with the
+// bundle IDs of panes that actually hold an app (vc + bundleID set and
+// no picker) into SCPPrefs recent layouts.
 - (void)rememberRecent {
+    if (self.paneCount < 2) return;
     NSMutableArray *apps = [NSMutableArray array];
-    for (SCPCarPane *pane in self.slots) [apps addObject:pane.bundleID ?: @""];
-    [SCPPrefs addRecentLayout:self.layoutKind apps:apps];
+    for (SCPCarPane *pane in self.slots)
+        if (pane.vc && pane.bundleID && !pane.picker) [apps addObject:pane.bundleID];
+    [SCPPrefs addRecentLayout:[self layoutID] apps:apps];
 }
 
 // -openFavorite: VERIFIED (IMP 0x3aa60 — line-read in the final
@@ -868,10 +951,12 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         [vc willMoveToParentViewController:nil];
         [vc.view removeFromSuperview];
         [vc removeFromParentViewController];
-        // sub_1a1b8 INFERRED: resets the detached view's geometry (frame/
-        // transform) to the dashboard's fullscreen defaults.
-        extern BOOL SCPResetDetachedView(UIView *view, NSInteger depth); // [phase2; backported to src in phase 3] dump 0x1a1b8: returns BOOL, 2nd arg is a recursion depth (cap 4); A's NO == depth 0
-        SCPResetDetachedView(vc.view, NO);
+        // sub_1a1b8 = SCPResetDetachedView (VERIFIED, SCPShared.m): un-hides
+        // the detached view and restores alpha >= 0.99, recursing (depth
+        // cap 4) into _UIScene*/_UITouchPassthrough* subviews. It does NOT
+        // touch geometry — an earlier comment here claiming frame/transform
+        // resets was wrong (remediation, rem_sub_1a1b8.txt).
+        SCPResetDetachedView(vc.view, 0);
         vc.view.transform = CGAffineTransformIdentity;
     } @catch (NSException *ex) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: background loi %@", ex]);
@@ -896,33 +981,38 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     return SCPSceneOfVC(vc);
 }
 
-// -scene:destroyedForViewController:ownScene: VERIFIED (call sequence):
-// match the destroyed scene to the pane whose VC is the method's VC
-// argument; the pane's own scene dying closes the pane ("app thoat/crash"),
-// a foreign scene leaves the pane alone. The micro-closure's call-site
-// read (@0x1ae28-0x1ae94) is explicit: sub_1b13c is called on the destroyed
-// scene and on ownScene — never on pane.vc — and a match is ownScene ==
-// scene by pointer OR the two returned identifiers being equal.
+// -scene:destroyedForViewController:ownScene: (0x1ad58) VERIFIED
+// (remediation, rem_sceneDestroyed.txt + close block @0x1b238
+// rem_sceneDestroyed_block.txt — replaces a body with an INFERRED 0.5 s
+// delay, a wrong keep-case log and an early return): per pane holding
+// this VC, compare the destroyed scene against the pane's own scene —
+// a match is ownScene non-nil AND (pointer-equal OR identifiers equal).
+// A match schedules the pane's close with delay 0.0 through a block that
+// captures the pane WEAKLY and re-validates it; a mismatch just logs.
+// The loop does not stop at the first matching pane.
 - (void)scene:(id)scene destroyedForViewController:(UIViewController *)vc ownScene:(id)ownScene {
-    NSString *destroyedID = nil;
     for (SCPCarPane *pane in [self allPanes]) {
         if (pane.vc != vc) continue;
-        destroyedID = SCPSceneIdentifierOfVC(scene);
-        NSString *paneSceneID = SCPSceneIdentifierOfVC(ownScene);
-        if ((ownScene && ownScene == scene) ||
-            (destroyedID && [paneSceneID isEqualToString:destroyedID])) {
+        NSString *destroyedID = SCPSceneIdentifierOfVC(scene);
+        NSString *ownID = SCPSceneIdentifierOfVC(ownScene);
+        BOOL match = ownScene && (ownScene == scene ||
+                                  (destroyedID && [destroyedID isEqualToString:ownID]));
+        if (match) {
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                 @"CarSplit: scene cua %@ bi huy (app thoat/crash) -> dong ngan %d",
                 pane.bundleID, (int)pane.slot]);
-            NSInteger slot = pane.slot;
-            __weak SCPCarSplit *weakSelf = self;
-            SCPDispatchAfter(0.5, ^{ [weakSelf closeSlot:slot background:NO]; }); // INFERRED delay
-            return;
+            __weak SCPCarPane *weakPane = pane;
+            SCPDispatchAfter(0.0, ^{
+                SCPCarPane *p = weakPane;
+                if (p && p.vc == vc && [[self allPanes] containsObject:p])
+                    [self closeSlot:p.slot background:NO];
+            });
+        } else {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"CarSplit: scene %@ bi huy khong phai cua %@ (%@) -> giu ngan %d",
+                destroyedID ?: (id)scene, pane.bundleID, ownID ?: @"?", (int)pane.slot]);
         }
     }
-    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"CarSplit: scene %@ bi huy khong phai cua %@ (%@) -> giu ngan", destroyedID,
-        [self paneForBundle:nil].bundleID, vc]);   // INFERRED formatting of the keep-case log
 }
 
 // -verifySceneOfPane:expected:retry: VERIFIED (call sequence): reads the
@@ -964,44 +1054,101 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     return [self frameForSlot:slot].size; // [phase2; backported to src in phase 3] A's C placeholder was B's -frameForSlot: method (SCPCarSplit+Layout.m)
 }
 
-// -repairPresentedViewController: INFERRED: called by the delayed block in
-// the presentBaseViewController hook (sub_80c4) to re-adopt a VC that the
-// dashboard presented fullscreen while the split wanted it. Body not
-// individually read.
+// -repairPresentedViewController: (0x19e04) VERIFIED (remediation,
+// rem_repairPresentedViewController.txt — replaces an INFERRED one-liner;
+// the binary contains NO wantsViewController:/adoptViewController: call).
+// Called by the delayed block in the presentBaseViewController hook
+// (sub_80c4): a VC the dashboard presented fullscreen may be a leftover
+// split app whose view tree got hidden — if no pane owns it, un-hide it
+// (SCPResetDetachedView) and log. It does NOT adopt anything.
 - (void)repairPresentedViewController:(UIViewController *)vc {
-    if ([self wantsViewController:vc]) [self adoptViewController:vc];
+    if (![vc isKindOfClass:[UIViewController class]]) return;
+    if (!vc.isViewLoaded) return;
+    for (SCPCarPane *pane in [self allPanes])
+        if (pane.vc == vc) return;
+    if (!SCPResetDetachedView(vc.view, 0)) return;
+    vc.view.transform = CGAffineTransformIdentity;
+    id appInfo = SCPGuarded(vc, @"applicationInfo");
+    id proxyInfo = SCPGuarded(vc, @"proxyApplicationInfo");
+    NSString *bundle = SCPRealBundleForInfos(appInfo, proxyInfo);
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: app toan man %@ bi an (con sot tu split) -> hien lai", bundle]);
 }
 
 #pragma mark - Pane set mutation
 
-// The four methods below are reconstructed from their call sites and the
-// VERIFIED removePaneAt:background: sequence; individual bodies were
-// skeleton-checked only (status INFERRED in the report).
+// The methods below were re-read instruction by instruction in the
+// remediation round (dumps rem_newPane/rem_insertPaneAt/rem_reindexPanes/
+// rem_setPaneCount/rem_removePaneAt.txt); earlier INFERRED skeletons are
+// replaced.
 
+// -newPane (0x13040) VERIFIED: builds the pane's view (dark 0.08-white
+// background, corner radius 6 continuous, border width 0 via sub_132cc)
+// and its flexible host view, then installs the bar. No slot is assigned
+// here — slots come from reindexPanes.
 - (SCPCarPane *)newPane {
     SCPCarPane *pane = [SCPCarPane new];
-    pane.slot = (int)self.slots.count;
+    pane.view = [[UIView alloc] initWithFrame:CGRectZero];
+    pane.view.backgroundColor = [UIColor colorWithWhite:0.08 alpha:1.0];
+    pane.view.layer.cornerRadius = 6.0;
+    pane.view.layer.cornerCurve = kCACornerCurveContinuous;
+    pane.view.clipsToBounds = YES;
+    pane.view.layer.borderWidth = 0; // sub_132cc in the binary (rem_sub_132cc.txt)
+    pane.host = [[UIView alloc] initWithFrame:CGRectZero];
+    pane.host.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [pane.view addSubview:pane.host];
+    [self setupBarForPane:pane];
     return pane;
 }
 
-- (SCPCarPane *)insertPaneAt:(NSInteger)slot { // [phase2; backported to src in phase 3] returns the pane per binary type @20@0:8i16 (Zoom floatDockBack uses it)
-    SCPCarPane *pane = [self newPane];
-    [self.slots insertObject:pane atIndex:slot];
-    [self.fractions insertObject:@(1.0) atIndex:slot];
-    [self reindexPanes];
+// -insertPaneAt: (0x135e4) VERIFIED: only with a container and at most 2
+// existing panes; the index is clamped once and the clamped value drives
+// the pending-slot shift and the focused-slot bump. No fractions traffic.
+- (SCPCarPane *)insertPaneAt:(NSInteger)slot {
+    SCPCarPane *pane = nil;
+    if (self.container && self.paneCount <= 2) {
+        NSInteger at = MAX(MIN(slot, self.paneCount), 0);
+        pane = [self newPane];
+        [self.container addSubview:pane.view];
+        [self.slots insertObject:pane atIndex:(NSUInteger)at];
+        for (NSString *bundle in [self.pending allKeys]) {
+            NSArray *entry = self.pending[bundle];
+            NSInteger s = [entry[0] intValue];
+            if (s != 9 && s >= at)
+                self.pending[bundle] = @[ @(s + 1), entry[1] ];
+        }
+        if (self.focusedSlot >= at) self.focusedSlot += 1;
+        [self reindexPanes];
+    }
     return pane;
 }
 
+// -reindexPanes (0x14154) VERIFIED.
 - (void)reindexPanes {
     NSInteger i = 0;
     for (SCPCarPane *pane in self.slots) pane.slot = (int)i++;
 }
 
+// -setPaneCount: (0x147e0) VERIFIED: the target is clamped to 1..3;
+// layoutKind is reset for count <= 2 BEFORE the equality early-return;
+// shrinking removes with background:YES; growing inlines newPane (it does
+// NOT go through insertPaneAt:); finishes with resetFractions (not
+// normalizeFractions), rebuildDividers and a log line.
 - (void)setPaneCount:(NSInteger)count {
-    while ((NSInteger)self.slots.count < count) [self insertPaneAt:self.slots.count];
-    while ((NSInteger)self.slots.count > count)
-        [self removePaneAt:self.slots.count - 1 background:NO];
-    [self normalizeFractions];
+    NSInteger target = MIN(MAX(count, 1), 3);
+    if (count <= 2) self.layoutKind = 0;
+    if (target == self.paneCount) return;
+    while (self.paneCount > target)
+        [self removePaneAt:self.paneCount - 1 background:YES];
+    while (self.paneCount < target) {
+        SCPCarPane *pane = [self newPane];
+        [self.container addSubview:pane.view];
+        [self.slots addObject:pane];
+    }
+    [self reindexPanes];
+    [self resetFractions];
+    [self rebuildDividers];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: bo cuc %d o", (int)target]);
 }
 
 - (void)swapSlot:(NSInteger)a with:(NSInteger)b {
@@ -1010,7 +1157,12 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self reindexPanes];
 }
 
-// -removePaneAt:background: VERIFIED (call sequence).
+// -removePaneAt:background: (0x149a8) VERIFIED (remediation,
+// rem_removePaneAt.txt — full line-read; three corrections to the earlier
+// call-sequence version: the layoutKind line RESETS the kind and clears
+// fractions instead of decrementing; the pending remap reads the raw
+// entry (not pendingSlotForBundle:) and shifts entries behind the slot;
+// the tail clamps focusedSlot and rebuilds dividers).
 - (void)removePaneAt:(NSInteger)slot background:(BOOL)background {
     if (slot < 0 || slot >= self.paneCount) return;
     SCPCarPane *pane = self.slots[slot];
@@ -1025,17 +1177,24 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         pane.bundleID = nil;
     }
     [pane.view removeFromSuperview];
-    if (self.layoutKind > 0) self.layoutKind -= 1;   // INFERRED adjustment seen in the call list
+    if (self.layoutKind != 0) {
+        self.layoutKind = 0;
+        [self.fractions removeAllObjects];
+    }
     [self.slots removeObjectAtIndex:slot];
     if (slot < (NSInteger)self.fractions.count) [self.fractions removeObjectAtIndex:slot];
     [self normalizeFractions];
-    // Pending entries pointing at/behind the removed slot are dropped or
-    // shifted (VERIFIED: the body re-walks self.pending by slot).
     for (NSString *bundle in [self.pending allKeys]) {
-        NSInteger s = [self pendingSlotForBundle:bundle];
+        NSArray *entry = self.pending[bundle];
+        NSInteger s = [entry[0] intValue];
+        if (s == 9) continue;
         if (s == slot) [self.pending removeObjectForKey:bundle];
+        else if (s > slot) self.pending[bundle] = @[ @(s - 1), entry[1] ];
     }
+    if (self.focusedSlot > slot) self.focusedSlot -= 1;
+    if (self.focusedSlot >= self.paneCount) self.focusedSlot = MAX(self.paneCount, 1) - 1;
     [self reindexPanes];
+    [self rebuildDividers];
 }
 
 // -closeSlot:background: VERIFIED: slot 9 closes the float pane; the last
@@ -1047,26 +1206,135 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self removePaneAt:slot background:background];
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"CarSplit: dong o %d (%@), con %d o", (int)slot, bundle, (int)self.paneCount]);
-    [self afterPaneRemoved:nil]; // [phase2; backported to src in phase 3] callee ignores the arg; binary arg type is @ (was the NSInteger slot)
+    [self afterPaneRemoved:bundle]; // remediation: the binary passes the removed pane's bundle (IMP 0x1d9b8, rem_closeSlot.txt) — an earlier note here claiming the callee ignores the arg was wrong
 }
 
-// -afterPaneRemoved: INFERRED: when no panes remain, tear the split down;
-// otherwise relayout. (Name + single call site in closeSlot:.)
-- (void)afterPaneRemoved:(id)info { (void)info; // [phase2; backported to src in phase 3] binary arg type @; body never used it
-    if (self.paneCount == 0) { [self closeGoingHome:NO]; return; }
+// -afterPaneRemoved: (0x1db48) VERIFIED (remediation,
+// rem_afterPaneRemoved.txt + retry block @0x1e2ec — replaces an INFERRED
+// stub; the argument is the removed pane's bundle ID, binary type
+// v24@0:8@16). Recovery routine: with no panes left, the float pane's app
+// (if any) goes solo, else the split closes home. With exactly one pane
+// and no float pane, that pane's app (or the last pending app for slot 0)
+// goes solo. Otherwise it relayouts and, when the dashboard's active base
+// app is exactly the removed bundle shown in a pane as a NON-hosted app,
+// re-seeds its launch (pending + dashboard event 4) so it re-presents,
+// with the pending entry expiring after 2.0 s.
+- (void)afterPaneRemoved:(NSString *)bundle {
+    if (self.paneCount == 0) {
+        if (self.floatPane.vc && self.floatPane.bundleID)
+            [self soloBundle:self.floatPane.bundleID];
+        else
+            [self closeGoingHome:YES];
+        return;
+    }
+    if (self.paneCount == 1 && !self.floatPane) {
+        NSString *b = self.slots[0].bundleID;
+        if (b) { [self soloBundle:b]; return; }
+        NSString *candidate = nil;
+        for (NSString *key in self.pending)
+            if ([self pendingSlotForBundle:key] == 0) candidate = key;
+        if (candidate) { [self soloBundle:candidate]; return; }
+        [self closeGoingHome:YES];
+        return;
+    }
     [self relayoutAnimated:YES];
+    id base = SCPDashboardRootViewController();
+    id owner = SCPGuarded(base, @"workspaceOwner");
+    NSString *activeID = SCPGuarded(owner, @"activeBaseApplicationBundleID");
+    SCPCarPane *pane = nil;
+    for (SCPCarPane *p in self.slots)
+        if (p.vc && p.bundleID) { pane = p; break; }
+    if (!pane || !bundle) return;
+    if (![activeID isEqualToString:bundle]) return;
+    if (SCPIsHostedApp(pane.bundleID)) return;
+    NSString *b = pane.bundleID;
+    self.pending[b] = @[ @(pane.slot), [NSDate date] ];
+    id info = OMCCarLaunchInfo(SCPApplicationInfoForBundle(b));
+    if (info) SCPSendDashboardEvent(4, info);
+    SCPDispatchAfter(2.0, ^{ [self.pending removeObjectForKey:b]; });
 }
 
-// -switchToLayout: / -layoutID / -layoutChosenID: INFERRED: switchToLayout:
-// re-derives paneCount + fractions for the layout id and relayouts (it is
-// the entry used by openSetupLayout:apps: when already active). The layout
-// id -> (count, fractions) table lives in agent B's geometry code.
+// -switchToLayout: (0x15000) VERIFIED (remediation,
+// rem_switchToLayout.txt — replaces an INFERRED stub): same (count, kind)
+// derivation as activateWithLayout: (13/31 -> count 3 + kind 1/2, 2/3 ->
+// count = id + kind 0, else count 2 + kind 0). No-op when nothing would
+// change. Shrinking evicts panes — first an empty unpending one, else the
+// last unpinned one, else the last one — with background:YES, collecting
+// display names for a "moved to the background" toast.
 - (void)switchToLayout:(NSInteger)layout {
-    self.layoutKind = layout;
+    NSInteger count = ((layout & ~1) == 2) ? layout : 2;
+    NSInteger kind = 0;
+    if (layout == 13 || layout == 31) {
+        count = 3;
+        kind = (layout == 13) ? 1 : 2;
+    }
+    if (count == self.paneCount && kind == self.layoutKind) return;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: doi bo cuc %d -> %d", (int)[self layoutID], (int)layout]);
+    NSMutableArray *moved = [NSMutableArray array];
+    while (self.paneCount > count) {
+        SCPCarPane *victim = nil;
+        for (SCPCarPane *pane in self.slots) {
+            BOOL keep = pane.vc != nil;
+            if (!keep) {
+                for (NSString *bundle in self.pending)
+                    if ([self pendingSlotForBundle:bundle] == pane.slot) { keep = YES; break; }
+            }
+            if (!keep) { victim = pane; break; }
+        }
+        if (!victim) {
+            for (SCPCarPane *pane in [self.slots reverseObjectEnumerator])
+                if (![self slotIsPinned:pane.slot]) { victim = pane; break; }
+        }
+        if (!victim) victim = self.slots.lastObject;
+        if (victim.bundleID) [moved addObject:[self displayNameFor:victim.bundleID]];
+        [self removePaneAt:victim.slot background:YES];
+    }
+    if (moved.count)
+        [self toast:[NSString stringWithFormat:OMCTr(@"%", @"%@ moved to the background"),
+            [moved componentsJoinedByString:@", "]]];
+    [self setPaneCount:count];
+    self.layoutKind = kind;
+    [self resetFractions];
+    [self rebuildDividers];
+    [self showPickersForEmptySlots];
     [self relayoutAnimated:YES];
 }
-- (NSInteger)layoutID { return self.layoutKind; }
-- (BOOL)layoutChosenID:(NSInteger)layout { return self.layoutKind == layout; }
+
+// -layoutID (0x11080) VERIFIED (remediation, rem_layoutID.txt — the old
+// body returned layoutKind): the layout's public id — 31 for the
+// right-main layout, 13 for the stacked layout, else the pane count.
+- (NSInteger)layoutID {
+    if (self.mainRight) return 31;
+    if (self.mainStack) return 13;
+    return self.paneCount;
+}
+
+// -layoutChosenID: (0x3c61c) VERIFIED (remediation,
+// rem_layoutChosenID.txt — replaces a fabricated BOOL predicate; the
+// binary method is VOID): the user picked a layout for the pending
+// layout app (self.layoutApp). Active splits just switch; otherwise the
+// split activates with that layout and opens the app (or shows pickers).
+- (void)layoutChosenID:(NSInteger)layout {
+    NSString *app = self.layoutApp;
+    self.layoutApp = nil;
+    [self collapseAppTray];
+    if (self.active) {
+        [self switchToLayout:layout];
+        return;
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: chon bo cuc %d cho %@", (int)layout, app ?: @"man chinh (moi o trong)"]);
+    if (app) {
+        if (![self activateWithLayout:layout]) return;
+        [self openApp:app slot:0];
+        for (NSInteger i = 0; i < self.paneCount; i++)
+            if (![self slotOccupied:i]) [self showPickerForSlot:i];
+    } else {
+        if (![self activateWithLayout:layout]) return;
+        [self showPickersForEmptySlots];
+    }
+}
 
 #pragma mark - Close / home
 
@@ -1076,9 +1344,15 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     if (self.active && pane) [self closeSlot:pane.slot background:YES];
 }
 
-// -closeGoingHome: VERIFIED (call sequence): full split teardown; goHome
-// only changes the log line and whether a type-1 dashboard event follows
-// (the event send itself is INFERRED from SCPSendDashboardEvent's role).
+// -closeGoingHome: (0x21618) VERIFIED (remediation,
+// rem_stub_closeGoingHome:.txt + animation blocks @0x21b08/@0x21b14
+// rem_closeGoingHome_anim/done.txt — corrections to the earlier
+// call-sequence version: detachVC is called for EVERY pane VC with NO
+// hosted check (hostCloseAll already handled hosted apps); cover removal
+// is a separate loop over self.slots; the container is NOT removed
+// synchronously — it is detached from the properties and faded out over
+// 0.2 s; the type-1 dashboard event send is explicit in the binary, not
+// inferred; the tail refreshes the app tab and knobs).
 - (void)closeGoingHome:(BOOL)goHome {
     if (!self.active) return;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: tat split (goHome=%d)", goHome]);
@@ -1087,13 +1361,12 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         [pane.barTimer invalidate];
         pane.barTimer = nil;
         if (pane.vc) {
-            if (!SCPVCIsHosted(pane.vc)) [self detachVC:pane.vc background:YES];
+            [self detachVC:pane.vc background:YES];
             pane.vc = nil;
             pane.bundleID = nil;
         }
         [pane.picker removeFromSuperview];
         pane.picker = nil;
-        [self removeCoverFromPane:pane];
     }
     self.active = NO;
     [self.pending removeAllObjects];
@@ -1101,10 +1374,23 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self removePickerSheet];
     [self hideRatioMenu];
     [self cancelPaneDrag];
+    for (SCPCarPane *pane in self.slots) [self removeCoverFromPane:pane];
     self.resizing = NO;
-    [self.container removeFromSuperview];
+    UIView *container = self.container;
     self.container = nil;
+    self.slots = nil;
+    self.fractions = nil;
+    self.dividers = nil;
+    self.floatPane = nil;
+    self.floatClosing = NO;
+    [UIView animateWithDuration:0.2 animations:^{
+        container.alpha = 0;
+    } completion:^(BOOL finished) {
+        [container removeFromSuperview];
+    }];
     if (goHome) SCPSendDashboardEvent(1, @"SplitScreen: dong split");
+    [self refreshAppTabSoon];
+    [self publishKnobsSoon];
 }
 
 // -homePressedDuringSplit: VERIFIED (call sequence): returns YES when the
@@ -1130,18 +1416,33 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     return NO;
 }
 
-// -dismissStuckBaseSoon VERIFIED: one-shot (dismissStuckPending) deferred
-// dismissal of a base VC that stayed presented over the split; the block
-// re-checks currentBaseViewController and dismisses it (INFERRED interior).
+// -dismissStuckBaseSoon (0x3ff28) VERIFIED (remediation,
+// rem_dismissStuckBaseSoon.txt + block @0x3ffc8
+// rem_dismissStuckBaseSoon_block.txt — replaces an INFERRED interior and
+// a 0.5 s delay): one-shot deferred dismissal of a base VC the dashboard
+// still holds after Home. After 0.35 s (@0x6f098) the block clears the
+// flag, bails when a solo hosted app is up or when the base VC is one of
+// the panes, and otherwise asks the dashboard ROOT (not the base VC) to
+// dismiss its base view controller, animated, via a direct msgSend.
 - (void)dismissStuckBaseSoon {
     if (self.dismissStuckPending) return;
     self.dismissStuckPending = YES;
     __weak SCPCarSplit *weakSelf = self;
-    SCPDispatchAfter(0.5, ^{
+    SCPDispatchAfter(0.35, ^{
         SCPCarSplit *self = weakSelf;
         self.dismissStuckPending = NO;
-        UIViewController *base = SCPCurrentBaseViewController(self);
-        [base dismissViewControllerAnimated:NO completion:nil];
+        if (!self) return;
+        if (self.soloHostedBundle) return;
+        id root = SCPDashboardRootViewController();
+        UIViewController *base = SCPGuarded(root, @"currentBaseViewController");
+        if (!base) return;
+        for (SCPCarPane *pane in [self allPanes])
+            if (pane.vc == base) return;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: DashBoard con giu %@ sau Home -> dong de hien man chinh", base]);
+        SEL dismissSel = NSSelectorFromString(@"dismissBaseViewControllerAnimated:completion:");
+        if ([root respondsToSelector:dismissSel])
+            ((void (*)(id, SEL, BOOL, id))objc_msgSend)(root, dismissSel, YES, nil);
     });
 }
 
@@ -1193,24 +1494,69 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 // -hostApp:inPane: VERIFIED (call sequence): put a hosted app into a pane —
 // evict the occupant, install an SCPHostedAppVC token, size it to the pane,
 // show the loader, and post the open/frame state to the bridge.
+// -hostApp:inPane: VERIFIED (CLOSURE-2 line-read of IMP 0x3e490,
+// dumps SplitScreenB/disasm/rem2_C7_hostAppInPane_parent.txt,
+// rem2_C7_block1_3e8f4.txt, rem2_C7_block_3eb24.txt,
+// rem2_delay_helper_12efc.txt). The previous condensed body diverged
+// from the binary: detach used background:YES, the hosted view is
+// framed/masked/added to pane.host, sceneSize starts at CGSizeZero,
+// hostFrame at CGRectNull, focusedSlot is skipped for slot 9, the tail
+// is rememberPair/rememberRecent/raise/relayoutAnimated:YES, and the
+// frame publish + loader timeout are two SCPDispatchAfter blocks
+// (0.05 s and 8 s) — there is no synchronous sendHostFrameForPane call.
 - (void)hostApp:(NSString *)bundleID inPane:(SCPCarPane *)pane {
     if (pane.vc) {
         if (SCPVCIsHosted(pane.vc)) [self hostClose:pane.bundleID terminate:NO];
-        else [self detachVC:pane.vc background:NO];
+        else [self detachVC:pane.vc background:YES];
         pane.vc = nil;
         pane.bundleID = nil;
     }
     SCPHostedAppVC *hosted = [SCPHostedAppVC new];
     hosted.bundleID = bundleID;
+    hosted.view.frame = pane.host.bounds;
+    hosted.view.autoresizingMask = UIViewAutoresizingFlexibleWidth |
+                                   UIViewAutoresizingFlexibleHeight; // 0x12
+    [pane.host addSubview:hosted.view];
     pane.vc = hosted;
     pane.bundleID = bundleID;
-    pane.sceneSize = pane.host.bounds.size;
-    pane.hostFrame = pane.host.bounds;
+    pane.sceneSize = CGSizeZero;
+    pane.hostFrame = CGRectNull;
     pane.hostHandle = NO;
-    self.focusedSlot = pane.slot;
+    if (pane.slot != 9) self.focusedSlot = pane.slot;
     [self showLoaderInPane:pane bundle:bundleID];
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: host %@ vao o %d", bundleID, (int)pane.slot]);
-    [self sendHostFrameForPane:pane live:NO];
+    [self rememberPair];
+    [self rememberRecent];
+    [self raise];
+    [self relayoutAnimated:YES];
+    __weak SCPCarSplit *weakSelf = self;
+    __weak SCPCarPane *weakPane = pane;
+    // +0.05 s (block invoke @0x3e8f4): if the split is still active and
+    // the pane still hosts this bundle, publish the host frame as
+    // appbridge.open.
+    SCPDispatchAfter(0.05, ^{
+        SCPCarSplit *self = weakSelf;
+        SCPCarPane *pane = weakPane;
+        if (!pane || !self.active) return;
+        if (![pane.bundleID isEqualToString:bundleID]) return;
+        CGRect frame = [self hostFrameForPane:pane];
+        if (CGRectIsEmpty(frame))
+            frame = [pane.view convertRect:pane.view.bounds toView:nil];
+        pane.hostFrame = frame;
+        pane.hostHandle = !CGRectIsEmpty(frame);
+        pane.hostBar = !pane.bar.isHidden;
+        NSDictionary *info = [self hostFrameInfo:frame pane:pane live:NO
+                                          handle:pane.hostHandle];
+        [self hostPost:SCPNoteBridgeOpen info:info];
+    });
+    // +8 s loader timeout (block invoke @0x3eb24, census item C7): if
+    // the pane still hosts this bundle, drop the loader.
+    SCPDispatchAfter(8.0, ^{
+        SCPCarPane *pane = weakPane;
+        if (!pane) return;
+        if (![pane.bundleID isEqualToString:bundleID]) return;
+        [weakSelf removeLoaderFromPane:pane animated:YES];
+    });
 }
 
 // -hostedApp:state: VERIFIED (call sequence): the bridge's state answers.
@@ -1251,13 +1597,15 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
                                             @"w": @(frame.size.width), @"h": @(frame.size.height)}];
 }
 
-// -endHostedSolo VERIFIED.
+// -endHostedSolo (0x3fe5c) VERIFIED (remediation, rem_endHostedSolo.txt —
+// state is cleared BEFORE the log + hostClose in the binary).
 - (void)endHostedSolo {
-    if (!self.soloHostedBundle) return;
-    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: dong app toan man %@", self.soloHostedBundle]);
-    [self hostClose:self.soloHostedBundle terminate:NO];
+    NSString *bundle = self.soloHostedBundle;
+    if (!bundle) return;
     self.soloHostedBundle = nil;
     self.trayHidesBridge = NO;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: dong app toan man %@", bundle]);
+    [self hostClose:bundle terminate:NO];
 }
 
 // -sendHostFrameForPane:live: VERIFIED (call sequence): recompute the
@@ -1343,12 +1691,57 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     return info;
 }
 
-// Geometry helpers for the bridge — INFERRED thin wrappers over agent B's
-// layout (the frames themselves are computed by the container's layout).
-- (CGRect)hostFrameForPane:(SCPCarPane *)pane { return pane.host ? pane.host.frame : CGRectZero; }
-- (CGRect)holeForPane:(SCPCarPane *)pane { return pane.hostHole; }
+// Geometry helpers for the bridge (remediation: all three line-read from
+// the binary — the previous INFERRED one-liners were wrong).
+// -hostFrameForPane: (0x3ca0c) VERIFIED (rem_stub_hostFrameForPane:.txt):
+// the pane's frame in window coordinates, or CGRectZero when the pane
+// cannot be presented to the bridge right now (inactive, no VC, picker
+// up, faded out, too small, no window, or covered by the tray / picker
+// sheet / ratio menu overlays — the ratio menu cuts a 6 pt-inflated hole).
+- (CGRect)hostFrameForPane:(SCPCarPane *)pane {
+    if (!self.active || !pane.vc) return CGRectZero;
+    if (pane.picker) return CGRectZero;
+    if (pane.view.alpha < 0.5) return CGRectZero;
+    if (pane.view.bounds.size.width < 20.0) return CGRectZero;
+    if (!pane.view.window) return CGRectZero;
+    if (self.tray && !self.trayOverlay) return CGRectZero;
+    if (self.pickerSheet && !self.pickerSheetOverlay) return CGRectZero;
+    if (self.ratioMenu && !self.ratioOverlay) {
+        CGRect hole = CGRectInset(self.ratioMenu.frame, -6.0, -6.0);
+        if (CGRectIntersectsRect(hole, pane.view.frame)) return CGRectZero;
+    }
+    return [pane.view convertRect:pane.view.bounds toView:nil];
+}
+
+// -holeForPane: (0x3dca8) VERIFIED (rem_stub_holeForPane:.txt): the float
+// pane's window-space rect when it overlaps this pane — the region the
+// bridge must cut out. Zero unless there is a visible, non-hosted float
+// pane distinct from this pane.
+- (CGRect)holeForPane:(SCPCarPane *)pane {
+    SCPCarPane *floatPane = self.floatPane;
+    if (!pane || !floatPane || pane == floatPane) return CGRectZero;
+    if (!floatPane.vc || SCPVCIsHosted(floatPane.vc)) return CGRectZero;
+    if (!floatPane.view.window) return CGRectZero;
+    if (floatPane.view.alpha < 0.5) return CGRectZero;
+    CGRect floatRect = [floatPane.view convertRect:floatPane.view.bounds toView:nil];
+    CGRect paneRect = [pane.view convertRect:pane.view.bounds toView:nil];
+    return CGRectIntersectsRect(floatRect, paneRect) ? floatRect : CGRectZero;
+}
+
+// -hostBarInfoForPane: (0x3cd60) VERIFIED (rem_stub_hostBarInfoForPane:.txt):
+// bar visibility, pop affordance (2 for the float pane, 1 otherwise),
+// whether pop is dimmed (float pane: only with < 3 panes; other panes:
+// -canPopOutPane:), and whether this pane is the zoomed one.
 - (NSDictionary *)hostBarInfoForPane:(SCPCarPane *)pane {
-    return @{@"identifier": pane.bundleID ?: @"", @"bar": @(pane.hostBar)};
+    BOOL canPop;
+    if (pane == self.floatPane) canPop = pane.vc && self.paneCount < 3;
+    else canPop = [self canPopOutPane:pane];
+    NSNumber *zoomed = self.zoomedSlot;
+    BOOL single = zoomed && zoomed.intValue == pane.slot;
+    return @{ @"bar": @(!pane.bar.isHidden),
+              @"pop": @((pane == self.floatPane) ? 2 : 1),
+              @"popDim": @(!canPop),
+              @"single": @(single) };
 }
 // [phase2; backported to src in phase 3] merge] -anyBarVisible is implemented in SCPCarSplit+Chrome.m.
 // A's copy here read pane.hostBar; the binary @0x3d058 (disasm
@@ -1383,9 +1776,50 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 - (void)pushHostFramesLive:(BOOL)live {
     for (SCPCarPane *pane in [self hostedPanes]) [self sendHostFrameForPane:pane live:live];
 }
-// -pushSceneSizes INFERRED: pushes each hosted pane's scene size through
-// the same frame channel after a layout change.
-- (void)pushSceneSizes { [self pushHostFramesLive:NO]; }
+// -pushSceneSizes (0x1c550) VERIFIED (remediation, rem_pushSceneSizes.txt
+// + blocks @0x1c9d4/@0x1cc90 rem_pushSceneSizes_block1/2.txt — replaces an
+// INFERRED one-liner; the binary does NOT call pushHostFramesLive:). For
+// every pane with a NON-hosted VC whose slot size changed (and is at
+// least 2x2), record the new scene size, ask the VC to foreground its
+// scene with that size (direct msgSend, empty completion block, wrapped
+// in @try/@catch), then schedule two fix-ups: at +0.4 s re-frame the VC's
+// sceneHostView to the VC view's bounds, at +0.9 s verify the scene size.
+// No self.active check exists in the binary body.
+- (void)pushSceneSizes {
+    for (SCPCarPane *pane in [self allPanes]) {
+        if (!pane.vc) continue;
+        if (SCPVCIsHosted(pane.vc)) continue;
+        CGSize size = [self frameForSlot:pane.slot].size;
+        if (size.width < 2.0 || size.height < 2.0) continue;
+        if (CGSizeEqualToSize(size, pane.sceneSize)) continue;
+        pane.sceneSize = size;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: scene %@ -> %@", pane.bundleID, NSStringFromCGSize(size)]);
+        UIViewController *vc = pane.vc;
+        @try {
+            ((void (*)(id, SEL, id, id))objc_msgSend)(vc,
+                NSSelectorFromString(@"foregroundSceneWithSettings:completion:"),
+                nil, (id)^{});
+        } @catch (NSException *ex) {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"CarSplit: foregroundScene loi %@", ex]);
+        }
+        SCPDispatchAfter(0.4, ^{
+            UIView *hostView = SCPGuarded(vc, @"sceneHostView");
+            if (!hostView) return;
+            if (hostView.superview != vc.view) return;
+            if (CGRectEqualToRect(hostView.frame, vc.view.bounds)) return;
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"CarSplit: sceneHostView %@ -> %@",
+                NSStringFromCGRect(hostView.frame), NSStringFromCGRect(vc.view.bounds)]);
+            hostView.frame = vc.view.bounds;
+        });
+        __weak SCPCarSplit *weakSelf = self;
+        SCPDispatchAfter(0.9, ^{
+            [weakSelf verifySceneOfPane:pane expected:size retry:1];
+        });
+    }
+}
 // -soloBundle: VERIFIED (IMP 0x1e33c — line-read end to end in the
 // final closure, incl. its three deferred blocks; dumps sub_1e33c /
 // sub_1ea0c / sub_1ebb4 / sub_1ee70 in src/SplitScreenA/disasm/). TRUE
@@ -1562,10 +1996,67 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     return base == nil;
 }
 
-// Solo cover (the placeholder shown while a solo hosted app starts) —
-// INFERRED UI glue in A's domain only as session state.
-- (void)showSoloCoverForBundle:(NSString *)bundleID { (void)bundleID; }
-- (void)hideSoloCover { self.soloCover = nil; }
+// Solo cover (the placeholder shown while a solo hosted app starts).
+// sub_21158 (remediation, rem_sub_21158.txt): icon styling for the cover —
+// continuous corner radius at 27% of the width, clear background when an
+// image is present, the cover's own pale color otherwise. (Helper name
+// invented; no symbol survives in the binary.)
+static void SCPStyleSoloIconView(UIImageView *view) {
+    view.layer.cornerRadius = view.bounds.size.width * 0.27;
+    view.layer.cornerCurve = kCACornerCurveContinuous;
+    view.clipsToBounds = YES;
+    view.backgroundColor = view.image ? [UIColor clearColor]
+        : [UIColor colorWithRed:0.9333333333333333 green:0.9411764705882353 blue:0.984313725490196 alpha:1.0];
+}
+
+// -showSoloCoverForBundle: (0x20d8c) VERIFIED (remediation,
+// rem_stub_showSoloCoverForBundle:.txt + timeout block @0x212bc
+// rem_showSoloCover_block.txt — replaces an empty stub): pale cover over
+// the app area with the app's icon (52 pt, centered, raised 6 pt) and a
+// medium spinner under it; a watchdog hides the cover after 6 s for
+// hosted apps, 3 s otherwise, if it is still the current cover.
+- (void)showSoloCoverForBundle:(NSString *)bundleID {
+    UIView *parent = [self tabParent];
+    if (!parent) return;
+    [self.soloCover removeFromSuperview];
+    UIView *cover = [[UIView alloc] initWithFrame:[self appAreaInParent:parent]];
+    cover.backgroundColor = [UIColor colorWithRed:0.9333333333333333 green:0.9411764705882353 blue:0.984313725490196 alpha:1.0];
+    cover.userInteractionEnabled = NO;
+    UIImageView *iconView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 52, 52)];
+    iconView.image = SCPAppIconForBundle(bundleID);
+    SCPStyleSoloIconView(iconView);
+    iconView.center = CGPointMake(cover.bounds.size.width * 0.5, cover.bounds.size.height * 0.5 - 6.0);
+    [cover addSubview:iconView];
+    UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc]
+        initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium]; // 100 in the binary
+    spinner.color = [UIColor colorWithRed:0.6078431372549019 green:0.5294117647058824 blue:0.9725490196078431 alpha:1.0];
+    spinner.center = CGPointMake(cover.bounds.size.width * 0.5, CGRectGetMaxY(iconView.frame) + 18.0);
+    [spinner startAnimating];
+    [cover addSubview:spinner];
+    [parent addSubview:cover];
+    [self raiseView:cover];
+    self.soloCover = cover;
+    __weak UIView *weakCover = cover;
+    __weak SCPCarSplit *weakSelf = self;
+    SCPDispatchAfter(SCPIsHostedApp(bundleID) ? 6.0 : 3.0, ^{
+        if (!weakCover) return;
+        if (weakSelf.soloCover == weakCover) [weakSelf hideSoloCover];
+    });
+}
+
+// -hideSoloCover (0x21390) VERIFIED (remediation, rem_stub_hideSoloCover.txt
+// + blocks @0x214a4/@0x214b0 rem_hideSoloCover_anim/done.txt — replaces a
+// property-only stub): fade the cover out over 0.25 s, then remove it.
+- (void)hideSoloCover {
+    UIView *cover = self.soloCover;
+    self.soloCover = nil;
+    if (!cover) return;
+    [UIView animateWithDuration:0.25 animations:^{
+        cover.alpha = 0;
+    } completion:^(BOOL finished) {
+        [cover removeFromSuperview];
+    }];
+}
 - (void)setFullscreenBridgeHidden:(BOOL)hidden bundle:(NSString *)bundleID {
     // VERIFIED: posts an appbridge.frame update for the bundle (the name
     // appears in this method's string xrefs).
@@ -1573,22 +2064,101 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     if (pane) [self sendHostFrameForPane:pane live:NO];
 }
 
-// Bridge input callbacks (posted by AppBridge, handled in SCPHooks.m
-// blocks) — INFERRED thin forwarders into B's bar/handle machinery.
-- (void)bridgeBarAction:(NSString *)action forBundle:(NSString *)bundleID { (void)action; (void)bundleID; }
-- (void)bridgeHandleTapped:(NSDictionary *)info { (void)info; }
-- (void)bridgeOutsideTouched {}
-- (void)bridgeHandleDrag:(NSDictionary *)info { (void)info; }
+// Bridge input callbacks (posted by AppBridge). All four line-read in
+// the remediation round (rem_stub_bridge*.txt) — the previous INFERRED
+// empty forwarders were wrong, and bridgeHandleTapped: takes the bundle
+// STRING, not a dictionary (binary type confirms an object arg read as
+// the bundle by paneForBundle:).
+
+// -bridgeBarAction:forBundle: (0x3f7f4) VERIFIED: dispatch a bar button
+// action coming from the bridge side for the bundle's pane.
+- (void)bridgeBarAction:(NSString *)action forBundle:(NSString *)bundleID {
+    SCPCarPane *pane = [self paneForBundle:bundleID];
+    if (!self.active || !pane) return;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"AppBridge: thanh nut %@ cua %@", action, bundleID]);
+    if ([action isEqualToString:@"replace"]) {
+        [self setBarVisible:NO forPane:pane];
+        [self showPickerForSlot:pane.slot];
+    } else if ([action isEqualToString:@"full"]) {
+        [self runSoloForPane:pane];
+    } else if ([action isEqualToString:@"pop"]) {
+        [self popOutPane:pane];
+    } else if ([action isEqualToString:@"bg"]) {
+        [self runBackgroundForPane:pane];
+    } else if ([action isEqualToString:@"close"]) {
+        [self runCloseForPane:pane];
+    }
+}
+
+// -bridgeHandleTapped: (0x3f65c) VERIFIED: a tap on the bridge handle —
+// a second tap on the same bundle within 0.35 s is a double tap (zoom,
+// or float-size for the float pane); a single tap toggles the pane's bar.
+- (void)bridgeHandleTapped:(NSString *)bundle {
+    SCPCarPane *pane = [self paneForBundle:bundle];
+    if (!self.active || !pane) return;
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    BOOL doubleTap = NO;
+    NSString *record = bundle;
+    if ([self.lastBridgeTapBundle isEqualToString:bundle]) {
+        doubleTap = (now - self.lastBridgeTapAt) < 0.35;
+        if (doubleTap) record = nil;
+    }
+    self.lastBridgeTapBundle = record;
+    self.lastBridgeTapAt = now;
+    if (doubleTap) {
+        if (pane == self.floatPane) [self toggleFloatSize];
+        else [self toggleZoomForPane:pane];
+    } else {
+        [self setBarVisible:pane.bar.isHidden forPane:pane];
+    }
+}
+
+// -bridgeOutsideTouched (0x257e8) VERIFIED: a single tail call.
+- (void)bridgeOutsideTouched { [self closePopups]; }
+
+// -bridgeHandleDrag: (0x28260) VERIFIED: route a bridge handle drag by
+// phase (0 begin, 1 move, 2 end, anything else cancel); the float pane
+// has its own drag path. Guard order in the binary: pane, container,
+// active.
+- (void)bridgeHandleDrag:(NSDictionary *)info {
+    SCPCarPane *pane = [self paneForBundle:info[@"identifier"]];
+    if (!pane || !self.container || !self.active) return;
+    NSInteger phase = [info[@"phase"] intValue];
+    CGPoint point = [self.container convertPoint:CGPointMake([info[@"x"] doubleValue],
+                                                              [info[@"y"] doubleValue])
+                                        fromView:nil];
+    if (pane == self.floatPane) {
+        [self floatDragPhase:phase at:point];
+        return;
+    }
+    switch (phase) {
+        case 0: [self beginPaneDrag:pane at:point]; break;
+        case 1: [self movePaneDragTo:point from:pane]; break;
+        case 2: [self endPaneDrag:pane]; break;
+        default: [self cancelPaneDrag]; break;
+    }
+}
 
 #pragma mark - State publishing
 
-// -publishBusy INFERRED: publishes the split busy/active state into the
-// shared OMC prefs for the other modules (called from activate,
-// closeGoingHome:, dashboardInvalidated, rootDidLayout). Exact key in the
-// Core namespace.
+// -publishBusy (0x15834) VERIFIED (remediation, rem_stub_publishBusy.txt
+// — replaces an INFERRED body: this is NOT a prefs write). The car side
+// is "busy" while the app tray is up or the picker sheet is shown; the
+// state goes out on the Darwin notify channel com.anlai.omnicar/car.busy
+// (name read from the cstring at 0x61ee2), posted only on transitions.
 - (void)publishBusy {
-    extern void SCPHomePrefSet(NSString *key, id _Nullable value); // [phase2; backported to src in phase 3] name unified (sub_c4f4)
-    SCPHomePrefSet(@"splitScreenActive", @(self.active));
+    BOOL busy = (self.tray != nil || self.pickerSheet != nil);
+    static int token;
+    static int lastState = -1;
+    if (!token) notify_register_check("com.anlai.omnicar/car.busy", &token);
+    if (lastState != busy) {
+        lastState = busy;
+        notify_set_state(token, (uint64_t)busy);
+        notify_post("com.anlai.omnicar/car.busy");
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: man xe %@", busy ? @"ban (an lop phu)" : @"ranh"]);
+    }
 }
 
 // -publishCarPlayApps VERIFIED: collect the native CarPlay app IDs
@@ -1615,71 +2185,732 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self hostPost:SCPNoteBridgeShield info:@{@"on": @(open)}];
 }
 
-// -publishKnobsSoon / -publishKnobsNow INFERRED pair: debounced vs
-// immediate appbridge.knobs posts carrying the divider knob geometry
-// (payload built by agent B's divider code).
+// -publishKnobsSoon (0x3ed08) VERIFIED (remediation,
+// rem_stub_publishKnobsSoon.txt + block @0x3ed74
+// rem_publishKnobsSoon_block.txt — replaces an INFERRED debounce): a
+// static scheduled flag coalesces calls; the block runs on the main
+// queue (dispatch_async, NOT SCPDispatchAfter), clears the flag, then
+// publishes. Self is captured strongly in the binary block.
 - (void)publishKnobsSoon {
-    __weak SCPCarSplit *weakSelf = self;
-    SCPDispatchAfter(0.1, ^{ [weakSelf publishKnobsNow]; });
+    static BOOL scheduled;
+    if (scheduled) return;
+    scheduled = YES;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        scheduled = NO;
+        [self publishKnobsNow];
+    });
 }
+
+// -publishKnobsNow (0x3ed84) VERIFIED (remediation,
+// rem_stub_publishKnobsNow.txt — replaces an INFERRED empty post):
+// publish the window-space centers of all visible divider knobs (with an
+// unscaled flag and the divider index) on appbridge.knobs, but only while
+// active with at least one hosted pane and no tray. Empty posts are
+// suppressed except one final empty update when the set becomes empty.
 - (void)publishKnobsNow {
-    [self hostPost:SCPNoteBridgeKnobs info:@{}];
+    BOOL anyHosted = NO;
+    for (SCPCarPane *pane in [self allPanes])
+        anyHosted |= SCPVCIsHosted(pane.vc);
+    NSMutableArray *knobs = [NSMutableArray array];
+    if (self.active && anyHosted && !self.tray) {
+        for (SCPCarDividerView *divider in self.dividers) {
+            UIView *knob = divider.knob;
+            if (!knob || knob.isHidden) continue;
+            if (divider.alpha < 0.5) continue;
+            if (!knob.window) continue;
+            CGPoint center = [divider convertPoint:knob.center toView:nil];
+            BOOL scaled = !CGAffineTransformIsIdentity(knob.transform);
+            [knobs addObject:@[ @(center.x), @(center.y), @(!scaled), @(divider.index) ]];
+        }
+    }
+    static BOOL postedNonEmpty;
+    if (knobs.count == 0 && !postedNonEmpty) return;
+    postedNonEmpty = (knobs.count != 0);
+    [self hostPost:SCPNoteBridgeKnobs info:@{@"knobs": knobs}];
 }
 
 #pragma mark - Home button / dock / launcher (lifecycle side)
 
-// These are reconstructed at call-sequence fidelity from their call sites
-// (rootDidLayout -> refreshHomeButton; dashboardInvalidated ->
-// removeHomeButton) — status INFERRED in the report; the geometry helpers
-// (dockClusterInParent:, launcherCenterInParent:size:shift:,
-// dockHostForRect:inParent:) only had their signatures verified.
-- (void)refreshHomeButton {}
+// This whole section was re-read instruction by instruction in the
+// remediation round (rem_stub_refreshHomeButton.txt,
+// rem_stub_launcherCenterInParent:size:shift:.txt,
+// rem_stub_dockClusterInParent:.txt, rem_stub_dockHostForRect:inParent:.txt
+// and the rem_sub_* helper dumps) — the previous INFERRED stubs (empty
+// refreshHomeButton, nil-returning geometry helpers, a value-typed
+// launcherCenter signature) are replaced. The C helpers below are
+// file-local in the binary; their names are invented (no symbols survive).
+
+@class SCPCButton;
+
+// sub_41358: recursive search for the dashboard's real Home glyph —
+// a view whose class name contains "Home" (case-insensitive), sized
+// 20..70 pt, whose center falls inside the anchor rect (inset -4);
+// the glyph rect is the union of its visible subview rects when that
+// union fits inside the view rect grown by 1 pt. Keeps the topmost hit.
+static void SCPFindHomeGlyph(UIView *view, UIView *parent, int depth, UIView *button,
+                             CGRect anchor, CGRect *outRect, UIView **outView) {
+    if (!view || depth > 20 || view == button) return;
+    if (view.isHidden || view.alpha < 0.05) return;
+    NSString *cls = NSStringFromClass(view.class);
+    if ([cls rangeOfString:@"Home" options:NSCaseInsensitiveSearch].location == NSNotFound) {
+        for (UIView *sub in view.subviews)
+            SCPFindHomeGlyph(sub, parent, depth + 1, button, anchor, outRect, outView);
+        return;
+    }
+    CGRect r = [parent convertRect:view.bounds fromView:view];
+    if (r.size.width < 20 || r.size.width > 70 || r.size.height < 20 || r.size.height > 70) {
+        for (UIView *sub in view.subviews)
+            SCPFindHomeGlyph(sub, parent, depth + 1, button, anchor, outRect, outView);
+        return;
+    }
+    CGRect inset = CGRectInset(anchor, -4, -4);
+    if (!CGRectContainsPoint(inset, CGPointMake(CGRectGetMidX(r), CGRectGetMidY(r)))) {
+        for (UIView *sub in view.subviews)
+            SCPFindHomeGlyph(sub, parent, depth + 1, button, anchor, outRect, outView);
+        return;
+    }
+    CGRect unionR = CGRectNull;
+    for (UIView *sub in view.subviews) {
+        if (sub.isHidden || sub.alpha < 0.05) continue;
+        if (sub.bounds.size.height <= 2) continue;
+        unionR = CGRectUnion(unionR, [parent convertRect:sub.bounds fromView:sub]);
+    }
+    if (!CGRectIsNull(unionR) && CGRectContainsRect(CGRectInset(r, -1, -1), unionR))
+        r = unionR;
+    if (!CGRectIsNull(*outRect) && CGRectGetMinY(r) <= CGRectGetMinY(*outRect)) return;
+    *outRect = r;
+    *outView = view;
+}
+
+// sub_41898: recursive scan that raises *base past status-bar / battery
+// views (class prefixes _UIStatusBar / _UIBattery, 2 < height < 40)
+// whose center falls inside the anchor rect (inset -4) above its middle.
+static void SCPScanStatusBarBaseline(UIView *view, UIView *parent, int depth,
+                                     CGRect anchor, double *base) {
+    if (!view || depth > 20) return;
+    if (view.isHidden) return;
+    if (view.alpha < 0.05) return;
+    NSString *cls = NSStringFromClass(view.class);
+    if ([cls hasPrefix:@"_UIStatusBar"] || [cls hasPrefix:@"_UIBattery"]) {
+        CGRect b = view.bounds;
+        if (b.size.height > 2.0 && b.size.height < 40.0) {
+            CGRect r = [parent convertRect:view.bounds fromView:view];
+            CGRect inset = CGRectInset(anchor, -4, -4);
+            if (CGRectContainsPoint(inset, CGPointMake(CGRectGetMidX(r), CGRectGetMidY(r))) &&
+                CGRectGetMidY(r) < CGRectGetMidY(anchor))
+                *base = MAX(*base, CGRectGetMaxY(r));
+        }
+    }
+    for (UIView *sub in view.subviews)
+        SCPScanStatusBarBaseline(sub, parent, depth + 1, anchor, base);
+}
+
+// sub_431c0: append a view-tree dump (class + frame in root coordinates,
+// " hidden" / " noTouch" markers, 2 spaces per depth, depth cap 7,
+// output cap 6000 chars) for the one-time dock diagnostic.
+static void SCPDumpDockTree(UIView *view, UIView *root, int depth, NSMutableString *out) {
+    if (!view || depth > 7) return;
+    if (out.length > 6000) return;
+    CGRect r = [root convertRect:view.bounds fromView:view];
+    NSString *indent = [@"" stringByPaddingToLength:(NSUInteger)(depth * 2)
+                                        withString:@" " startingAtIndex:0];
+    [out appendFormat:@"%@%@ %@%@%@\n", indent, NSStringFromClass(view.class),
+        NSStringFromCGRect(r), view.isHidden ? @" hidden" : @"",
+        view.isUserInteractionEnabled ? @"" : @" noTouch"];
+    for (UIView *sub in view.subviews)
+        SCPDumpDockTree(sub, root, depth + 1, out);
+}
+
+// sub_42564: render the split-screen glyph (two white rounded rects side
+// by side) as a template image. Sizes are rounded (frinta in the binary);
+// pane width is capped by the height; the gap scales at 11% of the width.
+static UIImage *SCPLauncherGlyphImage(double w, double h) {
+    w = MAX(round(w), 6.0);
+    h = MAX(round(h), 4.0);
+    double gap = MAX(round(w * 0.11), 1.5);
+    double paneW = MIN((w - gap) * 0.5, h);
+    double radius = MAX(paneW * 0.18, 2.5);
+    UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat preferredFormat];
+    format.opaque = NO;
+    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc]
+        initWithSize:CGSizeMake(w, h) format:format];
+    UIImage *image = [renderer imageWithActions:^(UIGraphicsImageRendererContext * _Nonnull ctx) {
+        (void)ctx;
+        UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, paneW, h)
+                                                        cornerRadius:radius];
+        [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(paneW + gap, 0, paneW, h)
+                                                    cornerRadius:radius]];
+        [[UIColor whiteColor] setFill];
+        [path fill];
+    }];
+    return [image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+}
+
+// sub_302f8: bare SCPCButton factory for the launcher (34 pt default
+// bounds, corner radius 17, fixed ink tint, glyph image, tap target).
+static SCPCButton *SCPButtonWithGlyph(UIImage *image, id target, SEL action) {
+    SCPCButton *button = [SCPCButton buttonWithType:UIButtonTypeCustom];
+    button.bounds = CGRectMake(0, 0, 34, 34);
+    button.layer.cornerRadius = 17;
+    button.tintColor = [UIColor colorWithRed:0.2901960784313726 green:0.30980392156862746 blue:0.5019607843137255 alpha:1.0];
+    [button setImage:image forState:UIControlStateNormal];
+    [button addTarget:target action:action forControlEvents:UIControlEventTouchUpInside];
+    return button;
+}
+
+// sub_271e4: the launcher button's card styling (pale background,
+// continuous corners, hairline border, violet shadow).
+static void SCPStyleLauncherButton(UIView *view, double radius) {
+    view.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.9];
+    view.layer.cornerRadius = radius;
+    view.layer.cornerCurve = kCACornerCurveContinuous;
+    view.layer.borderWidth = 0.5;
+    view.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.85].CGColor;
+    view.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786 green:0.39215686274509803 blue:0.7843137254901961 alpha:1.0].CGColor;
+    view.layer.shadowOpacity = 0.25;
+    view.layer.shadowRadius = 10;
+    view.layer.shadowOffset = CGSizeMake(0, 4);
+}
+
+// sub_2b404: the free-standing (corner) launcher button — glyph button
+// sized to `size` and given the card styling at half-size radius.
+static SCPCButton *SCPLauncherButton(UIImage *image, id target, SEL action, double size) {
+    SCPCButton *button = SCPButtonWithGlyph(image, target, action);
+    button.bounds = CGRectMake(0, 0, size, size);
+    SCPStyleLauncherButton(button, size * 0.5);
+    return button;
+}
+
+// -refreshHomeButton (0x41be4) VERIFIED: maintain the Split Screen
+// launcher button on the dashboard. Bails (removing the button) without
+// a dashboard root or with the tweak disabled; throttles recompute to
+// once per second while the button is already hosted; otherwise asks
+// -launcherCenterInParent:size:shift: for placement, rebuilds the button
+// when its glyph/size/mode changed, tints it (dark-ink in corner mode,
+// dynamic ink otherwise), hosts it (directly in the tab parent in corner
+// mode, else inside the dock host for its rect) and raises it.
+- (void)refreshHomeButton {
+    id root = SCPDashboardRootViewController();
+    if (!root || ![SCPPrefs enabled]) { [self removeHomeButton]; return; }
+    UIView *parent = [self tabParent];
+    if (!parent) { [self removeHomeButton]; return; }
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    UIView *btnSuper = self.homeButton.superview;
+    if (btnSuper && btnSuper == self.launcherHost && now - self.lastLauncherCalc < 1.0) {
+        [self raiseLauncher];
+        return;
+    }
+    self.lastLauncherCalc = now;
+    double size = 34.0;
+    double shift = 0.0;
+    CGPoint center = [self launcherCenterInParent:parent size:&size shift:&shift];
+    [self setDockShift:shift];
+    BOOL bare = [self.launcherWhere hasPrefix:@"goc"];
+    double imgW, imgH;
+    if (bare) {
+        imgW = size * 0.5;
+        imgH = size * 0.36;
+    } else {
+        imgW = size * 0.6;
+        imgH = size * 0.4;
+        if (!CGRectIsNull(self.homeGlyph) &&
+            self.homeGlyph.size.width >= 8 && self.homeGlyph.size.width <= size) {
+            imgW = self.homeGlyph.size.width;
+            imgH = MIN(self.homeGlyph.size.height, size - 2);
+        }
+    }
+    imgW = round(imgW);
+    imgH = round(imgH);
+    UIButton *button = self.homeButton;
+    BOOL rebuild = YES;
+    if (button) {
+        UIImage *img = [button imageForState:UIControlStateNormal];
+        BOOL sizeOK = (img.size.width == imgW) && (img.size.height == imgH);
+        if (fabs(button.bounds.size.width - size) <= 0.5 && sizeOK && bare == self.launcherBare)
+            rebuild = NO;
+    }
+    if (rebuild) {
+        [button removeFromSuperview];
+        UIImage *glyph = SCPLauncherGlyphImage(imgW, imgH);
+        if (bare) {
+            button = SCPLauncherButton(glyph, self, @selector(homeButtonTapped), size);
+        } else {
+            button = [SCPCButton buttonWithType:UIButtonTypeCustom];
+            [button setImage:glyph forState:UIControlStateNormal];
+            [button addTarget:self action:@selector(homeButtonTapped)
+             forControlEvents:UIControlEventTouchUpInside];
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"CarSplit: nut Split Screen tren dock %.0fpt, hinh %@ (luoi nut Home %@)",
+                size, NSStringFromCGSize(CGSizeMake(imgW, imgH)),
+                NSStringFromCGRect(self.homeGlyph)]);
+        }
+        button.bounds = CGRectMake(0, 0, size, size);
+        self.homeButton = button;
+        // The binary stores the INVERSE of the current corner-mode flag
+        // here (eor w2, w22, #1 at 0x420d4) — reproduced as read; the
+        // keep-check above compares launcherBare == bare, so after a
+        // rebuild the next non-throttled refresh rebuilds again.
+        self.launcherBare = !bare;
+    }
+    UIColor *ink = self.homeInk;
+    if (!ink) {
+        ink = [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traits) {
+            return traits.userInterfaceStyle == UIUserInterfaceStyleDark
+                ? [UIColor whiteColor] : [UIColor blackColor];
+        }];
+        self.homeInk = ink;
+    }
+    if (bare)
+        ink = [UIColor colorWithRed:0.2901960784313726 green:0.30980392156862746 blue:0.5019607843137255 alpha:1.0];
+    self.homeButton.tintColor = ink;
+    UIView *host;
+    if (bare) {
+        host = parent;
+    } else {
+        CGRect rect = CGRectMake(center.x - size / 2, center.y - size / 2, size, size);
+        host = [self dockHostForRect:rect inParent:parent];
+        if (!host) host = parent;
+    }
+    if (self.homeButton.superview != host) {
+        [host addSubview:self.homeButton];
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: nut Split Screen gan vao %@ %@",
+            NSStringFromClass(host.class),
+            host == parent ? @"(tabParent)"
+                           : NSStringFromCGRect([parent convertRect:host.bounds fromView:host])]);
+    }
+    self.launcherHost = host;
+    self.homeButton.center = [host convertPoint:center fromView:parent];
+    [self raiseLauncher];
+    if ([self atHomeScreen]) [self installIconLongPress];
+}
+
+// -removeHomeButton (0x434a8) VERIFIED (remediation,
+// rem_stub_removeHomeButton.txt): also resets the launcher bookkeeping
+// (the dockShift reset goes through the custom setter, un-shifting the
+// dock view).
 - (void)removeHomeButton {
     [self.homeButton removeFromSuperview];
     self.homeButton = nil;
+    self.lastLauncherCalc = 0;
+    [self setDockShift:0];
 }
-- (void)homeButtonTapped { [self homeButtonTappedUnsafe]; }
-- (void)homeButtonTappedUnsafe { [self closeGoingHome:YES]; }
+
+// -homeButtonTapped (0x43514) VERIFIED (remediation,
+// rem_stub_homeButtonTapped.txt): @try wrapper over the unsafe body.
+- (void)homeButtonTapped {
+    @try {
+        [self homeButtonTappedUnsafe];
+    } @catch (NSException *ex) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: loi nut Split Screen %@\n%@", ex, [ex callStackSymbols]]);
+    }
+}
+
+// -homeButtonTappedUnsafe (0x4360c) VERIFIED (remediation,
+// rem_stub_homeButtonTappedUnsafe.txt — the previous body, an immediate
+// closeGoingHome:, was wrong): with the split active the tap opens the
+// layout panel to switch layouts; otherwise it opens the panel for the
+// fullscreen app under the dashboard (or the home screen). An open app
+// tray is collapsed instead.
+- (void)homeButtonTappedUnsafe {
+    NSString *app = self.active ? nil : [self fullscreenAppBundle];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: bam nut Split Screen tren dock (%@)",
+        self.active ? @"dang chia -> doi bo cuc" : (app ?: @"man chinh")]);
+    if (self.tray) [self collapseAppTray];
+    else [self showLayoutPanelForApp:app];
+}
+
 - (void)raise { [self raiseView:self.container]; }
+
+// -raiseView: (0x36bd8) VERIFIED (remediation, rem_stub_raiseView:.txt):
+// raise a view just below the dashboard's stacked container when that
+// container shares the parent, else to the very front.
 - (void)raiseView:(UIView *)view {
-    if (view.superview) [view.superview bringSubviewToFront:view];
+    UIView *parent = view.superview;
+    if (!parent) return;
+    if ([self viewIsRaised:view]) return;
+    UIView *stacked = SCPGuarded(SCPDashboardRootViewController(), @"stackedContainerView");
+    if (stacked.superview == parent) [parent insertSubview:view belowSubview:stacked];
+    else [parent bringSubviewToFront:view];
 }
+
+// -viewIsRaised: (0x36a18) VERIFIED (remediation,
+// rem_stub_viewIsRaised:.txt): directly under the stacked container, or
+// the last subview when no stacked container shares the parent.
 - (BOOL)viewIsRaised:(UIView *)view {
-    return view.superview.subviews.lastObject == view;
+    UIView *parent = view.superview;
+    if (!parent) return NO;
+    UIView *stacked = SCPGuarded(SCPDashboardRootViewController(), @"stackedContainerView");
+    NSArray *subs = parent.subviews;
+    if (stacked.superview == parent) {
+        NSInteger i = [subs indexOfObjectIdenticalTo:view];
+        NSInteger j = [subs indexOfObjectIdenticalTo:stacked];
+        return i != NSNotFound && i + 1 == j;
+    }
+    return subs.lastObject == view;
 }
 - (void)raiseLauncher { [self raiseView:self.launcherHost]; }
-- (UIView *)dockClusterInParent:(UIView *)parent { (void)parent; return nil; }
-- (CGPoint)launcherCenterInParent:(UIView *)parent size:(CGSize)size shift:(CGFloat)shift {
-    (void)parent; (void)size; (void)shift; return CGPointZero;
+// -dockClusterInParent: (0x405fc) VERIFIED (remediation,
+// rem_stub_dockClusterInParent:.txt — the return type is CGRect, not
+// UIView *: the old declaration was wrong-ABI). The dock view's bounds
+// in parent coordinates, with the dock's own shift (transform.ty)
+// removed; CGRectNull when the dock is hidden or windowless.
+- (CGRect)dockClusterInParent:(UIView *)parent {
+    id root = SCPDashboardRootViewController();
+    id dockVC = SCPGuarded(root, @"appDockViewController");
+    UIView *dockView = SCPGuarded(dockVC, @"view");
+    UIWindow *window = dockView.window;
+    if (!window || dockView.isHidden) return CGRectNull;
+    UIWindow *parentWindow = parent.window;
+    if (!parentWindow) return CGRectNull;
+    UIScreen *screen = parentWindow.screen ?: dockView.window.screen;
+    if (!screen) return CGRectNull;
+    CGRect rect = [dockView convertRect:dockView.bounds toCoordinateSpace:screen.coordinateSpace];
+    rect.origin.y -= dockView.transform.ty;
+    return [parent convertRect:rect fromCoordinateSpace:screen.coordinateSpace];
 }
-- (void)setDockShift:(CGFloat)shift { (void)shift; }
-- (UIView *)dockHostForRect:(CGRect)rect inParent:(UIView *)parent { (void)rect; (void)parent; return nil; }
-- (void)installIconLongPress {}
-- (void)installLongPressIn:(UIView *)view depth:(NSInteger)depth { (void)view; (void)depth; }
-- (void)iconLongPressed:(id)gesture { (void)gesture; }
-- (void)iconLongPressedUnsafe:(id)gesture { (void)gesture; }
-- (UIView *)tabParent { return self.container.superview; }
+
+// -launcherCenterInParent:size:shift: (0x409b0) VERIFIED (remediation,
+// rem_stub_launcherCenterInParent:size:shift:.txt — the out-parameters
+// are double pointers; the old value-typed declaration was wrong-ABI).
+// Computes where the Split Screen launcher button goes. The dock strip
+// is the >= 30 pt gap between the dashboard content view's edge and the
+// app area; without one, the button sits in the app area's top-right
+// corner at 34 pt. With a strip, it docks onto the strip: its size is
+// capped by the strip (min(gap - 8, 30)) and by the free vertical space
+// down to a limit Y (the real Home glyph's top when that glyph hangs
+// below the dock cluster, else the host's bottom minus the strip
+// width), and *shift reports how far the dock cluster must be pushed up
+// to clear the button. Placement changes are logged (the where string is
+// kept in self.launcherWhere, which also drives corner/"bare" mode).
+- (CGPoint)launcherCenterInParent:(UIView *)parent size:(double *)outSize shift:(double *)outShift {
+    id root = SCPDashboardRootViewController();
+    UIView *content = SCPGuarded(root, @"contentView");
+    UIView *hostView = content ?: [root view];
+    CGRect hostRect = [parent convertRect:hostView.bounds fromView:hostView];
+    CGRect appArea = [self appAreaInParent:parent];
+    double appMinX = CGRectGetMinX(appArea);
+    double appMaxX = CGRectGetMaxX(appArea);
+    double appMinY = CGRectGetMinY(appArea);
+    double gapLeft = appMinX - CGRectGetMinX(hostRect);
+    double gapRight = CGRectGetMaxX(hostRect) - appMaxX;
+    CGRect anchorRect;
+    if (gapLeft >= 30.0)
+        anchorRect = CGRectMake(CGRectGetMinX(hostRect), CGRectGetMinY(hostRect), gapLeft, hostRect.size.height);
+    else if (gapRight >= 30.0)
+        anchorRect = CGRectMake(appMaxX, CGRectGetMinY(hostRect), gapRight, hostRect.size.height);
+    else
+        anchorRect = CGRectNull;
+    CGRect cluster = CGRectNull;
+    CGRect glyphRect = CGRectNull;
+    NSString *where = @"goc tren phai vung app (khong co dock doc)";
+    double centerX = appMaxX - 25;
+    double centerY = appMinY + 25;
+    double size = 34.0;
+    double shiftAmt = 0;
+    if (!CGRectIsNull(anchorRect)) {
+        double gap = anchorRect.size.width;
+        double cap = MIN(gap - 8, 30.0);
+        centerX = CGRectGetMidX(anchorRect);
+        cluster = CGRectIntersection([self dockClusterInParent:parent], anchorRect);
+        id dockVC = SCPGuarded(root, @"appDockViewController");
+        UIView *dockView = SCPGuarded(dockVC, @"view");
+        UIView *glyphHost = dockView.window ?: [root view];
+        UIView *foundView = nil;
+        SCPFindHomeGlyph(glyphHost, parent, 0, self.homeButton, anchorRect, &glyphRect, &foundView);
+        self.homeGlyph = glyphRect;
+        double baseline = CGRectGetMinY(anchorRect) + 34;
+        SCPScanStatusBarBaseline(glyphHost, parent, 0, anchorRect, &baseline);
+        double clusterBottom = CGRectIsNull(cluster) ? baseline : CGRectGetMaxY(cluster);
+        double clusterTop = CGRectIsNull(cluster) ? baseline : CGRectGetMinY(cluster);
+        double limit;
+        if (!CGRectIsNull(glyphRect) && CGRectGetMinY(glyphRect) > clusterBottom)
+            limit = CGRectGetMinY(glyphRect);
+        else
+            limit = CGRectGetMaxY(anchorRect) - gap;
+        double overlap = CGRectIsNull(cluster) ? 0 : MAX(clusterTop - (baseline + 4), 0);
+        double avail = (limit - 4) - (clusterBottom - overlap + 4);
+        if (avail < 22) {
+            where = @"goc tren phai vung app (dock khong con cho)";
+            centerX = appMaxX - 25;
+            centerY = appMinY + 25;
+            size = 34.0;
+            shiftAmt = 0;
+        } else {
+            size = MIN(cap, floor(avail));
+            shiftAmt = CGRectIsNull(cluster) ? 0
+                       : MAX(clusterBottom + 4 + size - (limit - 4), 0);
+            centerY = (limit - 4) - size / 2;
+            where = [NSString stringWithFormat:@"tren nut Home, %.0fpt%@",
+                        size, shiftAmt > 0 ? @" (day cum icon len)" : @""];
+        }
+    }
+    if (![self.launcherWhere isEqualToString:where]) {
+        self.launcherWhere = where;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: nut Split Screen dat %@ | dai dock=%@ cum icon=%@ nut Home=%@ day len %.1f",
+            where, NSStringFromCGRect(anchorRect), NSStringFromCGRect(cluster),
+            NSStringFromCGRect(glyphRect), shiftAmt]);
+    }
+    if (outSize) *outSize = size;
+    if (outShift) *outShift = shiftAmt;
+    return CGPointMake(centerX, centerY);
+}
+
+// -setDockShift: (0x426f8) VERIFIED (remediation,
+// rem_stub_setDockShift:.txt): this is a CUSTOM setter with no storage —
+// it shifts the dock view up by `shift` points via its transform
+// (identity when shift <= 0), applying only on change.
+- (void)setDockShift:(CGFloat)shift {
+    id root = SCPDashboardRootViewController();
+    id dockVC = SCPGuarded(root, @"appDockViewController");
+    if (!dockVC) return;
+    UIView *dockView = SCPGuarded(dockVC, @"view");
+    if (!dockView) return;
+    CGAffineTransform t = shift > 0 ? CGAffineTransformMakeTranslation(0, -shift)
+                                    : CGAffineTransformIdentity;
+    if (!CGAffineTransformEqualToTransform(dockView.transform, t))
+        dockView.transform = t;
+}
+
+// -dockHostForRect:inParent: (0x42a64) VERIFIED (remediation,
+// rem_stub_dockHostForRect:inParent:.txt — replaces a nil stub): walk
+// up from the dock view to the first ancestor whose screen-space rect
+// contains the (0.5 pt-grown) target rect; give up (nil) at a window, at
+// the parent itself, or when an ancestor is wider than half the parent.
+// Also runs a one-time dock-tree diagnostic (SCPDumpDockTree) when the
+// dock is much shorter than the parent.
+- (UIView *)dockHostForRect:(CGRect)rect inParent:(UIView *)parent {
+    id root = SCPDashboardRootViewController();
+    id dockVC = SCPGuarded(root, @"appDockViewController");
+    UIView *dockView = SCPGuarded(dockVC, @"view");
+    UIWindow *dockWindow = dockView.window;
+    if (!dockWindow) return nil;
+    UIWindow *parentWindow = parent.window;
+    if (!parentWindow) return nil;
+    UIScreen *screen = parentWindow.screen ?: dockView.window.screen;
+    if (!screen) return nil;
+    CGRect rectScr = [parent convertRect:rect toCoordinateSpace:screen.coordinateSpace];
+    CGRect parentScr = [parent convertRect:parent.bounds toCoordinateSpace:screen.coordinateSpace];
+    double halfParentW = parentScr.size.width * 0.5;
+    UIView *host = nil;
+    UIView *v = dockView;
+    while (v) {
+        if ([v isKindOfClass:[UIWindow class]] || v == parent) { host = nil; break; }
+        CGRect vScr = [v convertRect:v.bounds toCoordinateSpace:screen.coordinateSpace];
+        if (vScr.size.width > halfParentW) { host = nil; break; }
+        if (CGRectContainsRect(CGRectInset(vScr, -0.5, -0.5), rectScr)) { host = v; break; }
+        v = v.superview;
+    }
+    if (!self.dockTreeLogged &&
+        dockView.bounds.size.height < parentScr.size.height * 0.9) {
+        self.dockTreeLogged = YES;
+        UIView *dv = dockView;
+        while (dv.superview) {
+            UIView *sup = dv.superview;
+            if ([sup isKindOfClass:[UIWindow class]]) break;
+            if (sup == parent) break;
+            CGRect supScr = [sup convertRect:sup.bounds toCoordinateSpace:screen.coordinateSpace];
+            if (supScr.size.width > halfParentW) break;
+            dv = sup;
+        }
+        NSMutableString *s = [NSMutableString string];
+        SCPDumpDockTree(dockView, dockView, 0, s);
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"DIAG cay dai dock:\n%@", s]);
+    }
+    return host;
+}
+// Icon long-press group (remediation: all four line-read,
+// rem_stub_installIconLongPress.txt, rem_stub_installLongPressIn:depth:.txt,
+// rem_stub_iconLongPressed:.txt, rem_stub_iconLongPressedUnsafe:.txt —
+// replaces empty stubs). The two walker helpers live in SplitScreenC's
+// SCPCarApps.m (sub_44a54 / sub_44b5c) as file-local statics in the
+// current tree; they are declared extern here because the binary has a
+// single shared copy — the coordinator must drop the `static` on the C
+// definitions for this file to link.
+extern id _Nullable SCPWalkerSafeGet(id _Nullable obj, NSString *name);
+extern NSString *_Nullable SCPWalkerIconBundleID(id icon);
+
+// -installIconLongPress (0x440e0) VERIFIED: throttled to one scan per
+// 2 s; walks every window of every window scene.
+- (void)installIconLongPress {
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    if (now - self.lastIconScan < 2.0) return;
+    self.lastIconScan = now;
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) continue;
+        for (UIWindow *window in ((UIWindowScene *)scene).windows)
+            [self installLongPressIn:window depth:0];
+    }
+}
+
+// -installLongPressIn:depth: (0x44344) VERIFIED: recursive view walk
+// (depth cap 14, never into the split container); every *IconListView
+// gets one 0.7 s long-press recognizer, marked by an associated object
+// (the binary uses the address of a file-static byte as the key; a named
+// static is the source equivalent).
+- (void)installLongPressIn:(UIView *)view depth:(NSInteger)depth {
+    static const char kSCPIconLongPressInstalledKey;
+    if (!view || depth > 14) return;
+    if (view == self.container) return;
+    if ([NSStringFromClass(view.class) hasSuffix:@"IconListView"]) {
+        if (objc_getAssociatedObject(view, &kSCPIconLongPressInstalledKey)) return;
+        UILongPressGestureRecognizer *press = [[UILongPressGestureRecognizer alloc]
+            initWithTarget:self action:@selector(iconLongPressed:)];
+        press.minimumPressDuration = 0.7;
+        [view addGestureRecognizer:press];
+        objc_setAssociatedObject(view, &kSCPIconLongPressInstalledKey,
+                                 (id)kCFBooleanTrue, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: gan giu icon vao %@", NSStringFromClass(view.class)]);
+        return;
+    }
+    for (UIView *sub in view.subviews)
+        [self installLongPressIn:sub depth:depth + 1];
+}
+
+// -iconLongPressed: (0x44620) VERIFIED: @try wrapper over the unsafe body.
+- (void)iconLongPressed:(id)gesture {
+    @try {
+        [self iconLongPressedUnsafe:gesture];
+    } @catch (NSException *ex) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: loi giu icon %@\n%@", ex, [ex callStackSymbols]]);
+    }
+}
+
+// -iconLongPressedUnsafe: (0x44738) VERIFIED: on Began only, inactive
+// split, tweak enabled — hit-test the icon list, walk up from the hit
+// view to the list's superview resolving the icon's bundle ID through
+// the walker helpers; a CarPlay-capable app opens the layout panel, any
+// other resolved app gets the "can't be split" toast.
+- (void)iconLongPressedUnsafe:(id)gesture {
+    UILongPressGestureRecognizer *press = gesture;
+    if (press.state != UIGestureRecognizerStateBegan) return;
+    if (self.active) return;
+    if (![SCPPrefs enabled]) return;
+    UIView *hit = [press.view hitTest:[press locationInView:press.view] withEvent:nil];
+    NSString *bundle = nil;
+    UIView *stop = press.view.superview;
+    for (UIView *v = hit; v && v != stop; v = v.superview) {
+        if (bundle) break;
+        id icon = SCPWalkerSafeGet(v, @"icon");
+        if (icon) bundle = SCPWalkerIconBundleID(icon);
+    }
+    if (bundle && [self isCarPlayApp:bundle]) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: giu icon %@ -> bang bo cuc", bundle]);
+        [self showLayoutPanelForApp:bundle];
+        return;
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: giu icon %@ -> khong chia man duoc", bundle]);
+    if (bundle) [self toast:OMCTr(@"A", @"This app can't be split")];
+}
+
+// -tabParent (0x366dc) VERIFIED (remediation, rem_stub_tabParent.txt —
+// the old body returned container.superview): the dashboard's base
+// container's superview, falling back to the root's own view.
+- (UIView *)tabParent {
+    id root = SCPDashboardRootViewController();
+    UIView *base = SCPGuarded(root, @"baseContainerView");
+    return base.superview ?: [root view];
+}
+
+// -fullscreenAppBundle (0x367f0) VERIFIED (remediation,
+// rem_stub_fullscreenAppBundle.txt — the old body missed the solo
+// shortcut and the adoptable gate): the solo hosted bundle wins;
+// otherwise the current base VC's bundle, only when it is adoptable.
 - (NSString *)fullscreenAppBundle {
+    if (self.soloHostedBundle) return self.soloHostedBundle;
     UIViewController *base = SCPCurrentBaseViewController(self);
-    if (!base) return nil;
+    if (!base || ![self isAdoptableViewController:base]) return nil;
     id appInfo = SCPGuarded(base, @"applicationInfo");
     id proxyInfo = SCPGuarded(base, @"proxyApplicationInfo");
     return SCPRealBundleForInfos(appInfo, proxyInfo);
 }
 
-// Pane menu actions (solo / background / close) — INFERRED dispatchers:
-// the paneSolo:/paneBackground:/paneClose: entry points confirm via the
-// popup UI (agent B) and then run the run* variants.
-- (void)paneSolo:(SCPCarPane *)pane { [self runSoloForPane:pane]; }
+// Pane menu actions (solo / background / close) — remediation: all six
+// line-read (rem_stub_paneSolo:.txt, rem_stub_runSoloForPane:.txt,
+// rem_stub_paneBackground:.txt, rem_stub_runBackgroundForPane:.txt,
+// rem_stub_paneClose:.txt, rem_stub_runCloseForPane:.txt). The entry
+// points take the tapped VIEW (they are button actions — see
+// SCPCarSplit+Chrome.m's addTarget registrations), resolve the pane via
+// paneForView:, and wrap the run* call in @try/@catch with a log line.
+// The previous INFERRED dispatchers (pane-typed args, hostSolo/detach
+// one-liners) were wrong.
+
+// -paneSolo: (0x287b8) VERIFIED.
+- (void)paneSolo:(UIView *)view {
+    @try {
+        SCPCarPane *pane = [self paneForView:view];
+        if (pane) [self runSoloForPane:pane];
+    } @catch (NSException *ex) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: loi nut chay 1 man hinh %@", ex]);
+    }
+}
+
+// -runSoloForPane: (0x288c0) VERIFIED: hide the bar; in a multi-pane
+// split this is the zoom toggle; for a lone/float pane it keeps only
+// this app (solo).
 - (void)runSoloForPane:(SCPCarPane *)pane {
-    if (SCPVCIsHosted(pane.vc)) [self hostSolo:pane.bundleID];
+    [self setBarVisible:NO forPane:pane];
+    if (pane != self.floatPane && self.paneCount >= 2) {
+        [self toggleZoomForPane:pane];
+        return;
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: [chay 1 man hinh] o %d -> chi giu %@", (int)pane.slot, pane.bundleID]);
+    [self soloBundle:pane.bundleID];
 }
-- (void)paneBackground:(SCPCarPane *)pane { [self runBackgroundForPane:pane]; }
+
+// -paneBackground: (0x28a30) VERIFIED.
+- (void)paneBackground:(UIView *)view {
+    @try {
+        SCPCarPane *pane = [self paneForView:view];
+        if (pane) [self runBackgroundForPane:pane];
+    } @catch (NSException *ex) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: loi nut chay nen %@", ex]);
+    }
+}
+
+// -runBackgroundForPane: (0x28b38) VERIFIED: hide the bar, close the
+// slot into the background, then show the background toast.
 - (void)runBackgroundForPane:(SCPCarPane *)pane {
-    if (pane.vc && !SCPVCIsHosted(pane.vc)) [self detachVC:pane.vc background:YES];
+    NSString *bundle = pane.bundleID;
+    NSInteger slot = pane.slot;
+    [self setBarVisible:NO forPane:pane];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: [chay nen] o %d (%@)", (int)slot, bundle]);
+    [self closeSlot:slot background:YES];
+    if (bundle) [self showBackgroundToastFor:bundle slot:slot];
 }
-- (void)paneClose:(SCPCarPane *)pane { [self runCloseForPane:pane]; }
-- (void)runCloseForPane:(SCPCarPane *)pane { [self closeSlot:pane.slot background:YES]; }
+
+// -paneClose: (0x2a0e0) VERIFIED.
+- (void)paneClose:(UIView *)view {
+    @try {
+        SCPCarPane *pane = [self paneForView:view];
+        if (pane) [self runCloseForPane:pane];
+    } @catch (NSException *ex) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: loi nut dong %@", ex]);
+    }
+}
+
+// -runCloseForPane: (0x2a1e8) VERIFIED: hide the bar, close the slot
+// into the background, then schedule the app's full termination.
+- (void)runCloseForPane:(SCPCarPane *)pane {
+    NSString *bundle = pane.bundleID;
+    [self setBarVisible:NO forPane:pane];
+    [self closeSlot:pane.slot background:YES];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: [tat han app] %@", bundle]);
+    if (bundle) [self killAppSoon:bundle];
+}
 
 @end
 

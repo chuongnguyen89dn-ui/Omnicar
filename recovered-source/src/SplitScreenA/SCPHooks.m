@@ -416,7 +416,10 @@ static void SCPBridgeStateBlock(NSNotification *note) {
 // handlers (identification VERIFIED by registration order in __init_1;
 // interiors at call-sequence fidelity).
 static void SCPBridgeHandleTapBlock(NSNotification *note) {
-    [[SCPCarSplit shared] bridgeHandleTapped:note.userInfo];
+    // VERIFIED (integration, disasm/rem3_bridgeTapBlock_76a0.txt): the
+    // binary's block @0x76a0 passes userInfo[@"identifier"] — the
+    // method takes the bundle string, not the dictionary.
+    [[SCPCarSplit shared] bridgeHandleTapped:note.userInfo[@"identifier"]];
 }
 static void SCPBridgeHandleDragBlock(NSNotification *note) {
     [[SCPCarSplit shared] bridgeHandleDrag:note.userInfo];
@@ -429,7 +432,10 @@ static void SCPBridgeBarDismissBlock(NSNotification *note) {
     [[SCPCarSplit shared] bridgeBarAction:@"dismiss" forBundle:note.userInfo[@"identifier"]];
 }
 static void SCPBridgeKnobTouchBlock(NSNotification *note) {
-    [[SCPCarSplit shared] bridgeHandleTapped:note.userInfo];
+    // Same bundle-string argument as the tap block (integration note:
+    // a full-text scan finds exactly ONE bridgeHandleTapped: call site
+    // in the binary, @0x770c, passing userInfo[@"identifier"]).
+    [[SCPCarSplit shared] bridgeHandleTapped:note.userInfo[@"identifier"]];
 }
 
 // block 0x7bec VERIFIED (read end-to-end): the splitscreen.native command

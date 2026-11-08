@@ -1,0 +1,30 @@
+; sub_2b404 button factory @0x2b404-0x2b474 (112 bytes)
+0x02b404  stp      d9, d8, [sp, #-0x30]!                   
+0x02b408  stp      x20, x19, [sp, #0x10]                   
+0x02b40c  stp      x29, x30, [sp, #0x20]                   
+0x02b410  add      x29, sp, #0x20                          
+0x02b414  mov      v8.16b, v0.16b                          
+0x02b418  bl       #0x302f8                                ; -> sub_302f8
+0x02b41c  mov      x29, x29                                
+0x02b420  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x02b424  mov      x19, x0                                 
+0x02b428  fmov     d0, xzr                                 
+0x02b42c  fmov     d1, xzr                                 
+0x02b430  mov      v2.16b, v8.16b                          
+0x02b434  mov      v3.16b, v8.16b                          
+0x02b438  bl       #0x5a920                                ; selstub setBounds:
+0x02b43c  fmov     d0, #0.50000000                         
+0x02b440  fmul     d0, d8, d0                              
+0x02b444  mov      x0, x19                                 
+0x02b448  bl       #0x271e4                                ; -> sub_271e4
+0x02b44c  mov      x0, x19                                 
+0x02b450  ldp      x29, x30, [sp, #0x20]                   
+0x02b454  ldp      x20, x19, [sp, #0x10]                   
+0x02b458  ldp      d9, d8, [sp], #0x30                     
+0x02b45c  b        #0x566e0                                ; stub _objc_autoreleaseReturnValue
+0x02b460  mov      x20, x0                                 
+0x02b464  mov      x0, x19                                 
+0x02b468  bl       #0x567b8                                ; stub _objc_release
+0x02b46c  mov      x0, x20                                 
+0x02b470  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 112 of 112)

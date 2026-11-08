@@ -1,0 +1,41 @@
+# rem2 dump: panesInReadingOrder IMP 0x31ba0 (orig OmniCarSplitScreen, arm64; macho_truth + capstone skipdata)
+# func bounds: 0x31ba0..0x31c38 (152 bytes)
+0x00031ba0  sub      sp, sp, #0x50                                  
+0x00031ba4  stp      x20, x19, [sp, #0x30]                          
+0x00031ba8  stp      x29, x30, [sp, #0x40]                          
+0x00031bac  add      x29, sp, #0x40                                 
+0x00031bb0  mov      x20, x0                                        
+0x00031bb4  bl       #0x56e20                                       ; allPanes
+0x00031bb8  mov      x29, x29                                       
+0x00031bbc  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x00031bc0  mov      x19, x0                                        
+0x00031bc4  adrp     x8, #0x78000                                   
+0x00031bc8  ldr      x8, [x8, #0x338]                               ; [0x78338] got-sym __NSConcreteStackBlock
+0x00031bcc  str      x8, [sp, #8]                                   
+0x00031bd0  adrp     x8, #0x6e000                                   
+0x00031bd4  ldr      d0, [x8, #0xff8]                               ; [0x6eff8] const double=1.6080749353e-314 float=-32.0
+0x00031bd8  adrp     x8, #0x31000                                   
+0x00031bdc  add      x8, x8, #0xc38                                 ; [0x31c38] ptr 0xfd10243ff
+0x00031be0  str      d0, [sp, #0x10]                                
+0x00031be4  adrp     x9, #0x78000                                   
+0x00031be8  add      x9, x9, #0xee0                                 ; [0x78ee0] ptr 0x0
+0x00031bec  stp      x8, x9, [sp, #0x18]                            
+0x00031bf0  str      x20, [sp, #0x28]                               
+0x00031bf4  add      x2, sp, #8                                     
+0x00031bf8  bl       #0x5c2a0                                       ; sortedArrayUsingComparator:
+0x00031bfc  mov      x29, x29                                       
+0x00031c00  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x00031c04  mov      x20, x0                                        
+0x00031c08  mov      x0, x19                                        
+0x00031c0c  bl       #0x567b8                                       ; _objc_release
+0x00031c10  mov      x0, x20                                        
+0x00031c14  ldp      x29, x30, [sp, #0x40]                          
+0x00031c18  ldp      x20, x19, [sp, #0x30]                          
+0x00031c1c  add      sp, sp, #0x50                                  
+0x00031c20  b        #0x566e0                                       ; _objc_autoreleaseReturnValue
+0x00031c24  mov      x20, x0                                        
+0x00031c28  mov      x0, x19                                        
+0x00031c2c  bl       #0x567b8                                       ; _objc_release
+0x00031c30  mov      x0, x20                                        
+0x00031c34  bl       #0x563e0                                       ; __Unwind_Resume
+# decoded: 38 insns, 152 bytes (range 152 bytes)

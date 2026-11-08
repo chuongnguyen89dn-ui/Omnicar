@@ -1,0 +1,29 @@
+; -[SCPCarSplit publishKnobsSoon] @0x3ed08-0x3ed74 (108 bytes)
+0x03ed08  adrp     x8, #0x88000                            
+0x03ed0c  ldrb     w9, [x8, #0x190]                        
+0x03ed10  tbnz     w9, #0, #0x3ed70                        
+0x03ed14  sub      sp, sp, #0x40                           
+0x03ed18  stp      x29, x30, [sp, #0x30]                   
+0x03ed1c  add      x29, sp, #0x30                          
+0x03ed20  mov      w9, #1                                  
+0x03ed24  adrp     x10, #0x78000                           
+0x03ed28  ldr      x10, [x10, #0x338]                      ; [0x78338] got-sym __NSConcreteStackBlock
+0x03ed2c  strb     w9, [x8, #0x190]                        
+0x03ed30  str      x10, [sp, #8]                           
+0x03ed34  adrp     x8, #0x6e000                            
+0x03ed38  ldr      d0, [x8, #0xff8]                        ; [0x6eff8] ptr 0xc2000000 double=1.6080749353e-314
+0x03ed3c  adrp     x8, #0x3e000                            
+0x03ed40  add      x8, x8, #0xd74                          ; [0x3ed74] ptr 0xfd0000248
+0x03ed44  str      d0, [sp, #0x10]                         
+0x03ed48  adrp     x9, #0x78000                            
+0x03ed4c  add      x9, x9, #0x910                          ; [0x78910] ptr 0x0
+0x03ed50  stp      x8, x9, [sp, #0x18]                     
+0x03ed54  str      x0, [sp, #0x28]                         
+0x03ed58  adrp     x0, #0x78000                            
+0x03ed5c  ldr      x0, [x0, #0x370]                        ; [0x78370] got-sym __dispatch_main_q
+0x03ed60  add      x1, sp, #8                              
+0x03ed64  bl       #0x564dc                                ; stub _dispatch_async
+0x03ed68  ldp      x29, x30, [sp, #0x30]                   
+0x03ed6c  add      sp, sp, #0x40                           
+0x03ed70  ret                                              
+; length check: OK (decoded 108 of 108)

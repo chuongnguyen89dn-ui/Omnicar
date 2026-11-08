@@ -1,0 +1,86 @@
+; -[SCPCarSplit publishBusy] @0x15834-0x15984 (336 bytes)
+0x015834  sub      sp, sp, #0x40                           
+0x015838  stp      x22, x21, [sp, #0x10]                   
+0x01583c  stp      x20, x19, [sp, #0x20]                   
+0x015840  stp      x29, x30, [sp, #0x30]                   
+0x015844  add      x29, sp, #0x30                          
+0x015848  mov      x20, x0                                 
+0x01584c  bl       #0x5c820                                ; selstub tray
+0x015850  mov      x29, x29                                
+0x015854  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x015858  mov      x19, x0                                 
+0x01585c  cbz      x0, #0x15868                            
+0x015860  mov      w21, #1                                 
+0x015864  b        #0x15884                                
+0x015868  mov      x0, x20                                 
+0x01586c  bl       #0x59a40                                ; selstub pickerSheet
+0x015870  mov      x29, x29                                
+0x015874  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x015878  mov      x20, x0                                 
+0x01587c  cmp      x0, #0                                  
+0x015880  cset     w21, ne                                 
+0x015884  adrp     x22, #0x88000                           
+0x015888  ldr      w8, [x22, #0x1a8]                       
+0x01588c  cbnz     w8, #0x158a4                            
+0x015890  adrp     x0, #0x61000                            
+0x015894  add      x0, x0, #0xee2                          ; [0x61ee2] ptr 0x12e6d6f63
+0x015898  adrp     x1, #0x88000                            
+0x01589c  add      x1, x1, #0x1a8                          
+0x0158a0  bl       #0x56698                                ; stub _notify_register_check
+0x0158a4  adrp     x8, #0x87000                            
+0x0158a8  ldr      w9, [x8, #0xf38]                        ; [0x87f38] ptr 0xffffffff
+0x0158ac  cmp      w9, w21                                 
+0x0158b0  b.eq     #0x15924                                
+0x0158b4  str      w21, [x8, #0xf38]                       ; [0x87f38] ptr 0xffffffff
+0x0158b8  ldr      w0, [x22, #0x1a8]                       
+0x0158bc  mov      w1, w21                                 
+0x0158c0  bl       #0x566b0                                ; stub _notify_set_state
+0x0158c4  adrp     x0, #0x61000                            
+0x0158c8  add      x0, x0, #0xee2                          ; [0x61ee2] ptr 0x12e6d6f63
+0x0158cc  bl       #0x5668c                                ; stub _notify_post
+0x0158d0  adrp     x8, #0x87000                            
+0x0158d4  ldr      x0, [x8, #0x678]                        ; [0x87678] class NSString
+0x0158d8  adrp     x8, #0x7d000                            
+0x0158dc  add      x8, x8, #0xb00                          ; cfstring @0x7db00 = 'ranh'
+0x0158e0  adrp     x9, #0x7d000                            
+0x0158e4  add      x9, x9, #0xae0                          ; cfstring @0x7dae0 = 'ban (an lop phu)'
+0x0158e8  cmp      w21, #0                                 
+0x0158ec  csel     x8, x9, x8, ne                          
+0x0158f0  str      x8, [sp]                                
+0x0158f4  adrp     x2, #0x7d000                            
+0x0158f8  add      x2, x2, #0xac0                          ; cfstring @0x7dac0 = 'CarSplit: man xe %@'
+0x0158fc  bl       #0x5c440                                ; selstub stringWithFormat:
+0x015900  mov      x29, x29                                
+0x015904  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x015908  mov      x21, x0                                 
+0x01590c  adrp     x0, #0x79000                            
+0x015910  add      x0, x0, #0x5c0                          ; cfstring @0x795c0 = 'SplitScreen'
+0x015914  mov      x1, x21                                 
+0x015918  bl       #0x4fbf4                                ; defined _OMCLogWrite
+0x01591c  mov      x0, x21                                 
+0x015920  bl       #0x567b8                                ; stub _objc_release
+0x015924  cbnz     x19, #0x15930                           
+0x015928  mov      x0, x20                                 
+0x01592c  bl       #0x567b8                                ; stub _objc_release
+0x015930  mov      x0, x19                                 
+0x015934  ldp      x29, x30, [sp, #0x30]                   
+0x015938  ldp      x20, x19, [sp, #0x20]                   
+0x01593c  ldp      x22, x21, [sp, #0x10]                   
+0x015940  add      sp, sp, #0x40                           
+0x015944  b        #0x567b8                                ; stub _objc_release
+0x015948  mov      x21, x0                                 
+0x01594c  b        #0x15974                                
+0x015950  mov      x1, x21                                 
+0x015954  mov      x21, x0                                 
+0x015958  mov      x0, x1                                  
+0x01595c  bl       #0x567b8                                ; stub _objc_release
+0x015960  b        #0x15968                                
+0x015964  mov      x21, x0                                 
+0x015968  cbnz     x19, #0x15974                           
+0x01596c  mov      x0, x20                                 
+0x015970  bl       #0x567b8                                ; stub _objc_release
+0x015974  mov      x0, x19                                 
+0x015978  bl       #0x567b8                                ; stub _objc_release
+0x01597c  mov      x0, x21                                 
+0x015980  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 336 of 336)

@@ -97,7 +97,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 
 // MARK: - Covers (block touches on a pane while it is being resized)
 
-- (void)addCoverToPane:(SCPCarPane *)pane {                               // (see report)
+- (void)addCoverToPane:(SCPCarPane *)pane {                               // 0x2a2e8 VERIFIED
     // CLOSURE NOTE: the earlier draft annotated this method "@0x24a34+";
     // 0x24a34 is SCPPrepareRatioMenu (see RatioMenu) — the annotation was
     // wrong and has been removed.
@@ -113,7 +113,9 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     icon.image = SCPAppIconForBundle(pane.bundleID);
     icon.center = CGPointMake(CGRectGetMidX(cover.bounds),
                               CGRectGetMidY(cover.bounds));
-    icon.autoresizingMask = 0x3f;   // INFERRED mask value
+    icon.autoresizingMask = 0x2d;   // VERIFIED (CLOSURE-2): parent @0x2a488 sets
+                                    // w2 = 0x2d (flexible left/right/top/bottom
+                                    // margins — keep centred); disasm/rem2_addCoverToPane.txt
     [cover addSubview:icon];
     pane.cover = cover;
     [pane.view insertSubview:cover aboveSubview:pane.host];
@@ -123,13 +125,14 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         [pane.view bringSubviewToFront:pane.bar];
 }
 
-- (void)removeCoverFromPane:(SCPCarPane *)pane {                          // 0x24c60 (approx.)
+- (void)removeCoverFromPane:(SCPCarPane *)pane {                          // 0x2a668 VERIFIED
     UIView *cover = pane.cover;
     if (cover == nil) return;
     pane.cover = nil;
     [UIView animateWithDuration:0.22
-        animations:^{ cover.alpha = 0; }                                   // INFERRED body
-        completion:^(BOOL finished) { [cover removeFromSuperview]; }];   // INFERRED body
+        animations:^{ cover.alpha = 0; }              // VERIFIED (CLOSURE-2): invoke
+                                                      // @0x2a7a4 = [cover setAlpha:0]
+        completion:^(BOOL finished) { [cover removeFromSuperview]; }];   // invoke @0x2a7b0 VERIFIED
 }
 
 // MARK: - Per-slot picker (empty-slot placeholder)
@@ -163,13 +166,14 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     [pane.view addSubview:picker];
 }
 
-- (void)removePickerFromPane:(SCPCarPane *)pane {                         // 0x24ef0 (approx.)
+- (void)removePickerFromPane:(SCPCarPane *)pane {                         // 0x313ac VERIFIED
     UIView *picker = pane.picker;
     if (picker == nil) return;
     pane.picker = nil;
     [UIView animateWithDuration:0.15
-        animations:^{ picker.alpha = 0; }                                 // INFERRED body
-        completion:^(BOOL finished) { [picker removeFromSuperview]; }];  // INFERRED body
+        animations:^{ picker.alpha = 0; }              // VERIFIED (CLOSURE-2): invoke
+                                                       // @0x3151c = [picker setAlpha:0]
+        completion:^(BOOL finished) { [picker removeFromSuperview]; }];  // @0x31528 VERIFIED
     [self refreshPickerSheetSoon];
 }
 
@@ -198,17 +202,28 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     });
 }
 
-// Reading order = by frame origin (top-to-bottom, then left-to-right);
-// the comparator block is @0x30218 (INFERRED axis order).
+// VERIFIED (CLOSURE-2; parent IMP 0x31ba0, comparator block invoke
+// @0x31c38 — the earlier "@0x30218" was a landing pad of another
+// function): the float pane sorts LAST; the other panes compare by the
+// frames of their SLOTS ([self frameForSlot:pane.slot], not view.frame),
+// X first with a 1.0 tolerance, then Y, then the slot number itself.
+// disasm/rem2_panesInReadingOrder.txt + rem2_readingOrderComparator.txt.
 - (NSArray *)panesInReadingOrder {
     return [self.allPanes sortedArrayUsingComparator:
         ^NSComparisonResult(SCPCarPane *a, SCPCarPane *b) {
-            CGRect fa = a.view.frame, fb = b.view.frame;
+            SCPCarPane *floatPane = self.floatPane;
+            BOOL aFloat = (a == floatPane), bFloat = (b == floatPane);
+            if (aFloat != bFloat)
+                return aFloat ? NSOrderedDescending : NSOrderedAscending;
+            CGRect fa = [self frameForSlot:a.slot];
+            CGRect fb = [self frameForSlot:b.slot];
+            if (fabs(CGRectGetMinX(fa) - CGRectGetMinX(fb)) > 1.0)
+                return CGRectGetMinX(fa) < CGRectGetMinX(fb)
+                    ? NSOrderedAscending : NSOrderedDescending;
             if (fabs(CGRectGetMinY(fa) - CGRectGetMinY(fb)) > 1.0)
                 return CGRectGetMinY(fa) < CGRectGetMinY(fb)
                     ? NSOrderedAscending : NSOrderedDescending;
-            return CGRectGetMinX(fa) < CGRectGetMinX(fb)
-                ? NSOrderedAscending : NSOrderedDescending;
+            return a.slot < b.slot ? NSOrderedAscending : NSOrderedDescending;
         }];
 }
 
@@ -304,9 +319,15 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     NSInteger perPage = rowsPerPage * cols;
     NSInteger pages = MAX((count + perPage - 1) / perPage, 1);
     double gridH = rowsPerPage * 56.0 + 4.0;
-    double extra = (pages > 1) ? 16.0 : 0.0;   // INFERRED branch polarity
+    double extra = (pages > 1) ? 16.0 : 0.0;   // VERIFIED (CLOSURE-2): parent
+                                               // @0x33ad8 fcsel gt on (pages > 1)
+                                               // picks 16.0; disasm/rem2_buildPickerSheetForPane.txt
     double headerH = scale + 10.0 + 8.0 + titleH + 2.0 + subH;
-    double sheetH = MIN(areaH - 16.0, MAX(headerH + 66.0, gridH + 18.0 + extra));
+    double sheetH = MIN(areaH - 16.0, MAX(headerH + 66.0, gridH + 14.0 + extra));
+    // Constant CORRECTED 18.0 -> 14.0 (remediation, 2026-11-08): the
+    // binary's grid candidate is gridH + 8.0 + extra + 6.0 (fadd chain
+    // @0x33afc/@0x33b04/@0x33b0c in disasm/rem2_buildPickerSheetForPane.txt),
+    // i.e. gridH + 14.0 + extra, before the MAX at @0x33b10-0x33b14.
     double sheetW = cols * 62.0 + 20.0;
 
     UIView *sheet = [[UIView alloc] initWithFrame:CGRectMake(
@@ -770,9 +791,10 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 
 // The shared overlay window for trays/menus/ghosts on the parent's
 // screen. Created lazily; recreated when the screen changes. Its level is
-// the parent window's level + 65 (INFERRED composition of the constants
-// in the disassembly).
-- (UIWindow *)trayWindowForParent:(UIView *)parent {                     // 0x31a00 (approx.)
+// UIWindowLevelStatusBar + 65 (VERIFIED CLOSURE-2: @0x37c08 loads the
+// _UIWindowLevelStatusBar global and @0x37c14 adds the constant 65.0 —
+// the parent window's level is never read; disasm/rem2_trayWindowForParent.txt).
+- (UIWindow *)trayWindowForParent:(UIView *)parent {                     // 0x3782c VERIFIED
     UIScreen *screen = parent.window.screen;
     UIWindow *window = self.trayWindow;
     if (window != nil && screen != nil && window.screen != screen) {
@@ -782,7 +804,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     }
     if (window == nil) {
         window = [[UIWindow alloc] initWithFrame:screen.bounds];
-        window.windowLevel = parent.window.windowLevel + 65.0;   // INFERRED
+        window.windowLevel = UIWindowLevelStatusBar + 65.0;   // VERIFIED (CLOSURE-2)
         window.backgroundColor = UIColor.clearColor;
         self.trayWindow = window;
     }
@@ -798,12 +820,13 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         window.hidden = YES;
 }
 
-- (void)restartTrayTimer {                                               // 0x31e00 (approx.)
+- (void)restartTrayTimer {                                               // 0x3bc20 VERIFIED
     [self.trayTimer invalidate];
     __weak SCPCarSplit *weakSelf = self;
     self.trayTimer = [NSTimer scheduledTimerWithTimeInterval:4.0
         repeats:NO block:^(NSTimer *timer) {
-            [weakSelf collapseAppTray];   // INFERRED block body
+            [weakSelf collapseAppTray];   // VERIFIED (CLOSURE-2): block invoke
+                                          // @0x3bd38 = loadWeak + collapseAppTray
         }];
 }
 
@@ -1006,13 +1029,25 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         }];
 }
 
-- (void)removeLoaderFromPane:(SCPCarPane *)pane animated:(BOOL)animated {
+- (void)removeLoaderFromPane:(SCPCarPane *)pane animated:(BOOL)animated {  // 0x2bbb4 VERIFIED
     UIView *loader = pane.loader;
-    if (loader == nil) return;
     pane.loader = nil;
+    if (loader == nil) return;
     if (animated) {
-        [UIView animateWithDuration:0.3 delay:0.2 options:0
-            animations:^{ loader.alpha = 0; }                             // INFERRED body
+        // VERIFIED (CLOSURE-2; disasm/rem2_removeLoaderFromPane.txt): the
+        // card is the loader's tag-78 subview; its "pulse" animation (set
+        // by showLoader's completion block) is removed first, then the
+        // loader fades out while the card scales to 1.25 — options are
+        // CurveEaseOut (0x20000), not 0. Animations invoke @0x2bd9c,
+        // completion invoke @0x2bdf8 = [loader removeFromSuperview].
+        UIView *card = [loader viewWithTag:78];
+        [card.layer removeAnimationForKey:@"pulse"];
+        [UIView animateWithDuration:0.3 delay:0.2
+            options:UIViewAnimationOptionCurveEaseOut
+            animations:^{
+                loader.alpha = 0;
+                card.transform = CGAffineTransformMakeScale(1.25, 1.25);
+            }
             completion:^(BOOL finished) { [loader removeFromSuperview]; }];
     } else {
         [loader removeFromSuperview];

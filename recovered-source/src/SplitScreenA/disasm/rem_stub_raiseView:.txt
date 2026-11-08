@@ -1,0 +1,91 @@
+; -[SCPCarSplit raiseView:] @0x36bd8-0x36d3c (356 bytes)
+0x036bd8  stp      x24, x23, [sp, #-0x40]!                 
+0x036bdc  stp      x22, x21, [sp, #0x10]                   
+0x036be0  stp      x20, x19, [sp, #0x20]                   
+0x036be4  stp      x29, x30, [sp, #0x30]                   
+0x036be8  add      x29, sp, #0x30                          
+0x036bec  mov      x19, x2                                 
+0x036bf0  mov      x21, x0                                 
+0x036bf4  mov      x0, x2                                  
+0x036bf8  bl       #0x567c4                                ; stub _objc_retain
+0x036bfc  mov      x0, x19                                 
+0x036c00  bl       #0x5c520                                ; selstub superview
+0x036c04  mov      x29, x29                                
+0x036c08  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x036c0c  mov      x20, x0                                 
+0x036c10  cbz      x0, #0x36cd4                            
+0x036c14  mov      x0, x21                                 
+0x036c18  mov      x2, x19                                 
+0x036c1c  bl       #0x5cb80                                ; selstub viewIsRaised:
+0x036c20  tbnz     w0, #0, #0x36cd4                        
+0x036c24  bl       #0x12658                                ; -> sub_12658
+0x036c28  mov      x29, x29                                
+0x036c2c  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x036c30  mov      x21, x0                                 
+0x036c34  adrp     x0, #0x7b000                            
+0x036c38  add      x0, x0, #0x380                          ; cfstring @0x7b380 = 'stackedContainerView'
+0x036c3c  bl       #0x56374                                ; stub _NSSelectorFromString
+0x036c40  mov      x22, x0                                 
+0x036c44  mov      x0, x21                                 
+0x036c48  mov      x1, x22                                 
+0x036c4c  bl       #0x567a0                                ; stub _objc_opt_respondsToSelector
+0x036c50  tbz      w0, #0, #0x36c70                        
+0x036c54  mov      x0, x21                                 
+0x036c58  mov      x1, x22                                 
+0x036c5c  bl       #0x56758                                ; stub _objc_msgSend
+0x036c60  mov      x29, x29                                
+0x036c64  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x036c68  mov      x22, x0                                 
+0x036c6c  b        #0x36c84                                
+0x036c70  adrp     x1, #0x7b000                            
+0x036c74  add      x1, x1, #0x380                          ; cfstring @0x7b380 = 'stackedContainerView'
+0x036c78  mov      x0, x21                                 
+0x036c7c  bl       #0x4f330                                ; defined _SCPMissingSelector
+0x036c80  mov      x22, #0                                 
+0x036c84  mov      x0, x21                                 
+0x036c88  bl       #0x567b8                                ; stub _objc_release
+0x036c8c  mov      x0, x22                                 
+0x036c90  bl       #0x5c520                                ; selstub superview
+0x036c94  mov      x29, x29                                
+0x036c98  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x036c9c  mov      x21, x0                                 
+0x036ca0  bl       #0x567b8                                ; stub _objc_release
+0x036ca4  cmp      x21, x20                                
+0x036ca8  b.eq     #0x36cbc                                
+0x036cac  mov      x0, x20                                 
+0x036cb0  mov      x2, x19                                 
+0x036cb4  bl       #0x573e0                                ; selstub bringSubviewToFront:
+0x036cb8  b        #0x36ccc                                
+0x036cbc  mov      x0, x20                                 
+0x036cc0  mov      x2, x19                                 
+0x036cc4  mov      x3, x22                                 
+0x036cc8  bl       #0x58b60                                ; selstub insertSubview:belowSubview:
+0x036ccc  mov      x0, x22                                 
+0x036cd0  bl       #0x567b8                                ; stub _objc_release
+0x036cd4  mov      x0, x20                                 
+0x036cd8  bl       #0x567b8                                ; stub _objc_release
+0x036cdc  mov      x0, x19                                 
+0x036ce0  ldp      x29, x30, [sp, #0x30]                   
+0x036ce4  ldp      x20, x19, [sp, #0x20]                   
+0x036ce8  ldp      x22, x21, [sp, #0x10]                   
+0x036cec  ldp      x24, x23, [sp], #0x40                   
+0x036cf0  b        #0x567b8                                ; stub _objc_release
+0x036cf4  b        #0x36d08                                
+0x036cf8  b        #0x36d18                                
+0x036cfc  mov      x23, x0                                 
+0x036d00  mov      x0, x22                                 
+0x036d04  b        #0x36d10                                
+0x036d08  mov      x23, x0                                 
+0x036d0c  mov      x0, x21                                 
+0x036d10  bl       #0x567b8                                ; stub _objc_release
+0x036d14  b        #0x36d1c                                
+0x036d18  mov      x23, x0                                 
+0x036d1c  mov      x0, x20                                 
+0x036d20  bl       #0x567b8                                ; stub _objc_release
+0x036d24  b        #0x36d2c                                
+0x036d28  mov      x23, x0                                 
+0x036d2c  mov      x0, x19                                 
+0x036d30  bl       #0x567b8                                ; stub _objc_release
+0x036d34  mov      x0, x23                                 
+0x036d38  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 356 of 356)

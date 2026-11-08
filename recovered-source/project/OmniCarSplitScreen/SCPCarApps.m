@@ -47,7 +47,9 @@ static id _Nullable SCPSharedApplicationLibrary(void) {
 
 // 0x44a54 — VERIFIED: another copy of the safe perform-selector getter
 // (same pattern as SCPHomeSafeGet, used only by this walker cluster).
-static id _Nullable SCPWalkerSafeGet(id _Nullable obj, NSString *name) {
+// CLOSURE-2 link fix: NOT static — the binary carries one shared copy;
+// SplitScreenA/SCPCarSplit.m declares these extern and calls them.
+id _Nullable SCPWalkerSafeGet(id _Nullable obj, NSString *name) {
     @try {
         if (obj && [obj respondsToSelector:NSSelectorFromString(name)])
             return [obj performSelector:NSSelectorFromString(name)];
@@ -57,7 +59,8 @@ static id _Nullable SCPWalkerSafeGet(id _Nullable obj, NSString *name) {
 
 // 0x44b5c — VERIFIED structure: first non-empty NSString produced by
 // applying the candidate getters to an icon model object.
-static NSString *_Nullable SCPWalkerIconBundleID(id icon) {
+// CLOSURE-2 link fix: NOT static (single shared copy, see above).
+NSString *_Nullable SCPWalkerIconBundleID(id icon) {
     for (NSString *key in @[@"applicationBundleID", @"leafIdentifier",
                             @"bundleIdentifier"]) {
         id v = SCPWalkerSafeGet(icon, key);

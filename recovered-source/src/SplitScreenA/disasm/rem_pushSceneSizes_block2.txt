@@ -1,0 +1,22 @@
+; pushSceneSizes block2 (+0.9s, captures pane+size) @0x1cc90-0x1cce0 (80 bytes)
+0x01cc90  stp      x20, x19, [sp, #-0x20]!
+0x01cc94  stp      x29, x30, [sp, #0x10]
+0x01cc98  add      x29, sp, #0x10
+0x01cc9c  mov      x20, x0
+0x01cca0  add      x0, x0, #0x28
+0x01cca4  bl       #0x5674c ; stub _objc_loadWeakRetained
+0x01cca8  mov      x19, x0
+0x01ccac  ldr      x2, [x20, #0x20]
+0x01ccb0  ldp      d0, d1, [x20, #0x30]
+0x01ccb4  mov      w3, #1
+0x01ccb8  bl       #0x5cb00 ; selstub verifySceneOfPane:expected:retry:
+0x01ccbc  mov      x0, x19
+0x01ccc0  ldp      x29, x30, [sp, #0x10]
+0x01ccc4  ldp      x20, x19, [sp], #0x20
+0x01ccc8  b        #0x567b8 ; stub _objc_release
+0x01cccc  mov      x20, x0
+0x01ccd0  mov      x0, x19
+0x01ccd4  bl       #0x567b8 ; stub _objc_release
+0x01ccd8  mov      x0, x20
+0x01ccdc  bl       #0x563e0 ; stub __Unwind_Resume
+; length check: OK

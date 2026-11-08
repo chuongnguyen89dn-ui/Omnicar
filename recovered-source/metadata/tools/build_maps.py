@@ -8,13 +8,16 @@ site resolves to a constant string / value. Anything else lands in the
 explicit unresolved lists. Nothing is guessed.
 """
 import glob
+import os
 import json
 import plistlib
 import re
 import sys
 from collections import defaultdict
 
-ROOT = "/home/hatch/workspace/omnicar-re"
+# Tree root derived from this file's location:
+# <root>/metadata/tools/build_maps.py -> <root>. Portable across checkouts.
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def load_all():

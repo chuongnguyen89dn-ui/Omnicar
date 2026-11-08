@@ -163,4 +163,44 @@ Task-named items:
 11. Makefile: `_FILES` extended to all 31 merged .m (+ OMCCommon.c via
     OMCCommon.mk); frameworks UIKit/Foundation/QuartzCore/AVFoundation/
     CoreG
-...[truncated 7370 chars]
+
+---
+
+## Damage note (added 2026-11-08, remediation — not part of the original log)
+
+- **What happened**: in its first publication this log ended at a
+  truncation marker; everything after the cut is lost (~7,370
+  chars). The file breaks off mid-word in §4 item 11 above
+  ("…AVFoundation/ CoreG"), inside the mechanical-fix list for
+  build rounds 1–10.
+- **What was lost**: the remainder of §4's fix list and any
+  closing sections the log carried (per-round build outcomes
+  and SplitScreen-specific diff detail). The lost text is NOT
+  reconstructed here — this is a historical log, no surviving
+  copy of its tail exists, and no line of it has been rewritten
+  or invented.
+- **The module's conclusions**, as recorded in the aggregate
+  `project/BUILD_PHASE2_LOG.md` §4 (which survives intact):
+  A+B+C merged flat and the component built PASS in the phase-2
+  aggregate (exit 0, zero errors); the perf-cluster hoist was
+  done with the `gStatMemPeakMB`→`gStatMemMB` rename;
+  `SCPKnobFaceView` is the binary's name (factory @0x35cec,
+  style 11) and Chrome's `SCPBlurEffectView` was deleted with
+  all call sites unified; 6 extern link-closure bodies were
+  transcribed into SCPShared.m (SCPMissingSelector @0x4f330,
+  SCPInfoBool, SCPAppHasCarPlayUI, SCPAppIconForBundle,
+  SCPResetDetachedView, SCPLayoutElementKey); 3 census-unclaimed
+  Panel-called methods were transcribed (exitKeepBundle /
+  exitTapped / atHomeScreen); an empty `@implementation
+  SCPCarPane` was added (accessors auto-synthesise, verified in
+  the dylib); phase-2 fingerprint: 11→11 classes, 480→481
+  methods (+1 = category counting), 0 original defined symbols
+  missing.
+- **Later corrections to this log's §4**, recorded so the
+  surviving text is not misread: the four divider declarations
+  whose removal §4 item 2 describes were RESTORED in phase 3
+  (the removal premise was refuted by the binary's method
+  list — `project/BUILD_PHASE3_LOG.md` step 1), and the final
+  SplitScreen method count is 480 = 480 exact.
+- **Discovered**: 2026-11-08, during the coordinator's
+  handover review; repaired the same day by this note only.

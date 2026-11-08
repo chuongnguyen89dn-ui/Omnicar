@@ -1,0 +1,75 @@
+# C8 Prefs share-report section formatter @0x10bf4 (orig OmniCarPrefs, arm64 slice)
+# ground truth: verify/macho_truth.py + capstone skipdata via /tmp/rem2_dump.py
+# func bounds: 0x10bf4..0x10d04 (272 bytes)
+0x00010bf4  sub      sp, sp, #0x60                                  
+0x00010bf8  stp      x24, x23, [sp, #0x20]                          
+0x00010bfc  stp      x22, x21, [sp, #0x30]                          
+0x00010c00  stp      x20, x19, [sp, #0x40]                          
+0x00010c04  stp      x29, x30, [sp, #0x50]                          
+0x00010c08  add      x29, sp, #0x50                                 
+0x00010c0c  mov      x19, x2                                        
+0x00010c10  mov      x21, x1                                        
+0x00010c14  mov      x20, x0                                        
+0x00010c18  mov      x0, x2                                         
+0x00010c1c  bl       #0x55d84                                       ; _objc_retain
+0x00010c20  adrp     x23, #0x8e000                                  
+0x00010c24  ldr      x22, [x23, #0x958]                             ; [0x8e958] class NSString
+0x00010c28  mov      x0, x21                                        
+0x00010c2c  bl       #0x55d84                                       ; _objc_retain
+0x00010c30  mov      x0, x20                                        
+0x00010c34  bl       #0x55d84                                       ; _objc_retain
+0x00010c38  mov      x0, x22                                        
+0x00010c3c  mov      x2, x19                                        
+0x00010c40  mov      w3, #4                                         
+0x00010c44  mov      x4, #0                                         
+0x00010c48  bl       #0x5d560                                       ; stringWithContentsOfFile:encoding:error:
+0x00010c4c  mov      x29, x29                                       
+0x00010c50  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00010c54  mov      x22, x0                                        
+0x00010c58  cbnz     x0, #0x10ca0                                   
+0x00010c5c  ldr      x0, [x23, #0x958]                              ; [0x8e958] class NSString
+0x00010c60  bl       #0x55c7c                                       ; _objc_alloc
+0x00010c64  mov      x22, x0                                        
+0x00010c68  adrp     x8, #0x8e000                                   
+0x00010c6c  ldr      x0, [x8, #0x9e8]                               ; [0x8e9e8] class NSData
+0x00010c70  mov      x2, x19                                        
+0x00010c74  bl       #0x57560                                       ; dataWithContentsOfFile:
+0x00010c78  mov      x29, x29                                       
+0x00010c7c  bl       #0x55d9c                                       ; _objc_retainAutoreleasedReturnValue
+0x00010c80  mov      x23, x0                                        
+0x00010c84  mov      x0, x22                                        
+0x00010c88  mov      x2, x23                                        
+0x00010c8c  mov      w3, #5                                         
+0x00010c90  bl       #0x583e0                                       ; initWithData:encoding:
+0x00010c94  mov      x22, x0                                        
+0x00010c98  mov      x0, x23                                        
+0x00010c9c  bl       #0x55d78                                       ; _objc_release
+0x00010ca0  mov      x0, x22                                        
+0x00010ca4  bl       #0x58c20                                       ; length
+0x00010ca8  adrp     x8, #0x78000                                   
+0x00010cac  add      x8, x8, #0x1e8                                 ; [0x781e8] @"(empty / not found)"
+0x00010cb0  cmp      x0, #0                                         
+0x00010cb4  csel     x8, x8, x22, eq                                
+0x00010cb8  stp      x19, x8, [sp, #8]                              
+0x00010cbc  str      x21, [sp]                                      
+0x00010cc0  adrp     x2, #0x78000                                   
+0x00010cc4  add      x2, x2, #0x1c8                                 ; [0x781c8] @"
+==== %@ (%@) ====
+%@
+"
+0x00010cc8  mov      x0, x20                                        
+0x00010ccc  bl       #0x56460                                       ; appendFormat:
+0x00010cd0  mov      x0, x21                                        
+0x00010cd4  bl       #0x55d78                                       ; _objc_release
+0x00010cd8  mov      x0, x20                                        
+0x00010cdc  bl       #0x55d78                                       ; _objc_release
+0x00010ce0  mov      x0, x22                                        
+0x00010ce4  bl       #0x55d78                                       ; _objc_release
+0x00010ce8  mov      x0, x19                                        
+0x00010cec  ldp      x29, x30, [sp, #0x50]                          
+0x00010cf0  ldp      x20, x19, [sp, #0x40]                          
+0x00010cf4  ldp      x22, x21, [sp, #0x30]                          
+0x00010cf8  ldp      x24, x23, [sp, #0x20]                          
+0x00010cfc  add      sp, sp, #0x60                                  
+0x00010d00  b        #0x55d78                                       ; _objc_release
+# decoded: 68 insns, 272 bytes (range 272 bytes)

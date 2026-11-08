@@ -1,0 +1,151 @@
+; -[SCPCarSplit rememberRecent] @0x1a3d0-0x1a624 (596 bytes)
+0x01a3d0  sub      sp, sp, #0x130
+0x01a3d4  stp      x28, x27, [sp, #0xd0]
+0x01a3d8  stp      x26, x25, [sp, #0xe0]
+0x01a3dc  stp      x24, x23, [sp, #0xf0]
+0x01a3e0  stp      x22, x21, [sp, #0x100]
+0x01a3e4  stp      x20, x19, [sp, #0x110]
+0x01a3e8  stp      x29, x30, [sp, #0x120]
+0x01a3ec  add      x29, sp, #0x120
+0x01a3f0  mov      x21, x0
+0x01a3f4  adrp     x8, #0x78000
+0x01a3f8  ldr      x8, [x8, #0x360] ; [0x78360] got-sym ___stack_chk_guard
+0x01a3fc  ldr      x8, [x8]
+0x01a400  stur     x8, [x29, #-0x60]
+0x01a404  bl       #0x59800 ; selstub paneCount
+0x01a408  cmp      w0, #2
+0x01a40c  b.lt     #0x1a580
+0x01a410  adrp     x8, #0x87000
+0x01a414  ldr      x0, [x8, #0x708] ; [0x87708] class NSMutableArray
+0x01a418  bl       #0x56fe0 ; selstub array
+0x01a41c  mov      x29, x29
+0x01a420  bl       #0x567dc ; stub _objc_retainAutoreleasedReturnValue
+0x01a424  mov      x19, x0
+0x01a428  movi     v0.16b, #0
+0x01a42c  stp      q0, q0, [sp]
+0x01a430  stp      q0, q0, [sp, #0x20]
+0x01a434  mov      x0, x21
+0x01a438  bl       #0x5c160 ; selstub slots
+0x01a43c  mov      x29, x29
+0x01a440  bl       #0x567dc ; stub _objc_retainAutoreleasedReturnValue
+0x01a444  mov      x20, x0
+0x01a448  mov      x2, sp
+0x01a44c  add      x3, sp, #0x40
+0x01a450  mov      w4, #0x10
+0x01a454  bl       #0x57a00 ; selstub countByEnumeratingWithState:objects:count:
+0x01a458  mov      x22, x0
+0x01a45c  cbz      x0, #0x1a53c
+0x01a460  ldr      x8, [sp, #0x10]
+0x01a464  ldr      x26, [x8]
+0x01a468  mov      x27, #0
+0x01a46c  ldr      x8, [sp, #0x10]
+0x01a470  ldr      x8, [x8]
+0x01a474  cmp      x8, x26
+0x01a478  b.eq     #0x1a484
+0x01a47c  mov      x0, x20
+0x01a480  bl       #0x5671c ; stub _objc_enumerationMutation
+0x01a484  ldr      x8, [sp, #8]
+0x01a488  ldr      x24, [x8, x27, lsl #3] ; [0x87003] sel None
+0x01a48c  mov      x0, x24
+0x01a490  bl       #0x5cae0 ; selstub vc
+0x01a494  mov      x29, x29
+0x01a498  bl       #0x567dc ; stub _objc_retainAutoreleasedReturnValue
+0x01a49c  mov      x23, x0
+0x01a4a0  cbz      x0, #0x1a570
+0x01a4a4  mov      x0, x24
+0x01a4a8  bl       #0x57420 ; selstub bundleID
+0x01a4ac  mov      x29, x29
+0x01a4b0  bl       #0x567dc ; stub _objc_retainAutoreleasedReturnValue
+0x01a4b4  mov      x25, x0
+0x01a4b8  cbz      x0, #0x1a568
+0x01a4bc  mov      x0, x24
+0x01a4c0  bl       #0x599e0 ; selstub picker
+0x01a4c4  mov      x29, x29
+0x01a4c8  bl       #0x567dc ; stub _objc_retainAutoreleasedReturnValue
+0x01a4cc  cmp      x0, #0
+0x01a4d0  cset     w28, eq
+0x01a4d4  bl       #0x567b8 ; stub _objc_release
+0x01a4d8  mov      x0, x25
+0x01a4dc  bl       #0x567b8 ; stub _objc_release
+0x01a4e0  mov      x0, x23
+0x01a4e4  bl       #0x567b8 ; stub _objc_release
+0x01a4e8  tbz      w28, #0, #0x1a570
+0x01a4ec  mov      x0, x24
+0x01a4f0  bl       #0x57420 ; selstub bundleID
+0x01a4f4  mov      x29, x29
+0x01a4f8  bl       #0x567dc ; stub _objc_retainAutoreleasedReturnValue
+0x01a4fc  mov      x23, x0
+0x01a500  mov      x0, x19
+0x01a504  mov      x2, x23
+0x01a508  bl       #0x56ca0 ; selstub addObject:
+0x01a50c  mov      x0, x23
+0x01a510  bl       #0x567b8 ; stub _objc_release
+0x01a514  add      x27, x27, #1
+0x01a518  cmp      x22, x27
+0x01a51c  b.ne     #0x1a46c
+0x01a520  mov      x2, sp
+0x01a524  add      x3, sp, #0x40
+0x01a528  mov      x0, x20
+0x01a52c  mov      w4, #0x10
+0x01a530  bl       #0x57a00 ; selstub countByEnumeratingWithState:objects:count:
+0x01a534  mov      x22, x0
+0x01a538  cbnz     x0, #0x1a468
+0x01a53c  mov      x0, x20
+0x01a540  bl       #0x567b8 ; stub _objc_release
+0x01a544  adrp     x8, #0x87000
+0x01a548  ldr      x20, [x8, #0x6d0] ; [0x876d0] class SCPPrefs
+0x01a54c  mov      x0, x21
+0x01a550  bl       #0x59020 ; selstub layoutID
+0x01a554  sxtw     x2, w0
+0x01a558  mov      x0, x20
+0x01a55c  mov      x3, x19
+0x01a560  bl       #0x56d00 ; selstub addRecentLayout:apps:
+0x01a564  b        #0x1a578 ; -> sub_1a578
+0x01a568  mov      x0, x23
+0x01a56c  bl       #0x567b8 ; stub _objc_release
+0x01a570  mov      x0, x20
+0x01a574  bl       #0x567b8 ; stub _objc_release
+0x01a578  mov      x0, x19
+0x01a57c  bl       #0x567b8 ; stub _objc_release
+0x01a580  ldur     x8, [x29, #-0x60]
+0x01a584  adrp     x9, #0x78000
+0x01a588  ldr      x9, [x9, #0x360] ; [0x78360] got-sym ___stack_chk_guard
+0x01a58c  ldr      x9, [x9]
+0x01a590  cmp      x9, x8
+0x01a594  b.ne     #0x1a5b8
+0x01a598  ldp      x29, x30, [sp, #0x120]
+0x01a59c  ldp      x20, x19, [sp, #0x110]
+0x01a5a0  ldp      x22, x21, [sp, #0x100]
+0x01a5a4  ldp      x24, x23, [sp, #0xf0]
+0x01a5a8  ldp      x26, x25, [sp, #0xe0]
+0x01a5ac  ldp      x28, x27, [sp, #0xd0]
+0x01a5b0  add      sp, sp, #0x130
+0x01a5b4  ret      
+0x01a5b8  bl       #0x56404 ; stub ___stack_chk_fail
+0x01a5bc  b        #0x1a600 ; -> sub_1a600
+0x01a5c0  b        #0x1a5c8 ; -> sub_1a5c8
+0x01a5c4  b        #0x1a600 ; -> sub_1a600
+0x01a5c8  mov      x21, x0
+0x01a5cc  b        #0x1a60c ; -> sub_1a60c
+0x01a5d0  mov      x21, x0
+0x01a5d4  mov      x0, x23
+0x01a5d8  bl       #0x567b8 ; stub _objc_release
+0x01a5dc  b        #0x1a604 ; -> sub_1a604
+0x01a5e0  mov      x21, x0
+0x01a5e4  mov      x0, x25
+0x01a5e8  bl       #0x567b8 ; stub _objc_release
+0x01a5ec  b        #0x1a5f4 ; -> sub_1a5f4
+0x01a5f0  mov      x21, x0
+0x01a5f4  mov      x0, x23
+0x01a5f8  bl       #0x567b8 ; stub _objc_release
+0x01a5fc  b        #0x1a604 ; -> sub_1a604
+0x01a600  mov      x21, x0
+0x01a604  mov      x0, x20
+0x01a608  bl       #0x567b8 ; stub _objc_release
+0x01a60c  mov      x0, x19
+0x01a610  bl       #0x567b8 ; stub _objc_release
+0x01a614  b        #0x1a61c ; -> sub_1a61c
+0x01a618  mov      x21, x0
+0x01a61c  mov      x0, x21
+0x01a620  bl       #0x563e0 ; stub __Unwind_Resume
+; length check: OK

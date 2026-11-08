@@ -54,3 +54,31 @@ repository's root), SHA-256
   Xcode on macOS (e.g. GitHub Actions) produces the FAT arm64+arm64e
   binaries like the original. Behavioural equivalence is not yet
   proven on a real device — see the verification plan above.
+
+## Remediation (2026-11-08, second commit)
+
+An external review of the first publication found the handover
+report cut short, the coverage census unadjudicated, INFERRED
+pockets in SplitScreen presentation logic, and the fresh-checkout
+build unproven. All four were closed:
+
+- `handover/RECOVERY_STATUS.md` restored in full (section 7 is the
+  remediation addendum); the cut-short first edition is recorded in
+  its integrity note.
+- The census was adjudicated row by row
+  (`metadata/CENSUS_ADJUDICATION.md`): of 675 unclaimed rows, 664
+  are bookkeeping and 11 were genuinely missing bodies — all 11
+  have since been reconstructed from the binary, so the genuinely
+  missing count is now 0.
+- Per-class method parity (not just per-binary totals): 62 of 66
+  classes have identical method sets; the 4 exceptions are
+  built-side additive methods only, named in
+  `project/REMEDIATION_LOG.md`. OMCAppBridgeAppsController is
+  105/105.
+- A fresh clone of this repo built clean outside the analysis
+  workspace; the verification tools now derive their paths from
+  their own location.
+- Rebuilt DEB (this commit): SHA-256
+  `c7ce84830778b49e4ca5733c59e10da99293ef07bbaccfb1ff6d273bd1c33ef9`,
+  947,168 bytes; data-tar parity vs the original 202/202 entries,
+  0 differences.

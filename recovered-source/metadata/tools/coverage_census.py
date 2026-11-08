@@ -72,7 +72,9 @@ Reproduce:  python3 metadata/tools/coverage_census.py
 import json, os, re, glob
 from collections import defaultdict, Counter
 
-ROOT = os.path.expanduser('~/workspace/omnicar-re')
+# Tree root derived from this file's location:
+# <root>/metadata/tools/coverage_census.py -> <root>. Portable across checkouts.
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 META = os.path.join(ROOT, 'metadata')
 SRC = os.path.join(ROOT, 'src')
 

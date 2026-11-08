@@ -1,0 +1,73 @@
+# rem2 dump: restartTrayTimer IMP 0x3bc20 (orig OmniCarSplitScreen, arm64; macho_truth + capstone skipdata)
+# func bounds: 0x3bc20..0x3bd38 (280 bytes)
+0x0003bc20  sub      sp, sp, #0x60                                  
+0x0003bc24  stp      x22, x21, [sp, #0x30]                          
+0x0003bc28  stp      x20, x19, [sp, #0x40]                          
+0x0003bc2c  stp      x29, x30, [sp, #0x50]                          
+0x0003bc30  add      x29, sp, #0x50                                 
+0x0003bc34  mov      x19, x0                                        
+0x0003bc38  bl       #0x5c8a0                                       ; trayTimer
+0x0003bc3c  mov      x29, x29                                       
+0x0003bc40  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0003bc44  mov      x20, x0                                        
+0x0003bc48  bl       #0x58c00                                       ; invalidate
+0x0003bc4c  mov      x0, x20                                        
+0x0003bc50  bl       #0x567b8                                       ; _objc_release
+0x0003bc54  add      x0, sp, #0x28                                  
+0x0003bc58  mov      x1, x19                                        
+0x0003bc5c  bl       #0x56740                                       ; _objc_initWeak
+0x0003bc60  adrp     x8, #0x87000                                   
+0x0003bc64  adrp     x9, #0x78000                                   
+0x0003bc68  ldr      x9, [x9, #0x338]                               ; [0x78338] got-sym __NSConcreteStackBlock
+0x0003bc6c  ldr      x20, [x8, #0x778]                              ; [0x87778] class NSTimer
+0x0003bc70  str      x9, [sp]                                       
+0x0003bc74  adrp     x8, #0x6e000                                   
+0x0003bc78  ldr      d0, [x8, #0xff8]                               ; [0x6eff8] const double=1.6080749353e-314 float=-32.0
+0x0003bc7c  adrp     x8, #0x3b000                                   
+0x0003bc80  add      x8, x8, #0xd38                                 ; [0x3bd38] got-sym ?ord20468
+0x0003bc84  str      d0, [sp, #8]                                   
+0x0003bc88  adrp     x9, #0x78000                                   
+0x0003bc8c  add      x9, x9, #0xe80                                 ; [0x78e80] ptr 0x0
+0x0003bc90  stp      x8, x9, [sp, #0x10]                            
+0x0003bc94  mov      x21, sp                                        
+0x0003bc98  add      x0, x21, #0x20                                 
+0x0003bc9c  add      x1, sp, #0x28                                  
+0x0003bca0  bl       #0x566f8                                       ; _objc_copyWeak
+0x0003bca4  fmov     d0, #4.00000000                                
+0x0003bca8  mov      x3, sp                                         
+0x0003bcac  mov      x0, x20                                        
+0x0003bcb0  mov      w2, #0                                         
+0x0003bcb4  bl       #0x5a600                                       ; scheduledTimerWithTimeInterval:repeats:block:
+0x0003bcb8  mov      x29, x29                                       
+0x0003bcbc  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0003bcc0  mov      x20, x0                                        
+0x0003bcc4  mov      x0, x19                                        
+0x0003bcc8  mov      x2, x20                                        
+0x0003bccc  bl       #0x5bd00                                       ; setTrayTimer:
+0x0003bcd0  mov      x0, x20                                        
+0x0003bcd4  bl       #0x567b8                                       ; _objc_release
+0x0003bcd8  add      x0, x21, #0x20                                 
+0x0003bcdc  bl       #0x56704                                       ; _objc_destroyWeak
+0x0003bce0  add      x0, sp, #0x28                                  
+0x0003bce4  bl       #0x56704                                       ; _objc_destroyWeak
+0x0003bce8  ldp      x29, x30, [sp, #0x50]                          
+0x0003bcec  ldp      x20, x19, [sp, #0x40]                          
+0x0003bcf0  ldp      x22, x21, [sp, #0x30]                          
+0x0003bcf4  add      sp, sp, #0x60                                  
+0x0003bcf8  ret                                                     
+0x0003bcfc  mov      x19, x0                                        
+0x0003bd00  mov      x0, x20                                        
+0x0003bd04  bl       #0x567b8                                       ; _objc_release
+0x0003bd08  b        #0x3bd10                                       ; sub_3bd10
+0x0003bd0c  mov      x19, x0                                        
+0x0003bd10  add      x0, x21, #0x20                                 
+0x0003bd14  bl       #0x56704                                       ; _objc_destroyWeak
+0x0003bd18  add      x0, sp, #0x28                                  
+0x0003bd1c  bl       #0x56704                                       ; _objc_destroyWeak
+0x0003bd20  b        #0x3bd30                                       ; sub_3bd30
+0x0003bd24  mov      x19, x0                                        
+0x0003bd28  mov      x0, x20                                        
+0x0003bd2c  bl       #0x567b8                                       ; _objc_release
+0x0003bd30  mov      x0, x19                                        
+0x0003bd34  bl       #0x563e0                                       ; __Unwind_Resume
+# decoded: 70 insns, 280 bytes (range 280 bytes)

@@ -36,41 +36,47 @@ extern void SCPStyleGhostIcon(UIImageView *imageView);                  // 0x211
 // selection), strokes it, and either clips the slot's app icon into it
 // or draws a "+" when the slot is empty.
 //
-// Axis assignment of the 13/31 base rects and of the glyph totals is
-// INFERRED from the constant pairs (36.5/35.5, 20.5/19.5); the 2/3
-// enumeration, the mirror pass for 31 and all draw constants are
-// VERIFIED from the dumps.
+// Axis assignment VERIFIED (CLOSURE-2) by line-reading the inlined
+// helper inside -[SCPCarSplit showLayoutPanelForApp:] @0x37e8c
+// (disasm/rem2_showLayoutPanelForApp.txt): the glyph canvas is ALWAYS
+// 73 x 40 (renderer initWithSize: @0x38ebc takes (73.0, 40.0)
+// unconditionally); "total" (@sp+0xf0, fcsel @0x386a4) is the split-axis
+// extent (vertical 40, horizontal 73) and "cross" the other extent.
+// The 13/31 base rects below are the binary's literal valueWithCGRect:
+// arguments (@0x38bb0-0x38cd0); the generic enumeration's fixed extent
+// is `cross`, not `total` (fcsel @0x38e14-0x38e20); the layout-31
+// mirror subtracts from `total` on the split axis in BOTH orientations
+// (@0x38d48-0x38d7c: vertical 40 - MaxY, horizontal 73 - MaxX).
 
 static NSArray<NSValue *> *SCPLayoutGlyphRects(NSInteger layoutID, BOOL vertical,
                                                double *outW, double *outH) {
-    double total = vertical ? 40.0 : 73.0;   // split-axis extent @sp+0xf0
-    double cross = vertical ? 73.0 : 40.0;   // INFERRED swap
+    double total = vertical ? 40.0 : 73.0;   // split-axis extent @sp+0xf0 VERIFIED
+    double cross = vertical ? 73.0 : 40.0;   // cross-axis extent VERIFIED (the
+                                             // "swap" is real: canvas is 73x40)
     NSMutableArray<NSValue *> *rects = [NSMutableArray array];
     if (layoutID == 13 || layoutID == 31) {
-        double halfA = vertical ? 36.5 : 35.5;
-        double halfB = total - halfA;
-        double crossA = vertical ? 20.5 : 19.5;
-        double crossB = 40.0 - crossA;
         if (vertical) {
-            [rects addObject:[NSValue valueWithCGRect:CGRectMake(0, 0, total, 18)]];
-            [rects addObject:[NSValue valueWithCGRect:CGRectMake(0, crossA, halfA, crossB)]];
-            [rects addObject:[NSValue valueWithCGRect:CGRectMake(halfA, crossA, halfB, crossB)]];
+            // @0x38bb0: (0,0,73,18), (0,20.5,34,19.5), (36.5,20.5,35.5,19.5)
+            [rects addObject:[NSValue valueWithCGRect:CGRectMake(0, 0, 73, 18)]];
+            [rects addObject:[NSValue valueWithCGRect:CGRectMake(0, 20.5, 34, 19.5)]];
+            [rects addObject:[NSValue valueWithCGRect:CGRectMake(36.5, 20.5, 35.5, 19.5)]];
         } else {
-            [rects addObject:[NSValue valueWithCGRect:CGRectMake(0, 0, 18, total)]];
-            [rects addObject:[NSValue valueWithCGRect:CGRectMake(crossA, 0, crossB, halfA)]];
-            [rects addObject:[NSValue valueWithCGRect:CGRectMake(crossA, halfA, crossB, halfB)]];
+            // @0x38c50: (0,0,34,40), (36.5,0,35.5,18), (36.5,20.5,35.5,19.5)
+            [rects addObject:[NSValue valueWithCGRect:CGRectMake(0, 0, 34, 40)]];
+            [rects addObject:[NSValue valueWithCGRect:CGRectMake(36.5, 0, 35.5, 18)]];
+            [rects addObject:[NSValue valueWithCGRect:CGRectMake(36.5, 20.5, 35.5, 19.5)]];
         }
         if (layoutID == 31) {
-            // Mirror every rect along the split axis.
+            // Mirror every rect along the split axis (extent = total).
             for (NSUInteger i = 0; i < rects.count; i++) {
                 CGRect r = rects[i].CGRectValue;
-                if (vertical) r.origin.y = cross - CGRectGetMaxY(r);
+                if (vertical) r.origin.y = total - CGRectGetMaxY(r);
                 else          r.origin.x = total - CGRectGetMaxX(r);
                 rects[i] = [NSValue valueWithCGRect:r];
             }
         }
-        if (outW) *outW = vertical ? total : cross;
-        if (outH) *outH = vertical ? cross : total;
+        if (outW) *outW = vertical ? cross : total;   // always 73 VERIFIED
+        if (outH) *outH = vertical ? total : cross;   // always 40 VERIFIED
         return rects;
     }
     NSInteger n = (layoutID == 3) ? 3 : 2;
@@ -79,13 +85,13 @@ static NSArray<NSValue *> *SCPLayoutGlyphRects(NSInteger layoutID, BOOL vertical
     double pos = 0;
     for (NSInteger i = 0; i < n; i++) {
         double size = (i == n - 1) ? (inner - each * (n - 1)) : each;
-        CGRect r = vertical ? CGRectMake(0, pos, total, size)
-                            : CGRectMake(pos, 0, size, total);
+        CGRect r = vertical ? CGRectMake(0, pos, cross, size)
+                            : CGRectMake(pos, 0, size, cross);
         [rects addObject:[NSValue valueWithCGRect:r]];
         pos += size + 2.5;
     }
-    if (outW) *outW = vertical ? total : cross;
-    if (outH) *outH = vertical ? cross : total;
+    if (outW) *outW = vertical ? cross : total;
+    if (outH) *outH = vertical ? total : cross;
     return rects;
 }
 
@@ -300,7 +306,10 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
         if (section.count == 0) {
             // Empty section: a dashed placeholder row.
             UIView *placeholder = [[UIView alloc] initWithFrame:
-                CGRectMake(8, runningY + 8, frameW, 48)];   // size INFERRED
+                CGRectMake(48, runningY + 8, 73, 40)];   // VERIFIED (CLOSURE-2):
+                // initWithFrame: @0x391ac takes (48.0, [sp+0x148]+8.0, 73.0, 40.0)
+                // — the old (8, …, frameW, 48) scrambled the constants: 48 is
+                // the X, 8 is only the Y increment; disasm/rem2_showLayoutPanelForApp.txt
             CAShapeLayer *dash = (CAShapeLayer *)placeholder.layer;
             dash.path = [UIBezierPath
                 bezierPathWithRoundedRect:CGRectInset(placeholder.bounds, 0.5, 0.5)

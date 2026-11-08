@@ -1,0 +1,56 @@
+# C1 SpeedBubble __init_3 @0x239a0 (orig OmniCarSpeedBubble, arm64 slice)
+# ground truth: verify/macho_truth.py + capstone skipdata via /tmp/rem2_dump.py
+# func bounds: 0x239a0..0x23a70 (208 bytes)
+0x000239a0  sub      sp, sp, #0x50                                  
+0x000239a4  stp      x20, x19, [sp, #0x30]                          
+0x000239a8  stp      x29, x30, [sp, #0x40]                          
+0x000239ac  add      x29, sp, #0x40                                 
+0x000239b0  adrp     x8, #0x43000                                   
+0x000239b4  ldr      x0, [x8, #0x150]                               ; [0x43150] class NSProcessInfo
+0x000239b8  bl       #0x2a3e0                                       ; processInfo
+0x000239bc  mov      x29, x29                                       
+0x000239c0  bl       #0x2801c                                       ; _objc_retainAutoreleasedReturnValue
+0x000239c4  mov      x20, x0                                        
+0x000239c8  bl       #0x2a400                                       ; processName
+0x000239cc  mov      x29, x29                                       
+0x000239d0  bl       #0x2801c                                       ; _objc_retainAutoreleasedReturnValue
+0x000239d4  mov      x19, x0                                        
+0x000239d8  mov      x0, x20                                        
+0x000239dc  bl       #0x27ff8                                       ; _objc_release
+0x000239e0  adrp     x2, #0x3b000                                   
+0x000239e4  add      x2, x2, #0x998                                 ; [0x3b998] @"SpringBoard"
+0x000239e8  mov      x0, x19                                        
+0x000239ec  bl       #0x29a00                                       ; isEqualToString:
+0x000239f0  tbnz     w0, #0, #0x23a08                               
+0x000239f4  adrp     x2, #0x3b000                                   
+0x000239f8  add      x2, x2, #0x9b8                                 ; [0x3b9b8] @"CarPlay"
+0x000239fc  mov      x0, x19                                        
+0x00023a00  bl       #0x29a00                                       ; isEqualToString:
+0x00023a04  cbz      w0, #0x23a58                                   
+0x00023a08  adrp     x8, #0x38000                                   
+0x00023a0c  ldr      x8, [x8, #0x318]                               ; [0x38318] got-sym __NSConcreteStackBlock
+0x00023a10  str      x8, [sp, #8]                                   
+0x00023a14  adrp     x8, #0x32000                                   
+0x00023a18  ldr      d0, [x8, #0x780]                               ; [0x32780] const double=1.6080749353e-314 float=-32.0
+0x00023a1c  str      d0, [sp, #0x10]                                
+0x00023a20  adrp     x8, #0x23000                                   
+0x00023a24  add      x8, x8, #0xa70                                 ; [0x23a70] got-sym ?ord1023
+0x00023a28  adrp     x9, #0x38000                                   
+0x00023a2c  add      x9, x9, #0xce8                                 ; [0x38ce8] ptr 0x0
+0x00023a30  stp      x8, x9, [sp, #0x18]                            
+0x00023a34  mov      x0, x19                                        
+0x00023a38  bl       #0x28004                                       ; _objc_retain
+0x00023a3c  str      x19, [sp, #0x28]                               
+0x00023a40  adrp     x0, #0x38000                                   
+0x00023a44  ldr      x0, [x0, #0x350]                               ; [0x38350] got-sym __dispatch_main_q
+0x00023a48  add      x1, sp, #8                                     
+0x00023a4c  bl       #0x27d64                                       ; _dispatch_async
+0x00023a50  ldr      x0, [sp, #0x28]                                
+0x00023a54  bl       #0x27ff8                                       ; _objc_release
+0x00023a58  mov      x0, x19                                        
+0x00023a5c  bl       #0x27ff8                                       ; _objc_release
+0x00023a60  ldp      x29, x30, [sp, #0x40]                          
+0x00023a64  ldp      x20, x19, [sp, #0x30]                          
+0x00023a68  add      sp, sp, #0x50                                  
+0x00023a6c  ret                                                     
+# decoded: 52 insns, 208 bytes (range 208 bytes)

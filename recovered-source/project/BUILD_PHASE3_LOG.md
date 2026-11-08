@@ -205,4 +205,17 @@ SCPCarSplit+Relayout.m (the relayoutAnimated: extraction).
   criteria, verification-scope statement (structural/static only;
   **no device run**).
 - `handover/BUILD_GUIDE.md`: every [PENDING FINAL BU
-...[truncated 49 chars]
+
+  — DAMAGE NOTE (2026-11-08, remediation): this log's first
+  publication ended at a truncation marker mid-word in the
+  bullet above; ~49 chars (the tail of this final step-5
+  bullet) are lost and are not recoverable. The bullet's
+  conclusion, as executed and recorded in
+  `handover/BUILD_GUIDE.md` §8 (which survives intact): every
+  [PENDING FINAL BUILD] marker was resolved by phase 3 and
+  the confirmation checklist is fully ticked, with one
+  recorded deviation — control `Installed-Size` was set to
+  the computed value (3071) instead of being dropped. No
+  further step-5 content followed this bullet. Discovered
+  during the coordinator's handover review, 2026-11-08;
+  repaired by this note only.

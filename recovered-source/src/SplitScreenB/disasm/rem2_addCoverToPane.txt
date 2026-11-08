@@ -1,0 +1,224 @@
+# rem2 dump: addCoverToPane IMP 0x2a2e8 (orig OmniCarSplitScreen, arm64; macho_truth + capstone skipdata)
+# func bounds: 0x2a2e8..0x2a65c (884 bytes)
+0x0002a2e8  sub      sp, sp, #0x80                                  
+0x0002a2ec  stp      d9, d8, [sp, #0x30]                            
+0x0002a2f0  stp      x24, x23, [sp, #0x40]                          
+0x0002a2f4  stp      x22, x21, [sp, #0x50]                          
+0x0002a2f8  stp      x20, x19, [sp, #0x60]                          
+0x0002a2fc  stp      x29, x30, [sp, #0x70]                          
+0x0002a300  add      x29, sp, #0x70                                 
+0x0002a304  mov      x19, x2                                        
+0x0002a308  mov      x0, x2                                         
+0x0002a30c  bl       #0x567c4                                       ; _objc_retain
+0x0002a310  mov      x0, x19                                        
+0x0002a314  bl       #0x57a20                                       ; cover
+0x0002a318  mov      x29, x29                                       
+0x0002a31c  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a320  cbnz     x0, #0x2a5a4                                   
+0x0002a324  mov      x0, x19                                        
+0x0002a328  bl       #0x5cae0                                       ; vc
+0x0002a32c  mov      x29, x29                                       
+0x0002a330  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a334  mov      x20, x0                                        
+0x0002a338  bl       #0x567b8                                       ; _objc_release
+0x0002a33c  cbz      x20, #0x2a5a8                                  
+0x0002a340  adrp     x24, #0x87000                                  
+0x0002a344  ldr      x0, [x24, #0x710]                              ; [0x87710] class UIView
+0x0002a348  bl       #0x566bc                                       ; _objc_alloc
+0x0002a34c  mov      x20, x0                                        
+0x0002a350  mov      x0, x19                                        
+0x0002a354  bl       #0x5cb60                                       ; view
+0x0002a358  mov      x29, x29                                       
+0x0002a35c  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a360  mov      x21, x0                                        
+0x0002a364  bl       #0x57320                                       ; bounds
+0x0002a368  mov      x0, x20                                        
+0x0002a36c  bl       #0x589c0                                       ; initWithFrame:
+0x0002a370  mov      x20, x0                                        
+0x0002a374  mov      x0, x21                                        
+0x0002a378  bl       #0x567b8                                       ; _objc_release
+0x0002a37c  mov      x0, x20                                        
+0x0002a380  mov      w2, #0x12                                      
+0x0002a384  bl       #0x5a820                                       ; setAutoresizingMask:
+0x0002a388  adrp     x8, #0x87000                                   
+0x0002a38c  ldr      x0, [x8, #0x730]                               ; [0x87730] class UIColor
+0x0002a390  adrp     x8, #0x6f000                                   
+0x0002a394  ldr      d0, [x8, #0xd8]                                ; [0x6f0d8] const double=0.9333333333333333 float=-1.998397292977062e+18
+0x0002a398  adrp     x8, #0x6f000                                   
+0x0002a39c  ldr      d1, [x8, #0xe0]                                ; [0x6f0e0] const double=0.9411764705882353 float=8.370678442537372e-21
+0x0002a3a0  adrp     x8, #0x6f000                                   
+0x0002a3a4  ldr      d2, [x8, #0xe8]                                ; [0x6f0e8] const double=0.984313725490196 float=3.3961513649220713e+38
+0x0002a3a8  fmov     d3, #1.00000000                                
+0x0002a3ac  bl       #0x576e0                                       ; colorWithRed:green:blue:alpha:
+0x0002a3b0  mov      x29, x29                                       
+0x0002a3b4  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a3b8  mov      x21, x0                                        
+0x0002a3bc  mov      x0, x20                                        
+0x0002a3c0  mov      x2, x21                                        
+0x0002a3c4  bl       #0x5a860                                       ; setBackgroundColor:
+0x0002a3c8  mov      x0, x21                                        
+0x0002a3cc  bl       #0x567b8                                       ; _objc_release
+0x0002a3d0  mov      x0, x20                                        
+0x0002a3d4  mov      w2, #0                                         
+0x0002a3d8  bl       #0x5bd60                                       ; setUserInteractionEnabled:
+0x0002a3dc  adrp     x8, #0x87000                                   
+0x0002a3e0  ldr      x0, [x8, #0x758]                               ; [0x87758] class UIImageView
+0x0002a3e4  bl       #0x566bc                                       ; _objc_alloc
+0x0002a3e8  mov      x8, #0x404a000000000000                        
+0x0002a3ec  fmov     d2, x8                                         
+0x0002a3f0  fmov     d0, xzr                                        
+0x0002a3f4  fmov     d1, xzr                                        
+0x0002a3f8  mov      v3.16b, v2.16b                                 
+0x0002a3fc  bl       #0x589c0                                       ; initWithFrame:
+0x0002a400  mov      x21, x0                                        
+0x0002a404  mov      x0, x19                                        
+0x0002a408  bl       #0x57420                                       ; bundleID
+0x0002a40c  mov      x29, x29                                       
+0x0002a410  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a414  mov      x23, x0                                        
+0x0002a418  bl       #0xdec8                                        ; sub_dec8
+0x0002a41c  mov      x29, x29                                       
+0x0002a420  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a424  mov      x22, x0                                        
+0x0002a428  mov      x0, x21                                        
+0x0002a42c  mov      x2, x22                                        
+0x0002a430  bl       #0x5b000                                       ; setImage:
+0x0002a434  mov      x0, x22                                        
+0x0002a438  bl       #0x567b8                                       ; _objc_release
+0x0002a43c  mov      x0, x23                                        
+0x0002a440  bl       #0x567b8                                       ; _objc_release
+0x0002a444  mov      x0, x21                                        
+0x0002a448  bl       #0x21158                                       ; sub_21158
+0x0002a44c  mov      x0, x21                                        
+0x0002a450  mov      w2, #0x4d                                      
+0x0002a454  bl       #0x5bae0                                       ; setTag:
+0x0002a458  mov      x0, x20                                        
+0x0002a45c  bl       #0x57320                                       ; bounds
+0x0002a460  bl       #0x562cc                                       ; _CGRectGetMidX
+0x0002a464  mov      v8.16b, v0.16b                                 
+0x0002a468  mov      x0, x20                                        
+0x0002a46c  bl       #0x57320                                       ; bounds
+0x0002a470  bl       #0x562d8                                       ; _CGRectGetMidY
+0x0002a474  mov      v1.16b, v0.16b                                 
+0x0002a478  mov      x0, x21                                        
+0x0002a47c  mov      v0.16b, v8.16b                                 
+0x0002a480  bl       #0x5a9a0                                       ; setCenter:
+0x0002a484  mov      x0, x21                                        
+0x0002a488  mov      w2, #0x2d                                      
+0x0002a48c  bl       #0x5a820                                       ; setAutoresizingMask:
+0x0002a490  mov      x0, x20                                        
+0x0002a494  mov      x2, x21                                        
+0x0002a498  bl       #0x56d40                                       ; addSubview:
+0x0002a49c  mov      x0, x19                                        
+0x0002a4a0  bl       #0x5cb60                                       ; view
+0x0002a4a4  mov      x29, x29                                       
+0x0002a4a8  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a4ac  mov      x23, x0                                        
+0x0002a4b0  mov      x0, x19                                        
+0x0002a4b4  bl       #0x585a0                                       ; host
+0x0002a4b8  mov      x29, x29                                       
+0x0002a4bc  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a4c0  mov      x22, x0                                        
+0x0002a4c4  mov      x0, x23                                        
+0x0002a4c8  mov      x2, x20                                        
+0x0002a4cc  mov      x3, x22                                        
+0x0002a4d0  bl       #0x58b20                                       ; insertSubview:aboveSubview:
+0x0002a4d4  mov      x0, x22                                        
+0x0002a4d8  bl       #0x567b8                                       ; _objc_release
+0x0002a4dc  mov      x0, x23                                        
+0x0002a4e0  bl       #0x567b8                                       ; _objc_release
+0x0002a4e4  mov      x0, x19                                        
+0x0002a4e8  bl       #0x5cb60                                       ; view
+0x0002a4ec  mov      x29, x29                                       
+0x0002a4f0  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a4f4  mov      x23, x0                                        
+0x0002a4f8  mov      x0, x19                                        
+0x0002a4fc  bl       #0x583c0                                       ; handle
+0x0002a500  mov      x29, x29                                       
+0x0002a504  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0002a508  mov      x22, x0                                        
+0x0002a50c  mov      x0, x23                                        
+0x0002a510  mov      x2, x22                                        
+0x0002a514  bl       #0x573e0                                       ; bringSubviewToFront:
+0x0002a518  mov      x0, x22                                        
+0x0002a51c  bl       #0x567b8                                       ; _objc_release
+0x0002a520  mov      x0, x23                                        
+0x0002a524  bl       #0x567b8                                       ; _objc_release
+0x0002a528  mov      x0, x19                                        
+0x0002a52c  mov      x2, x20                                        
+0x0002a530  bl       #0x5aac0                                       ; setCover:
+0x0002a534  fmov     d0, xzr                                        
+0x0002a538  mov      x0, x20                                        
+0x0002a53c  bl       #0x5a7c0                                       ; setAlpha:
+0x0002a540  ldr      x22, [x24, #0x710]                             ; [0x87710] class UIView
+0x0002a544  adrp     x8, #0x78000                                   
+0x0002a548  ldr      x8, [x8, #0x338]                               ; [0x78338] got-sym __NSConcreteStackBlock
+0x0002a54c  str      x8, [sp, #8]                                   
+0x0002a550  adrp     x8, #0x6e000                                   
+0x0002a554  ldr      d0, [x8, #0xff8]                               ; [0x6eff8] const double=1.6080749353e-314 float=-32.0
+0x0002a558  str      d0, [sp, #0x10]                                
+0x0002a55c  adrp     x8, #0x2a000                                   
+0x0002a560  add      x8, x8, #0x65c                                 ; [0x2a65c] ptr 0xf9401000
+0x0002a564  adrp     x9, #0x78000                                   
+0x0002a568  add      x9, x9, #0x910                                 ; [0x78910] ptr 0x0
+0x0002a56c  stp      x8, x9, [sp, #0x18]                            
+0x0002a570  mov      x0, x20                                        
+0x0002a574  bl       #0x567c4                                       ; _objc_retain
+0x0002a578  str      x20, [sp, #0x28]                               
+0x0002a57c  adrp     x8, #0x6f000                                   
+0x0002a580  ldr      d0, [x8, #0x18]                                ; [0x6f018] const double=0.12 float=-3.2186439840828266e+26
+0x0002a584  add      x2, sp, #8                                     
+0x0002a588  mov      x0, x22                                        
+0x0002a58c  bl       #0x56ea0                                       ; animateWithDuration:animations:
+0x0002a590  ldr      x0, [sp, #0x28]                                
+0x0002a594  bl       #0x567b8                                       ; _objc_release
+0x0002a598  mov      x0, x21                                        
+0x0002a59c  bl       #0x567b8                                       ; _objc_release
+0x0002a5a0  mov      x0, x20                                        
+0x0002a5a4  bl       #0x567b8                                       ; _objc_release
+0x0002a5a8  mov      x0, x19                                        
+0x0002a5ac  bl       #0x567b8                                       ; _objc_release
+0x0002a5b0  ldp      x29, x30, [sp, #0x70]                          
+0x0002a5b4  ldp      x20, x19, [sp, #0x60]                          
+0x0002a5b8  ldp      x22, x21, [sp, #0x50]                          
+0x0002a5bc  ldp      x24, x23, [sp, #0x40]                          
+0x0002a5c0  ldp      d9, d8, [sp, #0x30]                            
+0x0002a5c4  add      sp, sp, #0x80                                  
+0x0002a5c8  ret                                                     
+0x0002a5cc  mov      x22, x0                                        
+0x0002a5d0  ldr      x0, [sp, #0x28]                                
+0x0002a5d4  b        #0x2a604                                       ; sub_2a604
+0x0002a5d8  b        #0x2a5e8                                       ; sub_2a5e8
+0x0002a5dc  b        #0x2a5fc                                       ; sub_2a5fc
+0x0002a5e0  b        #0x2a5e8                                       ; sub_2a5e8
+0x0002a5e4  b        #0x2a5fc                                       ; sub_2a5fc
+0x0002a5e8  mov      x1, x22                                        
+0x0002a5ec  mov      x22, x0                                        
+0x0002a5f0  mov      x0, x1                                         
+0x0002a5f4  bl       #0x567b8                                       ; _objc_release
+0x0002a5f8  b        #0x2a600                                       ; sub_2a600
+0x0002a5fc  mov      x22, x0                                        
+0x0002a600  mov      x0, x23                                        
+0x0002a604  bl       #0x567b8                                       ; _objc_release
+0x0002a608  b        #0x2a63c                                       ; sub_2a63c
+0x0002a60c  b        #0x2a638                                       ; sub_2a638
+0x0002a610  b        #0x2a630                                       ; sub_2a630
+0x0002a614  b        #0x2a628                                       ; sub_2a628
+0x0002a618  mov      x22, x0                                        
+0x0002a61c  mov      x0, x21                                        
+0x0002a620  b        #0x2a648                                       ; sub_2a648
+0x0002a624  b        #0x2a630                                       ; sub_2a630
+0x0002a628  mov      x22, x0                                        
+0x0002a62c  b        #0x2a644                                       ; sub_2a644
+0x0002a630  mov      x22, x0                                        
+0x0002a634  b        #0x2a64c                                       ; sub_2a64c
+0x0002a638  mov      x22, x0                                        
+0x0002a63c  mov      x0, x21                                        
+0x0002a640  bl       #0x567b8                                       ; _objc_release
+0x0002a644  mov      x0, x20                                        
+0x0002a648  bl       #0x567b8                                       ; _objc_release
+0x0002a64c  mov      x0, x19                                        
+0x0002a650  bl       #0x567b8                                       ; _objc_release
+0x0002a654  mov      x0, x22                                        
+0x0002a658  bl       #0x563e0                                       ; __Unwind_Resume
+# decoded: 221 insns, 884 bytes (range 884 bytes)

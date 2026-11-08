@@ -123,11 +123,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setPaneCount:(NSInteger)count;
 - (void)removePaneAt:(NSInteger)slot background:(BOOL)background;
 - (void)closeSlot:(NSInteger)slot background:(BOOL)background;
-- (void)afterPaneRemoved:(id)info; // [phase2; backported to src in phase 3] binary type v24@0:8@16 — object arg (A had NSInteger; B sites pass nil/bundle; callee ignores it)
+- (void)afterPaneRemoved:(NSString *)bundle; // remediation: binary type v24@0:8@16 — the removed pane's bundle ID; the callee USES it (IMP 0x1db48, rem_afterPaneRemoved.txt). An earlier note claiming the callee ignores it was wrong.
 - (void)swapSlot:(NSInteger)a with:(NSInteger)b;
 - (void)switchToLayout:(NSInteger)layout;
 - (NSInteger)layoutID;
-- (BOOL)layoutChosenID:(NSInteger)layout;
+- (void)layoutChosenID:(NSInteger)layout; // remediation: VOID in the binary (IMP 0x3c61c); A's earlier BOOL declaration was fabricated
 
 // --- app identity (A) --------------------------------------------------------
 - (BOOL)isCarPlayApp:(NSString *)bundleID;
@@ -188,7 +188,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)hideSoloCover;
 - (void)setFullscreenBridgeHidden:(BOOL)hidden bundle:(NSString *)bundleID;
 - (void)bridgeBarAction:(NSString *)action forBundle:(NSString *)bundleID;
-- (void)bridgeHandleTapped:(NSDictionary *)info;
+- (void)bridgeHandleTapped:(NSString *)bundle; // remediation: bundle string in the binary (IMP 0x3f65c), not a dictionary
 - (void)bridgeOutsideTouched;
 - (void)bridgeHandleDrag:(NSDictionary *)info;
 
@@ -220,8 +220,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)raiseView:(UIView *)view;
 - (BOOL)viewIsRaised:(UIView *)view;
 - (void)raiseLauncher;
-- (nullable UIView *)dockClusterInParent:(UIView *)parent;
-- (CGPoint)launcherCenterInParent:(UIView *)parent size:(CGSize)size shift:(CGFloat)shift;
+- (CGRect)dockClusterInParent:(UIView *)parent; // remediation: returns CGRect in the binary (IMP 0x405fc); the UIView* declaration was wrong-ABI
+- (CGPoint)launcherCenterInParent:(UIView *)parent size:(double *)size shift:(double *)shift; // remediation: out-pointers in the binary (IMP 0x409b0)
 - (void)setDockShift:(CGFloat)shift;
 - (nullable UIView *)dockHostForRect:(CGRect)rect inParent:(UIView *)parent;
 - (void)installIconLongPress;
@@ -232,11 +232,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSString *)fullscreenAppBundle;
 
 // --- pane menu actions that change lifecycle state (A) --------------------------
-- (void)paneSolo:(SCPCarPane *)pane;
+- (void)paneSolo:(UIView *)view; // remediation: button-action entry points take the tapped VIEW and resolve the pane via paneForView: (IMPs 0x287b8/0x28a30/0x2a0e0)
 - (void)runSoloForPane:(SCPCarPane *)pane;
-- (void)paneBackground:(SCPCarPane *)pane;
+- (void)paneBackground:(UIView *)view;
 - (void)runBackgroundForPane:(SCPCarPane *)pane;
-- (void)paneClose:(SCPCarPane *)pane;
+- (void)paneClose:(UIView *)view;
 - (void)runCloseForPane:(SCPCarPane *)pane;
 
 @end
@@ -244,7 +244,9 @@ NS_ASSUME_NONNULL_BEGIN
 // --- Module B categories (merged from B's SCPCarSplit.h, pruned) -------------
 // Merge rules applied: (1) a selector A implements keeps ONLY A's declaration
 // (main interface above); B's duplicate or conflicting cross-reference was
-// dropped — conflicts dropped: layoutChosenID: (B void vs A BOOL impl),
+// dropped — conflicts dropped: layoutChosenID: (B void vs A BOOL impl —
+// remediation RESOLVED: the binary is void (IMP 0x3c61c), B was right and
+// A's declaration + implementation above are now void),
 // paneSize:forBundle: (B NSInteger-slot vs A CGRect-frame impl),
 // soloBundle: (B SCPCarPane* vs A BOOL impl), hostSolo: (B BOOL vs A
 // NSString* impl), hostPassInsetsForPane: (B UIEdgeInsets vs A NSDictionary*

@@ -83,12 +83,80 @@ bodies (`setPassInsets:`, `setCornerRadius:`, `setBarVisible:…`,
 `setHole:`, `setShieldAll:`/`setShield:forPane:`, `setHandleOffset:`,
 `setFront:`, `setKnobs:`, `setHandleVisible:`, `setupHandleForPane:`,
 `handlePanned:`/`handleTapped:`, `raiseKnobs`, `outsideTouched`,
-`paneOfBarButton:`, `nudgePane:`, `teardown
-...[truncated 20887 chars]Pane:`, and the
+`paneOfBarButton:`, `nudgePane:`, `teardownPane:`, and the
 app-process hook replacements registered by ctor 0x44a8 (CADisplayLink /
 UIWindow / UIDevice / UITextField / UITextView / UIWindowScene /
 UIViewController orientation & keyboard hooks) plus the `appbridge.orientation`
 and `appbridge.key` handler blocks (0x4728, 0x5908).
+<!-- RESTORED 2026-11-08 (remediation): the original continuation
+of §1 was lost to a truncation marker (~20,887 chars) in the first
+publication of this report. The segment below was re-derived from
+src/AppBridgeB/AppBridgeB_REPORT.md (§§1–2, 8–10), the B sources
+in src/AppBridgeB/, and the calibrated method inventory in
+metadata/raw/OmniCarAppBridge/objc.json (arm64 slice). It
+reconstructs the lost B-side inventory material; it is not the
+original wording. The sentence above was split by the damage as
+"`teardown" + "Pane:`" and is rejoined as `teardownPane:`
+(@0x155b0, present in the class list below). -->
+
+### 1.1 B-side inventory (restored)
+
+For completeness, the full B scope as enumerated by B's own
+report (§1) and the binary's class lists. B owns: everything that
+happens inside a hosted app process (the in-app machinery of
+ctor 0x44a8), plus the host-side geometry/orientation/lifecycle
+machinery that serves it. The SpringBoard-side endpoints of the
+in-app channels also sit with B: registrar `sub_7004`, the Darwin
+consumers `sub_92B4` (apporient) and `sub_93B0` (keyboard), the
+frame/shield consumer blocks, and the C helpers `sub_E6B8`
+(orientation post) and `sub_BED4` (state post, = `ABPostAppState`
+in A's table above). Ctor 0x44a8 bails unless the bundle id is
+non-empty, the bundle path contains `.app`, and the bundle id is
+outside the exclusion array @0x393D8 (verbatim:
+`com.apple.springboard, com.apple.CarPlayApp,
+com.apple.CarPlayTemplateUIHost, com.apple.CarPlaySettings,
+com.apple.InCallService, com.apple.Preferences`); it registers
+the `appbridge.orientation` (block 0x4728) and `appbridge.key`
+(block 0x5908) observers with object = own bundle id. Block
+0x4728 lazily installs the 13 in-app hooks (§5); the two Darwin
+publishers are debounced at 0.25 s (`sub_6750`).
+
+Per-class method inventory (names + IMPs from `objc.json`;
+193 methods total — 191 instance + `+shared` on ABHost and
+ABKeyboard):
+
+**ABBoxView** (12): `pointInside:withEvent:` @0x98a0, `setHole:` @0x9b2c, `applyHole` @0x9c10, `layoutSubviews` @0x9e50, `passInsets` @0x9ea8, `setPassInsets:` @0x9ec0, `handleHit` @0x9ed8, `setHandleHit:` @0x9ef8, `bar` @0x9f0c, `setBar:` @0x9f2c, `hole` @0x9f40, `.cxx_destruct` @0x9f58.
+
+**ABBarButton** (2): `pointInside:withEvent:` @0x9f90, `setHighlighted:` @0xa02c.
+
+**ABPane** (35): `bundleID` @0xa180, `setBundleID:` @0xa188, `box` @0xa190, `setBox:` @0xa198, `application` @0xa1c8, `setApplication:` @0xa1d0, `appViewController` @0xa200, `setAppViewController:` @0xa208, `sceneMonitor` @0xa238, `setSceneMonitor:` @0xa240, `orientation` @0xa270, `setOrientation:` @0xa278, `requestedOrientation` @0xa280, `setRequestedOrientation:` @0xa288, `frame` @0xa290, `setFrame:` @0xa29c, `sceneBox` @0xa2a8, `setSceneBox:` @0xa2b0, `ready` @0xa2b8, `setReady:` @0xa2c0, `handle` @0xa2c8, `setHandle:` @0xa2d0, `handleHit` @0xa300, `setHandleHit:` @0xa308, `bar` @0xa338, `setBar:` @0xa340, `popButton` @0xa370, `setPopButton:` @0xa378, `soloButton` @0xa3a8, `setSoloButton:` @0xa3b0, `handleOffset` @0xa3e0, `setHandleOffset:` @0xa3e8, `shield` @0xa3f0, `setShield:` @0xa3f8, `.cxx_destruct` @0xa428.
+
+**ABShieldView** (1): `touchesBegan:withEvent:` @0xa4c4.
+
+**ABKnobView** (12): `relay:touches:` @0xa58c, `touchesBegan:withEvent:` @0xa90c, `touchesMoved:withEvent:` @0xa918, `touchesEnded:withEvent:` @0xa924, `touchesCancelled:withEvent:` @0xa930, `index` @0xa93c, `setIndex:` @0xa94c, `lastSent` @0xa95c, `setLastSent:` @0xa970, `dot` @0xa984, `setDot:` @0xa994, `.cxx_destruct` @0xa9d4.
+
+**ABHost** (62): `count` @0xaaa0, `hostsApp:` @0xaaf0, `paneFor:` @0xac84, `zoom` @0xae20, `ensureWindow` @0xaea8, `dropWindowIfEmpty` @0xb89c, `openApp:frame:` @0xb8a0, `revealPane:` @0xc178, `setupLiveAppViewForPane:` @0xc2bc, `sceneMonitor:sceneWasDestroyed:` @0xe9e8, `layoutPane:` @0xec80, `effectiveOrientation:` @0xf364, `carWindow` @0xf3d0, `bundleForHash:` @0xf40c, `frameOfApp:` @0xf5ec, `appWithHash:changedOrientation:supportedMask:` @0xf6b0, `nudgePane:` @0xf9ac, `setFrame:forApp:live:handle:passInsets:` @0xfe68, `setPassInsets:forApp:` @0x1038c, `setCornerRadius:corners:forApp:` @0x10438, `buildBarForPane:` @0x105b8, `layoutBarForPane:` @0x11690, `setBarVisible:pop:dim:single:forApp:` @0x11868, `hideBarForPane:` @0x12610, `setShieldAll:` @0x128a4, `setShield:forPane:` @0x129d8, `setHole:forApp:` @0x12ce4, `outsideTouched` @0x12e08, `paneOfBarButton:` @0x12f78, `postBarAction:from:` @0x13148, `barReplace:` @0x13378, `barPop:` @0x13388, `barFull:` @0x13398, `barBackground:` @0x133a8, `barClose:` @0x133b8, `setupHandleForPane:` @0x133c8, `setHandleVisible:forPane:` @0x137cc, `raiseKnobs` @0x13918, `setKnobs:` @0x13abc, `setHandleOffset:forApp:` @0x14c7c, `handlePanned:` @0x14d34, `setFront:forApp:` @0x151a8, `handleTapped:` @0x152d4, `teardownPane:` @0x155b0, `closeApp:terminate:` @0x15ca0, `closeAll` @0x160ec, `closeAllExcept:` @0x160f4, `carDisconnected` @0x163e8, `carAppArea` @0x166b4, `setCarAppArea:` @0x166c0, `window` @0x166cc, `setWindow:` @0x166d4, `shieldOn` @0x16704, `setShieldOn:` @0x1670c, `displayID` @0x16714, `setDisplayID:` @0x1671c, `panes` @0x16724, `setPanes:` @0x1672c, `knobViews` @0x1675c, `setKnobViews:` @0x16764, `.cxx_destruct` @0x16794, `+shared` @0xa9e8.
+
+**ABKey** (20): `paint:` @0x181dc, `setHighlighted:` @0x187d4, `layoutSubviews` @0x189c8, `value` @0x18afc, `setValue:` @0x18b0c, `command` @0x18b18, `setCommand:` @0x18b28, `weight` @0x18b34, `setWeight:` @0x18b44, `lit` @0x18b54, `setLit:` @0x18b64, `restColor` @0x18b74, `setRestColor:` @0x18b84, `restTint` @0x18bc4, `setRestTint:` @0x18bd4, `hint` @0x18c14, `setHint:` @0x18c24, `accent` @0x18c64, `setAccent:` @0x18c74, `.cxx_destruct` @0x18cb4.
+
+**ABKeyboard** (49): `showForApp:keyboardType:returnType:` @0x18db4, `hideForApp:` @0x1935c, `layoutPanelIn:` @0x196d0, `key:pressed:` @0x199cc, `buildPanel` @0x1a200, `key:symbol:value:command:weight:` @0x1abb0, `key:value:command:weight:` @0x1b408, `rebuildKeys` @0x1b430, `layoutKeys` @0x1bf5c, `updatePreview` @0x1c5c8, `langTapped` @0x1c7b8, `send:del:text:` @0x1c81c, `typeCharacter:` @0x1ca2c, `keyTapped:` @0x1cdd4, `hideTapped` @0x1d244, `app` @0x1d27c, `setApp:` @0x1d284, `panel` @0x1d28c, `setPanel:` @0x1d294, `glass` @0x1d2c4, `setGlass:` @0x1d2cc, `bubble` @0x1d2fc, `setBubble:` @0x1d304, `field` @0x1d334, `setField:` @0x1d33c, `preview` @0x1d36c, `setPreview:` @0x1d374, `langButton` @0x1d3a4, `setLangButton:` @0x1d3ac, `hideButton` @0x1d3dc, `setHideButton:` @0x1d3e4, `keysView` @0x1d414, `setKeysView:` @0x1d41c, `rows` @0x1d44c, `setRows:` @0x1d454, `numbers` @0x1d484, `setNumbers:` @0x1d48c, `shift` @0x1d494, `setShift:` @0x1d49c, `vietnamese` @0x1d4a4, `setVietnamese:` @0x1d4ac, `returnType` @0x1d4b4, `setReturnType:` @0x1d4bc, `word` @0x1d4c4, `setWord:` @0x1d4cc, `typed` @0x1d4fc, `setTyped:` @0x1d504, `.cxx_destruct` @0x1d534, `+shared` @0x18d44.
+
+
+
+Attribution seam, recorded for the coordinator: this report's
+§1 list assigns `ensureWindow`, `setupLiveAppViewForPane:`,
+`teardownPane:` and `revealPane:` to B; REPORT_B §1 assigns the
+same four to A. Integration resolved ownership by file, not by
+report: `ABHostLaunch.m` (A) carries the launch/teardown
+bodies, `ABHostBMethods.m` (B) the geometry/lifecycle set, and
+the five overlap helpers B depends on (`shared`, `count`,
+`hostsApp:`, `paneFor:`, `bundleForHash:`) were reconstructed
+by both halves and deduped to single definitions in phase 3
+(each ABHost selector has exactly one definition in the
+canonical source; A defines 16 ABHost methods, B defines 33,
+intersection ∅). Statuses for every B body are in REPORT_B §8;
+the condensed areas are declared in REPORT_B §9.
+
 
 ---
 

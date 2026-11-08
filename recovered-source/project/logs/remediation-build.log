@@ -1,0 +1,984 @@
+[1;31m> [1;3;39mMaking all in OmniCarApp…[m
+[1;31m> [1;3;39mMaking all for application OmniCar…[m
+[0;35m==> [1;39mCopying resource directories into the application wrapper…[m
+[0;32m==> [1;39mCompiling main.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCAppDelegate.m (arm64)…[m
+[0;33m==> [1;39mLinking application OmniCar (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCar (arm64)…[m
+[0;34m==> [1;39mSigning OmniCar…[m
+[1;31m> [1;3;39mMaking all in OmniCarCore…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarCore…[m
+[0;32m==> [1;39mCompiling OmniCarCore.c (arm64)…[m
+[0;32m==> [1;39mCompiling ../OMCCommon/OMCCommon.c (arm64)…[m
+[0;33m==> [1;39mLinking tweak OmniCarCore (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCarCore (arm64)…[m
+[0;34m==> [1;39mSigning OmniCarCore…[m
+[1;31m> [1;3;39mMaking all in OmniCarAppBridge…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarAppBridge…[m
+[0;32m==> [1;39mCompiling ABChannelNames.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABChromeViews.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABChannels.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABHostLaunch.m (arm64)…[m
+[1mABHostLaunch.m:169:18: [0m[0;1;35mwarning: [0m[1mincompatible pointer types assigning to 'ABBoxView * _Nonnull' from 'UIView *' [-Wincompatible-pointer-types][0m
+  169 |         pane.box = box;[0m
+      | [0;1;32m                 ^ ~~~
+[0m[1mABHostLaunch.m:182:50: [0m[0;1;35mwarning: [0m[1mvalues of type 'NSInteger' should not be used as format arguments; add an explicit cast to 'long' instead [-Wformat][0m
+  181 |             @"host %@ tai %@ (huong %lld, zoom %.2f)",[0m
+      | [0;1;32m                                    ~~~~
+[0m      | [0;32m                                    %ld
+[0m  182 |             bundleID, NSStringFromCGRect(frame), pane.orientation, [self zoom]]);[0m
+      | [0;1;32m                                                 ^~~~~~~~~~~~~~~~
+[0m      | [0;32m                                                 (long)
+[0m[1mABHostLaunch.m:228:41: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  228 | - (void)closeAll { [self closeAllExcept:nil]; }[0m
+      | [0;1;32m                                        ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'zoom' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:71:1: [0m[0;1;36mnote: [0mmethod 'zoom' declared here[0m
+   71 | - (double)zoom; // clamp(pref appBridgeZoom / 100, 0.6, 1.0) — floor[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setFrame:forApp:live:handle:passInsets:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:74:1: [0m[0;1;36mnote: [0mmethod 'setFrame:forApp:live:handle:passInsets:' declared here[0m
+   74 | - (void)setFrame:(CGRect)frame forApp:(NSString *)app live:(BOOL)live[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'layoutPane:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:76:1: [0m[0;1;36mnote: [0mmethod 'layoutPane:' declared here[0m
+   76 | - (void)layoutPane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'nudgePane:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:77:1: [0m[0;1;36mnote: [0mmethod 'nudgePane:' declared here[0m
+   77 | - (void)nudgePane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'effectiveOrientation:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:78:1: [0m[0;1;36mnote: [0mmethod 'effectiveOrientation:' declared here[0m
+   78 | - (NSInteger)effectiveOrientation:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'appWithHash:changedOrientation:supportedMask:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:79:1: [0m[0;1;36mnote: [0mmethod 'appWithHash:changedOrientation:supportedMask:' declared here[0m
+   79 | - (void)appWithHash:(uint64_t)hash changedOrientation:(NSInteger)orientation[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setHole:forApp:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:81:1: [0m[0;1;36mnote: [0mmethod 'setHole:forApp:' declared here[0m
+   81 | - (void)setHole:(CGRect)hole forApp:(NSString *)app;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setPassInsets:forApp:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:82:1: [0m[0;1;36mnote: [0mmethod 'setPassInsets:forApp:' declared here[0m
+   82 | - (void)setPassInsets:(UIEdgeInsets)insets forApp:(NSString *)app;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setShieldAll:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:85:1: [0m[0;1;36mnote: [0mmethod 'setShieldAll:' declared here[0m
+   85 | - (void)setShieldAll:(BOOL)on;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setShield:forPane:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:86:1: [0m[0;1;36mnote: [0mmethod 'setShield:forPane:' declared here[0m
+   86 | - (void)setShield:(BOOL)on forPane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'outsideTouched' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:87:1: [0m[0;1;36mnote: [0mmethod 'outsideTouched' declared here[0m
+   87 | - (void)outsideTouched;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'handlePanned:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:88:1: [0m[0;1;36mnote: [0mmethod 'handlePanned:' declared here[0m
+   88 | - (void)handlePanned:(UIPanGestureRecognizer *)gesture;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'handleTapped:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:89:1: [0m[0;1;36mnote: [0mmethod 'handleTapped:' declared here[0m
+   89 | - (void)handleTapped:(UITapGestureRecognizer *)gesture;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'sceneMonitor:sceneWasDestroyed:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:92:1: [0m[0;1;36mnote: [0mmethod 'sceneMonitor:sceneWasDestroyed:' declared here[0m
+   92 | - (void)sceneMonitor:(id)monitor sceneWasDestroyed:(id)scene;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'carDisconnected' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:93:1: [0m[0;1;36mnote: [0mmethod 'carDisconnected' declared here[0m
+   93 | - (void)carDisconnected;[0m
+      | [0;1;32m^
+[0m18 warnings generated.
+[0;32m==> [1;39mCompiling ABHostGeometry.m (arm64)…[m
+[1mABHostGeometry.m:160:41: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  160 |         [[ABKeyboard shared] hideForApp:nil];[0m
+      | [0;1;32m                                        ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m1 warning generated.
+[0;32m==> [1;39mCompiling ABInApp.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABTelex.m (arm64)…[m
+[1mABTelex.m:73:13: [0m[0;1;35mwarning: [0m[1munused variable 'keyRaw' [-Wunused-variable][0m
+   73 |     unichar keyRaw = [keyString characterAtIndex:0];[0m
+      | [0;1;32m            ^~~~~~
+[0m1 warning generated.
+[0;32m==> [1;39mCompiling ABKeyboard.m (arm64)…[m
+[0;32m==> [1;39mCompiling AppBridgeEntry.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABPane.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABMissingSelector.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABHostBMethods.m (arm64)…[m
+[1mABHostBMethods.m:760:23: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  760 |         pane.shield = nil;[0m
+      | [0;1;32m                      ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostBMethods.m:770:23: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  770 |         pane.shield = nil;[0m
+      | [0;1;32m                      ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostBMethods.m:1278:29: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+ 1278 |         pane.sceneMonitor = nil;[0m
+      | [0;1;32m                            ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostBMethods.m:1301:30: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+ 1301 |     pane.appViewController = nil;[0m
+      | [0;1;32m                             ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostBMethods.m:496:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  496 | - (double)zoom {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:71:1: [0m[0;1;36mnote: [0mmethod 'zoom' declared here[0m
+   71 | - (double)zoom; // clamp(pref appBridgeZoom / 100, 0.6, 1.0) — floor[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:558:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  558 | - (void)setFrame:(CGRect)frame forApp:(NSString *)app live:(BOOL)live[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:74:1: [0m[0;1;36mnote: [0mmethod 'setFrame:forApp:live:handle:passInsets:' declared here[0m
+   74 | - (void)setFrame:(CGRect)frame forApp:(NSString *)app live:(BOOL)live[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:645:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  645 | - (void)layoutPane:(ABPane *)pane {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:76:1: [0m[0;1;36mnote: [0mmethod 'layoutPane:' declared here[0m
+   76 | - (void)layoutPane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:683:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  683 | - (void)nudgePane:(ABPane *)pane {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:77:1: [0m[0;1;36mnote: [0mmethod 'nudgePane:' declared here[0m
+   77 | - (void)nudgePane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:504:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  504 | - (NSInteger)effectiveOrientation:(ABPane *)pane {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:78:1: [0m[0;1;36mnote: [0mmethod 'effectiveOrientation:' declared here[0m
+   78 | - (NSInteger)effectiveOrientation:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:521:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  521 | - (void)appWithHash:(uint64_t)hash changedOrientation:(NSInteger)changed[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:79:1: [0m[0;1;36mnote: [0mmethod 'appWithHash:changedOrientation:supportedMask:' declared here[0m
+   79 | - (void)appWithHash:(uint64_t)hash changedOrientation:(NSInteger)orientation[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:716:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  716 | - (void)setHole:(CGRect)hole forApp:(NSString *)app {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:81:1: [0m[0;1;36mnote: [0mmethod 'setHole:forApp:' declared here[0m
+   81 | - (void)setHole:(CGRect)hole forApp:(NSString *)app;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:726:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  726 | - (void)setPassInsets:(UIEdgeInsets)insets forApp:(NSString *)app {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:82:1: [0m[0;1;36mnote: [0mmethod 'setPassInsets:forApp:' declared here[0m
+   82 | - (void)setPassInsets:(UIEdgeInsets)insets forApp:(NSString *)app;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:733:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  733 | - (void)setShieldAll:(BOOL)on {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:85:1: [0m[0;1;36mnote: [0mmethod 'setShieldAll:' declared here[0m
+   85 | - (void)setShieldAll:(BOOL)on;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:744:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  744 | - (void)setShield:(BOOL)on forPane:(ABPane *)pane {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:86:1: [0m[0;1;36mnote: [0mmethod 'setShield:forPane:' declared here[0m
+   86 | - (void)setShield:(BOOL)on forPane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:766:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  766 | - (void)outsideTouched {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:87:1: [0m[0;1;36mnote: [0mmethod 'outsideTouched' declared here[0m
+   87 | - (void)outsideTouched;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:779:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  779 | - (void)handlePanned:(UIPanGestureRecognizer *)gesture {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:88:1: [0m[0;1;36mnote: [0mmethod 'handlePanned:' declared here[0m
+   88 | - (void)handlePanned:(UIPanGestureRecognizer *)gesture;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:801:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  801 | - (void)handleTapped:(UITapGestureRecognizer *)gesture {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:89:1: [0m[0;1;36mnote: [0mmethod 'handleTapped:' declared here[0m
+   89 | - (void)handleTapped:(UITapGestureRecognizer *)gesture;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:815:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  815 | - (void)sceneMonitor:(id)monitor sceneWasDestroyed:(id)scene {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:92:1: [0m[0;1;36mnote: [0mmethod 'sceneMonitor:sceneWasDestroyed:' declared here[0m
+   92 | - (void)sceneMonitor:(id)monitor sceneWasDestroyed:(id)scene;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:839:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  839 | - (void)carDisconnected {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:93:1: [0m[0;1;36mnote: [0mmethod 'carDisconnected' declared here[0m
+   93 | - (void)carDisconnected;[0m
+      | [0;1;32m^
+[0m19 warnings generated.
+[0;32m==> [1;39mCompiling ../OMCCommon/OMCCommon.c (arm64)…[m
+[0;33m==> [1;39mLinking tweak OmniCarAppBridge (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCarAppBridge (arm64)…[m
+[0;34m==> [1;39mSigning OmniCarAppBridge…[m
+[1;31m> [1;3;39mMaking all in OmniCarCarProbe…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarCarProbe…[m
+[0;32m==> [1;39mCompiling OmniCarCarProbe.m (arm64)…[m
+[1mOmniCarCarProbe.m:923:21: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  923 |         return [cls performSelector:s1 withObject:appInfo];[0m
+      | [0;1;32m                    ^
+[0m[1mOmniCarCarProbe.m:923:37: [0m[0;1;36mnote: [0mused here[0m
+  923 |         return [cls performSelector:s1 withObject:appInfo];[0m
+      | [0;1;32m                                    ^
+[0m[1mOmniCarCarProbe.m:925:21: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  925 |         return [cls performSelector:s2 withObject:appInfo[0m
+      | [0;1;32m                    ^
+[0m[1mOmniCarCarProbe.m:925:37: [0m[0;1;36mnote: [0mused here[0m
+  925 |         return [cls performSelector:s2 withObject:appInfo[0m
+      | [0;1;32m                                    ^
+[0m[1mOmniCarCarProbe.m:140:20: [0m[0;1;35mwarning: [0m[1munused function 'OMCRootPrefix' [-Wunused-function][0m
+  140 | static const char *OMCRootPrefix(void) {[0m
+      | [0;1;32m                   ^~~~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:144:20: [0m[0;1;35mwarning: [0m[1munused function 'OMCJBRootPrefix' [-Wunused-function][0m
+  144 | static const char *OMCJBRootPrefix(void) {[0m
+      | [0;1;32m                   ^~~~~~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:148:20: [0m[0;1;35mwarning: [0m[1munused function 'OMCBootUUID' [-Wunused-function][0m
+  148 | static const char *OMCBootUUID(void) {[0m
+      | [0;1;32m                   ^~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:152:14: [0m[0;1;35mwarning: [0m[1munused function 'OMCRootFSPath' [-Wunused-function][0m
+  152 | static char *OMCRootFSPath(const char *path, char *out) {   // 0x40c0[0m
+      | [0;1;32m             ^~~~~~~~~~~~~
+[0m6 warnings generated.
+[0;33m==> [1;39mLinking tweak OmniCarCarProbe (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCarCarProbe (arm64)…[m
+[0;34m==> [1;39mSigning OmniCarCarProbe…[m
+[1;31m> [1;3;39mMaking all in OmniCarSpeedBubble…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarSpeedBubble…[m
+[0;32m==> [1;39mCompiling SBScan.m (arm64)…[m
+[1mSBScan.m:276:31: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  276 |                 id w = [scene performSelector:carWindowSel];[0m
+      | [0;1;32m                              ^
+[0m[1mSBScan.m:276:47: [0m[0;1;36mnote: [0mused here[0m
+  276 |                 id w = [scene performSelector:carWindowSel];[0m
+      | [0;1;32m                                              ^
+[0m1 warning generated.
+[0;32m==> [1;39mCompiling SBFlutter.m (arm64)…[m
+[1mSBFlutter.m:152:33: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  152 |             codec = [codecClass performSelector:[0m
+      | [0;1;32m                                ^
+[0m[1mSBFlutter.m:153:37: [0m[0;1;36mnote: [0mused here[0m
+  153 |                                     NSSelectorFromString(@"sharedInstance")];[0m
+      | [0;1;32m                                    ^
+[0m[1mSBFlutter.m:154:27: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  154 |             call = [codec performSelector:NSSelectorFromString([0m
+      | [0;1;32m                          ^
+[0m[1mSBFlutter.m:154:43: [0m[0;1;36mnote: [0mused here[0m
+  154 |             call = [codec performSelector:NSSelectorFromString([0m
+      | [0;1;32m                                          ^
+[0m[1mSBFlutter.m:166:28: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  166 |             method = [call performSelector:NSSelectorFromString(@"method")];[0m
+      | [0;1;32m                           ^
+[0m[1mSBFlutter.m:166:44: [0m[0;1;36mnote: [0mused here[0m
+  166 |             method = [call performSelector:NSSelectorFromString(@"method")];[0m
+      | [0;1;32m                                           ^
+[0m[1mSBFlutter.m:168:23: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  168 |                 [call performSelector:NSSelectorFromString(@"arguments")];[0m
+      | [0;1;32m                      ^
+[0m[1mSBFlutter.m:168:39: [0m[0;1;36mnote: [0mused here[0m
+  168 |                 [call performSelector:NSSelectorFromString(@"arguments")];[0m
+      | [0;1;32m                                      ^
+[0m4 warnings generated.
+[0;32m==> [1;39mCompiling SBPublish.m (arm64)…[m
+[0;32m==> [1;39mCompiling SBSourceHooks.m (arm64)…[m
+[0;32m==> [1;39mCompiling SBScanHelpers.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPDisplayBoot.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPOverspeed.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPPrefs.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPBubble.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPSpeedGPS.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPBubbleView.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPViews.m (arm64)…[m
+[0;32m==> [1;39mCompiling SBIntegrationTables.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPWindowFactory.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPWarningSound.m (arm64)…[m
+[0;32m==> [1;39mCompiling ../OMCCommon/OMCCommon.c (arm64)…[m
+[0;33m==> [1;39mLinking tweak OmniCarSpeedBubble (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCarSpeedBubble (arm64)…[m
+[0;34m==> [1;39mSigning OmniCarSpeedBubble…[m
+[1;31m> [1;3;39mMaking all in OmniCarSplitScreen…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarSplitScreen…[m
+[0;32m==> [1;39mCompiling SCPPrefs.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPShared.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPSmallClasses.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPHooks.m (arm64)…[m
+[1mSCPHooks.m:655:35: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  655 |     OMCCheckHooks(@"SplitScreen", nil);   // second name list at 0x80338 in the original[0m
+      | [0;1;32m                                  ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m1 warning generated.
+[0;32m==> [1;39mCompiling SCPSpringBoardHooks.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPPerfTelemetry.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCButton.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCTouchWatch.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPSessionCore.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCarDividerView.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCarSplit+Chrome.m (arm64)…[m
+[1mSCPCarSplit+Chrome.m:294:30: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  294 |     [self hideBarsForTouchOn:nil];[0m
+      | [0;1;32m                             ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mSCPCarSplit+Chrome.m:250:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  250 | - (BOOL)anyBarVisible {                                                  // (getter used by popupOpen)[0m
+      | [0;1;32m^
+[0m[1m./SCPCarSplit.h:173:1: [0m[0;1;36mnote: [0mmethod 'anyBarVisible' declared here[0m
+  173 | - (BOOL)anyBarVisible;[0m
+      | [0;1;32m^
+[0m2 warnings generated.
+[0;32m==> [1;39mCompiling SCPCarSplit+Drag.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCarSplit+Divider.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCarSplit+Layout.m (arm64)…[m
+[1mSCPCarSplit+Layout.m:44:17: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   44 |     return [app performSelector:sel];[0m
+      | [0;1;32m                ^
+[0m[1mSCPCarSplit+Layout.m:44:33: [0m[0;1;36mnote: [0mused here[0m
+   44 |     return [app performSelector:sel];[0m
+      | [0;1;32m                                ^
+[0m[1mSCPCarSplit+Layout.m:60:23: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   60 |     return [dashboard performSelector:sel];[0m
+      | [0;1;32m                      ^
+[0m[1mSCPCarSplit+Layout.m:60:39: [0m[0;1;36mnote: [0mused here[0m
+   60 |     return [dashboard performSelector:sel];[0m
+      | [0;1;32m                                      ^
+[0m[1mSCPCarSplit+Layout.m:396:25: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  396 |         content = [host performSelector:contentSel];[0m
+      | [0;1;32m                        ^
+[0m[1mSCPCarSplit+Layout.m:396:41: [0m[0;1;36mnote: [0mused here[0m
+  396 |         content = [host performSelector:contentSel];[0m
+      | [0;1;32m                                        ^
+[0m[1mSCPCarSplit+Layout.m:402:22: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  402 |         dock = [host performSelector:dockSel];[0m
+      | [0;1;32m                     ^
+[0m[1mSCPCarSplit+Layout.m:402:38: [0m[0;1;36mnote: [0mused here[0m
+  402 |         dock = [host performSelector:dockSel];[0m
+      | [0;1;32m                                     ^
+[0m[1mSCPCarSplit+Layout.m:415:27: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  415 |         hostSpace = [host performSelector:spaceSel];[0m
+      | [0;1;32m                          ^
+[0m[1mSCPCarSplit+Layout.m:415:43: [0m[0;1;36mnote: [0mused here[0m
+  415 |         hostSpace = [host performSelector:spaceSel];[0m
+      | [0;1;32m                                          ^
+[0m[1mSCPCarSplit+Layout.m:439:30: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  439 |             dockView = [dock performSelector:viewSel];[0m
+      | [0;1;32m                             ^
+[0m[1mSCPCarSplit+Layout.m:439:46: [0m[0;1;36mnote: [0mused here[0m
+  439 |             dockView = [dock performSelector:viewSel];[0m
+      | [0;1;32m                                             ^
+[0m[1mSCPCarSplit+Layout.m:65:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'relayoutAnimated:' not found [-Wincomplete-implementation][0m
+   65 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:272:1: [0m[0;1;36mnote: [0mmethod 'relayoutAnimated:' declared here[0m
+  272 | - (void)relayoutAnimated:(BOOL)animated;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Layout.m:65:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'relayoutAnimated:pushScenes:' not found [-Wincomplete-implementation][0m
+   65 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:273:1: [0m[0;1;36mnote: [0mmethod 'relayoutAnimated:pushScenes:' declared here[0m
+  273 | - (void)relayoutAnimated:(BOOL)animated pushScenes:(BOOL)pushScenes;[0m
+      | [0;1;32m^
+[0m8 warnings generated.
+[0;32m==> [1;39mCompiling SCPCarSplit+Panel.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCarSplit.m (arm64)…[m
+[1mSCPCarSplit.m:494:43: [0m[0;1;35mwarning: [0m[1munused variable 's' [-Wunused-variable][0m
+  494 |         NSString *b = bundleID; NSInteger s = slot;[0m
+      | [0;1;32m                                          ^
+[0m[1mSCPCarSplit.m:1381:18: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+ 1381 |     self.slots = nil;[0m
+      | [0;1;32m                 ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mSCPCarSplit.m:1382:22: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+ 1382 |     self.fractions = nil;[0m
+      | [0;1;32m                     ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mSCPCarSplit.m:1383:21: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+ 1383 |     self.dividers = nil;[0m
+      | [0;1;32m                    ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mSCPCarSplit.m:43:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'anyBarVisible' not found [-Wincomplete-implementation][0m
+   43 | @implementation SCPCarSplit[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:173:1: [0m[0;1;36mnote: [0mmethod 'anyBarVisible' declared here[0m
+  173 | - (BOOL)anyBarVisible;[0m
+      | [0;1;32m^
+[0m5 warnings generated.
+[0;32m==> [1;39mCompiling SCPCarSplit+RatioMenu.m (arm64)…[m
+[1mSCPCarSplit+RatioMenu.m:359:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ratioPresetTapped:' not found [-Wincomplete-implementation][0m
+  359 | @implementation SCPCarSplit (RatioMenu)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:341:1: [0m[0;1;36mnote: [0mmethod 'ratioPresetTapped:' declared here[0m
+  341 | - (void)ratioPresetTapped:(UIButton *)button;[0m
+      | [0;1;32m^
+[0m1 warning generated.
+[0;32m==> [1;39mCompiling SCPCarSplit+Zoom.m (arm64)…[m
+[1mSCPCarSplit+Zoom.m:316:28: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  316 |     [self afterPaneRemoved:nil];[0m
+      | [0;1;32m                           ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m1 warning generated.
+[0;32m==> [1;39mCompiling SCPCarSplitView.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCarTabView.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPCarSplit+Relayout.m (arm64)…[m
+[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'vertical' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:262:1: [0m[0;1;36mnote: [0mmethod 'vertical' declared here[0m
+  262 | - (BOOL)vertical;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'mainStack' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:263:1: [0m[0;1;36mnote: [0mmethod 'mainStack' declared here[0m
+  263 | - (BOOL)mainStack;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'mainRight' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:264:1: [0m[0;1;36mnote: [0mmethod 'mainRight' declared here[0m
+  264 | - (BOOL)mainRight;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'dividerRunsHorizontally:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:265:1: [0m[0;1;36mnote: [0mmethod 'dividerRunsHorizontally:' declared here[0m
+  265 | - (BOOL)dividerRunsHorizontally:(NSInteger)index;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'fractionAt:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:266:1: [0m[0;1;36mnote: [0mmethod 'fractionAt:' declared here[0m
+  266 | - (double)fractionAt:(NSInteger)index;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'frameForSlot:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:267:1: [0m[0;1;36mnote: [0mmethod 'frameForSlot:' declared here[0m
+  267 | - (CGRect)frameForSlot:(NSInteger)slot;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'mainStackFrameForSlot:inArea:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:268:1: [0m[0;1;36mnote: [0mmethod 'mainStackFrameForSlot:inArea:' declared here[0m
+  268 | - (CGRect)mainStackFrameForSlot:(NSInteger)slot inArea:(CGRect)area;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'leftMainStackFrameForSlot:inArea:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:269:1: [0m[0;1;36mnote: [0mmethod 'leftMainStackFrameForSlot:inArea:' declared here[0m
+  269 | - (CGRect)leftMainStackFrameForSlot:(NSInteger)slot inArea:(CGRect)area;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'resetFractions' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:270:1: [0m[0;1;36mnote: [0mmethod 'resetFractions' declared here[0m
+  270 | - (void)resetFractions;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'normalizeFractions' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:271:1: [0m[0;1;36mnote: [0mmethod 'normalizeFractions' declared here[0m
+  271 | - (void)normalizeFractions;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'appAreaInParent:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:274:1: [0m[0;1;36mnote: [0mmethod 'appAreaInParent:' declared here[0m
+  274 | - (CGRect)appAreaInParent:(UIView *)parent;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'innerCornersForSlot:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:275:1: [0m[0;1;36mnote: [0mmethod 'innerCornersForSlot:' declared here[0m
+  275 | - (NSUInteger)innerCornersForSlot:(NSInteger)slot;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'neighbourCornersForSlot:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:276:1: [0m[0;1;36mnote: [0mmethod 'neighbourCornersForSlot:' declared here[0m
+  276 | - (NSUInteger)neighbourCornersForSlot:(NSInteger)slot;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'dividersVisible' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:277:1: [0m[0;1;36mnote: [0mmethod 'dividersVisible' declared here[0m
+  277 | - (BOOL)dividersVisible;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'dividerFrameAt:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:278:1: [0m[0;1;36mnote: [0mmethod 'dividerFrameAt:' declared here[0m
+  278 | - (CGRect)dividerFrameAt:(NSInteger)index;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'rebuildDividers' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:279:1: [0m[0;1;36mnote: [0mmethod 'rebuildDividers' declared here[0m
+  279 | - (void)rebuildDividers;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'newDividerAt:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:280:1: [0m[0;1;36mnote: [0mmethod 'newDividerAt:' declared here[0m
+  280 | - (SCPCarDividerView *)newDividerAt:(NSInteger)index;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'layoutKnobOf:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:281:1: [0m[0;1;36mnote: [0mmethod 'layoutKnobOf:' declared here[0m
+  281 | - (void)layoutKnobOf:(SCPCarDividerView *)divider;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'flashFocusOnPane:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:282:1: [0m[0;1;36mnote: [0mmethod 'flashFocusOnPane:' declared here[0m
+  282 | - (void)flashFocusOnPane:(SCPCarPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mSCPCarSplit+Relayout.m:18:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'slotIsPinned:' not found [-Wincomplete-implementation][0m
+   18 | @implementation SCPCarSplit (Layout)[0m
+      | [0;1;32m                ^
+[0m[1m./SCPCarSplit.h:283:1: [0m[0;1;36mnote: [0mmethod 'slotIsPinned:' declared here[0m
+  283 | - (BOOL)slotIsPinned:(NSInteger)slot;[0m
+      | [0;1;32m^
+[0m20 warnings generated.
+[0;32m==> [1;39mCompiling SCPCarSplit+Picker.m (arm64)…[m
+[1mSCPCarSplit+Picker.m:781:36: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  781 |             [self afterPaneRemoved:nil];[0m
+      | [0;1;32m                                   ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mSCPCarSplit+Picker.m:844:47: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  844 |     [self setFullscreenBridgeHidden:NO bundle:nil];[0m
+      | [0;1;32m                                              ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m2 warnings generated.
+[0;32m==> [1;39mCompiling SCPHomeWallView.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPDiagDump.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPAppIcons.m (arm64)…[m
+[1mSCPAppIcons.m:40:25: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   40 |             return [obj performSelector:NSSelectorFromString(name)];[0m
+      | [0;1;32m                        ^
+[0m[1mSCPAppIcons.m:40:41: [0m[0;1;36mnote: [0mused here[0m
+   40 |             return [obj performSelector:NSSelectorFromString(name)];[0m
+      | [0;1;32m                                        ^
+[0m[1mSCPAppIcons.m:70:25: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   70 |             return [obj performSelector:NSSelectorFromString(name)];[0m
+      | [0;1;32m                        ^
+[0m[1mSCPAppIcons.m:70:41: [0m[0;1;36mnote: [0mused here[0m
+   70 |             return [obj performSelector:NSSelectorFromString(name)];[0m
+      | [0;1;32m                                        ^
+[0m[1mSCPAppIcons.m:237:79: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  237 |             ((void (*)(id, SEL, id, id))objc_msgSend)(library, addSel, proxy, nil);[0m
+      | [0;1;32m                                                                              ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m3 warnings generated.
+[0;32m==> [1;39mCompiling SCPCarApps.m (arm64)…[m
+[1mSCPCarApps.m:55:25: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   55 |             return [obj performSelector:NSSelectorFromString(name)];[0m
+      | [0;1;32m                        ^
+[0m[1mSCPCarApps.m:55:41: [0m[0;1;36mnote: [0mused here[0m
+   55 |             return [obj performSelector:NSSelectorFromString(name)];[0m
+      | [0;1;32m                                        ^
+[0m[1mSCPCarApps.m:177:77: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  177 |         ((void (*)(id, SEL, id, id))objc_msgSend)(dashboard, dashSel, info, nil);[0m
+      | [0;1;32m                                                                            ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mSCPCarApps.m:340:17: [0m[0;1;35mwarning: [0m[1munused function 'SCPDynamicLabelColor' [-Wunused-function][0m
+  340 | static UIColor *SCPDynamicLabelColor(id styleOwner) {[0m
+      | [0;1;32m                ^~~~~~~~~~~~~~~~~~~~
+[0m3 warnings generated.
+[0;32m==> [1;39mCompiling SCPHomeHooks.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPHomeSettings.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPLibRoot.m (arm64)…[m
+[1mSCPLibRoot.m:40:16: [0m[0;1;35mwarning: [0m[1mnull returned from function that requires a non-null return value [-Wnonnull][0m
+   40 |     if (!path) return NULL;[0m
+      | [0;1;32m               ^      ~~~~
+[0m[1mSCPLibRoot.m:54:16: [0m[0;1;35mwarning: [0m[1mnull returned from function that requires a non-null return value [-Wnonnull][0m
+   54 |     if (!path) return NULL;[0m
+      | [0;1;32m               ^      ~~~~
+[0m2 warnings generated.
+[0;32m==> [1;39mCompiling SCPHomeApply.m (arm64)…[m
+[0;32m==> [1;39mCompiling SCPHomeVisibility.m (arm64)…[m
+[0;32m==> [1;39mCompiling ../OMCCommon/OMCCommon.c (arm64)…[m
+[0;33m==> [1;39mLinking tweak OmniCarSplitScreen (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCarSplitScreen (arm64)…[m
+[0;34m==> [1;39mSigning OmniCarSplitScreen…[m
+[1;31m> [1;3;39mMaking all in OmniCarStartupScreen…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarStartupScreen…[m
+[0;32m==> [1;39mCompiling SSSplash.m (arm64)…[m
+[1mSSSplash.m:173:12: [0m[0;1;35mwarning: [0m[1m'setScreen:' is deprecated: first deprecated in iOS 13.0 [-Wdeprecated-declarations][0m
+  173 |     window.screen = screen;[0m
+      | [0;1;32m           ^~~~~~
+[0m      | [0;32m           setWindowScene
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/System/Library/Frameworks/UIKit.framework/Headers/UIWindow.h:35:1: [0m[0;1;36mnote: [0m'setScreen:' has been explicitly marked deprecated here[0m
+   35 | - (void)setScreen:(UIScreen *)screen API_DEPRECATED_WITH_REPLACEMENT("setWindowScene:", ios(3.2, 13.0));[0m
+      | [0;1;32m^
+[0m[1mSSSplash.m:345:27: [0m[0;1;35mwarning: [0m[1m'authorizationStatus' is deprecated: first deprecated in iOS 14.0 [-Wdeprecated-declarations][0m
+  345 |     if (CLLocationManager.authorizationStatus == kCLAuthorizationStatusNotDetermined) {[0m
+      | [0;1;32m                          ^~~~~~~~~~~~~~~~~~~
+[0m      | [0;32m                          authorizationStatus
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/System/Library/Frameworks/CoreLocation.framework/Headers/CLLocationManager.h:218:1: [0m[0;1;36mnote: [0m'authorizationStatus' has been explicitly marked deprecated here[0m
+  218 | + (CLAuthorizationStatus)authorizationStatus API_DEPRECATED_WITH_REPLACEMENT("-authorizationStatus", ios(4.2, 14.0), macos(10.7, 11.0), watchos(1.0, 7.0), tvos(9.0, 14.0));[0m
+      | [0;1;32m^
+[0m[1mSSSplash.m:345:27: [0m[0;1;35mwarning: [0m[1m'authorizationStatus' is deprecated: first deprecated in iOS 14.0 [-Wdeprecated-declarations][0m
+  345 |     if (CLLocationManager.authorizationStatus == kCLAuthorizationStatusNotDetermined) {[0m
+      | [0;1;32m                          ^~~~~~~~~~~~~~~~~~~
+[0m      | [0;32m                          authorizationStatus
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/System/Library/Frameworks/CoreLocation.framework/Headers/CLLocationManager.h:218:1: [0m[0;1;36mnote: [0m'authorizationStatus' has been explicitly marked deprecated here[0m
+  218 | + (CLAuthorizationStatus)authorizationStatus API_DEPRECATED_WITH_REPLACEMENT("-authorizationStatus", ios(4.2, 14.0), macos(10.7, 11.0), watchos(1.0, 7.0), tvos(9.0, 14.0));[0m
+      | [0;1;32m^
+[0m3 warnings generated.
+[0;32m==> [1;39mCompiling SSStartupView.m (arm64)…[m
+[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_sceneColors' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:53:1: [0m[0;1;36mnote: [0mmethod 'ss_sceneColors' declared here[0m
+   53 | - (NSArray *)ss_sceneColors;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_buildSky' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:54:1: [0m[0;1;36mnote: [0mmethod 'ss_buildSky' declared here[0m
+   54 | - (void)ss_buildSky;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_gaugeAt:radius:label:unit:max:red:in:' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:56:1: [0m[0;1;36mnote: [0mmethod 'ss_gaugeAt:radius:label:unit:max:red:in:' declared here[0m
+   56 | - (SSGauge *)ss_gaugeAt:(CGPoint)center radius:(double)radius label:(NSString *)label[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_buildEngine' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:58:1: [0m[0;1;36mnote: [0mmethod 'ss_buildEngine' declared here[0m
+   58 | - (void)ss_buildEngine;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_buildWelcome' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:61:1: [0m[0;1;36mnote: [0mmethod 'ss_buildWelcome' declared here[0m
+   61 | - (void)ss_buildWelcome;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_buildParticles' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:63:1: [0m[0;1;36mnote: [0mmethod 'ss_buildParticles' declared here[0m
+   63 | - (void)ss_buildParticles;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_buildHud' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:65:1: [0m[0;1;36mnote: [0mmethod 'ss_buildHud' declared here[0m
+   65 | - (void)ss_buildHud;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_buildBriefing' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:67:1: [0m[0;1;36mnote: [0mmethod 'ss_buildBriefing' declared here[0m
+   67 | - (void)ss_buildBriefing;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_buildLiquid' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:68:1: [0m[0;1;36mnote: [0mmethod 'ss_buildLiquid' declared here[0m
+   68 | - (void)ss_buildLiquid;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'ss_buildFestive' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:69:1: [0m[0;1;36mnote: [0mmethod 'ss_buildFestive' declared here[0m
+   69 | - (void)ss_buildFestive;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'buildGreetingWithDate:period:' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:72:1: [0m[0;1;36mnote: [0mmethod 'buildGreetingWithDate:period:' declared here[0m
+   72 | - (void)buildGreetingWithDate:(NSDate *)date period:(NSInteger)period;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:127:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'buildWeatherWithPeriod:' not found [-Wincomplete-implementation][0m
+  127 | @implementation SSStartupView[0m
+      | [0;1;32m                ^
+[0m[1mSSStartupView.m:73:1: [0m[0;1;36mnote: [0mmethod 'buildWeatherWithPeriod:' declared here[0m
+   73 | - (void)buildWeatherWithPeriod:(NSInteger)period;[0m
+      | [0;1;32m^
+[0m[1mSSStartupView.m:213:18: [0m[0;1;35mwarning: [0m[1munused function 'SSGreetingLine' [-Wunused-function][0m
+  213 | static NSString *SSGreetingLine(NSInteger period, NSInteger occasion) {[0m
+      | [0;1;32m                 ^~~~~~~~~~~~~~
+[0m[1mSSStartupView.m:239:18: [0m[0;1;35mwarning: [0m[1munused function 'SSWeatherSymbolName' [-Wunused-function][0m
+  239 | static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {[0m
+      | [0;1;32m                 ^~~~~~~~~~~~~~~~~~~
+[0m14 warnings generated.
+[0;32m==> [1;39mCompiling SSStartupViewBuilders.m (arm64)…[m
+[0;32m==> [1;39mCompiling SSStartupScreen.m (arm64)…[m
+[1mSSStartupScreen.m:675:40: [0m[0;1;35mwarning: [0m[1m'authorizationStatus' is deprecated: first deprecated in iOS 14.0 [-Wdeprecated-declarations][0m
+  675 |                 (int)CLLocationManager.authorizationStatus,[0m
+      | [0;1;32m                                       ^~~~~~~~~~~~~~~~~~~
+[0m      | [0;32m                                       authorizationStatus
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/System/Library/Frameworks/CoreLocation.framework/Headers/CLLocationManager.h:218:1: [0m[0;1;36mnote: [0m'authorizationStatus' has been explicitly marked deprecated here[0m
+  218 | + (CLAuthorizationStatus)authorizationStatus API_DEPRECATED_WITH_REPLACEMENT("-authorizationStatus", ios(4.2, 14.0), macos(10.7, 11.0), watchos(1.0, 7.0), tvos(9.0, 14.0));[0m
+      | [0;1;32m^
+[0m[1mSSStartupScreen.m:675:40: [0m[0;1;35mwarning: [0m[1m'authorizationStatus' is deprecated: first deprecated in iOS 14.0 [-Wdeprecated-declarations][0m
+  675 |                 (int)CLLocationManager.authorizationStatus,[0m
+      | [0;1;32m                                       ^~~~~~~~~~~~~~~~~~~
+[0m      | [0;32m                                       authorizationStatus
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/System/Library/Frameworks/CoreLocation.framework/Headers/CLLocationManager.h:218:1: [0m[0;1;36mnote: [0m'authorizationStatus' has been explicitly marked deprecated here[0m
+  218 | + (CLAuthorizationStatus)authorizationStatus API_DEPRECATED_WITH_REPLACEMENT("-authorizationStatus", ios(4.2, 14.0), macos(10.7, 11.0), watchos(1.0, 7.0), tvos(9.0, 14.0));[0m
+      | [0;1;32m^
+[0m2 warnings generated.
+[0;32m==> [1;39mCompiling SSStartupViewScenesB.m (arm64)…[m
+[1mSSStartupViewScenesB.m:62:18: [0m[0;1;35mwarning: [0m[1munused function 'SSWeatherCategory' [-Wunused-function][0m
+   62 | static NSInteger SSWeatherCategory(NSInteger code, BOOL isDay) {[0m
+      | [0;1;32m                 ^~~~~~~~~~~~~~~~~
+[0m[1mSSStartupViewScenesB.m:102:16: [0m[0;1;35mwarning: [0m[1munused function 'SSRoundedFont' [-Wunused-function][0m
+  102 | static UIFont *SSRoundedFont(double size, double weight) {[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1mSSStartupViewScenesB.m:229:22: [0m[0;1;35mwarning: [0m[1munused function 'SSPathGlowLayer' [-Wunused-function][0m
+  229 | static CAShapeLayer *SSPathGlowLayer(UIView *host, UIBezierPath *path, double unit) {[0m
+      | [0;1;32m                     ^~~~~~~~~~~~~~~
+[0m[1mSSStartupViewScenesB.m:251:13: [0m[0;1;35mwarning: [0m[1munused function 'SSHSLToRGB' [-Wunused-function][0m
+  251 | static void SSHSLToRGB(double h, double s, double l, double out[3]) {[0m
+      | [0;1;32m            ^~~~~~~~~~
+[0m4 warnings generated.
+[0;32m==> [1;39mCompiling ../OMCCommon/OMCCommon.c (arm64)…[m
+[0;33m==> [1;39mLinking tweak OmniCarStartupScreen (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCarStartupScreen (arm64)…[m
+[0;34m==> [1;39mSigning OmniCarStartupScreen…[m
+[1;31m> [1;3;39mMaking all in OmniCarPrefs…[m
+[1;31m> [1;3;39mMaking all for bundle OmniCarPrefs…[m
+[0;35m==> [1;39mCopying resource directories into the bundle wrapper…[m
+[0;32m==> [1;39mCompiling OMCCarProfilesController.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCCardPage.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCCells.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCFeatureListController.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCCommon.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCAppBridgeAppsController.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCHomeScreenController.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCHeaderCard.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCHSPreview.m (arm64)…[m
+[1mOMCHSPreview.m:22:28: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   22 |     id proxy = [proxyClass performSelector:sel withObject:bundleID];[0m
+      | [0;1;32m                           ^
+[0m[1mOMCHSPreview.m:22:44: [0m[0;1;36mnote: [0mused here[0m
+   22 |     id proxy = [proxyClass performSelector:sel withObject:bundleID];[0m
+      | [0;1;32m                                           ^
+[0m[1mOMCHSPreview.m:25:61: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   25 |     if ([proxy respondsToSelector:stateSel]) state = [proxy performSelector:stateSel];[0m
+      | [0;1;32m                                                            ^
+[0m[1mOMCHSPreview.m:25:77: [0m[0;1;36mnote: [0mused here[0m
+   25 |     if ([proxy respondsToSelector:stateSel]) state = [proxy performSelector:stateSel];[0m
+      | [0;1;32m                                                                            ^
+[0m[1mOMCHSPreview.m:28:64: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   28 |     if ([state respondsToSelector:instSel]) installed = [state performSelector:instSel];[0m
+      | [0;1;32m                                                               ^
+[0m[1mOMCHSPreview.m:28:80: [0m[0;1;36mnote: [0mused here[0m
+   28 |     if ([state respondsToSelector:instSel]) installed = [state performSelector:instSel];[0m
+      | [0;1;32m                                                                               ^
+[0m3 warnings generated.
+[0;32m==> [1;39mCompiling OMCOnboardingController.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCSSStyleTileCell.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCRootListController.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCSplitPreview.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCSpeedBubbleController.m (arm64)…[m
+[1mOMCSpeedBubbleController.m:487:23: [0m[0;1;35mwarning: [0m[1mincompatible pointer types initializing 'UISlider *' with an expression of type 'UIView *' [-Wincompatible-pointer-types][0m
+  487 |             UISlider *slider = [self sliderForKey:car ? @"speedBubbleSizeCar" : @"speedBubbleSizePhone"[0m
+      | [0;1;32m                      ^        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0m  488 |                                               min:60 max:220 def:100 format:@"%ld%%"[0m
+      | [0;1;32m                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0m  489 |                                             width:MIN(width - 140, 210)];[0m
+      | [0;1;32m                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0m[1mOMCSpeedBubbleController.m:695:15: [0m[0;1;35mwarning: [0m[1mincompatible pointer types initializing 'UISlider *' with an expression of type 'UIView *' [-Wincompatible-pointer-types][0m
+  695 |     UISlider *slider = [self sliderForKey:@"speedBubbleWarnOver" min:-10 max:10 def:5[0m
+      | [0;1;32m              ^        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0m  696 |                                    format:@"%+ld km/h" width:MIN(width - 140, 210)];[0m
+      | [0;1;32m                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0m2 warnings generated.
+[0;32m==> [1;39mCompiling OMCSplitScreenAppPickerController.m (arm64)…[m
+[1mOMCSplitScreenAppPickerController.m:26:17: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   26 |     return [obj performSelector:sel];[0m
+      | [0;1;32m                ^
+[0m[1mOMCSplitScreenAppPickerController.m:26:33: [0m[0;1;36mnote: [0mused here[0m
+   26 |     return [obj performSelector:sel];[0m
+      | [0;1;32m                                ^
+[0m[1mOMCSplitScreenAppPickerController.m:215:24: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  215 |         parent = [self performSelector:parentSel];[0m
+      | [0;1;32m                       ^
+[0m[1mOMCSplitScreenAppPickerController.m:215:40: [0m[0;1;36mnote: [0mused here[0m
+  215 |         parent = [self performSelector:parentSel];[0m
+      | [0;1;32m                                       ^
+[0m2 warnings generated.
+[0;32m==> [1;39mCompiling OMCSplitScreenController.m (arm64)…[m
+[1mOMCSplitScreenController.m:32:28: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   32 |     id proxy = [proxyClass performSelector:sel withObject:bundleID];[0m
+      | [0;1;32m                           ^
+[0m[1mOMCSplitScreenController.m:32:44: [0m[0;1;36mnote: [0mused here[0m
+   32 |     id proxy = [proxyClass performSelector:sel withObject:bundleID];[0m
+      | [0;1;32m                                           ^
+[0m[1mOMCSplitScreenController.m:35:26: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+   35 |         id name = [proxy performSelector:nameSel];[0m
+      | [0;1;32m                         ^
+[0m[1mOMCSplitScreenController.m:35:42: [0m[0;1;36mnote: [0mused here[0m
+   35 |         id name = [proxy performSelector:nameSel];[0m
+      | [0;1;32m                                         ^
+[0m2 warnings generated.
+[0;32m==> [1;39mCompiling OMCWhatsNewController.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPBubbleView.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPIconView.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCStartupScreenController.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPGlassView.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPSignView.m (arm64)…[m
+[0;32m==> [1;39mCompiling SSCanvasView.m (arm64)…[m
+[0;32m==> [1;39mCompiling SSFade.m (arm64)…[m
+[0;32m==> [1;39mCompiling SPPSoundDelegate.m (arm64)…[m
+[0;32m==> [1;39mCompiling SSGauge.m (arm64)…[m
+[0;32m==> [1;39mCompiling SSLinkTarget.m (arm64)…[m
+[0;32m==> [1;39mCompiling SSStartupView.m (arm64)…[m
+[1mSSStartupView.m:591:9: [0m[0;1;35mwarning: [0m[1mproperty access result unused - getters should not be used for side effects [-Wunused-getter-return-value][0m
+  591 |         _logoView.layer.removeAllAnimations;[0m
+      | [0;1;32m        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[0m1 warning generated.
+[0;33m==> [1;39mLinking bundle OmniCarPrefs (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCarPrefs (arm64)…[m
+[0;34m==> [1;39mSigning OmniCarPrefs…[m
+[1;31m> [1;3;39mMaking stage in OmniCarApp…[m
+[1;31m> [1;3;39mMaking stage for application OmniCar…[m
+[1;31m> [1;3;39mMaking stage in OmniCarCore…[m
+[1;31m> [1;3;39mMaking stage for tweak OmniCarCore…[m
+[1;31m> [1;3;39mMaking stage in OmniCarAppBridge…[m
+[1;31m> [1;3;39mMaking stage for tweak OmniCarAppBridge…[m
+[1;31m> [1;3;39mMaking stage in OmniCarCarProbe…[m
+[1;31m> [1;3;39mMaking stage for tweak OmniCarCarProbe…[m
+[1;31m> [1;3;39mMaking stage in OmniCarSpeedBubble…[m
+[1;31m> [1;3;39mMaking stage for tweak OmniCarSpeedBubble…[m
+[1;31m> [1;3;39mMaking stage in OmniCarSplitScreen…[m
+[1;31m> [1;3;39mMaking stage for tweak OmniCarSplitScreen…[m
+[1;31m> [1;3;39mMaking stage in OmniCarStartupScreen…[m
+[1;31m> [1;3;39mMaking stage for tweak OmniCarStartupScreen…[m
+[1;31m> [1;3;39mMaking stage in OmniCarPrefs…[m
+[1;31m> [1;3;39mMaking stage for bundle OmniCarPrefs…[m
+[0;36m==> [1;36mNotice:[m Neither plutil, ply, or libplist-utils are installed, so XML plist files were not optimized.
+dm.pl: building package `com.anlai.omnicar:iphoneos-arm64' in `./packages/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb'

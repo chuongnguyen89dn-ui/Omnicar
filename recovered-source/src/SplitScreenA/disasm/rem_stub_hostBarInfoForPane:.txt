@@ -1,0 +1,192 @@
+; -[SCPCarSplit hostBarInfoForPane:] @0x3cd60-0x3d058 (760 bytes)
+0x03cd60  sub      sp, sp, #0xa0                           
+0x03cd64  stp      x26, x25, [sp, #0x50]                   
+0x03cd68  stp      x24, x23, [sp, #0x60]                   
+0x03cd6c  stp      x22, x21, [sp, #0x70]                   
+0x03cd70  stp      x20, x19, [sp, #0x80]                   
+0x03cd74  stp      x29, x30, [sp, #0x90]                   
+0x03cd78  add      x29, sp, #0x90                          
+0x03cd7c  mov      x19, x2                                 
+0x03cd80  mov      x20, x0                                 
+0x03cd84  adrp     x8, #0x78000                            
+0x03cd88  ldr      x8, [x8, #0x360]                        ; [0x78360] got-sym ___stack_chk_guard
+0x03cd8c  ldr      x8, [x8]                                ; [0x78000] got-sym ___objc_personality_v0
+0x03cd90  str      x8, [sp, #0x48]                         
+0x03cd94  mov      x0, x2                                  
+0x03cd98  bl       #0x567c4                                ; stub _objc_retain
+0x03cd9c  mov      x0, x20                                 
+0x03cda0  bl       #0x58200                                ; selstub floatPane
+0x03cda4  mov      x29, x29                                
+0x03cda8  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03cdac  mov      x21, x0                                 
+0x03cdb0  bl       #0x567b8                                ; stub _objc_release
+0x03cdb4  cmp      x19, x21                                
+0x03cdb8  b.eq     #0x3cdd0                                
+0x03cdbc  mov      x0, x20                                 
+0x03cdc0  mov      x2, x19                                 
+0x03cdc4  bl       #0x574c0                                ; selstub canPopOutPane:
+0x03cdc8  mov      x23, x0                                 
+0x03cdcc  b        #0x3ce08                                
+0x03cdd0  mov      x0, x19                                 
+0x03cdd4  bl       #0x5cae0                                ; selstub vc
+0x03cdd8  mov      x29, x29                                
+0x03cddc  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03cde0  mov      x22, x0                                 
+0x03cde4  cbz      x0, #0x3cdfc                            
+0x03cde8  mov      x0, x20                                 
+0x03cdec  bl       #0x59800                                ; selstub paneCount
+0x03cdf0  cmp      w0, #3                                  
+0x03cdf4  cset     w23, lt                                 
+0x03cdf8  b        #0x3ce00                                
+0x03cdfc  mov      w23, #0                                 
+0x03ce00  mov      x0, x22                                 
+0x03ce04  bl       #0x567b8                                ; stub _objc_release
+0x03ce08  mov      x0, x20                                 
+0x03ce0c  bl       #0x5cca0                                ; selstub zoomedSlot
+0x03ce10  mov      x29, x29                                
+0x03ce14  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03ce18  mov      x22, x0                                 
+0x03ce1c  cbz      x0, #0x3ce58                            
+0x03ce20  mov      x0, x20                                 
+0x03ce24  bl       #0x5cca0                                ; selstub zoomedSlot
+0x03ce28  mov      x29, x29                                
+0x03ce2c  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03ce30  mov      x20, x0                                 
+0x03ce34  bl       #0x58bc0                                ; selstub intValue
+0x03ce38  mov      x24, x0                                 
+0x03ce3c  mov      x0, x19                                 
+0x03ce40  bl       #0x5c100                                ; selstub slot
+0x03ce44  cmp      w24, w0                                 
+0x03ce48  cset     w25, eq                                 
+0x03ce4c  mov      x0, x20                                 
+0x03ce50  bl       #0x567b8                                ; stub _objc_release
+0x03ce54  b        #0x3ce5c                                
+0x03ce58  mov      w25, #0                                 
+0x03ce5c  mov      x0, x22                                 
+0x03ce60  bl       #0x567b8                                ; stub _objc_release
+0x03ce64  adrp     x8, #0x7d000                            
+0x03ce68  add      x8, x8, #0x140                          ; cfstring @0x7d140 = 'bar'
+0x03ce6c  str      x8, [sp, #8]                            
+0x03ce70  adrp     x26, #0x87000                           
+0x03ce74  ldr      x22, [x26, #0x6e8]                      ; [0x876e8] class NSNumber
+0x03ce78  mov      x0, x19                                 
+0x03ce7c  bl       #0x57160                                ; selstub bar
+0x03ce80  mov      x29, x29                                
+0x03ce84  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03ce88  mov      x20, x0                                 
+0x03ce8c  bl       #0x58d20                                ; selstub isHidden
+0x03ce90  eor      w2, w0, #1                              
+0x03ce94  mov      x0, x22                                 
+0x03ce98  bl       #0x59520                                ; selstub numberWithBool:
+0x03ce9c  mov      x29, x29                                
+0x03cea0  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03cea4  mov      x22, x0                                 
+0x03cea8  adrp     x8, #0x7d000                            
+0x03ceac  add      x8, x8, #0x160                          ; cfstring @0x7d160 = 'pop'
+0x03ceb0  str      x0, [sp, #0x28]                         
+0x03ceb4  str      x8, [sp, #0x10]                         
+0x03ceb8  ldr      x0, [x26, #0x6e8]                       ; [0x876e8] class NSNumber
+0x03cebc  cmp      x19, x21                                
+0x03cec0  mov      w8, #1                                  
+0x03cec4  cinc     w2, w8, eq                              
+0x03cec8  bl       #0x59560                                ; selstub numberWithInt:
+0x03cecc  mov      x29, x29                                
+0x03ced0  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03ced4  mov      x24, x0                                 
+0x03ced8  str      x0, [sp, #0x30]                         
+0x03cedc  adrp     x8, #0x7d000                            
+0x03cee0  add      x8, x8, #0x180                          ; cfstring @0x7d180 = 'popDim'
+0x03cee4  str      x8, [sp, #0x18]                         
+0x03cee8  ldr      x0, [x26, #0x6e8]                       ; [0x876e8] class NSNumber
+0x03ceec  eor      w2, w23, #1                             
+0x03cef0  bl       #0x59520                                ; selstub numberWithBool:
+0x03cef4  mov      x29, x29                                
+0x03cef8  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03cefc  mov      x23, x0                                 
+0x03cf00  str      x0, [sp, #0x38]                         
+0x03cf04  adrp     x8, #0x7d000                            
+0x03cf08  add      x8, x8, #0x1a0                          ; cfstring @0x7d1a0 = 'single'
+0x03cf0c  str      x8, [sp, #0x20]                         
+0x03cf10  ldr      x0, [x26, #0x6e8]                       ; [0x876e8] class NSNumber
+0x03cf14  mov      x2, x25                                 
+0x03cf18  bl       #0x59520                                ; selstub numberWithBool:
+0x03cf1c  mov      x29, x29                                
+0x03cf20  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03cf24  mov      x25, x0                                 
+0x03cf28  str      x0, [sp, #0x40]                         
+0x03cf2c  adrp     x8, #0x87000                            
+0x03cf30  ldr      x0, [x8, #0x6b8]                        ; [0x876b8] class NSDictionary
+0x03cf34  add      x2, sp, #0x28                           
+0x03cf38  add      x3, sp, #8                              
+0x03cf3c  mov      w4, #4                                  
+0x03cf40  bl       #0x57bc0                                ; selstub dictionaryWithObjects:forKeys:count:
+0x03cf44  mov      x29, x29                                
+0x03cf48  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03cf4c  mov      x21, x0                                 
+0x03cf50  mov      x0, x25                                 
+0x03cf54  bl       #0x567b8                                ; stub _objc_release
+0x03cf58  mov      x0, x23                                 
+0x03cf5c  bl       #0x567b8                                ; stub _objc_release
+0x03cf60  mov      x0, x24                                 
+0x03cf64  bl       #0x567b8                                ; stub _objc_release
+0x03cf68  mov      x0, x22                                 
+0x03cf6c  bl       #0x567b8                                ; stub _objc_release
+0x03cf70  mov      x0, x20                                 
+0x03cf74  bl       #0x567b8                                ; stub _objc_release
+0x03cf78  mov      x0, x19                                 
+0x03cf7c  bl       #0x567b8                                ; stub _objc_release
+0x03cf80  ldr      x8, [sp, #0x48]                         
+0x03cf84  adrp     x9, #0x78000                            
+0x03cf88  ldr      x9, [x9, #0x360]                        ; [0x78360] got-sym ___stack_chk_guard
+0x03cf8c  ldr      x9, [x9]                                ; [0x78000] got-sym ___objc_personality_v0
+0x03cf90  cmp      x9, x8                                  
+0x03cf94  b.ne     #0x3cfb8                                
+0x03cf98  mov      x0, x21                                 
+0x03cf9c  ldp      x29, x30, [sp, #0x90]                   
+0x03cfa0  ldp      x20, x19, [sp, #0x80]                   
+0x03cfa4  ldp      x22, x21, [sp, #0x70]                   
+0x03cfa8  ldp      x24, x23, [sp, #0x60]                   
+0x03cfac  ldp      x26, x25, [sp, #0x50]                   
+0x03cfb0  add      sp, sp, #0xa0                           
+0x03cfb4  b        #0x566e0                                ; stub _objc_autoreleaseReturnValue
+0x03cfb8  bl       #0x56404                                ; stub ___stack_chk_fail
+0x03cfbc  b        #0x3cfc4                                
+0x03cfc0  b        #0x3d03c                                
+0x03cfc4  mov      x21, x0                                 
+0x03cfc8  b        #0x3d020                                
+0x03cfcc  b        #0x3d03c                                
+0x03cfd0  mov      x21, x0                                 
+0x03cfd4  mov      x0, x25                                 
+0x03cfd8  bl       #0x567b8                                ; stub _objc_release
+0x03cfdc  b        #0x3cfe4                                
+0x03cfe0  mov      x21, x0                                 
+0x03cfe4  mov      x0, x23                                 
+0x03cfe8  bl       #0x567b8                                ; stub _objc_release
+0x03cfec  b        #0x3cff4                                
+0x03cff0  mov      x21, x0                                 
+0x03cff4  mov      x0, x24                                 
+0x03cff8  bl       #0x567b8                                ; stub _objc_release
+0x03cffc  b        #0x3d004                                
+0x03d000  mov      x21, x0                                 
+0x03d004  mov      x0, x22                                 
+0x03d008  bl       #0x567b8                                ; stub _objc_release
+0x03d00c  b        #0x3d030                                
+0x03d010  b        #0x3d03c                                
+0x03d014  mov      x21, x0                                 
+0x03d018  mov      x0, x20                                 
+0x03d01c  bl       #0x567b8                                ; stub _objc_release
+0x03d020  mov      x0, x22                                 
+0x03d024  bl       #0x567b8                                ; stub _objc_release
+0x03d028  b        #0x3d040                                
+0x03d02c  mov      x21, x0                                 
+0x03d030  mov      x0, x20                                 
+0x03d034  bl       #0x567b8                                ; stub _objc_release
+0x03d038  b        #0x3d040                                
+0x03d03c  mov      x21, x0                                 
+0x03d040  mov      x0, x19                                 
+0x03d044  bl       #0x567b8                                ; stub _objc_release
+0x03d048  b        #0x3d050                                
+0x03d04c  mov      x21, x0                                 
+0x03d050  mov      x0, x21                                 
+0x03d054  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 760 of 760)

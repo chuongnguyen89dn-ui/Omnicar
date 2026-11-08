@@ -4,8 +4,14 @@
 Usage:
     diff_payload.py <built.deb> [--orig-deb <original.deb>] [--orig-tree <dir>]
 
-Defaults: --orig-deb  ~/workspace/omnicar-re/input/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
-          --orig-tree ~/workspace/omnicar-re/payload
+Defaults: --orig-deb  <repo-root>/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
+                      (the original DEB ships at the root of the Omnicar
+                      repository, one level above this recovered-source tree)
+          --orig-tree none: the original DEB is extracted to a temp dir.
+                      Pass --orig-tree <dir> to compare against a
+                      pre-extracted payload tree instead.
+All defaults are derived from this script's own location inside the
+checkout; no machine-specific paths are baked in.
 
 Compares:
   * DEBIAN control fields (per field),
@@ -29,7 +35,9 @@ import subprocess
 import sys
 import tempfile
 
-RE = os.path.expanduser("~/workspace/omnicar-re")
+# Recovered-source tree root, derived from this file's location:
+# <root>/project/tools/diff_payload.py -> <root>. Portable across checkouts.
+RE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(RE, "metadata", "tools"))
 from macho_scan import split_fat, parse_slice  # noqa: E402
 from macho_objc import Slice  # noqa: E402
@@ -120,11 +128,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("built_deb")
     ap.add_argument("--orig-deb", default=os.path.join(
-        RE, "input", "com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"))
-    ap.add_argument("--orig-tree", default=os.path.join(RE, "payload"))
+        os.path.dirname(RE), "com.anlai.omnicar_1.0.3_iphoneos-arm64.deb"))
+    ap.add_argument("--orig-tree", default=None,
+                    help="pre-extracted original payload tree; default: "
+                         "extract --orig-deb into a temp dir")
     args = ap.parse_args()
 
     tmp = tempfile.mkdtemp(prefix="diff_payload_")
+    if args.orig_tree is None:
+        args.orig_tree = os.path.join(tmp, "orig")
+        subprocess.run(["dpkg-deb", "-x", args.orig_deb, args.orig_tree],
+                       check=True)
     built_tree = os.path.join(tmp, "built")
     subprocess.run(["dpkg-deb", "-x", args.built_deb, built_tree], check=True)
     built_ctl = subprocess.run(["dpkg-deb", "-f", args.built_deb],

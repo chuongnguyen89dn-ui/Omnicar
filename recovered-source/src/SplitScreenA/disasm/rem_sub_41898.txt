@@ -1,0 +1,213 @@
+; sub_41898 baseline @0x41898-0x41be4 (844 bytes)
+0x041898  sub      sp, sp, #0x1a0                          
+0x04189c  stp      d15, d14, [sp, #0x100]                  
+0x0418a0  stp      d13, d12, [sp, #0x110]                  
+0x0418a4  stp      d11, d10, [sp, #0x120]                  
+0x0418a8  stp      d9, d8, [sp, #0x130]                    
+0x0418ac  stp      x28, x27, [sp, #0x140]                  
+0x0418b0  stp      x26, x25, [sp, #0x150]                  
+0x0418b4  stp      x24, x23, [sp, #0x160]                  
+0x0418b8  stp      x22, x21, [sp, #0x170]                  
+0x0418bc  stp      x20, x19, [sp, #0x180]                  
+0x0418c0  stp      x29, x30, [sp, #0x190]                  
+0x0418c4  add      x29, sp, #0x190                         
+0x0418c8  mov      x22, x3                                 
+0x0418cc  mov      x23, x2                                 
+0x0418d0  mov      v8.16b, v3.16b                          
+0x0418d4  mov      v9.16b, v2.16b                          
+0x0418d8  mov      v10.16b, v1.16b                         
+0x0418dc  mov      v11.16b, v0.16b                         
+0x0418e0  mov      x20, x1                                 
+0x0418e4  mov      x19, x0                                 
+0x0418e8  adrp     x8, #0x78000                            
+0x0418ec  ldr      x8, [x8, #0x360]                        ; [0x78360] got-sym ___stack_chk_guard
+0x0418f0  ldr      x8, [x8]                                ; [0x78000] got-sym ___objc_personality_v0
+0x0418f4  stur     x8, [x29, #-0x98]                       
+0x0418f8  bl       #0x567c4                                ; stub _objc_retain
+0x0418fc  mov      x0, x20                                 
+0x041900  bl       #0x567c4                                ; stub _objc_retain
+0x041904  cbz      x19, #0x41b24                           
+0x041908  cmp      w23, #0x14                              
+0x04190c  b.gt     #0x41b24                                
+0x041910  mov      x0, x19                                 
+0x041914  bl       #0x58d20                                ; selstub isHidden
+0x041918  tbnz     w0, #0, #0x41b24                        
+0x04191c  mov      x0, x19                                 
+0x041920  bl       #0x56e80                                ; selstub alpha
+0x041924  adrp     x8, #0x6f000                            
+0x041928  ldr      d1, [x8, #0x140]                        ; [0x6f140] ptr 0x99999999a double=0.05
+0x04192c  fcmp     d0, d1                                  
+0x041930  b.mi     #0x41b24                                
+0x041934  mov      x0, x19                                 
+0x041938  bl       #0x5677c                                ; stub _objc_opt_class
+0x04193c  bl       #0x563b0                                ; stub _NSStringFromClass
+0x041940  mov      x29, x29                                
+0x041944  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x041948  mov      x21, x0                                 
+0x04194c  adrp     x2, #0x7d000                            
+0x041950  add      x2, x2, #0xda0                          ; cfstring @0x7dda0 = '_UIStatusBar'
+0x041954  bl       #0x58400                                ; selstub hasPrefix:
+0x041958  tbnz     w0, #0, #0x41970                        
+0x04195c  adrp     x2, #0x7d000                            
+0x041960  add      x2, x2, #0xdc0                          ; cfstring @0x7ddc0 = '_UIBattery'
+0x041964  mov      x0, x21                                 
+0x041968  bl       #0x58400                                ; selstub hasPrefix:
+0x04196c  cbz      w0, #0x41a68                            
+0x041970  mov      x0, x19                                 
+0x041974  bl       #0x57320                                ; selstub bounds
+0x041978  mov      x8, #0x4044000000000000                 
+0x04197c  fmov     d0, x8                                  
+0x041980  fcmp     d3, d0                                  
+0x041984  b.pl     #0x41a68                                
+0x041988  mov      x0, x19                                 
+0x04198c  bl       #0x57320                                ; selstub bounds
+0x041990  fmov     d0, #2.00000000                         
+0x041994  fcmp     d3, d0                                  
+0x041998  b.le     #0x41a68                                
+0x04199c  mov      x0, x19                                 
+0x0419a0  bl       #0x57320                                ; selstub bounds
+0x0419a4  mov      x0, x20                                 
+0x0419a8  mov      x2, x19                                 
+0x0419ac  bl       #0x57920                                ; selstub convertRect:fromView:
+0x0419b0  stp      d1, d0, [sp, #0x20]                     
+0x0419b4  stp      d3, d2, [sp, #0x10]                     
+0x0419b8  fmov     d4, #-4.00000000                        
+0x0419bc  fmov     d5, #-4.00000000                        
+0x0419c0  mov      v0.16b, v11.16b                         
+0x0419c4  mov      v1.16b, v10.16b                         
+0x0419c8  mov      v2.16b, v9.16b                          
+0x0419cc  mov      v3.16b, v8.16b                          
+0x0419d0  bl       #0x562fc                                ; stub _CGRectInset
+0x0419d4  str      d0, [sp, #8]                            
+0x0419d8  mov      v13.16b, v1.16b                         
+0x0419dc  mov      v14.16b, v2.16b                         
+0x0419e0  mov      v15.16b, v3.16b                         
+0x0419e4  ldp      d1, d0, [sp, #0x20]                     
+0x0419e8  ldp      d3, d2, [sp, #0x10]                     
+0x0419ec  bl       #0x562cc                                ; stub _CGRectGetMidX
+0x0419f0  mov      v12.16b, v0.16b                         
+0x0419f4  ldp      d1, d0, [sp, #0x20]                     
+0x0419f8  ldp      d3, d2, [sp, #0x10]                     
+0x0419fc  bl       #0x562d8                                ; stub _CGRectGetMidY
+0x041a00  mov      v5.16b, v0.16b                          
+0x041a04  ldr      d0, [sp, #8]                            
+0x041a08  mov      v1.16b, v13.16b                         
+0x041a0c  mov      v2.16b, v14.16b                         
+0x041a10  mov      v3.16b, v15.16b                         
+0x041a14  mov      v4.16b, v12.16b                         
+0x041a18  bl       #0x56290                                ; stub _CGRectContainsPoint
+0x041a1c  cbz      w0, #0x41a68                            
+0x041a20  ldp      d1, d0, [sp, #0x20]                     
+0x041a24  ldp      d3, d2, [sp, #0x10]                     
+0x041a28  bl       #0x562d8                                ; stub _CGRectGetMidY
+0x041a2c  mov      v12.16b, v0.16b                         
+0x041a30  mov      v0.16b, v11.16b                         
+0x041a34  mov      v1.16b, v10.16b                         
+0x041a38  mov      v2.16b, v9.16b                          
+0x041a3c  mov      v3.16b, v8.16b                          
+0x041a40  bl       #0x562d8                                ; stub _CGRectGetMidY
+0x041a44  fcmp     d12, d0                                 
+0x041a48  b.pl     #0x41a68                                
+0x041a4c  ldr      d12, [x22]                              
+0x041a50  ldp      d1, d0, [sp, #0x20]                     
+0x041a54  ldp      d3, d2, [sp, #0x10]                     
+0x041a58  bl       #0x562c0                                ; stub _CGRectGetMaxY
+0x041a5c  fcmp     d12, d0                                 
+0x041a60  fcsel    d0, d0, d12, mi                         
+0x041a64  str      d0, [x22]                               
+0x041a68  movi     v0.16b, #0                              
+0x041a6c  stp      q0, q0, [sp, #0x50]                     
+0x041a70  stp      q0, q0, [sp, #0x30]                     
+0x041a74  mov      x0, x19                                 
+0x041a78  bl       #0x5c500                                ; selstub subviews
+0x041a7c  mov      x29, x29                                
+0x041a80  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x041a84  mov      x24, x0                                 
+0x041a88  add      x2, sp, #0x30                           
+0x041a8c  add      x3, sp, #0x78                           
+0x041a90  mov      w4, #0x10                               
+0x041a94  bl       #0x57a00                                ; selstub countByEnumeratingWithState:objects:count:
+0x041a98  mov      x25, x0                                 
+0x041a9c  cbz      x0, #0x41b14                            
+0x041aa0  ldr      x8, [sp, #0x40]                         
+0x041aa4  ldr      x26, [x8]                               ; [0x6f000] ptr 0x0 double=600.0
+0x041aa8  mov      x27, #0                                 
+0x041aac  ldr      x8, [sp, #0x40]                         
+0x041ab0  ldr      x8, [x8]                                ; [0x6f000] ptr 0x0 double=600.0
+0x041ab4  cmp      x8, x26                                 
+0x041ab8  b.eq     #0x41ac4                                
+0x041abc  mov      x0, x24                                 
+0x041ac0  bl       #0x5671c                                ; stub _objc_enumerationMutation
+0x041ac4  ldr      x8, [sp, #0x38]                         
+0x041ac8  ldr      x0, [x8, x27, lsl #3]                   ; [0x6f000] ptr 0x0 double=600.0
+0x041acc  add      w2, w23, #1                             
+0x041ad0  mov      x1, x20                                 
+0x041ad4  mov      v0.16b, v11.16b                         
+0x041ad8  mov      v1.16b, v10.16b                         
+0x041adc  mov      v2.16b, v9.16b                          
+0x041ae0  mov      v3.16b, v8.16b                          
+0x041ae4  mov      x3, x22                                 
+0x041ae8  bl       #0x41898                                ; -> sub_41898
+0x041aec  add      x27, x27, #1                            
+0x041af0  cmp      x25, x27                                
+0x041af4  b.ne     #0x41aac                                
+0x041af8  add      x2, sp, #0x30                           
+0x041afc  add      x3, sp, #0x78                           
+0x041b00  mov      x0, x24                                 
+0x041b04  mov      w4, #0x10                               
+0x041b08  bl       #0x57a00                                ; selstub countByEnumeratingWithState:objects:count:
+0x041b0c  mov      x25, x0                                 
+0x041b10  cbnz     x0, #0x41aa8                            
+0x041b14  mov      x0, x24                                 
+0x041b18  bl       #0x567b8                                ; stub _objc_release
+0x041b1c  mov      x0, x21                                 
+0x041b20  bl       #0x567b8                                ; stub _objc_release
+0x041b24  mov      x0, x20                                 
+0x041b28  bl       #0x567b8                                ; stub _objc_release
+0x041b2c  mov      x0, x19                                 
+0x041b30  bl       #0x567b8                                ; stub _objc_release
+0x041b34  ldur     x8, [x29, #-0x98]                       
+0x041b38  adrp     x9, #0x78000                            
+0x041b3c  ldr      x9, [x9, #0x360]                        ; [0x78360] got-sym ___stack_chk_guard
+0x041b40  ldr      x9, [x9]                                ; [0x78000] got-sym ___objc_personality_v0
+0x041b44  cmp      x9, x8                                  
+0x041b48  b.ne     #0x41b7c                                
+0x041b4c  ldp      x29, x30, [sp, #0x190]                  
+0x041b50  ldp      x20, x19, [sp, #0x180]                  
+0x041b54  ldp      x22, x21, [sp, #0x170]                  
+0x041b58  ldp      x24, x23, [sp, #0x160]                  
+0x041b5c  ldp      x26, x25, [sp, #0x150]                  
+0x041b60  ldp      x28, x27, [sp, #0x140]                  
+0x041b64  ldp      d9, d8, [sp, #0x130]                    
+0x041b68  ldp      d11, d10, [sp, #0x120]                  
+0x041b6c  ldp      d13, d12, [sp, #0x110]                  
+0x041b70  ldp      d15, d14, [sp, #0x100]                  
+0x041b74  add      sp, sp, #0x1a0                          
+0x041b78  ret                                              
+0x041b7c  bl       #0x56404                                ; stub ___stack_chk_fail
+0x041b80  b        #0x41b98                                
+0x041b84  b        #0x41b98                                
+0x041b88  b        #0x41b98                                
+0x041b8c  b        #0x41bb0                                
+0x041b90  b        #0x41b98                                
+0x041b94  b        #0x41b98                                
+0x041b98  mov      x22, x0                                 
+0x041b9c  b        #0x41bbc                                
+0x041ba0  b        #0x41ba4                                
+0x041ba4  mov      x22, x0                                 
+0x041ba8  b        #0x41bc4                                
+0x041bac  b        #0x41bb0                                
+0x041bb0  mov      x22, x0                                 
+0x041bb4  mov      x0, x24                                 
+0x041bb8  bl       #0x567b8                                ; stub _objc_release
+0x041bbc  mov      x0, x21                                 
+0x041bc0  bl       #0x567b8                                ; stub _objc_release
+0x041bc4  mov      x0, x20                                 
+0x041bc8  bl       #0x567b8                                ; stub _objc_release
+0x041bcc  mov      x0, x19                                 
+0x041bd0  bl       #0x567b8                                ; stub _objc_release
+0x041bd4  b        #0x41bdc                                
+0x041bd8  mov      x22, x0                                 
+0x041bdc  mov      x0, x22                                 
+0x041be0  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 844 of 844)

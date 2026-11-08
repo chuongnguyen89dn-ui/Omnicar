@@ -1,0 +1,53 @@
+; -[SCPCarSplit endHostedSolo] @0x3fe5c-0x3ff28 (204 bytes)
+0x03fe5c  sub      sp, sp, #0x40                           
+0x03fe60  stp      x22, x21, [sp, #0x10]                   
+0x03fe64  stp      x20, x19, [sp, #0x20]                   
+0x03fe68  stp      x29, x30, [sp, #0x30]                   
+0x03fe6c  add      x29, sp, #0x30                          
+0x03fe70  mov      x20, x0                                 
+0x03fe74  bl       #0x5c1e0                                ; selstub soloHostedBundle
+0x03fe78  mov      x29, x29                                
+0x03fe7c  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03fe80  mov      x19, x0                                 
+0x03fe84  cbz      x0, #0x3feec                            
+0x03fe88  mov      x0, x20                                 
+0x03fe8c  mov      x2, #0                                  
+0x03fe90  bl       #0x5b9e0                                ; selstub setSoloHostedBundle:
+0x03fe94  mov      x0, x20                                 
+0x03fe98  mov      w2, #0                                  
+0x03fe9c  bl       #0x5bcc0                                ; selstub setTrayHidesBridge:
+0x03fea0  adrp     x8, #0x87000                            
+0x03fea4  ldr      x0, [x8, #0x678]                        ; [0x87678] class NSString
+0x03fea8  str      x19, [sp]                               
+0x03feac  adrp     x2, #0x7d000                            
+0x03feb0  add      x2, x2, #0x640                          ; cfstring @0x7d640 = 'AppBridge: dong app toan man %@'
+0x03feb4  bl       #0x5c440                                ; selstub stringWithFormat:
+0x03feb8  mov      x29, x29                                
+0x03febc  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x03fec0  mov      x21, x0                                 
+0x03fec4  adrp     x0, #0x79000                            
+0x03fec8  add      x0, x0, #0x5c0                          ; cfstring @0x795c0 = 'SplitScreen'
+0x03fecc  mov      x1, x21                                 
+0x03fed0  bl       #0x4fbf4                                ; defined _OMCLogWrite
+0x03fed4  mov      x0, x21                                 
+0x03fed8  bl       #0x567b8                                ; stub _objc_release
+0x03fedc  mov      x0, x20                                 
+0x03fee0  mov      x2, x19                                 
+0x03fee4  mov      w3, #0                                  
+0x03fee8  bl       #0x58620                                ; selstub hostClose:terminate:
+0x03feec  mov      x0, x19                                 
+0x03fef0  ldp      x29, x30, [sp, #0x30]                   
+0x03fef4  ldp      x20, x19, [sp, #0x20]                   
+0x03fef8  ldp      x22, x21, [sp, #0x10]                   
+0x03fefc  add      sp, sp, #0x40                           
+0x03ff00  b        #0x567b8                                ; stub _objc_release
+0x03ff04  mov      x20, x0                                 
+0x03ff08  mov      x0, x21                                 
+0x03ff0c  bl       #0x567b8                                ; stub _objc_release
+0x03ff10  b        #0x3ff18                                
+0x03ff14  mov      x20, x0                                 
+0x03ff18  mov      x0, x19                                 
+0x03ff1c  bl       #0x567b8                                ; stub _objc_release
+0x03ff20  mov      x0, x20                                 
+0x03ff24  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 204 of 204)

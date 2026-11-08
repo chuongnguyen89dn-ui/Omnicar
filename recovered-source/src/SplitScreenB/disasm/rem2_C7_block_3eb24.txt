@@ -1,0 +1,46 @@
+# C7 block invoke @0x3eb24 (loader-timeout block inside hostApp:inPane:)
+# func bounds: 0x3eb24..0x3ebd0 (172 bytes)
+0x0003eb24  stp      x22, x21, [sp, #-0x30]!                        
+0x0003eb28  stp      x20, x19, [sp, #0x10]                          
+0x0003eb2c  stp      x29, x30, [sp, #0x20]                          
+0x0003eb30  add      x29, sp, #0x20                                 
+0x0003eb34  mov      x20, x0                                        
+0x0003eb38  add      x0, x0, #0x28                                  
+0x0003eb3c  bl       #0x5674c                                       ; _objc_loadWeakRetained
+0x0003eb40  mov      x19, x0                                        
+0x0003eb44  cbz      x0, #0x3eb94                                   
+0x0003eb48  mov      x0, x19                                        
+0x0003eb4c  bl       #0x57420                                       ; bundleID
+0x0003eb50  mov      x29, x29                                       
+0x0003eb54  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0003eb58  mov      x21, x0                                        
+0x0003eb5c  ldr      x2, [x20, #0x20]                               
+0x0003eb60  bl       #0x58d00                                       ; isEqualToString:
+0x0003eb64  mov      x22, x0                                        
+0x0003eb68  mov      x0, x21                                        
+0x0003eb6c  bl       #0x567b8                                       ; _objc_release
+0x0003eb70  cbz      w22, #0x3eb94                                  
+0x0003eb74  add      x0, x20, #0x30                                 
+0x0003eb78  bl       #0x5674c                                       ; _objc_loadWeakRetained
+0x0003eb7c  mov      x21, x0                                        
+0x0003eb80  mov      x2, x19                                        
+0x0003eb84  mov      w3, #1                                         
+0x0003eb88  bl       #0x5a340                                       ; removeLoaderFromPane:animated:
+0x0003eb8c  mov      x0, x21                                        
+0x0003eb90  bl       #0x567b8                                       ; _objc_release
+0x0003eb94  mov      x0, x19                                        
+0x0003eb98  ldp      x29, x30, [sp, #0x20]                          
+0x0003eb9c  ldp      x20, x19, [sp, #0x10]                          
+0x0003eba0  ldp      x22, x21, [sp], #0x30                          
+0x0003eba4  b        #0x567b8                                       ; _objc_release
+0x0003eba8  b        #0x3ebac                                       ; sub_3ebac
+0x0003ebac  mov      x20, x0                                        
+0x0003ebb0  mov      x0, x21                                        
+0x0003ebb4  bl       #0x567b8                                       ; _objc_release
+0x0003ebb8  b        #0x3ebc0                                       ; sub_3ebc0
+0x0003ebbc  mov      x20, x0                                        
+0x0003ebc0  mov      x0, x19                                        
+0x0003ebc4  bl       #0x567b8                                       ; _objc_release
+0x0003ebc8  mov      x0, x20                                        
+0x0003ebcc  bl       #0x563e0                                       ; __Unwind_Resume
+# decoded: 43 insns, 172 bytes (range 172 bytes)

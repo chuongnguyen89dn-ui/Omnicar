@@ -1,0 +1,55 @@
+; showSoloCover timeout block invoke @0x212bc-0x21390 (212 bytes)
+0x0212bc  stp      x24, x23, [sp, #-0x40]!                 
+0x0212c0  stp      x22, x21, [sp, #0x10]                   
+0x0212c4  stp      x20, x19, [sp, #0x20]                   
+0x0212c8  stp      x29, x30, [sp, #0x30]                   
+0x0212cc  add      x29, sp, #0x30                          
+0x0212d0  mov      x20, x0                                 
+0x0212d4  add      x0, x0, #0x20                           
+0x0212d8  bl       #0x5674c                                ; stub _objc_loadWeakRetained
+0x0212dc  cbz      x0, #0x21330                            
+0x0212e0  mov      x19, x0                                 
+0x0212e4  add      x0, x20, #0x28                          
+0x0212e8  bl       #0x5674c                                ; stub _objc_loadWeakRetained
+0x0212ec  mov      x21, x0                                 
+0x0212f0  bl       #0x5c1c0                                ; selstub soloCover
+0x0212f4  mov      x29, x29                                
+0x0212f8  bl       #0x567dc                                ; stub _objc_retainAutoreleasedReturnValue
+0x0212fc  mov      x22, x0                                 
+0x021300  add      x0, x20, #0x20                          
+0x021304  bl       #0x5674c                                ; stub _objc_loadWeakRetained
+0x021308  mov      x23, x0                                 
+0x02130c  bl       #0x567b8                                ; stub _objc_release
+0x021310  mov      x0, x22                                 
+0x021314  bl       #0x567b8                                ; stub _objc_release
+0x021318  mov      x0, x21                                 
+0x02131c  bl       #0x567b8                                ; stub _objc_release
+0x021320  mov      x0, x19                                 
+0x021324  bl       #0x567b8                                ; stub _objc_release
+0x021328  cmp      x22, x23                                
+0x02132c  b.eq     #0x21344                                
+0x021330  ldp      x29, x30, [sp, #0x30]                   
+0x021334  ldp      x20, x19, [sp, #0x20]                   
+0x021338  ldp      x22, x21, [sp, #0x10]                   
+0x02133c  ldp      x24, x23, [sp], #0x40                   
+0x021340  ret                                              
+0x021344  add      x0, x20, #0x28                          
+0x021348  bl       #0x5674c                                ; stub _objc_loadWeakRetained
+0x02134c  mov      x19, x0                                 
+0x021350  bl       #0x58480                                ; selstub hideSoloCover
+0x021354  mov      x0, x19                                 
+0x021358  ldp      x29, x30, [sp, #0x30]                   
+0x02135c  ldp      x20, x19, [sp, #0x20]                   
+0x021360  ldp      x22, x21, [sp, #0x10]                   
+0x021364  ldp      x24, x23, [sp], #0x40                   
+0x021368  b        #0x567b8                                ; stub _objc_release
+0x02136c  mov      x20, x0                                 
+0x021370  b        #0x21380                                
+0x021374  mov      x20, x0                                 
+0x021378  mov      x0, x21                                 
+0x02137c  bl       #0x567b8                                ; stub _objc_release
+0x021380  mov      x0, x19                                 
+0x021384  bl       #0x567b8                                ; stub _objc_release
+0x021388  mov      x0, x20                                 
+0x02138c  bl       #0x563e0                                ; stub __Unwind_Resume
+; length check: OK (decoded 212 of 212)

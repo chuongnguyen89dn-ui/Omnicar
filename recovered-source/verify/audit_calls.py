@@ -6,7 +6,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from macho_truth import MachO
 from capstone import Cs, CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN
 
-ROOT = os.path.expanduser("~/workspace/omnicar-re")
+# Tree root derived from this file's location: <root>/verify/audit_calls.py.
+# The audit reads <root>/payload/ — recreate it from the original DEB at the
+# repository root with: dpkg-deb -x <repo>/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb <root>/payload
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 P = ROOT + "/payload/var/jb/"
 MODULES = {
     "OMCCommon":     P + "Library/MobileSubstrate/DynamicLibraries/OmniCarCore.dylib",

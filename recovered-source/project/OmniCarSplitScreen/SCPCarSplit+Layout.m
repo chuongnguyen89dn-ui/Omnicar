@@ -382,11 +382,12 @@ NS_ASSUME_NONNULL_END
 // the screen coordinate space and intersected with the dock-side rect.
 // The dashboard's statusBarInsets are fetched through the helper
 // @0xe5b4 (SCPDashboardObject) under a respondsToSelector: guard.
-// INFERRED (tail): the exact inset-adjustment expressions for the
-// landscape/portrait branches were not fully resolved at register level;
-// the structure below follows the verified skeleton (intersection,
-// IsNull/degenerate fallbacks, one-time log, loggedArea flag). The
-// disassembly (disasm/SCPCarSplit__appAreaInParent_.txt) is ground truth.
+// VERIFIED (tail, CLOSURE-2): the inset-adjustment expressions were
+// line-read at register level from IMP 0x11dfc
+// (disasm/rem2_appAreaInParent.txt). The result is the parent-space
+// content frame (R) inset by the status-bar insets — never the
+// intersection itself; the intersection only gates validity, picks the
+// orientation branch and supplies dock-overlap amounts.
 - (CGRect)appAreaInParent:(UIView *)parent {                            // 0x11dfc
     id host = SCPDashboardRootViewController();
     UIView *content = nil;
@@ -424,26 +425,74 @@ NS_ASSUME_NONNULL_END
         insets = ((UIEdgeInsets (*)(id, SEL))objc_msgSend)(dashboard, insetsSel);
     }
 
-    CGRect area = contentFrame;   // intersected with the dock rect in the binary
-    if (CGRectIsNull(area) || area.size.width <= 1.0 || area.size.height <= 1.0) {
-        // fall back to the raw content frame (INFERRED branch shape)
-        area = contentFrame;
-    } else if (area.size.height < area.size.width) {
-        // landscape: trim the bottom by the dock overlap / status insets (INFERRED)
-        area.size.height -= insets.bottom;
-    } else {
-        // portrait: apply insets on the leading edges (INFERRED)
-        area.origin.x += insets.left;
-        area.origin.y += insets.top;
-        area.size.width -= (insets.left + insets.right);
-        area.size.height -= insets.bottom;
+    // VERIFIED tail (CLOSURE-2; IMP 0x11dfc; disasm/rem2_appAreaInParent.txt).
+    // R below is the binary's spilled parent-space content frame (the
+    // local contentFrame; in the binary R is taken before the screen
+    // round trip — front-half correspondence as documented above). The
+    // second intersection operand is the dock view's frame in parent
+    // space (bounds round-tripped through the screen coordinate space),
+    // CGRectNull when the dock view is missing, windowless or hidden.
+    UIView *dockView = nil;
+    if (dock != nil) {
+        SEL viewSel = NSSelectorFromString(@"view");
+        if ([dock respondsToSelector:viewSel])
+            dockView = [dock performSelector:viewSel];
     }
+    CGRect dockFrame = CGRectNull;
+    if (dockView != nil && dockView.window != nil && !dockView.isHidden &&
+        parent.window != nil) {
+        id fromSpace = dockView.window.screen.coordinateSpace;
+        id toSpace = parent.window.screen.coordinateSpace;
+        if (toSpace == nil) toSpace = fromSpace;
+        if (fromSpace != nil && toSpace != nil) {
+            dockFrame = [dockView convertRect:dockView.bounds
+                            toCoordinateSpace:fromSpace];
+            dockFrame = [parent convertRect:dockFrame
+                        fromCoordinateSpace:toSpace];
+        }
+    }
+    CGRect R = contentFrame;
+    CGRect inter = CGRectIntersection(R, dockFrame);
+    double L = insets.left, Rt = insets.right;
+    double T = insets.top,  B  = insets.bottom;
+    if (!CGRectIsNull(inter) && inter.size.width > 1.0 &&
+        inter.size.height > 1.0) {
+        if (inter.size.height < inter.size.width) {
+            // Landscape (@0x12230): the vertical dock overlap replaces
+            // one inset when it exceeds the plain gap on its side.
+            if (inter.origin.y - R.origin.y >
+                CGRectGetMaxY(R) - CGRectGetMaxY(inter))
+                B = MAX(insets.bottom, CGRectGetMaxY(R) - inter.origin.y);
+            else
+                T = MAX(insets.top, CGRectGetMaxY(inter) - R.origin.y);
+        } else {
+            // Portrait (@0x12440): same on the X axis.
+            if (inter.origin.x - R.origin.x >
+                CGRectGetMaxX(R) - CGRectGetMaxX(inter))
+                Rt = MAX(insets.right, CGRectGetMaxX(R) - inter.origin.x);
+            else
+                L = MAX(insets.left, CGRectGetMaxX(inter) - R.origin.x);
+        }
+    }
+    double w = R.size.width - (L + Rt);
+    double h;
+    if (w < R.size.width * 0.5) {
+        // Sanity fallback (@0x122dc): plain insets on both axes.
+        L = insets.left; T = insets.top;
+        w = R.size.width - (insets.left + insets.right);
+        h = R.size.height - (insets.top + insets.bottom);
+    } else if ((h = R.size.height - (T + B)) < R.size.height * 0.5) {
+        L = insets.left; T = insets.top;
+        w = R.size.width - (insets.left + insets.right);
+        h = R.size.height - (insets.top + insets.bottom);
+    }
+    CGRect area = CGRectMake(R.origin.x + L, R.origin.y + T, w, h);
 
     if (!self.loggedArea) {
         self.loggedArea = YES;
         OMCLogWrite(@"SplitScreen",
             [NSString stringWithFormat:@"CarSplit: content=%@ dock=%@ statusBarInsets={%.0f,%.0f,%.0f,%.0f} -> vung app=%@",
-                NSStringFromCGRect(contentFrame), NSStringFromCGRect(CGRectZero),
+                NSStringFromCGRect(contentFrame), NSStringFromCGRect(dockFrame),
                 insets.top, insets.left, insets.bottom, insets.right,
                 NSStringFromCGRect(area)]);
     }
