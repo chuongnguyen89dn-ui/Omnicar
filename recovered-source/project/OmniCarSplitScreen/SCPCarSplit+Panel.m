@@ -213,7 +213,15 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
     for (NSArray *section in sections)
         maxChoices = MAX(maxChoices, (NSInteger)section.count);
 
-    double frameW = MIN(104.0 + maxChoices * 88.0, area.size.width - 16.0);
+    // Choice-button geometry VERIFIED against the original dump
+    // (rem2_showLayoutPanelForApp.txt): stride 84 (@0x38344 fmadd,
+    // sp+0x120 @0x386c0), button 84x56 at x = 42 + j*84 (sp+0x178
+    // @0x386bc, setFrame: @0x389a0), glyph centre (42, 28)
+    // (@0x38fc4). An earlier transcription scrambled the arguments
+    // (56-wide/41-high buttons on an 88 stride), which made the
+    // 73x40 glyph overflow its button outline — the "two stacked
+    // tile layers" seen on device 2026-11-08 21:56.
+    double frameW = MIN(104.0 + maxChoices * 84.0, area.size.width - 16.0);
     double frameH = MIN((double)sections.count * 56.0 + 20.0 +
                         (double)(sections.count - 1) * 6.0,
                         area.size.height - 12.0);
@@ -270,7 +278,7 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
             NSDictionary *choice = section[j];
             NSInteger layoutID = [choice[@"layout"] intValue];
             SCPCButton *button = [SCPCButton buttonWithType:0];
-            button.frame = CGRectMake(41.0 + (double)j * 88.0, runningY, 56, 41);
+            button.frame = CGRectMake(42.0 + (double)j * 84.0, runningY, 84, 56);
             button.tag = (NSInteger)choices.count;
             button.accessibilityLabel = choice[@"name"];
             [choices addObject:choice];
@@ -296,7 +304,7 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
                 CGSizeMake(glyphW, glyphH), rects, apps,
                 fill, border, SCPColorSecondary());
             UIImageView *glyphView = [[UIImageView alloc] initWithImage:glyph];
-            glyphView.center = CGPointMake(41, 28);
+            glyphView.center = CGPointMake(42, 28);
             glyphView.userInteractionEnabled = NO;
             [button addSubview:glyphView];
             [scroll addSubview:button];
@@ -341,7 +349,7 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
         }
 
         if (s == 0) {
-            double innerW = 41.0 + maxChoices * 88.0 + 2.0;
+            double innerW = 42.0 + maxChoices * 84.0 + 2.0;
             UIView *divider = [[UIView alloc] initWithFrame:
                 CGRectMake(innerW, runningY + 10, 1, 33)];
             divider.backgroundColor = [UIColor colorWithWhite:1 alpha:0.95];
@@ -379,7 +387,7 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
         runningY += 62.0;
     }
 
-    scroll.contentSize = CGSizeMake(104.0 + maxChoices * 88.0, runningY + 4.0);
+    scroll.contentSize = CGSizeMake(104.0 + maxChoices * 84.0, runningY + 4.0);
     self.panelChoices = choices;
 
     UIView *host = (window != nil) ? (UIView *)window : parent;

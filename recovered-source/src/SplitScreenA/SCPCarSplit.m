@@ -446,9 +446,11 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 
 #pragma mark - App identity
 
-// -isCarPlayApp: VERIFIED (call order): installed (sub_e324) AND has a
-// CarPlay interface (sub_ffb4 — INFERRED: checks the app info's CarPlay
-// scene/role keys), OR hosted through AppBridge (sub_101bc).
+// -isCarPlayApp: VERIFIED (call order, IMP 0xff50): app info via
+// sub_e324, tested by sub_ffb4 (SCPAppHasCarPlayUI in SCPShared.m —
+// bundle-id exclusions, carPlayDeclaration, isHidden,
+// presentsFullScreen; NOT scene/role keys), OR hosted through
+// AppBridge (sub_101bc).
 - (BOOL)isCarPlayApp:(NSString *)bundleID {
     id appInfo = SCPApplicationInfoForBundle(bundleID);
     if (appInfo) {
@@ -464,13 +466,21 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     id info = SCPApplicationInfoForBundle(bundleID);
     NSString *name = SCPGuarded(info, @"displayName");
     if (name.length) return name;
-    id workspace = SCPGuarded([NSClassFromString(@"LSApplicationWorkspace") new], @"defaultWorkspace");
+    // Fallback VERIFIED (IMP 0x1029c @0x10354-0x1039c): the
+    // LSApplicationProxy CLASS object answers the class method
+    // applicationProxyForIdentifier: directly — no workspace, no
+    // instance, no defaultWorkspace. (The earlier reconstruction sent
+    // defaultWorkspace to a fresh LSApplicationWorkspace instance,
+    // which can never answer a class method: that is the false
+    // "THIEU METHOD: LSApplicationWorkspace khong co defaultWorkspace"
+    // line in the 2026-11-08 21:56 device log.)
+    Class proxyClass = objc_getClass("LSApplicationProxy");
     SEL proxySel = NSSelectorFromString(@"applicationProxyForIdentifier:");
     id proxy = nil;
-    if ([workspace respondsToSelector:proxySel])
-        proxy = ((id (*)(id, SEL, id))objc_msgSend)(workspace, proxySel, bundleID);
+    if ([proxyClass respondsToSelector:proxySel])
+        proxy = ((id (*)(id, SEL, id))objc_msgSend)(proxyClass, proxySel, bundleID);
     else
-        SCPMissingSelector(workspace, NSStringFromSelector(proxySel));
+        SCPMissingSelector(proxyClass, NSStringFromSelector(proxySel));
     name = SCPGuarded(proxy, @"localizedName");
     return name.length ? name : bundleID;
 }
@@ -667,15 +677,25 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 
 #pragma mark - Pairs, layouts, restore
 
-// -openPairLeft:right: VERIFIED.
+// -openPairLeft:right: VERIFIED (IMP 0x183a8; re-checked against the
+// dump 2026-11-08): already active -> setPaneCount:2 and skip
+// activation; not active -> activateWithCount:2 and STOP if it
+// returns NO (@0x18454). The pair ratio is computed only when BOTH
+// bundles are non-nil (@0x18458/0x1845c) and assigned only when it
+// lies in [0.2, 0.8] (@0x18480/0x18490; __const 0x6f078/0x6f080); the
+// second fraction is 1.0 - ratio (fsub @0x184c4), never a literal 1.0.
 - (void)openPairLeft:(NSString *)left right:(NSString *)right {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: mo cap left=%@ right=%@", left, right]);
-    if (!self.active) {
+    if (self.active) {
         [self setPaneCount:2];
-        [self activateWithCount:2];
+    } else if (![self activateWithCount:2]) {
+        return;
     }
-    double ratio = [SCPPrefs ratioForPairLeft:left right:right];
-    self.fractions = [@[@(ratio), @(1.0)] mutableCopy];
+    if (left && right) {
+        double ratio = [SCPPrefs ratioForPairLeft:left right:right];
+        if (ratio >= 0.2 && ratio <= 0.8)
+            self.fractions = [@[@(ratio), @(1.0 - ratio)] mutableCopy];
+    }
     [self openAppsInOrder:@[left ?: (id)[NSNull null], right ?: (id)[NSNull null]]];
 }
 
@@ -719,18 +739,29 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self relayoutAnimated:YES];
 }
 
-// -openSetupLayout:apps: VERIFIED.
+// -openSetupLayout:apps: VERIFIED (IMP 0x3ab7c; re-checked against
+// the dump 2026-11-08): active -> switchToLayout:; not active ->
+// activateWithLayout: under suppressReopen, and if activation
+// returns NO the function returns WITHOUT opening apps (@0x3abf0).
+// The pair ratio applies ONLY to layout 2 (@0x3abf4) with at least 2
+// apps whose first two elements are NSString (@0x3ac38/0x3ac80) and
+// a ratio in [0.2, 0.8] (@0x3ace8/0x3acf8); the second fraction is
+// 1.0 - ratio (fsub @0x3ad2c).
 - (void)openSetupLayout:(NSInteger)layout apps:(NSArray *)apps {
     if (self.active) {
         [self switchToLayout:layout];
     } else {
         self.suppressReopen = YES;
-        [self activateWithLayout:layout];
+        BOOL activated = [self activateWithLayout:layout];
         self.suppressReopen = NO;
+        if (!activated) return;
     }
-    if (apps.count >= 2) {
+    if (layout == 2 && apps.count >= 2 &&
+        [apps[0] isKindOfClass:[NSString class]] &&
+        [apps[1] isKindOfClass:[NSString class]]) {
         double ratio = [SCPPrefs ratioForPairLeft:apps[0] right:apps[1]];
-        self.fractions = [@[@(ratio), @(1.0)] mutableCopy];
+        if (ratio >= 0.2 && ratio <= 0.8)
+            self.fractions = [@[@(ratio), @(1.0 - ratio)] mutableCopy];
     }
     [self openAppsInOrder:apps];
 }

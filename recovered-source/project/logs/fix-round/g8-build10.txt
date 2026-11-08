@@ -1,0 +1,43 @@
+=== gatecheck10 (gate discriminators) ===
+== GATE: app-info path ==
+SCPApplicationInfoForBundle cfstrings: ['applicationInfoForBundleIdentifier:', 'sharedApplicationLibrary']
+info fn selrefs: ['respondsToSelector:', 'sharedApplication']
+GATE library-helper: PASS
+== GATE: displayNameFor: ==
+refs cf: ['applicationProxyForIdentifier:', 'displayName', 'localizedName'] cstr: ['LSApplicationProxy'] sel: ['length', 'respondsToSelector:']
+GATE displayNameFor: PASS
+== FRACTIONS ==
+openPairLeft:right: fsub: True doubles: [0.2, 0.8, 1.0]
+  -> PASS
+openSetupLayout:apps: fsub: True doubles: [0.2, 0.8, 1.0]
+  -> PASS
+== PANEL ==
+showLayoutPanelForApp: doubles: [-18.0, -16.0, -15.0, -12.0, -2.5, -0.5, 0.25, 0.5, 0.75, 1.0, 2.0, 2.5, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0, 24.0, 26.0, 28.0]
+immediate bit patterns: ['4055000000000000']
+PANEL stride: PASS
+
+=== gatecheck10b (arity/strings/uuid) ===
+OMCPref call sites: 32, without explicit x1 write: []
+ARITY: PASS
+setAssociatedObject sites: 0, mov w3,#1 immediately before: []
+ASSOC POLICY: CHECK
+Prefs _NSStringFromClass sites: 0 -> CHECK
+[GPT-F] Dock gate in SplitScreen: True
+AppBridge MILESTONE strings found: ['MILESTONE request', 'transaction-complete', 'process-launch-complete', 'revealPane', 'teardown', 'scene-attached', 'type-encoding _createSceneViewController', 'MILESTONE']
+
+UUID manifest (candidate):
+  OmniCar                      4C4C4450-5555-3144-A1A3-58843B0F2EA6  70064 B
+  OmniCarAppBridge.dylib       4C4C44C5-5555-3144-A125-1D7128382BDF  291232 B
+  OmniCarCarProbe.dylib        4C4C44CF-5555-3144-A10B-60B43FDF44ED  112352 B
+  OmniCarCore.dylib            4C4C4462-5555-3144-A1FD-68112DE02120  130640 B
+  OmniCarSpeedBubble.dylib     4C4C4432-5555-3144-A1CC-E6285F206B71  294064 B
+  OmniCarSplitScreen.dylib     4C4C44A8-5555-3144-A121-282872938F02  537664 B
+  OmniCarStartupScreen.dylib   4C4C449A-5555-3144-A111-BD9DEADD1500  299712 B
+  OmniCarPrefs                 4C4C4451-5555-3144-A182-1D4B9C7979C6  605584 B
+
+=== gatecheck10c (stub-resolved policy/prefs) ===
+StartupScreen _objc_setAssociatedObject stub: ['0x2479c']
+sites: 3 policy mov w3,#1 before each: [('0x75f0', True), ('0x76c8', True), ('0x857c', True)]
+ASSOC POLICY: PASS
+Prefs _NSStringFromClass stub: ['0x512f4'] call sites: 3
+NSSTRINGFROMCLASS: PASS

@@ -90,17 +90,34 @@ void SCPExceptionLog(const char *where, NSException *exception) {
                                    [exception callStackSymbols]]);
 }
 
-// sub_4672c (called by sub_e324) INFERRED: LSApplicationWorkspace default
-// workspace, obtained by class-name lookup (the workspace class string sits
-// next to the guarded selector in __cstring).
-static id SCPDefaultWorkspace(void) {
-    Class ws = NSClassFromString(@"LSApplicationWorkspace");
-    return SCPGuardedSend(ws, @"defaultWorkspace");
+// sub_4672c VERIFIED (dump src/SplitScreenC/disasm/sub_4672c.txt; the VA
+// was also re-disassembled from the payload dylib and matched 58/58
+// lines): [UIApplication sharedApplication] -> guarded
+// sharedApplicationLibrary. The returned object is the
+// FBSApplicationLibrary, and it — not an LSApplicationWorkspace — is
+// the receiver sub_e324 sends applicationInfoForBundleIdentifier: to.
+// (The earlier INFERRED body used LSApplicationWorkspace
+// defaultWorkspace; that instance has no
+// applicationInfoForBundleIdentifier:, which is exactly the THIEU
+// METHOD line in the 2026-11-08 21:56 device log and what closed the
+// isCarPlayApp: gate for every app.) The binary tests
+// respondsToSelector: twice: the first test's failure returns nil
+// silently, the second's logs via SCPMissingSelector (the same
+// double-test pattern as SCPInfoBool / sub_17d84).
+static id SCPAppLibrary(void) {
+    id app = [UIApplication sharedApplication];
+    SEL sel = NSSelectorFromString(@"sharedApplicationLibrary");
+    if (![app respondsToSelector:sel]) return nil;
+    if ([app respondsToSelector:sel])
+        return ((id (*)(id, SEL))objc_msgSend)(app, sel);
+    SCPMissingSelector(app, @"sharedApplicationLibrary");
+    return nil;
 }
 
-// sub_e324 VERIFIED: applicationInfoForBundleIdentifier: on the workspace.
+// sub_e324 VERIFIED: applicationInfoForBundleIdentifier: on the shared
+// application library obtained via sub_4672c.
 id SCPApplicationInfoForBundle(NSString *bundleID) {
-    id workspace = SCPDefaultWorkspace();
+    id workspace = SCPAppLibrary();
     if (!workspace || !bundleID) return nil;
     SEL sel = NSSelectorFromString(@"applicationInfoForBundleIdentifier:");
     if ([workspace respondsToSelector:sel])
@@ -109,15 +126,25 @@ id SCPApplicationInfoForBundle(NSString *bundleID) {
     return nil;
 }
 
-// sub_101bc VERIFIED logic; the third branch's set source (sub_48864) is
-// the AppBridge chosen-apps list — per the calibrated PREFS_MAP it reads
-// the OMC pref key "appBridgeApps" and the result is sent containsObject:.
+// sub_101bc VERIFIED (dump disasm/sub_101bc.txt): length, then the
+// appBridge feature gate (@0x101e0), then injected -> YES; otherwise
+// the app info runs through sub_e324 + sub_ffb4 and a REAL CarPlay app
+// is NOT hosted (ffb4 YES -> NO @0x1022c); only a non-CarPlay app in
+// the sub_48864 set falls through to containsObject:. There is NO
+// nil-info gate in the binary: ffb4(nil) is NO, so an app with no info
+// still reaches the chosen-set test. (An earlier reconstruction added
+// `if (!SCPApplicationInfoForBundle(...)) return NO;` — combined with
+// the sub_4672c receiver defect, which made app info always nil, it
+// killed the hosted branch outright.) sub_48864 itself is the chosen
+// set INTERSECTED with installed apps (LSApplicationWorkspace
+// allInstalledApplications, ~60 s cache); SCPBridgedChosenApps() in
+// SCPCarApps.m carries that logic.
 BOOL SCPIsHostedApp(NSString *bundleID) {
     if (!bundleID.length) return NO;
     if (!OMCFeatureEnabled(@"appBridge")) return NO;
     if (SCPIsInjectedPhoneApp(bundleID)) return YES;
-    if (!SCPApplicationInfoForBundle(bundleID)) return NO;
-    extern id SCPBridgedChosenApps(void);   // sub_48864 == OMCPref(@"appBridgeApps")
+    if (SCPAppHasCarPlayUI(SCPApplicationInfoForBundle(bundleID))) return NO;
+    extern id SCPBridgedChosenApps(void);   // sub_48864
     return [SCPBridgedChosenApps() containsObject:bundleID];
 }
 

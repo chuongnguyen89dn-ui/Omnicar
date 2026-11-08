@@ -112,12 +112,15 @@ void SCPSendDashboardEvent(NSInteger type, id _Nullable context);
 // sub_75cc VERIFIED: @catch handler used by nearly every hook/method:
 // OMCLogWrite(@"SplitScreen", "LOI trong %s: %@\n%@", where, ex, callStack).
 void SCPExceptionLog(const char *where, NSException *exception);
-// sub_e324 VERIFIED: [LSApplicationWorkspace defaultWorkspace]
-// applicationInfoForBundleIdentifier: (guarded), nil when not installed.
+// sub_e324 VERIFIED: applicationInfoForBundleIdentifier: (guarded) on
+// the FBSApplicationLibrary from sub_4672c ([UIApplication
+// sharedApplication] -> sharedApplicationLibrary); nil when not
+// installed. (Not LSApplicationWorkspace — see SCPShared.m.)
 id _Nullable SCPApplicationInfoForBundle(NSString *bundleID);
 // sub_101bc VERIFIED: YES when the app must be hosted through AppBridge:
-// feature "appBridge" enabled AND (injected phone app OR (installed AND
-// listed in the AppBridge chosen-apps set from sub_48864)).
+// feature "appBridge" enabled AND (injected phone app OR (NOT a real
+// CarPlay app per sub_ffb4 AND listed in the sub_48864 chosen set)).
+// No nil-info gate: an app with no info still reaches the set test.
 BOOL SCPIsHostedApp(NSString *bundleID);
 // sub_14fa4 VERIFIED: [vc isKindOfClass:[SCPHostedAppVC class]] — used in
 // openApp:/adopt:slot:/hostApp:/removePaneAt: to pick hostClose vs detachVC.
