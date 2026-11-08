@@ -1,0 +1,28 @@
+OmniCar fix-round-2 harness (transcribed logic, host C11)
+TEST 1a keyboard round-trip
+  bundle com.apple.mobilesafari         FNV1a32=0x9A8FFE74 top-byte=0x9A
+  bundle com.google.maps                FNV1a32=0x53DCBA70 top-byte=0x53
+  bundle com.spotify.client             FNV1a32=0x4A83D793 top-byte=0x4A
+  bundle com.microsoft.Office.Outlook   FNV1a32=0x539EEF77 top-byte=0x53
+  regression: true=0x9A8FFE74 (uint32)state=0x7400030F state>>32=0x009A8FFE state>>40=0x00009A8F correct=0x9A8FFE74
+TEST 1a: PASS (133 checks, 0 failures)
+TEST 1b apporient round-trip
+  bundle com.apple.mobilesafari         FNV1a32=0x9A8FFE74 top-byte=0x9A
+  bundle com.google.maps                FNV1a32=0x53DCBA70 top-byte=0x53
+TEST 1b: PASS (120 checks, 0 failures)
+TEST 2 orientation clamp
+  clamp(-1) = -1 (expected -1)
+  clamp(0) = 0 (expected 0)
+  clamp(1) = 1 (expected 1)
+  clamp(2) = 2 (expected 2)
+  clamp(3) = 3 (expected 3)
+  clamp(4) = 4 (expected 4)
+  clamp(5) = 3 (expected 3)
+TEST 2: PASS (7 checks, 0 failures)
+TEST 3 unblank (fake scheduler)
+  3a sequence: [orig(1)@0.0, orig(0)@1.0]
+TEST 3: PASS (11 checks, 0 failures)
+TEST 4 hook-chain guard simulation (transcribed logic only)
+  install body=1 (want 1), orig=3 (want 3), registrar=1 (want 1)
+TEST 4: PASS (3 checks, 0 failures)
+TOTAL: 274 assertions, 0 failures -> PASS

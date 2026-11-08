@@ -419,7 +419,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     if (![self isCarPlayApp:bundleID]) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
             @"CarSplit: %@ khong co giao dien CarPlay -> bo qua", bundleID]);
-        [self toast:OMCTr(@"A", @"This app doesn't support CarPlay")];
+        [self toast:OMCTr(@"App này không hỗ trợ CarPlay", @"This app doesn't support CarPlay")];
         return;
     }
     BOOL wasActive = self.active;
@@ -434,7 +434,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         if (slot != 9 && [self slotIsPinned:slot]) {
             NSInteger alt = [self autoSlot];
             if ([self slotIsPinned:alt]) {
-                [self toast:OMCTr(@"�", @"This pane is pinned")];
+                [self toast:OMCTr(@"Ô này đang ghim", @"This pane is pinned")];
                 return;
             }
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
@@ -443,10 +443,10 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         }
         fresh = YES;
     } else if (existing.slot == slot || existing.slot == 9 || slot == 9) {
-        [self toast:[NSString stringWithFormat:OMCTr(@"%", @"%@ is already open in %@"),
+        [self toast:[NSString stringWithFormat:OMCTr(@"%@ đang mở ở %@", @"%@ is already open in %@"),
                      [self displayNameFor:bundleID],
-                     existing.slot == 9 ? OMCTr(@"c", @"the floating window")
-                                        : OMCTr(@"�", @"another pane")]];
+                     existing.slot == 9 ? OMCTr(@"cửa sổ nổi", @"the floating window")
+                                        : OMCTr(@"ô khác", @"another pane")]];
         return;
     }
 
@@ -856,7 +856,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     // Fresh claim on a pane that holds a different app: announce the swap.
     if (noPending && !existing && pane.vc && pane.bundleID &&
         ![pane.bundleID isEqualToString:bundle]) {
-        [self toast:[NSString stringWithFormat:OMCTr(@"%", @"%@ replaced %@ in pane %d"),
+        [self toast:[NSString stringWithFormat:OMCTr(@"%@ thay %@ ở ô %d", @"%@ replaced %@ in pane %d"),
                      [self displayNameFor:bundle], [self displayNameFor:pane.bundleID],
                      (int)slot + 1]];
     }
@@ -1291,7 +1291,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         [self removePaneAt:victim.slot background:YES];
     }
     if (moved.count)
-        [self toast:[NSString stringWithFormat:OMCTr(@"%", @"%@ moved to the background"),
+        [self toast:[NSString stringWithFormat:OMCTr(@"%@ về nền", @"%@ moved to the background"),
             [moved componentsJoinedByString:@", "]]];
     [self setPaneCount:count];
     self.layoutKind = kind;
@@ -1577,7 +1577,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: %@ %@ -> dong o %d", bundleID, state, (int)pane.slot]);
     if ([state isEqualToString:@"failed"]) {
-        [self toast:[NSString stringWithFormat:OMCTr(@"K", @"Couldn't show %@ on the car"),
+        [self toast:[NSString stringWithFormat:OMCTr(@"Không mở được %@ trên xe", @"Couldn't show %@ on the car"),
                      [self displayNameFor:bundleID]]];
     }
 }
@@ -2807,7 +2807,7 @@ extern NSString *_Nullable SCPWalkerIconBundleID(id icon);
     }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"CarSplit: giu icon %@ -> khong chia man duoc", bundle]);
-    if (bundle) [self toast:OMCTr(@"A", @"This app can't be split")];
+    if (bundle) [self toast:OMCTr(@"App này không chia màn hình được", @"This app can't be split")];
 }
 
 // -tabParent (0x366dc) VERIFIED (remediation, rem_stub_tabParent.txt —

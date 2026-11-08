@@ -1,0 +1,448 @@
+E1 STATIC CHECKS — fix round 2 (src/ canonical tree)
+Verdicts: (i) PASS  (ii) PASS  (iii) PASS  (iv) PASS  (v) PASS  (vi) PASS  (vii) PASS (no variadic DECLARATION; raw hits are comments/macro/doc — see below)  (viii) PASS
+
+(i) Exactly one live ABInstallSpringBoardHooks definition: line 417 of ABHostGeometry.m (other hits are the import comment at 24-25 and the header declaration). Live call sites inside it: MSHookMessageEx x4 at lines 441, 468, 497, 523 and MSHookFunction x1 at line 535 (grep counts 7/4 include comment lines 24, 332, 409, 531).
+    ABChannels.m: every actual MSHook CALL (lines 379, 383, 387, 391, 404) lies inside the #if 0 range 372-411; the other grep hits (53, 357-358, 424) are comments, not calls. Other #if 0 ranges in that file: 63-69, 72-168, 180-349.
+
+(ii) PASS: no MSHookMessageEx/MSHookFunction call with a NULL orig argument remains. The only ', NULL)' hits in AppBridge sources are ABTelexClassify calls in ABTelex.m (not hook calls).
+
+(iii) PASS: 'elided' grep over src/ = 0 hits.
+
+(iv) PASS: ABHook_ScreenBlanked body (ABHostGeometry.m:393-402) is non-empty (orig(1), delayed orig(0) via dispatch_after, fallback orig(blanked)); closeApp:terminate: terminate branch (ABHostLaunch.m) contains the FBSSystemService terminateApplication:forReason:andReport:withDescription: call (see body dump below).
+
+(v) PASS: CADisplayLink +displayLinkWithTarget:selector: hooked on object_getClass (metaclass) at ABInApp.m:96; the two FPS setters hooked on objc_getClass (instance class) at lines 99-104. ABApplyFPSLimit guards both orig pointers (lines 552, 555).
+
+(vi) PASS: the pid read in SCPSpringBoardHooks.m is NOT via SCPGuardedSend; it is the typed send at line 109: pid = ((pid_t (*)(id, SEL))objc_msgSend)(state, pidSel);  SCPGuardedSend is still used at line 95 for the object-returning processState send, which is its correct use.
+
+(vii) PASS (declaration): the only OMCLogWrite declaration/definition is non-variadic — OMCCommon.h:111 'void OMCLogWrite(NSString *tag, NSString *msg);' and OMCCommon.c:318. Raw grep hits for OMCLogWrite + '...' are: comments in OMCCommon.h:139 and AppBridgeEntry.m:63, the SPPLog macro definition in SBSourceGlobals.h:78 (a macro wrapping OMCLogWrite, not an OMCLogWrite declaration), a comment in SBIntegrationShims.h:10, and a markdown note in CarProbe/HANDOVER_NOTE.md:122. No variadic OMCLogWrite declaration exists in code.
+
+(viii) PASS: OMCRescueAnnounce (OmniCarCore.c:160) contains all six full Vietnamese viText literals: 'Chia màn hình', 'Màn hình khởi động', 'Bong bóng tốc độ', 'App trên màn xe', 'OmniCar: chế độ cứu', and the long 'CarPlay bị sập %d lần liền...' body; no @"O" / @"C" single-letter literals exist in that file.
+
+================ RAW OUTPUTS ================
+=== (i-a) ABInstallSpringBoardHooks definitions in src/AppBridgeB/ABHostGeometry.m ===
+24:#import <substrate.h> // FIX-ROUND2: ABInstallSpringBoardHooks (below) calls MSHookMessageEx/MSHookFunction from this TU
+25:#import <dlfcn.h>     // FIX-ROUND2: dlsym for BKSDisplayServicesSetScreenBlanked in ABInstallSpringBoardHooks
+417:void ABInstallSpringBoardHooks(void) {
+--- MSHook occurrences in ABHostGeometry.m ---
+24:#import <substrate.h> // FIX-ROUND2: ABInstallSpringBoardHooks (below) calls MSHookMessageEx/MSHookFunction from this TU
+332:// MSHookMessageEx/MSHookFunction, so every call through them below was a
+409:// MSHookMessageEx: class must exist, method must exist, and the method's
+441:                    MSHookMessageEx(cls, sel, (IMP)ABSpringBoardReady, (IMP *)&orig_SBDidFinishLaunching); // orig IMP stored at 0x3E9F0 in the original
+468:                    MSHookMessageEx(cls, sel, (IMP)ABHook_SBSuspended, (IMP *)&orig_SBSuspended); // orig at 0x3E9F8
+497:                    MSHookMessageEx(cls, sel, (IMP)ABHook_FBSceneUpdateSettings, (IMP *)&orig_FBSceneUpdate); // orig at 0x3EA00
+523:                    MSHookMessageEx(cls, sel, (IMP)ABHook_SBSceneViewRefSize, (IMP *)&orig_SBSceneView); // orig at 0x3EA08
+531:    // BKSDisplayServicesSetScreenBlanked (MSHookFunction) — dlsym branch
+535:        MSHookFunction(fn, (void *)ABHook_ScreenBlanked, (void **)&orig_ScreenBlanked); // orig at 0x3EA10
+count MSHookMessageEx:
+7
+count MSHookFunction:
+4
+
+=== (i-b) ABChannels.m #if 0 / #endif ranges and MSHook hits ===
+53://    Installs 4 MSHookMessageEx hooks + 1 MSHookFunction hook, then verifies
+63:#if 0
+69:#endif
+72:#if 0
+168:#endif
+180:#if 0
+349:#endif
+357:// exactly 4 _MSHookMessageEx calls (0x6ec0/0x6ee8/0x6f10/0x6f38) and 1
+358:// _MSHookFunction call (0x6f80). With both constructors live, the built
+372:#if 0
+379:    MSHookMessageEx(objc_getClass("SpringBoard"),
+383:    MSHookMessageEx(objc_getClass("SBSuspendedUnderLockManager"),
+387:    MSHookMessageEx(objc_getClass("FBScene"),
+391:    MSHookMessageEx(objc_getClass("SBSceneView"),
+404:        MSHookFunction(fn, (void *)repl_BKSDisplayServicesSetScreenBlanked,
+411:#endif
+424://    and installs the in-app MSHookMessageEx hooks (all [B]):
+
+=== (ii) ', NULL)' MSHook calls in live AppBridge code ===
+-- grep all src/AppBridgeA + src/AppBridgeB for MSHook.*NULL --
+NO HITS
+-- grep ', NULL)' in AppBridge .m files --
+/home/hatch/workspace/omnicar-re/src/AppBridgeB/ABTelex.m:167:        BOOL isVowel = ABTelexClassify([w characterAtIndex:cursor], NULL, NULL, NULL);
+/home/hatch/workspace/omnicar-re/src/AppBridgeB/ABTelex.m:190:            ABTelexClassify([w characterAtIndex:mainIdx], &fam, NULL, NULL);
+/home/hatch/workspace/omnicar-re/src/AppBridgeB/ABTelex.m:250:                ABTelexClassify([w characterAtIndex:idx], &fam, NULL, NULL);
+
+=== (iii) grep -rn 'elided' over src/ ===
+NO HITS (0)
+count:
+0
+
+=== (iv) ABHostLaunch.m ===
+-- closeApp:terminate: --
+205:// -closeApp:terminate: @ 0x15ca0 — VERIFIED through dropWindowIfEmpty:
+211:// m_ABHost_closeApp_terminate.txt: it resolves the frontmost
+223:- (void)closeApp:(NSString *)bundleID terminate:(BOOL)terminate {
+291:            [self closeApp:pane.bundleID terminate:NO];
+298:// the IMP on its central mechanism — the IMP contains no closeApp:
+
+=== (iv continued) ===
+        ABPostAppState(bundleID, @"failed");
+    }
+}
+
+// ---------------------------------------------------------------------------
+// -closeApp:terminate: @ 0x15ca0 — VERIFIED through dropWindowIfEmpty:
+// log "dong %@%@" (suffix @" (tat han)" when terminate),
+// [ABKeyboard.shared hideForApp:] (B class), teardownPane: (B),
+// remove from panes, dropWindowIfEmpty.
+// The terminate==YES tail (0x15da4-0x15fb4) is VERIFIED as well —
+// transcribed from src/AppBridgeB/disasm/
+// m_ABHost_closeApp_terminate.txt: it resolves the frontmost
+// application via UIApplication _accessibilityFrontMostApplication;
+// if that app's bundle id equals the closing app's, it logs
+// "%@ dang mo tren iPhone, khong tat" and does NOT terminate;
+// otherwise it calls FBSSystemService sharedService
+// terminateApplication:forReason:andReport:withDescription:
+// (bundleID, 1, NO, @"OmniCar App Bridge: closed") and logs
+// "tat han %@", or logs "khong tim thay API terminate cho %@" when
+// the service or the selector is unavailable. Private selectors are
+// resolved dynamically with ABMissingSelector fallbacks, exactly as
+// in the binary.
+// ---------------------------------------------------------------------------
+- (void)closeApp:(NSString *)bundleID terminate:(BOOL)terminate {
+    ABPane *pane = [self paneFor:bundleID];
+    if (!pane) return;
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"dong %@%@", bundleID, terminate ? @" (tat han)" : @""]);
+    // [[ABKeyboard shared] hideForApp:bundleID] (ABKeyboard is B's class;
+    // called here via dynamic dispatch exactly as the binary does).
+    id kb = [NSClassFromString(@"ABKeyboard") shared];
+    [kb performSelector:@selector(hideForApp:) withObject:bundleID];
+    [self teardownPane:pane];
+    [self.panes removeObject:pane];
+    [self dropWindowIfEmpty];
+    if (terminate) {
+        // Terminate tail @ 0x15da4 — VERIFIED (dump cited above).
+        id app = [UIApplication sharedApplication];
+        SEL frontSel = NSSelectorFromString(@"_accessibilityFrontMostApplication");
+        id frontApp = nil;
+        if ([app respondsToSelector:frontSel])
+            frontApp = ((id (*)(id, SEL))objc_msgSend)(app, frontSel);
+        else
+            ABMissingSelector(app, @"_accessibilityFrontMostApplication");
+        BOOL frontIsTarget = NO;
+        if (frontApp) {
+            SEL idSel = NSSelectorFromString(@"bundleIdentifier");
+            NSString *frontID = nil;
+            if ([frontApp respondsToSelector:idSel])
+                frontID = ((id (*)(id, SEL))objc_msgSend)(frontApp, idSel);
+            else
+                ABMissingSelector(frontApp, @"bundleIdentifier");
+            frontIsTarget = [frontID isEqualToString:bundleID];
+        }
+        if (frontIsTarget) {
+            // The app is frontmost on the phone itself: closing the
+            // car pane must not kill it (0x15e94-0x15ec4).
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"%@ dang mo tren iPhone, khong tat", bundleID]);
+        } else {
+            // 0x15ec8-0x15fb4: FBSSystemService terminate API.
+            Class fbsClass = objc_getClass("FBSSystemService");
+            SEL svcSel = NSSelectorFromString(@"sharedService");
+            id service = nil;
+            if ([(id)fbsClass respondsToSelector:svcSel])
+                service = ((id (*)(id, SEL))objc_msgSend)((id)fbsClass, svcSel);
+            else
+                ABMissingSelector((id)fbsClass, @"sharedService");
+            SEL termSel = NSSelectorFromString(
+                @"terminateApplication:forReason:andReport:withDescription:");
+            if (service && [service respondsToSelector:termSel]) {
+                ((void (*)(id, SEL, id, int, BOOL, id))objc_msgSend)(
+                    service, termSel, bundleID, 1, NO,
+                    @"OmniCar App Bridge: closed");
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"tat han %@", bundleID]);
+            } else {
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"khong tim thay API terminate cho %@", bundleID]);
+            }
+        }
+    }
+}
+
+// -closeAll @ 0x160ec / -closeAllExcept: @ 0x160f4 — VERIFIED pattern
+// (closeAll tail-calls closeAllExcept:nil).
+- (void)closeAll { [self closeAllExcept:nil]; }
+
+- (void)closeAllExcept:(NSString *)bundleID {
+    for (ABPane *pane in [self.panes copy])
+        if (!bundleID || ![pane.bundleID isEqualToString:bundleID])
+            [self closeApp:pane.bundleID terminate:NO];
+}
+
+// -carDisconnected @ 0x163e8 — ADJUDICATED (final closure; dump
+// disasm/fin_imp_carDisconnected.txt in AppBridgeB): the sole
+-- unblank handler search across src/AppBridge* --
+25:#import <dlfcn.h>     // FIX-ROUND2: dlsym for BKSDisplayServicesSetScreenBlanked in ABInstallSpringBoardHooks
+337:void (*orig_ScreenBlanked)(BOOL); // 0x3EA10
+388:// sub_777C — BKSDisplayServicesSetScreenBlanked hook: when a blank is
+393:void ABHook_ScreenBlanked(BOOL blanked) {
+395:        orig_ScreenBlanked(1);
+397:            orig_ScreenBlanked(0);
+401:    orig_ScreenBlanked(blanked);
+531:    // BKSDisplayServicesSetScreenBlanked (MSHookFunction) — dlsym branch
+533:    void *fn = dlsym((void *)-2 /* RTLD_DEFAULT */, "BKSDisplayServicesSetScreenBlanked");
+535:        MSHookFunction(fn, (void *)ABHook_ScreenBlanked, (void **)&orig_ScreenBlanked); // orig at 0x3EA10
+537:        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"khong tim thay BKSDisplayServicesSetScreenBlanked"]);
+
+=== (v) ABInApp.m CADisplayLink installer lines ===
+32:static CADisplayLink *ABHook_CADisplayLinkNew(id self, SEL _cmd, id target, SEL selector);
+33:static void ABHook_CADisplayLinkSetFPS(CADisplayLink *self, SEL _cmd, NSInteger fps);
+34:static void ABHook_CADisplayLinkSetRange(CADisplayLink *self, SEL _cmd, CAFrameRateRange range);
+58:static IMP orig_CADisplayLink_new, orig_CADisplayLink_setFPS, orig_CADisplayLink_setRange;
+87:        // CADisplayLink hooks: the class method is hooked on the
+90:        // objc_getClass result in x21, applies object_getClass ONLY
+91:        // for +displayLinkWithTarget:selector:, and passes x21
+96:        MSHookMessageEx(object_getClass(objc_getClass("CADisplayLink")),
+97:                        @selector(displayLinkWithTarget:selector:),
+98:                        (IMP)ABHook_CADisplayLinkNew, &orig_CADisplayLink_new);
+99:        MSHookMessageEx(objc_getClass("CADisplayLink"),
+100:                        @selector(setPreferredFramesPerSecond:),
+101:                        (IMP)ABHook_CADisplayLinkSetFPS, &orig_CADisplayLink_setFPS);
+102:        MSHookMessageEx(objc_getClass("CADisplayLink"),
+103:                        @selector(setPreferredFrameRateRange:),
+104:                        (IMP)ABHook_CADisplayLinkSetRange, &orig_CADisplayLink_setRange);
+105:        MSHookMessageEx(objc_getClass("UIWindow"),
+108:        MSHookMessageEx(objc_getClass("UIDevice"),
+111:        MSHookMessageEx(objc_getClass("UIDevice"),
+114:        MSHookMessageEx(objc_getClass("UIDevice"), @selector(orientation),
+116:        MSHookMessageEx(objc_getClass("UITextField"), @selector(becomeFirstResponder),
+118:        MSHookMessageEx(objc_getClass("UITextField"), @selector(resignFirstResponder),
+120:        MSHookMessageEx(objc_getClass("UITextView"), @selector(becomeFirstResponder),
+122:        MSHookMessageEx(objc_getClass("UITextView"), @selector(resignFirstResponder),
+125:        BOOL hasVCUpdate = class_getInstanceMethod(objc_getClass("UIViewController"), @selector(setNeedsUpdateOfSupportedInterfaceOrientations)) != NULL;
+126:        BOOL hasAttempt = class_getClassMethod(objc_getClass("UIViewController"), @selector(attemptRotationToDeviceOrientation)) != NULL;
+128:            MSHookMessageEx(objc_getClass("UIWindowScene"),
+133:            MSHookMessageEx(objc_getClass("UIViewController"),
+139:            MSHookMessageEx(object_getClass(objc_getClass("UIViewController")),
+529:// sub_50A8 / sub_5144 / sub_5220. While ABFPSLimit > 0 every CADisplayLink
+543:static void ABApplyFPSLimit(CADisplayLink *link) {
+552:    if (orig_CADisplayLink_setRange)
+553:        ((void (*)(id, SEL, CAFrameRateRange))orig_CADisplayLink_setRange)(link, @selector(setPreferredFrameRateRange:), range);
+555:    if (orig_CADisplayLink_setFPS && fps > ABFPSLimit)
+556:        ((void (*)(id, SEL, NSInteger))orig_CADisplayLink_setFPS)(link, @selector(setPreferredFramesPerSecond:), ABFPSLimit);
+559:static CADisplayLink *ABHook_CADisplayLinkNew(id self, SEL _cmd, id target, SEL selector) {
+560:    CADisplayLink *link = ((CADisplayLink *(*)(id, SEL, id, SEL))orig_CADisplayLink_new)(self, _cmd, target, selector);
+567:static void ABHook_CADisplayLinkSetFPS(CADisplayLink *self, SEL _cmd, NSInteger fps) {
+568:    if (orig_CADisplayLink_setFPS)
+569:        ((void (*)(id, SEL, NSInteger))orig_CADisplayLink_setFPS)(self, _cmd, fps);
+572:static void ABHook_CADisplayLinkSetRange(CADisplayLink *self, SEL _cmd, CAFrameRateRange range) {
+573:    if (orig_CADisplayLink_setRange)
+574:        ((void (*)(id, SEL, CAFrameRateRange))orig_CADisplayLink_setRange)(self, _cmd, range);
+-- context --
+// ABChanOrientation; runs on the main queue. x0 = block, x1 = notification.
+// The one-time hook installation and the per-notification work are in the
+// SAME function in the original.
+// ===========================================================================
+static void ABOrientationBlock(NSNotification *note) {
+    if (!ABHooksInstalled) {
+        ABHooksInstalled = YES;
+        // CADisplayLink hooks: the class method is hooked on the
+        // METACLASS; the two FPS setters are instance methods and are
+        // hooked on the class itself. (Original sub_4728 keeps the
+        // objc_getClass result in x21, applies object_getClass ONLY
+        // for +displayLinkWithTarget:selector:, and passes x21
+        // directly for both setters — installer_app_4728.txt
+        // @0x4780-0x47ec.) [hotfix: setters were on the metaclass, so
+        // the hooks never landed and their orig slots stayed NULL
+        // while ABApplyFPSLimit calls them.]
+        MSHookMessageEx(object_getClass(objc_getClass("CADisplayLink")),
+                        @selector(displayLinkWithTarget:selector:),
+                        (IMP)ABHook_CADisplayLinkNew, &orig_CADisplayLink_new);
+        MSHookMessageEx(objc_getClass("CADisplayLink"),
+                        @selector(setPreferredFramesPerSecond:),
+                        (IMP)ABHook_CADisplayLinkSetFPS, &orig_CADisplayLink_setFPS);
+        MSHookMessageEx(objc_getClass("CADisplayLink"),
+                        @selector(setPreferredFrameRateRange:),
+                        (IMP)ABHook_CADisplayLinkSetRange, &orig_CADisplayLink_setRange);
+        MSHookMessageEx(objc_getClass("UIWindow"),
+                        NSSelectorFromString(@"_setRotatableViewOrientation:duration:force:"),
+                        (IMP)ABHook_UIWindowSetRotatable, &orig_UIWindow_setRotatable);
+        MSHookMessageEx(objc_getClass("UIDevice"),
+                        @selector(beginGeneratingDeviceOrientationNotifications),
+                        (IMP)ABHook_UIDeviceBeginGen, &orig_UIDevice_beginGen);
+        MSHookMessageEx(objc_getClass("UIDevice"),
+                        NSSelectorFromString(@"setOrientation:animated:"),
+                        (IMP)ABHook_UIDeviceSetOrientation, &orig_UIDevice_setOrientation);
+        MSHookMessageEx(objc_getClass("UIDevice"), @selector(orientation),
+                        (IMP)ABHook_UIDeviceOrientation, &orig_UIDevice_orientation);
+        MSHookMessageEx(objc_getClass("UITextField"), @selector(becomeFirstResponder),
+                        (IMP)ABHook_TFBecome, &orig_TF_become);
+        MSHookMessageEx(objc_getClass("UITextField"), @selector(resignFirstResponder),
+                        (IMP)ABHook_TFResign, &orig_TF_resign);
+        MSHookMessageEx(objc_getClass("UITextView"), @selector(becomeFirstResponder),
+                        (IMP)ABHook_TVBecome, &orig_TV_become);
+        MSHookMessageEx(objc_getClass("UITextView"), @selector(resignFirstResponder),
+                        (IMP)ABHook_TVResign, &orig_TV_resign);
+        BOOL hasScene = OMCHasMethod("UIWindowScene", @"requestGeometryUpdateWithPreferences:errorHandler:"); // [hotfix] 2nd arg was a C string; the impl treats it as NSString* (original passes the cfstring — installer_app_4728.txt @0x491c-0x492c)
+        BOOL hasVCUpdate = class_getInstanceMethod(objc_getClass("UIViewController"), @selector(setNeedsUpdateOfSupportedInterfaceOrientations)) != NULL;
+        BOOL hasAttempt = class_getClassMethod(objc_getClass("UIViewController"), @selector(attemptRotationToDeviceOrientation)) != NULL;
+        if (hasScene) {
+            MSHookMessageEx(objc_getClass("UIWindowScene"),
+                            @selector(requestGeometryUpdateWithPreferences:errorHandler:),
+                            (IMP)ABHook_SceneRequestGeometry, &orig_Scene_reqGeometry);
+        }
+        if (hasVCUpdate) {
+            MSHookMessageEx(objc_getClass("UIViewController"),
+                            @selector(setNeedsUpdateOfSupportedInterfaceOrientations),
+                            (IMP)ABHook_VCSetNeedsUpdate, &orig_VC_setNeedsUpdate);
+        }
+        if (!hasVCUpdate && hasAttempt) {
+            // Pre-iOS-16 fallback: hook the class method on the metaclass.
+            MSHookMessageEx(object_getClass(objc_getClass("UIViewController")),
+                            @selector(attemptRotationToDeviceOrientation),
+                            (IMP)ABHook_VCAttemptRotation, &orig_VC_attemptRotation);
+        }
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"%@: dua len xe, cai hook",
+                                   [NSBundle mainBundle].bundleIdentifier]);
+    }
+
+=== (vi) SCPSpringBoardHooks.m pid read ===
+55:// Controller -> application -> processState.pid -> kill(pid, SIGKILL).
+57:// "tat han %@ (kill pid %d)", "tat han %@ loi %@".
+80:    // Fallback: kill by pid.
+95:        id state = SCPGuardedSend(app, @"processState");
+96:        // sub_89d0 @0x8cd8-0x8d10 VERIFIED: the `pid` send is guarded
+102:        // SCPGuardedSend (which returns `id`): under ARC the pid would
+105:        pid_t pid = 0;
+107:            SEL pidSel = NSSelectorFromString(@"pid");
+108:            if ([state respondsToSelector:pidSel])
+109:                pid = ((pid_t (*)(id, SEL))objc_msgSend)(state, pidSel);
+111:                SCPMissingSelector(state, @"pid");
+113:        if (pid >= 1) {
+114:            kill(pid, SIGKILL);
+115:            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"tat han %@ (kill pid %d)", bundleID, pid]);
+
+=== (vii) variadic OMCLogWrite declaration ===
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.h:139:// logs via OMCLogWrite(@"Core", ...) and returns nil if neither exists.
+/home/hatch/workspace/omnicar-re/src/SpeedBubble/SBSourceGlobals.h:78:#define SPPLog(fmt, ...) OMCLogWrite(@"SpeedBubble", [NSString stringWithFormat:(fmt), ##__VA_ARGS__])
+/home/hatch/workspace/omnicar-re/src/SpeedBubble/SBIntegrationShims.h:10:// `_OMCLogWrite(...)`), which names a DIFFERENT C symbol
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.h:139:// logs via OMCLogWrite(@"Core", ...) and returns nil if neither exists.
+/home/hatch/workspace/omnicar-re/src/AppBridgeB/AppBridgeEntry.m:63://     "loaded into SpringBoard" via OMCLogWrite(@"AppBridge", ...).
+/home/hatch/workspace/omnicar-re/src/CarProbe/HANDOVER_NOTE.md:122:- `OMCLogWrite(module, fmt, ...)` @0x4b64: gate sub_6f28 (crashguard-env
+/home/hatch/workspace/omnicar-re/src/SpeedBubble/SBIntegrationShims.h:10:// `_OMCLogWrite(...)`), which names a DIFFERENT C symbol
+-- all OMCLogWrite declarations --
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.h:8:// all six binaries; the single exception is OMCLogWrite (see OMCCommon.c).
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.h:111:void OMCLogWrite(NSString *tag, NSString *msg);
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.h:139:// logs via OMCLogWrite(@"Core", ...) and returns nil if neither exists.
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:258:// In OmniCarCore's OMCLogWrite the getter is called and the result
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:316:// _OMCLogWrite @ 0x6be4 (Core: 424 bytes; other modules: 452 bytes — the
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:318:void OMCLogWrite(NSString *tag, NSString *msg) {
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:450:        OMCLogWrite(tag, [NSString stringWithFormat:@"iOS %@: lop CarPlay %@",
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:456:        OMCLogWrite(tag,
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:463:        OMCLogWrite(tag, [NSString stringWithFormat:@"iOS %@: du %lu hook",
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:483:    OMCLogWrite(tag, [NSString stringWithFormat:
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:509:    OMCLogWrite(@"Core", [NSString stringWithFormat:
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:525:                            // OMCLogWrite stamp variant)
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:799:    OMCLogWrite(@"Core", [NSString stringWithFormat:
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:823:        OMCLogWrite(@"Core", [NSString stringWithFormat:
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:1150:            OMCLogWrite(@"Core",
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:1190:            OMCLogWrite(@"Core", [NSString stringWithFormat:@"CarKit loi: %@",
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:1230:                OMCLogWrite(@"Core",
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:1251:                OMCLogWrite(@"Core",
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:1266:        OMCLogWrite(@"Core",
+/home/hatch/workspace/omnicar-re/src/OMCCommon/OMCCommon.c:1301:        OMCLogWrite(@"Core",
+
+=== (viii) OMCRescueAnnounce in OmniCarCore.c ===
+3:// _OMCTrustedTimeStart and its trusted-time machinery, the two module
+76:static void OMCTrustedTimeCompletion(NSData *data, NSURLResponse *response,
+108:              OMCTrustedTimeCompletion(d, r, e);
+128:// _OMCTrustedTimeStart @ 0x44a8 — the 21st export, Core-only (absent from
+130:void OMCTrustedTimeStart(void) {
+156:// The viText arguments below are full Vietnamese UTF-16 constant strings
+160:static void OMCRescueAnnounce(void) {
+171:            name = OMCTr(@"Chia màn hình", @"Split Screen");
+173:            name = OMCTr(@"Màn hình khởi động", @"Startup Screen");
+175:            name = OMCTr(@"Bong bóng tốc độ", @"Speed Bubble");
+177:            name = OMCTr(@"App trên màn xe", @"Apps on the car screen");
+184:    NSString *title = OMCTr(@"OmniCar: chế độ cứu", @"OmniCar: rescue mode");
+187:            OMCTr(@"CarPlay bị sập %d lần liền ngay sau khi cắm, nên OmniCar đã tắt: %@.\n\nVào Cài đặt > OmniCar để bật lại hoặc gửi log cho tác giả.",
+470:        OMCTrustedTimeStart();
+474:                                 ^(int token) { OMCRescueAnnounce(); });
+
+=== (viii raw) OMCRescueAnnounce region OmniCarCore.c:156-195 ===
+// The viText arguments below are full Vietnamese UTF-16 constant strings
+// in the original binary (__ustring, cfstring flags 0x7d0); earlier
+// extraction mis-read them as 1-char C strings. Verified by
+// cfstring-struct parse 2026-11-08.
+static void OMCRescueAnnounce(void) {
+    OMCPrefsSync();
+    id features = OMCPref(@"rescueFeatures", nil);
+    if (![features isKindOfClass:[NSArray class]] ||
+        [(NSArray *)features count] == 0) {
+        return;
+    }
+    NSMutableArray<NSString *> *names = [NSMutableArray array];
+    for (NSString *f in (NSArray *)features) {
+        NSString *name;
+        if ([f isEqualToString:@"splitScreen"]) {
+            name = OMCTr(@"Chia màn hình", @"Split Screen");
+        } else if ([f isEqualToString:@"startupScreen"]) {
+            name = OMCTr(@"Màn hình khởi động", @"Startup Screen");
+        } else if ([f isEqualToString:@"speedBubble"]) {
+            name = OMCTr(@"Bong bóng tốc độ", @"Speed Bubble");
+        } else if ([f isEqualToString:@"appBridge"]) {
+            name = OMCTr(@"App trên màn xe", @"Apps on the car screen");
+        } else {
+            name = f;
+        }
+        [names addObject:name];
+    }
+    NSString *joined = [names componentsJoinedByString:@", "];
+    NSString *title = OMCTr(@"OmniCar: chế độ cứu", @"OmniCar: rescue mode");
+    NSString *body = [NSString
+        stringWithFormat:
+            OMCTr(@"CarPlay bị sập %d lần liền ngay sau khi cắm, nên OmniCar đã tắt: %@.\n\nVào Cài đặt > OmniCar để bật lại hoặc gửi log cho tác giả.",
+                  @"CarPlay crashed %d times in a row right after "
+                   "connecting, so OmniCar turned off: %@.\n\nOpen "
+                   "Settings > OmniCar to turn it back on or send the "
+                   "log to the developer."),
+            2, joined];
+    // CFUserNotificationDisplayNotice is resolved dynamically (dlsym on
+    // RTLD_DEFAULT) so the dylib does not link UserNotifications.
+    typedef void (*OMCNoticeFn)(double, uint64_t, const void *, const void *,
+single-letter check:
+NO single-letter @"O"/@"C" hits
+
+=== (vi raw) SCPSpringBoardHooks.m:95-115 ===
+        id state = SCPGuardedSend(app, @"processState");
+        // sub_89d0 @0x8cd8-0x8d10 VERIFIED: the `pid` send is guarded
+        // inline (NSSelectorFromString + respondsToSelector:, with
+        // SCPMissingSelector on failure) and its return is consumed as
+        // a raw integer -- the original emits NO
+        // objc_retainAutoreleasedReturnValue for it, unlike the
+        // object-returning sends around it. It must NOT go through
+        // SCPGuardedSend (which returns `id`): under ARC the pid would
+        // be treated as an object pointer. Used when >= 1; signal is
+        // 9 (SIGKILL).
+        pid_t pid = 0;
+        if (state) {
+            SEL pidSel = NSSelectorFromString(@"pid");
+            if ([state respondsToSelector:pidSel])
+                pid = ((pid_t (*)(id, SEL))objc_msgSend)(state, pidSel);
+            else
+                SCPMissingSelector(state, @"pid");
+        }
+        if (pid >= 1) {
+            kill(pid, SIGKILL);
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"tat han %@ (kill pid %d)", bundleID, pid]);
+
+=== (iv raw) ABHook_ScreenBlanked ABHostGeometry.m:388-402 ===
+// sub_777C — BKSDisplayServicesSetScreenBlanked hook: when a blank is
+// requested while panes are hosted, the blank is applied and then REVERSED
+// 1.0 s later (the delayed block sub_9688 calls orig(0)); the car display
+// does not stay asleep while apps are hosted.
+// dispatch_time constant verified: 0x3B9ACA00 = 1,000,000,000 ns.
+void ABHook_ScreenBlanked(BOOL blanked) {
+    if (blanked == 1 && [[ABHost shared] count] > 0) {
+        orig_ScreenBlanked(1);
+        dispatch_after(dispatch_time(0, 1000000000), dispatch_get_main_queue(), ^{
+            orig_ScreenBlanked(0);
+        });
+        return;
+    }
+    orig_ScreenBlanked(blanked);
+}

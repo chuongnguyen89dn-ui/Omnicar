@@ -1,0 +1,52 @@
+Hook-install count — OmniCarAppBridge.dylib (arm64, this fix-round-2 build)
+Method: capstone disassembly over LC_FUNCTION_STARTS extents (function
+bounds = successive function starts); MSHookMessageEx / MSHookFunction
+call sites resolved via __stubs -> __la_symbol_ptr import names
+(adapted from project/logs/hotfix-hookcount.txt, which counted only
+constructor extents; this round the installs no longer live in a ctor,
+so every function in __text was counted, then the ctor chain was
+followed). Built binary analysed: the raw Step-1 DEB's staged dylib,
+extracted fresh to /tmp/fr_built (SHA-256 of the extracted dylib
+5d22efc96fd7585db9748a953005dc3e6d276168bfdf3f28ab9abaee8869f394,
+identical to the .theos staging copy — extraction verified).
+
+RESULT — exactly TWO functions in the whole dylib contain MSHook
+call sites:
+
+1. HOST INSTALLER — _ABInstallSpringBoardHooks @0x12b24 (exported
+   symbol, defined in src/AppBridgeB/ABHostGeometry.m):
+     MSHookMessageEx = 4  (sites 0x12c2c, 0x12dec, 0x1314c, 0x13318)
+     MSHookFunction  = 1  (site 0x13284)
+   => host group 4 + 1, exactly ONE installer function contains it.
+
+2. IN-APP INSTALLER — function @0x13408 (no exported symbol; the
+   ABInApp.m in-app hook installer, reached via
+   _ABInstallInAppObservers @0x13324):
+     MSHookMessageEx = 13, MSHookFunction = 0
+   This is a different, expected set (CADisplayLink / UIWindow /
+   UIDevice / UITextField / UITextView / UIWindowScene /
+   UIViewController in-app hooks) — reported for context, not
+   conflated with the host group.
+
+CTOR CHAIN (__mod_init_func: 3 entries @0x4000, @0x1bc88, @0x1be58):
+- ctor @0x1be58 (ABHostCtor, AppBridgeEntry.m): direct MSHook sites
+  = 0; its callees include _ABInstallSpringBoardHooks @0x12b24 —
+  i.e. the ctor calls the single installer, exactly as the source
+  shows (bundle gate + log + one call).
+- ctor @0x1bc88: direct sites = 0; calls _ABInstallInAppObservers.
+- ctor @0x4000: direct sites = 0, no callees with hooks.
+
+ABChannels DEAD COPIES — ABSENT:
+- No third hook-containing function exists. Total __text bl sites
+  are MSHookMessageEx=17 + MSHookFunction=1 (= 4+1 host + 13 in-app),
+  down from the hotfix build's 21 + 2, whose extra 4 + 1 was the
+  then-merely-disabled ABChannels installer retained as dead code.
+  The #if 0-neutralised ABSpringBoardInit / repl_* copies in
+  src/AppBridgeA/src/ABChannels.m are therefore NOT present in this
+  binary at all (object-level cross-check: the final
+  ABChannels.m object for this build contains no ABSpringBoardInit
+  symbol and no MSHook imports).
+
+ORIGINAL (from hotfix-hookcount.txt, same stub method on the
+original's ctor @0x6E08): 4x MSHookMessageEx + 1x MSHookFunction
+(tail call) — host group installed once. This build matches: once.

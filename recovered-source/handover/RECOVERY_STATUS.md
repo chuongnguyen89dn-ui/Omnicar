@@ -869,3 +869,99 @@ device retest, ordered startup-first (install, respring,
 SpringBoard stability), then the acceptance groups. Until
 that retest passes, behavioural equivalence remains
 unproven.
+
+## 10. Fix round 2 addendum (2026-11-08) — §8 E1/E2 fixes, E3 integration
+
+The audits behind §8's remaining items (installer invariants,
+registrar completeness, lifecycle/FPS, log/pid scalars, rescue
+strings) were worked as source fixes (E1), verified by a host
+harness (E2), and integrated in a finishing pass (E3). Full
+change record: `handover/PATCH_NOTES.md`. Evidence:
+`project/logs/fix-round/` (`build.log`, `perclass.txt`,
+`diff.txt`, `hookcount.txt`, `static-checks.txt`,
+`uuid-manifest.txt`, `harness/results.txt`, `SUMMARY.md`).
+
+**What changed** (see PATCH_NOTES §1–§2 for the full matrix):
+the five host installs now live in a single new installer,
+`ABInstallSpringBoardHooks` in ABHostGeometry.m, with a
+re-entry guard (set before installing), per-hook class/method/
+encoding pre-checks (existence = hard gate, encoding =
+structural check), and the original's OMCCheckHooks call; the
+ctor is reduced to its bundle gate plus one call. The
+ABChannels duplicate installer and its repl_* handlers are now
+`#if 0`-neutralised (previously merely disabled and still
+compiled). The registrar gained a once-guard. Also fixed:
+FBScene completion typedef, ScreenBlanked BOOL unification,
+@try wrappers on the frame/open/shield/close/closeall/knobs
+channel handlers, the open handler's stray guard and `aw`
+condition, D2-6 per-method gates and D2-7 FPS NULL guards in
+the in-app installer, the D5 variadic OMCLogWrite prototype
+and its 33 call sites, Prefs' OMCHSInstalled BOOL read,
+SCPKillAppBlock's missing failure log line, and the rescue
+announcer's six Vietnamese literals (root cause: UTF-16LE
+cfstrings misread as C strings at extraction, leaving
+1-character literals; the fix is the verbatim binary strings).
+
+**Rebuild evidence.** Clean build exit 0, 0 errors. Per-class
+62/66 exact, zero classes missing selectors, Prefs 743→745,
+OMCAppBridgeAppsController 105=105, SplitScreen 480=480.
+Payload 176/176 files, 168/168 non-Mach-O byte-identical, 0
+original defined symbols missing. Hook count on the built
+AppBridge dylib: exactly one host installer (4×
+MSHookMessageEx + 1× MSHookFunction), the in-app installer
+separate at 13×, total __text sites down from the hotfix
+build's 21+2 to 17+1 — the ABChannels copies are absent from
+the binary, not merely unregistered. Harness: 274 assertions,
+0 failures. Parity restage 202/202 entries, 0 differences.
+New rebuilt DEB: 948,844 bytes, SHA-256
+`d1502121ffe13a7b49c275db841d9b586a5458dfc53d86ab30f9703724ebe4ef`
+(supersedes the hotfix `ff4c9e7e…`).
+
+**UUID attribution — the crash question is settled by the
+bytes.** A full LC_UUID manifest for the original, the
+preserved FAT hotfix DEB, and this build is in
+`logs/fix-round/uuid-manifest.txt`. Headlines: the original's
+AppBridge arm64 UUID is
+`81ef5920-bb7a-37e8-b953-d88453f2ea89`; the FAT hotfix build's
+is `c1d34cc2-62c6-3b11-97e4-9317a7951558`, which does NOT
+match the crash-log (.ips) UUID
+`4c4c4461-5555-3144-a17f-f759d99c2ab7`. The round-2 DEB
+(`93cdcad9…`, no longer in the canonical packages slot but
+found SHA-verified in four clone checkouts under the
+workspace) has AppBridge arm64 UUID
+`4c4c4461-5555-3144-a17f-f759d99c2ab7` — an exact MATCH.
+The .ips files therefore belong to the round-2 build that
+was installed for acceptance round 1, not to the FAT hotfix
+build (which was produced later and was never the crashed
+install). This build's AppBridge UUID is
+`4c4c4413-5555-3144-a192-3f49022cb8b1`.
+
+**Flags carried forward** (PATCH_NOTES §3/§5): the FBScene
+swallowed path drops the completion 0× — binary-faithful
+(the original releases it uninvoked at 0x7680), deliberately
+unchanged, flagged for GPT acceptance; the D2-6 per-method
+checks are a work-order hardening beyond the binary's single
+OMCHasMethod gate; three single-letter OMCTr toast sites in
+SCPCarSplit.m (~422/448/1580) share the rescue defect class
+and were NOT fixed — their binary strings are not yet
+extracted.
+
+**Status.** DEVICE_TEST = PENDING: no fix-round-2 build has
+run on a device, and §6's scope statement is unchanged —
+verification remains structural/static plus the host harness.
+The startup-first device retest is still the proof step.
+
+**§10 addendum — build2 (2026-11-08), toast strings.** The
+three flagged toast clusters above have since been resolved:
+a full sweep found nine single-character `OMCTr` viText sites
+in `SCPCarSplit.m` (lines 422, 437, 446, 448, 449, 859, 1294,
+1580, 2810), and all nine binary strings were extracted by
+cfstring-struct parse of the original `OmniCarSplitScreen`
+(both slices identical) and restored verbatim — see
+PATCH_NOTES §6 and `work/fix-round2/audit-toasts.md`. The
+build1 candidate `d1502121…` is superseded by build2:
+SHA-256
+`3b2283a84ad0c1d83c68203e65418a4dc0d8bb94d10b0732249ac81e34fb9b6c`,
+949,244 B, parity restage 202/202 entries, 0 differences;
+per-class parity and the hook-install count are unchanged.
+DEVICE_TEST = PENDING, unchanged.

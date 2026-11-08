@@ -1,0 +1,11 @@
+Hook-install count — OmniCarAppBridge.dylib (arm64, fix-round-2 build2 — toast strings)
+Method: capstone over LC_FUNCTION_STARTS extents; bl/b targets resolved via __stubs indirect-symbol map (verify/macho_truth.py). Counter first validated against the build1 candidate: it reproduced hookcount.txt exactly (same site addresses). AppBridge was not touched by the toast fix; result is byte-for-byte the same site map as build1.
+
+file: /tmp/raw2_x/var/jb/Library/MobileSubstrate/DynamicLibraries/OmniCarAppBridge.dylib
+functions containing MSHook sites: 2; total MSHookMessageEx=17 MSHookFunction=1
+  @0x12b24 _ABInstallSpringBoardHooks: MSHookMessageEx=4 ['0x12c2c', '0x12dec', '0x1314c', '0x13318'] MSHookFunction=1 ['0x13284']
+  @0x13408 (no exported symbol): MSHookMessageEx=13 ['0x1349c', '0x134c0', '0x134e4', '0x1351c', '0x13548', '0x1357c', '0x135a0', '0x135d0', '0x135f8', '0x13620', '0x13640', '0x136c4', '0x13718'] MSHookFunction=0 []
+__mod_init_func: 3 entries
+  [0] -> 0x4000 
+  [1] -> 0x1bc88 
+  [2] -> 0x1be58 

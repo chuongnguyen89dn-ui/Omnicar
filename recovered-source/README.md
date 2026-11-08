@@ -163,3 +163,38 @@ zero classes missing selectors); built-binary hook count now
 matches the original (host group installed once, was twice).
 Causation of the device crashes is to be proven by the
 startup-first device retest.
+
+## Fix round 2 (2026-11-08)
+
+The §8 audit items were worked as source fixes and integrated
+in a finishing pass — see `handover/PATCH_NOTES.md` (new) and
+`handover/RECOVERY_STATUS.md` section 10. The five host hooks
+now live in a single installer, `ABInstallSpringBoardHooks`,
+with a re-entry guard, per-hook pre-checks and the original's
+`OMCCheckHooks` call; the ABChannels duplicate installer is
+`#if 0`-neutralised and is now absent from the built binary
+(hook sites 17+1 total, was 21+2), not merely unregistered.
+Also fixed: registrar once-guard, FBScene completion typedef,
+ScreenBlanked BOOL unification, channel-handler @try wrappers,
+D2-6/D2-7 in-app gates and FPS guards, the D5 variadic
+`OMCLogWrite` prototype and its 33 call sites, Prefs'
+`OMCHSInstalled` BOOL read, a missing kill-block log line, and
+the rescue announcer's six Vietnamese literals (UTF-16LE
+cfstrings originally misread as 1-char C strings). A build2
+finishing pass then restored the nine SplitScreen toast
+strings flagged in PATCH_NOTES §5 — all nine extracted by
+cfstring-struct parse and fixed the same way (PATCH_NOTES
+§6, `work/fix-round2/audit-toasts.md` in the workspace
+record). Host
+harness: 274 assertions, 0 failures. Rebuilt DEB (this
+commit): SHA-256
+`3b2283a84ad0c1d83c68203e65418a4dc0d8bb94d10b0732249ac81e34fb9b6c`,
+949,244 bytes; per-class parity re-verified (62/66 exact,
+zero classes missing selectors); parity restage 202/202
+entries, 0 differences. A UUID manifest
+(`project/logs/fix-round/uuid-manifest.txt`) settles the
+crash attribution: the .ips UUID
+`4c4c4461-5555-3144-a17f-f759d99c2ab7` matches the round-2
+DEB (`93cdcad9…`) exactly and does NOT match the FAT hotfix
+build. DEVICE_TEST = PENDING — no fix-round-2 build has run
+on a device yet.
