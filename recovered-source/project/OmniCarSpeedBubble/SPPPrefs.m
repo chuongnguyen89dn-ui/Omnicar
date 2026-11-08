@@ -11,7 +11,7 @@
 
 // Shared OMC core helpers (defined in the OMC shared block of the dylib).
 extern void _OMCPrefsSync(void);
-extern id _OMCPref(NSString *key, id def);  // [phase-2 integration; backported to src in phase 3] 2-arg form: binary sub_1edb0 passes x1 = nil (@0x1edd0 `mov x1,#0`); matches OMCCommon.h `id OMCPref(id, id)`
+extern id _OMCPref(NSString *key, id defaultValue);  // [phase-2 integration; backported to src in phase 3] 2-arg form: binary sub_1edb0 passes x1 = nil (@0x1edd0 `mov x1,#0`); matches OMCCommon.h `id OMCPref(id, id)`
 extern BOOL _OMCFeatureEnabled(NSString *featureKey);
 
 // sub_1edb0 @0x1edb0 — retained pref object for key (after a prefs sync).

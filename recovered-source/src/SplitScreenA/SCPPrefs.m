@@ -11,9 +11,9 @@
 // Core-layer setter (companion of OMCPref) — declared here, owned by Core.
 extern void SCPHomePrefSet(NSString *key, id _Nullable value); // [phase2; backported to src in phase 3] A's placeholder "OMCPrefSet" = sub_c4f4, transcribed by C as SCPHomePrefSet (SCPAppIcons.m)
 
-static id SCPObjectForKey(NSString *key) { return OMCPref(key); }
+static id SCPObjectForKey(NSString *key) { return OMCPref(key, nil); }
 static NSString *SCPStringForKey(NSString *key) {
-    id v = OMCPref(key);
+    id v = OMCPref(key, nil);
     return [v isKindOfClass:[NSString class]] ? v : nil;
 }
 static void SCPSetStringForKey(NSString *key, NSString *value) { SCPHomePrefSet(key, value); }

@@ -1,0 +1,376 @@
+[1;31m> [1;3;39mMaking all in OmniCarApp…[m
+[1;31m> [1;3;39mMaking all for application OmniCar…[m
+[0;35m==> [1;39mCopying resource directories into the application wrapper…[m
+[0;32m==> [1;39mCompiling main.m (arm64)…[m
+[0;32m==> [1;39mCompiling OMCAppDelegate.m (arm64)…[m
+[0;33m==> [1;39mLinking application OmniCar (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCar (arm64)…[m
+[0;34m==> [1;39mSigning OmniCar…[m
+[1;31m> [1;3;39mMaking all in OmniCarCore…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarCore…[m
+[0;32m==> [1;39mCompiling OmniCarCore.c (arm64)…[m
+[0;32m==> [1;39mCompiling ../OMCCommon/OMCCommon.c (arm64)…[m
+[0;33m==> [1;39mLinking tweak OmniCarCore (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCarCore (arm64)…[m
+[0;34m==> [1;39mSigning OmniCarCore…[m
+[1;31m> [1;3;39mMaking all in OmniCarAppBridge…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarAppBridge…[m
+[0;32m==> [1;39mCompiling ABChannelNames.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABChannels.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABChromeViews.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABHostLaunch.m (arm64)…[m
+[1mABHostLaunch.m:182:18: [0m[0;1;35mwarning: [0m[1mincompatible pointer types assigning to 'ABBoxView * _Nonnull' from 'UIView *' [-Wincompatible-pointer-types][0m
+  182 |         pane.box = box;[0m
+      | [0;1;32m                 ^ ~~~
+[0m[1mABHostLaunch.m:199:50: [0m[0;1;35mwarning: [0m[1mvalues of type 'NSInteger' should not be used as format arguments; add an explicit cast to 'long' instead [-Wformat][0m
+  198 |             @"host %@ tai %@ (huong %lld, zoom %.2f)",[0m
+      | [0;1;32m                                    ~~~~
+[0m      | [0;32m                                    %ld
+[0m  199 |             bundleID, NSStringFromCGRect(frame), pane.orientation, [self zoom]]);[0m
+      | [0;1;32m                                                 ^~~~~~~~~~~~~~~~
+[0m      | [0;32m                                                 (long)
+[0m[1mABHostLaunch.m:312:41: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  312 | - (void)closeAll { [self closeAllExcept:nil]; }[0m
+      | [0;1;32m                                        ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'zoom' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:71:1: [0m[0;1;36mnote: [0mmethod 'zoom' declared here[0m
+   71 | - (double)zoom; // clamp(pref appBridgeZoom / 100, 0.6, 1.0) — floor[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setFrame:forApp:live:handle:passInsets:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:74:1: [0m[0;1;36mnote: [0mmethod 'setFrame:forApp:live:handle:passInsets:' declared here[0m
+   74 | - (void)setFrame:(CGRect)frame forApp:(NSString *)app live:(BOOL)live[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'layoutPane:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:76:1: [0m[0;1;36mnote: [0mmethod 'layoutPane:' declared here[0m
+   76 | - (void)layoutPane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'nudgePane:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:77:1: [0m[0;1;36mnote: [0mmethod 'nudgePane:' declared here[0m
+   77 | - (void)nudgePane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'effectiveOrientation:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:78:1: [0m[0;1;36mnote: [0mmethod 'effectiveOrientation:' declared here[0m
+   78 | - (NSInteger)effectiveOrientation:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'appWithHash:changedOrientation:supportedMask:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:79:1: [0m[0;1;36mnote: [0mmethod 'appWithHash:changedOrientation:supportedMask:' declared here[0m
+   79 | - (void)appWithHash:(uint64_t)hash changedOrientation:(NSInteger)orientation[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setHole:forApp:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:81:1: [0m[0;1;36mnote: [0mmethod 'setHole:forApp:' declared here[0m
+   81 | - (void)setHole:(CGRect)hole forApp:(NSString *)app;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setPassInsets:forApp:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:82:1: [0m[0;1;36mnote: [0mmethod 'setPassInsets:forApp:' declared here[0m
+   82 | - (void)setPassInsets:(UIEdgeInsets)insets forApp:(NSString *)app;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setShieldAll:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:85:1: [0m[0;1;36mnote: [0mmethod 'setShieldAll:' declared here[0m
+   85 | - (void)setShieldAll:(BOOL)on;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'setShield:forPane:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:86:1: [0m[0;1;36mnote: [0mmethod 'setShield:forPane:' declared here[0m
+   86 | - (void)setShield:(BOOL)on forPane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'outsideTouched' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:87:1: [0m[0;1;36mnote: [0mmethod 'outsideTouched' declared here[0m
+   87 | - (void)outsideTouched;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'handlePanned:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:88:1: [0m[0;1;36mnote: [0mmethod 'handlePanned:' declared here[0m
+   88 | - (void)handlePanned:(UIPanGestureRecognizer *)gesture;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'handleTapped:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:89:1: [0m[0;1;36mnote: [0mmethod 'handleTapped:' declared here[0m
+   89 | - (void)handleTapped:(UITapGestureRecognizer *)gesture;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'sceneMonitor:sceneWasDestroyed:' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:92:1: [0m[0;1;36mnote: [0mmethod 'sceneMonitor:sceneWasDestroyed:' declared here[0m
+   92 | - (void)sceneMonitor:(id)monitor sceneWasDestroyed:(id)scene;[0m
+      | [0;1;32m^
+[0m[1mABHostLaunch.m:41:17: [0m[0;1;35mwarning: [0m[1mmethod definition for 'carDisconnected' not found [-Wincomplete-implementation][0m
+   41 | @implementation ABHost[0m
+      | [0;1;32m                ^
+[0m[1m./ABHost.h:93:1: [0m[0;1;36mnote: [0mmethod 'carDisconnected' declared here[0m
+   93 | - (void)carDisconnected;[0m
+      | [0;1;32m^
+[0m18 warnings generated.
+[0;32m==> [1;39mCompiling ABHostGeometry.m (arm64)…[m
+[1mABHostGeometry.m:191:41: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  191 |         [[ABKeyboard shared] hideForApp:nil];[0m
+      | [0;1;32m                                        ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m1 warning generated.
+[0;32m==> [1;39mCompiling ABInApp.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABTelex.m (arm64)…[m
+[0;32m==> [1;39mCompiling AppBridgeEntry.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABPane.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABMissingSelector.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABKeyboard.m (arm64)…[m
+[0;32m==> [1;39mCompiling ABHostBMethods.m (arm64)…[m
+[1mABHostBMethods.m:792:23: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  792 |         pane.shield = nil;[0m
+      | [0;1;32m                      ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostBMethods.m:802:23: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+  802 |         pane.shield = nil;[0m
+      | [0;1;32m                      ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostBMethods.m:1314:29: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+ 1314 |         pane.sceneMonitor = nil;[0m
+      | [0;1;32m                            ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostBMethods.m:1337:30: [0m[0;1;35mwarning: [0m[1mnull passed to a callee that requires a non-null argument [-Wnonnull][0m
+ 1337 |     pane.appViewController = nil;[0m
+      | [0;1;32m                             ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mABHostBMethods.m:528:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  528 | - (double)zoom {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:71:1: [0m[0;1;36mnote: [0mmethod 'zoom' declared here[0m
+   71 | - (double)zoom; // clamp(pref appBridgeZoom / 100, 0.6, 1.0) — floor[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:590:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  590 | - (void)setFrame:(CGRect)frame forApp:(NSString *)app live:(BOOL)live[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:74:1: [0m[0;1;36mnote: [0mmethod 'setFrame:forApp:live:handle:passInsets:' declared here[0m
+   74 | - (void)setFrame:(CGRect)frame forApp:(NSString *)app live:(BOOL)live[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:677:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  677 | - (void)layoutPane:(ABPane *)pane {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:76:1: [0m[0;1;36mnote: [0mmethod 'layoutPane:' declared here[0m
+   76 | - (void)layoutPane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:715:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  715 | - (void)nudgePane:(ABPane *)pane {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:77:1: [0m[0;1;36mnote: [0mmethod 'nudgePane:' declared here[0m
+   77 | - (void)nudgePane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:536:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  536 | - (NSInteger)effectiveOrientation:(ABPane *)pane {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:78:1: [0m[0;1;36mnote: [0mmethod 'effectiveOrientation:' declared here[0m
+   78 | - (NSInteger)effectiveOrientation:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:553:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  553 | - (void)appWithHash:(uint64_t)hash changedOrientation:(NSInteger)changed[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:79:1: [0m[0;1;36mnote: [0mmethod 'appWithHash:changedOrientation:supportedMask:' declared here[0m
+   79 | - (void)appWithHash:(uint64_t)hash changedOrientation:(NSInteger)orientation[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:748:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  748 | - (void)setHole:(CGRect)hole forApp:(NSString *)app {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:81:1: [0m[0;1;36mnote: [0mmethod 'setHole:forApp:' declared here[0m
+   81 | - (void)setHole:(CGRect)hole forApp:(NSString *)app;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:758:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  758 | - (void)setPassInsets:(UIEdgeInsets)insets forApp:(NSString *)app {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:82:1: [0m[0;1;36mnote: [0mmethod 'setPassInsets:forApp:' declared here[0m
+   82 | - (void)setPassInsets:(UIEdgeInsets)insets forApp:(NSString *)app;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:765:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  765 | - (void)setShieldAll:(BOOL)on {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:85:1: [0m[0;1;36mnote: [0mmethod 'setShieldAll:' declared here[0m
+   85 | - (void)setShieldAll:(BOOL)on;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:776:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  776 | - (void)setShield:(BOOL)on forPane:(ABPane *)pane {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:86:1: [0m[0;1;36mnote: [0mmethod 'setShield:forPane:' declared here[0m
+   86 | - (void)setShield:(BOOL)on forPane:(ABPane *)pane;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:798:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  798 | - (void)outsideTouched {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:87:1: [0m[0;1;36mnote: [0mmethod 'outsideTouched' declared here[0m
+   87 | - (void)outsideTouched;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:811:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  811 | - (void)handlePanned:(UIPanGestureRecognizer *)gesture {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:88:1: [0m[0;1;36mnote: [0mmethod 'handlePanned:' declared here[0m
+   88 | - (void)handlePanned:(UIPanGestureRecognizer *)gesture;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:833:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  833 | - (void)handleTapped:(UITapGestureRecognizer *)gesture {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:89:1: [0m[0;1;36mnote: [0mmethod 'handleTapped:' declared here[0m
+   89 | - (void)handleTapped:(UITapGestureRecognizer *)gesture;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:847:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  847 | - (void)sceneMonitor:(id)monitor sceneWasDestroyed:(id)scene {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:92:1: [0m[0;1;36mnote: [0mmethod 'sceneMonitor:sceneWasDestroyed:' declared here[0m
+   92 | - (void)sceneMonitor:(id)monitor sceneWasDestroyed:(id)scene;[0m
+      | [0;1;32m^
+[0m[1mABHostBMethods.m:871:1: [0m[0;1;35mwarning: [0m[1mcategory is implementing a method which will also be implemented by its primary class [-Wobjc-protocol-method-implementation][0m
+  871 | - (void)carDisconnected {[0m
+      | [0;1;32m^
+[0m[1m./ABHost.h:93:1: [0m[0;1;36mnote: [0mmethod 'carDisconnected' declared here[0m
+   93 | - (void)carDisconnected;[0m
+      | [0;1;32m^
+[0m19 warnings generated.
+[0;32m==> [1;39mCompiling ../OMCCommon/OMCCommon.c (arm64)…[m
+[0;33m==> [1;39mLinking tweak OmniCarAppBridge (arm64)…[m
+ld64.lld: warning: Option `-multiply_defined' is obsolete. Please modernize your usage.
+[0;34m==> [1;39mStripping OmniCarAppBridge (arm64)…[m
+[0;34m==> [1;39mSigning OmniCarAppBridge…[m
+[1;31m> [1;3;39mMaking all in OmniCarCarProbe…[m
+[1;31m> [1;3;39mMaking all for tweak OmniCarCarProbe…[m
+[0;32m==> [1;39mCompiling OmniCarCarProbe.m (arm64)…[m
+[1mOmniCarCarProbe.m:681:58: [0m[0;1;31merror: [0m[1mnull passed to a callee that requires a non-null argument [-Werror,-Wnonnull][0m
+  681 |                     id prev = OMCPref(@"rescueFeatures", nil);[0m
+      | [0;1;32m                                                         ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:761:44: [0m[0;1;31merror: [0m[1mnull passed to a callee that requires a non-null argument [-Werror,-Wnonnull][0m
+  761 |     id rescue = OMCPref(@"rescueFeatures", nil);[0m
+      | [0;1;32m                                           ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:781:57: [0m[0;1;31merror: [0m[1mnull passed to a callee that requires a non-null argument [-Werror,-Wnonnull][0m
+  781 |             @"CarPlay", feature, OMCPref(@"rescueDate", nil)]);[0m
+      | [0;1;32m                                                        ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:805:29: [0m[0;1;31merror: [0m[1mnull passed to a callee that requires a non-null argument [-Werror,-Wnonnull][0m
+  805 |         id v = OMCPref(key, nil);[0m
+      | [0;1;32m                            ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:926:21: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  926 |         return [cls performSelector:s1 withObject:appInfo];[0m
+      | [0;1;32m                    ^
+[0m[1mOmniCarCarProbe.m:926:37: [0m[0;1;36mnote: [0mused here[0m
+  926 |         return [cls performSelector:s1 withObject:appInfo];[0m
+      | [0;1;32m                                    ^
+[0m[1mOmniCarCarProbe.m:928:21: [0m[0;1;35mwarning: [0m[1mperformSelector may cause a leak because its selector is unknown [-Warc-performSelector-leaks][0m
+  928 |         return [cls performSelector:s2 withObject:appInfo[0m
+      | [0;1;32m                    ^
+[0m[1mOmniCarCarProbe.m:928:37: [0m[0;1;36mnote: [0mused here[0m
+  928 |         return [cls performSelector:s2 withObject:appInfo[0m
+      | [0;1;32m                                    ^
+[0m[1mOmniCarCarProbe.m:1008:46: [0m[0;1;31merror: [0m[1mnull passed to a callee that requires a non-null argument [-Werror,-Wnonnull][0m
+ 1008 |     NSDictionary *diag = OMCPref(@"diagCar", nil);[0m
+      | [0;1;32m                                             ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:1483:56: [0m[0;1;31merror: [0m[1mnull passed to a callee that requires a non-null argument [-Werror,-Wnonnull][0m
+ 1483 |         NSDictionary *stored = OMCPref(@"carProfiles", nil);[0m
+      | [0;1;32m                                                       ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:1486:61: [0m[0;1;31merror: [0m[1mnull passed to a callee that requires a non-null argument [-Werror,-Wnonnull][0m
+ 1486 |         NSString *currentID = OMCPref(@"carProfileCurrent", nil);[0m
+      | [0;1;32m                                                            ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m[1mOmniCarCarProbe.m:1553:54: [0m[0;1;31merror: [0m[1mnull passed to a callee that requires a non-null argument [-Werror,-Wnonnull][0m
+ 1553 |     NSMutableDictionary *diag = [OMCPref(@"diagCar", nil) mutableCopy];[0m
+      | [0;1;32m                                                     ^~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/objc/objc.h:108:16: [0m[0;1;36mnote: [0mexpanded from macro 'nil'[0m
+  108 | #   define nil __DARWIN_NULL[0m
+      | [0;1;32m               ^~~~~~~~~~~~~
+[0m[1m/home/hatch/theos/sdks/iPhoneOS16.5.sdk/usr/include/sys/_types.h:52:23: [0m[0;1;36mnote: [0mexpanded from macro '__DARWIN_NULL'[0m
+   52 | #define __DARWIN_NULL ((void *)0)[0m
+      | [0;1;32m                      ^~~~~~~~~~~
+[0m2 warnings and 8 errors generated.
+make[4]: *** [/home/hatch/theos/makefiles/instance/rules.mk:305: /home/hatch/workspace/omnicar-re/project/.theos/obj/arm64/OmniCarCarProbe.m.a5598364.o] Error 1
+make[3]: *** [/home/hatch/theos/makefiles/instance/library.mk:52: /home/hatch/workspace/omnicar-re/project/.theos/obj/arm64/OmniCarCarProbe.dylib] Error 2
+make[2]: *** [/home/hatch/theos/makefiles/instance/library.mk:37: internal-library-all_] Error 2
+make[1]: *** [/home/hatch/theos/makefiles/master/rules.mk:146: OmniCarCarProbe.all.tweak.variables] Error 2
+make: *** [/home/hatch/theos/makefiles/master/aggregate.mk:12: internal-all] Error 2

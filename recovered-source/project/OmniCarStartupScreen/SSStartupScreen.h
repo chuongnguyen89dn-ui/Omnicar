@@ -29,7 +29,7 @@
 // Reconstructed in the core deliverable; declared here as extern.
 // ---------------------------------------------------------------------------
 extern void        OMCPrefsSync(void);
-extern id          OMCPref(NSString *key, id defaultValue);
+extern id OMCPref(NSString *key, id defaultValue);
 extern BOOL        OMCEnabled(void);
 extern BOOL        OMCFeatureEnabled(NSString *featureName);   // reads "<name>Enabled"
 extern BOOL        OMCLiteActive(void);

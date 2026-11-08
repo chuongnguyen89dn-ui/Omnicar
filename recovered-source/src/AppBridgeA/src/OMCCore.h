@@ -115,10 +115,10 @@ BOOL OMCCrashGuard(NSString *feature);
 /// because every A-scope function uses it.)
 void OMCLogWrite(NSString *module, NSString *message);
 
-/// OMCTr(key): localized string from
+/// OMCTr(viText, enText): localized string from
 /// /Library/PreferenceBundles/OmniCarPrefs.bundle, "%@/%@.lproj/Car.strings"
 /// for OMCCurrentLanguage(). Used for the handle-menu titles (hm_* keys).
-NSString *OMCTr(NSString *key);
+NSString *OMCTr(NSString *viText, NSString *enText);
 
 #ifdef __cplusplus
 }

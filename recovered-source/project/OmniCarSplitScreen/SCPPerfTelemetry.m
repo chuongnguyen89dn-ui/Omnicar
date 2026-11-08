@@ -51,7 +51,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-id _Nullable OMCPref(NSString *key, id _Nullable defaultValue);   // 0x4f544
+id OMCPref(NSString *key, id defaultValue);                       // 0x4f544
 BOOL OMCEnabled(void);                                            // 0x4f5ac
 void OMCLogWrite(NSString *tag, NSString *message);               // 0x4fbf4
 #ifdef __cplusplus

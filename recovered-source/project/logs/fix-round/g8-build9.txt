@@ -1,0 +1,191 @@
+=== §3d UUID manifest (candidate, arm64 LC_UUID) + bounds decode ===
+OmniCar                      uuid=4c4c4450-5555-3144-a1a3-58843b0f2ea6 size=70064 funcs=8 decoded=2144 textsize=2144 bad=0 bounds_ok=True
+OmniCarCore.dylib            uuid=4c4c4462-5555-3144-a1fd-68112de02120 size=130640 funcs=80 decoded=43104 textsize=43104 bad=0 bounds_ok=True
+OmniCarAppBridge.dylib       uuid=4c4c44c5-5555-3144-a125-1d7128382bdf size=291232 funcs=365 decoded=133088 textsize=133088 bad=0 bounds_ok=True
+OmniCarCarProbe.dylib        uuid=4c4c44cf-5555-3144-a10b-60b43fdf44ed size=112352 funcs=63 decoded=32664 textsize=32664 bad=0 bounds_ok=True
+OmniCarSpeedBubble.dylib     uuid=4c4c4432-5555-3144-a1cc-e6285f206b71 size=294064 funcs=458 decoded=133124 textsize=133124 bad=0 bounds_ok=True
+OmniCarSplitScreen.dylib     uuid=4c4c44d3-5555-3144-a105-afe238d5af17 size=537664 funcs=844 decoded=322484 textsize=322484 bad=0 bounds_ok=True
+OmniCarStartupScreen.dylib   uuid=4c4c449a-5555-3144-a111-bd9deadd1500 size=299712 funcs=328 decoded=132504 textsize=132504 bad=0 bounds_ok=True
+OmniCarPrefs                 uuid=4c4c4451-5555-3144-a182-1d4b9c7979c6 size=605584 funcs=908 decoded=315260 textsize=315260 bad=0 bounds_ok=True
+
+=== §3a SplitScreen: _OMCPref call sites, x1 evidence ===
+bounds: decoded=322484 textsize=322484 bad=0
+_OMCPref call targets: ['0x4df5c']
+total _OMCPref call sites in SplitScreen: 32
+-- site in sub_1ccb8 (fn 0x1ccb8), call at 0x1ccc8
+     0x0001ccc4:  mov      x1, #0
+     0x0001ccc8:  bl       #0x4df5c
+-- site in +[SCPPrefs autoLaunch] (fn 0x1ce3c), call at 0x1ce54
+     0x0001ce50:  mov      x1, #0
+     0x0001ce54:  bl       #0x4df5c
+-- site in +[SCPPrefs recentLayouts] (fn 0x1ceac), call at 0x1cee8
+     0x0001cee4:  mov      x1, #0
+     0x0001cee8:  bl       #0x4df5c
+-- site in +[SCPPrefs ratioForPairLeft:right:] (fn 0x1d4f8), call at 0x1d534
+     0x0001d530:  mov      x1, #0
+     0x0001d534:  bl       #0x4df5c
+-- site in +[SCPPrefs setRatio:forPairLeft:right:] (fn 0x1d5fc), call at 0x1d640
+     0x0001d63c:  mov      x1, #0
+     0x0001d640:  bl       #0x4df5c
+-- site in +[SCPPrefs splitRatio] (fn 0x1d774), call at 0x1d790
+     0x0001d78c:  mov      x1, #0
+     0x0001d790:  bl       #0x4df5c
+-- site in +[SCPPrefs splitDirection] (fn 0x1d820), call at 0x1d838
+     0x0001d834:  mov      x1, #0
+     0x0001d838:  bl       #0x4df5c
+-- site in +[SCPPrefs paneOrientation] (fn 0x1d870), call at 0x1d888
+     0x0001d884:  mov      x1, #0
+     0x0001d888:  bl       #0x4df5c
+-- site in +[SCPPrefs favorite:] (fn 0x1d8c0), call at 0x1d9e4
+     0x0001d9e0:  mov      x1, #0
+     0x0001d9e4:  bl       #0x4df5c
+-- site in +[SCPPrefs showRecent] (fn 0x1dc00), call at 0x1dc18
+     0x0001dc14:  mov      x1, #0
+     0x0001dc18:  bl       #0x4df5c
+-- site in +[SCPPrefs showFavorites] (fn 0x1dc50), call at 0x1dc68
+     0x0001dc64:  mov      x1, #0
+     0x0001dc68:  bl       #0x4df5c
+-- site in +[SCPPrefs english] (fn 0x1dca0), call at 0x1dcb8
+     0x0001dcb4:  mov      x1, #0
+     0x0001dcb8:  bl       #0x4df5c
+-- site in +[SCPPrefs tipCount] (fn 0x1dcf0), call at 0x1dd08
+     0x0001dd04:  mov      x1, #0
+     0x0001dd08:  bl       #0x4df5c
+-- site in sub_20df0 (fn 0x20df0), call at 0x20f70
+     0x00020f6c:  mov      x1, x21
+     0x00020f70:  bl       #0x4df5c
+-- site in sub_2149c (fn 0x2149c), call at 0x21f28
+     0x00021f24:  ldr      x1, [sp, #0xb0]
+     0x00021f28:  bl       #0x4df5c
+-- site in sub_2149c (fn 0x2149c), call at 0x22114
+     0x00022110:  mov      x1, #0
+     0x00022114:  bl       #0x4df5c
+-- site in sub_2149c (fn 0x2149c), call at 0x22288
+     0x00022284:  mov      x1, #0
+     0x00022288:  bl       #0x4df5c
+-- site in OMCOnScreenDisconnected (fn 0x22908), call at 0x22ac4
+     0x00022ac0:  mov      x1, #0
+     0x00022ac4:  bl       #0x4df5c
+-- site in sub_2332c (fn 0x2332c), call at 0x233f8
+     0x000233f4:  mov      x1, #0
+     0x000233f8:  bl       #0x4df5c
+-- site in -[SCPCarSplit(Layout) slotIsPinned:] (fn 0x2f4a0), call at 0x2f4c8
+     0x0002f4c4:  mov      x1, #0
+     0x0002f4c8:  bl       #0x4df5c
+-- site in SCPChosenPhoneApps (fn 0x4550c), call at 0x45538
+     0x00045534:  mov      x1, #0
+     0x00045538:  bl       #0x4df5c
+-- site in SCPAppIconsRetry (fn 0x467c8), call at 0x467e4
+     0x000467e0:  mov      x1, #0
+     0x000467e4:  bl       #0x4df5c
+-- site in SCPAppIconsBeginInjection (fn 0x46848), call at 0x46870
+     0x0004686c:  mov      x1, #0
+     0x00046870:  bl       #0x4df5c
+-- site in SCPAppIconsBeginInjection (fn 0x46848), call at 0x46934
+     0x00046930:  mov      x1, #0
+     0x00046934:  bl       #0x4df5c
+-- site in SCPAppIconsCarScreenOK (fn 0x469f4), call at 0x46a10
+     0x00046a0c:  mov      x1, #0
+     0x00046a10:  bl       #0x4df5c
+-- site in SCPBridgedChosenApps (fn 0x478a4), call at 0x47934
+     0x00047930:  mov      x1, #0
+     0x00047934:  bl       #0x4df5c
+-- site in sub_4a68c (fn 0x4a68c), call at 0x4ac40
+     0x0004ac3c:  mov      x1, #0
+     0x0004ac40:  bl       #0x4df5c
+-- site in sub_4a68c (fn 0x4a68c), call at 0x4ac5c
+     0x0004ac58:  mov      x1, #0
+     0x0004ac5c:  bl       #0x4df5c
+-- site in sub_4bfd4 (fn 0x4bfd4), call at 0x4c018
+     0x0004c00c:  ldr      x1, [x8]
+     0x0004c010:  adr      x0, #0x6a4c8
+     0x0004c014:  nop      
+     0x0004c018:  bl       #0x4df5c
+-- site in sub_4bfd4 (fn 0x4bfd4), call at 0x4c464
+     0x0004c458:  ldr      x1, [x8]
+     0x0004c45c:  adr      x0, #0x6a548
+     0x0004c460:  nop      
+     0x0004c464:  bl       #0x4df5c
+-- site in sub_4cb00 (fn 0x4cb00), call at 0x4cb24
+     0x0004cb20:  mov      x1, #0
+     0x0004cb24:  bl       #0x4df5c
+-- site in sub_4cc50 (fn 0x4cc50), call at 0x4cc70
+     0x0004cc6c:  mov      x1, #0
+     0x0004cc70:  bl       #0x4df5c
+-- callers of OMCPref-calling functions (bl edges) --
+   sub_1a48c (0x1a48c) -> SCPChosenPhoneApps (0x4550c)
+   sub_1a48c (0x1a48c) -> SCPAppIconsBeginInjection (0x46848)
+   sub_1cbac (0x1cbac) -> SCPAppIconsCarScreenOK (0x469f4)
+   +[SCPPrefs setLastPairLeft:right:] (0x1cd34) -> sub_1ccb8 (0x1ccb8)
+   +[SCPPrefs setLastPairLeft:right:] (0x1cd34) -> sub_1ccb8 (0x1ccb8)
+   SCPIsHostedApp (0x1e4c0) -> SCPBridgedChosenApps (0x478a4)
+   -[SCPCarSplit(Picker) buildPickerSheetForPane:] (0x34138) -> SCPBridgedChosenApps (0x478a4)
+   SCPInjectDeclarationIfChosen (0x456f4) -> SCPChosenPhoneApps (0x4550c)
+   SCPAddChosenAppsToLibrary (0x45dec) -> SCPChosenPhoneApps (0x4550c)
+   sub_46288 (0x46288) -> SCPChosenPhoneApps (0x4550c)
+   sub_46288 (0x46288) -> SCPAppIconsRetry (0x467c8)
+   SCPChosenPhoneAppInfos (0x481e4) -> SCPBridgedChosenApps (0x478a4)
+   SCPHomeSettings (0x4bf90) -> sub_4bfd4 (0x4bfd4)
+   SCPHomeRefresh (0x4c90c) -> sub_4bfd4 (0x4bfd4)
+   SCPHomeHiddenApps (0x4cb90) -> sub_4cc50 (0x4cc50)
+   SCPHomeShownApps (0x4cd0c) -> sub_4cc50 (0x4cc50)
+   sub_4da2c (0x4da2c) -> sub_4cc50 (0x4cc50)
+   sub_4da2c (0x4da2c) -> sub_4cc50 (0x4cc50)
+
+=== §3b StartupScreen: _objc_setAssociatedObject sites, w3 evidence ===
+bounds: decoded=132504 textsize=132504 bad=0
+_objc_setAssociatedObject call targets: ['0x2479c']
+-- site in SSClearSplashAssociation (fn 0x7584), call at 0x75f0
+     0x000075ec:  mov      w3, #1
+     0x000075f0:  bl       #0x2479c
+-- site in SSHandleCarScreen (fn 0x7608), call at 0x76c8
+     0x000076c4:  mov      w3, #1
+     0x000076c8:  bl       #0x2479c
+-- site in SSHandleCarScreen (fn 0x7608), call at 0x857c
+     0x00008578:  mov      w3, #1
+     0x0000857c:  bl       #0x2479c
+
+=== §3c-1 Prefs: _NSStringFromClass call sites ===
+bounds: decoded=315260 textsize=315260 bad=0
+_NSStringFromClass call targets: ['0x512f4']
+insertFeatureSpecifiers: -[OMCRootListController insertFeatureSpecifiers] fn 0x22abc size 2272
+-- call at 0x2295c in -[OMCRootListController specifiers] (fn 0x227e4)
+-- call at 0x229f8 in -[OMCRootListController specifiers] (fn 0x227e4)
+-- call at 0x24d70 in -[OMCRootListController tableView:cellForRowAtIndexPath:] (fn 0x24bf0)
+_NSStringFromClass calls inside insertFeatureSpecifiers: 0
+
+=== §3c-2 SplitScreen: [GPT-F] Dock string + ensureContainer vocabulary ===
+bytes search b'[GPT-F] Dock gate': FOUND
+bytes search b'Dock gate': FOUND
+ensureContainer: -[SCPCarSplit ensureContainer] fn 0x5418 size 1016
+ensureContainer selector vocabulary (23): ['(�\x06', 'addSubview:', 'appAreaInParent:', 'array', 'blackColor', 'bounds', 'class', 'container', 'frame', 'initWithFrame:', 'raise', 'setBackgroundColor:', 'setClipsToBounds:', 'setContainer:', 'setDividers:', 'setFractions:', 'setFrame:', 'setLoggedArea:', 'setSlots:', 'setTouched:', 'stringWithFormat:', 'superview', 'view']
+   setTouched:: PRESENT
+   setDividers:: PRESENT
+
+=== §3c-3 AppBridge: MILESTONE strings ===
+   'MILESTONE process-launch-complete bundle=%@ pane=%p readySource=launch-callback'
+   'MILESTONE request bundle=%@ pane=%p'
+   'MILESTONE revealPane bundle=%@ pane=%p readySource=launch-callback'
+   'MILESTONE revealPane bundle=%@ pane=%p readySource=timer'
+   'MILESTONE scene-attached bundle=%@ pane=%p viewClass=%@'
+   'MILESTONE teardown bundle=%@ pane=%p'
+   'MILESTONE transaction-complete bundle=%@ pane=%p readySource=launch-callback result=%d'
+   'MILESTONE type-encoding _createSceneViewController class=%@ encoding=%s bundle=%@ pane=%p'
+MILESTONE distinct strings: 8
+
+=== Addendum: full bodies / attribution windows (same run) ===
++[SCPPrefs autoLaunch] fn 0x1ce3c (SCPObjectForKey inlined):
+    0x0001ce48:  adr      x0, #0x66de8        ; cfstring "splitScreenAutoLaunch"
+    0x0001ce50:  mov      x1, #0
+    0x0001ce54:  bl       #0x4df5c            ; _OMCPref
+    (then retain + boolValue send via objc stubs 0x52be4/0x52bf0)
+sub_1ccb8 = SCPStringForKey (tail-called by +lastLeftApp 0x1ccac and
++lastRightApp 0x1cd28 via `b 0x1ccb8`; also bl-called by
++setLastPairLeft:right:):
+    0x0001ccc4:  mov      x1, #0
+    0x0001ccc8:  bl       #0x4df5c            ; _OMCPref
+    (then isKindOfClass:[NSString class] check + csel — the wrapper's shape)
+SSHandleCarScreen claim site 0x76c8: x2 = x21 (the @YES value built by
+the w2=#1 call at 0x76a4-0x76a8); splash site 0x857c: x1 = ldr #0x38518
+(splash key slot), x2 = x20 = result of the multi-arg factory call at
+0x8560 (SSSplash creation). Both: mov w3, #1 immediately before bl.

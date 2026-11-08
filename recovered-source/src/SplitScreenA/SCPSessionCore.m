@@ -39,7 +39,7 @@
 // ---------------------------------------------------------------------------
 // Shared-unit functions used here (defined in this dylib's OMC* copy).
 // ---------------------------------------------------------------------------
-extern id OMCPref(id key, id defaultValue);                 // 0x4f544
+extern id OMCPref(NSString *key, id defaultValue);          // 0x4f544
 extern void OMCLogWrite(NSString *tag, NSString *message);  // 0x4fbf4
 extern NSString *OMCTr(NSString *key, NSString *fallback);  // 0x558fc
 extern NSArray<NSString *> *OMCProfileKeys(void);           // 0x5554c

@@ -23,7 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 void OMCPrefsSync(void);
 
 /// CFPreferencesCopyAppValue(key, domain) ?: fallback (returned autoreleased).
-id _Nullable OMCPref(NSString *key, id _Nullable fallback);
+id _Nullable OMCPref(NSString *key, id _Nullable defaultValue);
 
 /// !OMCExpired() && OMCPref(@"enabled", @YES).boolValue
 BOOL OMCEnabled(void);

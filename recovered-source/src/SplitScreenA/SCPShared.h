@@ -51,7 +51,7 @@ extern "C" {
 Class _Nullable OMCCarClass(const char *name);              // 0x502fc VERIFIED call sites
 BOOL OMCFeatureEnabled(NSString *feature);                  // 0x4f608
 BOOL OMCEnabled(void);                                      // 0x4f5ac
-id _Nullable OMCPref(NSString *key);                        // 0x4f544
+id _Nullable OMCPref(NSString *key, id _Nullable defaultValue);                 // 0x4f544
 void OMCPrefsSync(void);                                    // 0x4f538
 BOOL OMCCrashGuard(NSString *feature);                      // 0x50e24 (NO -> abort install)
 void OMCLogWrite(NSString *tag, NSString *message);         // 0x4fbf4
