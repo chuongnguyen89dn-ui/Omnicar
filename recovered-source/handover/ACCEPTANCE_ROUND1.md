@@ -25,9 +25,12 @@ cho từng bản; chỗ nào khác bản gốc thì ghi rõ khác thế nào.
 ## Chuẩn bị (làm một lần, trước cả hai bản)
 
 - [ ] Giữ sẵn 3 file DEB (gốc, tái tạo, QA20) trên máy để cài/quay lại.
-- [ ] Sao lưu cấu hình: chép
-      `/var/mobile/Library/Preferences/com.anlai.omnicar.plist`
-      sang `/var/mobile/Documents/` (đây là bản "trước thử").
+- [ ] Sao lưu cấu hình (KHÔNG bắt buộc): cấu hình nằm ở domain
+      `com.anlai.omnicar` (đã kiểm chứng trong mã). File plist tương
+      ứng có thể chưa tồn tại trên máy — dùng tìm kiếm của Filza gõ
+      `anlai` trong `/var` để tìm; thấy file nào thì chép file đó
+      sang `/var/mobile/Documents/`. Không thấy thì BỎ QUA bước này,
+      việc thử không bị ảnh hưởng.
 - [ ] Ghi mốc giờ bắt đầu thử để đối chiếu log.
 - [ ] Chuẩn bị sẵn cùng một bộ app sẽ thử (Maps + 1 app khác, app
       iPhone đã chọn trong OmniCar).
