@@ -27,7 +27,7 @@ on:
 
 jobs:
   build-fat:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
@@ -44,6 +44,21 @@ jobs:
 
       - name: Install ldid and dpkg
         run: brew install ldid dpkg
+
+      # The project Makefiles carry -fuse-ld=lld in their LDFLAGS:
+      # that flag is a workaround for the Ubuntu analysis VM (whose
+      # default linker is GNU ld). Xcode's clang rejects it
+      # ("invalid linker name in argument '-fuse-ld=lld'", FAT run
+      # #2, 2026-11-08). On macOS the flag is unnecessary — the
+      # default ld64 is correct — so strip it in the CI checkout
+      # only; the shipped tree keeps it for the Linux build path.
+      - name: macOS adjustments (drop the Linux-only -fuse-ld=lld flag)
+        run: |
+          grep -rl 'fuse-ld=lld' recovered-source/project --include='Makefile' | while read -r f; do
+            sed -i '' 's/-fuse-ld=lld//g' "$f"
+            echo "patched: $f"
+          done
+          echo "remaining fuse-ld mentions in Makefiles: $(grep -r 'fuse-ld' recovered-source/project --include='Makefile' | wc -l)"
 
       # The project Makefiles assign ARCHS = arm64 (plain "="), so a
       # make command-line variable overrides them; ARCHS is also

@@ -114,3 +114,23 @@ see `handover/RECOVERY_STATUS.md` section 8 and
 - FAT (arm64+arm64e) build: `ci/build-fat-macos.yml` in this
   folder is a ready-to-run GitHub Actions workflow for a macOS
   runner; the coordinator places it under `.github/workflows/`.
+  **Executed and PASSED on 2026-11-08** (branch `ci-fat-test`,
+  run 42459179466, commit `b35f8cc`): on a macos-15 runner the
+  build engaged arm64e (dry-run + 100 arm64e compile lines) and
+  the workflow's own acceptance step verified with `lipo -info`
+  that all 6 dylibs, the Prefs binary and the app binary are
+  FAT `arm64 arm64e`; the produced FAT DEB is 1,121,484 bytes
+  (artifact `omnicar-fat-deb` on that run). Evidence:
+  `project/logs/fat-macos-run3.md`. Two runner-level failures
+  preceded the pass and are documented there (an unsupported
+  macos-14 pool configuration, and Xcode clang rejecting the
+  Linux-only `-fuse-ld=lld` Makefile flag, which the workflow
+  strips in its own checkout only). Gap G1 is therefore closed
+  by execution, not by environment argument.
+- Fresh-checkout proof at this commit: a clean clone of commit
+  `fcfc202747a7d0f6824363e3a6adb33d52d4c375` built with exit 0
+  and reproduced the final profile — Prefs 743 → 745, all other
+  binaries at their documented counts, 0 original symbols
+  missing. The bound evidence (commit SHA + build log + diff +
+  produced-DEB SHA-256 `050fb437…`) is in
+  `project/logs/final-fresh-checkout/`.
