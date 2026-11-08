@@ -78,7 +78,7 @@ NSString *ABTelexApply(NSString *word, NSString *keyString);
 void OMCLogWrite(NSString *tag, NSString *message);
 id OMCPref(NSString *key, id defaultValue);
 void OMCPrefsSync(void);
-BOOL OMCHasMethod(const char *className, const char *selectorName);
+BOOL OMCHasMethod(const char *className, NSString *selectorName); // [hotfix] 2nd param was declared const char* here (all other decls/impls — OMCCommon, Core, CarProbe — take NSString*); the original call passes an NSString (installer_app_4728.txt @0x4928)
 BOOL OMCLiteActive(void);
 NSInteger OMCCarWireless(void);
 NSString *OMCCurrentLanguage(void);

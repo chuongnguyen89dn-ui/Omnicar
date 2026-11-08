@@ -78,18 +78,41 @@ void ABPostStateToApp(NSString *state, NSString *identifier) {
 // ===========================================================================
 static void ABFrameBlock(NSNotification *note);   // sub_8274, below
 static void ABShieldBlock(NSNotification *note);  // sub_8C7C, below
+static void ABOpenBlock(NSNotification *note);    // sub_783C, below
+static void ABCloseBlock(NSNotification *note);   // sub_8DF0, below
+static void ABCloseAllBlock(NSNotification *note);// sub_8FD4, below
+static void ABKnobsBlock(NSNotification *note);   // sub_9144, below
+
+// Original IMP of -[SpringBoard applicationDidFinishLaunching:], stored
+// by the substrate install in AppBridgeEntry.m (slot 0x3E9F0 in the
+// original). Non-static: the installer in AppBridgeEntry.m takes its
+// address. [hotfix: was never wired — ABSpringBoardReady could not call
+// the original at all]
+IMP orig_SBDidFinishLaunching; // 0x3E9F0
 
 void ABSpringBoardReady(id self, SEL _cmd, id application) {
-    // (original IMP call — slot managed by the substrate install in
-    //  AppBridgeEntry.m; elided here as in the registrar's own structure)
+    // sub_7004 verified order (disasm/registrar_7004.txt): the original
+    // IMP (loaded from slot 0x3E9F0) is called FIRST, at 0x7028-0x703C,
+    // before the "SpringBoard ready" log (0x706C) and every
+    // registration below.
+    ((void (*)(id, SEL, id))orig_SBDidFinishLaunching)(self, _cmd, application);
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"SpringBoard ready"]);
     NSDistributedNotificationCenter *center = [NSDistributedNotificationCenter defaultCenter];
     NSOperationQueue *queue = [NSOperationQueue mainQueue];
-    // Module A handlers (open/close/closeall/knobs) register identically.
+    // Registration order as in sub_7004: open, frame, shield, close,
+    // closeall, knobs.
+    [center addObserverForName:ABChanOpen object:nil queue:queue
+                    usingBlock:^(NSNotification *n) { ABOpenBlock(n); }];
     [center addObserverForName:ABChanFrame object:nil queue:queue
                     usingBlock:^(NSNotification *n) { ABFrameBlock(n); }];
     [center addObserverForName:ABChanShield object:nil queue:queue
                     usingBlock:^(NSNotification *n) { ABShieldBlock(n); }];
+    [center addObserverForName:ABChanClose object:nil queue:queue
+                    usingBlock:^(NSNotification *n) { ABCloseBlock(n); }];
+    [center addObserverForName:ABChanCloseAll object:nil queue:queue
+                    usingBlock:^(NSNotification *n) { ABCloseAllBlock(n); }];
+    [center addObserverForName:ABChanKnobs object:nil queue:queue
+                    usingBlock:^(NSNotification *n) { ABKnobsBlock(n); }];
     static int apporientToken, keyboardToken; // 0x3EA18 / 0x3EA1C
     notify_register_dispatch(ABNotifyAppOrient, &apporientToken,
                              dispatch_get_main_queue(),
@@ -211,13 +234,78 @@ static void ABShieldBlock(NSNotification *note) {
     [[ABHost shared] setShieldAll:[note.userInfo[@"on"] boolValue]];
 }
 
+// sub_783C — open consumer. Ported from module A's verified (key-by-key)
+// reconstruction in src/AppBridgeA/src/ABChannels.m when that file's
+// duplicate SpringBoard installer was neutralised (see the note there):
+// [ABHost openApp:frame:] runs FIRST; every other key group is applied
+// afterwards, in the order below. Keys (all optional except identifier):
+//   identifier; x,y,w,h; pt,pl,pb,pr -> setPassInsets:forApp:;
+//   bar,pop,popDim,single -> setBarVisible:pop:dim:single:forApp:;
+//   ox,oy,ow,oh -> setHole:forApp:; r,corners -> setCornerRadius:;
+//   hx -> setHandleOffset:; front -> setFront:; ax,ay,aw,ah -> carAppArea.
+static void ABOpenBlock(NSNotification *note) {
+    NSDictionary *u = note.userInfo;
+    NSString *app = u[@"identifier"];
+    CGRect frame = CGRectMake([u[@"x"] doubleValue], [u[@"y"] doubleValue],
+                              [u[@"w"] doubleValue], [u[@"h"] doubleValue]);
+    [[ABHost shared] openApp:app frame:frame];
+    ABHost *host = [ABHost shared];
+    if (u[@"pt"] || u[@"pl"] || u[@"pb"] || u[@"pr"])
+        [host setPassInsets:UIEdgeInsetsMake([u[@"pt"] doubleValue],
+                                             [u[@"pl"] doubleValue],
+                                             [u[@"pb"] doubleValue],
+                                             [u[@"pr"] doubleValue])
+                     forApp:app];
+    if (u[@"bar"])
+        [host setBarVisible:[u[@"bar"] boolValue]
+                        pop:[u[@"pop"] intValue]
+                        dim:[u[@"popDim"] boolValue]
+                     single:[u[@"single"] boolValue]
+                     forApp:app];
+    if (u[@"ox"] || u[@"oy"] || u[@"ow"] || u[@"oh"])
+        [host setHole:CGRectMake([u[@"ox"] doubleValue], [u[@"oy"] doubleValue],
+                                 [u[@"ow"] doubleValue], [u[@"oh"] doubleValue])
+               forApp:app];
+    if (u[@"r"])
+        [host setCornerRadius:[u[@"r"] doubleValue]
+                      corners:[u[@"corners"] unsignedLongLongValue]
+                       forApp:app];
+    if (u[@"hx"])
+        [host setHandleOffset:[u[@"hx"] doubleValue] forApp:app];
+    if (u[@"front"])
+        [host setFront:[u[@"front"] boolValue] forApp:app];
+    if (u[@"ax"] || u[@"ay"] || u[@"aw"] || u[@"ah"])
+        host.carAppArea = CGRectMake([u[@"ax"] doubleValue], [u[@"ay"] doubleValue],
+                                     [u[@"aw"] doubleValue], [u[@"ah"] doubleValue]);
+}
+
+// sub_8DF0 — close consumer: {identifier, terminate} -> closeApp:terminate:.
+static void ABCloseBlock(NSNotification *note) {
+    [[ABHost shared] closeApp:note.userInfo[@"identifier"]
+                    terminate:[note.userInfo[@"terminate"] boolValue]];
+}
+
+// sub_8FD4 — closeall consumer: {except} -> closeAllExcept:.
+static void ABCloseAllBlock(NSNotification *note) {
+    [[ABHost shared] closeAllExcept:note.userInfo[@"except"]];
+}
+
+// sub_9144 — knobs consumer: {knobs: NSArray} -> setKnobs:.
+static void ABKnobsBlock(NSNotification *note) {
+    [[ABHost shared] setKnobs:note.userInfo[@"knobs"]];
+}
+
 // ===========================================================================
 // SpringBoard lifecycle hooks
 // ===========================================================================
-static IMP orig_SBSuspended;   // 0x3E9F8
-static IMP orig_FBSceneUpdate; // 0x3EA00
-static IMP orig_SBSceneView;   // 0x3EA08
-static void (*orig_ScreenBlanked)(int); // 0x3EA10
+// Non-static: the installers in AppBridgeEntry.m take these addresses.
+// [hotfix: they were static here while AppBridgeEntry.m passed NULL to
+// MSHookMessageEx/MSHookFunction, so every call through them below was a
+// call through a NULL pointer]
+IMP orig_SBSuspended;   // 0x3E9F8
+IMP orig_FBSceneUpdate; // 0x3EA00
+IMP orig_SBSceneView;   // 0x3EA08
+void (*orig_ScreenBlanked)(int); // 0x3EA10
 
 // sub_72BC — -[SBSuspendedUnderLockManager
 // _shouldBeBackgroundUnderLockForScene:withSettings:]: a hosted app is

@@ -746,3 +746,126 @@ by the coordinator. Fresh-checkout verification of this
 round's final commit is the coordinator's closing step
 (the round-1 in-tree evidence described pre-remediation
 numbers and is superseded by this addendum).
+
+## 9. Hotfix addendum (2026-11-08) — device crash, hook-contract defect class
+
+Acceptance round 1 put the round-2 rebuilt DEB (`93cdcad9…`)
+on the test device (iPhone X, iOS 16.7.16, palera1n rootless).
+SpringBoard crash-looped: four SIGABRT crash reports in about
+a minute, one signature — an uncaught exception inside
+`-[SBApplicationRestrictionController initWithDataSource:]`
+during lazy `SBApplicationController` creation, reached from
+an `os_state` capture roughly two seconds after launch. No
+OmniCar frame appears in any backtrace. An external review of
+the source then found the defect class below; every item was
+re-verified against the source and the original's dumps
+before fixing.
+
+**Defect 1 — five unwired hook originals (AppBridge host).**
+All five installers in `AppBridgeEntry.m` passed NULL as the
+MSHookMessageEx / MSHookFunction original-IMP out-pointer
+(original slots 0x3E9F0–0x3EA10), while the handlers in
+`ABHostGeometry.m` call those orig variables — NULL-IMP calls
+on the suspended-under-lock, scene-update, reference-size and
+screen-blanked paths. Worst, `ABSpringBoardReady` never
+called the original `applicationDidFinishLaunching:` IMP at
+all (the call site held only an "elided here" comment),
+severing SpringBoard's launch chain; the original `sub_7004`
+calls its orig FIRST, before logging and registering
+(`disasm/registrar_7004.txt` @0x7028–0x703C). All five
+originals are now wired, `ABSpringBoardReady` calls
+`orig_SBDidFinishLaunching` first, exactly once, and the
+`ABHook_SBSuspended` extern declaration was corrected from
+`void` to the implemented `BOOL`.
+
+**Defect 2 — the same host group was installed twice.**
+The parallel A/B reconstructions both claimed ctor 0x6E08:
+`ABChannels.m` (tree A) and `AppBridgeEntry.m` (tree B) each
+installed the same five host hooks, so the built product
+chained every one of them twice and ran the registrar twice.
+The original installs each exactly once (`ctor_host_6e08.txt`:
+4× MSHookMessageEx + 1× MSHookFunction, the latter a tail
+call @0x6f80). Resolution: tree A's constructor is disabled
+(kept in-tree as reference), tree B is the sole installer,
+and the four channel blocks B lacked (open / close /
+closeall / knobs — sub_783C / 8DF0 / 8FD4 / 9144) were ported
+from tree A's verified bodies into `ABHostGeometry.m`, so
+the registrar registers all six channels in the dump's
+order. Built-binary proof (`logs/hotfix-hookcount.txt`,
+capstone count over ctor extents): original 4+1, installed
+once; pre-hotfix built 4+1 in EACH of two ctors (twice);
+hotfix built 4+1 in one ctor (once).
+
+**Review round 2 — further items, dispositions.** (1)
+`OMCHasMethod` signature — FIXED: the header declared the
+selector argument `const char *`, the implementation takes
+`NSString *`, and one call site passed a C string the impl
+would message as an object; declaration and call site now
+pass the NSString the original passes (cfstring at
+`installer_app_4728.txt` @0x491c–0x492c). (2) CADisplayLink
+hook targets — FIXED: the two FPS setters were hooked on the
+metaclass although they are instance methods; the original
+uses the metaclass only for `+displayLinkWithTarget:selector:`
+and the instance class for the setters, so `ABApplyFPSLimit`'s
+orig pointers are now genuinely assigned. (3) PID read —
+FIXED: `SCPKillAppBlock`'s fallback obtained a pid through an
+`id`-returning helper (an object round-trip for an integer);
+restored to the original's typed inline guarded send. One
+micro-gap is recorded, not fixed: the fallback lacks the
+original's failure log line `@"tat han %@: khong thay
+process"` — log-only, no behavioural effect. (4)
+`closeApp:terminate:` — RESTORED: the reconstructed tail
+stopped at pane teardown; the original's remainder
+(frontmost-on-phone guard, then `FBSSystemService
+terminateApplication:forReason:andReport:withDescription:`)
+was transcribed from the full method dump. (5) Screen
+unblank — VERIFIED already correct: tree B's
+`ABHook_ScreenBlanked` matches sub_777C point-for-point.
+(6) Tree A's Darwin consumers — VERIFIED dead code: they
+were registered only from tree A's now-disabled registrar
+and have zero live callers; tree B's consumers decode the
+packed state correctly (bundle hash at bits 24+) and handle
+keyboard show and hide. (7) Tree B scene semantics —
+VERIFIED correct: its FBScene handler tests foreground
+state on the settings argument, and its reference-size
+orientation clamp (>4 → 3) is the dump-proven one.
+
+**Tree-wide hook-contract audit.** Every MSHookMessageEx /
+MSHookFunction site in all eight components was checked for
+(a) a real orig out-pointer, (b) the handler chaining to its
+orig where the original does, (c) no orig variable assigned
+anywhere but its own installer, (d) declaration/implementation
+signature agreement. The defect class is confined to the
+AppBridgeB host group above: all 56 other install sites are
+clean, and the hook census reconciles with `HOOK_MAP.md`
+(54 + 2) once the duplicate group is counted once (source
+previously carried 58 + 3 including the duplicate).
+
+**Verification-gap admission.** Rounds 1–2 verified selector
+parity per class, the coverage census, payload identity and
+the FAT build — none of which audits orig wiring or
+installer uniqueness. A hook can present a perfect selector
+profile while breaking the very chain it hooks, and the
+swallowed `applicationDidFinishLaunching:` original did
+exactly that. The hook-contract audit is now a standing
+verification axis alongside selector parity.
+
+**Rebuild evidence.** Clean build exit 0; per-class 62/66
+exact, zero classes missing selectors, Prefs 743→745,
+OMCAppBridgeAppsController 105=105; payload 176/176 files,
+168/168 non-Mach-O byte-identical, zero original symbols
+missing; parity restage 202/202 entries, 0 differences. New
+rebuilt DEB: 949,028 bytes, SHA-256
+`ff4c9e7e7901e071b1897d0e8572f0f2c56d986888018219d2704fe327666798`
+(supersedes `93cdcad9…`).
+
+**Status.** The source defects are confirmed and fixed. That
+they caused the four device crashes is the leading
+explanation — the severed launch chain and the double
+registration sit exactly on SpringBoard's startup path, and
+the crashes are startup crashes — but it is NOT proven: no
+OmniCar frame exists in the crash backtraces. Proof is the
+device retest, ordered startup-first (install, respring,
+SpringBoard stability), then the acceptance groups. Until
+that retest passes, behavioural equivalence remains
+unproven.

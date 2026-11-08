@@ -206,10 +206,19 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
 // log "dong %@%@" (suffix @" (tat han)" when terminate),
 // [ABKeyboard.shared hideForApp:] (B class), teardownPane: (B),
 // remove from panes, dropWindowIfEmpty.
-// The terminate==YES tail (past 0x15db4) resolves the SBApplication and
-// asks UIApplication _accessibilityFrontMostApplication / performs the
-// process termination — that tail is INFERRED (addresses 0x15db4-0x160ec
-// were skeleton-read only).
+// The terminate==YES tail (0x15da4-0x15fb4) is VERIFIED as well —
+// transcribed from src/AppBridgeB/disasm/
+// m_ABHost_closeApp_terminate.txt: it resolves the frontmost
+// application via UIApplication _accessibilityFrontMostApplication;
+// if that app's bundle id equals the closing app's, it logs
+// "%@ dang mo tren iPhone, khong tat" and does NOT terminate;
+// otherwise it calls FBSSystemService sharedService
+// terminateApplication:forReason:andReport:withDescription:
+// (bundleID, 1, NO, @"OmniCar App Bridge: closed") and logs
+// "tat han %@", or logs "khong tim thay API terminate cho %@" when
+// the service or the selector is unavailable. Private selectors are
+// resolved dynamically with ABMissingSelector fallbacks, exactly as
+// in the binary.
 // ---------------------------------------------------------------------------
 - (void)closeApp:(NSString *)bundleID terminate:(BOOL)terminate {
     ABPane *pane = [self paneFor:bundleID];
@@ -224,8 +233,51 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
     [self.panes removeObject:pane];
     [self dropWindowIfEmpty];
     if (terminate) {
-        // INFERRED tail: terminate the app's process via SpringBoard
-        // application proxies (see report §5, row closeApp:terminate:).
+        // Terminate tail @ 0x15da4 — VERIFIED (dump cited above).
+        id app = [UIApplication sharedApplication];
+        SEL frontSel = NSSelectorFromString(@"_accessibilityFrontMostApplication");
+        id frontApp = nil;
+        if ([app respondsToSelector:frontSel])
+            frontApp = ((id (*)(id, SEL))objc_msgSend)(app, frontSel);
+        else
+            ABMissingSelector(app, @"_accessibilityFrontMostApplication");
+        BOOL frontIsTarget = NO;
+        if (frontApp) {
+            SEL idSel = NSSelectorFromString(@"bundleIdentifier");
+            NSString *frontID = nil;
+            if ([frontApp respondsToSelector:idSel])
+                frontID = ((id (*)(id, SEL))objc_msgSend)(frontApp, idSel);
+            else
+                ABMissingSelector(frontApp, @"bundleIdentifier");
+            frontIsTarget = [frontID isEqualToString:bundleID];
+        }
+        if (frontIsTarget) {
+            // The app is frontmost on the phone itself: closing the
+            // car pane must not kill it (0x15e94-0x15ec4).
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"%@ dang mo tren iPhone, khong tat", bundleID]);
+        } else {
+            // 0x15ec8-0x15fb4: FBSSystemService terminate API.
+            Class fbsClass = objc_getClass("FBSSystemService");
+            SEL svcSel = NSSelectorFromString(@"sharedService");
+            id service = nil;
+            if ([(id)fbsClass respondsToSelector:svcSel])
+                service = ((id (*)(id, SEL))objc_msgSend)((id)fbsClass, svcSel);
+            else
+                ABMissingSelector((id)fbsClass, @"sharedService");
+            SEL termSel = NSSelectorFromString(
+                @"terminateApplication:forReason:andReport:withDescription:");
+            if (service && [service respondsToSelector:termSel]) {
+                ((void (*)(id, SEL, id, int, BOOL, id))objc_msgSend)(
+                    service, termSel, bundleID, 1, NO,
+                    @"OmniCar App Bridge: closed");
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"tat han %@", bundleID]);
+            } else {
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"khong tim thay API terminate cho %@", bundleID]);
+            }
+        }
     }
 }
 

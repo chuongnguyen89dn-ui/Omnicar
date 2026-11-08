@@ -74,10 +74,20 @@ static void ABAppCtor(void) {
 //     if the symbol is missing it logs
 //     "khong tim thay BKSDisplayServicesSetScreenBlanked" and continues.
 // ---------------------------------------------------------------------------
-extern void ABHook_SBSuspended(id self, SEL _cmd, id scene, id settings);
+extern BOOL ABHook_SBSuspended(id self, SEL _cmd, id scene, id settings);
 extern void ABHook_FBSceneUpdateSettings(id self, SEL _cmd, id settings, id ctx, id completion);
 extern void ABHook_SBSceneViewRefSize(id self, SEL _cmd, CGSize size, NSInteger orientation);
 extern void ABHook_ScreenBlanked(int blanked); // C hook, sub_777C
+
+// Original-IMP slots, defined in ABHostGeometry.m (addresses are the
+// original's __DATA slots). [hotfix: the installers below previously
+// passed NULL for every one of these, leaving the handlers' orig_*
+// variables NULL while the handlers call through them]
+extern IMP orig_SBDidFinishLaunching;          // 0x3E9F0
+extern IMP orig_SBSuspended;                   // 0x3E9F8
+extern IMP orig_FBSceneUpdate;                 // 0x3EA00
+extern IMP orig_SBSceneView;                   // 0x3EA08
+extern void (*orig_ScreenBlanked)(int);        // 0x3EA10
 
 __attribute__((constructor))
 static void ABHostCtor(void) {
@@ -86,20 +96,20 @@ static void ABHostCtor(void) {
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"loaded into SpringBoard"]);
         MSHookMessageEx(objc_getClass("SpringBoard"),
                         @selector(applicationDidFinishLaunching:),
-                        (IMP)ABSpringBoardReady, NULL); // orig IMP stored at 0x3E9F0 in the original
+                        (IMP)ABSpringBoardReady, (IMP *)&orig_SBDidFinishLaunching); // orig IMP stored at 0x3E9F0 in the original
         MSHookMessageEx(objc_getClass("SBSuspendedUnderLockManager"),
                         NSSelectorFromString(@"_shouldBeBackgroundUnderLockForScene:withSettings:"),
-                        (IMP)ABHook_SBSuspended, NULL); // orig at 0x3E9F8
+                        (IMP)ABHook_SBSuspended, (IMP *)&orig_SBSuspended); // orig at 0x3E9F8
         MSHookMessageEx(objc_getClass("FBScene"),
                         @selector(updateSettings:withTransitionContext:completion:),
-                        (IMP)ABHook_FBSceneUpdateSettings, NULL); // orig at 0x3EA00
+                        (IMP)ABHook_FBSceneUpdateSettings, (IMP *)&orig_FBSceneUpdate); // orig at 0x3EA00
         MSHookMessageEx(objc_getClass("SBSceneView"),
                         NSSelectorFromString(@"_updateReferenceSize:andOrientation:"),
-                        (IMP)ABHook_SBSceneViewRefSize, NULL); // orig at 0x3EA08
+                        (IMP)ABHook_SBSceneViewRefSize, (IMP *)&orig_SBSceneView); // orig at 0x3EA08
         // OMCCheckHooks(@"AppBridge", ...) — shared scaffold, omitted (see report).
         void *fn = dlsym((void *)-2 /* RTLD_DEFAULT */, "BKSDisplayServicesSetScreenBlanked");
         if (fn) {
-            MSHookFunction(fn, (void *)ABHook_ScreenBlanked, NULL); // orig at 0x3EA10
+            MSHookFunction(fn, (void *)ABHook_ScreenBlanked, (void **)&orig_ScreenBlanked); // orig at 0x3EA10
         } else {
             OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"khong tim thay BKSDisplayServicesSetScreenBlanked"]);
         }

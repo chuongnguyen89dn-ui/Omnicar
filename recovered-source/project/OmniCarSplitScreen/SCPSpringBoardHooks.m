@@ -93,9 +93,23 @@ static void SCPKillAppBlock(NSNotification *note) {
         else
             SCPMissingSelector(controller, NSStringFromSelector(appSel));
         id state = SCPGuardedSend(app, @"processState");
-        // VERIFIED: pid is the direct integer return of the guarded `pid`
-        // send and is used when >= 1; signal is 9 (SIGKILL).
-        pid_t pid = (pid_t)(NSInteger)SCPGuardedSend(state, @"pid");
+        // sub_89d0 @0x8cd8-0x8d10 VERIFIED: the `pid` send is guarded
+        // inline (NSSelectorFromString + respondsToSelector:, with
+        // SCPMissingSelector on failure) and its return is consumed as
+        // a raw integer -- the original emits NO
+        // objc_retainAutoreleasedReturnValue for it, unlike the
+        // object-returning sends around it. It must NOT go through
+        // SCPGuardedSend (which returns `id`): under ARC the pid would
+        // be treated as an object pointer. Used when >= 1; signal is
+        // 9 (SIGKILL).
+        pid_t pid = 0;
+        if (state) {
+            SEL pidSel = NSSelectorFromString(@"pid");
+            if ([state respondsToSelector:pidSel])
+                pid = ((pid_t (*)(id, SEL))objc_msgSend)(state, pidSel);
+            else
+                SCPMissingSelector(state, @"pid");
+        }
         if (pid >= 1) {
             kill(pid, SIGKILL);
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"tat han %@ (kill pid %d)", bundleID, pid]);

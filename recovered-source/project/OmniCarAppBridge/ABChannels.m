@@ -53,6 +53,10 @@ static void ABHostProcessInit(void) {
 //    Installs 4 MSHookMessageEx hooks + 1 MSHookFunction hook, then verifies
 //    them with OMCCheckHooks. The applicationDidFinishLaunching: replacement
 //    (§3) registers all host channels once SpringBoard is up.
+//    NOTE (hotfix): this file's installer (ABSpringBoardInit, below) is
+//    NEUTRALISED — it duplicates the same ctor 0x6e08 reconstructed in
+//    src/AppBridgeB/AppBridgeEntry.m, which is the single active
+//    installer. See the DUPLICATE INSTALLER note above ABSpringBoardInit.
 // ===========================================================================
 
 static void (*orig_SB_applicationDidFinishLaunching)(id, SEL, id);
@@ -335,7 +339,27 @@ static void repl_SB_applicationDidFinishLaunching(id self, SEL _cmd, id app) {
     }];
 }
 
-__attribute__((constructor))
+// ===========================================================================
+// DUPLICATE INSTALLER — NEUTRALISED (hotfix, do not re-enable).
+// This constructor and ABHostCtor in src/AppBridgeB/AppBridgeEntry.m are
+// two reconstructions of the SAME original constructor, __mod_init_1 @
+// 0x6e08. The original installs each of the five hooks below exactly
+// ONCE: disasm/ctor_host_6e08.txt (in src/AppBridgeB/disasm/) contains
+// exactly 4 _MSHookMessageEx calls (0x6ec0/0x6ee8/0x6f10/0x6f38) and 1
+// _MSHookFunction call (0x6f80). With both constructors live, the built
+// product installed all five hooks twice (chained) and ran the
+// applicationDidFinishLaunching: registrar twice. The single active
+// installer is AppBridgeEntry.m's ABHostCtor: its handler set
+// (ABHostGeometry.m) is the dump-verified one — e.g. sub_7764 clamps
+// orientation >4 to 3 (cmp x2,#4 in hook_SBSceneView_refsize_7764.txt),
+// while repl_SBSceneView_updateReferenceSize below clamps >3. This
+// function is retained, marked `used` but NOT a constructor, because
+// its repl_* bodies are the reference reconstruction of the registrar
+// blocks sub_783C/8DF0/8FD4/9144 (open/close/closeall/knobs), which
+// were ported into ABHostGeometry.m's ABSpringBoardReady when this
+// installer was neutralised.
+// ===========================================================================
+__attribute__((used))
 static void ABSpringBoardInit(void) {
     if (![[[NSBundle mainBundle] bundleIdentifier]
             isEqualToString:@"com.apple.springboard"]) return;

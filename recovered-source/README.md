@@ -134,3 +134,32 @@ see `handover/RECOVERY_STATUS.md` section 8 and
   missing. The bound evidence (commit SHA + build log + diff +
   produced-DEB SHA-256 `050fb437…`) is in
   `project/logs/final-fresh-checkout/`.
+
+## Hotfix (2026-11-08)
+
+Acceptance round 1 on a real device crash-looped SpringBoard
+(four identical SIGABRT reports at startup). Root cause class,
+found by external review and re-verified in-tree: the
+AppBridge SpringBoard host hooks were broken at the contract
+level — all five installers passed NULL for the original IMP
+(the `applicationDidFinishLaunching:` original was never
+called at all), and the parallel A/B reconstructions each
+installed the same five hooks, so the group was chained
+twice. The five originals are now wired, the launch original
+is called first, tree A's duplicate installer is disabled,
+and the registrar registers all six channels as the original
+does. A further review round fixed an `OMCHasMethod`
+signature mismatch, CADisplayLink hook targets (metaclass vs
+instance class), a pid read through an `id`-returning helper,
+and restored the `closeApp:terminate:` tail. A tree-wide
+hook-contract audit found the defect class confined to that
+one group (56 other install sites clean) — see
+`handover/RECOVERY_STATUS.md` section 9 and
+`project/REMEDIATION3_LOG.md`. Rebuilt DEB (this commit):
+SHA-256
+`ff4c9e7e7901e071b1897d0e8572f0f2c56d986888018219d2704fe327666798`,
+949,028 bytes; per-class parity re-verified (62/66 exact,
+zero classes missing selectors); built-binary hook count now
+matches the original (host group installed once, was twice).
+Causation of the device crashes is to be proven by the
+startup-first device retest.

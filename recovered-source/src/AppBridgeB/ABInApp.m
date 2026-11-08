@@ -84,15 +84,22 @@ static NSHashTable *ABDisplayLinks(void);                      // sub_5C64 (weak
 static void ABOrientationBlock(NSNotification *note) {
     if (!ABHooksInstalled) {
         ABHooksInstalled = YES;
-        // CADisplayLink hooks are installed on the METACLASS (class methods /
-        // instance methods reached via object_getClass in the original).
+        // CADisplayLink hooks: the class method is hooked on the
+        // METACLASS; the two FPS setters are instance methods and are
+        // hooked on the class itself. (Original sub_4728 keeps the
+        // objc_getClass result in x21, applies object_getClass ONLY
+        // for +displayLinkWithTarget:selector:, and passes x21
+        // directly for both setters — installer_app_4728.txt
+        // @0x4780-0x47ec.) [hotfix: setters were on the metaclass, so
+        // the hooks never landed and their orig slots stayed NULL
+        // while ABApplyFPSLimit calls them.]
         MSHookMessageEx(object_getClass(objc_getClass("CADisplayLink")),
                         @selector(displayLinkWithTarget:selector:),
                         (IMP)ABHook_CADisplayLinkNew, &orig_CADisplayLink_new);
-        MSHookMessageEx(object_getClass(objc_getClass("CADisplayLink")),
+        MSHookMessageEx(objc_getClass("CADisplayLink"),
                         @selector(setPreferredFramesPerSecond:),
                         (IMP)ABHook_CADisplayLinkSetFPS, &orig_CADisplayLink_setFPS);
-        MSHookMessageEx(object_getClass(objc_getClass("CADisplayLink")),
+        MSHookMessageEx(objc_getClass("CADisplayLink"),
                         @selector(setPreferredFrameRateRange:),
                         (IMP)ABHook_CADisplayLinkSetRange, &orig_CADisplayLink_setRange);
         MSHookMessageEx(objc_getClass("UIWindow"),
@@ -114,7 +121,7 @@ static void ABOrientationBlock(NSNotification *note) {
                         (IMP)ABHook_TVBecome, &orig_TV_become);
         MSHookMessageEx(objc_getClass("UITextView"), @selector(resignFirstResponder),
                         (IMP)ABHook_TVResign, &orig_TV_resign);
-        if (OMCHasMethod("UIWindowScene", "requestGeometryUpdateWithPreferences:errorHandler:")) {
+        if (OMCHasMethod("UIWindowScene", @"requestGeometryUpdateWithPreferences:errorHandler:")) { // [hotfix] 2nd arg was a C string; the impl treats it as NSString* (original passes the cfstring — installer_app_4728.txt @0x491c-0x492c)
             MSHookMessageEx(objc_getClass("UIWindowScene"),
                             @selector(requestGeometryUpdateWithPreferences:errorHandler:),
                             (IMP)ABHook_SceneRequestGeometry, &orig_Scene_reqGeometry);

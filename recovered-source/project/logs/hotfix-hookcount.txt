@@ -1,0 +1,27 @@
+Hook-install count — OmniCarAppBridge.dylib (arm64)
+Method: capstone disassembly of constructor extents (bounds from
+LC_FUNCTION_STARTS). Call sites counted to the _MSHookMessageEx /
+_MSHookFunction stubs (resolved via __la_symbol_ptr for the built
+binaries, via __got chained-fixup resolution for the original).
+Constructors enumerated from __init_offsets (original, dyld3) /
+__mod_init_func (built). Tail-branch (b) calls to a stub counted
+as installs (the original's MSHookFunction call is a tail call).
+
+ORIGINAL (ctor @0x6E08, 3 init_offsets entries):
+  4x bl  _MSHookMessageEx  (@0x6ec0, 0x6ee8, 0x6f10, 0x6f38)
+  1x b   _MSHookFunction   (@0x6f80, tail call)
+  => host group installed ONCE (4 + 1)
+
+PRE-HOTFIX (round-2 rebuilt DEB, SHA 93cdcad9...):
+  __mod_init_func: 4 entries; TWO hook-installing ctors:
+    ctor @0x42b0 : 4x bl _MSHookMessageEx, 1x bl _MSHookFunction
+    ctor @0x1bdc4: 4x bl _MSHookMessageEx, 1x bl _MSHookFunction
+  => host group installed TWICE (8 + 2)
+
+THIS BUILD (hotfix):
+  __mod_init_func: 3 entries; ONE hook-installing ctor:
+    ctor @0x1cec4: 4x bl _MSHookMessageEx, 1x bl _MSHookFunction
+  => host group installed ONCE (4 + 1), matching the original.
+  (The disabled A-tree installer body remains in __text as dead
+  code -- total __text bl sites unchanged at 21 MSHookMessageEx +
+  2 MSHookFunction -- but is no longer a registered constructor.)
