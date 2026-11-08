@@ -642,6 +642,21 @@ static id OMCDiagPref(NSString *key) {
                                                            OMC_PREFS_DOMAIN);
 }
 
+// sub_f6c0 [VERIFIED from the original binary: NSDate -> localized string
+// (dateStyle NoStyle when the date is today, ShortStyle otherwise;
+// timeStyle ShortStyle); any other value -> @"?"]. Used by the diag
+// builders for every stored date (call sites 0xae2c, 0xbba4, 0xbdc8,
+// 0xcbe8, 0xdc08 in _CFunctions.asm).
+static NSString *OMCDiagDateString(id value) {
+    if (![value isKindOfClass:[NSDate class]]) return @"?";
+    NSDate *date = (NSDate *)value;
+    BOOL today = [[NSCalendar currentCalendar] isDateInToday:date];
+    return [NSDateFormatter localizedStringFromDate:date
+                                          dateStyle:today ? NSDateFormatterNoStyle
+                                                          : NSDateFormatterShortStyle
+                                          timeStyle:NSDateFormatterShortStyle];
+}
+
 static NSDictionary *OMCDiagRow(NSString *label, NSString *value) {
     return @{@"label": label, @"value": value ?: L(@"DIAG_UNKNOWN")};
 }
@@ -869,7 +884,13 @@ NSArray *OMCDiagChecks(void) {
     }
     [checks addObject:OMCCheck(@"package", @"CHK_PACKAGE",
         missing.count ? [NSString stringWithFormat:L(@"CHK_PACKAGE_BROKEN"), [missing componentsJoinedByString:@", "]]
-                      : [NSString stringWithFormat:L(@"CHK_PACKAGE_OK"), @"1.0.3 (fbebb21)"],
+                      // [VERIFIED: the original passes TWO varargs at
+                      // 0xad24-0xad40 — the version string and the count
+                      // of discovered OmniCar modules; every CHK_PACKAGE_OK
+                      // string has "%@ … %lu". Passing only the version
+                      // left %lu reading an uninitialised stack slot.]
+                      : [NSString stringWithFormat:L(@"CHK_PACKAGE_OK"), @"1.0.3 (fbebb21)",
+                                                   (unsigned long)modules.count],
         missing.count ? @"bad" : @"ok", missing.count ? @"CHK_PACKAGE_FIX" : nil, nil)];
 
     // Loader (substrate / ellekit / substitute present)
@@ -965,8 +986,13 @@ NSArray *OMCDiagChecks(void) {
     // Last crash (diagLastCrash published by the crash guard)
     NSDictionary *crash = OMCDiagPref(@"diagLastCrash");
     if ([crash isKindOfClass:[NSDictionary class]] && crash.count) {
+        // [VERIFIED: the original passes TWO varargs at 0xcbd8-0xcc04 —
+        // OMCDiagDateString(crash[@"date"]) (sub_f6c0) and @""; every
+        // CHK_CRASH_AT string is "%@%@". Passing only one argument left
+        // the second %@ reading an uninitialised stack slot as an object
+        // pointer — a crash-class format defect.]
         [checks addObject:OMCCheck(@"crash", @"CHK_CRASH",
-            [NSString stringWithFormat:L(@"CHK_CRASH_AT"), crash[@"date"] ?: @"?"],
+            [NSString stringWithFormat:L(@"CHK_CRASH_AT"), OMCDiagDateString(crash[@"date"]), @""],
             @"warn", @"CHK_CRASH_FIX", nil)];
         if (crash[@"suspect"]) {
             [checks addObject:OMCCheck(@"crash.suspect", @"CHK_CRASH_SUSPECT",

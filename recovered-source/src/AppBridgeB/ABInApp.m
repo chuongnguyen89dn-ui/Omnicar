@@ -276,8 +276,13 @@ static void ABAfterDelay(NSTimeInterval seconds) {
 // ===========================================================================
 // sub_698C — before becomeFirstResponder: while hosted, give the responder a
 // blank zero-size inputView so the system keyboard never appears in the app.
-// The marker associated object lives at key 0x3E9E4 (a unique static address).
-static const void *ABBlankInputViewKey = (const void *)0x3E9E4; // address-as-key in the original
+// The marker associated object lives at a unique static address used as
+// the key (the original materialises its own in-image slot, VA 0x3E9E4,
+// PC-relative @0x6a1c–0x6a20, and never dereferences it). [fix-round-3]
+// The absolute VA must not be used as the pointer value in the rebuild;
+// the self-referential form gives the same semantics (a stable,
+// distinct, in-image address, never dereferenced by the runtime).
+static const void *ABBlankInputViewKey = &ABBlankInputViewKey;
 
 static void ABSuppressSystemKeyboard(id responder) {
     if (ABForcedOrientation < 1) return;

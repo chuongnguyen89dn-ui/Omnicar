@@ -28,12 +28,12 @@ static NSDictionary *OMCLoadWhatsNew(void) {              // sub_19ab0
 // [INFERRED selection rule; VERIFIED inputs: the plist dict, the
 // current-version key lookup, and a numeric compare:options: scan.]
 static NSString *OMCWhatsNewVersionToShow(NSDictionary *data, BOOL anyUnseen) {
-    (void)anyUnseen;
     if ([data[kOMCWhatsNewVersion] isKindOfClass:[NSArray class]])
         return kOMCWhatsNewVersion;
+    if (anyUnseen)
+        return nil;
     NSString *best = nil;
     for (NSString *key in data) {
-        if (![key isKindOfClass:[NSString class]]) continue;
         if (![data[key] isKindOfClass:[NSArray class]]) continue;
         if (!best || [key compare:best options:NSNumericSearch] == NSOrderedDescending)
             best = key;

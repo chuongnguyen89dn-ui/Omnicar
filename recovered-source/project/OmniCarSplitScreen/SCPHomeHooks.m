@@ -62,28 +62,41 @@ SBIconImageInfoCompat SCPHook_IconImageInfo(id self, SEL _cmd) {
 }
 
 // 0x55f4 — grid dimension override helper — VERIFIED.
-// Slot 0x87f60 is a __DATA,__thread_vars descriptor whose first word binds
-// to __tlv_bootstrap: the call through it (@0x5624–0x5634) is the standard
-// __thread access sequence and yields a pointer to this thread's
-// re-entrancy byte (a __thread BOOL guard) — resolved by verifier #5, see
-// report §6 item 2. While the byte is set the hooks pass the original value
-// through (the helper itself re-queries the configuration, re-entering
-// these hooks).
+// The original's re-entrancy guard is a 1-byte __thread variable
+// (__thread_bss @0x87f78, zero-init) reached through the
+// __DATA,__thread_vars descriptor @0x87f60, whose first word binds to
+// __tlv_bootstrap (access sequence @0x5624–0x5634). While the byte is
+// set the hooks pass the original value through (the helper itself
+// re-queries the configuration, re-entering these hooks).
+// [fix-round-3] An earlier transcription dereferenced the descriptor's
+// VA 0x87f60 as an absolute runtime address — that was the CarPlay
+// crash-loop of 2026-11-08 (fault addr exactly 0x87f60, proven at
+// instruction level in the rebuilt binary). The faithful form below
+// declares the real TLS variable and lets the compiler emit the
+// descriptor + __tlv_bootstrap access itself. NEVER write the VA.
+static __thread BOOL SCPGridReentrancyGuard;
+
 static NSInteger SCPGridDimension(id self, NSInteger orig,
                                   BOOL isLandscape, BOOL isColumns) {
-    BOOL *guard = ((BOOL *(*)(void *))(*(void **)0x87f60))((void *)0x87f60);
-    if (*guard) return orig;
-    NSInteger wanted = isColumns ? SCPHomeGridColumns() : SCPHomeGridRows();
+    if (SCPGridReentrancyGuard) return orig; // test @0x5634
+    NSInteger wanted = 0;
+    @try { // getter range [0x5670,0x567c); catch pad 0x5864 -> return orig
+        wanted = isColumns ? SCPHomeGridColumns() : SCPHomeGridRows();
+    } @catch (NSException *e) { return orig; }
     if (wanted < 1 || wanted == orig) return orig;
-    *guard = YES;
-    SEL colSel = NSSelectorFromString(isLandscape ? @"numberOfLandscapeColumns"
-                                                  : @"numberOfPortraitColumns");
-    SEL rowSel = NSSelectorFromString(isLandscape ? @"numberOfLandscapeRows"
-                                                  : @"numberOfPortraitRows");
-    NSInteger cols = ((NSInteger (*)(id, SEL))objc_msgSend)(self, colSel);
-    NSInteger rows = ((NSInteger (*)(id, SEL))objc_msgSend)(self, rowSel);
-    *guard = NO;
-    if (cols < 2 || rows <= 1) return orig;
+    SCPGridReentrancyGuard = YES;            // set @0x569c
+    NSInteger cols = 0, rows = 0;
+    @try { // re-query range [0x56b8,0x56f4); catch pad 0x5880 clears
+           // the guard @0x5898 and returns orig (exception swallowed)
+        SEL colSel = NSSelectorFromString(isLandscape ? @"numberOfLandscapeColumns"
+                                                      : @"numberOfPortraitColumns");
+        cols = ((NSInteger (*)(id, SEL))objc_msgSend)(self, colSel);
+        SEL rowSel = NSSelectorFromString(isLandscape ? @"numberOfLandscapeRows"
+                                                      : @"numberOfPortraitRows");
+        rows = ((NSInteger (*)(id, SEL))objc_msgSend)(self, rowSel);
+    } @catch (NSException *e) { SCPGridReentrancyGuard = NO; return orig; }
+    SCPGridReentrancyGuard = NO;             // clear @0x56f8
+    if ((NSUInteger)cols < 2 || (NSUInteger)rows <= 1) return orig; // unsigned b.lo/b.ls @0x5704–0x5710
     static NSMutableSet<NSString *> *logged; // 0x88038
     if (!logged) logged = [NSMutableSet set];
     NSString *key = [NSString stringWithFormat:@"%@%@%lu>%ld",

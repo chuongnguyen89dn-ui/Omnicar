@@ -150,8 +150,14 @@ static int  SSWindowLogCount;              // global @0x3b1ac (log throttle)
 // Associated-object keys [VERIFIED]: the claim is set before any check and is
 // never cleared (a UIScreen instance gets at most one splash per connection);
 // the splash key is cleared by -[SSSplash tearDown].
-static const void *kSSClaimKey;            // global @0x3b1b0
-static const void *kSSSplashKey;           // global @0x3b158
+static const void *kSSClaimKey  = &kSSClaimKey;  // original: address of global @0x3b1b0 passed as key
+static const void *kSSSplashKey = &kSSSplashKey; // original: address of global @0x3b158 passed as key
+// [fix-round-3] The original passes the ADDRESSES of these two distinct
+// slots as the associated-object keys (@0xa724–0xa728 / @0xb530–0xb534);
+// the uninitialised declarations made both keys NULL and identical in
+// the rebuild (claim ≡ splash). The self-referential initialisers make
+// each key's value its own distinct in-image address, as in the
+// original; the keys are never dereferenced.
 
 SSSplash *SSSplashForScreen(UIScreen *screen) {
     return objc_getAssociatedObject(screen, kSSSplashKey);
