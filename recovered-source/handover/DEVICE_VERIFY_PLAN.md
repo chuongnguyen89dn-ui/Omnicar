@@ -1,5 +1,14 @@
 # DEVICE VERIFICATION PLAN — rebuilt OmniCar 1.0.3
 
+> **SUPERSEDED IN PART (2026-11-08):** acceptance round 1 is governed
+> by `handover/ACCEPTANCE_ROUND1.md` (the user's combined
+> original-vs-rebuilt protocol). Where this plan's descriptions or
+> sequencing differ from that protocol — in particular the expiry
+> drill, crash-rescue and load items, which round 1 explicitly
+> DEFERS — the protocol wins. Where behaviour differs on device,
+> the original build's observed behaviour is the reference, not any
+> description in either document.
+
 **This is a PLAN. Nothing in this document is a device result.** No
 rebuilt package has been installed on a device yet. Every item below
 states what to do and what evidence would prove the behaviour; the
