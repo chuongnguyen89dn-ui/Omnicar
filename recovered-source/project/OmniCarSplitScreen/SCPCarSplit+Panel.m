@@ -304,13 +304,19 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
         }
 
         if (section.count == 0) {
-            // Empty section: a dashed placeholder row.
+            // Empty section: a dashed placeholder row. Block
+            // @0x39184..0x3930c — VERIFIED (rem4;
+            // disasm/rem4_panel_placeholder.txt).
             UIView *placeholder = [[UIView alloc] initWithFrame:
                 CGRectMake(48, runningY + 8, 73, 40)];   // VERIFIED (CLOSURE-2):
                 // initWithFrame: @0x391ac takes (48.0, [sp+0x148]+8.0, 73.0, 40.0)
                 // — the old (8, …, frameW, 48) scrambled the constants: 48 is
                 // the X, 8 is only the Y increment; disasm/rem2_showLayoutPanelForApp.txt
-            CAShapeLayer *dash = (CAShapeLayer *)placeholder.layer;
+            // The dash is a NEW CAShapeLayer (@0x391b8 [CAShapeLayer
+            // layer]), configured below and added as a sublayer of the
+            // placeholder's own layer (@0x392c0 addSublayer:) — the old
+            // body wrongly cast placeholder.layer AS the shape layer.
+            CAShapeLayer *dash = [CAShapeLayer layer];
             dash.path = [UIBezierPath
                 bezierPathWithRoundedRect:CGRectInset(placeholder.bounds, 0.5, 0.5)
                              cornerRadius:6].CGPath;
@@ -321,10 +327,16 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
                                                 alpha:1.0]
                 colorWithAlphaComponent:0.25].CGColor;
             dash.lineWidth = 1;
-            dash.lineDashPattern = @[@4, @3];   // static array @0x800500, contents INFERRED
+            dash.lineDashPattern = @[@3, @3];   // VERIFIED (rem4): constant
+                // array @0x80500 (count 2, buffer 0x80020); both slots point
+                // to the same NSConstantIntegerNumber intobj @0x807e0 = 3
+            [placeholder.layer addSublayer:dash];
             placeholder.accessibilityLabel =
                 OMCTr(@"Chia màn xong sẽ hiện ở đây",
-                      @"Finished splits will appear here");
+                      @"Your splits will show up here");   // VERIFIED (rem4):
+                // cfstrings @0x7cca0 (UTF-16, the VI string as written) /
+                // @0x7ccc0 (EN) — the old EN string was wrong, and the
+                // rem2 annotator's @"C" was a UTF-16 misdecode
             [scroll addSubview:placeholder];
         }
 

@@ -1,0 +1,110 @@
+# build-fat-macos.yml — FAT (arm64 + arm64e) build of the recovered
+# OmniCar 1.0.3 source on a real macOS runner.
+#
+# Why this exists: the analysis VM's Ubuntu clang-18 silently
+# degrades arm64e to arm64, so the locally built package is
+# arm64-only (gap G1 in handover/RECOVERY_STATUS.md). The original
+# 1.0.3 binaries are FAT arm64+arm64e, produced by Theos/Xcode on
+# macOS. This workflow builds the same recovered source with
+# ARCHS="arm64 arm64e" and FAILS unless the produced binaries
+# actually contain both slices — the FAT claim is tested, not
+# assumed.
+#
+# Placement: this file lives under ci/ in the recovered-source
+# folder; copy it to .github/workflows/build-fat-macos.yml at the
+# REPOSITORY ROOT for GitHub Actions to pick it up (Actions only
+# reads .github/workflows/ at the root).
+#
+# Triggers: manual (workflow_dispatch) and pushes to the
+# ci-fat-test branch.
+name: build-fat-macos
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci-fat-test
+
+jobs:
+  build-fat:
+    runs-on: macos-14
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          # Sparse-checkout just the iPhoneOS 16.5 SDK from theos/sdks.
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git ~/theos-sdks
+          git -C ~/theos-sdks sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p ~/theos/sdks
+          cp -R ~/theos-sdks/iPhoneOS16.5.sdk ~/theos/sdks/
+          ls ~/theos/sdks
+
+      - name: Install ldid and dpkg
+        run: brew install ldid dpkg
+
+      # The project Makefiles assign ARCHS = arm64 (plain "="), so a
+      # make command-line variable overrides them; ARCHS is also
+      # exported in the environment for any sub-make that reads it.
+      # This dry-run step logs evidence of which architectures the
+      # build system will actually use before the real build runs.
+      - name: Show the architectures the build will use
+        working-directory: recovered-source/project
+        env:
+          ARCHS: "arm64 arm64e"
+        run: |
+          export THEOS=~/theos
+          make -n package FINALPACKAGE=1 ARCHS="arm64 arm64e" > /tmp/make-dryrun.txt 2>&1 || true
+          echo "arm64e mentions in dry run: $(grep -c arm64e /tmp/make-dryrun.txt || true)"
+          grep -m 3 arm64e /tmp/make-dryrun.txt || echo "WARNING: no arm64e found in dry run"
+
+      - name: Build the package (arm64 + arm64e)
+        working-directory: recovered-source/project
+        env:
+          ARCHS: "arm64 arm64e"
+        run: |
+          export THEOS=~/theos
+          make clean
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e"
+          ls -la packages/
+
+      # Acceptance: the 6 dylibs and the Prefs bundle binary inside
+      # the produced .deb must each be FAT with exactly the arm64 and
+      # arm64e slices. The app binary is reported for information.
+      - name: Verify FAT slices in the component binaries
+        run: |
+          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
+          ls -la "$DEB"
+          rm -rf /tmp/fatcheck && mkdir -p /tmp/fatcheck
+          dpkg-deb -x "$DEB" /tmp/fatcheck
+          ROOT=/tmp/fatcheck/var/jb
+          FAIL=0
+          for f in \
+            Library/MobileSubstrate/DynamicLibraries/OmniCarCore.dylib \
+            Library/MobileSubstrate/DynamicLibraries/OmniCarAppBridge.dylib \
+            Library/MobileSubstrate/DynamicLibraries/OmniCarCarProbe.dylib \
+            Library/MobileSubstrate/DynamicLibraries/OmniCarSpeedBubble.dylib \
+            Library/MobileSubstrate/DynamicLibraries/OmniCarSplitScreen.dylib \
+            Library/MobileSubstrate/DynamicLibraries/OmniCarStartupScreen.dylib \
+            Library/PreferenceBundles/OmniCarPrefs.bundle/OmniCarPrefs ; do
+            INFO=$(lipo -info "$ROOT/$f")
+            echo "$f -> $INFO"
+            case "$INFO" in
+              *"arm64 arm64e"*|*"arm64e arm64"*) : ;;
+              *) echo "::error::$f is not FAT arm64+arm64e"; FAIL=1 ;;
+            esac
+          done
+          echo "App binary (informational): $(lipo -info "$ROOT/Applications/OmniCar.app/OmniCar")"
+          if [ "$FAIL" -ne 0 ]; then
+            echo "::error::FAT verification failed"
+            exit 1
+          fi
+          echo "All required component binaries are FAT (arm64 + arm64e)."
+
+      - name: Upload the FAT deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: omnicar-fat-deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb

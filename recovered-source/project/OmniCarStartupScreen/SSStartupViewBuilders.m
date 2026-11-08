@@ -583,10 +583,15 @@ static NSArray *SSDefaultHudItems(NSString *carName) {
         textSize = [text sizeWithAttributes:attrs];
     }
 
-    NSUInteger w = (NSUInteger)textSize.width, h = (NSUInteger)textSize.height;
-    // Bounds guard as emitted (cmn 0x1001 range checks): bail out when
-    // either dimension exceeds 0x2000. [bound INFERRED from the idiom]
-    if (w <= 0x2000 && h <= 0x2000) {
+    // Bounds guard exactly as emitted (rem4 VERIFIED, dump
+    // rem4_buildParticles.txt @0x15020-0x15040): each dimension is
+    // converted with fcvtpu (ceil) and range-tested as
+    // (dim - 0x1001) + 0xFFF unsigned — i.e. the bitmap is built only
+    // when 2 <= dim <= 0x1000 (4096). Width is checked first, then
+    // height; either failure bails out of the whole bitmap block.
+    NSUInteger w = (NSUInteger)ceil(textSize.width);
+    NSUInteger h = (NSUInteger)ceil(textSize.height);
+    if (w >= 2 && w <= 0x1000 && h >= 2 && h <= 0x1000) {
         CGContextRef ctx = CGBitmapContextCreate(NULL, w, h, 8, 0, NULL,
                                                  kCGImageAlphaOnly);   // bitmapInfo 7
         if (ctx) {

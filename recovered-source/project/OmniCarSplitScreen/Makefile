@@ -14,6 +14,10 @@ OmniCarSplitScreen_FILES = SCPCarSplit.m SCPHooks.m SCPPrefs.m SCPShared.m SCPSm
 OmniCarSplitScreen_FRAMEWORKS = UIKit Foundation QuartzCore AVFoundation CoreGraphics
 OmniCarSplitScreen_CFLAGS = -fobjc-arc
 OmniCarSplitScreen_CFLAGS += -DOMC_MODULE_NAME='"SplitScreen"'
+# G5 (rem4): the original binary carries the perf/session cluster ONCE;
+# SCPPerfTelemetry.m + SCPSessionCore.m are this target's single instance,
+# so the shared unit is compiled without its own copy (OMCCommon.c guard).
+OmniCarSplitScreen_CFLAGS += -DOMC_NO_PERF_CLUSTER
 # Phase 1 integration: NSDistributedNotificationCenter shims.
 OmniCarSplitScreen_CFLAGS += -include SCPIntegrationShims.h
 OmniCarSplitScreen_CFLAGS += -Wno-error=nonnull -Wno-error=incomplete-implementation -Wno-error=mismatched-parameter-types

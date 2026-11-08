@@ -87,8 +87,9 @@ calibrated splits `0x4040`, `0x4080` (inside the 192 B `sub_4000` file),
 inside `sub_50b8`'s file) and `0x7568` (signal handler, inside the file
 named `sub_7478`); the index additionally lists `0x5458` (body
 continuation of `OMCCheckHooks` — one function in the source), `0x7478`
-(tail of the exception handler `sub_7308`) and `0x705c` (a 44 B helper
-the calibrated sweep folds into the constructor region). All are
+(tail of the exception handler `sub_7308`) and `0x705c` (a 44 B region
+the calibrated sweep folds into the constructor region — rem4: it is
+the constructor's own `__dispatch_main_q` load, not a helper). All are
 accounted for in the table in §6.
 
 ## 4. Gating and lifecycle (what turns the machinery on)
@@ -213,7 +214,7 @@ NOT-RECOVERED; there are no stub bodies.**
 | 0x6f28 | sub_6f28 | Session getter: adopt struct pointer from `OMC_CRASHGUARD` env (strtoull hex) | VERIFIED |
 | 0x6f6c | sub_6f6c | Guard state path: `$TMPDIR/OmniCar-crashguard.plist` | VERIFIED |
 | 0x6fb8 | sub_6fb8 (__init_0) | Constructor: process-name gate {SpringBoard, CarPlay} → dispatch main-queue block | VERIFIED |
-| 0x705c | sub_705c | Block-support helper in the constructor region: re-dispatches a captured block to a queue read at +0x1c0 of its context | INFERRED (provenance; no behavioural impact) |
+| 0x705c | sub_705c | Not a function (rem4): the `__dispatch_main_q` GOT load inside the constructor sub_6fb8; +0x1c0 is the GOT slot offset | VERIFIED (see §7.6) |
 | 0x7088 | sub_7088 | Constructor block: `OMCLogWrite` build line + write `diagLoaded.CarProbe<Proc>` pref + synchronize | VERIFIED |
 | 0x7218 | sub_7218 | Once block: create serial queue `com.anlai.omnicar.log` | VERIFIED |
 | 0x7248 | sub_7248 | Once block: `gIsSpringBoard = (bundleID == com.apple.springboard)` | VERIFIED |
@@ -258,64 +259,114 @@ NOT-RECOVERED; there are no stub bodies.**
 | 0xb034 | sub_b034 | Once trampoline → expiry block (token 0x14650) | VERIFIED |
 | 0xb048 | sub_b048 | Once trampoline → Tr-cache block (token 0x14660) | VERIFIED |
 
-## 7. Consolidated INFERRED items (with basis)
+## 7. Former INFERRED items — all adjudicated in rem4
 
-1. **`liteMode` default = @2.** The default object @0x11ea0 is an
-   `__NSConstantIntegerNumber`; its payload field at +16 reads 2. Basis:
-   raw struct read + the fact that mode 2 is the only branch consulting
-   the Darwin lite state this unit publishes.
-2. **CrashGuard handler-install placement.** Handlers/observers/probe
-   scheduling are reconstructed as unconditional in the fresh-session
-   path, not gated on a non-empty leftover report — otherwise the first
-   crash could never be recorded and the rescue feature would be
-   vacuous. The report-parse block itself is verified.
-3. **CrashGuard `age=` parse mechanics** (tokenising lines on spaces,
-   `substringFromIndex:` extraction, minimum across lines): values and
-   thresholds (59/60 s, count 2) are literal in the code; the exact
-   string surgery is reconstructed from the call pattern.
-4. **Signal handler open flags / backtrace buffer size** assumed equal
-   to the exception handler's (O_WRONLY|O_CREAT|O_APPEND, 0644; 64
-   frames — the address-collection cap of 64 is verified in the
-   exception handler).
-5. **sigaction flags word:** the struct is built from zeroed `__const`
-   data with `sa_handler`-field pointing at 0x7568; reconstructed as
-   `SA_SIGINFO` because the handler reads `siginfo_t` (its `code`/
-   `addr` fields appear in the verified format string).
-6. **sub_705c provenance:** a constructor-region block helper that
-   re-dispatches to a queue stored at +0x1c0 of its context; the exact
-   captured object layout was not fully determined. No effect on any
-   observable behaviour.
-7. **sub_4ec8 selector names** (`attributesOfItemAtPath:error:`,
-   `fileSize`, `removeItemAtPath:error:`,
-   `moveItemAtPath:toPath:error:`) inferred from receiver/arity; the
-   2 MiB threshold and `.1` suffix are literal.
-8. **sub_7b6c details:** the `CARSessionStatus` shared-instance creation
-   call (reconstructed as `[[cls alloc] init]`; the `currentSession`
-   KVC access and respondsToSelector gating are verified), the
-   `session`/`configuration` snapshot order, and the fine branch order
-   of the car-profile apply path (stash-current → apply vs
-   create-new), including which of profileKey/vehicleName fills each
-   `%@` in the two profile log lines.
-9. **sub_93b8 cadences:** prefs-sync every 2nd sample, display-link
-   (re)creation on samples ≡ 1 (mod 3) starting at the 4th, diagPerf
-   every 6th sample — read from the mod-2/3/6 magic-number arithmetic;
-   the exact phase offsets are reconstructed. The lite-off predicate
-   (late < 5 % ∧ on ∧ > 180 s since change ∧ ring quiet 180 s) is
-   reconstructed from the branch layout.
-10. **sub_91e8:** `hangMaxMs` update placed inside the ≥ 2 s branch.
-11. **sub_ac84 gradient packing:** mesh colour uint32s @0xd0f0
-    (`0x00a0f1d9, 0x00fec4d8, 0x00a6ddfd, 0x00c9bafc`), corner centres,
-    locations {0, 1} and end radius are literal; the mapping of
-    extracted bytes to RGBA component order and the colour→transparent
-    second stop are reconstructed from the NEON extraction pattern and
-    the trailing zero component.
+Each item below was re-read end-to-end in the original
+`OmniCarCarProbe.dylib` (dumps `disasm/rem4_*.txt`, length-checked).
+No item remains inferred.
+
+1. **`liteMode` default = @2 — CONFIRMED.** The default object
+   @0x11ea0 is an `__NSConstantIntegerNumber`; payload at +16 reads
+   exactly 2 (raw struct read, rem4). The same object is the one
+   passed as the `_OMCPref` default in sub_93b8 @0x94f8.
+2. **CrashGuard handler-install placement — CONFIRMED.** In
+   `OMCCrashGuard` (0x5d94) the installs — `NSSetUncaughtException
+   Handler` @0x6a80, the 6-signal `sigaction` loop @0x6aa8–0x6ac0,
+   two `addObserverForName:` @0x6b18/0x6b80, probe scheduling
+   (sub_7790) @0x6b9c — sit on the unconditional fall-through of the
+   fresh-session path, immediately after the fresh session record is
+   written (@0x6a60). A full branch scan of the report-parse and
+   decision region (0x5f10–0x6a6c) found no branch that skips them;
+   the only entries past them are the once/report-mode shortcuts at
+   the function head, which are entry-mode dispatch, not a gate on
+   the leftover report's content (an absent leftover file flows
+   through an empty dictionary at 0x5efc and still reaches the
+   installs).
+3. **CrashGuard `age=` parse mechanics — CONFIRMED in full.** Lines
+   split on `@"\n"` (@0x60b8), lines gated by prefix `@"omc-crash "`,
+   tokens split on `@" "` (@0x6164), token prefixes extracted with
+   `substringFromIndex:` at their literal lengths — `age=` (4),
+   `suspect=` (8), `last=` (5) — and the age minimum tracked with a
+   `csel` against an INT64_MAX seed (@0x61f0). Thresholds 59/60 s
+   and count 2 literal as before.
+4. **Signal handler (sub_7568) open flags / buffer — CONFIRMED from
+   its own body** (not by analogy): `open(path, 0x209, 0644)` —
+   0x209 = O_WRONLY|O_CREAT|O_APPEND, mode immediate 0x1a4;
+   `backtrace(buf, 0x40)` — the 64-frame cap is in this handler
+   itself (@0x75c4). The verified format string
+   `signal %d (code %d) addr %p pid %d` is fed from
+   `siginfo->si_code` (+8) and `si_addr` (+0x18).
+5. **sigaction flags word — CONFIRMED literally.** The 8-byte
+   `__const` template @0xd048 copied into the struct is
+   sa_mask = 0x00000000, **sa_flags = 0x00000040 = SA_SIGINFO**;
+   handler = 0x7568; the signal table @0xd070 is
+   {11, 10, 6, 4, 5, 8} (SIGSEGV, SIGBUS, SIGABRT, SIGILL, SIGTRAP,
+   SIGFPE).
+6. **sub_705c provenance — CORRECTED.** 0x705c is not a function or
+   block helper: it is the address of the `adrp`/`ldr
+   __dispatch_main_q` inside the constructor function sub_6fb8
+   itself (the +0x1c0 is the GOT slot offset within the 0x10000
+   page). The constructor gates on processName `@"SpringBoard"` /
+   `@"CarPlay"` and dispatch_async's a block capturing the name to
+   the main queue; the block invoke is the next function start,
+   0x7088. Source comment corrected.
+7. **sub_4ec8 — selectors CONFIRMED, suffix CORRECTED.** The four
+   selector names are the binary's own selrefs (dump
+   rem4_sub_4ec8.txt). The 2 MiB threshold is `cmp #0x200000`. The
+   appended suffix is **`@".old"`** (cfstring @0x10e78), not `.1`;
+   source corrected.
+8. **sub_7b6c details — CONFIRMED with one correction.** Creation
+   is **`_objc_opt_new`** (@0x820c, i.e. `[cls new]`) on the
+   `CARSessionStatus` class obtained via NSClassFromString after
+   dlopen'ing CarKit — not `[[cls alloc] init]`; source corrected.
+   Snapshot order is `session` (valueForKey `currentSession`,
+   stored under `session`) then `configuration` (same string as
+   KVC key and storage key), the dict written to pref `diagCar`.
+   Profile flow order is stash-current (outgoing profile's
+   `values` ← live snapshot @0x8608–0x864c) → apply-existing
+   (per-key CFPreferencesSetAppValue) or create-new
+   (`{values: snapshot}`, `name`, `lastSeen`). In BOTH log lines —
+   `nap ho so xe %@ (%@)` and `ho so xe moi: %@ (%@)` — the first
+   `%@` is the vehicle descriptor (the same string stored as the
+   profile's `name`, fallback `OMCTr(@"Xe", @"Car")`) and the
+   second is the profileKey (`"%@|%@"` of descriptor and `pixels`).
+9. **sub_93b8 cadences — CONFIRMED except the link cadence,
+   CORRECTED.** Prefs-sync runs on even sample counts (low-bit
+   test @0x94c8) = every 2nd sample ✓; diagPerf flush (sub_9810)
+   passes at counts 6, 12, 18 … (emulated ror-1 test) = every 6th
+   ✓; the lite-off predicate is exactly late < 5 ∧ lite-on ∧
+   > 180 s since change ∧ newest hang-ring slot quiet > 180 s
+   (constants 5.0 / 180.0 @0xd068 literal) ✓. The display-link
+   creation gate is the same 0xAAAB ror-2 test as the shared unit:
+   passes at counts 4, 16, 28 … = **count % 12 == 4**, not
+   ≡ 1 (mod 3); source corrected.
+10. **sub_91e8 `hangMaxMs` placement — CORRECTED.** In the binary
+    (@0x927c–0x9298) the update `max(0x14558, delay × 1000.0)`
+    (scale constant @0xd058 = 1000.0) sits after and outside the
+    ≥ 2 s branch; inside that branch only the freeze counter
+    (@0x14560) increments, and a second ≥ 2 s test gates only the
+    log line. Source corrected (the update now runs for every
+    recorded sample, delay ≥ 0.5 s).
+11. **sub_ac84 gradient packing — CORRECTED.** Colours @0xd0f0,
+    centres {(96,96), (0,96), (96,0), (0,0)}, locations {0.0, 1.0}
+    (@0xd100) and end radius 95.035151391472 (@0xd0d8) all literal
+    as reported. The component mapping is now exact: the NEON
+    shift vector @0xd0d0 is (−16, −8), extracting (byte2, byte1);
+    with the scalar byte0 the stops are **(R, G, B)** of the
+    0x00RRGGBB colour — stop 0 alpha = the block's `factor`
+    (context +0x20), stop 1 alpha = 0.0 (colour → transparent).
+    The source previously wrote the components in a permuted
+    order with a mostly-zero second stop; corrected.
 
 ## 8. Coverage statement
 
 82/82 calibrated functions reconstructed with real bodies in
 `OmniCarCarProbe.m` (plus the 3 index-only regions accounted for:
 0x5458 merged into OMCCheckHooks, 0x7478 as the exception-handler tail,
-0x705c as an INFERRED helper). 20/20 exports present. No stub bodies, no
-placeholder returns. Remaining uncertainty is confined to the 11
-INFERRED items in §7, none of which changes the module's observable
-behaviour as reported in §§1, 4, 5.
+0x705c — rem4: not a helper at all, just the `__dispatch_main_q` GOT
+load inside the constructor at 0x6fb8). 20/20 exports present. No stub
+bodies, no placeholder returns. The 11 former INFERRED items of §7
+were all adjudicated against the binary in rem4 (see §7): items 1–5
+confirmed exactly as written; items 6–11 each contained at least one
+error that is now corrected in the source (the other sub-points of
+items 7, 8, 9 and 11 were confirmed). No item remains inferred.

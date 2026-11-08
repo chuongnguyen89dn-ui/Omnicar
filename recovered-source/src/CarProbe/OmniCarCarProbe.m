@@ -411,15 +411,18 @@ static dispatch_queue_t OMCLogQueue(void) {                  // 0x4d6c
 
 #define OMC_LOG_PATH @"/var/mobile/Documents/OmniCar.log"
 
-// 0x4ec8 — rotation: at >= 2 MiB, OmniCar.log -> OmniCar.log.1.
-// (Selector names INFERRED from call arity; the size threshold 0x200000
-// and the ".1" suffix are VERIFIED.)
+// 0x4ec8 — rotation: at >= 2 MiB, OmniCar.log -> OmniCar.log.old.
+// (rem4 VERIFIED end-to-end, dump rem4_sub_4ec8.txt: the selector
+// names attributesOfItemAtPath:error: / fileSize /
+// removeItemAtPath:error: / moveItemAtPath:toPath:error: are the
+// binary's own selrefs, the threshold is cmp #0x200000, and the
+// appended suffix is @".old" — an earlier draft wrote ".1".)
 static void OMCRotateLogIfNeeded(void) {
     NSFileManager *fm = [NSFileManager defaultManager];
     NSDictionary *attrs = [fm attributesOfItemAtPath:OMC_LOG_PATH
                                                error:nil];
     if (attrs.fileSize >= 0x200000) {
-        NSString *old = [OMC_LOG_PATH stringByAppendingString:@".1"];
+        NSString *old = [OMC_LOG_PATH stringByAppendingString:@".old"];
         [fm removeItemAtPath:old error:nil];
         [fm moveItemAtPath:OMC_LOG_PATH toPath:old error:nil];
     }
@@ -1197,10 +1200,12 @@ static void OMCWatchdogCheck(double scheduled) {
     atomic_store(&gWatchdogBusy, 0);
     if (delay < 0.5 || !gProbeScreen) return;
     gHangCount++;
-    if (delay >= 2.0) {
-        gFreezeCount++;
-        gHangMaxMs = MAX(gHangMaxMs, delay * 1000.0); // placement INFERRED
-    }
+    if (delay >= 2.0) gFreezeCount++;
+    // rem4 VERIFIED placement (dump rem4_sub_91e8.txt @0x927c-0x9298):
+    // the max update sits AFTER and OUTSIDE the >= 2 s branch — it
+    // runs for every recorded sample (delay >= 0.5 s); only the
+    // freeze counter and, below, the log line are >= 2 s gated.
+    gHangMaxMs = MAX(gHangMaxMs, delay * 1000.0);
     OMCCrashSession *s = OMCCrashSessionGet();
     NSString *who = (s && s->lastModule[0])
         ? [NSString stringWithUTF8String:s->lastModule] : @"-";
@@ -1253,7 +1258,7 @@ static void OMCRecordSample(double cpu, double memMB, double availMB,
     }
 
     // display link: (re)created on every 3rd sample from the 4th
-    if (gSampleCount % 3 == 1 && !gDisplayLink) {
+    if (gSampleCount % 12 == 4 && !gDisplayLink) { // rem4: binary test is %12==4 (see report §7.9)
         if (!gPerfTicker) {
             Class cls = objc_getClass("OMCPerfTicker");
             if (!cls) {
@@ -1437,7 +1442,7 @@ static void OMCProbeRun(void) {
                "CarKit", RTLD_LAZY);
         Class cls = NSClassFromString(@"CARSessionStatus");
         if (!gCARSessionStatus)
-            gCARSessionStatus = [[cls alloc] init];    // INFERRED creation
+            gCARSessionStatus = [cls new];  // rem4 VERIFIED: binary calls _objc_opt_new @0x820c
         if ([gCARSessionStatus respondsToSelector:
                 NSSelectorFromString(@"currentSession")])
             session = [gCARSessionStatus valueForKey:@"currentSession"];
@@ -1557,8 +1562,11 @@ static void OMCProbeScreenDisconnected(NSNotification *note) {
 }
 
 // ============================================================================
-// Logo mesh image (0xaae4-0xaea4) — structure VERIFIED; the gradient
-// component packing is INFERRED from the NEON byte extraction.
+// Logo mesh image (0xaae4-0xaea4) — VERIFIED including the gradient
+// component packing (rem4, dump rem4_sub_ac84.txt: NEON shift vector
+// @0xd0d0 is (-16, -8), so the extracted pair is (byte2, byte1); the
+// scalar path adds byte0; both stops are (R, G, B) of the 0x00RRGGBB
+// colour, stop 0 with alpha = factor, stop 1 with alpha 0).
 // ============================================================================
 
 // 0xac84 — renderer actions block.
@@ -1583,15 +1591,18 @@ static void OMCDrawLogoMesh(UIGraphicsImageRendererContext *rendererCtx,
     static const uint32_t kMeshColors[4] = {   // @0xd0f0
         0x00a0f1d9, 0x00fec4d8, 0x00a6ddfd, 0x00c9bafc
     };
-    static const CGPoint kCenters[4] = {       // order INFERRED
+    static const CGPoint kCenters[4] = {       // order VERIFIED (rem4)
         {96, 96}, {0, 96}, {96, 0}, {0, 0}
     };
     for (int i = 0; i < 4; i++) {
         uint32_t c = kMeshColors[i];
+        // Binary layout (rem4): stop0 = (R, G, B, factor),
+        // stop1 = (R, G, B, 0) — same colour fading to transparent.
         CGFloat comps[8] = {
+            ((c >> 16) & 0xff) / 255.0, ((c >> 8) & 0xff) / 255.0,
             (c & 0xff) / 255.0, factor,
             ((c >> 16) & 0xff) / 255.0, ((c >> 8) & 0xff) / 255.0,
-            (c & 0xff) / 255.0, 0, 0, 0  // fade to transparent (INFERRED)
+            (c & 0xff) / 255.0, 0
         };
         CGFloat locations[2] = {0.0, 1.0};
         CGGradientRef gradient =
@@ -1626,9 +1637,11 @@ UIImage *OMCLogoMeshImage(int variant) {                     // 0xaae4
 }
 
 // ============================================================================
-// Constructor (0x6fb8) — VERIFIED. (The block-support helper at 0x705c
-// re-dispatches a captured block to a queue stored at +0x1c0 of its
-// context; provenance INFERRED, no behavioural impact.)
+// Constructor (0x6fb8) — VERIFIED. (rem4: the address 0x705c once
+// catalogued as a separate helper is simply the __dispatch_main_q
+// GOT load inside this function — the +0x1c0 is the GOT slot offset
+// in the 0x10000 page, not a field of any context object. The
+// block's invoke is the next function start, 0x7088.)
 // The substrate filter loads this dylib into CarPlayApp only, whose
 // process name is "CarPlay"; the "SpringBoard" branch is live in the
 // SpringBoard-filtered copies of OMCCommon instead.

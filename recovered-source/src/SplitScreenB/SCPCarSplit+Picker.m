@@ -10,6 +10,12 @@
 #import "SCPCarPane.h"
 #import "SCPCommon.h" // [phase2; backported to src in phase 3] OMC* declarations used in this TU
 #import "SCPCButton.h" // [phase2; backported to src in phase 3] SCPCButton interface used in this TU
+#import <objc/message.h>  // rem4: trayWindowForParent: super-send + guarded msgSend casts
+#import <objc/runtime.h>  // rem4: SCPCPass runtime subclass (objc_allocateClassPair & friends)
+
+// Guarded-call logger of this dylib (_SCPMissingSelector @0x4f330,
+// 2-arg form used by module A; see SCPCarSplit.m).
+extern void SCPMissingSelector(id object, NSString *selectorName);
 
 // App icon lookup (static helper @0xdec8; name INFERRED — shared with Drag).
 extern UIImage *SCPAppIconForBundle(NSString *bundleID);
@@ -789,27 +795,115 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 
 // MARK: - Tray
 
-// The shared overlay window for trays/menus/ghosts on the parent's
-// screen. Created lazily; recreated when the screen changes. Its level is
-// UIWindowLevelStatusBar + 65 (VERIFIED CLOSURE-2: @0x37c08 loads the
-// _UIWindowLevelStatusBar global and @0x37c14 adds the constant 65.0 —
-// the parent window's level is never read; disasm/rem2_trayWindowForParent.txt).
-- (UIWindow *)trayWindowForParent:(UIView *)parent {                     // 0x3782c VERIFIED
+// The pass-through hitTest override installed on the tray window's
+// runtime subclass (IMP @0x481c8, 212 bytes — VERIFIED rem4;
+// disasm/rem4_tray_hitTest_481c8.txt): ask the superclass (the window's
+// original class) to hit-test; a hit on the window ITSELF means the
+// point touched no subview, so return nil and let the touch fall
+// through to whatever is underneath. Subview hits return unchanged.
+static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
+                               UIEvent *event) {
+    struct objc_super sup = { self, class_getSuperclass(object_getClass(self)) };
+    UIView *hit = ((UIView *(*)(struct objc_super *, SEL, CGPoint, UIEvent *))
+                   objc_msgSendSuper)(&sup, _cmd, point, event);
+    return (hit == self) ? nil : hit;
+}
+
+// The shared overlay window for trays/menus/ghosts. NOT a plain
+// UIWindow (the previous condensed body created one with initWithFrame:
+// and omitted everything below — corrected rem4). IMP
+// @0x3782c..0x37e8c — VERIFIED (disasm/rem4_trayWindowForParent.txt):
+// the binary builds a UIRootSceneWindow from the parent screen's
+// FBSDisplayConfiguration, then re-classes it into a runtime subclass
+// "SCPCPass_<the window's own class>" carrying only the hitTest
+// override above, so the window's empty areas are touch-transparent.
+// Level is UIWindowLevelStatusBar + 65 (@0x37c08/@0x37c14 — the parent
+// window's level is never read; CLOSURE-2).
+- (UIWindow *)trayWindowForParent:(UIView *)parent {                     // 0x3782c VERIFIED (rem4)
     UIScreen *screen = parent.window.screen;
+    if (screen == nil) return nil;                       // @0x3787c
     UIWindow *window = self.trayWindow;
-    if (window != nil && screen != nil && window.screen != screen) {
-        window.hidden = YES;
-        self.trayWindow = nil;
-        window = nil;
+    if (window != nil) {
+        if (window.screen == screen) {                    // @0x37938
+            window.hidden = NO;
+            return window;
+        }
+        window.hidden = YES;                              // screen changed:
+        self.trayWindow = nil;                            // drop and rebuild
     }
-    if (window == nil) {
-        window = [[UIWindow alloc] initWithFrame:screen.bounds];
-        window.windowLevel = UIWindowLevelStatusBar + 65.0;   // VERIFIED (CLOSURE-2)
-        window.backgroundColor = UIColor.clearColor;
-        self.trayWindow = window;
+
+    // FBSDisplayConfiguration for the screen (@0x378d0..0x37a80): the
+    // private -displayConfiguration; if that yields nothing, build one
+    // from the CADisplay (-_display) with isMainDisplay:NO. The binary
+    // probes each get with respondsToSelector: and falls through
+    // silently; SCPMissingSelector is logged on the two init calls
+    // below when their selector is absent (@0x37a5c / @0x37ad8).
+    id config = nil;
+    SEL configSel = NSSelectorFromString(@"displayConfiguration");
+    if ([screen respondsToSelector:configSel])
+        config = ((id (*)(id, SEL))objc_msgSend)(screen, configSel);
+    if (config == nil) {
+        id display = nil;
+        SEL displaySel = NSSelectorFromString(@"_display");
+        if ([screen respondsToSelector:displaySel])
+            display = ((id (*)(id, SEL))objc_msgSend)(screen, displaySel);
+        if (display != nil) {
+            id cfg = [objc_getClass("FBSDisplayConfiguration") alloc];
+            SEL initSel = NSSelectorFromString(@"initWithCADisplay:isMainDisplay:");
+            if ([cfg respondsToSelector:initSel]) {
+                config = ((id (*)(id, SEL, id, BOOL))objc_msgSend)(cfg, initSel, display, NO);
+            } else {
+                SCPMissingSelector(cfg, @"initWithCADisplay:isMainDisplay:");
+            }
+        }
     }
-    window.hidden = NO;
-    return window;
+
+    UIWindow *win = nil;
+    if (config != nil) {                                  // @0x37a84
+        id w = [objc_getClass("UIRootSceneWindow") alloc];
+        SEL initSel = NSSelectorFromString(@"initWithDisplayConfiguration:");
+        if ([w respondsToSelector:initSel]) {
+            win = ((id (*)(id, SEL, id))objc_msgSend)(w, initSel, config);
+        } else {
+            SCPMissingSelector(w, @"initWithDisplayConfiguration:");
+        }
+    }
+    if (![win isKindOfClass:UIWindow.class]) {            // @0x37af4 / fail @0x37cf8
+        OMCLogWrite(@"SplitScreen",
+            [NSString stringWithFormat:
+                @"CarSplit: khong tao duoc cua so bang bo cuc (config %@, window %@) -> bang nam trong view goc, an o app iPhone",
+                config, win]);
+        return nil;
+    }
+
+    // Re-class the window into "SCPCPass_<its own class>"
+    // (@0x37b10..0x37bec). Registration is guarded per call by the
+    // objc_getClass existence check (@0x37b88) — there is NO
+    // dispatch_once. Exactly one method is added: hitTest:withEvent:,
+    // IMP @0x481c8, type encoding copied from the superclass's own
+    // method. object_setClass runs on both guard paths.
+    Class winClass = object_getClass(win);
+    NSString *name = [NSString stringWithFormat:@"SCPCPass_%@",
+                      NSStringFromClass(winClass)];
+    Class passClass = objc_getClass(name.UTF8String);
+    if (passClass == nil) {
+        passClass = objc_allocateClassPair(winClass, name.UTF8String, 0);
+        Method m = class_getInstanceMethod(winClass,
+                                           @selector(hitTest:withEvent:));
+        class_addMethod(passClass, @selector(hitTest:withEvent:),
+                        (IMP)SCPCPassHitTest, method_getTypeEncoding(m));
+        objc_registerClassPair(passClass);
+    }
+    object_setClass(win, passClass);
+
+    win.windowLevel = UIWindowLevelStatusBar + 65.0;      // @0x37c1c
+    win.backgroundColor = UIColor.clearColor;
+    win.hidden = NO;
+    self.trayWindow = win;
+    OMCLogWrite(@"SplitScreen",
+        [NSString stringWithFormat:@"CarSplit: cua so bang bo cuc %@ muc %.0f",
+            NSStringFromCGRect(win.bounds), win.windowLevel]);
+    return win;
 }
 
 - (void)hideTrayWindowIfIdle {                                           // 0x31d00 (approx.)

@@ -160,8 +160,11 @@ void ABCarPlayChanged(NSNotification *note) {
         [[ABKeyboard shared] hideForApp:nil];
         [[ABHost shared] carDisconnected];
     }
-    // (Connected case: no further work in the observed code path head;
-    //  see the full dump disasm/blk_carplay_958c.txt.)
+    // Connected case (device != nil): the binary does literally nothing
+    // further — the tail is only the release of `device` and the return
+    // (plus the exception-unwind landing pad). Verified over the full
+    // body in remediation round 2: 252/252 B, 63 insns,
+    // disasm/rem4_tail_958c.txt.
 }
 
 // ===========================================================================

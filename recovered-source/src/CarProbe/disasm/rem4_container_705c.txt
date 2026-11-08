@@ -1,0 +1,55 @@
+; container of 0x705c
+; VA 0x6fb8  size 208  bound=LC_FUNCTION_STARTS  decoded=208  LENGTH_CHECK=OK
+
+0x00006fb8:  sub      sp, sp, #0x50
+0x00006fbc:  stp      x20, x19, [sp, #0x30]
+0x00006fc0:  stp      x29, x30, [sp, #0x40]
+0x00006fc4:  add      x29, sp, #0x40
+0x00006fc8:  adrp     x8, #0x14000
+0x00006fcc:  ldr      x0, [x8, #0x368]    ; class(NSProcessInfo)
+0x00006fd0:  bl       #0xbee0    ; -> objc_msgSend(processInfo)
+0x00006fd4:  mov      x29, x29
+0x00006fd8:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00006fdc:  mov      x20, x0
+0x00006fe0:  bl       #0xbf00    ; -> objc_msgSend(processName)
+0x00006fe4:  mov      x29, x29
+0x00006fe8:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00006fec:  mov      x19, x0
+0x00006ff0:  mov      x0, x20
+0x00006ff4:  bl       #0xb410    ; -> _objc_release
+0x00006ff8:  adrp     x2, #0x10000
+0x00006ffc:  add      x2, x2, #0xcf8    ; got(___CFConstantStringClassReference)
+0x00007000:  mov      x0, x19
+0x00007004:  bl       #0xbb40    ; -> objc_msgSend(isEqualToString:)
+0x00007008:  tbnz     w0, #0, #0x7020
+0x0000700c:  adrp     x2, #0x10000
+0x00007010:  add      x2, x2, #0xd18    ; got(___CFConstantStringClassReference)
+0x00007014:  mov      x0, x19
+0x00007018:  bl       #0xbb40    ; -> objc_msgSend(isEqualToString:)
+0x0000701c:  cbz      w0, #0x7070
+0x00007020:  adrp     x8, #0x10000
+0x00007024:  ldr      x8, [x8, #0x190]    ; got(__NSConcreteStackBlock)
+0x00007028:  str      x8, [sp, #8]
+0x0000702c:  adrp     x8, #0xd000
+0x00007030:  ldr      d0, [x8, #0x40]
+0x00007034:  str      d0, [sp, #0x10]
+0x00007038:  adrp     x8, #0x7000
+0x0000703c:  add      x8, x8, #0x88    ; got(?ord1023)
+0x00007040:  adrp     x9, #0x10000
+0x00007044:  add      x9, x9, #0x468
+0x00007048:  stp      x8, x9, [sp, #0x18]
+0x0000704c:  mov      x0, x19
+0x00007050:  bl       #0xb41c    ; -> _objc_retain
+0x00007054:  str      x19, [sp, #0x28]
+0x00007058:  adrp     x0, #0x10000
+0x0000705c:  ldr      x0, [x0, #0x1c0]    ; got(__dispatch_main_q)
+0x00007060:  add      x1, sp, #8
+0x00007064:  bl       #0xb1f4    ; -> _dispatch_async
+0x00007068:  ldr      x0, [sp, #0x28]
+0x0000706c:  bl       #0xb410    ; -> _objc_release
+0x00007070:  mov      x0, x19
+0x00007074:  bl       #0xb410    ; -> _objc_release
+0x00007078:  ldp      x29, x30, [sp, #0x40]
+0x0000707c:  ldp      x20, x19, [sp, #0x30]
+0x00007080:  add      sp, sp, #0x50
+0x00007084:  ret      

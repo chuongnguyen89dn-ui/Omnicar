@@ -18,13 +18,16 @@
 // session statistics, runs the auto-lite evaluation, lazily creates the
 // OMCPerfTicker CADisplayLink, and flushes `diagPerf` every 6th sample.
 //
-// Deltas from the Core copy of the same unit (all VERIFIED in this
-// binary — do NOT reuse the Core text verbatim for this dylib):
-//   * sampler decimation is every 20th fire (Core: every 10th);
-//   * display-link creation cadence is sampleCount % 12 == 4
-//     (Core: % 6 == 4);
-//   * footprint / system-free scale is exactly 2^-20 (MB)
-//     (Core reconstruction wrote 1.0e-6).
+// rem4 (G5 closure): there are NO deltas from the Core copy of the
+// same unit. The sampler (sub_53f90 vs Core sub_af54, 656 B each),
+// consumer (sub_54448 vs sub_b40c, 1112 B each), tick (160 B) and
+// flush (1404 B) are instruction-identical modulo layout addresses;
+// decimation every 20th fire, link cadence count % 12 == 4 and the
+// 2^-20 scales hold in BOTH binaries. The %10 / %6==4 / 1.0e-6
+// figures once written in the Core text (OMCCommon.c) were misreads
+// and are corrected there; see PerfTelemetry_REPORT.md §9. This TU
+// is SplitScreen's single instance of the shared unit's cluster —
+// the original binary carries exactly one copy of it.
 
 #import "SCPPerfTelemetry.h"
 #import <UIKit/UIKit.h>

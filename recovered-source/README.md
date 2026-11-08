@@ -82,3 +82,35 @@ build unproven. All four were closed:
   `c7ce84830778b49e4ca5733c59e10da99293ef07bbaccfb1ff6d273bd1c33ef9`,
   947,168 bytes; data-tar parity vs the original 202/202 entries,
   0 differences.
+
+## Remediation round 2 (2026-11-08, third commit)
+
+A second external review found the tray window's touch mechanism
+omitted (not merely condensed), remaining unverified material in
+gaps G4–G7, and the fresh-checkout evidence stale. All are closed —
+see `handover/RECOVERY_STATUS.md` section 8 and
+`project/REMEDIATION2_LOG.md`:
+
+- `trayWindowForParent:` rewritten in full: the window is a
+  `UIRootSceneWindow` re-classed into a runtime `SCPCPass_`
+  subclass whose `hitTest:withEvent:` returns nil for
+  self-hits, so the tray's empty areas are touch-transparent.
+- G4 closed: `ABTelexApply` transcribed branch-for-branch and
+  diffed against the original IMP over 253,908 interpreter cases
+  (0 mismatches); the AppBridge host tails line-read to their
+  ends. G5 closed (verdict ii): the original carries one
+  perf/session cluster — the reconstruction's duplicate copy is
+  now excluded from the SplitScreen target by a build guard, and
+  the built dylib verifies with exactly one cluster (queue-label
+  and `diagPerf` string sites both 1, matching the original).
+  G7 closed: every remaining INFERRED pocket line-read; none
+  remains inferred. Panel placeholder rebuilt with the separate
+  dash sublayer and the proven `@[@3, @3]` pattern.
+- Rebuilt DEB (this commit): SHA-256
+  `93cdcad934ea5b363665c69051c1368c40143c163e0919b1310a36e503a162bd`,
+  947,056 bytes; data-tar parity vs the original 202/202 entries,
+  0 differences; per-class parity re-verified (62/66 exact, zero
+  classes missing selectors).
+- FAT (arm64+arm64e) build: `ci/build-fat-macos.yml` in this
+  folder is a ready-to-run GitHub Actions workflow for a macOS
+  runner; the coordinator places it under `.github/workflows/`.

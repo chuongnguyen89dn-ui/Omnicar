@@ -536,3 +536,213 @@ in the remediation build (see `project/REMEDIATION_LOG.md`).
 Verification remains structural/static only — no device run has
 been performed (section 6 unchanged), and the build remains
 arm64-only (G1 unchanged).
+
+## 8. Remediation addendum 2 (2026-11-08) — second external review round
+
+A second external audit of the published tree (commit b4d652e)
+confirmed round 1's repairs but raised three further points:
+(1) the tray window's touch mechanism had been omitted
+altogether, not merely condensed; (2) gaps G4–G7 still
+contained unverified material beyond the round-1 summary;
+(3) the fresh-checkout evidence in the tree predated the
+final round-1 build numbers. All three were worked in this
+round; results below. Evidence: `project/REMEDIATION2_LOG.md`,
+`project/logs/remediation2-*.txt`, and the `rem4_*.txt`
+dumps under `src/*/disasm/`.
+
+### 8.1 Tray window touch mechanism — RESTORED
+
+`trayWindowForParent:` (SCPCarSplit+Picker.m) previously
+created a plain UIWindow. The original (IMP
+@0x3782c..0x37e8c, read end-to-end; dumps
+`disasm/rem4_trayWindowForParent.txt` and
+`disasm/rem4_tray_hitTest_481c8.txt`) does materially more,
+and the function is now rewritten to match it in full:
+
+- The window is a `UIRootSceneWindow` created from the
+  parent screen's `FBSDisplayConfiguration`, not
+  `[[UIWindow alloc] initWithFrame:]`.
+- It is re-classed (`object_setClass`) into a
+  runtime-registered subclass named
+  `SCPCPass_<the window's own class>` whose only added
+  method is a `hitTest:withEvent:` override (IMP
+  @0x481c8): the override forwards to super via
+  `objc_msgSendSuper` and returns **nil when the hit view
+  is the window itself** — touches landing on the tray
+  window's empty areas fall through to whatever is
+  underneath; subview hits are returned unchanged.
+- Window level is `UIWindowLevelStatusBar + 65.0` (the
+  parent window's level is never read; CLOSURE-2);
+  background clear.
+
+The earlier condensed body was wrong, not cosmetic; the
+module report row is now VERIFIED (rem4).
+
+### 8.2 G4 — CLOSED
+
+- **ABTelexApply branch tree**: the full 2,452-byte per-key
+  branch tree is transcribed in `ABTelex.m` (capstone
+  skipdata, 2452/2452 B, 613 insns, 0 data islands;
+  classifier 500/500 B, generator 284/284 B).
+  Cross-verification: an ARM64 interpreter executing the
+  original IMP (Foundation modelled) was diffed against
+  the transcribed structured model over **253,908
+  (word, key) cases — 0 mismatches**, including every
+  case where the binary raises NSRangeException. The
+  transcription surfaced eight divergences from standard
+  Telex, flagged [DIVERGENCE 1-8] in `ABTelex.m`
+  (AppBridgeB_REPORT §9.1).
+- **sub_958C connected-case tail**: full body line-read
+  (252/252 B): when the device is non-nil the tail is
+  only the release of the device and the return (plus
+  the unwind landing pad) — the connected case is a
+  genuine no-op (AppBridgeB_REPORT §9.3).
+- **sub_6498 tail**: full body line-read (696/696 B) with
+  two source corrections: (a) the mask return rule was
+  INVERTED in the draft — the binary returns the mask
+  when a landscape bit is set AND the portrait bit is
+  CLEAR (`(m & 0x18) != 0 && (m & 0x2) == 0`); (b) the
+  presented-view-controller recursion is gated on
+  `!isBeingDismissed`; the draft recursed
+  unconditionally. Both fixed in `ABInApp.m`
+  (AppBridgeB_REPORT §9.4).
+
+Nothing in G4 remains condensed except the declared
+cosmetic layout code (AppBridgeB_REPORT §9 item 2),
+unchanged.
+
+### 8.3 G5 — CLOSED (verdict ii); build fix applied
+
+Face-value close of G5: the original SplitScreen binary
+carries ONE perf/session cluster — queue creation
+sub_52bfc ×1, sampler sub_53f90, consumer sub_54448, flush
+sub_548a0 — instruction-identical to Core's single cluster
+modulo layout. The reconstruction carried a second full
+copy inside its shared OMCCommon unit; the Core and
+AppBridge re-reads showed the duplication was introduced
+by the reconstruction, not by the original (verdict ii).
+The duplicate copy's four apparent differences were
+misreads and are corrected in `src/OMCCommon/OMCCommon.c`:
+decimation is %20, the link decision is count %12==4, the
+scales are exactly 2^-20, and availability is `ucvtf #0x14`.
+
+Build fix (this round): `src/OMCCommon/OMCCommon.c` now
+wraps the perf/session cluster (perf statics, sampler,
+car-probing and session helpers) in
+`#ifndef OMC_NO_PERF_CLUSTER`; the only declarations
+visible under the guard are OMCCrashGuard's two entry
+points (`OMCOnScreenConnected` /
+`OMCOnScreenDisconnected`), which resolve to
+SCPSessionCore.m. The SplitScreen target compiles the
+shared unit with `-DOMC_NO_PERF_CLUSTER`
+(`project/OmniCarSplitScreen/Makefile`), and
+SCPPerfTelemetry.m + SCPSessionCore.m are that target's
+single cluster instance. All other consumers keep the
+full section. Verification on the built binary (arm64
+code sites referencing the cluster's strings, capstone
+site count): queue label `com.anlai.omnicar.perf` —
+original 1 site (@0x52f8c), round-1 build 2 sites, this
+build **1 site**; `diagPerf` __cfstring — original 1
+(@0x54de4), round-1 build 2, this build **1**. Built
+OmniCarSplitScreen.dylib is 520,832 B vs the round-1
+build's 537,264 B (−16,432 B of duplicated cluster code).
+
+### 8.4 G7 — CLOSED
+
+Every remaining INFERRED pocket was line-read in the
+original binaries in this round; none remains inferred:
+
+- (a) `-[ABHost carDisconnected]` @0x163e8 — CONFIRMED
+  VERIFIED: B's surviving text (`ABHostBMethods.m`)
+  matches instruction-for-instruction, incl. the
+  count→window short-circuit and the re-read count in
+  the log call; the earlier verifier downgrade applied
+  to a since-removed A-side skeleton and is superseded.
+- (b) CarProbe's 11 items — all adjudicated end-to-end
+  in OmniCarCarProbe.dylib (CarProbe_REPORT §7, dumps
+  `disasm/rem4_*`): items 1–5 confirmed exactly
+  (liteMode default @2 from the constant object
+  @0x11ea0; CrashGuard installs unconditional on the
+  fresh-session path; `age=`/`suspect=`/`last=` parse
+  mechanics literal; signal handler
+  `open(path, 0x209, 0644)` with a 64-frame backtrace in
+  its own body; sigaction template @0xd048 = mask 0,
+  flags SA_SIGINFO, signals {11,10,6,4,5,8}); items 6–11
+  corrected in source (0x705c is not a function but the
+  constructor's `__dispatch_main_q` load; log-rotation
+  suffix is ".old", not ".1"; CARSessionStatus created
+  with `objc_opt_new`; display-link cadence
+  `count % 12 == 4`; the `hangMaxMs` update sits outside
+  the ≥2 s branch; logo-mesh gradient stops are
+  (R, G, B, factor) → (R, G, B, 0)).
+- (c) `_OMCExpired` (effNow = max(now, trustedTime)),
+  `_OMCLiteActive` (3 s cache; mode 1/2 branch
+  structure) and `_OMCCarWireless` (diagCar
+  session→configuration key path) — all CONFIRMED
+  against the AppBridge copies; the shared OMCCommon
+  texts are exact (AppBridgeA_REPORT §6).
+- (d) `ss_buildParticles` bitmap guard is exact:
+  dimensions converted with `fcvtpu` (ceil); the bitmap
+  is built only when 2 ≤ dim ≤ 0x1000, width then
+  height; source corrected from the inferred ≤ 0x2000
+  form (StartupScreenB_REPORT, dump
+  `disasm/rem4_buildParticles.txt`).
+- (e) The `appBridgeOrientation` default object
+  @0x395b8 is decoded byte-exact as @1 (`__objc_intobj`,
+  payload at +16); `ABHostLaunch.m` corrected from nil.
+
+Remaining INFERRED labels in the tree are the declared
+cosmetic set (SplitScreenB colour/log-wording/name
+items; AppBridgeB_REPORT §9 item 2 cosmetic layout) and
+G2's open cross-check — unchanged.
+
+### 8.5 Panel placeholder + dash pattern — CLOSED
+
+In `showLayoutPanelForApp:`'s placeholder block: the
+dash layer is now a separate `[CAShapeLayer layer]`
+added as a sublayer of the placeholder's layer (the
+draft cast `placeholder.layer`); the labels are the
+binary's strings (Vietnamese "Chia màn xong sẽ hiện ở
+đây", English "Your splits will show up here"); the
+dash pattern constant is **@[@3, @3]**, read from the
+constant array @0x80500 (both slots the same
+NSConstantIntegerNumber @0x807e0 = 3) — the draft's
+@[@4, @3] was wrong (dump
+`disasm/rem4_panel_placeholder.txt`).
+
+### 8.6 Round-2 build + verification
+
+Fresh clean build of the integrated round-2 tree: exit
+0, 0 errors, all 8 components
+(`project/logs/remediation2-build.log`). Per-class
+selector comparison, 66 classes
+(`project/logs/remediation2-perclass.txt`): **62/66
+exact, zero classes missing any original selector**;
+the 4 exceptions are the same built-side additive-only
+deltas as round 1 (SPPBubble +1; SSStartupView in
+StartupScreen +2 festive helpers; OMCSplitScreen-
+Controller +`gestureSwitchChanged:`; SSStartupView in
+Prefs +`gradientLayer`). OMCAppBridgeAppsController is
+105 = 105 exact. Aggregate
+(`project/logs/remediation2-diff.txt`): 176 = 176
+files, 168/168 non-Mach-O byte-identical, 0 original
+defined symbols missing in any binary; the Prefs total
+743 → 745 built is exactly the round-1 additive pair
+(M1/M2 are inside the original's 743). Parity restage
+as before (per-path modes, uid 501 : gid 20,
+Installed-Size 3524, `dpkg-deb -Zxz`): data tar 202/202
+entries, 0 differences; control modes match, control
+ownership normalised to 0:0 by dpkg-deb (accepted
+deviation, see §7). Rebuilt DEB: **947,056 B,
+SHA-256
+93cdcad934ea5b363665c69051c1368c40143c163e0919b1310a36e503a162bd**.
+
+G1 (arm64-only local build; FAT untested) and §6 (no
+device run; behavioural equivalence not established)
+are unchanged. A macOS CI workflow for the FAT
+arm64+arm64e build is provided at `ci/build-fat-macos.yml`
+in this tree for placement under `.github/workflows/`
+by the coordinator. Fresh-checkout verification of this
+round's final commit is the coordinator's closing step
+(the round-1 in-tree evidence described pre-remediation
+numbers and is superseded by this addendum).

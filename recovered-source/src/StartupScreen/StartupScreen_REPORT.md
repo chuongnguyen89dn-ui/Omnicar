@@ -471,7 +471,7 @@ builders — structure VERIFIED, constants NOT-RECOVERED per §9).
 | 0x14384 | 1608 | `-[SSStartupView ss_buildWelcome]` | INFERRED |
 | 0x149cc | 428 | `sub_149cc` | INFERRED |
 | 0x14b78 | 472 | `-[SSStartupView ss_applyWelcome:]` | VERIFIED |
-| 0x14d50 | 2168 | `-[SSStartupView ss_buildParticles]` | INFERRED |
+| 0x14d50 | 2168 | `-[SSStartupView ss_buildParticles]` | VERIFIED (bound settled rem4: 2 ≤ dim ≤ 0x1000, fcvtpu) |
 | 0x155c8 | 96 | `sub_155c8` | INFERRED |
 | 0x15628 | 896 | `-[SSStartupView ss_drawParticles:t:]` | VERIFIED |
 | 0x159a8 | 296 | `sub_159a8` | INFERRED |

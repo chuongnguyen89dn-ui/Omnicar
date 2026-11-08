@@ -1,0 +1,51 @@
+; sub_4ec8
+; VA 0x4ec8  size 192  bound=LC_FUNCTION_STARTS  decoded=192  LENGTH_CHECK=OK
+
+0x00004ec8:  stp      x22, x21, [sp, #-0x30]!
+0x00004ecc:  stp      x20, x19, [sp, #0x10]
+0x00004ed0:  stp      x29, x30, [sp, #0x20]
+0x00004ed4:  add      x29, sp, #0x20
+0x00004ed8:  adrp     x8, #0x14000
+0x00004edc:  ldr      x0, [x8, #0x3d0]    ; class(NSFileManager)
+0x00004ee0:  bl       #0xb920    ; -> objc_msgSend(defaultManager)
+0x00004ee4:  mov      x29, x29
+0x00004ee8:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00004eec:  mov      x19, x0
+0x00004ef0:  adrp     x2, #0x10000
+0x00004ef4:  add      x2, x2, #0x8b8    ; got(___CFConstantStringClassReference)
+0x00004ef8:  mov      x3, #0
+0x00004efc:  bl       #0xb6c0    ; -> objc_msgSend(attributesOfItemAtPath:error:)
+0x00004f00:  mov      x29, x29
+0x00004f04:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00004f08:  mov      x20, x0
+0x00004f0c:  bl       #0xba20    ; -> objc_msgSend(fileSize)
+0x00004f10:  mov      x21, x0
+0x00004f14:  mov      x0, x20
+0x00004f18:  bl       #0xb410    ; -> _objc_release
+0x00004f1c:  cmp      x21, #0x200, lsl #12
+0x00004f20:  b.lo     #0x4f74
+0x00004f24:  adrp     x20, #0x10000
+0x00004f28:  add      x20, x20, #0x8b8    ; got(___CFConstantStringClassReference)
+0x00004f2c:  adrp     x2, #0x10000
+0x00004f30:  add      x2, x2, #0xe78    ; got(___CFConstantStringClassReference)
+0x00004f34:  mov      x0, x20
+0x00004f38:  bl       #0xc100    ; -> objc_msgSend(stringByAppendingString:)
+0x00004f3c:  mov      x29, x29
+0x00004f40:  bl       #0xb434    ; -> _objc_retainAutoreleasedReturnValue
+0x00004f44:  mov      x21, x0
+0x00004f48:  mov      x0, x19
+0x00004f4c:  mov      x2, x21
+0x00004f50:  mov      x3, #0
+0x00004f54:  bl       #0xbf60    ; -> objc_msgSend(removeItemAtPath:error:)
+0x00004f58:  mov      x0, x19
+0x00004f5c:  mov      x2, x20
+0x00004f60:  mov      x3, x21
+0x00004f64:  mov      x4, #0
+0x00004f68:  bl       #0xbca0    ; -> objc_msgSend(moveItemAtPath:toPath:error:)
+0x00004f6c:  mov      x0, x21
+0x00004f70:  bl       #0xb410    ; -> _objc_release
+0x00004f74:  mov      x0, x19
+0x00004f78:  ldp      x29, x30, [sp, #0x20]
+0x00004f7c:  ldp      x20, x19, [sp, #0x10]
+0x00004f80:  ldp      x22, x21, [sp], #0x30
+0x00004f84:  b        #0xb410    ; -> _objc_release

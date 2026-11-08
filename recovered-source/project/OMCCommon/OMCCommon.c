@@ -648,6 +648,17 @@ static void OMCSignalHandler(int sig, siginfo_t *info, void *ucontext) {
     raise(sig);
 }
 
+// ---------------------------------------------------------------------------
+// G5 (rem4 / remediation round 2): the original OmniCarSplitScreen.dylib
+// carries the perf/session cluster below exactly ONCE, and in that target
+// the single instance is SCPPerfTelemetry.m + SCPSessionCore.m. When
+// OMC_NO_PERF_CLUSTER is defined (SplitScreen target only), the whole
+// cluster — perf statics, sampler, car-probing/session helpers — is
+// compiled out of this TU so the target links one copy; OMCCrashGuard's
+// two session entry points then resolve to SCPSessionCore.m's externs.
+// Every other consumer keeps the full section.
+// ---------------------------------------------------------------------------
+#ifndef OMC_NO_PERF_CLUSTER
 // --- Performance / car-diagnostics statics (shared by the screen handlers)
 // All offsets VERIFIED by the stub-closure pass (sub_9bc0 / sub_af54 /
 // sub_b23c / sub_b40c / sub_b864 / sub_9814 dumps). bss starts at VA 0x18500.
@@ -860,9 +871,15 @@ static void OMCPerfLinkWindowEnd(long generation) {
     gStatLatePct = lateDelta * 100.0 / framesDelta;
 }
 
-// sub_b40c: main-queue consumer for one perf sample (fired every 10th
-// source tick = every 2.5 s). Also drives auto-lite and lazily creates
-// the display link on samples where (count % 6 == 4).
+// sub_b40c: main-queue consumer for one perf sample (fired every 20th
+// source tick = every 5 s). Also drives auto-lite and lazily creates
+// the display link on samples where (count % 12 == 4).
+// rem4: the %20 / %12==4 cadences and the 2^-20 scales below are the
+// binary's own (rotate-test magics emulated; 0x3EB0000000000000
+// mov/fmov immediate). The earlier %10 / %6==4 / 1.0e-6 readings in
+// this file were misreads of the identical instruction streams —
+// SplitScreen's cluster (sub_53f90/sub_54448) is instruction-
+// identical to this unit's, see PerfTelemetry_REPORT.md §9.
 static void OMCPerfSampleConsume(double cpu, double memMB, double availMB,
                                  double sysFreeMB) {
     if (!gPerfSessionObject) return;
@@ -903,7 +920,7 @@ static void OMCPerfSampleConsume(double cpu, double memMB, double availMB,
         OMCAutoLiteEvaluate(0, nil);
     }
     // Display-link frame sampler, created once per session.
-    if (gStatCPUCount % 6 == 4 && gPerfSessionObject && !gPerfDisplayLink) {
+    if (gStatCPUCount % 12 == 4 && gPerfSessionObject && !gPerfDisplayLink) {
         OMCEnsurePerfTicker();
         gPerfDisplayLink = [gPerfSessionObject
             displayLinkWithTarget:gPerfTicker selector:@selector(tick:)];
@@ -923,7 +940,7 @@ static void OMCPerfSampleConsume(double cpu, double memMB, double availMB,
 
 // sub_af54: perf dispatch-source event handler (250 ms timer on the
 // "com.anlai.omnicar.perf" queue). Every fire hops to the main queue for
-// the hang watchdog; every 10th fire takes a CPU/memory sample and hands
+// the hang watchdog; every 20th fire takes a CPU/memory sample and hands
 // it to OMCPerfSampleConsume on the main queue.
 static void OMCPerfSourceFired(void) {
     double firedAt = OMCMonotonicSeconds();
@@ -934,7 +951,7 @@ static void OMCPerfSourceFired(void) {
         });
     }
     int32_t n = ++gSampleDivider;
-    if (n % 10 != 0) return;
+    if (n % 20 != 0) return;
     double cpu = -1.0, memMB = -1.0, sysFreeMB = -1.0;
     thread_act_array_t threads = NULL;
     mach_msg_type_number_t threadCount = 0;
@@ -959,7 +976,7 @@ static void OMCPerfSourceFired(void) {
     mach_msg_type_number_t infoCount = TASK_VM_INFO_COUNT;
     if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&vmInfo,
                   &infoCount) == KERN_SUCCESS) {
-        memMB = (double)vmInfo.phys_footprint * 1.0e-6;
+        memMB = (double)vmInfo.phys_footprint * 0x1p-20; // exactly 2^-20 (rem4)
     }
     if (gHostPort == 0) {
         gHostPort = mach_host_self();
@@ -972,7 +989,7 @@ static void OMCPerfSourceFired(void) {
     if (host_statistics64(gHostPort, HOST_VM_INFO64, (host_info64_t)&vmStats,
                           &statCount) == KERN_SUCCESS) {
         sysFreeMB = (double)(vmStats.free_count + vmStats.inactive_count) *
-                    (double)gHostPageSize * 1.0e-6;
+                    (double)gHostPageSize * 0x1p-20; // exactly 2^-20 (rem4)
     }
     double availMB = (double)os_proc_available_memory() / 1048576.0;
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -1299,6 +1316,13 @@ static void OMCOnScreenDisconnected(NSNotification *notif) {
         OMCPrefsSync();
     }
 }
+#else  // OMC_NO_PERF_CLUSTER
+// SplitScreen only: the session entry points live in SCPSessionCore.m
+// (sub_52820 / sub_52850 — the target's single cluster instance);
+// OMCCrashGuard below calls those.
+extern void OMCOnScreenConnected(void);
+extern void OMCOnScreenDisconnected(NSNotification *notif);
+#endif  // OMC_NO_PERF_CLUSTER
 
 // _OMCCrashGuard @ 0x7de8 — VERIFIED (see header for the behaviour summary).
 BOOL OMCCrashGuard(NSString *feature) {

@@ -1,0 +1,113 @@
+# rem4 dump: showLayoutPanelForApp: IMP 0x37e8c — empty-section placeholder block (orig arm64)
+# Branch source: 0x388fc cbz x0 -> 0x39184 (section count == 0). Block range 0x39184..0x3930c.
+# verify/macho_truth.py + capstone WITH skipdata (function total 9628 bytes, decoded == bound).
+# FINDINGS: dash layer is a NEW [CAShapeLayer layer] (0x391b8 class load, "layer" class msgSend),
+# configured (path/fill/stroke/lineWidth/dash), then added via [placeholder.layer addSublayer:]
+# at 0x392a8..0x392c0 — src previously cast placeholder.layer AS the shape layer.
+# Label: OMCTr(cfstr 0x7cca0, cfstr 0x7ccc0) at 0x392cc..0x392dc. Decoded with macho_truth:
+#   0x7cca0 = UTF-16LE "Chia man xong se hien o day" (27 code units, diacritics in source)
+#   0x7ccc0 = ASCII    "Your splits will show up here" (29 chars)
+# (the rem2 annotators @"C" was a UTF-16 misdecode of the first string.)
+# Dash pattern: setLineDashPattern: arg = constant array object @0x80500 (__objc_arrayobj:
+# {isa NSConstantArray, count 2, buffer 0x80020}); both buffer slots hold the SAME pointer to
+# the NSConstantIntegerNumber intobj @0x807e0 whose value (qword @+16) is 3 -> pattern = @[@3, @3].
+0x000388fc  cbz      x0, #0x39184                                   
+0x00039184  adrp     x8, #0x87000                                   
+0x00039188  ldr      x0, [x8, #0x710]                               ; class UIView
+0x0003918c  bl       #0x566bc                                       ; _objc_alloc
+0x00039190  fmov     d0, #8.00000000                                
+0x00039194  ldr      d1, [sp, #0x148]                               
+0x00039198  fadd     d1, d1, d0                                     
+0x0003919c  mov      x8, #0x4048000000000000                        
+0x000391a0  fmov     d0, x8                                         
+0x000391a4  mov      v2.16b, v14.16b                                
+0x000391a8  mov      v3.16b, v15.16b                                
+0x000391ac  bl       #0x589c0                                       ; msgSend "initWithFrame:"
+0x000391b0  mov      x24, x0                                        
+0x000391b4  adrp     x8, #0x87000                                   
+0x000391b8  ldr      x0, [x8, #0x720]                               ; class CAShapeLayer
+0x000391bc  bl       #0x58fa0                                       ; msgSend "layer"
+0x000391c0  mov      x29, x29                                       
+0x000391c4  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x000391c8  mov      x19, x0                                        
+0x000391cc  adrp     x8, #0x87000                                   
+0x000391d0  ldr      x21, [x8, #0x718]                              ; class UIBezierPath
+0x000391d4  mov      x0, x24                                        
+0x000391d8  bl       #0x57320                                       ; msgSend "bounds"
+0x000391dc  fmov     d4, #0.50000000                                
+0x000391e0  fmov     d5, #0.50000000                                
+0x000391e4  bl       #0x562fc                                       ; _CGRectInset
+0x000391e8  fmov     d4, #6.00000000                                
+0x000391ec  mov      x0, x21                                        
+0x000391f0  bl       #0x572a0                                       ; msgSend "bezierPathWithRoundedRect:cornerRadius:"
+0x000391f4  mov      x29, x29                                       
+0x000391f8  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x000391fc  mov      x21, x0                                        
+0x00039200  bl       #0x567d0                                       ; _objc_retainAutorelease
+0x00039204  mov      x0, x21                                        
+0x00039208  bl       #0x56a00                                       ; msgSend "CGPath"
+0x0003920c  mov      x2, x0                                         
+0x00039210  mov      x0, x19                                        
+0x00039214  bl       #0x5b560                                       ; msgSend "setPath:"
+0x00039218  mov      x0, x21                                        
+0x0003921c  bl       #0x567b8                                       ; _objc_release
+0x00039220  mov      x0, x19                                        
+0x00039224  mov      x2, #0                                         
+0x00039228  bl       #0x5aca0                                       ; msgSend "setFillColor:"
+0x0003922c  adrp     x8, #0x87000                                   
+0x00039230  ldr      x0, [x8, #0x730]                               ; class UIColor
+0x00039234  fmov     d3, #1.00000000                                
+0x00039238  ldp      d1, d0, [sp, #0xa0]                            
+0x0003923c  ldr      d2, [sp, #0x98]                                
+0x00039240  bl       #0x576e0                                       ; msgSend "colorWithRed:green:blue:alpha:"
+0x00039244  mov      x29, x29                                       
+0x00039248  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x0003924c  mov      x21, x0                                        
+0x00039250  fmov     d0, #0.25000000                                
+0x00039254  bl       #0x576a0                                       ; msgSend "colorWithAlphaComponent:"
+0x00039258  mov      x29, x29                                       
+0x0003925c  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x00039260  mov      x22, x0                                        
+0x00039264  bl       #0x567d0                                       ; _objc_retainAutorelease
+0x00039268  mov      x0, x22                                        
+0x0003926c  bl       #0x569a0                                       ; msgSend "CGColor"
+0x00039270  mov      x2, x0                                         
+0x00039274  mov      x0, x19                                        
+0x00039278  bl       #0x5baa0                                       ; msgSend "setStrokeColor:"
+0x0003927c  mov      x0, x22                                        
+0x00039280  bl       #0x567b8                                       ; _objc_release
+0x00039284  mov      x0, x21                                        
+0x00039288  bl       #0x567b8                                       ; _objc_release
+0x0003928c  fmov     d0, #1.00000000                                
+0x00039290  mov      x0, x19                                        
+0x00039294  bl       #0x5b240                                       ; msgSend "setLineWidth:"
+0x00039298  mov      x0, x19                                        
+0x0003929c  adrp     x2, #0x80000                                   
+0x000392a0  add      x2, x2, #0x500                                 ; got-sym _OBJC_CLASS_$_NSConstantArray
+0x000392a4  bl       #0x5b200                                       ; msgSend "setLineDashPattern:"
+0x000392a8  mov      x0, x24                                        
+0x000392ac  bl       #0x58fa0                                       ; msgSend "layer"
+0x000392b0  mov      x29, x29                                       
+0x000392b4  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x000392b8  mov      x21, x0                                        
+0x000392bc  mov      x2, x19                                        
+0x000392c0  bl       #0x56d20                                       ; msgSend "addSublayer:"
+0x000392c4  mov      x0, x21                                        
+0x000392c8  bl       #0x567b8                                       ; _objc_release
+0x000392cc  adrp     x0, #0x7c000                                   
+0x000392d0  add      x0, x0, #0xca0                                 ; got-sym ___CFConstantStringClassReference
+0x000392d4  adrp     x1, #0x7c000                                   
+0x000392d8  add      x1, x1, #0xcc0                                 ; got-sym ___CFConstantStringClassReference
+0x000392dc  bl       #0x558fc                                       ; _OMCTr
+0x000392e0  mov      x29, x29                                       
+0x000392e4  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x000392e8  mov      x21, x0                                        
+0x000392ec  mov      x0, x24                                        
+0x000392f0  mov      x2, x21                                        
+0x000392f4  bl       #0x5a720                                       ; msgSend "setAccessibilityLabel:"
+0x000392f8  mov      x0, x21                                        
+0x000392fc  bl       #0x567b8                                       ; _objc_release
+0x00039300  ldr      x0, [sp, #0x140]                               
+0x00039304  mov      x2, x24                                        
+0x00039308  bl       #0x56d40                                       ; msgSend "addSubview:"
+0x0003930c  b        #0x39498                                       

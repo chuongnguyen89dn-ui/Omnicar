@@ -168,3 +168,38 @@ clock, crash-state getter), now closed in full above.
 - `src/SplitScreenA/disasm/perf/` — 12 annotated dumps (the 9 closure
   functions + sub_52bfc / sub_52850 / sub_51fb8 context).
 - This report.
+
+## 9. rem4 correction — §6's claimed Core deltas are RETRACTED (G5 closure)
+
+§6 above stated three VERIFIED differences from Core's copy
+(decimation %10, link cadence %6==4, scale 1e-6) and flagged Core's
+binary for re-check. The re-check (rem4, dumps
+`src/SplitScreenA/disasm/rem4_*`) settles it — all three differences
+were misreads in the Core reconstruction text, not binary facts:
+
+- Fingerprint counts in BOTH binaries: exactly ONE perf-queue
+  creation (SplitScreen sub_52bfc / Core sub_9bc0), ONE `_task_info`
+  measurer (sub_53f90 / sub_af54), ONE `diagPerf` writer
+  (sub_548a0 / sub_b864), ONE `OMCPerfTicker` creation site
+  (sub_54448 / sub_b40c), ONE fixed-point scale instruction.
+- Sampler (656 B = 656 B), consumer (1112 B = 1112 B), tick
+  (160 B = 160 B) and flush (1404 B = 1404 B) are instruction-
+  identical between the binaries once layout addresses (global
+  slots, string addresses, branch targets) are normalised — no
+  arithmetic immediate, magic constant or operation differs.
+- Scale: both binaries convert footprint and system-free with
+  exactly 2^-20 (immediate `0x3EB0000000000000` via mov/fmov at
+  SS 0x54130/0x541a8 = Core 0xb0f4/0xb16c) and available memory
+  with `ucvtf …, #0x14`. The doubles 1e-6 (0x3EB0C6F7A0B5ED8D) and
+  stored 2^-20 occur nowhere in either binary's bytes.
+- Cadences: emulating the binary's rotate tests gives sampler
+  passes at fires 20, 40, 60 … and link creation at counts
+  4, 16, 28 … in BOTH binaries — the figures this report gives
+  (%20, %12==4) are the binary's; OMCCommon.c's %10 / %6==4 /
+  1.0e-6 text has been corrected in rem4.
+
+Consequence for G5: the original SplitScreen binary carries
+exactly ONE copy of the perf cluster — its instance of the shared
+unit. The reconstruction's second copy (OMCCommon.c's perf section
+compiled into the SplitScreen target alongside SCPPerfTelemetry.m)
+is a modelling artefact, not an original duplication.

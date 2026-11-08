@@ -343,14 +343,18 @@ ran on clang 18.1.3 extracted from the local apt archive cache into
   (`ucvtf …, #2` in the stream) is transcribed from instructions.
   Structural liberty, flagged: the `_sky == 9` arm reuses the cloud block
   in machine code; the source writes it out a second time.
-- **ss_buildParticles @0x14d50 — CLOSED, one INFERRED bound.** Text
+- **ss_buildParticles @0x14d50 — CLOSED (bound settled rem4).** Text
   rasterised into an alpha-only bitmap (bitmapInfo 7), on-pixel count,
   `step = max(sqrt(onCount/800), 1)`, grid sampling at byte ≥ 0x81,
   records capped at 900 with even resampling, `_dot = max(step*0.55,
-  1.5)`, greeting label + duration-based out-window. Residue: the bitmap
-  dimension guard is emitted as `cmn 0x1001` range checks; the source
-  writes it as `w, h ≤ 0x2000` and tags the bound [INFERRED from the
-  idiom] inline — the only non-exact constant in the file.
+  1.5)`, greeting label + duration-based out-window. The bitmap
+  dimension guard (rem4 dump `disasm/rem4_buildParticles.txt`
+  @0x15020-0x15040): each dimension is converted with `fcvtpu`
+  (ceil) and tested as `(dim - 0x1001) + 0xFFF` unsigned — the
+  bitmap is built only when **2 ≤ dim ≤ 0x1000 (4096)**, width
+  first, then height. The source previously wrote `w, h ≤ 0x2000`
+  tagged INFERRED; corrected to the exact expression in rem4.
+  No non-exact constant remains in the file.
 - **ss_buildHud @0x15ad0 — CLOSED**, including `sub_16544`
   (SSDefaultHudItems, 5 entries, all `ok = @YES`; the binary calls
   SSTrimmed twice — transcribed). Rings table [210, 170, 130] @0x29560,

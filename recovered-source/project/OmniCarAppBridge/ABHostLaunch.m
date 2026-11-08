@@ -120,7 +120,8 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
 //  4. ![self ensureWindow] (B; fails when no CarPlay display) ->
 //     log "xe chua ket noi -> khong host %@", post @"failed", return
 //  5. build pane: bundleID, frame; orientation from pref
-//     "appBridgeOrientation" (default object at 0x395b8, not decoded),
+//     "appBridgeOrientation" (default object @0x395b8 = @1, decoded
+//     byte-exact rem4 — see the call site below),
 //     with values 3 and 4 mapped to 0 (cmp/csel at 0xba2c-0xba38);
 //     ABBoxView initWithFrame, black background, clipsToBounds YES,
 //     alpha 0; add to window; shield if shieldOn; raiseKnobs;
@@ -161,7 +162,12 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
     pane.bundleID = bundleID;
     pane.frame = frame;
     OMCPrefsSync();
-    long long ori = [OMCPref(@"appBridgeOrientation", nil) longLongValue];
+    // rem4: the IMP materialises the __objc_intobj constant @0x395b8
+    // as the _OMCPref default (@0xba08); that object decodes byte-
+    // exact as the constant NSNumber @1 (24-byte intobj entry,
+    // payload +16 = 1). The former `nil` default was wrong: with the
+    // pref unset the binary yields orientation 1, not 0.
+    long long ori = [OMCPref(@"appBridgeOrientation", @1) longLongValue];
     if (ori == 3 || ori == 4) ori = 0;
     pane.orientation = ori;
     @try {

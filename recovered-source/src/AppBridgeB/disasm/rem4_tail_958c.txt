@@ -1,0 +1,64 @@
+=== sub_958C @ 0x958c (size 252) [rem4: skipdata dump, coverage 252/252 bytes, 63 insns, 0 data items] ===
+0000958c  stp      x20, x19, [sp, #-0x20]!                      ; f44fbea9
+00009590  stp      x29, x30, [sp, #0x10]                        ; fd7b01a9
+00009594  add      x29, sp, #0x10                               ; fd430091
+00009598  adrp     x0, #0x29000                                 ; 00010090
+0000959c  add      x0, x0, #0x667                               ; 009c1991 ; "AVExternalDevice"
+000095a0  bl       #0x24788                                     ; 7a6c0094 ; call _objc_getClass
+000095a4  mov      x29, x29                                     ; fd031daa
+000095a8  bl       #0x24830                                     ; a26c0094 ; call _objc_retainAutoreleasedReturnValue
+000095ac  mov      x19, x0                                      ; f30300aa
+000095b0  adrp     x0, #0x35000                                 ; 60010090
+000095b4  add      x0, x0, #0x8f0                               ; 00c02391 = @"currentCarPlayExternalDevice"
+000095b8  bl       #0x2441c                                     ; 996b0094 ; call _NSSelectorFromString
+000095bc  mov      x20, x0                                      ; f40300aa
+000095c0  mov      x0, x19                                      ; e00313aa
+000095c4  mov      x1, x20                                      ; e10314aa
+000095c8  bl       #0x247f4                                     ; 8b6c0094 ; call _objc_opt_respondsToSelector
+000095cc  tbz      w0, #0, #0x95ec                              ; 00010036
+000095d0  mov      x0, x19                                      ; e00313aa
+000095d4  mov      x1, x20                                      ; e10314aa
+000095d8  bl       #0x247ac                                     ; 756c0094 ; call _objc_msgSend
+000095dc  mov      x29, x29                                     ; fd031daa
+000095e0  bl       #0x24830                                     ; 946c0094 ; call _objc_retainAutoreleasedReturnValue
+000095e4  mov      x20, x0                                      ; f40300aa
+000095e8  b        #0x9600                                      ; 06000014 ; call sub_9600
+000095ec  adrp     x1, #0x35000                                 ; 61010090
+000095f0  add      x1, x1, #0x8f0                               ; 21c02391 = @"currentCarPlayExternalDevice"
+000095f4  mov      x0, x19                                      ; e00313aa
+000095f8  bl       #0x9698                                      ; 28000094 ; call sym:_ABMissingSelector
+000095fc  mov      x20, #0                                      ; 140080d2
+00009600  mov      x0, x19                                      ; e00313aa
+00009604  bl       #0x2480c                                     ; 826c0094 ; call _objc_release
+00009608  cbnz     x20, #0x9658                                 ; 940200b5
+0000960c  adrp     x8, #0x3e000                                 ; a80100b0
+00009610  ldr      x0, [x8, #0x2e8]                             ; 007541f9 ; class ABKeyboard
+00009614  bl       #0x27b20                                     ; 43790094 ; objc_msgSend sel=shared
+00009618  mov      x29, x29                                     ; fd031daa
+0000961c  bl       #0x24830                                     ; 856c0094 ; call _objc_retainAutoreleasedReturnValue
+00009620  mov      x19, x0                                      ; f30300aa
+00009624  mov      x2, #0                                       ; 020080d2
+00009628  bl       #0x25900                                     ; b6700094 ; objc_msgSend sel=hideForApp:
+0000962c  mov      x0, x19                                      ; e00313aa
+00009630  bl       #0x2480c                                     ; 776c0094 ; call _objc_release
+00009634  adrp     x8, #0x3e000                                 ; a80100b0
+00009638  ldr      x0, [x8, #0x2e0]                             ; 007141f9 ; class ABHost
+0000963c  bl       #0x27b20                                     ; 39790094 ; objc_msgSend sel=shared
+00009640  mov      x29, x29                                     ; fd031daa
+00009644  bl       #0x24830                                     ; 7b6c0094 ; call _objc_retainAutoreleasedReturnValue
+00009648  mov      x19, x0                                      ; f30300aa
+0000964c  bl       #0x25100                                     ; ad6e0094 ; objc_msgSend sel=carDisconnected
+00009650  mov      x0, x19                                      ; e00313aa
+00009654  bl       #0x2480c                                     ; 6e6c0094 ; call _objc_release
+00009658  mov      x0, x20                                      ; e00314aa
+0000965c  ldp      x29, x30, [sp, #0x10]                        ; fd7b41a9
+00009660  ldp      x20, x19, [sp], #0x20                        ; f44fc2a8
+00009664  b        #0x2480c                                     ; 6a6c0014 ; call _objc_release
+00009668  b        #0x9674                                      ; 03000014 ; call sub_9674
+0000966c  b        #0x9674                                      ; 02000014 ; call sub_9674
+00009670  b        #0x9674                                      ; 01000014 ; call sub_9674
+00009674  mov      x20, x0                                      ; f40300aa
+00009678  mov      x0, x19                                      ; e00313aa
+0000967c  bl       #0x2480c                                     ; 646c0094 ; call _objc_release
+00009680  mov      x0, x20                                      ; e00314aa
+00009684  bl       #0x24470                                     ; 7b6b0094 ; call __Unwind_Resume

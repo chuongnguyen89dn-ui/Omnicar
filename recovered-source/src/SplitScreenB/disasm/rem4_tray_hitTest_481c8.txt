@@ -1,0 +1,62 @@
+# rem4 dump: SCPCPass hitTest:withEvent: IMP @0x481c8 (orig OmniCarSplitScreen, arm64)
+# The IMP installed by trayWindowForParent: (0x37bc8: adrp+add -> code address 0x481c8).
+# verify/macho_truth.py + capstone WITH skipdata; decoded 212 bytes == LC_FUNCTION_STARTS bound.
+# BODY: build objc_super {self, class_getSuperclass(object_getClass(self))}, call objc_msgSendSuper
+# with (point in d0/d1, event in x2); result = (hit == self) ? nil : hit. I.e. a hit on the window
+# itself (no subview) returns nil so the touch passes through; subview hits are returned unchanged.
+; ==== func sub_481c8 @0x481c8..0x4829c (212 bytes) ====
+0x000481c8  sub      sp, sp, #0x50                                  
+0x000481cc  stp      d9, d8, [sp, #0x10]                            
+0x000481d0  stp      x22, x21, [sp, #0x20]                          
+0x000481d4  stp      x20, x19, [sp, #0x30]                          
+0x000481d8  stp      x29, x30, [sp, #0x40]                          
+0x000481dc  add      x29, sp, #0x40                                 
+0x000481e0  mov      x20, x2                                        
+0x000481e4  mov      v8.16b, v1.16b                                 
+0x000481e8  mov      v9.16b, v0.16b                                 
+0x000481ec  mov      x21, x1                                        
+0x000481f0  mov      x19, x0                                        
+0x000481f4  bl       #0x567c4                                       ; _objc_retain
+0x000481f8  mov      x0, x20                                        
+0x000481fc  bl       #0x567c4                                       ; _objc_retain
+0x00048200  str      x19, [sp]                                      
+0x00048204  mov      x0, x19                                        
+0x00048208  bl       #0x56848                                       ; _object_getClass
+0x0004820c  bl       #0x564b8                                       ; _class_getSuperclass
+0x00048210  str      x0, [sp, #8]                                   
+0x00048214  mov      x0, sp                                         
+0x00048218  mov      x1, x21                                        
+0x0004821c  mov      v0.16b, v9.16b                                 
+0x00048220  mov      v1.16b, v8.16b                                 
+0x00048224  mov      x2, x20                                        
+0x00048228  bl       #0x56764                                       ; _objc_msgSendSuper
+0x0004822c  mov      x29, x29                                       
+0x00048230  bl       #0x567dc                                       ; _objc_retainAutoreleasedReturnValue
+0x00048234  mov      x21, x0                                        
+0x00048238  cmp      x0, x19                                        
+0x0004823c  csel     x22, xzr, x0, eq                               
+0x00048240  mov      x0, x22                                        
+0x00048244  bl       #0x567c4                                       ; _objc_retain
+0x00048248  mov      x0, x21                                        
+0x0004824c  bl       #0x567b8                                       ; _objc_release
+0x00048250  mov      x0, x20                                        
+0x00048254  bl       #0x567b8                                       ; _objc_release
+0x00048258  mov      x0, x19                                        
+0x0004825c  bl       #0x567b8                                       ; _objc_release
+0x00048260  mov      x0, x22                                        
+0x00048264  ldp      x29, x30, [sp, #0x40]                          
+0x00048268  ldp      x20, x19, [sp, #0x30]                          
+0x0004826c  ldp      x22, x21, [sp, #0x20]                          
+0x00048270  ldp      d9, d8, [sp, #0x10]                            
+0x00048274  add      sp, sp, #0x50                                  
+0x00048278  b        #0x566e0                                       ; _objc_autoreleaseReturnValue
+0x0004827c  b        #0x48280                                       
+0x00048280  mov      x21, x0                                        
+0x00048284  mov      x0, x20                                        
+0x00048288  bl       #0x567b8                                       ; _objc_release
+0x0004828c  mov      x0, x19                                        
+0x00048290  bl       #0x567b8                                       ; _objc_release
+0x00048294  mov      x0, x21                                        
+0x00048298  bl       #0x563e0                                       ; __Unwind_Resume
+; decoded: 212 bytes (bound 212 bytes) OK
+

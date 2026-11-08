@@ -273,7 +273,7 @@ dumps; `ctor_*` = constructor dumps).
 | 0x5888/0x58C0 | VC rotation hooks ×2 | hook dumps | V |
 | 0x5908 | key receiver block | key_block_5908.txt | V |
 | 0x5C64/0x5CBC | link tracking / FPS clamp | full_arm64.txt | V |
-| 0x5EC0/0x612C/0x61D0/0x6498 | mask & window helpers | mask_612c.txt, sub_*.txt | V (sub_6498 tail follows its verified head pattern — noted in source) |
+| 0x5EC0/0x612C/0x61D0/0x6498 | mask & window helpers | mask_612c.txt, sub_*.txt, rem4_tail_6498.txt | V (sub_6498 full body line-read in round 2, 696/696 B — two draft errors corrected, §9.4) |
 | 0x5FF0/0x6028 | deferred fake-orientation event | blk_deferred_6028.txt | V (delays @[0.3, 1.5, 4.0] byte-verified) |
 | 0x6750/0x67FC | apporient debounce + publisher | apporient_publish_67fc.txt, sub_6750.txt | V (packed format §3.1) |
 | 0x698C/0x6A70/0x6D50 | keyboard suppression + FR posts | helper_698c.txt, helper_6a70.txt | V |
@@ -284,10 +284,11 @@ dumps; `ctor_*` = constructor dumps).
 | 0x783C/0x8DF0/0x8FD4/0x9144 | open/close/closeall/knobs blocks | blk_*.txt | A (registered in B's registrar; bodies = A) |
 | 0x8274/0x8C7C | frame / shield consumer blocks | blk_frame_8274.txt, blk_shield_8c7c.txt | V |
 | 0x92B4/0x93B0 | apporient / keyboard Darwin consumers | blk_apporient_92b4.txt, blk_keyboard_93b0.txt | V |
-| 0x958C | CarPlay connect/disconnect block | blk_carplay_958c.txt | V (disconnect path; connected-case tail C — dump preserved) |
+| 0x958C | CarPlay connect/disconnect block | blk_carplay_958c.txt, rem4_tail_958c.txt | V (full body line-read in round 2, 252/252 B; connected case does nothing beyond release+return, §9.3) |
 | 0xBED4/0xE6B8 | state / orientation post helpers | sub_bed4_state.txt, sub_e6b8_orientation.txt | V |
-| 0x17538 | ABTelexApply | f_ABTelexApply.txt | V tables + entry; C per-key branch fidelity (§9) |
-| 0x17ECC | Telex vowel classifier | full_arm64.txt | V |
+| 0x17538 | ABTelexApply | f_ABTelexApply.txt, rem4_telex_apply.txt | V (full per-key branch tree transcribed in round 2, 2452/2452 B; interpreter-vs-model diff 253,908 cases, 0 mismatches; divergences from standard Telex flagged in source, §9.1) |
+| 0x17ECC | Telex vowel classifier | full_arm64.txt, rem4_telex_classifier.txt | V (500/500 B) |
+| 0x180C0 | Telex character generator | rem4_telex_generator.txt | V (284/284 B) |
 | ABPane | 35 methods (17 ivars) | m_ABPane_*.txt | V (synthesized accessors; frame/sceneBox spot-verified as raw ivar load/store) |
 | ABBoxView | pointInside/applyHole/setHole:/layoutSubviews + accessors | m_ABBoxView_*.txt | V (accessors synthesized) |
 | ABShieldView | touchesBegan: | m_ABShieldView_*.txt | V |
@@ -303,17 +304,47 @@ dumps; `ctor_*` = constructor dumps).
 
 ## 9. Not recovered / condensed — declared list
 
-1. **ABTelexApply per-key branch fidelity**: tables, classifier, entry
-   search and q/g exceptions are V; the full 2,452-byte branch tree is
-   reconstructed at dispatch level (standard Telex semantics) in
-   `ABTelex.m` — the one knowingly condensed functional area.
+1. **ABTelexApply per-key branch fidelity — CLOSED in remediation
+   round 2.** The full 2,452-byte branch tree is transcribed in
+   `ABTelex.m` (no standard-Telex paraphrase remains). Evidence:
+   `disasm/rem4_telex_apply.txt` (capstone skipdata, 2452/2452 B, 613
+   insns, 0 data islands), `rem4_telex_classifier.txt` (500/500 B),
+   `rem4_telex_generator.txt` (284/284 B). Cross-verification: an
+   ARM64 interpreter executing the original IMP (Foundation modelled)
+   was diffed against the transcribed structured model over 253,908
+   (word, key) cases — 0 mismatches, including every case where the
+   binary raises NSRangeException. The transcription surfaced eight
+   divergences from standard Telex (scan-bound bookkeeping, tone
+   target fallback to base+1, strip loop rewriting consonants, 'd'
+   rule on the FIRST character, modifier-loop gate and its family-0
+   collision, 'w' pair/descending rules, tone/'z' visibility limited
+   to the scan range); they are flagged [DIVERGENCE 1-8] in
+   `ABTelex.m`. Nothing in this function remains condensed. Side
+   findings, both in `ABKeyboard`: `typeCharacter:` calls
+   `ABTelexApply(self.word, key)` only when `word.length <= 10`, and
+   `keyTapped:` wraps the typing path in @try/@catch whose handler
+   logs `ban phim xe: loi phim %@` and drops the keystroke — which is
+   how the original absorbs the engine's NSRangeException cases.
 2. **Cosmetic layout code**: ABKeyboard buildPanel/rebuildKeys/
    layoutKeys/layoutPanelIn:/key:pressed: and ABKey paint — structure,
    strings, commands, symbols and targets are V; exact frame/color
    constants are C (dumps cited per method are the byte-level record).
-3. **`sub_958C` connected-case tail** (disconnect path is V).
-4. **`sub_6498` tail**: recursion pattern verified at head; tail follows
-   the same presented→children pattern (noted in source).
+3. **`sub_958C` connected-case tail — CLOSED in remediation round 2.**
+   Full body line-read (252/252 B, 63 insns,
+   `disasm/rem4_tail_958c.txt`): when the device is non-nil the tail
+   is only the release of the device and the return (plus the unwind
+   landing pad) — the connected case is a genuine no-op, and the
+   source comment now states this definitively.
+4. **`sub_6498` tail — CLOSED in remediation round 2, with two source
+   corrections.** Full body line-read (696/696 B, 174 insns,
+   `disasm/rem4_tail_6498.txt`). (a) The return rule was INVERTED in
+   the draft: the binary returns the mask when a landscape bit is set
+   AND the portrait bit is CLEAR (`(m & 0x18) != 0 && (m & 0x2) == 0`,
+   0x6558/0x6560), not when both are set. (b) The presented-view-
+   controller recursion is gated on `!isBeingDismissed` in the
+   binary; the draft recursed unconditionally. Children walk
+   (fast enumeration, depth+1, first nonzero wins) confirmed as
+   drafted. Both fixed in `ABInApp.m`.
 5. **Module A bodies** (open/close/closeall/knobs blocks, bar, launch):
    registrations and call contracts are V here; bodies are A's.
 6. **Scaffold** (`sub_20184`, OMC* helpers): Core module's scope.

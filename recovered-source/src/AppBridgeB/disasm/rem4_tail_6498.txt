@@ -1,0 +1,175 @@
+=== sub_6498 @ 0x6498 (size 696) [rem4: skipdata dump, coverage 696/696 bytes, 174 insns, 0 data items] ===
+00006498  sub      sp, sp, #0x120                               ; ff8304d1
+0000649c  stp      x26, x25, [sp, #0xd0]                        ; fa670da9
+000064a0  stp      x24, x23, [sp, #0xe0]                        ; f85f0ea9
+000064a4  stp      x22, x21, [sp, #0xf0]                        ; f6570fa9
+000064a8  stp      x20, x19, [sp, #0x100]                       ; f44f10a9
+000064ac  stp      x29, x30, [sp, #0x110]                       ; fd7b11a9
+000064b0  add      x29, sp, #0x110                              ; fd430491
+000064b4  mov      x20, x1                                      ; f40301aa
+000064b8  mov      x19, x0                                      ; f30300aa
+000064bc  adrp     x8, #0x34000                                 ; 680100d0
+000064c0  ldr      x8, [x8, #0x278]                             ; 083d41f9 ; -> ___stack_chk_guard
+000064c4  ldr      x8, [x8]                                     ; 080140f9
+000064c8  stur     x8, [x29, #-0x48]                            ; a8831bf8
+000064cc  bl       #0x24818                                     ; d3780094 ; call _objc_retain
+000064d0  mov      x22, #0                                      ; 160080d2
+000064d4  cbz      x19, #0x668c                                 ; d30d00b4
+000064d8  cmp      w20, #0xc                                    ; 9f320071
+000064dc  b.gt     #0x668c                                      ; 8c0d0054
+000064e0  mov      x0, x19                                      ; e00313aa
+000064e4  bl       #0x25d80                                     ; 277e0094 ; objc_msgSend sel=isViewLoaded
+000064e8  cbz      w0, #0x6570                                  ; 40040034
+000064ec  mov      x0, x19                                      ; e00313aa
+000064f0  bl       #0x28140                                     ; 14870094 ; objc_msgSend sel=view
+000064f4  mov      x29, x29                                     ; fd031daa
+000064f8  bl       #0x24830                                     ; ce780094 ; call _objc_retainAutoreleasedReturnValue
+000064fc  mov      x21, x0                                      ; f50300aa
+00006500  bl       #0x281e0                                     ; 38870094 ; objc_msgSend sel=window
+00006504  mov      x29, x29                                     ; fd031daa
+00006508  bl       #0x24830                                     ; ca780094 ; call _objc_retainAutoreleasedReturnValue
+0000650c  mov      x22, x0                                      ; f60300aa
+00006510  cbz      x0, #0x6568                                  ; c00200b4
+00006514  mov      x0, x19                                      ; e00313aa
+00006518  bl       #0x28140                                     ; 0a870094 ; objc_msgSend sel=view
+0000651c  mov      x29, x29                                     ; fd031daa
+00006520  bl       #0x24830                                     ; c4780094 ; call _objc_retainAutoreleasedReturnValue
+00006524  mov      x23, x0                                      ; f70300aa
+00006528  bl       #0x25d00                                     ; f67d0094 ; objc_msgSend sel=isHidden
+0000652c  mov      x24, x0                                      ; f80300aa
+00006530  mov      x0, x23                                      ; e00317aa
+00006534  bl       #0x2480c                                     ; b6780094 ; call _objc_release
+00006538  mov      x0, x22                                      ; e00316aa
+0000653c  bl       #0x2480c                                     ; b4780094 ; call _objc_release
+00006540  mov      x0, x21                                      ; e00315aa
+00006544  bl       #0x2480c                                     ; b2780094 ; call _objc_release
+00006548  tbnz     w24, #0, #0x6570                             ; 58010037
+0000654c  mov      x0, x19                                      ; e00313aa
+00006550  bl       #0x27e40                                     ; 3c860094 ; objc_msgSend sel=supportedInterfaceOrientations
+00006554  mov      x22, x0                                      ; f60300aa
+00006558  tst      x0, #0x18                                    ; 1f047df2
+0000655c  b.eq     #0x6570                                      ; a0000054
+00006560  tbnz     w22, #1, #0x6570                             ; 96000837
+00006564  b        #0x668c                                      ; 4a000014 ; call sub_668c
+00006568  mov      x0, x21                                      ; e00315aa
+0000656c  bl       #0x2480c                                     ; a8780094 ; call _objc_release
+00006570  mov      x0, x19                                      ; e00313aa
+00006574  bl       #0x26680                                     ; 43800094 ; objc_msgSend sel=presentedViewController
+00006578  mov      x29, x29                                     ; fd031daa
+0000657c  bl       #0x24830                                     ; ad780094 ; call _objc_retainAutoreleasedReturnValue
+00006580  mov      x21, x0                                      ; f50300aa
+00006584  cbz      x0, #0x65e4                                  ; 000300b4
+00006588  mov      x0, x19                                      ; e00313aa
+0000658c  bl       #0x26680                                     ; 3d800094 ; objc_msgSend sel=presentedViewController
+00006590  mov      x29, x29                                     ; fd031daa
+00006594  bl       #0x24830                                     ; a7780094 ; call _objc_retainAutoreleasedReturnValue
+00006598  mov      x22, x0                                      ; f60300aa
+0000659c  bl       #0x25c40                                     ; a97d0094 ; objc_msgSend sel=isBeingDismissed
+000065a0  mov      x23, x0                                      ; f70300aa
+000065a4  mov      x0, x22                                      ; e00316aa
+000065a8  bl       #0x2480c                                     ; 99780094 ; call _objc_release
+000065ac  mov      x0, x21                                      ; e00315aa
+000065b0  bl       #0x2480c                                     ; 97780094 ; call _objc_release
+000065b4  tbnz     w23, #0, #0x65e4                             ; 97010037
+000065b8  mov      x0, x19                                      ; e00313aa
+000065bc  bl       #0x26680                                     ; 31800094 ; objc_msgSend sel=presentedViewController
+000065c0  mov      x29, x29                                     ; fd031daa
+000065c4  bl       #0x24830                                     ; 9b780094 ; call _objc_retainAutoreleasedReturnValue
+000065c8  mov      x21, x0                                      ; f50300aa
+000065cc  add      w1, w20, #1                                  ; 81060011
+000065d0  bl       #0x6498                                      ; b2ffff97 ; call sub_6498
+000065d4  mov      x22, x0                                      ; f60300aa
+000065d8  mov      x0, x21                                      ; e00315aa
+000065dc  bl       #0x2480c                                     ; 8c780094 ; call _objc_release
+000065e0  cbnz     x22, #0x668c                                 ; 760500b5
+000065e4  movi     v0.16b, #0                                   ; 00e4004f
+000065e8  stp      q0, q0, [sp, #0x20]                          ; e00301ad
+000065ec  stp      q0, q0, [sp]                                 ; e00300ad
+000065f0  mov      x0, x19                                      ; e00313aa
+000065f4  bl       #0x25180                                     ; e37a0094 ; objc_msgSend sel=childViewControllers
+000065f8  mov      x29, x29                                     ; fd031daa
+000065fc  bl       #0x24830                                     ; 8d780094 ; call _objc_retainAutoreleasedReturnValue
+00006600  mov      x21, x0                                      ; f50300aa
+00006604  mov      x2, sp                                       ; e2030091
+00006608  add      x3, sp, #0x48                                ; e3230191
+0000660c  mov      w4, #0x10                                    ; 04028052
+00006610  bl       #0x25440                                     ; 8c7b0094 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+00006614  mov      x23, x0                                      ; f70300aa
+00006618  cbz      x0, #0x6680                                  ; 400300b4
+0000661c  ldr      x8, [sp, #0x10]                              ; e80b40f9
+00006620  ldr      x24, [x8]                                    ; 180140f9
+00006624  mov      x25, #0                                      ; 190080d2
+00006628  ldr      x8, [sp, #0x10]                              ; e80b40f9
+0000662c  ldr      x8, [x8]                                     ; 080140f9
+00006630  cmp      x8, x24                                      ; 1f0118eb
+00006634  b.eq     #0x6640                                      ; 60000054
+00006638  mov      x0, x21                                      ; e00315aa
+0000663c  bl       #0x24770                                     ; 4d780094 ; call _objc_enumerationMutation
+00006640  ldr      x8, [sp, #8]                                 ; e80740f9
+00006644  ldr      x0, [x8, x25, lsl #3]                        ; 007979f8
+00006648  add      w1, w20, #1                                  ; 81060011
+0000664c  bl       #0x6498                                      ; 93ffff97 ; call sub_6498
+00006650  mov      x22, x0                                      ; f60300aa
+00006654  cbnz     x0, #0x6684                                  ; 800100b5
+00006658  add      x25, x25, #1                                 ; 39070091
+0000665c  cmp      x23, x25                                     ; ff0219eb
+00006660  b.ne     #0x6628                                      ; 41feff54
+00006664  mov      x2, sp                                       ; e2030091
+00006668  add      x3, sp, #0x48                                ; e3230191
+0000666c  mov      x0, x21                                      ; e00315aa
+00006670  mov      w4, #0x10                                    ; 04028052
+00006674  bl       #0x25440                                     ; 737b0094 ; objc_msgSend sel=countByEnumeratingWithState:objects:count:
+00006678  mov      x23, x0                                      ; f70300aa
+0000667c  cbnz     x0, #0x6624                                  ; 40fdffb5
+00006680  mov      x22, #0                                      ; 160080d2
+00006684  mov      x0, x21                                      ; e00315aa
+00006688  bl       #0x2480c                                     ; 61780094 ; call _objc_release
+0000668c  mov      x0, x19                                      ; e00313aa
+00006690  bl       #0x2480c                                     ; 5f780094 ; call _objc_release
+00006694  ldur     x8, [x29, #-0x48]                            ; a8835bf8
+00006698  adrp     x9, #0x34000                                 ; 690100d0
+0000669c  ldr      x9, [x9, #0x278]                             ; 293d41f9 ; -> ___stack_chk_guard
+000066a0  ldr      x9, [x9]                                     ; 290140f9
+000066a4  cmp      x9, x8                                       ; 3f0108eb
+000066a8  b.ne     #0x66cc                                      ; 21010054
+000066ac  mov      x0, x22                                      ; e00316aa
+000066b0  ldp      x29, x30, [sp, #0x110]                       ; fd7b51a9
+000066b4  ldp      x20, x19, [sp, #0x100]                       ; f44f50a9
+000066b8  ldp      x22, x21, [sp, #0xf0]                        ; f6574fa9
+000066bc  ldp      x24, x23, [sp, #0xe0]                        ; f85f4ea9
+000066c0  ldp      x26, x25, [sp, #0xd0]                        ; fa674da9
+000066c4  add      sp, sp, #0x120                               ; ff830491
+000066c8  ret                                                   ; c0035fd6
+000066cc  bl       #0x24488                                     ; 6f770094 ; call ___stack_chk_fail
+000066d0  b        #0x6720                                      ; 14000014 ; call sub_6720
+000066d4  b        #0x6708                                      ; 0d000014 ; call sub_6708
+000066d8  b        #0x6720                                      ; 12000014 ; call sub_6720
+000066dc  mov      x20, x0                                      ; f40300aa
+000066e0  mov      x0, x23                                      ; e00317aa
+000066e4  bl       #0x2480c                                     ; 4a780094 ; call _objc_release
+000066e8  b        #0x66fc                                      ; 05000014 ; call sub_66fc
+000066ec  b        #0x66f8                                      ; 03000014 ; call sub_66f8
+000066f0  b        #0x672c                                      ; 0f000014 ; call sub_672c
+000066f4  b        #0x6708                                      ; 05000014 ; call sub_6708
+000066f8  mov      x20, x0                                      ; f40300aa
+000066fc  mov      x0, x22                                      ; e00316aa
+00006700  bl       #0x2480c                                     ; 43780094 ; call _objc_release
+00006704  b        #0x670c                                      ; 02000014 ; call sub_670c
+00006708  mov      x20, x0                                      ; f40300aa
+0000670c  mov      x0, x21                                      ; e00315aa
+00006710  bl       #0x2480c                                     ; 3f780094 ; call _objc_release
+00006714  b        #0x6738                                      ; 09000014 ; call sub_6738
+00006718  b        #0x672c                                      ; 05000014 ; call sub_672c
+0000671c  b        #0x6720                                      ; 01000014 ; call sub_6720
+00006720  mov      x20, x0                                      ; f40300aa
+00006724  b        #0x6738                                      ; 05000014 ; call sub_6738
+00006728  b        #0x672c                                      ; 01000014 ; call sub_672c
+0000672c  mov      x20, x0                                      ; f40300aa
+00006730  mov      x0, x21                                      ; e00315aa
+00006734  bl       #0x2480c                                     ; 36780094 ; call _objc_release
+00006738  mov      x0, x19                                      ; e00313aa
+0000673c  bl       #0x2480c                                     ; 34780094 ; call _objc_release
+00006740  b        #0x6748                                      ; 02000014 ; call sub_6748
+00006744  mov      x20, x0                                      ; f40300aa
+00006748  mov      x0, x20                                      ; e00314aa
+0000674c  bl       #0x24470                                     ; 49770094 ; call __Unwind_Resume

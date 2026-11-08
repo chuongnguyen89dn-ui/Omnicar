@@ -207,7 +207,7 @@ Keys actually read/written by A-scope code (function → key):
 |---|---|---|
 | `enabled` | bool (default NO) | `_OMCEnabled` |
 | `appBridgeEnabled` (built as `appBridge`+`Enabled`) | bool | `_OMCFeatureEnabled` ← `openApp:frame:` |
-| `appBridgeOrientation` | integer (default object at 0x395b8, not decoded) | `openApp:frame:`; values 3,4 mapped to 0 |
+| `appBridgeOrientation` | integer (default object at 0x395b8 = **@1**, decoded byte-exact rem4) | `openApp:frame:`; values 3,4 mapped to 0 |
 | `appBridgeZoom` | percent → /100, clamp [0.6, 1.0] | `-[ABHost zoom]` |
 | `appBridgeFps` | — | ctor-0x44a8 unit (B) |
 | `appBridgeKeyboardLang` | — | ABKeyboard unit (B) / 0x1cdb4 |
@@ -308,9 +308,9 @@ Status: **VERIFIED** = body read instruction-level and reconstructed;
 | `_OMCPref` | 0x1d680 | idem | VERIFIED |
 | `_OMCEnabled` | 0x1d6e8 | idem | VERIFIED |
 | `_OMCFeatureEnabled` | 0x1d744 | idem | VERIFIED |
-| `_OMCExpired` | 0x2358c | show 0x2358c–0x23688 | INFERRED (trustedTime combination) |
-| `_OMCLiteActive` | 0x1d7d4 | show 0x1d7d4–0x1d930 | INFERRED (branch detail) |
-| `_OMCCarWireless` | 0x1d930 | show 0x1d930–0x1d9cc | INFERRED (diagCar key path) |
+| `_OMCExpired` | 0x2358c | show 0x2358c–0x23688 | VERIFIED (rem4: effNow = max(now, trustedTime); deadline + latch, fail-open — dump `disasm/rem4_OMCExpired.txt`) |
+| `_OMCLiteActive` | 0x1d7d4 | show 0x1d7d4–0x1d930 | VERIFIED (rem4: 3 s cache; mode 1 → enabled, mode 2 → enabled∧(thermal ≥ 2 ∨ Darwin lite state), else NO — dump `disasm/rem4_OMCLiteActive.txt`) |
+| `_OMCCarWireless` | 0x1d930 | show 0x1d930–0x1d9cc | VERIFIED (rem4: diagCar → `session` then `configuration` sections; wireless/wired/transport key rules in binary order — dump `disasm/rem4_OMCCarWireless.txt`) |
 | `_OMCHasMethod` | 0x1e384 | show 0x1e384–0x1e438 | VERIFIED |
 | `_OMCCarClass` | 0x1e438 | show 0x1e438–0x1e580 | VERIFIED |
 | `_OMCCheckHooks` | 0x1e580 | show 0x1e580–0x1ec70 (3 reads) | VERIFIED (diag key construction INFERRED) |
@@ -336,7 +336,7 @@ Status: **VERIFIED** = body read instruction-level and reconstructed;
 | `barReplace:/barPop:/barFull:/barBackground:/barClose:` | 0x13378–0x133b8 | show | VERIFIED (actions replace/pop/full/bg/close) |
 | `ABHost closeApp:terminate:` | 0x15ca0 | skeleton read | VERIFIED to dropWindowIfEmpty; terminate tail INFERRED |
 | `ABHost closeAll` / `closeAllExcept:` | 0x160ec / 0x160f4 | summary + pattern | VERIFIED pattern |
-| `ABHost carDisconnected` | 0x163e8 | skeleton read | VERIFIED skeleton |
+| `ABHost carDisconnected` | 0x163e8 | full body read (rem4) | VERIFIED — B's surviving text (`ABHostBMethods.m`) matches instruction-for-instruction, incl. count→window short-circuit and the re-read count in the log call; the earlier A-side skeleton and its verifier downgrade are superseded (dump: AppBridgeB `disasm/rem4_carDisconnected.txt`) |
 | Host channel blocks (open/frame/shield/close/closeall/knobs/apporient/keyboard/CarPlayConn) | 0x783c, 0x8274, 0x8c7c, 0x8df0, 0x8fd4, 0x9144, 0x92b4, 0x93b0, 0x958c | blk_*.s + targeted reads | VERIFIED (open, frame fully; others via call-sequence + strings); CarPlayConn tail INFERRED |
 | SB hook replacements | 0x7004, 0x72bc, 0x74b4, 0x7764, 0x777c | ctor_006e08.s | VERIFIED (0x777c's delayed block NOT-RECOVERED) |
 
@@ -352,7 +352,10 @@ Status: **VERIFIED** = body read instruction-level and reconstructed;
    (literal 0x347d0): not isolated.
 5. `_OMCCrashGuard` full state machine and the rescue-feature evaluator
    (0x1f430 region): structure INFERRED, not line-traced.
-6. Default-value constant objects at 0x395b8 (`appBridgeOrientation`
-   default) and 0x39598 (`appBridgeZoom` default): not decoded byte-exact.
+6. Default-value constant object at 0x395b8 (`appBridgeOrientation`
+   default): **decoded byte-exact in rem4 — it is @1**
+   (`__objc_intobj`, int64 payload at +16 = 1); source corrected
+   (the default was previously passed as nil). The 0x39598 object
+   (`appBridgeZoom` default) remains undecoded.
 7. `OMCCarLaunchInfo` has no caller inside AppBridge — cross-module call
    graph must be confirmed by the coordinator from sibling modules.

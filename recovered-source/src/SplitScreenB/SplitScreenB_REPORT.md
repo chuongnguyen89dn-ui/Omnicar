@@ -260,7 +260,7 @@ wave-1 type encodings had wrong — `urlLayout:(NSInteger)`,
 | SCPCarSplit | `refreshAppTab` | 0x36e04 | SCPCarSplit+Picker.m | disasm/SCPCarSplit__refreshAppTab.txt | VERIFIED |
 | SCPCarSplit | `removeAppTab` | 0x36f04 | SCPCarSplit+Picker.m | disasm/SCPCarSplit__removeAppTab.txt | VERIFIED |
 | SCPCarSplit | `panelSections:` | 0x36f08 | SCPCarSplit+Panel.m | disasm/SCPCarSplit__panelSections_.txt | STUB-UNRECOVERED |
-| SCPCarSplit | `trayWindowForParent:` | 0x3782c | SCPCarSplit+Picker.m | disasm/SCPCarSplit__trayWindowForParent_.txt | INFERRED |
+| SCPCarSplit | `trayWindowForParent:` | 0x3782c | SCPCarSplit+Picker.m | disasm/rem4_trayWindowForParent.txt + disasm/rem4_tray_hitTest_481c8.txt | VERIFIED (rem4: UIRootSceneWindow from FBSDisplayConfiguration + SCPCPass_ runtime subclass with super-forwarding hitTest IMP @0x481c8; the earlier condensed plain-UIWindow body was wrong) |
 | SCPCarSplit | `showLayoutPanelForApp:` | 0x37e8c | SCPCarSplit+Panel.m | disasm/SCPCarSplit__showLayoutPanelForApp_.txt | STUB-UNRECOVERED |
 | SCPCarSplit | `panelChoiceTapped:` | 0x3a4d0 | SCPCarSplit+Panel.m | disasm/SCPCarSplit__panelChoiceTapped_.txt | PARTIAL |
 | SCPCarSplit | `panelChoiceTappedUnsafe:` | 0x3a5e8 | SCPCarSplit+Panel.m | disasm/SCPCarSplit__panelChoiceTappedUnsafe_.txt | STUB-UNRECOVERED |

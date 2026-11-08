@@ -455,21 +455,28 @@ static void ABScheduleAppOrientationPublish(int64_t field) {
 // Supported-mask computation — sub_612C / sub_6498 / sub_5EC0 / sub_61D0
 // ===========================================================================
 // sub_6498: recursive search (depth cap 12) for a visible view controller
-// whose supported mask contains BOTH the portrait bit (2) and a landscape
-// bit (8 or 16); presented controllers are tried before children.
-// Returns that mask, or 0. (Combination rule verified at the head of the
-// function; the tail walks presentedViewController then childViewControllers
-// in the same pattern.)
+// whose supported mask contains a landscape bit (8 or 16) and does NOT
+// contain the portrait bit (2); presented controllers are tried before
+// children (skipped when nil or being dismissed). Returns that mask, or 0.
+// (Full body line-read in remediation round 2 — 696/696 B, 174 insns,
+// disasm/rem4_tail_6498.txt: the return rule is `(m & 0x18) != 0 &&
+// (m & 0x2) == 0` at 0x6558/0x6560, and the presented recursion is gated
+// on `!presentedViewController.isBeingDismissed`. An earlier draft had
+// the portrait condition inverted and the presented step ungated; both
+// corrected.)
 static NSUInteger ABMaskFromViewController(UIViewController *vc, NSInteger depth) {
     if (!vc || depth > 12) return 0;
     if (vc.isViewLoaded && vc.view.window && !vc.view.isHidden) {
         NSUInteger m = vc.supportedInterfaceOrientations;
-        if ((m & 0x18) != 0 && (m & 0x2) != 0) return m;
+        if ((m & 0x18) != 0 && (m & 0x2) == 0) return m;
     }
-    NSUInteger m = ABMaskFromViewController(vc.presentedViewController, depth + 1);
-    if (m) return m;
+    UIViewController *presented = vc.presentedViewController;
+    if (presented && !presented.isBeingDismissed) {
+        NSUInteger m = ABMaskFromViewController(presented, depth + 1);
+        if (m) return m;
+    }
     for (UIViewController *child in vc.childViewControllers) {
-        m = ABMaskFromViewController(child, depth + 1);
+        NSUInteger m = ABMaskFromViewController(child, depth + 1);
         if (m) return m;
     }
     return 0;

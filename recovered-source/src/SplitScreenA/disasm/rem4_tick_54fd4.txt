@@ -1,0 +1,43 @@
+; SS tick
+; VA 0x54fd4  size 160  bound=LC_FUNCTION_STARTS  decoded=160  LENGTH_CHECK=OK
+
+0x00054fd4:  stp      x29, x30, [sp, #-0x10]!
+0x00054fd8:  mov      x29, sp
+0x00054fdc:  bl       #0x54220    ; func sub_54220
+0x00054fe0:  adrp     x8, #0x88000
+0x00054fe4:  ldr      d1, [x8, #0x300]
+0x00054fe8:  fcmp     d1, #0.0
+0x00054fec:  b.le     #0x55068
+0x00054ff0:  fsub     d1, d0, d1
+0x00054ff4:  adrp     x9, #0x88000
+0x00054ff8:  ldr      d3, [x9, #0x2e0]
+0x00054ffc:  fmov     d2, #1.50000000
+0x00055000:  fmul     d4, d3, d2
+0x00055004:  fmov     d2, xzr
+0x00055008:  fcmp     d1, d4
+0x0005500c:  b.le     #0x55020
+0x00055010:  fdiv     d2, d1, d3
+0x00055014:  frinta   d2, d2
+0x00055018:  fmov     d3, #-1.00000000
+0x0005501c:  fadd     d2, d2, d3
+0x00055020:  fmov     d3, #1.00000000
+0x00055024:  fadd     d3, d2, d3
+0x00055028:  adrp     x9, #0x88000
+0x0005502c:  ldr      d4, [x9, #0x2f8]
+0x00055030:  fadd     d3, d4, d3
+0x00055034:  str      d3, [x9, #0x2f8]
+0x00055038:  adrp     x9, #0x88000
+0x0005503c:  ldr      d3, [x9, #0x2f0]
+0x00055040:  fadd     d2, d2, d3
+0x00055044:  str      d2, [x9, #0x2f0]
+0x00055048:  adrp     x9, #0x88000
+0x0005504c:  ldr      d2, [x9, #0x2e8]
+0x00055050:  adrp     x10, #0x6f000
+0x00055054:  ldr      d3, [x10, #0x418]
+0x00055058:  fmul     d1, d1, d3
+0x0005505c:  fcmp     d2, d1
+0x00055060:  fcsel    d1, d1, d2, mi
+0x00055064:  str      d1, [x9, #0x2e8]
+0x00055068:  str      d0, [x8, #0x300]
+0x0005506c:  ldp      x29, x30, [sp], #0x10
+0x00055070:  ret      
