@@ -52,7 +52,7 @@ void OMCPrefsSync(void);
 
 // Returns CFPreferencesCopyAppValue(key, domain) if non-nil, else `def`.
 // No caching: hits CFPreferences on every call. Return is autoreleased (ARC).
-id OMCPref(id key, id def);
+id OMCPref(NSString *key, id defaultValue);
 
 #pragma mark - Master / feature switches (VERIFIED)
 

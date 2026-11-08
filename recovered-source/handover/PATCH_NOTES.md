@@ -621,3 +621,227 @@ file (Settings open + scroll + sub-pages; Dock button present and
 tappable with split off; Maps + phone app panes; keyboard/layout;
 Home/reopen; disconnect/reconnect cleanliness; runtime log + IPS with
 matching UUIDs).
+
+## 14. Arity + StartupScreen policy round (2026-11-08) — build9, arityfix candidate
+
+Two device-proven defects, one integration re-run (W-INT3). Fix
+workers: W-FIX1 (arity), W-FIX2 (StartupScreen policy), W-FIX3
+(nullability attempt, superseded), W-FIX4 (spelling split — the
+shipped form). Prior integration attempts: build7 BLOCKED
+(-Wnonnull, CarProbe) and build8 BLOCKED
+(-Wnullability-completeness, Core) — see
+`work/fix-round2/integration-arityfix.md` /
+`integration-arityfix2.md`. This section records build9.
+
+### 14.1 Defect 1 — OMCPref arity (SplitScreen SIGBUS)
+
+Causal label: **device-proven by UUID-matched .ips**. The shipped
+reconstruction declared `id OMCPref(NSString *key);` (1-arg) in
+SCPShared.h while the linked definition is the 2-arg shared-core
+body (OMCCommon.c:122, `return v != nil ? v : def;`). The two
+1-arg call sites — SCPPrefs.m:14 (SCPObjectForKey) and :16
+(SCPStringForKey) — left x1 = register garbage as the default
+value. Device evidence: 9 crashes; the fault pointer is the
+`@"autoLaunch"` __cstring at shipped slice 0x54AD2 — the garbage
+x1 dereferenced on the +[SCPPrefs autoLaunch] path.
+
+Fix (W-FIX1): SCPPrefs.m:14,16 → `OMCPref(key, nil)`; every
+OMCPref declaration in the tree unified to 2 parameters (28
+prototypes, §14.4 for the spelling form). Same-pattern decl/def
+mismatch found by the tree-wide audit and fixed in the same
+pass: **OMCTr** — OMCCore.h:121 declared 1-arg against the 2-arg
+definition (OMCCommon.c:1601); declaration unified to
+`NSString *OMCTr(NSString *viText, NSString *enText);` (no call
+site exercised the bad arity). Definitions were not edited.
+
+### 14.2 Defect 2 — StartupScreen splash association (SIGSEGV)
+
+Causal label: **device-proven by UUID-matched .ips**. The
+reconstruction set the splash association with
+OBJC_ASSOCIATION_ASSIGN, leaving a dangling splash pointer.
+Original-binary evidence (W-FIX2, full sweep of all 6
+association sites, capstone no-skipdata over LC_FUNCTION_STARTS
+bounds, 121,608 decoded bytes == __text size): the original
+uses policy 1 (OBJC_ASSOCIATION_RETAIN_NONATOMIC) at ALL THREE
+set sites — splash attach `mov w3, #1` @0xb540 → call 0xb544;
+claim attach @0xa75c → 0xa760; nil-clear @0x71c0 → 0x71c4.
+
+Fix (W-FIX2, SSStartupScreen.m only): all three sites →
+OBJC_ASSOCIATION_RETAIN_NONATOMIC; SSScreenGone gained the
+original's nil-screen guard (cbz @0x8838) and a strong local
+held across tearDown (orig x19 hold @0x8858–0x8864); teardown
+order and the identity-before-removal check already matched
+the original and were kept. No OBJC_ASSOCIATION_ASSIGN remains
+in the file.
+
+### 14.3 Prototype-spelling deviation — final form (flagged for GPT's review)
+
+> §1's verbatim prototype cannot be applied uniformly — build7
+> (-Wnonnull inside NS_ASSUME_NONNULL headers) and build8
+> (-Wnullability-completeness in annotation-free headers) each
+> disprove one uniform spelling; shipped form unifies ARITY
+> (2 params) everywhere with nullability spelling following
+> each header's NS_ASSUME_NONNULL structure; ABI unchanged —
+> flagged for GPT's review
+
+Shipped form (W-FIX4, 28 prototypes, all arity 2, cmp-verified
+14/14 pairs): plain
+`id OMCPref(NSString *key, id defaultValue);` in annotation-free
+files (OMCCommon.h, OMCCore.h, SSStartupScreen.h + 6
+annotation-free .m sites); annotated
+`id _Nullable OMCPref(NSString *key, id _Nullable defaultValue);`
+in the 5 NS_ASSUME_NONNULL headers (SCPShared.h, SCPCommon.h,
+SCPHomeCommon.h, OmniCarCarProbe.h, AppBridgeB.h).
+
+### 14.4 Listed — suspicious, NOT fixed (verbatim from fix-arity-wfix1.md §4)
+
+1. **OMCLogoMeshImage cross-binary arity**: OMCCommon.h:188 / def
+   OMCCommon.c:1667, CarProbe.h:142 / def .m:1619, SpeedBubble
+   SPPBubble.m:25 all take `(int style)`; Prefs OMCCommon.h:198 declares
+   `UIImage *OMCLogoMeshImage(void)`, def OMCCommon.m:518, sole call
+   OMCCommon.m:393 `OMCLogoMeshImage()`. Each TU is internally consistent
+   (decl=def=calls); these are separate per-binary reconstructions, so
+   unifying would break Prefs. Return type also differs (id vs UIImage*).
+2. **OMCStyleHeaderFooter vs original binary**: Prefs decl (OMCCommon.h:109),
+   def (OMCCommon.m:440) and all 6 call sites are 1-arg, but the source
+   itself records the original as 2-arg `(UIView *, BOOL isHeader)`
+   (OMCCommon.m:435-439) — a documented fidelity gap deliberately deferred
+   per GPT consolidated §D. No TU-internal mismatch; left per that deferral.
+3. **OMCCarWireless return-type spread** (arity 0 everywhere): `int`
+   OMCCommon.h:90 + def OMCCommon.c:226 + CarProbe.h:122/def .m:1007;
+   `BOOL` OMCCore.h:58 + def OMCCore.m:77; `NSInteger` AppBridgeB.h:98
+   (no B-local def; B links the AppBridge binary's core copy).
+4. **OMCCarLaunchInfo param type/semantics**: SCPShared.h:60 declares
+   `id OMCCarLaunchInfo(NSString *bundleID)` vs def `id (id application)`
+   (OMCCommon.c:497). Arity 1=1, but SplitScreen call sites disagree on what
+   the argument IS: SCPCarSplit.m:548 passes a bundleID string, :1319 and
+   :2004 pass an app-info object. One side is a reconstruction error;
+   not an arity defect, not touched.
+5. **OMCMissingSelector 2nd-param type**: OMCCommon.h:135/def .c:472 take
+   `id object`; CarProbe.h:109/def .m:849 take `Class cls`. Arity 3=3,
+   each copy internally consistent.
+6. **SCPBridgedChosenApps return type**: extern decl in
+   SCPCarSplit+Picker.m:42 says `NSArray *`, definition in SCPCarApps.m:230
+   returns `NSSet<NSString *> *`, SCPShared.m:120 declares it `id`. Arity 0.
+7. **Stale evidence comment**: SCPPerfTelemetry.m:46-49 still says
+   "(SCPShared.h declares a one-argument OMCPref…)" — true of the pre-fix
+   tree and kept as the binary-evidence note; the prototype line below it
+   was unified. Coordinator may annotate it as fixed-by-W-FIX1.
+
+### 14.5 Build9 + §3 in-artifact verification (on the re-extracted candidate)
+
+Clean build (`project/logs/fix-round/build9.log`): exit 0,
+0 `error:` lines, 140 `warning:` lines. Per-class parity
+(`perclass9.txt`): 62/66 exact, 0 selectors missing, 4
+additive-only exceptions (SPPBubble +1; SSStartupView/
+StartupScreen +2; OMCSplitScreenController +1; SSStartupView/
+Prefs +1), Prefs 743→745. diff_payload (`diff9.txt`): 176=176
+files, 168/168 non-Mach-O byte-identical, 0 original defined
+symbols missing, control diff = Installed-Size only (6160 →
+3544). Parity restage: `dpkg-deb -Zxz`, data tar 202/202
+entries, 0 differences in mode/uid/gid/type vs the original.
+
+§3 (capstone, NO skipdata; every binary's decoded bytes ==
+its LC_FUNCTION_STARTS bounds == __text size, 0 bad functions
+in all 8; full output `project/logs/fix-round/g8-build9.txt`):
+
+- (a) SplitScreen arm64 — PASS. _OMCPref is a defined symbol
+  in this binary (target 0x4df5c); 32 call sites, every one
+  preceded by an explicit x1 write. The two fixed wrappers:
+  +[SCPPrefs autoLaunch] (fn 0x1ce3c, SCPObjectForKey inlined):
+  `0x1ce48: adr x0, #0x66de8` (cfstring "splitScreenAutoLaunch")
+  → `0x1ce50: mov x1, #0` → `0x1ce54: bl #0x4df5c`.
+  SCPStringForKey (sub_1ccb8; tail-called by +lastLeftApp /
+  +lastRightApp): `0x1ccc4: mov x1, #0` → `0x1ccc8: bl #0x4df5c`.
+  x1 is EXPLICITLY set to nil immediately before each fixed
+  call. Defect 1 is fixed and built (§3-verified).
+- (b) StartupScreen arm64 — PASS. Exactly 3
+  _objc_setAssociatedObject sites in the binary (stub
+  0x2479c), each with w3 == constant 1 immediately before:
+  nil-clear in SSClearSplashAssociation:
+  `0x75ec: mov w3, #1` → `0x75f0: bl #0x2479c`;
+  claim attach in SSHandleCarScreen:
+  `0x76c4: mov w3, #1` → `0x76c8: bl #0x2479c`;
+  splash attach in SSHandleCarScreen:
+  `0x8578: mov w3, #1` → `0x857c: bl #0x2479c`.
+  Defect 2 is fixed and built (§3-verified).
+- (c) Regressions — PASS. Prefs: _NSStringFromClass has
+  exactly 3 call sites in the candidate, all inside the
+  [GPT-F] diagnostic functions (-[OMCRootListController
+  specifiers] ×2, -tableView:cellForRowAtIndexPath: ×1);
+  calls inside -insertFeatureSpecifiers: 0 — the convicted
+  cellClass path is clean. SplitScreen: the string
+  `[GPT-F] Dock gate` is present; -[SCPCarSplit
+  ensureContainer] selector vocabulary (23 selrefs) includes
+  setTouched: and setDividers:. AppBridge: 8 distinct
+  MILESTONE strings present (request, transaction-complete,
+  process-launch-complete, revealPane ×2, teardown,
+  scene-attached, type-encoding).
+
+### 14.6 Candidate + UUID manifest + tree-state manifest
+
+Candidate (SOLE file in `project/packages/`; supersedes the
+build6 consolidated candidate `c1fc85c7…`, removed from
+packages/ only after this candidate verified; it remains in
+handover history):
+`com.anlai.omnicar_1.0.3-rebuilt-arityfix_iphoneos-arm64.deb`,
+952,864 B, SHA-256
+`3c6faebdfb5e6aa75a0b20f8a42cfe699e70de2fd5efca120e2d0afa650f328d`.
+`ar t` members: debian-binary, control.tar.xz, data.tar.xz
+(xz discipline held; no zst).
+
+Per-binary LC_UUID (arm64, candidate):
+
+| Binary | LC_UUID | Size |
+|---|---|---|
+| OmniCar | 4c4c4450-5555-3144-a1a3-58843b0f2ea6 | 70,064 |
+| OmniCarCore.dylib | 4c4c4462-5555-3144-a1fd-68112de02120 | 130,640 |
+| OmniCarAppBridge.dylib | 4c4c44c5-5555-3144-a125-1d7128382bdf | 291,232 |
+| OmniCarCarProbe.dylib | 4c4c44cf-5555-3144-a10b-60b43fdf44ed | 112,352 |
+| OmniCarSpeedBubble.dylib | 4c4c4432-5555-3144-a1cc-e6285f206b71 | 294,064 |
+| OmniCarSplitScreen.dylib | 4c4c44d3-5555-3144-a105-afe238d5af17 | 537,664 |
+| OmniCarStartupScreen.dylib | 4c4c449a-5555-3144-a111-bd9deadd1500 | 299,712 |
+| OmniCarPrefs | 4c4c4451-5555-3144-a182-1d4b9c7979c6 | 605,584 |
+
+Tree-state manifest — SHA-256 of every source file changed
+this round across W-FIX1/2/3/4 (16 files × 2 trees; every
+src/project pair byte-identical at manifest time):
+
+```
+a93389cde04df49f3a65c9bd514d573d1ce5e5055757407c0809cd5cd681ddbd  src/SplitScreenA/SCPShared.h
+a93389cde04df49f3a65c9bd514d573d1ce5e5055757407c0809cd5cd681ddbd  project/OmniCarSplitScreen/SCPShared.h  (mirror; cmp IDENTICAL)
+83def51fb0a31c6b7b7ed0493717bc6ec7dec366cb3eb7eb124dffa88976260b  src/SplitScreenA/SCPPrefs.m
+83def51fb0a31c6b7b7ed0493717bc6ec7dec366cb3eb7eb124dffa88976260b  project/OmniCarSplitScreen/SCPPrefs.m  (mirror; cmp IDENTICAL)
+d67404edd5dd4002fe46dd83d1e30592c6853583a75157384a04ec0537e7bd10  src/SplitScreenA/SCPPerfTelemetry.m
+d67404edd5dd4002fe46dd83d1e30592c6853583a75157384a04ec0537e7bd10  project/OmniCarSplitScreen/SCPPerfTelemetry.m  (mirror; cmp IDENTICAL)
+34e363e9441fe43ba120c7f8362bb39453c51b4460faeacbbb712f1935b1c163  src/SplitScreenA/SCPSessionCore.m
+34e363e9441fe43ba120c7f8362bb39453c51b4460faeacbbb712f1935b1c163  project/OmniCarSplitScreen/SCPSessionCore.m  (mirror; cmp IDENTICAL)
+51e2c242cb4577f4458aed3b14b5dba399d269d03c0a5361acfcb07d3715c489  src/OMCCommon/OMCCommon.h
+51e2c242cb4577f4458aed3b14b5dba399d269d03c0a5361acfcb07d3715c489  project/OMCCommon/OMCCommon.h  (mirror; cmp IDENTICAL)
+26f0c07af7f095ef230d1167b00bf3695119aefba3b40e56d9996f4078ef0b11  src/SplitScreenB/SCPCommon.h
+26f0c07af7f095ef230d1167b00bf3695119aefba3b40e56d9996f4078ef0b11  project/OmniCarSplitScreen/SCPCommon.h  (mirror; cmp IDENTICAL)
+2acb456826709daf130bd76f6b7ebe546747975800e24fd6f172fbe17fc1cb4b  src/SplitScreenC/SCPHomeCommon.h
+2acb456826709daf130bd76f6b7ebe546747975800e24fd6f172fbe17fc1cb4b  project/OmniCarSplitScreen/SCPHomeCommon.h  (mirror; cmp IDENTICAL)
+5a4656277c33bd68c0a6e49b45a109103811591996a86d47b5e15ce08d67293f  src/CarProbe/OmniCarCarProbe.h
+5a4656277c33bd68c0a6e49b45a109103811591996a86d47b5e15ce08d67293f  project/OmniCarCarProbe/OmniCarCarProbe.h  (mirror; cmp IDENTICAL)
+a7ddd17ab6ec0b5f28b793a0f0a5bf26a83e403a28fa5b2dda776757589fbd10  src/StartupScreen/SSStartupScreen.h
+a7ddd17ab6ec0b5f28b793a0f0a5bf26a83e403a28fa5b2dda776757589fbd10  project/OmniCarStartupScreen/SSStartupScreen.h  (mirror; cmp IDENTICAL)
+b7785835c250b2e27f501cd678145cc11ae6ba9d9eec7de904d68fa70cf8958e  src/StartupScreen/SSStartupScreen.m
+b7785835c250b2e27f501cd678145cc11ae6ba9d9eec7de904d68fa70cf8958e  project/OmniCarStartupScreen/SSStartupScreen.m  (mirror; cmp IDENTICAL)
+9e8d89998452fef8117090ea45b0ca8e44099934b282a32ed834999f3286a311  src/AppBridgeA/src/OMCCore.h
+9e8d89998452fef8117090ea45b0ca8e44099934b282a32ed834999f3286a311  project/OmniCarAppBridge/OMCCore.h  (mirror; cmp IDENTICAL)
+d5be6b4d22b91ac3c195fadd083fdf2fc0d42daa4fe052d515c66001e3574dae  src/SpeedBubble/SPPPrefs.m
+d5be6b4d22b91ac3c195fadd083fdf2fc0d42daa4fe052d515c66001e3574dae  project/OmniCarSpeedBubble/SPPPrefs.m  (mirror; cmp IDENTICAL)
+073d9b3a54ee988b9ed27bd78dceac50cb792569ad78fb6b2500bc99c7c46de7  src/AppBridgeB/AppBridgeB.h
+073d9b3a54ee988b9ed27bd78dceac50cb792569ad78fb6b2500bc99c7c46de7  project/OmniCarAppBridge/AppBridgeB.h  (mirror; cmp IDENTICAL)
+0afd0a87320aee77ad7f56b15e6d6bb8a4a4261b18cdb4df700b461d367d75c1  src/AppBridgeB/ABHostBMethods.m
+0afd0a87320aee77ad7f56b15e6d6bb8a4a4261b18cdb4df700b461d367d75c1  project/OmniCarAppBridge/ABHostBMethods.m  (mirror; cmp IDENTICAL)
+7a736ea362eefdf4d93041b8e5c0d77fa8dec9760ab3a6f836d909e437bdda03  src/AppBridgeB/ABHostGeometry.m
+7a736ea362eefdf4d93041b8e5c0d77fa8dec9760ab3a6f836d909e437bdda03  project/OmniCarAppBridge/ABHostGeometry.m  (mirror; cmp IDENTICAL)
+2492af2be2a8a2293a6c0536fc34447ede24300b6f50889717811902f66e6d51  src/AppBridgeB/ABKeyboard.m
+2492af2be2a8a2293a6c0536fc34447ede24300b6f50889717811902f66e6d51  project/OmniCarAppBridge/ABKeyboard.m  (mirror; cmp IDENTICAL)
+```
+
+**DEVICE_TEST = PENDING.** No build9 candidate has run on a
+device; the two defects are fixed and built where §3
+verified them, and nothing stronger is claimed.

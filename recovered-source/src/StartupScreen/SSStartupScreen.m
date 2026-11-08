@@ -150,6 +150,11 @@ static int  SSWindowLogCount;              // global @0x3b1ac (log throttle)
 // Associated-object keys [VERIFIED]: the claim is set before any check and is
 // never cleared (a UIScreen instance gets at most one splash per connection);
 // the splash key is cleared by -[SSSplash tearDown].
+// [W-FIX2, verified in the original over LC_FUNCTION_STARTS bounds] EVERY
+// objc_setAssociatedObject site in the original passes policy 1
+// (OBJC_ASSOCIATION_RETAIN_NONATOMIC) in w3: claim @0xa75c->call 0xa760,
+// splash @0xb540->call 0xb544, nil-clear in tearDown @0x71c0->call 0x71c4.
+// There is no objc_removeAssociatedObjects anywhere in the original.
 static const void *kSSClaimKey  = &kSSClaimKey;  // original: address of global @0x3b1b0 passed as key
 static const void *kSSSplashKey = &kSSSplashKey; // original: address of global @0x3b158 passed as key
 // [fix-round-3] The original passes the ADDRESSES of these two distinct
@@ -165,7 +170,7 @@ SSSplash *SSSplashForScreen(UIScreen *screen) {
 
 void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash) {
     if (SSSplashForScreen(screen) == splash)
-        objc_setAssociatedObject(screen, kSSSplashKey, nil, OBJC_ASSOCIATION_ASSIGN);
+        objc_setAssociatedObject(screen, kSSSplashKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 static void SSWindowShown(UIWindow *window, SEL _cmd, BOOL hidden) { // sub_8054 — the hook replacement
@@ -202,7 +207,17 @@ static void SSSceneLogAndHandle(UIWindowScene *scene, NSString *reason) { // sub
 }
 
 static void SSScreenGone(UIScreen *screen) { // sub_8838
-    [SSSplashForScreen(screen) tearDown];
+    if (!screen) return;   // original: cbz x0 at 0x8838
+    // [W-FIX2] Strong local for the WHOLE teardown, as in the original:
+    // 0x8850 get, 0x8858 objc_retainAutoreleasedReturnValue held in x19
+    // across the tearDown call (0x8860), released only after it (0x8864).
+    // The previous form messaged the get's return value directly, so
+    // nothing in this frame owned the splash while tearDown cleared the
+    // (then ASSIGN) association. Idempotent: after a first tearDown the
+    // association is gone, so a repeated call fetches nil and no-ops;
+    // clearing the association never calls back into tearDown.
+    SSSplash *splash = SSSplashForScreen(screen);
+    [splash tearDown];
 }
 
 // ===========================================================================
@@ -269,7 +284,7 @@ static NSInteger SSDetectOccasion(void) {
 void SSHandleCarScreen(UIScreen *screen, UIWindowScene *scene, NSString *reason) {
     if (!SSIsCarScreen(screen)) return;
     if (objc_getAssociatedObject(screen, kSSClaimKey)) return;    // one splash per screen
-    objc_setAssociatedObject(screen, kSSClaimKey, @YES, OBJC_ASSOCIATION_ASSIGN);
+    objc_setAssociatedObject(screen, kSSClaimKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"car display detected via %@: screen=%@ scene=%@",
                 reason, SSScreenDescription(screen), NSStringFromClass(scene.class)]);
     OMCPrefsSync();
@@ -334,7 +349,7 @@ void SSHandleCarScreen(UIScreen *screen, UIWindowScene *scene, NSString *reason)
     SSSplash *splash = [[SSSplash alloc] initWithScreen:screen scene:scene style:style
                                                occasion:occasion framesDir:framesDir
                                              frameCount:frameCount fps:fps];
-    objc_setAssociatedObject(screen, kSSSplashKey, splash, OBJC_ASSOCIATION_ASSIGN);
+    objc_setAssociatedObject(screen, kSSSplashKey, splash, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     [splash start];
 }
 

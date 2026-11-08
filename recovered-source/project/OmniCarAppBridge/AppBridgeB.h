@@ -91,7 +91,7 @@ NSString *ABTelexApply(NSString *word, NSString *keyString);
 // self-consistent — implementations are NOT part of module B).
 // ---------------------------------------------------------------------------
 void OMCLogWrite(NSString *tag, NSString *message);
-id OMCPref(NSString *key, id defaultValue);
+id _Nullable OMCPref(NSString *key, id _Nullable defaultValue);
 void OMCPrefsSync(void);
 BOOL OMCHasMethod(const char *className, NSString *selectorName); // [hotfix] 2nd param was declared const char* here (all other decls/impls — OMCCommon, Core, CarProbe — take NSString*); the original call passes an NSString (installer_app_4728.txt @0x4928)
 BOOL OMCLiteActive(void);

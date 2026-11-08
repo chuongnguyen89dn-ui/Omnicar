@@ -44,7 +44,7 @@ extern BOOL OMCLiteActive(void);                             // _OMCLiteActive @
 
 /// Shared OMC preference getter: the stored value for `key`, or `fallback`
 /// when unset. Returns an object (NSString/NSNumber/...) or nil.
-extern id _Nullable OMCPref(NSString *key, id _Nullable fallback); // _OMCPref @0x4f544
+extern id _Nullable OMCPref(NSString *key, id _Nullable defaultValue); // _OMCPref @0x4f544
 
 /// Shared OMC per-feature enable probe (key "<feature>Enabled", default YES).
 extern BOOL OMCFeatureEnabled(NSString *feature); // [phase2; backported to src in phase 3] C name has NO leading underscore (the underscore is the Mach-O symbol prefix); body in OMCCommon.c

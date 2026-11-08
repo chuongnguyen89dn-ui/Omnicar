@@ -24,7 +24,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 // ---- OMC core (extern, shared with every OmniCar dylib) -------------------
-extern id _Nullable OMCPref(NSString *key, id _Nullable dflt);          // 0x4f544
+extern id _Nullable OMCPref(NSString *key, id _Nullable defaultValue);                      // 0x4f544
 extern void OMCPrefsSync(void);                                         // 0x4f538
 extern BOOL OMCEnabled(void);                                           // 0x4f5ac
 extern BOOL OMCFeatureEnabled(NSString *feature);                       // 0x4f608

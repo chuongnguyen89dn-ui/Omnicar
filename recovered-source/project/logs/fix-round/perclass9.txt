@@ -1,0 +1,62 @@
+Per-class selector parity — arityfix round build9, 2026-11-08
+Method: metadata/tools/macho_objc.py (wave-1 parser) over both slices
+of the original and the arm64 candidate payload; category methods
+merged into their target class (target/instance_methods fields).
+Candidate SHA-256 3c6faebdfb5e6aa75a0b20f8a42cfe699e70de2fd5efca120e2d0afa650f328d.
+
+OmniCar                      classes   1  exact   1  methods orig 6 built 6
+OmniCarCore.dylib            classes   0  exact   0  methods orig 0 built 0
+OmniCarAppBridge.dylib       classes   8  exact   8  methods orig 193 built 193
+OmniCarCarProbe.dylib        classes   0  exact   0  methods orig 0 built 0
+OmniCarSpeedBubble.dylib     classes   9  exact   8  methods orig 277 built 278
+OmniCarSplitScreen.dylib     classes  11  exact  11  methods orig 480 built 480
+OmniCarStartupScreen.dylib   classes   8  exact   7  methods orig 173 built 175
+OmniCarPrefs                 classes  29  exact  27  methods orig 743 built 745
+
+TOTAL: 62/66 classes exact
+EXCEPTIONS: 4
+[
+ {
+  "binary": "OmniCarSpeedBubble.dylib",
+  "class": "SPPBubble",
+  "orig_count": 103,
+  "built_count": 104,
+  "only_orig": [],
+  "only_built": [
+   "-hideIfShownWithReason:now:state:"
+  ]
+ },
+ {
+  "binary": "OmniCarStartupScreen.dylib",
+  "class": "SSStartupView",
+  "orig_count": 71,
+  "built_count": 73,
+  "only_orig": [],
+  "only_built": [
+   "-ss_festiveIcon:",
+   "-ss_festiveLabelsWithTitle:subtitle:titleColor:subtitleColor:titleY:titleSize:subtitleY:subtitleSize:"
+  ]
+ },
+ {
+  "binary": "OmniCarPrefs",
+  "class": "OMCSplitScreenController",
+  "orig_count": 37,
+  "built_count": 38,
+  "only_orig": [],
+  "only_built": [
+   "-gestureSwitchChanged:"
+  ]
+ },
+ {
+  "binary": "OmniCarPrefs",
+  "class": "SSStartupView",
+  "orig_count": 71,
+  "built_count": 72,
+  "only_orig": [],
+  "only_built": [
+   "-gradientLayer"
+  ]
+ }
+]
+CLASSES MISSING SELECTORS: 0
+SELECTORS MISSING (total only_orig): 0
