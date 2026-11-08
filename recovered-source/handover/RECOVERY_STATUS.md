@@ -965,3 +965,62 @@ SHA-256
 949,244 B, parity restage 202/202 entries, 0 differences;
 per-class parity and the hook-install count are unchanged.
 DEVICE_TEST = PENDING, unchanged.
+
+## 11. Fix round build3 (2026-11-08) — Portrait crash, literal sweep, Track 2
+
+GPT identified a new defect class from the device log (it was
+not in the TXT work order): reconstructed code transcribing
+original-binary VAs as absolute runtime pointers. The instance
+that crashed: `SCPGridDimension` in SCPHomeHooks.m dereferenced
+0x87f60 — the original's `__thread_vars` descriptor VA — on the
+first grid query (device log: signal 11, fault addr 0x87f60,
+`SCPHook_PortraitColumns +144`; instruction proof in
+PATCH_NOTES §7a and `project/logs/fix-round/regression3.txt`).
+
+Fixes, all faithful-pattern (real TLS / self-referential keys):
+the grid helper now uses a real `static __thread BOOL` guard
+with the original's @try/@catch structure and unsigned
+thresholds; ABInApp.m's associated-object key 0x3E9E4 (an
+address-as-key in the original, never dereferenced) is
+self-referential; SSStartupScreen.m's two NULL associated-
+object keys are self-referential. A tree-wide sweep (349 files,
+619 code literals, 304 ≥0x1000 hand-classified) found exactly
+those 2 literal defects + 1 sibling; sibling icon hooks and
+SBIconImageInfoCompat audited clean. Track 2 (Preferences):
+two format-arg defects in OMCCommon.m fixed with original
+evidence (CHK_CRASH_AT's missing second %@ argument was
+crash-class on the Send-Log path; CHK_PACKAGE_OK now passes
+the module count); OMCWhatsNewVersionToShow rewritten to
+sub_198c4 — +shouldShow is now NO with the shipped plist, as in
+the original — with the recorded caveat that WhatsNew's
+responsibility for the Settings kick-back remains UNPROVEN
+(suspect #1; conviction needs a Preferences .ips). The
+OMCHSInstalled typed-msgSend change was cleared against the
+original's sub_24e0c. Two divergences are documented, not
+fixed: the SplitScreen OMCCheckHooks nil second list
+(diagnostic log only) and a cosmetic log prefix in
+SCPHomeVisibility.m:147. Full report:
+`work/fix-round2/audit-portrait.md`; change record:
+PATCH_NOTES §7.
+
+**Rebuild evidence.** Clean build exit 0, 0 errors
+(`logs/fix-round/build3.log`). Binary regression proof
+(`regression3.txt`): #0x7f60 materialisations in __text
+2 → 0; TLV descriptor access present; __thread_vars /
+__thread_bss sections present. Per-class 62/66 exact, zero
+classes missing selectors, Prefs 743→745, SplitScreen
+480=480, AppBridge 193=193 (`perclass3.txt`); hook count
+17+1, single host installer (`hookcount3.txt`); payload
+176/176 files, 168/168 non-Mach-O byte-identical, 0 original
+symbols missing (`diff3.txt`); parity restage 202/202
+entries, 0 differences. New rebuilt DEB: 949,352 bytes,
+SHA-256
+`7f2701d90327c1f89c23332338f6d8fbc6451b327c31d3f5e466e220dde39d74`
+(supersedes the build2 candidate `3b2283a8…`).
+
+**Status.** DEVICE_TEST = PENDING: no build3 has run on a
+device, and §6's scope statement is unchanged — verification
+remains structural/static. The device still carries the
+CrashGuard rescue state from the crash-loop (only the speed
+bubble shows); that state is evidence, not a fault of this
+build, and clearing it is a separate, deliberate step.

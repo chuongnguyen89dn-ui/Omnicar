@@ -171,3 +171,148 @@ in mode/uid/gid/type vs the original. SplitScreen LC_UUID
 (`4c4c4413-5555-3144-a192-3f49022cb8b1`) — see the build2
 addendum in `project/logs/fix-round/uuid-manifest.txt`.
 DEVICE_TEST remains PENDING.
+
+## 7. Portrait crash, literal-pointer sweep, Track 2 (build3, 2026-11-08)
+
+### 7a. The Portrait crash — root cause and faithful fix
+
+Device-log marker: signal 11 (SIGSEGV), fault address exactly
+0x87f60, backtrace symbol `SCPHook_PortraitColumns +144`.
+
+Instruction-level proof (full disassembly in
+`project/logs/fix-round/regression3.txt`, reproduced on the
+build2 binary in /tmp analysis and re-verified this round): the
+rebuilt shared grid helper `SCPGridDimension` (static, no
+exported symbol; in the previous build at VA 0x3e350 in the
+analysis slice / 0x4ac70 in the build2 candidate) materialised
+the constant at helper +52: `mov w8, #0x7f60; movk w8, #8, lsl
+#16` → x8 = 0x87f60, then at 0x3e388 `ldr x8, [x8]` —
+helper +56 in that slice, = PortraitColumns +156 — dereferenced
+it as a pointer. The log's +144 is the backtrace symbolication
+of the symbol-less static helper, whose nearest preceding named
+symbol is `SCPHook_PortraitColumns`; all four grid hooks
+(Portrait/Landscape × Columns/Rows) call the one helper and
+fault identically.
+
+Root cause: 0x87f60 is the ORIGINAL binary's VA of a
+`__thread_vars` descriptor — a link-time address, meaningful
+only inside the original image. The transcription copied it as
+an absolute runtime pointer (`(*(void **)0x87f60)`), so the
+first grid query dereferenced VA 0x87f60 in the rebuilt image,
+where nothing is mapped there.
+
+The faithful fix (SCPHomeHooks.m): a real
+`static __thread BOOL SCPGridReentrancyGuard;` — the compiler
+now emits a genuine TLV descriptor and the access goes through
+it (adrp-relative; binary-proven in §7e). The fix also restores
+the original's exception structure: @try/@catch around the
+wanted getters (catch → return orig) and around the
+NSSelectorFromString + objc_msgSend re-queries (catch → clear
+guard, return orig), matching the original's catch pads at
+0x5864 / 0x5880, the catch-path guard clear at 0x5898 and the
+normal-path clear at 0x56f8. Original layout: TLS byte in
+`__thread_bss` at 0x87f78, zero-initialised, one descriptor at
+0x87f60 (24 bytes). Threshold correction: the comparisons are
+unsigned in the original (0x5704–0x5710) — the rebuild now uses
+(NSUInteger)cols<2 / rows<=1.
+
+### 7b. Provenance
+
+This defect class was NOT in GPT's TXT work order. It was
+identified by GPT from the device log on 2026-11-08, and the
+tree-wide sweep (§7c) is the systematic closure of that class.
+
+### 7c. Tree-wide literal-pointer sweep
+
+349 compiled files scanned; 619 code-only hex literals; 304
+literals ≥0x1000 hand-classified. Result: exactly 2 literal
+defects + 1 literal-free sibling, all fixed the same faithful
+way (self-referential address keys / real TLS):
+
+1. `SCPHomeHooks.m:74` — the 0x87f60 deref (§7a).
+2. `ABInApp.m:280` — associated-object key `(const void
+   *)0x3E9E4`. Original evidence `helper_698c.txt` @0x6a1c–
+   0x6a20: the original computes the key PC-relatively and
+   never dereferences it — an address-as-key only. Fix:
+   `ABBlankInputViewKey = &ABBlankInputViewKey`.
+3. Sibling (no literal): `SSStartupScreen.m:153–154` —
+   `kSSClaimKey` / `kSSSplashKey` were uninitialised (NULL)
+   statics, so both keys were NULL. Original passes slot
+   addresses 0x3b1b0 / 0x3b158 (sub_a6c4 @0xa724 / 0xb530).
+   Fix: self-referential initialisers, same pattern.
+
+Audited CLEAN: the sibling icon hooks and
+`SBIconImageInfoCompat` (32 B). Hook-count reconciliation:
+the device note 'du 11 hook' counts checklist entries; the
+tree has 16 install sites against 11 check-list entries — no
+missing installer.
+
+### 7d. Known divergences — DOCUMENTED, NOT fixed this round
+
+1. `OMCCheckHooks(@"SplitScreen", nil)` in `__init_1` passes
+   nil where the original passes a second selector list
+   @0x80338. Diagnostic only: the self-check logs 'du 0 hook'
+   instead of the original's 'du 10 hook'. No behavioural
+   effect beyond the log line.
+2. Forced-show log-prefix string at
+   `SCPHomeVisibility.m:147` differs from the original's.
+   Cosmetic only.
+
+### 7e. Track 2 (Preferences)
+
+- `OMCHSInstalled` typed-msgSend change CLEARED: the
+  original's own BOOL helper `sub_24e0c` returns BOOL directly
+  (no retain, no boolValue round-trip); the pristine
+  performSelector: version was the divergent one. No change.
+- Two format-arg defects in Prefs `OMCCommon.m` FIXED, each
+  with original evidence:
+  - `CHK_CRASH_AT`: the original passes
+    sub_f6c0(date) + @"" at 0xcbd8–0xcc04 (the format is
+    "%@%@"). The rebuilt 1-arg call let the second %@ read an
+    uninitialised stack slot — crash-class, on the Send-Log
+    path. Fix: pass `OMCDiagDateString(crash[@"date"])` + @"".
+  - `CHK_PACKAGE_OK`: the original passes version + module
+    count at 0xad24–0xad40. Fix: the module count is now
+    passed as the second vararg.
+- `OMCWhatsNewVersionToShow` rewritten to the original
+  `sub_198c4` semantics exactly (492 B): flag=1 → nil unless
+  data[@"1.0.3"] is an NSArray; flag=0 → the numeric-greatest
+  array-valued key. The shipped WhatsNew.plist contains only
+  "1.0.0", so +shouldShow is now NO, as in the original.
+  CAVEAT: attribution of the Settings kick-back symptom to
+  WhatsNew remains UNPROVEN — it is ranked suspect #1 only.
+  Other suspects: onboarding auto-present; AppBridge
+  injection into Preferences via the UIKit filter; a residual
+  binary-only fault. Conviction requires a Preferences .ips.
+
+### 7f. Build3 verification
+
+Clean build exit 0, 0 `error:` lines
+(`project/logs/fix-round/build3.log`). Binary regression
+proof (`regression3.txt`): whole-__text mov/movk #0x7f60
+count 2 → 0; guard accessed via the __thread_vars descriptor
+(adrp x0,#0x72000; add x0,#0x278 → 0x72278; ldr x8,[x0];
+blr x8); __thread_vars (0x72278, 0x18) and __thread_bss
+(0x72290, 1 B) sections present (absent in build2);
+SCPGridDimension decoded length == function-starts bound
+(648 B, 162 insns, capstone no-skipdata). Per-class parity
+unchanged (`perclass3.txt`): 62/66 exact, 0 classes missing
+any selector, Prefs 743→745, SplitScreen 480=480, AppBridge
+193=193, OMCAppBridgeAppsController 105=105. Hook count
+unchanged (`hookcount3.txt`): one _ABInstallSpringBoardHooks,
+4× MSHookMessageEx + 1× MSHookFunction, totals 17+1.
+Aggregate diff (`diff3.txt`): 176 files, 168/168 non-Mach-O
+byte-identical, 0 original defined symbols missing.
+
+New candidate (supersedes build2 `3b2283a8…`):
+`project/packages/` sole file, SHA-256
+`7f2701d90327c1f89c23332338f6d8fbc6451b327c31d3f5e466e220dde39d74`,
+949,352 bytes; parity restage `dpkg-deb -Zxz`,
+Installed-Size 3528, data tar 202/202 entries, 0 differences
+in mode/uid/gid/type vs the original. LC_UUIDs: AppBridge
+`4c4c447b-5555-3144-a19a-149d961a4c11`, SplitScreen
+`4c4c44e3-5555-3144-a18f-40c005308e1e` (uuid-manifest.txt
+build3 addendum). Full investigation report:
+`work/fix-round2/audit-portrait.md`.
+
+**DEVICE_TEST = PENDING** for this build.

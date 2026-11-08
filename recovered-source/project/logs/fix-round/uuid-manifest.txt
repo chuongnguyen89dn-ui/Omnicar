@@ -127,3 +127,25 @@ ADDENDUM — BUILD2 (fix round 2, toast strings), 2026-11-08
     arm64: LC_UUID 4c4c4413-5555-3144-a192-3f49022cb8b1
   (AppBridge and the other six binaries are unchanged from SET
   (iii) — same sizes and LC_UUIDs; only SplitScreen moved.)
+
+ADDENDUM — BUILD3 (fix round, Portrait/TLV + sweep + Track 2), 2026-11-08
+  Supersedes the build2 candidate 3b2283a8...: source fixes in
+  SCPHomeHooks.m (real __thread guard), ABInApp.m (self-referential
+  associated-object key), SSStartupScreen.m (self-referential
+  keys), Prefs OMCCommon.m (two format-arg fixes) and
+  OMCWhatsNewController.m (sub_198c4 rewrite).
+  deb: /home/hatch/workspace/omnicar-re/project/packages/com.anlai.omnicar_1.0.3_iphoneos-arm64-rebuilt.deb
+  deb SHA-256: 7f2701d90327c1f89c23332338f6d8fbc6451b327c31d3f5e466e220dde39d74  size: 949352
+  Parity restage: dpkg-deb -Zxz, Installed-Size 3528,
+  data tar 202/202 entries, 0 differences in mode/uid/gid/type
+  vs the original deb (staging tree chowned 501:20 before
+  packing, matching the original's numeric ownership).
+  OmniCarAppBridge.dylib: size 291088
+    arm64: LC_UUID 4c4c447b-5555-3144-a19a-149d961a4c11
+  OmniCarSplitScreen.dylib: size 520912
+    arm64: LC_UUID 4c4c44e3-5555-3144-a18f-40c005308e1e
+  (Both dylibs byte-identical between the raw build DEB and the
+  candidate: AppBridge ebae70d16c0ad1778cec175506a23919ecb5d3b21422b46628f0e79b2176096f,
+  SplitScreen c92a1f43964db8cd988051d76df686e9e05f19f2261ac925a202e7f7d0d067ae.
+  AppBridge UUID moved vs build2 because ABInApp.m changed this
+  round; SplitScreen moved because SCPHomeHooks.m changed.)

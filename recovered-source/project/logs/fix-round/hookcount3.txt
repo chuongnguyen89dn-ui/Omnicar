@@ -1,0 +1,20 @@
+Hook-install count — OmniCarAppBridge.dylib (arm64, fix-round build3)
+Method: capstone over LC_FUNCTION_STARTS extents; bl/b targets
+resolved via __stubs indirect-symbol map (verify/macho_truth.py
+stub_map). Same method as hookcount.txt / hookcount2.txt.
+
+file: build3 raw DEB payload OmniCarAppBridge.dylib
+(SHA-256 ebae70d16c0ad1778cec175506a23919ecb5d3b21422b46628f0e79b2176096f,
+byte-identical in the candidate DEB)
+functions containing MSHook sites: 2; total MSHookMessageEx=17 MSHookFunction=1
+  @0x12b24 _ABInstallSpringBoardHooks: MSHookMessageEx=4 ['0x12c2c', '0x12dec', '0x1314c', '0x13318'] MSHookFunction=1 ['0x13284']
+  @0x13408 (no exported symbol): MSHookMessageEx=13 ['0x1349c', '0x134c0', '0x134e4', '0x1351c', '0x13548', '0x1357c', '0x135a0', '0x135d0', '0x135f8', '0x13620', '0x13640', '0x136c4', '0x13718'] MSHookFunction=0 []
+__mod_init_func: 3 entries
+  [0] -> 0x4000
+  [1] -> 0x1bc8c
+  [2] -> 0x1be5c
+
+VERDICT: exactly ONE _ABInstallSpringBoardHooks with
+4x MSHookMessageEx + 1x MSHookFunction; totals 17+1 — identical
+site map to build1/build2 (only the two non-installer ctor
+addresses moved by 4 bytes with the ABInApp key fix).

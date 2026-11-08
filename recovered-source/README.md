@@ -198,3 +198,30 @@ crash attribution: the .ips UUID
 DEB (`93cdcad9…`) exactly and does NOT match the FAT hotfix
 build. DEVICE_TEST = PENDING — no fix-round-2 build has run
 on a device yet.
+
+## Fix round build3 (2026-11-08)
+
+GPT identified a new defect class from the device log (not in
+the TXT work order): original-binary VAs transcribed as
+absolute runtime pointers. The crashing instance —
+`SCPGridDimension` dereferencing the original's
+`__thread_vars` descriptor VA 0x87f60 (signal 11,
+`SCPHook_PortraitColumns +144`) — is fixed with a real
+`static __thread BOOL` guard in the original's exception
+structure; a tree-wide sweep (349 files, 304 literals
+≥0x1000 hand-classified) found exactly 2 literal defects +
+1 NULL-key sibling, all fixed the same faithful way.
+Track 2: two Prefs format-arg defects fixed with original
+evidence (one crash-class), `OMCWhatsNewVersionToShow`
+rewritten to sub_198c4. Binary regression proof: #0x7f60
+materialisations in the built SplitScreen __text 2 → 0, TLV
+descriptor access + `__thread_vars`/`__thread_bss` sections
+present (`project/logs/fix-round/regression3.txt`). See
+`handover/PATCH_NOTES.md` §7 and
+`handover/RECOVERY_STATUS.md` §11. Rebuilt DEB (this
+commit): SHA-256
+`7f2701d90327c1f89c23332338f6d8fbc6451b327c31d3f5e466e220dde39d74`,
+949,352 bytes (supersedes the fix-round-2 build2 candidate
+`3b2283a8…` above); per-class parity re-verified (62/66
+exact, zero classes missing selectors); parity restage
+202/202 entries, 0 differences. DEVICE_TEST = PENDING.
