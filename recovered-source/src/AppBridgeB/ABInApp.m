@@ -121,14 +121,20 @@ static void ABOrientationBlock(NSNotification *note) {
                         (IMP)ABHook_TVBecome, &orig_TV_become);
         MSHookMessageEx(objc_getClass("UITextView"), @selector(resignFirstResponder),
                         (IMP)ABHook_TVResign, &orig_TV_resign);
-        if (OMCHasMethod("UIWindowScene", @"requestGeometryUpdateWithPreferences:errorHandler:")) { // [hotfix] 2nd arg was a C string; the impl treats it as NSString* (original passes the cfstring — installer_app_4728.txt @0x491c-0x492c)
+        BOOL hasScene = OMCHasMethod("UIWindowScene", @"requestGeometryUpdateWithPreferences:errorHandler:"); // [hotfix] 2nd arg was a C string; the impl treats it as NSString* (original passes the cfstring — installer_app_4728.txt @0x491c-0x492c)
+        BOOL hasVCUpdate = class_getInstanceMethod(objc_getClass("UIViewController"), @selector(setNeedsUpdateOfSupportedInterfaceOrientations)) != NULL;
+        BOOL hasAttempt = class_getClassMethod(objc_getClass("UIViewController"), @selector(attemptRotationToDeviceOrientation)) != NULL;
+        if (hasScene) {
             MSHookMessageEx(objc_getClass("UIWindowScene"),
                             @selector(requestGeometryUpdateWithPreferences:errorHandler:),
                             (IMP)ABHook_SceneRequestGeometry, &orig_Scene_reqGeometry);
+        }
+        if (hasVCUpdate) {
             MSHookMessageEx(objc_getClass("UIViewController"),
                             @selector(setNeedsUpdateOfSupportedInterfaceOrientations),
                             (IMP)ABHook_VCSetNeedsUpdate, &orig_VC_setNeedsUpdate);
-        } else {
+        }
+        if (!hasVCUpdate && hasAttempt) {
             // Pre-iOS-16 fallback: hook the class method on the metaclass.
             MSHookMessageEx(object_getClass(objc_getClass("UIViewController")),
                             @selector(attemptRotationToDeviceOrientation),
@@ -543,9 +549,10 @@ static void ABApplyFPSLimit(CADisplayLink *link) {
     range.maximum = MIN(range.maximum, lim);
     range.preferred = MIN(range.preferred, lim);
     if (range.minimum > range.maximum) range.minimum = range.maximum;
-    ((void (*)(id, SEL, CAFrameRateRange))orig_CADisplayLink_setRange)(link, @selector(setPreferredFrameRateRange:), range);
+    if (orig_CADisplayLink_setRange)
+        ((void (*)(id, SEL, CAFrameRateRange))orig_CADisplayLink_setRange)(link, @selector(setPreferredFrameRateRange:), range);
     NSInteger fps = link.preferredFramesPerSecond;
-    if (fps > ABFPSLimit)
+    if (orig_CADisplayLink_setFPS && fps > ABFPSLimit)
         ((void (*)(id, SEL, NSInteger))orig_CADisplayLink_setFPS)(link, @selector(setPreferredFramesPerSecond:), ABFPSLimit);
 }
 
@@ -558,10 +565,12 @@ static CADisplayLink *ABHook_CADisplayLinkNew(id self, SEL _cmd, id target, SEL 
     return link;
 }
 static void ABHook_CADisplayLinkSetFPS(CADisplayLink *self, SEL _cmd, NSInteger fps) {
-    ((void (*)(id, SEL, NSInteger))orig_CADisplayLink_setFPS)(self, _cmd, fps);
+    if (orig_CADisplayLink_setFPS)
+        ((void (*)(id, SEL, NSInteger))orig_CADisplayLink_setFPS)(self, _cmd, fps);
     ABApplyFPSLimit(self);
 }
 static void ABHook_CADisplayLinkSetRange(CADisplayLink *self, SEL _cmd, CAFrameRateRange range) {
-    ((void (*)(id, SEL, CAFrameRateRange))orig_CADisplayLink_setRange)(self, _cmd, range);
+    if (orig_CADisplayLink_setRange)
+        ((void (*)(id, SEL, CAFrameRateRange))orig_CADisplayLink_setRange)(self, _cmd, range);
     ABApplyFPSLimit(self);
 }

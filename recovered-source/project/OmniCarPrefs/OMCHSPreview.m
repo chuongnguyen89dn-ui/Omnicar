@@ -7,6 +7,7 @@
 // the dump; minor glyph details are INFERRED where noted.
 #import "OMCHSPreview.h"
 #import "OMCCommon.h"
+#import <objc/message.h>
 
 @interface UIImage (OMCHSIcon)
 + (UIImage *)_applicationIconImageForBundleIdentifier:(NSString *)bundleID
@@ -23,10 +24,11 @@ static BOOL OMCHSInstalled(NSString *bundleID) {
     id state = nil;
     SEL stateSel = NSSelectorFromString(@"appState");
     if ([proxy respondsToSelector:stateSel]) state = [proxy performSelector:stateSel];
-    id installed = nil;
+    BOOL installed = NO;
     SEL instSel = NSSelectorFromString(@"isInstalled");
-    if ([state respondsToSelector:instSel]) installed = [state performSelector:instSel];
-    return [installed boolValue];
+    if ([state respondsToSelector:instSel])
+        installed = ((BOOL (*)(id, SEL))objc_msgSend)(state, instSel);
+    return installed;
 }
 
 UIImage *OMCIconSized(NSString *bundleID, double points) {   // sub_1b7cc

@@ -153,11 +153,10 @@ void OMCTrustedTimeStart(void) {
 #pragma mark - Rescue announcer — VERIFIED
 
 // sub_488c: runs (in SpringBoard) when "com.anlai.omnicar/rescue" fires.
-// ANOMALY (verified in the machine code, preserved as-is): the Vietnamese
-// arguments passed to OMCTr here are single letters (@"C", @"M", @"B",
-// @"A", @"O") — as compiled, a vi-locale user is shown those letters
-// verbatim. This looks like an upstream authoring mistake, but the
-// reconstruction reproduces the binary, not the intent.
+// The viText arguments below are full Vietnamese UTF-16 constant strings
+// in the original binary (__ustring, cfstring flags 0x7d0); earlier
+// extraction mis-read them as 1-char C strings. Verified by
+// cfstring-struct parse 2026-11-08.
 static void OMCRescueAnnounce(void) {
     OMCPrefsSync();
     id features = OMCPref(@"rescueFeatures", nil);
@@ -169,23 +168,23 @@ static void OMCRescueAnnounce(void) {
     for (NSString *f in (NSArray *)features) {
         NSString *name;
         if ([f isEqualToString:@"splitScreen"]) {
-            name = OMCTr(@"C", @"Split Screen");
+            name = OMCTr(@"Chia màn hình", @"Split Screen");
         } else if ([f isEqualToString:@"startupScreen"]) {
-            name = OMCTr(@"M", @"Startup Screen");
+            name = OMCTr(@"Màn hình khởi động", @"Startup Screen");
         } else if ([f isEqualToString:@"speedBubble"]) {
-            name = OMCTr(@"B", @"Speed Bubble");
+            name = OMCTr(@"Bong bóng tốc độ", @"Speed Bubble");
         } else if ([f isEqualToString:@"appBridge"]) {
-            name = OMCTr(@"A", @"Apps on the car screen");
+            name = OMCTr(@"App trên màn xe", @"Apps on the car screen");
         } else {
             name = f;
         }
         [names addObject:name];
     }
     NSString *joined = [names componentsJoinedByString:@", "];
-    NSString *title = OMCTr(@"O", @"OmniCar: rescue mode");
+    NSString *title = OMCTr(@"OmniCar: chế độ cứu", @"OmniCar: rescue mode");
     NSString *body = [NSString
         stringWithFormat:
-            OMCTr(@"C",
+            OMCTr(@"CarPlay bị sập %d lần liền ngay sau khi cắm, nên OmniCar đã tắt: %@.\n\nVào Cài đặt > OmniCar để bật lại hoặc gửi log cho tác giả.",
                   @"CarPlay crashed %d times in a row right after "
                    "connecting, so OmniCar turned off: %@.\n\nOpen "
                    "Settings > OmniCar to turn it back on or send the "

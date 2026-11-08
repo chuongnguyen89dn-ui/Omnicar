@@ -34,7 +34,7 @@ extern BOOL        OMCEnabled(void);
 extern BOOL        OMCFeatureEnabled(NSString *featureName);   // reads "<name>Enabled"
 extern BOOL        OMCLiteActive(void);
 extern BOOL        OMCCrashGuard(NSString *featureName);      // NO => rescue mode, abort load of feature
-extern void        OMCLogWrite(NSString *tag, NSString *format, ...);
+extern void OMCLogWrite(NSString *tag, NSString *msg);
 extern NSString   *OMCTr(NSString *vietnamese, NSString *english);
 // Core path resolver (0x4118 in this binary): maps a logical path to the real
 // rootless path via libroot; returns NULL when unresolvable.

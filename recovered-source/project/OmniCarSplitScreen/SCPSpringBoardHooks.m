@@ -113,6 +113,8 @@ static void SCPKillAppBlock(NSNotification *note) {
         if (pid >= 1) {
             kill(pid, SIGKILL);
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"tat han %@ (kill pid %d)", bundleID, pid]);
+        } else {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"tat han %@: khong thay process", bundleID]);
         }
     } @catch (NSException *ex) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"tat han %@ loi %@", bundleID, ex]);

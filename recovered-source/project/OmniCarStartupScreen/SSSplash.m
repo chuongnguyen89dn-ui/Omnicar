@@ -88,7 +88,7 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
         view.duration = SSPlaybackSeconds();
         UIImage *logo = SSLoadImageAtPath(SSLogoPath());
         if (logo) view.image = logo;
-        else OMCLogWrite(@"StartupScreen", @"no logo at %@, showing the car glyph", SSLogoPath());
+        else OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"no logo at %@, showing the car glyph", SSLogoPath()]);
 
         // Status checklist ("HUD") [VERIFIED lines and order]
         NSMutableArray *hud = [NSMutableArray array];
@@ -154,10 +154,10 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
                 break;
             }
         } else {
-            OMCLogWrite(@"StartupScreen", @"calendar: no access (status %ld), no event card", (long)status);
+            OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"calendar: no access (status %ld), no event card", (long)status]);
         }
     } @catch (NSException *exception) {
-        OMCLogWrite(@"StartupScreen", @"calendar: %@", exception);
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"calendar: %@", exception]);
     }
 
     [_startView setWeather:SSWeatherLoadCache()];
@@ -185,10 +185,10 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
     _shownAt = CACurrentMediaTime();
     [_window setHidden:NO];   // NOTE: this very call is what the trigger hook watches;
                               // the SSSplashWindow class check is what keeps it from recursing.
-    OMCLogWrite(@"StartupScreen", @"splash window shown: style=%ld frame=%@ level=%.0f scene=%@ frames=%lu fps=%.0f loop=%d",
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"splash window shown: style=%ld frame=%@ level=%.0f scene=%@ frames=%lu fps=%.0f loop=%d",
                 (long)_style, NSStringFromCGRect(_window.frame), _window.windowLevel,
                 NSStringFromClass(_window.windowScene.class),
-                (unsigned long)_frameCount, _fps, _loop);
+                (unsigned long)_frameCount, _fps, _loop]);
     _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(tick)];
     [_displayLink addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
     if (_style != 0) [self refreshWeather];
@@ -201,8 +201,8 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
                    dispatch_get_main_queue(), ^{   // sub_5f30 [VERIFIED]
         SSSplash *splash = weakSelf;
         if (!splash || splash->_shownFrames != 0) return;
-        OMCLogWrite(@"StartupScreen", @"no frame shown after 10s (failed=%lu), giving up",
-                    (unsigned long)splash->_failedFrames);
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"no frame shown after 10s (failed=%lu), giving up",
+                    (unsigned long)splash->_failedFrames]);
         [splash dismissBecause:@"no frame after 10s"];
     });
 }
@@ -265,7 +265,7 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
         duration = 60.0;   // [VERIFIED: cold block @0x6d94 sets 60.0
                            // (0x404E000000000000) for style 0 non-loop —
                            // verifier #6; previously INFERRED frameCount/fps]
-    OMCLogWrite(@"StartupScreen", @"first frame shown, playing for up to %.0fs", duration);
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"first frame shown, playing for up to %.0fs", duration]);
     int token = 0;
     if (notify_register_check("com.anlai.omnicar/startupscreen.style", &token) == 0)
         notify_set_state(token, (uint64_t)(_style + 1));   // [VERIFIED: add x1, x20, #1
@@ -294,8 +294,8 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
     _finished = YES;
     _endReason = [NSString stringWithFormat:@"%@ after %.1fs", reason,
                   CACurrentMediaTime() - _shownAt];
-    OMCLogWrite(@"StartupScreen", @"dismissing after %lu frames: %@",
-                (unsigned long)_shownFrames, _endReason);
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"dismissing after %lu frames: %@",
+                (unsigned long)_shownFrames, _endReason]);
     CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
         CFSTR("com.anlai.omnicar/startupscreen.audio.stop"), NULL, NULL, true);
     [UIView animateWithDuration:kSSDismissFadeDuration animations:^{
@@ -311,7 +311,7 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
             CFSTR("com.anlai.omnicar/startupscreen.audio.stop"), NULL, NULL, true);
     if (!_finished) {
         _endReason = @"torn down";   // [INFERRED exact endReason text]
-        OMCLogWrite(@"StartupScreen", @"torn down after %.1fs", CACurrentMediaTime() - _shownAt);
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"torn down after %.1fs", CACurrentMediaTime() - _shownAt]);
         _finished = YES;
     }
     [_displayLink invalidate];
@@ -351,8 +351,8 @@ static BOOL SSWeatherReadyRegistered;
                 void (^completion)(NSDictionary *) = SSPendingWeatherCompletion;
                 SSPendingWeatherCompletion = nil;
                 NSDictionary *cache = SSWeatherLoadCache();
-                OMCLogWrite(@"StartupScreen", @"weather: SpringBoard answered (%@)",
-                            cache ? @"cache loaded" : @"nothing usable in the cache");
+                OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: SpringBoard answered (%@)",
+                            cache ? @"cache loaded" : @"nothing usable in the cache"]);
                 if (completion) completion(cache);
             });
         }

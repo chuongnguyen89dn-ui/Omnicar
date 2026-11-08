@@ -131,7 +131,7 @@ NSString *SSChosenVideoName(void) { // sub_9764
     NSArray<NSString *> *entries = [[fm contentsOfDirectoryAtPath:SSVideosDir() error:&error]
                                     sortedArrayUsingSelector:@selector(compare:)];
     if (!entries) {
-        OMCLogWrite(@"StartupScreen", @"cannot list %@: %@", SSVideosDir(), error);
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"cannot list %@: %@", SSVideosDir(), error]);
         return nil;
     }
     for (NSString *entry in entries)
@@ -170,11 +170,11 @@ static void SSWindowShown(UIWindow *window, SEL _cmd, BOOL hidden) { // sub_8054
     UIScreen *screen = window.screen;
     if (SSWindowLogCount < 40) {                  // [INFERRED boundary: counter compared to 0x27/0x28]
         SSWindowLogCount++;
-        OMCLogWrite(@"StartupScreen", @"window shown: %@ level=%.0f scene=%@ %p %@ screen=%@",
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"window shown: %@ level=%.0f scene=%@ %p %@ screen=%@",
                     NSStringFromClass(window.class), window.windowLevel,
                     NSStringFromClass(window.windowScene.class), window.windowScene,
                     window.windowScene.session.persistentIdentifier,
-                    SSScreenDescription(screen));
+                    SSScreenDescription(screen)]);
     }
     if (SSIsCarScreen(screen)) {
         UIWindowScene *scene = window.windowScene;
@@ -185,12 +185,12 @@ static void SSWindowShown(UIWindow *window, SEL _cmd, BOOL hidden) { // sub_8054
 }
 
 static void SSSceneLogAndHandle(UIWindowScene *scene, NSString *reason) { // sub_84b8
-    OMCLogWrite(@"StartupScreen", @"%@: %@ role=%@", reason,
-                NSStringFromClass(scene.class), scene.session.role);
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"%@: %@ role=%@", reason,
+                NSStringFromClass(scene.class), scene.session.role]);
     if ([scene isKindOfClass:UIWindowScene.class]) {
-        OMCLogWrite(@"StartupScreen", @"%@: idiom=%ld screen=%@", reason,
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"%@: idiom=%ld screen=%@", reason,
                     (long)scene.screen.traitCollection.userInterfaceIdiom,
-                    SSScreenDescription(scene.screen));
+                    SSScreenDescription(scene.screen)]);
         SSHandleCarScreen(scene.screen, scene, reason);
     }
 }
@@ -242,7 +242,7 @@ static NSInteger SSDetectOccasion(void) {
     NSMutableDictionary *log = [OMCPref(@"startupScreenOccasionLog", nil) mutableCopy] ?: [NSMutableDictionary dictionary];
     NSInteger shown = [log[key] integerValue];
     if (shown >= 3) {
-        OMCLogWrite(@"StartupScreen", @"occasion %ld already shown %ld times today", (long)occasion, (long)shown);
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"occasion %ld already shown %ld times today", (long)occasion, (long)shown]);
         return 0;
     }
     // prune: keep today and the previous 7 days only
@@ -264,8 +264,8 @@ void SSHandleCarScreen(UIScreen *screen, UIWindowScene *scene, NSString *reason)
     if (!SSIsCarScreen(screen)) return;
     if (objc_getAssociatedObject(screen, kSSClaimKey)) return;    // one splash per screen
     objc_setAssociatedObject(screen, kSSClaimKey, @YES, OBJC_ASSOCIATION_ASSIGN);
-    OMCLogWrite(@"StartupScreen", @"car display detected via %@: screen=%@ scene=%@",
-                reason, SSScreenDescription(screen), NSStringFromClass(scene.class));
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"car display detected via %@: screen=%@ scene=%@",
+                reason, SSScreenDescription(screen), NSStringFromClass(scene.class)]);
     OMCPrefsSync();
     if (!OMCFeatureEnabled(@"startupScreen")) {
         OMCLogWrite(@"StartupScreen", @"disabled in settings");
@@ -310,20 +310,20 @@ void SSHandleCarScreen(UIScreen *screen, UIWindowScene *scene, NSString *reason)
             fps = [info[@"fps"] doubleValue];
         }
         if (name && frameCount > 0 && fps > 0) {
-            OMCLogWrite(@"StartupScreen", @"playing %@ (%lu frames @ %.0ffps)",
-                        name, (unsigned long)frameCount, fps);
+            OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"playing %@ (%lu frames @ %.0ffps)",
+                        name, (unsigned long)frameCount, fps]);
         } else {
-            if (name) OMCLogWrite(@"StartupScreen", @"no frames for %@ (open Settings > OmniCar > Startup Screen to convert it) -> liquid style", name);
-            else      OMCLogWrite(@"StartupScreen", @"no video found in %@ -> liquid style", SSVideosDir());
+            if (name) OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"no frames for %@ (open Settings > OmniCar > Startup Screen to convert it) -> liquid style", name]);
+            else      OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"no video found in %@ -> liquid style", SSVideosDir()]);
             style = 9;
             framesDir = nil; frameCount = 0; fps = 0;
         }
     }
     if (style != setting)
-        OMCLogWrite(@"StartupScreen", @"style %ld this time (setting %ld, occasion %ld)",
-                    (long)style, (long)setting, (long)occasion);
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"style %ld this time (setting %ld, occasion %ld)",
+                    (long)style, (long)setting, (long)occasion]);
     if (style != 0 && framesDir == nil)
-        OMCLogWrite(@"StartupScreen", @"showing style %ld", (long)style);
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"showing style %ld", (long)style]);
 
     SSSplash *splash = [[SSSplash alloc] initWithScreen:screen scene:scene style:style
                                                occasion:occasion framesDir:framesDir
@@ -394,9 +394,9 @@ __attribute__((constructor)) static void SSStartupScreenInit(void) {
     MSHookMessageEx(UIWindow.class, @selector(setHidden:),
                     (IMP)SSWindowShown, (IMP *)&SSOrigUIWindowSetHidden);
     for (UIScreen *screen in UIScreen.screens)
-        OMCLogWrite(@"StartupScreen", @"existing screen: %@", SSScreenDescription(screen));
-    OMCLogWrite(@"StartupScreen", @"videos dir %@ readable=%d", SSVideosDir(),
-                [NSFileManager.defaultManager isReadableFileAtPath:SSVideosDir()]);
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"existing screen: %@", SSScreenDescription(screen)]);
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"videos dir %@ readable=%d", SSVideosDir(),
+                [NSFileManager.defaultManager isReadableFileAtPath:SSVideosDir()]]);
     NSNotificationCenter *nc = NSNotificationCenter.defaultCenter;
     NSOperationQueue *main = NSOperationQueue.mainQueue;
     [nc addObserverForName:UISceneWillConnectNotification object:nil queue:main
@@ -411,13 +411,13 @@ __attribute__((constructor)) static void SSStartupScreenInit(void) {
     }];
     [nc addObserverForName:UIScreenDidConnectNotification object:nil queue:main
                 usingBlock:^(NSNotification *note) {   // sub_86d0
-        OMCLogWrite(@"StartupScreen", @"screen connected: %@",
-                    SSScreenDescription((UIScreen *)note.object));
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"screen connected: %@",
+                    SSScreenDescription((UIScreen *)note.object)]);
     }];
     [nc addObserverForName:UIScreenDidDisconnectNotification object:nil queue:main
                 usingBlock:^(NSNotification *note) {   // sub_8768
         UIScreen *screen = (UIScreen *)note.object;
-        OMCLogWrite(@"StartupScreen", @"screen disconnected: %@", SSScreenDescription(screen));
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"screen disconnected: %@", SSScreenDescription(screen)]);
         SSScreenGone(screen);
     }];
     [nc addObserverForName:UISceneDidDisconnectNotification object:nil queue:main
@@ -492,7 +492,7 @@ static void SSPlayStopSoundtrack(BOOL play) { // sub_8f0c
             path = [[SSVideosDir() stringByAppendingPathComponent:@".frames"]
                     stringByAppendingPathComponent:[name stringByAppendingPathComponent:@"audio.m4a"]];
             if (![NSFileManager.defaultManager fileExistsAtPath:path]) {
-                OMCLogWrite(@"StartupScreen", @"audio: no soundtrack for %@", name);
+                OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"audio: no soundtrack for %@", name]);
                 path = nil;
             }
         }
@@ -502,7 +502,7 @@ static void SSPlayStopSoundtrack(BOOL play) { // sub_8f0c
         if ([file isKindOfClass:NSString.class] && file.length) {
             path = [SSSoundsDir() stringByAppendingPathComponent:file.lastPathComponent];
             if (![NSFileManager.defaultManager fileExistsAtPath:path]) {
-                OMCLogWrite(@"StartupScreen", @"audio: startup sound %@ is missing", file.lastPathComponent);
+                OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"audio: startup sound %@ is missing", file.lastPathComponent]);
                 return;
             }
         }
@@ -534,7 +534,7 @@ static void SSPlayStopSoundtrack(BOOL play) { // sub_8f0c
     AVAudioPlayer *player = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL fileURLWithPath:path]
                                                                    error:&error];
     if (!player) {
-        OMCLogWrite(@"StartupScreen", @"audio: cannot open %@: %@", path, error);
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"audio: cannot open %@: %@", path, error]);
         SSRestoreAudioSession();
         return;
     }
@@ -545,8 +545,8 @@ static void SSPlayStopSoundtrack(BOOL play) { // sub_8f0c
                       // earlier draft had this mapping inverted]
     player.volume = volume;
     BOOL ok = [player play];
-    OMCLogWrite(@"StartupScreen", @"audio: playing %@ ok=%d volume=%.2f route=%@", path, ok,
-                volume, session.currentRoute.outputs.firstObject.portType);
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"audio: playing %@ ok=%d volume=%.2f route=%@", path, ok,
+                volume, session.currentRoute.outputs.firstObject.portType]);
 }
 
 // ===========================================================================
@@ -633,9 +633,9 @@ void SSWeatherFetch(double lat, double lon, void (^completion)(NSDictionary *)) 
             weather = SSWeatherParse(json);
             if (weather) SSWeatherSaveCache(weather);
         }
-        OMCLogWrite(@"StartupScreen", @"weather: %@ in %.1fs (http %ld, %@)",
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: %@ in %.1fs (http %ld, %@)",
                     weather ? @"updated" : @"failed", CACurrentMediaTime() - started,
-                    (long)status, error.localizedDescription ?: @"no error");
+                    (long)status, error.localizedDescription ?: @"no error"]);
         dispatch_async(dispatch_get_main_queue(), ^{ if (completion) completion(weather); });
     }] resume];
     [session finishTasksAndInvalidate];
@@ -650,7 +650,7 @@ static void SSNotifyWeatherReady(void) { // sub_a608
 }
 
 static void SSFetchAndAnswer(double lat, double lon, NSString *source) { // sub_9f1c [VERIFIED]
-    OMCLogWrite(@"StartupScreen", @"weather: SpringBoard fetching with the %@ position", source);
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: SpringBoard fetching with the %@ position", source]);
     SSWeatherFetch(lat, lon, ^(NSDictionary *weather) {
         SSWeatherAnswerInFlight = NO;
         SSNotifyWeatherReady();
@@ -671,10 +671,10 @@ static void SSAnswerWeatherRequest(void) { // sub_7d10 [VERIFIED flow]
     SSWeatherAnswerInFlight = YES;
     CLLocationManager *manager = [CLLocationManager new];
     CLLocation *fix = manager.location;
-    OMCLogWrite(@"StartupScreen", @"weather: SpringBoard location status %d, last fix %@",
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: SpringBoard location status %d, last fix %@",
                 (int)CLLocationManager.authorizationStatus,
                 fix ? [NSString stringWithFormat:@"%.0fs old", -fix.timestamp.timeIntervalSinceNow]
-                    : @"none");
+                    : @"none"]);
     if (fix && -fix.timestamp.timeIntervalSinceNow <= 300) {   // [INFERRED threshold operand]
         SSFetchAndAnswer(fix.coordinate.latitude, fix.coordinate.longitude, @"last CoreLocation");
         return;
@@ -726,8 +726,8 @@ static void SSAnswerWithStoredOrIP(void) { // sub_9b7c [VERIFIED flow]
                                  [NSString stringWithFormat:@"IP (%@)", city]);
             } else {
                 if (error || !json)
-                    OMCLogWrite(@"StartupScreen", @"weather: IP location failed (%@)",
-                                error.localizedDescription ?: @"no coordinates in the answer");
+                    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: IP location failed (%@)",
+                                error.localizedDescription ?: @"no coordinates in the answer"]);
                 OMCLogWrite(@"StartupScreen", @"weather: SpringBoard has no position at all, answering without weather");
                 SSWeatherAnswerInFlight = NO;
                 SSNotifyWeatherReady();
@@ -764,7 +764,7 @@ static void SSLocationStateChanged(uint64_t state) { // sub_7a60
     [self finish:locations.lastObject];
 }
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
-    OMCLogWrite(@"StartupScreen", @"weather: location failed: %@", error);
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: location failed: %@", error]);
     [self finish:manager.location];
 }
 - (void)finish:(CLLocation *)location { // -[SSLocationOnce finish:]
