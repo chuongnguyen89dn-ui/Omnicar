@@ -44,14 +44,14 @@
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
-    if ([super respondsToSelector:@selector(tableView:willDisplayHeaderView:forSection:)]) {
+    if ([PSListController instancesRespondToSelector:@selector(tableView:willDisplayHeaderView:forSection:)]) {
         [super tableView:tableView willDisplayHeaderView:view forSection:section];
     }
     OMCStyleHeaderFooter(view);
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayFooterView:(UIView *)view forSection:(NSInteger)section {
-    if ([super respondsToSelector:@selector(tableView:willDisplayFooterView:forSection:)]) {
+    if ([PSListController instancesRespondToSelector:@selector(tableView:willDisplayFooterView:forSection:)]) {
         [super tableView:tableView willDisplayFooterView:view forSection:section];
     }
     OMCStyleHeaderFooter(view);

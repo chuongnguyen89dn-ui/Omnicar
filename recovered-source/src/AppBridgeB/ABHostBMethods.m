@@ -75,6 +75,21 @@ static void ABSendV0(id obj, NSString *name) {
         ABMissingSelector(obj, name);
     }
 }
+// [fix-round2] ABSendV1 — ADDED minimal helper (flagged in
+// work/fix-round2/audit-appbridge-launch.md): the file had NO void
+// one-object-argument send (only ABSendV0/VB/VI/VBlock); void setters
+// such as setDelegate: were being called through id-returning ABSend1,
+// whose phantom return value ARC may treat as an object. Body mirrors
+// ABSendVBlock's cast and guard exactly, minus the block semantics.
+static void ABSendV1(id obj, NSString *name, id a1) {
+    SEL sel = NSSelectorFromString(name);
+    if ([obj respondsToSelector:sel]) {
+        void (*fn)(id, SEL, id) = (void *)objc_msgSend;
+        fn(obj, sel, a1);
+    } else {
+        ABMissingSelector(obj, name);
+    }
+}
 static void ABSendVB(id obj, NSString *name, BOOL a1) {
     SEL sel = NSSelectorFromString(name);
     if ([obj respondsToSelector:sel]) {
@@ -215,8 +230,25 @@ static id ABInvokeIdentityGetter(id target, NSString *selectorName, id applicati
     [inv retainArguments];
     [inv invoke];
     if (sig.methodReturnLength == 0) return nil;
-    id result = nil;
-    [inv getReturnValue:&result];
+    // [fix-round2 ABI C3] Return-value extraction. ORIGINAL sub_DEF0
+    // @0xE148-0xE160: zeroed pointer-sized stack slot, getReturnValue:
+    // into it, load as id, explicit objc_retain @0xE160, returned via
+    // objc_autoreleaseReturnValue — with NO return-encoding check of
+    // any kind. The raw-slot + strong-move shape below ADOPTS that
+    // pattern (getReturnValue: writes raw bytes and performs no strong
+    // store, so the value is read through __unsafe_unretained and moved
+    // to a strong reference before the invocation leaves scope). The
+    // encoding/length gate is HARDENING BEYOND THE BINARY (GPT spec,
+    // not a restored behaviour — the original is silent): the fuzzy
+    // resolver (ABResolveSelectorName) can in principle land on a
+    // scalar/struct-returning selector, whose buffer must never be
+    // read as id, so '@' + pointer-sized length are verified first.
+    const char *retType = sig.methodReturnType;
+    if (!retType || retType[0] != '@' || sig.methodReturnLength != sizeof(id))
+        return nil;
+    __unsafe_unretained id raw = nil;
+    [inv getReturnValue:&raw];
+    id result = raw;
     return result;
 }
 
@@ -1273,6 +1305,10 @@ static id ABSceneOfPane(ABPane *pane) {
 // its scene backgrounded/non-foreground. The box then fades out and is
 // removed (blocks @0x15C8C/@0x15C98).
 - (void)teardownPane:(ABPane *)pane {
+    // [fix-round2] [GPT-F] MILESTONE logging only (no flow change).
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"MILESTONE teardown bundle=%@ pane=%p",
+        pane.bundleID, (void *)pane]);
     @try {
         [pane.sceneMonitor invalidate];
         pane.sceneMonitor = nil;
@@ -1402,10 +1438,20 @@ static id ABSceneOfPane(ABPane *pane) {
     __weak ABHost *weakSelf = self;
     __weak ABPane *weakPane = pane;
     ABSendVBlock(transaction, @"setCompletionBlock:", ^(NSInteger result) {
+        // [fix-round2] MILESTONE logging only (no flow change).
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"MILESTONE transaction-complete bundle=%@ pane=%p readySource=launch-callback result=%d",
+            weakPane.bundleID, (void *)weakPane, (int)result]);
         [transitions removeObject:transaction];
         id launchTransaction = [transaction valueForKey:@"_processLaunchTransaction"];
         id process = launchTransaction ? ABSend0(launchTransaction, @"process") : nil;
         void (^afterLaunch)(void) = ^{
+            // [fix-round2] MILESTONE logging only (no flow change):
+            // this block is what _executeBlockAfterLaunchCompletes:
+            // invokes (or the no-process fallback calls directly).
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"MILESTONE process-launch-complete bundle=%@ pane=%p readySource=launch-callback",
+                weakPane.bundleID, (void *)weakPane]);
             dispatch_async(dispatch_get_main_queue(), ^{
                 ABHost *host = weakSelf;
                 ABPane *p = weakPane;
@@ -1413,6 +1459,10 @@ static id ABSceneOfPane(ABPane *pane) {
                 if (![host.panes containsObject:p]) return;
                 ABPostOrientationToApp(p.bundleID, p.orientation);   // INFERRED position
                 [host layoutPane:p];
+                // [fix-round2] MILESTONE logging only (no flow change).
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"MILESTONE revealPane bundle=%@ pane=%p readySource=launch-callback",
+                    p.bundleID, (void *)p]);
                 [host revealPane:p];
                 if (!p.ready) {
                     p.ready = YES;
@@ -1436,8 +1486,22 @@ static id ABSceneOfPane(ABPane *pane) {
         }
     });
     ABSendV0(transaction, @"begin");
-    id sceneView = ABSend0(vc, @"_createSceneViewController");
-    (void)sceneView;
+    // [fix-round2] The original @0xD200 calls _createSceneViewController
+    // and discards the result untouched (no retain/release/store/message
+    // on x0 before the next send) — so it is sent here as a void call,
+    // NOT via id-returning ABSend0 (whose "create" name would imply an
+    // ARC-family retained return). The type-encoding line below lets a
+    // device log settle the method's true return type definitively.
+    {
+        Method csMethod = class_getInstanceMethod([vc class],
+            NSSelectorFromString(@"_createSceneViewController"));
+        const char *csEnc = csMethod ? method_getTypeEncoding(csMethod) : NULL;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"MILESTONE type-encoding _createSceneViewController class=%@ encoding=%s bundle=%@ pane=%p",
+            NSStringFromClass([vc class]), csEnc ? csEnc : "(none)",
+            pane.bundleID, (void *)pane]);
+    }
+    ABSendV0(vc, @"_createSceneViewController");
     id factory = ABSend0(objc_getClass("SBApplicationSceneView"),
                          @"defaultDisplayModeAnimationFactory");
     id appView = ABSend0(vc, @"appView");
@@ -1453,6 +1517,10 @@ static id ABSceneOfPane(ABPane *pane) {
     UIView *vcView = [vc view];
     vcView.backgroundColor = [UIColor clearColor];
     [pane.box insertSubview:vcView atIndex:0];
+    // [fix-round2] [GPT-F] MILESTONE logging only (no flow change).
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"MILESTONE scene-attached bundle=%@ pane=%p viewClass=%@",
+        pane.bundleID, (void *)pane, NSStringFromClass([vcView class])]);
     NSString *primarySel = ABResolveSelectorName(layoutState,
         @[@"primarySceneIdentifierForBundleIdentifier:sceneSessionRole:displayIdentity:",
           @"primarySceneIdentifierForBundleIdentifier:"],
@@ -1463,7 +1531,9 @@ static id ABSceneOfPane(ABPane *pane) {
         id monitor = ABSend1([objc_getClass("FBSceneMonitor") alloc],
                              @"initWithSceneID:", sceneID);
         pane.sceneMonitor = monitor;
-        ABSend1(monitor, @"setDelegate:", self);
+        // [fix-round2] setDelegate: returns void (original @0xD518
+        // ignores the msgSend result entirely) — void send, not ABSend1.
+        ABSendV1(monitor, @"setDelegate:", self);
     }
 }
 

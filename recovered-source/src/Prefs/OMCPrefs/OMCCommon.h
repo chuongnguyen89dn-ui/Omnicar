@@ -106,7 +106,7 @@ void OMCLocalizeSpecifiers(NSArray *specifiers);
 void OMCStyleTable(UITableView *table);          // [VERIFIED: _OMCStyleTable]
 void OMCStyleCell(UITableViewCell *cell);        // [VERIFIED: _OMCStyleCell]
 void OMCStyleGlassCard(UIView *view);            // [VERIFIED: _OMCStyleGlassCard]
-void OMCStyleHeaderFooter(UIView *view);         // [VERIFIED: _OMCStyleHeaderFooter]
+void OMCStyleHeaderFooter(UIView *view);         // [VERIFIED: _OMCStyleHeaderFooter — the original's 2nd (header/footer) param is a recorded fidelity gap, deferred per GPT consolidated §D]
 
 UIColor *OMCColorFromHex(NSString *hex);         // [VERIFIED]
 UIColor *OMCAccentColor(void);                   // light 0x7B6CF6 / dark 0xA89BFF
@@ -142,6 +142,22 @@ NSDictionary *OMCDiagSummary(void);              // [VERIFIED: _OMCDiagSummary]
 /// Builds the text report and presents a share sheet from `presenter`.
 /// [VERIFIED: _OMCShareReport — presenter is the first argument]
 void OMCShareReport(UIViewController *presenter);
+
+/// [GPT-F] Candidate-only diagnostic logger — NOT a restored behaviour:
+/// the original Prefs binary contains no _OMCLogWrite at all (absent from
+/// its 31-function _CFunctions census and from the built binary's symbol
+/// table) and no Prefs source called it; the shared core unit is not
+/// linked into this bundle (see the phase-1 deviation note in the Prefs
+/// Makefile). Added solely so the GPT consolidated fix §F Settings
+/// diagnostics can land in /var/mobile/Documents/OmniCar.log. Semantics
+/// mirror the verified shared-core OMCLogWrite (src/OMCCommon/
+/// OMCCommon.c): NSLog echo, "<yyyy-MM-dd HH:mm:ss.SSS> [<process>:<pid>]
+/// <tag>: <msg>" line appended on the serial queue
+/// "com.anlai.omnicar.log", with the "com.anlai.omnicar/log"
+/// distributed-notification relay when a non-SpringBoard process cannot
+/// append directly. The dylib variants' crash-state lastFeature stamp is
+/// omitted: this binary has no crash-guard state to stamp.
+void OMCLogWrite(NSString *tag, NSString *msg);
 
 // ---------------------------------------------------------------------------
 // Speed Bubble voice helpers (C functions used by SPPBubbleView)

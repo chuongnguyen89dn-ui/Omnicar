@@ -35,6 +35,29 @@
         [self insertFeatureSpecifiers];
         OMCLocalizeSpecifiers(_specifiers);
         [self applySupportState];
+        // [GPT-F] Candidate-only diagnostic (GPT consolidated fix §F; NOT a
+        // restored behaviour — the original Prefs binary has no
+        // OMCLogWrite). ONE emission per specifiers build: builds run per
+        // pane presentation / reload, never per frame — that is the rate
+        // limit. For every inserted feature specifier (identified by its
+        // @"plist" property) this logs the plist name, the final index,
+        // and the RUNTIME CLASS of the object stored under @"cellClass" —
+        // the check that exposes a string stored where a Class belongs.
+        {
+            NSMutableArray<NSString *> *featureLines = [NSMutableArray array];
+            for (NSUInteger i = 0; i < _specifiers.count; i++) {
+                PSSpecifier *spec = _specifiers[i];
+                NSString *plist = [spec propertyForKey:@"plist"];
+                if (!plist) continue;
+                [featureLines addObject:[NSString stringWithFormat:
+                    @"%@ @%lu cellClass=%@", plist, (unsigned long)i,
+                    NSStringFromClass([[spec propertyForKey:@"cellClass"] class])]];
+            }
+            OMCLogWrite(@"Prefs", [NSString stringWithFormat:
+                @"[GPT-F] specifiers build: controller=%@ total=%lu features=[%@]",
+                NSStringFromClass([self class]), (unsigned long)_specifiers.count,
+                [featureLines componentsJoinedByString:@", "]]);
+        }
     }
     return _specifiers;
 }
@@ -75,13 +98,16 @@
                                                              cell:PSLinkCell
                                                              edit:nil];
         [spec setProperty:entry[@"plist"] forKey:@"plist"];
-        [spec setProperty:NSStringFromClass([OMCFeatureStatusCell class]) forKey:@"cellClass"];
+        [spec setProperty:[OMCFeatureStatusCell class] forKey:@"cellClass"];
         if (info[@"featureIcon"]) [spec setProperty:info[@"featureIcon"] forKey:@"icon"];
         if (info[@"featureSymbol"]) [spec setProperty:info[@"featureSymbol"] forKey:@"symbol"];
         for (NSDictionary *item in info[@"items"]) {
             if ([item[@"cell"] isEqualToString:@"PSSwitchCell"]) {
-                if (item[@"key"]) [spec setProperty:item[@"key"] forKey:@"featureKey"];
-                if (item[@"default"]) [spec setProperty:item[@"default"] forKey:@"featureDefault"];
+                // [VERIFIED: original stamps both unconditionally
+                // (asm 0x16328-0x16398); a missing "default" becomes
+                // kCFBooleanTrue via csel, not an omitted property]
+                [spec setProperty:item[@"key"] forKey:@"featureKey"];
+                [spec setProperty:item[@"default"] ?: @YES forKey:@"featureDefault"];
             }
         }
         [_specifiers insertObject:spec atIndex:insertAt++];
@@ -261,20 +287,42 @@
 #pragma mark - Table styling
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [super tableView:tableView cellForRowAtIndexPath:indexPath];
-    OMCStyleCell(cell);
+    UITableViewCell *cell = nil;
+    @try {
+        cell = [super tableView:tableView cellForRowAtIndexPath:indexPath];
+        OMCStyleCell(cell);
+    } @catch (NSException *exception) {
+        // [GPT-F] Candidate-only diagnostic (GPT consolidated fix §F; NOT a
+        // restored behaviour): log the failing coordinates and the
+        // exception, then RETHROW — behaviour is unchanged, nothing is
+        // swallowed or continued past.
+        NSString *specifierID = nil;
+        @try {
+            PSSpecifier *spec = [self specifierAtIndexPath:indexPath];
+            specifierID = [spec identifier] ?: [spec propertyForKey:@"plist"];
+        } @catch (NSException *lookupException) {
+            (void)lookupException;
+            specifierID = nil;
+        }
+        OMCLogWrite(@"Prefs", [NSString stringWithFormat:
+            @"[GPT-F] cellForRow exception: controller=%@ section=%ld row=%ld specifier=%@ name=%@ reason=%@ stack=%@",
+            NSStringFromClass([self class]), (long)indexPath.section,
+            (long)indexPath.row, specifierID, exception.name, exception.reason,
+            [exception.callStackSymbols componentsJoinedByString:@" | "]]);
+        @throw;
+    }
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
-    if ([super respondsToSelector:@selector(tableView:willDisplayHeaderView:forSection:)]) {
+    if ([PSListController instancesRespondToSelector:@selector(tableView:willDisplayHeaderView:forSection:)]) {
         [super tableView:tableView willDisplayHeaderView:view forSection:section];
     }
     OMCStyleHeaderFooter(view);
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayFooterView:(UIView *)view forSection:(NSInteger)section {
-    if ([super respondsToSelector:@selector(tableView:willDisplayFooterView:forSection:)]) {
+    if ([PSListController instancesRespondToSelector:@selector(tableView:willDisplayFooterView:forSection:)]) {
         [super tableView:tableView willDisplayFooterView:view forSection:section];
     }
     OMCStyleHeaderFooter(view);

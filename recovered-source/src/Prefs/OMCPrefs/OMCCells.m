@@ -17,7 +17,9 @@ static id OMCCellPref(NSString *key) {
 - (instancetype)initWithStyle:(UITableViewCellStyle)style
               reuseIdentifier:(NSString *)identifier
                     specifier:(PSSpecifier *)specifier {
-    return [super initWithStyle:style reuseIdentifier:identifier specifier:specifier];
+    // [VERIFIED: all three originals force UITableViewCellStyleValue1
+    // (mov w2, #1 before objc_msgSendSuper2) so detailTextLabel exists]
+    return [super initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:identifier specifier:specifier];
 }
 
 // [VERIFIED] key/default come from the specifier properties that
@@ -39,7 +41,9 @@ static id OMCCellPref(NSString *key) {
 - (instancetype)initWithStyle:(UITableViewCellStyle)style
               reuseIdentifier:(NSString *)identifier
                     specifier:(PSSpecifier *)specifier {
-    return [super initWithStyle:style reuseIdentifier:identifier specifier:specifier];
+    // [VERIFIED: all three originals force UITableViewCellStyleValue1
+    // (mov w2, #1 before objc_msgSendSuper2) so detailTextLabel exists]
+    return [super initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:identifier specifier:specifier];
 }
 
 // [VERIFIED] Proves the App Bridge selection lives under the preference key
@@ -67,7 +71,9 @@ static id OMCCellPref(NSString *key) {
 - (instancetype)initWithStyle:(UITableViewCellStyle)style
               reuseIdentifier:(NSString *)identifier
                     specifier:(PSSpecifier *)specifier {
-    return [super initWithStyle:style reuseIdentifier:identifier specifier:specifier];
+    // [VERIFIED: all three originals force UITableViewCellStyleValue1
+    // (mov w2, #1 before objc_msgSendSuper2) so detailTextLabel exists]
+    return [super initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:identifier specifier:specifier];
 }
 
 // [VERIFIED] The specifier's "key" property names a preference holding a

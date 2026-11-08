@@ -230,28 +230,42 @@ static void Hook_presentBaseViewController(id self, SEL _cmd, UIViewController *
     });
 }
 
-// sub_66dc VERIFIED (call sequence): dismissing the base VC back to the
-// dashboard home tears the split down first.
+// sub_66dc VERIFIED (read end-to-end, dump
+// src/SplitScreenA/disasm/hook_RootVC_dismissBaseViewController_0x66dc.txt;
+// fix-round2 restored — the earlier transcription diverged in four ways):
+// dismissing the base VC back to the dashboard home. Flow notes, all
+// VA-anchored: currentBaseViewController is read on the hook's OWN
+// receiver (self, a DBDashboardRootViewController — 0x672c-0x675c), NOT
+// from a global dashboard root; the split is closed only when there is
+// NO base VC (0x6794 cbnz skips the log+close when one exists) and the
+// close is closeGoingHome:NO (0x67d4: mov w2, #0); removeAppTab runs on
+// EVERY path (split inactive included) before the original (0x67dc);
+// refreshAppTabSoon runs AFTER the original (call at 0x6804, orig at
+// 0x67fc), also on every path, in its own @try (catch tag
+// "refreshAppTabSoon", handler resumes at 0x6808; the main @try's catch
+// handler resumes at 0x67e4, i.e. past removeAppTab — so removeAppTab
+// sits inside the main @try and the original call is unguarded).
 static void Hook_dismissBaseViewController(id self, SEL _cmd, BOOL animated, void (^completion)(void)) {
+    SCPCarSplit *split = [SCPCarSplit shared];
     @try {
-        SCPCarSplit *split = [SCPCarSplit shared];
         if ([split active]) {
-            id root = SCPDashboardRootViewController();
             SEL baseSel = NSSelectorFromString(@"currentBaseViewController");
             id base = nil;
-            if ([root respondsToSelector:baseSel])
-                base = ((id (*)(id, SEL))objc_msgSend)(root, baseSel);
+            if ([self respondsToSelector:baseSel])
+                base = ((id (*)(id, SEL))objc_msgSend)(self, baseSel);
             else
-                SCPMissingSelector(root, NSStringFromSelector(baseSel));
-            if (base) {
-                OMCLogWrite(@"SplitScreen", @"CarSplit: DashBoard ve man chinh -> tat split");
-                [split closeGoingHome:YES];
-                [split removeAppTab];
-                [split refreshAppTabSoon];
+                SCPMissingSelector(self, @"currentBaseViewController");
+            if (!base) {
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"CarSplit: DashBoard ve man chinh -> tat split"]);
+                [split closeGoingHome:NO];
             }
         }
+        [split removeAppTab];
     } @catch (NSException *ex) { SCPExceptionLog("dismissBaseViewController", ex); }
     ((void (*)(id, SEL, BOOL, id))orig_RootVC_dismissBaseViewController)(self, _cmd, animated, completion);
+    @try { [split refreshAppTabSoon]; }
+    @catch (NSException *ex) { SCPExceptionLog("refreshAppTabSoon", ex); }
 }
 
 // sub_68e8 VERIFIED: orig + rootDidLayout.

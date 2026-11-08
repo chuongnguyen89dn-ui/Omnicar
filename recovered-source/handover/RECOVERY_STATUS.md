@@ -1024,3 +1024,107 @@ remains structural/static. The device still carries the
 CrashGuard rescue state from the crash-loop (only the speed
 bubble shows); that state is evidence, not a fault of this
 build, and clearing it is a separate, deliberate step.
+
+## 12. Settings conviction + branch-fidelity round (2026-11-08)
+
+**Device verdict that opened the round.** On the user's device, with
+the current prefs/rescue state untouched, the ORIGINAL 1.0.3 Settings
+pane opens normally while every rebuilt build ejected Preferences.
+Three Preferences .ips reports (18:12–18:14) convicted the cell path:
+an uncaught unrecognized-selector exception inside
+`-[PSListController tableView:cellForRowAtIndexPath:]`, called from our
+`-[OMCRootListController tableView:cellForRowAtIndexPath:]` (Prefs
++0x1CFA0, UUID-verified against the portraitfix build).
+
+**Root cause (device-proven).** `insertFeatureSpecifiers` stamped the
+specifier `cellClass` property with an NSString
+(`NSStringFromClass(...)`); the original stamps the Class object.
+PSListController consumes the property as a Class during cell creation,
+so the first feature row's cell creation threw. FIXED. The
+load-surface diff and the AppBridge-in-Preferences surface are CLEAN —
+recorded in PATCH_NOTES §12.1 and
+`work/fix-round2/audit-prefs.md`. A full specifier-surface coverage
+audit (two independent passes) found no further defect on that surface.
+
+**Also fixed this round** (all disasm-verified against the original;
+details + causal separations in PATCH_NOTES §12.2–§12.4): the ×4
+super-guard inversion and the `OMCStyleHeaderFooter` parameter
+restoration in Prefs; the forced `UITableViewCellStyleValue1` cell
+inits; the unconditional featureKey/featureDefault stamps; the
+AppBridge `setDelegate:` / `_createSceneViewController` send-signature
+defects, the restored 2.5 s reveal-then-ready fallback, and launch
+milestone logging; and the SplitScreen branch restorations
+(`rootDidLayout`, `refreshHomeButton` keep-check, `refreshAppTab`,
+`autoLaunchAttempt:`, `dashboardInvalidated`, the
+`dismissBaseViewController` hook).
+
+**Completeness claim — WITHDRAWN.** Earlier sections of this document
+(in particular the §6 verification-scope framing) could be read as
+claiming behavioural completeness for the reconstruction on the basis
+of census/selector parity. That reading is now SUPERSEDED: parity
+stands as measured, but the "VERIFIED" labels never covered branch
+structure or call order, and every defect found this round sat under
+one. Branch fidelity is recorded as a separate audit axis in
+PATCH_NOTES §12.5, with the exact list of branch-verified functions in
+§12.6; everything outside that list remains branch-UNVERIFIED, and
+acceptance proceeds by runtime-path testing against the original.
+
+**Build.** Clean local build (build5) exit 0; payload diff 176 = 176
+files, resources 168/168 byte-identical, 0 original defined symbols
+missing in any binary, Prefs methods 743→745 (known additive pair);
+parity restage 202/202 entries, 0 differences. New rebuilt DEB:
+949,828 bytes, SHA-256
+`4d794d087689b74d58e244ec6ce206d48c6fad8ddbc40bfe4cbface5dde4a7b6`
+(supersedes the build3 candidate `7f2701d90…`).
+
+**Status.** DEVICE_TEST = PENDING. First gate: Settings → OmniCar
+opens. The device still carries the CrashGuard rescue state from the
+earlier crash-loop (splitScreen + startupScreen disabled by rescue);
+re-enabling those features in the pane is the designed device-side
+recovery step once the pane opens, not a code change.
+
+## 13. Consolidated-fix round (2026-11-08) — governing file applied, B-gates closed
+
+The round was re-scoped by GPT's consolidated fix file, which
+superseded the piecemeal briefs and §12 where they conflict. The
+confirmed patch (A1–A6) was reconciled hunk by hunk (PATCH_NOTES §13);
+notably, §12.2's OMCStyleHeaderFooter parameter restoration is
+REVERTED — per §D of the file it is a recorded fidelity gap, not
+restored this round. The §12.6 withdrawal of the behavioural-
+completeness claim stands and is unchanged.
+
+**Hard gates closed from the original binary:** B2
+(autoLaunchAttempt:) — independent block dumps, 14/14 match. B1
+(ensureContainer) — the touched block at 0x12b78 was dumped in full
+from the original dylib (signature void (^)(CGPoint, UIView*), one
+weak capture; hideBarsForTouchOn:/setFocusedSlot:/flashFocusOnPane:)
+and the function restored to the verified 14-step sequence (correct
+parent, fresh view + fresh slots/fractions/dividers per entry,
+raise, loggedArea, app-area frame, container log).
+
+**ABI:** C1 send-helper sweep 35/35 OK; C3 ABInvokeIdentityGetter
+aligned to the original adapter's raw-slot pattern plus a labelled
+hardening gate; C2's residual (definitive _createSceneViewController
+encoding) is settled by the candidate's own runtime MILESTONE log by
+design. **§F diagnostics** added for Settings (incl. the cellClass
+runtime-class line + log-and-rethrow trap; a module-local OMCLogWrite
+embedding was required and is recorded), Dock (gate outcomes on
+transitions; remove path names the failed gate), and App
+(request/attach/teardown milestones). **Spot-audit trio closed**
+(refreshHomeButton same-site adjudication; hostSolo + a bonus
+setTrayHidesBridge polarity fix; pushHostFramesLive tail).
+
+**Build.** Clean local build (build6) exit 0 after restoring ldid
+from the workspace backup (VM /usr rollback). Payload diff 176=176,
+resources 168/168 byte-identical, 0 missing defined symbols; G8
+disassembly confirms the A/B branches in the shipped binaries;
+parity restage 202/202, 0 differences. New rebuilt DEB: 952,700
+bytes, `com.anlai.omnicar_1.0.3-rebuilt-consolidated_iphoneos-arm64.deb`,
+SHA-256
+`c1fc85c75f77ff8ba2787200855cc31120d432c0e7169e9f5058eda11a5c8092`
+(supersedes the §12 candidate `4d794d08…`). Per-binary UUIDs:
+`project/logs/fix-round/g8-build6.txt`.
+
+**Status.** DEVICE_TEST = PENDING (acceptance session per §H of the
+consolidated file). The macOS-CI FAT build and the GitHub push are
+the parent agent's steps; this tree + staging are the hand-off.

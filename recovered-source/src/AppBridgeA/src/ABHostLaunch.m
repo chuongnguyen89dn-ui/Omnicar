@@ -127,8 +127,15 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
 //     alpha 0; add to window; shield if shieldOn; raiseKnobs;
 //     setupHandleForPane:; panes += pane; setupLiveAppViewForPane: (B);
 //     layoutPane: (B); log "host %@ tai %@ (huong %lld, zoom %.2f)"
-//  6. dispatch_after(2.5 s, main): if the pane is still alive, post
-//     ABPostAppState(bundleID, @"ready") (block @ 0xc018, @"ready" @ 0xc0d0)
+//  6. dispatch_after(2.5 s, main): block @ 0xc018 — loadWeakRetained
+//     pane; if self.panes still contains it, [self revealPane:pane]
+//     (@0xc070); if pane.ready is already set, stop (@0xc078); re-check
+//     containment (@0xc098), then pane.ready = YES (@0xc0b4) and
+//     ABPostAppState(pane.bundleID, @"ready") (@0xc0d4, @"ready" @ 0xc0d0)
+//     [fix-round2 RESTORED: the previous transcription posted @"ready"
+//     on weakPane-non-nil alone — no reveal, no ready check/flag, no
+//     containment check. That was the ready-without-show divergence;
+//     see work/fix-round2/audit-appbridge-launch.md item 3.]
 //  @catch: log "host %@ that bai: %@", remove pane + box, dropWindowIfEmpty,
 //     post @"failed"
 // ---------------------------------------------------------------------------
@@ -181,6 +188,10 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
         [self raiseKnobs];
         [self setupHandleForPane:pane];
         [self.panes addObject:pane];
+        // [fix-round2] [GPT-F] MILESTONE logging only (no flow change).
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"MILESTONE request bundle=%@ pane=%p",
+            bundleID, (void *)pane]);
         [self setupLiveAppViewForPane:pane];   // [B] scene launch + hosting
         [self layoutPane:pane];                // [B]
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
@@ -189,7 +200,22 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
         __weak ABPane *weakPane = pane;
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2500000000LL),
                        dispatch_get_main_queue(), ^{
-            if (weakPane) ABPostAppState(bundleID, @"ready");
+            // Block @0xc018, restored verbatim in flow [fix-round2]:
+            // strong self capture, weak pane; reveal precedes the
+            // ready check, containment is checked twice.
+            ABPane *p = weakPane;
+            if (!p) return;
+            if ([self.panes containsObject:p]) {
+                // [fix-round2] MILESTONE logging only.
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"MILESTONE revealPane bundle=%@ pane=%p readySource=timer",
+                    p.bundleID, (void *)p]);
+                [self revealPane:p];
+            }
+            if (p.ready) return;
+            if (![self.panes containsObject:p]) return;
+            p.ready = YES;
+            ABPostAppState(p.bundleID, @"ready");
         });
     } @catch (NSException *e) {
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
