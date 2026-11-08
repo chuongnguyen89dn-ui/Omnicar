@@ -21,6 +21,8 @@
 #import "ABKeyboardDecl.h" // [integration phase 1; backported to src in phase 3] full ABKeyboard interface (module B decl, verbatim)
 #import <objc/runtime.h>
 #import <objc/message.h> // [integration phase 1; backported to src in phase 3] declares objc_msgSend used below
+#import <substrate.h> // FIX-ROUND2: ABInstallSpringBoardHooks (below) calls MSHookMessageEx/MSHookFunction from this TU
+#import <dlfcn.h>     // FIX-ROUND2: dlsym for BKSDisplayServicesSetScreenBlanked in ABInstallSpringBoardHooks
 
 // OMC scaffold helpers (shared, not part of this module).
 extern BOOL OMCLiteActive(void);
@@ -96,6 +98,11 @@ void ABSpringBoardReady(id self, SEL _cmd, id application) {
     // before the "SpringBoard ready" log (0x706C) and every
     // registration below.
     ((void (*)(id, SEL, id))orig_SBDidFinishLaunching)(self, _cmd, application);
+    // FIX-ROUND2 (audit item 4): registration body runs only once; the
+    // orig call above stays first and unconditional on every call.
+    static BOOL ABRegistrarRegistered;
+    if (!ABRegistrarRegistered) {
+        ABRegistrarRegistered = YES;
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"SpringBoard ready"]);
     NSDistributedNotificationCenter *center = [NSDistributedNotificationCenter defaultCenter];
     NSOperationQueue *queue = [NSOperationQueue mainQueue];
@@ -123,6 +130,7 @@ void ABSpringBoardReady(id self, SEL _cmd, id application) {
     [[NSNotificationCenter defaultCenter]
         addObserverForName:@"CarPlayIsConnectedDidChange" object:nil queue:queue
                 usingBlock:^(NSNotification *n) { ABCarPlayChanged(n); }];
+    } // ABRegistrarRegistered once-guard
 }
 
 // ===========================================================================
@@ -205,6 +213,7 @@ void ABCarPlayChanged(NSNotification *note) {
 //   front (bool) -> setFront:forApp:
 //   ax,ay,aw,ah (only when aw > 0) -> setCarAppArea:
 static void ABFrameBlock(NSNotification *note) {
+    @try {
     NSDictionary *u = note.userInfo;
     ABHost *host = [ABHost shared];
     NSString *app = u[@"identifier"];
@@ -227,11 +236,18 @@ static void ABFrameBlock(NSNotification *note) {
         host.carAppArea = CGRectMake([u[@"ax"] doubleValue], [u[@"ay"] doubleValue],
                                      [u[@"aw"] doubleValue], [u[@"ah"] doubleValue]);
     }
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"frame loi %@", e]);
+    }
 }
 
 // sub_8C7C — shield consumer: {on} -> setShieldAll:.
 static void ABShieldBlock(NSNotification *note) {
-    [[ABHost shared] setShieldAll:[note.userInfo[@"on"] boolValue]];
+    @try {
+        [[ABHost shared] setShieldAll:[note.userInfo[@"on"] boolValue]];
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"shield loi %@", e]);
+    }
 }
 
 // sub_783C — open consumer. Ported from module A's verified (key-by-key)
@@ -244,55 +260,68 @@ static void ABShieldBlock(NSNotification *note) {
 //   ox,oy,ow,oh -> setHole:forApp:; r,corners -> setCornerRadius:;
 //   hx -> setHandleOffset:; front -> setFront:; ax,ay,aw,ah -> carAppArea.
 static void ABOpenBlock(NSNotification *note) {
+    @try {
     NSDictionary *u = note.userInfo;
     NSString *app = u[@"identifier"];
     CGRect frame = CGRectMake([u[@"x"] doubleValue], [u[@"y"] doubleValue],
                               [u[@"w"] doubleValue], [u[@"h"] doubleValue]);
     [[ABHost shared] openApp:app frame:frame];
     ABHost *host = [ABHost shared];
-    if (u[@"pt"] || u[@"pl"] || u[@"pb"] || u[@"pr"])
-        [host setPassInsets:UIEdgeInsetsMake([u[@"pt"] doubleValue],
-                                             [u[@"pl"] doubleValue],
-                                             [u[@"pb"] doubleValue],
-                                             [u[@"pr"] doubleValue])
-                     forApp:app];
-    if (u[@"bar"])
-        [host setBarVisible:[u[@"bar"] boolValue]
-                        pop:[u[@"pop"] intValue]
-                        dim:[u[@"popDim"] boolValue]
-                     single:[u[@"single"] boolValue]
-                     forApp:app];
-    if (u[@"ox"] || u[@"oy"] || u[@"ow"] || u[@"oh"])
-        [host setHole:CGRectMake([u[@"ox"] doubleValue], [u[@"oy"] doubleValue],
-                                 [u[@"ow"] doubleValue], [u[@"oh"] doubleValue])
-               forApp:app];
-    if (u[@"r"])
-        [host setCornerRadius:[u[@"r"] doubleValue]
-                      corners:[u[@"corners"] unsignedLongLongValue]
-                       forApp:app];
-    if (u[@"hx"])
-        [host setHandleOffset:[u[@"hx"] doubleValue] forApp:app];
-    if (u[@"front"])
-        [host setFront:[u[@"front"] boolValue] forApp:app];
-    if (u[@"ax"] || u[@"ay"] || u[@"aw"] || u[@"ah"])
+    // FIX-ROUND2 (audit-registrar item 4): no key-presence guards in the
+    // binary — setter groups fire unconditionally; a missing key yields
+    // zeroed values via the extraction below.
+    [host setPassInsets:UIEdgeInsetsMake([u[@"pt"] doubleValue],
+                                         [u[@"pl"] doubleValue],
+                                         [u[@"pb"] doubleValue],
+                                         [u[@"pr"] doubleValue])
+                 forApp:app];
+    [host setBarVisible:[u[@"bar"] boolValue]
+                    pop:[u[@"pop"] intValue]
+                    dim:[u[@"popDim"] boolValue]
+                 single:[u[@"single"] boolValue]
+                 forApp:app];
+    [host setHole:CGRectMake([u[@"ox"] doubleValue], [u[@"oy"] doubleValue],
+                             [u[@"ow"] doubleValue], [u[@"oh"] doubleValue])
+           forApp:app];
+    [host setCornerRadius:[u[@"r"] doubleValue]
+                  corners:[u[@"corners"] unsignedLongLongValue]
+                   forApp:app];
+    [host setHandleOffset:[u[@"hx"] doubleValue] forApp:app];
+    [host setFront:[u[@"front"] boolValue] forApp:app];
+    if ([u[@"aw"] doubleValue] > 0)
         host.carAppArea = CGRectMake([u[@"ax"] doubleValue], [u[@"ay"] doubleValue],
                                      [u[@"aw"] doubleValue], [u[@"ah"] doubleValue]);
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"open loi %@", e]);
+    }
 }
 
 // sub_8DF0 — close consumer: {identifier, terminate} -> closeApp:terminate:.
 static void ABCloseBlock(NSNotification *note) {
-    [[ABHost shared] closeApp:note.userInfo[@"identifier"]
-                    terminate:[note.userInfo[@"terminate"] boolValue]];
+    @try {
+        [[ABHost shared] closeApp:note.userInfo[@"identifier"]
+                        terminate:[note.userInfo[@"terminate"] boolValue]];
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"close loi %@", e]);
+    }
 }
 
 // sub_8FD4 — closeall consumer: {except} -> closeAllExcept:.
 static void ABCloseAllBlock(NSNotification *note) {
-    [[ABHost shared] closeAllExcept:note.userInfo[@"except"]];
+    @try {
+        [[ABHost shared] closeAllExcept:note.userInfo[@"except"]];
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"closeall loi %@", e]);
+    }
 }
 
 // sub_9144 — knobs consumer: {knobs: NSArray} -> setKnobs:.
 static void ABKnobsBlock(NSNotification *note) {
-    [[ABHost shared] setKnobs:note.userInfo[@"knobs"]];
+    @try {
+        [[ABHost shared] setKnobs:note.userInfo[@"knobs"]];
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"knobs loi %@", e]);
+    }
 }
 
 // ===========================================================================
@@ -305,7 +334,7 @@ static void ABKnobsBlock(NSNotification *note) {
 IMP orig_SBSuspended;   // 0x3E9F8
 IMP orig_FBSceneUpdate; // 0x3EA00
 IMP orig_SBSceneView;   // 0x3EA08
-void (*orig_ScreenBlanked)(int); // 0x3EA10
+void (*orig_ScreenBlanked)(BOOL); // 0x3EA10
 
 // sub_72BC — -[SBSuspendedUnderLockManager
 // _shouldBeBackgroundUnderLockForScene:withSettings:]: a hosted app is
@@ -328,7 +357,7 @@ BOOL ABHook_SBSuspended(id self, SEL _cmd, id scene, id settings) { // [integrat
 // (the original is never called): the hosted scene never learns it was
 // backgrounded. A missing isForeground selector also swallows. Exceptions
 // fail open (the original is called from the @catch tail).
-void ABHook_FBSceneUpdateSettings(FBScene *self, SEL _cmd, id settings, id ctx, id completion) {
+void ABHook_FBSceneUpdateSettings(FBScene *self, SEL _cmd, id settings, id ctx, ABFBSceneUpdateCompletion completion) {
     BOOL swallow = NO;
     if ([[ABHost shared] count] > 0) {
         @try {
@@ -346,7 +375,7 @@ void ABHook_FBSceneUpdateSettings(FBScene *self, SEL _cmd, id settings, id ctx, 
         } @catch (NSException *e) { swallow = NO; }
     }
     if (!swallow)
-        ((void (*)(id, SEL, id, id, id))orig_FBSceneUpdate)(self, _cmd, settings, ctx, completion);
+        ((void (*)(id, SEL, id, id, ABFBSceneUpdateCompletion))orig_FBSceneUpdate)(self, _cmd, settings, ctx, completion);
 }
 
 // sub_7764 — -[SBSceneView _updateReferenceSize:andOrientation:]:
@@ -361,7 +390,7 @@ void ABHook_SBSceneViewRefSize(id self, SEL _cmd, CGSize size, NSInteger orienta
 // 1.0 s later (the delayed block sub_9688 calls orig(0)); the car display
 // does not stay asleep while apps are hosted.
 // dispatch_time constant verified: 0x3B9ACA00 = 1,000,000,000 ns.
-void ABHook_ScreenBlanked(int blanked) {
+void ABHook_ScreenBlanked(BOOL blanked) {
     if (blanked == 1 && [[ABHost shared] count] > 0) {
         orig_ScreenBlanked(1);
         dispatch_after(dispatch_time(0, 1000000000), dispatch_get_main_queue(), ^{
@@ -370,4 +399,141 @@ void ABHook_ScreenBlanked(int blanked) {
         return;
     }
     orig_ScreenBlanked(blanked);
+}
+
+// ===========================================================================
+// FIX-ROUND2 (audit items 1+2+3+5) — single SpringBoard hook installer
+// (ctor 0x6E08 body, moved here from AppBridgeEntry.m's ABHostCtor).
+// Idempotent: ABHooksInstalledOnce is set BEFORE installing, so a
+// re-entrant call cannot double-chain. Each ObjC hook is verified before
+// MSHookMessageEx: class must exist, method must exist, and the method's
+// type encoding must structurally match the §4 table (return-type char
+// plus argument structure after self/_cmd; argument offsets and BOOL
+// spelling 'B' vs 'c' are not hard-gated). Any failure logs a diagnostic
+// via OMCLogWrite and skips only that hook.
+// ===========================================================================
+static BOOL ABHooksInstalledOnce;
+
+void ABInstallSpringBoardHooks(void) {
+    if (ABHooksInstalledOnce) return;
+    ABHooksInstalledOnce = YES;
+
+    // -[SpringBoard applicationDidFinishLaunching:] -> ABSpringBoardReady
+    // §4: void, 1 object arg after self/_cmd.
+    {
+        SEL sel = @selector(applicationDidFinishLaunching:);
+        Class cls = objc_getClass("SpringBoard");
+        if (!cls) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: khong thay class %s", "SpringBoard"]);
+        } else {
+            Method m = class_getInstanceMethod(cls, sel);
+            if (!m) {
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: khong thay method %s %s", "SpringBoard", sel_getName(sel)]);
+            } else {
+                const char *enc = method_getTypeEncoding(m);
+                char ret[32] = {0}; method_getReturnType(m, ret, sizeof(ret));
+                char a0[64] = {0};
+                if (method_getNumberOfArguments(m) > 2) method_getArgumentType(m, 2, a0, sizeof(a0));
+                BOOL ok = (ret[0] == 'v' && method_getNumberOfArguments(m) == 3 && a0[0] == '@');
+                if (!ok) {
+                    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: type encoding khong khop %s %s: %s", "SpringBoard", sel_getName(sel), enc ? enc : "(null)"]);
+                } else {
+                    MSHookMessageEx(cls, sel, (IMP)ABSpringBoardReady, (IMP *)&orig_SBDidFinishLaunching); // orig IMP stored at 0x3E9F0 in the original
+                }
+            }
+        }
+    }
+
+    // -[SBSuspendedUnderLockManager _shouldBeBackgroundUnderLockForScene:withSettings:] -> ABHook_SBSuspended
+    // §4: BOOL ('B' or 'c'), 2 object args after self/_cmd.
+    {
+        SEL sel = NSSelectorFromString(@"_shouldBeBackgroundUnderLockForScene:withSettings:");
+        Class cls = objc_getClass("SBSuspendedUnderLockManager");
+        if (!cls) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: khong thay class %s", "SBSuspendedUnderLockManager"]);
+        } else {
+            Method m = class_getInstanceMethod(cls, sel);
+            if (!m) {
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: khong thay method %s %s", "SBSuspendedUnderLockManager", sel_getName(sel)]);
+            } else {
+                const char *enc = method_getTypeEncoding(m);
+                char ret[32] = {0}; method_getReturnType(m, ret, sizeof(ret));
+                char a0[64] = {0}, a1[64] = {0};
+                if (method_getNumberOfArguments(m) > 2) method_getArgumentType(m, 2, a0, sizeof(a0));
+                if (method_getNumberOfArguments(m) > 3) method_getArgumentType(m, 3, a1, sizeof(a1));
+                BOOL ok = ((ret[0] == 'B' || ret[0] == 'c') && method_getNumberOfArguments(m) == 4 && a0[0] == '@' && a1[0] == '@');
+                if (!ok) {
+                    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: type encoding khong khop %s %s: %s", "SBSuspendedUnderLockManager", sel_getName(sel), enc ? enc : "(null)"]);
+                } else {
+                    MSHookMessageEx(cls, sel, (IMP)ABHook_SBSuspended, (IMP *)&orig_SBSuspended); // orig at 0x3E9F8
+                }
+            }
+        }
+    }
+
+    // -[FBScene updateSettings:withTransitionContext:completion:] -> ABHook_FBSceneUpdateSettings
+    // §4: void, 3 args after self/_cmd, the 3rd a block ('@?' or '@').
+    {
+        SEL sel = @selector(updateSettings:withTransitionContext:completion:);
+        Class cls = objc_getClass("FBScene");
+        if (!cls) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: khong thay class %s", "FBScene"]);
+        } else {
+            Method m = class_getInstanceMethod(cls, sel);
+            if (!m) {
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: khong thay method %s %s", "FBScene", sel_getName(sel)]);
+            } else {
+                const char *enc = method_getTypeEncoding(m);
+                char ret[32] = {0}; method_getReturnType(m, ret, sizeof(ret));
+                char a0[64] = {0}, a1[64] = {0}, a2[64] = {0};
+                if (method_getNumberOfArguments(m) > 2) method_getArgumentType(m, 2, a0, sizeof(a0));
+                if (method_getNumberOfArguments(m) > 3) method_getArgumentType(m, 3, a1, sizeof(a1));
+                if (method_getNumberOfArguments(m) > 4) method_getArgumentType(m, 4, a2, sizeof(a2));
+                BOOL ok = (ret[0] == 'v' && method_getNumberOfArguments(m) == 5 && a0[0] == '@' && a1[0] == '@' &&
+                           (strcmp(a2, "@?") == 0 || strcmp(a2, "@") == 0));
+                if (!ok) {
+                    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: type encoding khong khop %s %s: %s", "FBScene", sel_getName(sel), enc ? enc : "(null)"]);
+                } else {
+                    MSHookMessageEx(cls, sel, (IMP)ABHook_FBSceneUpdateSettings, (IMP *)&orig_FBSceneUpdate); // orig at 0x3EA00
+                }
+            }
+        }
+    }
+
+    // -[SBSceneView _updateReferenceSize:andOrientation:] -> ABHook_SBSceneViewRefSize
+    // §4: void, 2 args after self/_cmd, the 1st a struct ('{...}').
+    {
+        SEL sel = NSSelectorFromString(@"_updateReferenceSize:andOrientation:");
+        Class cls = objc_getClass("SBSceneView");
+        if (!cls) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: khong thay class %s", "SBSceneView"]);
+        } else {
+            Method m = class_getInstanceMethod(cls, sel);
+            if (!m) {
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: khong thay method %s %s", "SBSceneView", sel_getName(sel)]);
+            } else {
+                const char *enc = method_getTypeEncoding(m);
+                char ret[32] = {0}; method_getReturnType(m, ret, sizeof(ret));
+                char a0[64] = {0};
+                if (method_getNumberOfArguments(m) > 2) method_getArgumentType(m, 2, a0, sizeof(a0));
+                BOOL ok = (ret[0] == 'v' && method_getNumberOfArguments(m) == 4 && a0[0] == '{');
+                if (!ok) {
+                    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"hook skip: type encoding khong khop %s %s: %s", "SBSceneView", sel_getName(sel), enc ? enc : "(null)"]);
+                } else {
+                    MSHookMessageEx(cls, sel, (IMP)ABHook_SBSceneViewRefSize, (IMP *)&orig_SBSceneView); // orig at 0x3EA08
+                }
+            }
+        }
+    }
+
+    OMCCheckHooks(@"AppBridge", @[@"SBSuspendedUnderLockManager -_shouldBeBackgroundUnderLockForScene:withSettings:", @"FBScene -updateSettings:withTransitionContext:completion:", @"SBSceneView -_updateReferenceSize:andOrientation:"]);
+
+    // BKSDisplayServicesSetScreenBlanked (MSHookFunction) — dlsym branch
+    // preserved from the original installer: NULL logs and skips.
+    void *fn = dlsym((void *)-2 /* RTLD_DEFAULT */, "BKSDisplayServicesSetScreenBlanked");
+    if (fn) {
+        MSHookFunction(fn, (void *)ABHook_ScreenBlanked, (void **)&orig_ScreenBlanked); // orig at 0x3EA10
+    } else {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"khong tim thay BKSDisplayServicesSetScreenBlanked"]);
+    }
 }

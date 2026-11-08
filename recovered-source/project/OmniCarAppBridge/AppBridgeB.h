@@ -66,6 +66,21 @@ static inline uint32_t ABBundleHash(NSString *bundleID) {
 void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation);
 void ABPostStateToApp(NSString *state, NSString *identifier);
 
+// FIX-ROUND2 (audit item 9c): explicit block type for the completion
+// argument of -[FBScene updateSettings:withTransitionContext:completion:].
+// No @class FBScene is added here: the project TU already receives the
+// full @interface FBScene from ABIntegrationShims.h (force-included via
+// -include in the Makefile) before this header.
+typedef void (^ABFBSceneUpdateCompletion)(void);
+
+// FIX-ROUND2 (audit item 1): single SpringBoard hook installer, defined
+// in ABHostGeometry.m; ABHostCtor (AppBridgeEntry.m) only gates + calls it.
+void ABInstallSpringBoardHooks(void);
+
+// OMCCheckHooks — shared scaffold (src/OMCCommon/OMCCommon.h:131);
+// declared here because ABHostGeometry.m's TU does not include that header.
+void OMCCheckHooks(NSString *tag, NSArray<NSString *> *specs);
+
 // Telex engine (defined C symbol _ABTelexApply @ 0x17538 in the binary;
 // reconstructed in ABTelex.m):
 NSString *ABTelexApply(NSString *word, NSString *keyString);

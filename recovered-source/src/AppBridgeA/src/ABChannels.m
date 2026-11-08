@@ -59,12 +59,17 @@ static void ABHostProcessInit(void) {
 //    installer. See the DUPLICATE INSTALLER note above ABSpringBoardInit.
 // ===========================================================================
 
+// FIX-ROUND2: dead duplicate installer/handlers — superseded by ABInstallSpringBoardHooks in ABHostGeometry.m; kept as reference text only.
+#if 0
 static void (*orig_SB_applicationDidFinishLaunching)(id, SEL, id);
 static BOOL (*orig_shouldBeBackgroundUnderLock)(id, SEL, id, id);
 static void (*orig_FBScene_updateSettings)(id, SEL, id, id, id);
 static void (*orig_SBSceneView_updateReferenceSize)(id, SEL, CGSize, long long);
 static void (*orig_BKSDisplayServicesSetScreenBlanked)(BOOL);
+#endif
 
+// FIX-ROUND2: dead duplicate installer/handlers — superseded by ABInstallSpringBoardHooks in ABHostGeometry.m; kept as reference text only.
+#if 0
 // Replacement @ 0x777c — VERIFIED: when the screen is blanked (arg YES)
 // while apps are hosted, pass the blank through, then dispatch_after 1 s
 // (the delayed block presumably un-blanks / re-evaluates); when nothing is
@@ -160,6 +165,7 @@ static void repl_FBScene_updateSettings(id self, SEL _cmd, id settings,
     }
     orig_FBScene_updateSettings(self, _cmd, settings, context, completion);
 }
+#endif
 
 // ===========================================================================
 // 3. Host channel registration — replacement @ 0x7004 of
@@ -170,6 +176,8 @@ static void repl_FBScene_updateSettings(id self, SEL _cmd, id settings,
 //      Darwin notify on main queue: apporient, keyboard
 //      local NSNotificationCenter: CarPlayIsConnectedDidChange
 // ===========================================================================
+// FIX-ROUND2: dead duplicate installer/handlers — superseded by ABInstallSpringBoardHooks in ABHostGeometry.m; kept as reference text only.
+#if 0
 static void repl_SB_applicationDidFinishLaunching(id self, SEL _cmd, id app) {
     orig_SB_applicationDidFinishLaunching(self, _cmd, app);
     OMCLogWrite(@"AppBridge", @"SpringBoard ready");
@@ -338,6 +346,7 @@ static void repl_SB_applicationDidFinishLaunching(id self, SEL _cmd, id app) {
         if (!device) [[ABHost shared] carDisconnected];
     }];
 }
+#endif
 
 // ===========================================================================
 // DUPLICATE INSTALLER — NEUTRALISED (hotfix, do not re-enable).
@@ -359,6 +368,8 @@ static void repl_SB_applicationDidFinishLaunching(id self, SEL _cmd, id app) {
 // were ported into ABHostGeometry.m's ABSpringBoardReady when this
 // installer was neutralised.
 // ===========================================================================
+// FIX-ROUND2: dead duplicate installer/handlers — superseded by ABInstallSpringBoardHooks in ABHostGeometry.m; kept as reference text only.
+#if 0
 __attribute__((used))
 static void ABSpringBoardInit(void) {
     if (![[[NSBundle mainBundle] bundleIdentifier]
@@ -397,6 +408,7 @@ static void ABSpringBoardInit(void) {
             @"khong tim thay BKSDisplayServicesSetScreenBlanked");
     }
 }
+#endif
 
 // ===========================================================================
 // 4. App-process bootstrap — __mod_init_0 @ 0x44a8 (VERIFIED head;
