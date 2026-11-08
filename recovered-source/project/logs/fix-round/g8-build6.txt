@@ -1,0 +1,127 @@
+=== G8 in-artifact verification — build6 local candidate ===
+
+--- string/symbol discriminators (candidate vs build5 candidate) ---
+F-Settings build log               cand=YES  build5=no
+F-Settings exception trap          cand=YES  build5=no
+B1 ensureContainer log             cand=YES  build5=no
+F-Dock gate log                    cand=YES  build5=no
+F-App request                      cand=YES  build5=no
+F-App attach                       cand=YES  build5=no
+F-App teardown                     cand=YES  build5=no
+B2 terminal log (retained)         cand=YES  build5=YES
+Prefs _NSStringFromClass in stubs/imports: True False
+Prefs _OMCLogWrite defined: False | in build5 Prefs: False
+
+--- function-level call profiles (candidate, arm64) ---
+OMCRootListController insertFeatureSpecifiers imp=0x22abc size=2272
+   call setProperty:forKey:: NO
+   _NSStringFromClass called in function: False
+SCPCarSplit ensureContainer imp=0x5418 size=1016
+   call setTouched:: NO
+   call setDividers:: NO
+   call setSlots:: NO
+   call setFractions:: NO
+   call addSubview:: NO
+   call setLoggedArea:: NO
+   call appAreaInParent:: NO
+   call setContainer:: NO
+SCPCarSplit autoLaunchAttempt: imp=0x49e4 size=328
+   call SCPDispatchAfter: YES
+   cmp #0x27 (39) at: ['0x4a2c']
+SCPCarSplit rootDidLayout imp=0x4c10 size=628
+   call refreshAppTab: NO
+   call refreshHomeButton: NO
+   call publishBusy: NO
+
+--- per-binary LC_UUID (arm64 slice) + SHA-256 ---
+OmniCar                      uuid=4c4c4450-5555-3144-a1a3-58843b0f2ea6 sha256=720b9c510dc53d53… size=70064
+OmniCarCore.dylib            uuid=4c4c4462-5555-3144-a1fd-68112de02120 sha256=47eb85f0cc28512c… size=130640
+OmniCarAppBridge.dylib       uuid=4c4c44c5-5555-3144-a125-1d7128382bdf sha256=a96c4c757ec117e8… size=291232
+OmniCarCarProbe.dylib        uuid=4c4c44cf-5555-3144-a10b-60b43fdf44ed sha256=7c411d8d0ff52124… size=112352
+OmniCarSpeedBubble.dylib     uuid=4c4c4432-5555-3144-a1cc-e6285f206b71 sha256=29d841a192d54744… size=294064
+OmniCarSplitScreen.dylib     uuid=4c4c44d2-5555-3144-a179-b5141292ca61 sha256=86123f3096910dbe… size=537664
+OmniCarStartupScreen.dylib   uuid=4c4c44dd-5555-3144-a184-192dd02f7506 sha256=bb0c9917a0b62a8e… size=299712
+OmniCarPrefs                 uuid=4c4c4451-5555-3144-a182-1d4b9c7979c6 sha256=460aab25c0396599… size=605584
+
+--- G8 addendum: corrected function profiles (referenced-selector sets) ---
+Method note: the local Theos build uses generic _objc_msgSend stubs, so
+per-selector $ stubs do not exist; profiles below = direct C-call targets
+(call_truth) + the set of __objc_selrefs slots the function loads (its
+message-send vocabulary). _NSStringFromClass attribution: its 3 call
+sites in the candidate Prefs are ALL inside the [GPT-F] diagnostics
+(-[OMCRootListController specifiers] x2, -tableView:cellForRowAtIndexPath: x1);
+insertFeatureSpecifiers does NOT call it — the convicted path is clean.
+
+OMCRootListController insertFeatureSpecifiers imp=0x22abc size=2272
+   sel setProperty:forKey:: NO
+   sel insertObject:atIndex:: NO
+   sel preferenceSpecifierNamed:target:set:get:detail:cell:edit:: NO
+SCPCarSplit ensureContainer imp=0x5418 size=1016
+   sel setTouched:: NO
+   sel setContainer:: NO
+   sel setSlots:: NO
+   sel setFractions:: NO
+   sel setDividers:: NO
+   sel addSubview:: NO
+   sel raise: NO
+   sel setLoggedArea:: NO
+   sel appAreaInParent:: NO
+   sel initWithFrame:: NO
+   sel setBackgroundColor:: NO
+   sel setClipsToBounds:: NO
+SCPCarSplit rootDidLayout imp=0x4c10 size=628
+   sel publishBusy: NO
+   sel refreshAppTab: NO
+   sel refreshHomeButton: NO
+   sel appAreaInParent:: NO
+   sel relayoutAnimated:: NO
+touched-block invoke candidates (functions referencing hideBarsForTouchOn:):
+
+--- G8 addendum 2: function profiles, capstone detail mode ---
+OMCRootListController insertFeatureSpecifiers imp=0x22abc size=2272 sels=0
+   sel setProperty:forKey:: NO
+   sel insertObject:atIndex:: NO
+   sel preferenceSpecifierNamed:target:set:get:detail:cell:edit:: NO
+SCPCarSplit ensureContainer imp=0x5418 size=1016 sels=0
+   sel setTouched:: NO
+   sel setContainer:: NO
+   sel setSlots:: NO
+   sel setFractions:: NO
+   sel setDividers:: NO
+   sel addSubview:: NO
+   sel raise: NO
+   sel setLoggedArea:: NO
+   sel appAreaInParent:: NO
+SCPCarSplit rootDidLayout imp=0x4c10 size=628 sels=0
+   sel publishBusy: NO
+   sel refreshAppTab: NO
+   sel refreshHomeButton: NO
+   sel appAreaInParent:: NO
+   sel relayoutAnimated:: NO
+functions referencing hideBarsForTouchOn: (touched-block invoke):
+
+--- G8 addendum 3 (authoritative): literal-pool selref resolution ---
+The local lld build loads selrefs via literal-pool ldr xN, #slotVA.
+OMCRootListController insertFeatureSpecifiers imp=0x22abc size=2272 sels=21
+   sel setProperty:forKey:: YES
+   sel insertObject:atIndex:: YES
+   sel preferenceSpecifierNamed:target:set:get:detail:cell:edit:: YES
+SCPCarSplit ensureContainer imp=0x5418 size=1016 sels=22
+   sel setTouched:: YES
+   sel setContainer:: YES
+   sel setSlots:: YES
+   sel setFractions:: YES
+   sel setDividers:: YES
+   sel addSubview:: YES
+   sel raise: YES
+   sel setLoggedArea:: YES
+   sel appAreaInParent:: YES
+SCPCarSplit rootDidLayout imp=0x4c10 size=628 sels=11
+   sel publishBusy: YES
+   sel refreshAppTab: YES
+   sel refreshHomeButton: YES
+   sel appAreaInParent:: YES
+   sel relayoutAnimated:: YES
+functions referencing hideBarsForTouchOn: (touched-block invoke):
+   ('0x5810', ['alpha', 'countByEnumeratingWithState:objects:count:', 'floatPane', 'focusedSlot', 'frame', 'hideBarsForTouchOn:', 'paneCount', 'setFocusedSlot:', 'slot', 'slots', 'view'])
+   ('0x26a48', ['anyBarVisible', 'collapseAppTray', 'date', 'hideBarsForTouchOn:', 'hideRatioMenu', 'pickerSheet', 'popupOpen', 'ratioMenu', 'removePickerSheet', 'setPopupsClosedAt:', 'stringWithFormat:', 'tray'])

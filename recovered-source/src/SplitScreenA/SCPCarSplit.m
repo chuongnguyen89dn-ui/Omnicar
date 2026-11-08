@@ -163,27 +163,41 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
 }
 
-// -autoLaunchAttempt: VERIFIED (skeleton): retry loop until the dashboard
-// root exists, then restore. Delays proven: 1.0 s then 1.5 s steps.
-- (void)autoLaunchAttempt:(NSInteger)attempt {
+// -autoLaunchAttempt: VERIFIED (IMP 0x44dc4; retry block invoke 0x44ee4,
+// terminal block invoke 0x44f30): while there is no dashboard root and
+// attempt <= 39, retry after 1.0 s; once a root exists — or attempts are
+// exhausted (attempt > 39) — schedule the terminal open after 1.5 s.
+- (void)autoLaunchAttempt:(int)attempt {
     if (self.active) return;
-    if (SCPDashboardRootViewController()) {
-        [self openRememberedPairForConnect];
-        return;
-    }
-    double delay = attempt == 0 ? 1.0 : 1.5;   // both constants VERIFIED in body
     __weak SCPCarSplit *weakSelf = self;
-    SCPDispatchAfter(delay, ^{ [weakSelf autoLaunchAttempt:attempt + 1]; });
+    id root = SCPDashboardRootViewController();
+    if (attempt > 39 || root) {
+        SCPDispatchAfter(1.5, ^{
+            SCPCarSplit *s = weakSelf;
+            if (!s || s.active) return;
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: tu mo split khi cam xe"]);
+            [s openRememberedPairForConnect];
+        });
+    } else {
+        SCPDispatchAfter(1.0, ^{ [weakSelf autoLaunchAttempt:attempt + 1]; });
+    }
 }
 
-// -rootDidLayout VERIFIED: publish busy state; while active, follow the
+// -rootDidLayout (0x15984) VERIFIED (disasm/-SCPCarSplit_rootDidLayout.txt,
+// re-read end-to-end in fix-round2 — the previous body was WRONG: it
+// returned early when inactive and called refreshAppTab on the active
+// path): publish busy state; when INACTIVE, tail-call refreshAppTab
+// (0x159b4 tbz -> 0x15ab0 -> tail 0x15ad0) and nothing else; when active
+// and the container has a superview, refreshHomeButton, then follow the
 // dashboard's app-area: when the container's frame no longer matches
-// appAreaInParent:, log + resize + relayout.
+// appAreaInParent:, log + resize + relayoutAnimated:NO (tail call).
+// The original calls refreshAppTab on NO active branch.
 - (void)rootDidLayout {
     [self publishBusy];
-    if (!self.active || !self.container.superview) return;
-    [self refreshHomeButton];
+    if (!self.active) { [self refreshAppTab]; return; }
     UIView *parent = self.container.superview;
+    if (!parent) return;
+    [self refreshHomeButton];
     CGRect area = [self appAreaInParent:parent];
     if (!CGRectEqualToRect(area, self.container.frame)) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: vung app doi %@ -> %@",
@@ -191,7 +205,6 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         self.container.frame = area;
         [self relayoutAnimated:NO];
     }
-    [self refreshAppTab];
 }
 
 // -baseViewControllerPresented (0x214b8) VERIFIED (remediation,
@@ -206,10 +219,16 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
 }
 
-// -dashboardInvalidated VERIFIED: the disconnect/teardown path driven by
-// the DBDashboard -invalidate hook. Tears down every piece of session UI
-// and state; safe to call when inactive (the split-specific part is
-// guarded by self.active in the original).
+// -dashboardInvalidated (0x22724) VERIFIED: the disconnect/teardown path
+// driven by the DBDashboard -invalidate hook. Tears down every piece of
+// session UI and state; safe to call when inactive (the split-specific
+// part is guarded by self.active in the original — inactive callers get
+// only the unconditional prologue, 0x22754-0x227e4, then return at
+// 0x22a14). Fix-round2 Item D: the active branch ENDS with
+// setSlots:/setFractions:/setDividers: nil (0x229f8/0x22a04/0x22a10,
+// right after setContainer: nil) and sets dragTarget to -1
+// (0x22958 w2=#-1), NOT 0 — both restored; the previous body dropped
+// the three clears and used dragTarget = 0.
 - (void)dashboardInvalidated {
     [self removeAppTab];
     [self removeHomeButton];
@@ -234,7 +253,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         self.floatClosing = NO;
         [self.dragGhost removeFromSuperview];
         self.dragGhost = nil;
-        self.dragTarget = 0;
+        self.dragTarget = -1;
         [self.ratioMenu removeFromSuperview];
         [self.ratioTimer invalidate];
         self.ratioTimer = nil;
@@ -242,11 +261,21 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         self.resizing = NO;
         [self.container removeFromSuperview];
         self.container = nil;
+        self.slots = nil;
+        self.fractions = nil;
+        self.dividers = nil;
     }
 }
 
-// -ensureContainer VERIFIED: attach (once) the SCPCarSplitView into the
-// dashboard root's baseContainerView.
+// -ensureContainer (0x12718) VERIFIED (fix-round2 B1 FULL restoration —
+// evidence: work/fix-round2/b1-block-dump.md against
+// disasm/-SCPCarSplit_ensureContainer.txt): early YES when the container
+// already has a superview (0x1273c-0x12770); nil root -> log + NO
+// (0x127d4-0x12800, return is root!=nil from 0x12788, so YES whenever a
+// root exists). Otherwise parent = baseContainerView.superview
+// (0x12824-0x12834), falling back to root.view (0x1284c-0x1285c), and on
+// EVERY such entry a FRESH SCPCarSplitView is built, wired and stored —
+// no reuse of a detached container, no guarded array reuse.
 - (BOOL)ensureContainer {
     if (self.container.superview) return YES;
     id root = SCPDashboardRootViewController();
@@ -255,17 +284,55 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         return NO;
     }
     UIView *base = SCPGuarded(root, @"baseContainerView");
-    if (!self.container) {
-        SCPCarSplitView *view = [[SCPCarSplitView alloc] initWithFrame:base.bounds];
-        view.backgroundColor = [UIColor blackColor];
-        view.clipsToBounds = YES;
-        self.container = view;
-        if (!_slots) _slots = [NSMutableArray array];
-        if (!_fractions) _fractions = [NSMutableArray array];
-    }
-    // The original also flags the container as touched (setTouched: in the
-    // call list — a SCPCarSplitView property of agent B's class).
-    [base addSubview:self.container];
+    UIView *parent = base.superview;
+    if (!parent) parent = [root view];
+    // Fresh view (0x12868-0x12884): parent.bounds, black, clipsToBounds.
+    SCPCarSplitView *view = [[SCPCarSplitView alloc] initWithFrame:parent.bounds];
+    view.backgroundColor = [UIColor blackColor];
+    view.clipsToBounds = YES;
+    // Touched block (invoke 0x12b78, descriptor 0x78a80, signature
+    // v32@?0{CGPoint=dd}8@"UIView"24): captures WEAK self ONLY
+    // (objc_initWeak/objc_copyWeak 0x128c4-0x12908), installed via
+    // setTouched: on the NEW view (0x12914). Body per the block map:
+    // hideBarsForTouchOn: unconditionally; early return inside the
+    // visible float pane; else scan slots (no break), focusing each hit
+    // pane and — only on a focus change with >= 2 panes — scheduling
+    // flashFocusOnPane: via the delay-0 dispatch helper (sub_12efc at
+    // 0x12da0; SCPDispatchAfter(0, ...) is its verified equivalent,
+    // SCPShared.m sub_12efc: delay <= 0 -> dispatch_async main queue).
+    // The nested block captures self + pane STRONG (0x12d58-0x12d94).
+    __weak SCPCarSplit *weakSelf = self;
+    view.touched = ^(CGPoint point, UIView *hitView) {
+        SCPCarSplit *self = weakSelf; // objc_loadWeakRetained (0x12bc8)
+        if (!self) return;
+        [self hideBarsForTouchOn:hitView];
+        SCPCarPane *fp = self.floatPane;
+        if (fp) {
+            UIView *fv = fp.view;
+            if (fv.alpha > 0 && CGRectContainsPoint(fv.frame, point)) return;
+        }
+        for (SCPCarPane *pane in self.slots) {
+            UIView *pv = pane.view;
+            if (pv.alpha <= 0) continue;
+            if (!CGRectContainsPoint(pv.frame, point)) continue;
+            if (self.focusedSlot != pane.slot && self.paneCount >= 2) {
+                SCPDispatchAfter(0, ^{ [self flashFocusOnPane:pane]; });
+            }
+            self.focusedSlot = pane.slot;
+        }
+    };
+    self.container = view;
+    // Fresh arrays via the setters, unconditional (0x12944/0x1296c/0x12994).
+    self.slots = [NSMutableArray array];
+    self.fractions = [NSMutableArray array];
+    self.dividers = [NSMutableArray array];
+    [parent addSubview:view];
+    [self raise];
+    self.loggedArea = NO;
+    view.frame = [self appAreaInParent:parent];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: container trong %@ frame=%@",
+        NSStringFromClass(parent.class), NSStringFromCGRect(view.frame)]);
     return YES;
 }
 
@@ -1362,9 +1429,11 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         pane.barTimer = nil;
         if (pane.vc) {
             [self detachVC:pane.vc background:YES];
-            pane.vc = nil;
-            pane.bundleID = nil;
         }
+        // [GPT patch A6, orig 0x2174c -> 0x2177c: vc/bundleID are nilled
+        // unconditionally; only detachVC depends on vc existing]
+        pane.vc = nil;
+        pane.bundleID = nil;
         [pane.picker removeFromSuperview];
         pane.picker = nil;
     }
@@ -1582,19 +1651,33 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
 }
 
-// -hostSolo: VERIFIED: run a hosted app fullscreen (over the dashboard's
-// app area) — posts appbridge.open with the frame.
+// -hostSolo: (IMP 0x3f9c0) VERIFIED (fix-round2 spot fold-in, dump
+// -SCPCarSplit_hostSolo_.txt): run a hosted app fullscreen (over the
+// dashboard's app area). Original order: tabParent nil guard FIRST
+// (cbz x20 @0x3fa1c -> 0x3fd1c plain return — no state, no posts);
+// appAreaInParent: + convertRect:toView:nil; setSoloHostedBundle:
+// (0x3fa50), setSoloHostedFrame: (0x3fa68), setTrayHidesBridge:NO
+// (0x3fa70 `mov w2,#0` — was YES in the recon, corrected); log; post
+// appbridge.open (5 keys, hostPost @0x3fbc4); post appbridge.frame
+// (7 keys: identifier/x/y/w/h + live=@NO + handle=@NO, hostPost
+// @0x3fce8); tail refreshAppTabSoon (@0x3fd18).
 - (void)hostSolo:(NSString *)bundleID {
     UIView *parent = [self tabParent];
+    if (!parent) return;
     CGRect frame = [self appAreaInParent:parent];
     frame = [parent convertRect:frame toView:nil];
     self.soloHostedBundle = bundleID;
     self.soloHostedFrame = frame;
-    self.trayHidesBridge = YES;
+    self.trayHidesBridge = NO;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: %@ toan man %@", bundleID, NSStringFromCGRect(frame)]);
     [self hostPost:SCPNoteBridgeOpen info:@{@"identifier": bundleID,
                                             @"x": @(frame.origin.x), @"y": @(frame.origin.y),
                                             @"w": @(frame.size.width), @"h": @(frame.size.height)}];
+    [self hostPost:SCPNoteBridgeFrame info:@{@"identifier": bundleID,
+                                             @"x": @(frame.origin.x), @"y": @(frame.origin.y),
+                                             @"w": @(frame.size.width), @"h": @(frame.size.height),
+                                             @"live": @NO, @"handle": @NO}];
+    [self refreshAppTabSoon];
 }
 
 // -endHostedSolo (0x3fe5c) VERIFIED (remediation, rem_endHostedSolo.txt —
@@ -1773,8 +1856,18 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     return out;
 }
 - (SCPCarPane *)bridgedPane { return [self hostedPanes].firstObject; }
+// -pushHostFramesLive: (IMP 0x3e238) VERIFIED (fix-round2 spot
+// fold-in, dump -SCPCarSplit_pushHostFramesLive_.txt): after the
+// hostedPanes enumeration the original UNCONDITIONALLY calls
+// publishShield (@0x3e30c) then refreshShieldHoles (@0x3e314). The
+// empty-enumeration exit (first countByEnumerating cbz @0x3e29c) and
+// the loop-exhausted exit (@0x3e2fc) both converge on 0x3e300, the
+// only normal exit block; no other return exists (the 0x3e358+
+// landing pads are unwind-only). Tail restored.
 - (void)pushHostFramesLive:(BOOL)live {
     for (SCPCarPane *pane in [self hostedPanes]) [self sendHostFrameForPane:pane live:live];
+    [self publishShield];
+    [self refreshShieldHoles];
 }
 // -pushSceneSizes (0x1c550) VERIFIED (remediation, rem_pushSceneSizes.txt
 // + blocks @0x1c9d4/@0x1cc90 rem_pushSceneSizes_block1/2.txt — replaces an
@@ -2381,6 +2474,34 @@ static SCPCButton *SCPLauncherButton(UIImage *image, id target, SEL action, doub
     return button;
 }
 
+// [GPT-F] §F Dock gate diagnostic (fix-round2, candidate-only; logging
+// ONLY — no flow change): emits ONE line per home-button TRANSITION in
+// -refreshHomeButton: (a) created/attached, (b) removed on a gate
+// failure, (c) host (superview) change. Gate-failure lines name the
+// failed gate per §E ("root nil" / "feature disabled" / "tabParent
+// nil"); the snapshot fields are the gate state the function itself
+// tests: active, featureEnabled ([SCPPrefs enabled]), root class,
+// parent class, homeButton superview class, button frame in window
+// coordinates (its own frame when windowless), hidden, alpha and
+// launcherWhere. Callers invoke this ONLY on a transition (removals are
+// guarded on a button actually existing), so a keep-path refresh that
+// creates/removes/moves nothing logs nothing — never per layout pass.
+static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate, id root, UIView *parent) {
+    UIButton *btn = owner.homeButton;
+    UIView *sup = btn.superview;
+    CGRect frameWin = btn ? (btn.window ? [btn convertRect:btn.bounds toView:nil] : btn.frame)
+                          : CGRectZero;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[GPT-F] Dock gate %@ gate=%@ active=%d featureEnabled=%d root=%@ parent=%@ homeSuper=%@ frameWin=%@ hidden=%d alpha=%.2f launcherWhere=%@",
+        event, gate, (int)owner.active, (int)[SCPPrefs enabled],
+        root ? NSStringFromClass([root class]) : @"nil",
+        parent ? NSStringFromClass(parent.class) : @"nil",
+        sup ? NSStringFromClass(sup.class) : @"nil",
+        NSStringFromCGRect(frameWin),
+        btn ? (int)btn.hidden : 0, btn ? btn.alpha : 0.0,
+        owner.launcherWhere ?: @"nil"]);
+}
+
 // -refreshHomeButton (0x41be4) VERIFIED: maintain the Split Screen
 // launcher button on the dashboard. Bails (removing the button) without
 // a dashboard root or with the tweak disabled; throttles recompute to
@@ -2390,10 +2511,30 @@ static SCPCButton *SCPLauncherButton(UIImage *image, id target, SEL action, doub
 // dynamic ink otherwise), hosts it (directly in the tab parent in corner
 // mode, else inside the dock host for its rect) and raises it.
 - (void)refreshHomeButton {
+    // [GPT-F] transition snapshot (read-only): told apart at the attach
+    // site below to classify created / attached / host-changed.
+    UIButton *fdPrevButton = self.homeButton;
+    UIView *fdPrevSuper = fdPrevButton.superview;
     id root = SCPDashboardRootViewController();
-    if (!root || ![SCPPrefs enabled]) { [self removeHomeButton]; return; }
+    // [GPT-F] the combined bail is split so the removal line can name
+    // WHICH gate failed (§E); order and flow are unchanged (root first,
+    // then enabled, then tabParent — audit-spotfold.md rows 1-3).
+    if (!root) {
+        if (self.homeButton) SCPFDockGateLog(self, @"removed", @"root nil", root, nil);
+        [self removeHomeButton];
+        return;
+    }
+    if (![SCPPrefs enabled]) {
+        if (self.homeButton) SCPFDockGateLog(self, @"removed", @"feature disabled", root, nil);
+        [self removeHomeButton];
+        return;
+    }
     UIView *parent = [self tabParent];
-    if (!parent) { [self removeHomeButton]; return; }
+    if (!parent) {
+        if (self.homeButton) SCPFDockGateLog(self, @"removed", @"tabParent nil", root, parent);
+        [self removeHomeButton];
+        return;
+    }
     CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
     UIView *btnSuper = self.homeButton.superview;
     if (btnSuper && btnSuper == self.launcherHost && now - self.lastLauncherCalc < 1.0) {
@@ -2426,30 +2567,52 @@ static SCPCButton *SCPLauncherButton(UIImage *image, id target, SEL action, doub
     if (button) {
         UIImage *img = [button imageForState:UIControlStateNormal];
         BOOL sizeOK = (img.size.width == imgW) && (img.size.height == imgH);
-        if (fabs(button.bounds.size.width - size) <= 0.5 && sizeOK && bare == self.launcherBare)
+        // Keep gate (0x41ee0-0x41f28, spot-audit adjudicated — see
+        // work/fix-round2/audit-spotfold.md): bounds |w-size| <= 0.5 is
+        // a GATE (b.le @0x41ef0) to the w25 test; w26 is the image-size
+        // MISMATCH flag (cset/csinc @0x41e7c-0x41e88; 1 when no
+        // button), w8 = bare ^ launcherBare (eor @0x41f10),
+        // w25 = w26 | ~w8 (orn @0x41f14); tbz w25,#0 (@0x41f28) skips
+        // the rebuild to 0x420e8 iff w26 == 0 AND w8 == 1, i.e. iff
+        // sizeOK && bare != launcherBare. Combined form below is the
+        // original's condition exactly.
+        if (fabs(button.bounds.size.width - size) <= 0.5 && sizeOK && bare != self.launcherBare)
             rebuild = NO;
     }
     if (rebuild) {
         [button removeFromSuperview];
-        UIImage *glyph = SCPLauncherGlyphImage(imgW, imgH);
         if (bare) {
+            // Original bare order: glyph (sub_42564 @0x41f5c) ->
+            // SCPLauncherButton (sub_2b404 @0x41f7c) -> setBounds:
+            // (@0x41fa8; the helper also sets bounds internally).
+            UIImage *glyph = SCPLauncherGlyphImage(imgW, imgH);
             button = SCPLauncherButton(glyph, self, @selector(homeButtonTapped), size);
+            button.bounds = CGRectMake(0, 0, size, size);
         } else {
+            // Original non-bare order (spot-audit minor, restored):
+            // buttonWithType: (@0x41fc0) BEFORE the glyph (@0x41fdc),
+            // setBounds: (@0x42038) BEFORE the log block (@0x4203c).
             button = [SCPCButton buttonWithType:UIButtonTypeCustom];
+            UIImage *glyph = SCPLauncherGlyphImage(imgW, imgH);
             [button setImage:glyph forState:UIControlStateNormal];
             [button addTarget:self action:@selector(homeButtonTapped)
              forControlEvents:UIControlEventTouchUpInside];
+            button.bounds = CGRectMake(0, 0, size, size);
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                 @"CarSplit: nut Split Screen tren dock %.0fpt, hinh %@ (luoi nut Home %@)",
                 size, NSStringFromCGSize(CGSizeMake(imgW, imgH)),
                 NSStringFromCGRect(self.homeGlyph)]);
         }
-        button.bounds = CGRectMake(0, 0, size, size);
         self.homeButton = button;
         // The binary stores the INVERSE of the current corner-mode flag
-        // here (eor w2, w22, #1 at 0x420d4) — reproduced as read; the
-        // keep-check above compares launcherBare == bare, so after a
-        // rebuild the next non-throttled refresh rebuilds again.
+        // here (eor w2, w22, #1 at 0x420d4) — reproduced as read. The
+        // keep-check above therefore requires bare != launcherBare
+        // (fix-round2 correction: at 0x41f10-0x41f28 the skip-rebuild
+        // branch is taken only when (bare ^ launcherBare) == 1 and the
+        // image-size flag w26 == 0; the previous transcription had the
+        // bare comparison inverted, so a rebuilt button could never be
+        // kept). With the inverse store, a rebuilt button IS kept by
+        // the next non-throttled refresh.
         self.launcherBare = !bare;
     }
     UIColor *ink = self.homeInk;
@@ -2473,6 +2636,16 @@ static SCPCButton *SCPLauncherButton(UIImage *image, id target, SEL action, doub
     }
     if (self.homeButton.superview != host) {
         [host addSubview:self.homeButton];
+        // [GPT-F] this branch IS the attach/host-change transition (the
+        // original's own superview != host test, audit-spotfold.md row
+        // 18): log AFTER addSubview so homeSuper/frameWin are the new
+        // host state. A rebuilt button (identity changed vs the entry
+        // snapshot) is "created"; a kept button with no previous host is
+        // "attached"; with a different previous host, "host-changed".
+        SCPFDockGateLog(self,
+                        self.homeButton != fdPrevButton ? @"created"
+                            : (fdPrevSuper ? @"host-changed" : @"attached"),
+                        @"pass", root, parent);
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
             @"CarSplit: nut Split Screen gan vao %@ %@",
             NSStringFromClass(host.class),

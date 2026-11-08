@@ -976,14 +976,11 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
     SCPDispatchAfter(0.35, ^{ [weakSelf refreshAppTab]; });
 }
 
-- (void)refreshAppTab {                                                  // 0x36f60 (approx.)
+- (void)refreshAppTab {                                                  // 0x36e04 VERIFIED (SCPCarSplit__refreshAppTab.txt): strictly sequential — refreshHomeButton first, single guard on tray only, popupShield raised unconditionally after tray (no nil/viewIsRaised: check on it in the original)
     [self refreshHomeButton];
-    if (self.tray != nil && self.tabParent != nil &&
-        ![self viewIsRaised:self.tray]) // [phase2; backported to src in phase 3] viewIsRaised:/raiseView: are SCPCarSplit methods (binary); src sent them to the UIView* tabParent
-        [self raiseView:self.tray];
-    if (self.popupShield != nil && self.tabParent != nil &&
-        ![self viewIsRaised:self.popupShield])
-        [self raiseView:self.popupShield];
+    if (!self.tray || [self viewIsRaised:self.tray]) return;
+    [self raiseView:self.tray];
+    [self raiseView:self.popupShield];
 }
 
 - (void)showPickerForFocusedPane {                                       // 0x37000 (approx.)

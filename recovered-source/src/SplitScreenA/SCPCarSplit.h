@@ -148,7 +148,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)rememberPair;
 - (void)openRememberedPair;
 - (void)openRememberedPairForConnect;               // reconnect/restore path
-- (void)autoLaunchAttempt:(NSInteger)attempt;
+- (void)autoLaunchAttempt:(int)attempt;
 - (BOOL)launchPhoneAppIfNeeded:(id)launchInfo;      // YES = consumed by AppBridge
 
 // --- scene adoption / VC lifecycle (A) ---------------------------------------

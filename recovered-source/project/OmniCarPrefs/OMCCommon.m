@@ -7,6 +7,7 @@
 #import "SSStartupView.h" // [integration phase 1; backported to src in phase 3] full interface; OMCCommon.h only @class-forwards it, but the diag code below sets its properties
 #import <objc/runtime.h>
 #import <spawn.h>
+#import <unistd.h> // [GPT-F] getpid() for the log writer below
 #import <notify.h>
 #import <dlfcn.h>
 #import <sys/utsname.h>
@@ -431,8 +432,11 @@ void OMCStyleGlassCard(UIView *view) {
     view.layer.cornerRadius = 14;
 }
 
-// _OMCStyleHeaderFooter 0x18bd8 [VERIFIED call graph only; applies the
-// section header/footer label styling used by all pages]
+// _OMCStyleHeaderFooter 0x19300 [RECORDED FIDELITY GAP: the original is
+// (UIView *, BOOL isHeader) — header 14pt UIFontWeightMedium, footer
+// plain 12pt, detailTextLabel untouched. The parameter is NOT restored
+// this round per GPT consolidated fix §D; the body below is the
+// pre-round one-argument approximation, kept deliberately.]
 void OMCStyleHeaderFooter(UIView *view) {
     if ([view isKindOfClass:[UITableViewHeaderFooterView class]]) {
         UITableViewHeaderFooterView *hf = (UITableViewHeaderFooterView *)view;
@@ -771,6 +775,67 @@ NSDictionary *OMCDiagSummary(void) {
                                                      (unsigned long)warn, (unsigned long)bad];
     return @{@"title": title, @"subtitle": subtitle,
              @"checks": @[@(ok), @(warn), @(bad)]};
+}
+
+#pragma mark - Log writer ([GPT-F] candidate-only; see the OMCCommon.h note)
+
+// [GPT-F] Module-local copy of the verified shared-core logger, statically
+// embedded in this binary like every other OMC* helper here. The original
+// Prefs binary has no such function; this exists only for the §F Settings
+// diagnostics in OMCRootListController.m.
+static NSDateFormatter *sPrefsLogFormatter;
+static dispatch_once_t sPrefsLogFormatterOnce;
+static dispatch_queue_t sPrefsLogQueue;
+static dispatch_once_t sPrefsLogQueueOnce;
+
+static BOOL OMCPrefsLogIsSpringBoard(void) {
+    return [[[NSBundle mainBundle] bundleIdentifier]
+        isEqualToString:@"com.apple.springboard"];
+}
+
+static BOOL OMCPrefsLogAppendLine(NSString *line) {
+    FILE *f = fopen("/var/mobile/Documents/OmniCar.log", "a");
+    if (f) {
+        fputs(line.UTF8String, f);
+        fclose(f);
+    }
+    return f != NULL;
+}
+
+// SpringBoard-only rotation at 2 MiB, as in the shared core.
+static void OMCPrefsLogRotateIfNeeded(void) {
+    NSString *path = @"/var/mobile/Documents/OmniCar.log";
+    NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path
+                                                                           error:nil];
+    if ([attrs fileSize] >= 0x200000) {
+        NSString *old = [path stringByAppendingString:@".old"];
+        [[NSFileManager defaultManager] removeItemAtPath:old error:nil];
+        [[NSFileManager defaultManager] moveItemAtPath:path toPath:old error:nil];
+    }
+}
+
+void OMCLogWrite(NSString *tag, NSString *msg) {
+    NSLog(@"[OmniCar/%@] %@", tag, msg);
+    dispatch_once(&sPrefsLogFormatterOnce, ^{
+        sPrefsLogFormatter = [[NSDateFormatter alloc] init];
+        sPrefsLogFormatter.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
+    });
+    NSString *line = [NSString stringWithFormat:@"%@ [%@:%d] %@: %@\n",
+                      [sPrefsLogFormatter stringFromDate:[NSDate date]],
+                      [[NSProcessInfo processInfo] processName],
+                      getpid(), tag, msg];
+    dispatch_once(&sPrefsLogQueueOnce, ^{
+        sPrefsLogQueue = dispatch_queue_create("com.anlai.omnicar.log", NULL);
+    });
+    dispatch_async(sPrefsLogQueue, ^{
+        if (OMCPrefsLogIsSpringBoard()) OMCPrefsLogRotateIfNeeded();
+        if (OMCPrefsLogAppendLine(line)) return;
+        if (OMCPrefsLogIsSpringBoard()) return; // SpringBoard gives up silently
+        id center = [NSClassFromString(@"NSDistributedNotificationCenter") defaultCenter];
+        [center postNotificationName:@"com.anlai.omnicar/log"
+                              object:nil
+                            userInfo:@{@"line": line}];
+    });
 }
 
 #pragma mark - Share report
