@@ -1374,3 +1374,6 @@ exit codes alone.
 `handover/ACCEPTANCE_PREFSROUND.md`. Nothing in this
 section may be read as "hoàn thiện" until that script
 passes on device.
+
+## S16H - Correction after CI run 42503451473 (FAT verify failed at ls; the build itself compiled clean)
+Tree control Version reverted 1.0.3-rebuilt-prefsround -> 1.0.3 (project/control). The macOS FAT workflow addresses the package by the fixed name com.anlai.omnicar_1.0.3_iphoneos-arm64.deb; with the round suffix in the tree control, Theos emitted a suffixed filename and the verify step failed before any lipo check ran. Prior rounds kept the tree control at 1.0.3 and carried the round name on the delivered file only - that convention is restored. The local prefsround candidate recorded in S16 (built before this revert; its internal control reads 1.0.3-rebuilt-prefsround) is unaffected. The CI FAT artifact will be renamed to the prefsround-fat name on delivery, as in prior rounds.
