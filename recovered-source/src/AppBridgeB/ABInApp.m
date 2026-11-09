@@ -164,9 +164,10 @@ static NSTimeInterval BWLastQueryAt = 0;
 // act feed posts on THIS basis, never on state freshness.
 // [hl3] BWFresh() is no longer the currency of the suppression
 // path either: BWGatePass decides on the latched push state +
-// local kb (QA180 shape). Freshness survives only as probe
-// diagnostics, the pinch arbitration's own discipline, and the
-// BWQueryIfStale self-heal trigger.
+// local kb (QA180 shape). [hl3-L4] The pinch arbitration's
+// freshness veto is removed on the same principle (PATCH
+// 29.19): freshness now survives only as probe diagnostics
+// and the BWQueryIfStale self-heal trigger.
 static BOOL     BWActSessionVerified = NO;
 static NSUInteger BWActSetFail  = 0; // notify_set_state failures (act)
 static NSUInteger BWActPostFail = 0; // notify_post failures (act)
@@ -1022,9 +1023,12 @@ static void BWStartSummaryTimer(void) {
 // EXPANDED -> in/restore), and the owner re-validates dir
 // against the FS controller's real currentState before
 // applying (bwHandlePinchNote: badstate). Pair arbitration
-// (ABPinchPairDecision — known/fresh/allowed/kb/mode, incl. the
-// two GPT invariants: SPLIT+HIDDEN never recognises, and
-// EXPANDED+HIDDEN still can) is unchanged by this rework.
+// (ABPinchPairDecision — latch/allowed/kb/mode, incl. the two
+// GPT invariants: SPLIT+HIDDEN never recognises, and
+// EXPANDED+HIDDEN still can) was unchanged by the activation
+// rework; the [hl3-L4] fix then removed its freshness veto
+// and switched its kb source to the local first-hand state
+// (see the decision function itself; PATCH 29.19).
 // ===========================================================================
 static NSString *const BWPinchChannel = @"com.anlai.omnicar/bridgewake.v1.pinch";
 static uint64_t BWPinchReportSeq = 0;  // per-source monotone; first fire = 1
@@ -1046,10 +1050,24 @@ enum { ABPinchBlock = 0, ABPinchDryRunPair = 1, ABPinchEnforcePair = 2 };
 static NSInteger ABPinchPairDecision(NSString **reasonOut, BOOL *expandedOut) {
     if (reasonOut) *reasonOut = nil;
     if (expandedOut) *expandedOut = NO;
-    if (!BWKnown) { if (reasonOut) *reasonOut = @"unknown"; return ABPinchBlock; }
-    if (!BWFresh()) { if (reasonOut) *reasonOut = @"stale"; return ABPinchBlock; }
-    // gen verified: BWKnown/BWGen are only ever set by BWOnStatePacket
-    // after the hash check and BWGenAccept have both passed.
+    // [hl3-L4] LATCH decision, same shape as BWGatePass after the
+    // QA180 restructure (45e629b): the state read below (BWState,
+    // BWPinchAllowed, BWPinchMode) is the pane state LATCHED at
+    // the last accepted push (or query answer) — there is NO
+    // freshness veto in pair formation. The 2.5 s staleness
+    // arithmetic that used to sit here (reason=stale) killed
+    // 63/165 pairs at formation in the hl2 car session (PATCH
+    // 29.18 L4) — the same mechanism already removed from the
+    // swallow gate. "Known" for pinch is now identity only:
+    // BWKnown means this app holds a latch for its own pane —
+    // BWKnown/BWGen are only ever set by BWOnStatePacket after
+    // the hash check and BWGenAccept have both passed, and are
+    // cleared in BWResetAll when the assignment dies. No packet
+    // age is consulted anywhere in this function. The owner
+    // still re-validates the relay against the FS controller's
+    // real state (badstate backstop), and BWQueryIfStale remains
+    // the self-heal if a push was missed.
+    if (!BWKnown) { if (reasonOut) *reasonOut = @"latch-missing"; return ABPinchBlock; }
     if (BWState != BWStateVisible && BWState != BWStateHidden) {
         if (reasonOut) *reasonOut = @"state"; return ABPinchBlock;
     }
@@ -1068,11 +1086,19 @@ static NSInteger ABPinchPairDecision(NSString **reasonOut, BOOL *expandedOut) {
     // a known INACTIVE keyboard leaves the pane free for pinch.
     // (Coordinator alignment fix at integration: the first cut let
     // UNKNOWN through, which reads the ruling's "fail-open" backwards.)
-    NSInteger kbEffPinch = BWKbEffective(NULL, NULL);
-    if (kbEffPinch == BWKbActive) {
+    // [hl3-L4] The INVARIANT is unchanged; the SOURCE is now the
+    // LOCAL first-hand BWKb — the same responder-hook state the
+    // kbstate reporter writes and (since 45e629b) the swallow
+    // gate reads — instead of the owner-echoed effective state,
+    // whose owner-snapshot leg folded a 3.5 s sync window into
+    // this decision: a packet-age dependency of exactly the kind
+    // removed above. The effective state survives for the
+    // AutoHide act flag and the probe instruments, where the
+    // loop delay is harmless.
+    if (BWKb == BWKbActive) {
         if (reasonOut) *reasonOut = @"kbactive"; return ABPinchBlock;
     }
-    if (kbEffPinch != BWKbInactive) {
+    if (BWKb != BWKbInactive) {
         if (reasonOut) *reasonOut = @"kbunknown"; return ABPinchBlock;
     }
     if (expandedOut) *expandedOut = (BWState == BWStateHidden);
