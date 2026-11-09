@@ -1,0 +1,56 @@
+; sub_1d444
+0x01d444  stp      x20, x19, [sp, #-0x20]!
+0x01d448  stp      x29, x30, [sp, #0x10]
+0x01d44c  add      x29, sp, #0x10
+0x01d450  mov      x20, x0
+0x01d454  add      x0, x0, #0x28
+0x01d458  bl       #0x5674c ; call _objc_loadWeakRetained
+0x01d45c  mov      x19, x0
+0x01d460  ldr      x2, [x20, #0x20]
+0x01d464  ldp      d0, d1, [x20, #0x30]
+0x01d468  mov      w3, #0
+0x01d46c  bl       #0x5cb00 ; objc_msgSend$verifySceneOfPane:expected:retry:
+0x01d470  mov      x0, x19
+0x01d474  ldp      x29, x30, [sp, #0x10]
+0x01d478  ldp      x20, x19, [sp], #0x20
+0x01d47c  b        #0x567b8 ; call _objc_release
+0x01d480  mov      x20, x0
+0x01d484  mov      x0, x19
+0x01d488  bl       #0x567b8 ; call _objc_release
+0x01d48c  mov      x0, x20
+0x01d490  bl       #0x563e0 ; call __Unwind_Resume
+0x01d494  sub      sp, sp, #0x180
+0x01d498  stp      x28, x27, [sp, #0x120]
+0x01d49c  stp      x26, x25, [sp, #0x130]
+0x01d4a0  stp      x24, x23, [sp, #0x140]
+0x01d4a4  stp      x22, x21, [sp, #0x150]
+0x01d4a8  stp      x20, x19, [sp, #0x160]
+0x01d4ac  stp      x29, x30, [sp, #0x170]
+0x01d4b0  add      x29, sp, #0x170
+0x01d4b4  mov      x21, x3
+0x01d4b8  mov      x22, x2
+0x01d4bc  mov      x19, x0
+0x01d4c0  adrp     x8, #0x78000
+0x01d4c4  ldr      x8, [x8, #0x360] ; [0x78360] ___stack_chk_guard
+0x01d4c8  ldr      x8, [x8] ; [0x78000] <ordinal 0>
+0x01d4cc  stur     x8, [x29, #-0x60]
+0x01d4d0  bl       #0x59800 ; objc_msgSend$paneCount
+0x01d4d4  cmp      w22, w21
+0x01d4d8  b.eq     #0x1d870
+0x01d4dc  orr      w8, w21, w22
+0x01d4e0  tbnz     w8, #0x1f, #0x1d870
+0x01d4e4  mov      x20, x0
+0x01d4e8  cmp      w22, w0
+0x01d4ec  b.ge     #0x1d870
+0x01d4f0  cmp      w21, w20
+0x01d4f4  b.ge     #0x1d870
+0x01d4f8  mov      x0, x19
+0x01d4fc  bl       #0x5c160 ; objc_msgSend$slots
+0x01d500  mov      x29, x29
+0x01d504  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01d508  mov      x25, x0
+0x01d50c  mov      w23, w22
+0x01d510  mov      w24, w21
+0x01d514  mov      x2, x23
+0x01d518  mov      x3, x24
+0x01d51c  bl       #0x57f60 ; objc_msgSend$exchangeObjectAtIndex:withObjectAtIndex:

@@ -5,8 +5,13 @@
 // expands from 3 to 7 rows while editing), headers/footers, favRow
 // mapping (0x38980), helpKind mapping (0x389e8), and the cell content
 // (keys, icons, hex colors) from cellForRowAtIndexPath: (0x38cc0).
-// chip:/editorCell: internals are reconstructed from their dumps at
-// structural fidelity; exact frames are INFERRED where noted.
+// chip:/chipTapped:/editorCell: and the editor handlers were restored
+// verbatim from their dumps in fix-round3 (audit-D1D4): the section-4
+// panel row is a horizontal stack of two chip: toggles (0x38d60-0x38f70),
+// chip: styles itself from the bool pref (0x3a4d4), chipTapped: toggles
+// it and reloads section 4 (0x3a820), and the favorite editor is
+// name row / UISegmentedControl / app-icon buttons / Done button
+// (editorCell: 0x3a8f0). No INFERRED frames remain in those paths.
 #import "OMCSplitScreenController.h"
 #import "OMCSplitScreenAppPickerController.h"
 #import "OMCCommon.h"
@@ -21,6 +26,34 @@ static NSArray<NSString *> *SSFavParts(void) {
 }
 static NSString *SSFavKey(NSInteger fav, NSString *part) {
     return [NSString stringWithFormat:@"splitScreenFav%ld%@", (long)fav, part];
+}
+// Layout codes in picker order, VERIFIED from the constant arrays at
+// 0x7fc18 (editorCell:) and 0x7fc48 (layoutPicked:).
+static NSArray<NSNumber *> *SSFavLayoutCodes(void) {
+    return @[@2, @3, @13, @31];
+}
+@interface UIImage (SSFavPrivateIcon)
++ (UIImage *)_applicationIconImageForBundleIdentifier:(NSString *)bundleID
+                                               format:(int)format scale:(double)scale;
+@end
+// App icon for a bundle id, rasterized at (points, points); nil for bad
+// ids. Mirrors the shared helper at 0x380a4 in the binary (the same body
+// the OMCSplitPreview translation unit carries); editorCell: part 2
+// calls it with points = 34 (0x3b180-0x3b184).
+static UIImage *SSFavIconForBundleID(NSString *bundleID, double points) {
+    if (![bundleID isKindOfClass:[NSString class]] || bundleID.length == 0) return nil;
+    SEL sel = NSSelectorFromString(@"_applicationIconImageForBundleIdentifier:format:scale:");
+    if (![UIImage respondsToSelector:sel]) return nil;
+    UIImage *icon = [UIImage _applicationIconImageForBundleIdentifier:bundleID
+                                                                format:2
+                                                                 scale:[UIScreen mainScreen].scale];
+    if (!icon) return nil;
+    UIGraphicsImageRenderer *renderer =
+        [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(points, points)];
+    return [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+        (void)ctx;
+        [icon drawInRect:CGRectMake(0, 0, points, points)];
+    }];
 }
 // App display name via LaunchServices (same dynamic pattern as the
 // App Bridge page); falls back to the bundle id.
@@ -44,7 +77,7 @@ static NSString *SSAppName(NSString *bundleID) {
 - (UIButton *)chip:(NSString *)title key:(NSString *)key;
 - (UITableViewCell *)editorCell:(NSInteger)part fav:(NSInteger)fav width:(double)width;
 - (void)chipTapped:(UIButton *)sender;
-- (void)layoutPicked:(UIButton *)sender;
+- (void)layoutPicked:(UISegmentedControl *)sender;
 - (void)nameEdited:(UITextField *)field;
 - (void)pickAppForKey:(NSString *)key title:(NSString *)title;
 - (void)boxTapped:(UIButton *)sender;
@@ -178,9 +211,12 @@ static NSString *SSAppName(NSString *bundleID) {
     if (ip.section == 3) {
         NSInteger fav, part;
         [self favRow:ip.row fav:&fav part:&part];
-        if (part == -1) return 60;
+        // Original @0x38b78-0x38ba4: part 2 -> 56; parts 1 and 3
+        // ((part & ~2) == 1) -> 48; everything else (summary row and
+        // the part-0 name row) -> 60.
         if (part == 2) return 56;
-        return 48;
+        if ((part & ~2) == 1) return 48;
+        return 60;
     }
     if (ip.section == 5) {
         NSInteger index = 0;
@@ -263,20 +299,16 @@ static NSString *SSAppName(NSString *bundleID) {
         cell = [self cellWithId:@"panel"];
         cell.textLabel.text = L(@"SPLITSCREEN_PANEL_SHOW");
         cell.imageView.image = OMCIcon(@"list.bullet.rectangle.fill", OMCColorFromHex(@"#FF7FA8"));
-        UIStackView *toggles = [UIStackView new];
-        toggles.axis = UILayoutConstraintAxisVertical;
-        toggles.spacing = 4;
-        for (NSString *key in @[@"splitScreenShowRecent", @"splitScreenShowFavorites"]) {
-            UILabel *label = [UILabel new];
-            label.text = L([key isEqualToString:@"splitScreenShowRecent"]
-                               ? @"SPLITSCREEN_SHOW_RECENT" : @"SPLITSCREEN_SHOW_FAVORITES");
-            UIStackView *rowStack = [UIStackView new];
-            rowStack.axis = UILayoutConstraintAxisHorizontal;
-            [rowStack addArrangedSubview:label];
-            [rowStack addArrangedSubview:[self switchForKey:key def:YES]];
-            [toggles addArrangedSubview:rowStack];
-        }
-        toggles.frame = CGRectMake(0, 0, 190, 52);   // [INFERRED frame]
+        // Original @0x38e28-0x38f68: NO switches here — the accessory is
+        // a single horizontal UIStackView holding the two chip: toggle
+        // buttons (Recent / Favorites), spacing 6, sized by
+        // systemLayoutSizeFittingSize: and framed (0, 0, fitWidth, 30).
+        UIStackView *toggles = [[UIStackView alloc] initWithArrangedSubviews:@[
+            [self chip:L(@"SPLITSCREEN_SHOW_RECENT") key:@"splitScreenShowRecent"],
+            [self chip:L(@"SPLITSCREEN_SHOW_FAVORITES") key:@"splitScreenShowFavorites"]]];
+        toggles.spacing = 6;
+        CGSize fit = [toggles systemLayoutSizeFittingSize:UILayoutFittingCompressedSize];
+        toggles.frame = CGRectMake(0, 0, fit.width, 30);
         [self setAccessory:toggles onCell:cell];
     } else if (ip.section == 5) {
         NSInteger index = 0;
@@ -340,102 +372,164 @@ static NSString *SSAppName(NSString *bundleID) {
 #pragma mark - Favorite editor
 
 - (UIButton *)chip:(NSString *)title key:(NSString *)key {
+    // Original @0x3a4d4: the chip is a BOOL toggle — its state is read
+    // from the pref named by key (default YES), never from key != nil.
+    BOOL on = [[self prefForKey:key def:@YES] boolValue];
     UIButton *chip = [UIButton buttonWithType:UIButtonTypeCustom];
     [chip setTitle:title forState:UIControlStateNormal];
-    chip.titleLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
-    BOOL active = key != nil;
-    [chip setTitleColor:active ? [UIColor whiteColor] : OMCAccentColor()
-               forState:UIControlStateNormal];
-    chip.backgroundColor = active ? OMCColorFromHex(@"#8B7CFF") : OMCCardColor();
-    chip.layer.cornerRadius = 12;
-    chip.layer.cornerCurve = kCACornerCurveContinuous;
-    objc_setAssociatedObject(chip, &kSSChipKeyAssoc, key, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    chip.titleLabel.font = [UIFont systemFontOfSize:12.5 weight:UIFontWeightSemibold];
+    if (on) {
+        [chip setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        chip.backgroundColor = OMCColorFromHex(@"#8B7CFF");
+    } else {
+        [chip setTitleColor:[UIColor secondaryLabelColor] forState:UIControlStateNormal];
+        // colorWithWhite level 0.14 read from the binary @0x65758.
+        chip.backgroundColor = [UIColor colorWithWhite:0.14 alpha:0.5];
+    }
+    chip.layer.cornerRadius = 10;
+    // Self-sizing @0x3a6f4-0x3a78c: width = ceil(title width) + 20,
+    // height = 30, both as active anchor constraints.
+    CGSize textSize = [title sizeWithAttributes:@{NSFontAttributeName: chip.titleLabel.font}];
+    [chip.widthAnchor constraintEqualToConstant:ceil(textSize.width) + 20].active = YES;
+    [chip.heightAnchor constraintEqualToConstant:30].active = YES;
+    objc_setAssociatedObject(chip, &kSSChipKeyAssoc, key, OBJC_ASSOCIATION_COPY_NONATOMIC);
     [chip addTarget:self action:@selector(chipTapped:) forControlEvents:UIControlEventTouchUpInside];
     return chip;
 }
 
 - (void)chipTapped:(UIButton *)sender {
-    (void)sender;
-    [self reloadSection:3];
+    // Original @0x3a820: haptic, toggle the bool pref under the chip's
+    // key, reload SECTION 4 (the panel row that hosts the chips).
+    NSString *key = objc_getAssociatedObject(sender, &kSSChipKeyAssoc);
+    UISelectionFeedbackGenerator *gen = [UISelectionFeedbackGenerator new];
+    [gen selectionChanged];
+    BOOL on = [[self prefForKey:key def:@YES] boolValue];
+    [self storeValue:@(on ? 0 : 1) forKey:key];
+    [self reloadSection:4];
 }
 
 - (UITableViewCell *)editorCell:(NSInteger)part fav:(NSInteger)fav width:(double)width {
+    // Restored verbatim from the dump @0x3a8f0 (fix-round3 audit-D1D4).
     UITableViewCell *cell = [self cellWithId:[NSString stringWithFormat:@"edit%ld", (long)part]];
     UIView *box = [self boxInCell:cell];
     for (UIView *v in [box.subviews copy]) [v removeFromSuperview];
+    // Common preamble @0x3aa40: every editor cell is tinted with the
+    // accent color at alpha 0.06 (constant read from the binary
+    // @0x65760).
+    cell.backgroundColor = [OMCAccentColor() colorWithAlphaComponent:0.06];
     if (part == 0) {
-        UILabel *label = [UILabel new];
+        // Name row @0x3aa98: label (16, 0, 80, 60); field
+        // (96, 14, width-102, 32) with 8x8 left/right spacer views.
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(16, 0, 80, 60)];
         label.text = L(@"SPLITSCREEN_PAIR_NAME");
-        label.frame = CGRectMake(16, 14, 90, 20);
         [box addSubview:label];
-        UITextField *field = [UITextField new];
+        UITextField *field = [[UITextField alloc] initWithFrame:CGRectMake(96, 14, width - 102, 32)];
         field.text = [self stringForKey:SSFavKey(fav, @"Name")];
         field.placeholder = L([NSString stringWithFormat:@"SPLITSCREEN_FAV%ld_PLACEHOLDER", (long)fav]);
         field.textAlignment = NSTextAlignmentRight;
         field.borderStyle = UITextBorderStyleNone;
-        field.backgroundColor = OMCCardColor();
-        field.layer.cornerRadius = 8;
+        // colorWithWhite level 0.12 read from the binary @0x655f0.
+        field.backgroundColor = [UIColor colorWithWhite:0.12 alpha:0.5];
+        field.layer.cornerRadius = 9;
+        field.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 8, 8)];
+        field.leftViewMode = UITextFieldViewModeAlways;
+        field.rightView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 8, 8)];
+        field.rightViewMode = UITextFieldViewModeAlways;
+        field.returnKeyType = UIReturnKeyDone;
         field.delegate = self;
         field.tag = fav;
         [field addTarget:self action:@selector(nameEdited:) forControlEvents:UIControlEventEditingDidEnd];
-        field.frame = CGRectMake(110, 6, width - 126, 36);   // [INFERRED frame]
         [box addSubview:field];
     } else if (part == 1) {
-        // Layout chips: one per layout code (2 / 3 / 13 / 31).
-        NSInteger current = [self layoutOf:fav];
-        double x = 16;
-        for (NSNumber *code in @[@2, @3, @13, @31]) {
-            // Original @0x3ad4c-0x3ada4: no format pattern at all — the
-            // picker passes each LITERAL full key straight to L(),
-            // selected by layout code (only 2/3/13/31 exist).
-            NSString *title;
-            switch (code.integerValue) {
-                case 3:  title = L(@"SPLITSCREEN_LAYOUT_3"); break;
-                case 13: title = L(@"SPLITSCREEN_LAYOUT_13"); break;
-                case 31: title = L(@"SPLITSCREEN_LAYOUT_31"); break;
-                case 2:
-                default: title = L(@"SPLITSCREEN_LAYOUT_2"); break;
+        // Layout row @0x3ad38: a UISegmentedControl (NOT chips) with the
+        // four literal layout keys, frame (12, 8, width-24, 32).
+        UISegmentedControl *seg = [[UISegmentedControl alloc] initWithItems:@[
+            L(@"SPLITSCREEN_LAYOUT_2"), L(@"SPLITSCREEN_LAYOUT_3"),
+            L(@"SPLITSCREEN_LAYOUT_13"), L(@"SPLITSCREEN_LAYOUT_31")]];
+        seg.selectedSegmentIndex =
+            [SSFavLayoutCodes() indexOfObject:@([self layoutOf:fav])];
+        seg.frame = CGRectMake(12, 8, width - 24, 32);
+        seg.tag = fav;
+        [seg addTarget:self action:@selector(layoutPicked:)
+      forControlEvents:UIControlEventValueChanged];
+        [box addSubview:seg];
+    } else if (part == 2) {
+        // Apps row @0x3aea8: a two-line header label (16, 6, 140, 46)
+        // — group title at 15pt over the hint at 11pt secondary — and
+        // one 34x34 icon button per box, right-aligned in a row
+        // (step 40, first x = width - 8 - 40*count, y = 12).
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(16, 6, 140, 46)];
+        label.numberOfLines = 2;
+        NSMutableAttributedString *text = [[NSMutableAttributedString alloc]
+            initWithString:L(@"SPLITSCREEN_APPS_GROUP")
+                attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:15]}];
+        NSAttributedString *hint = [[NSAttributedString alloc]
+            initWithString:[@"\n" stringByAppendingString:L(@"SPLITSCREEN_FAV_APPS_HINT")]
+                attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:11],
+                             NSForegroundColorAttributeName: [UIColor secondaryLabelColor]}];
+        [text appendAttributedString:hint];
+        label.attributedText = text;
+        [box addSubview:label];
+        NSArray *apps = [self appsOf:fav];
+        NSInteger count = [self boxCount:[self layoutOf:fav]];
+        double x = width - 8 - 40 * (double)count;
+        for (NSInteger i = 0; i < count; i++) {
+            UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+            btn.frame = CGRectMake(x, 12, 34, 34);
+            UIImage *icon = SSFavIconForBundleID(apps[i], 34);
+            if (icon) {
+                [btn setImage:icon forState:UIControlStateNormal];
+            } else {
+                // colorWithWhite level 0.2 read from the binary @0x65728.
+                btn.backgroundColor = [UIColor colorWithWhite:0.2 alpha:0.5];
+                btn.layer.cornerRadius = 8;
+                [btn setTitle:@"+" forState:UIControlStateNormal];
+                [btn setTitleColor:[UIColor secondaryLabelColor] forState:UIControlStateNormal];
             }
-            UIButton *chip = [self chip:title key:code.integerValue == current ? SSFavKey(fav, @"Layout") : nil];
-            chip.tag = code.integerValue;
-            [chip addTarget:self action:@selector(layoutPicked:) forControlEvents:UIControlEventTouchUpInside];
-            chip.frame = CGRectMake(x, 8, 64, 32);   // [INFERRED frame]
-            [box addSubview:chip];
-            x += 72;
+            // The tap handler unpacks @[prefKey, boxTitle] (0x3b254).
+            objc_setAssociatedObject(btn, &kSSChipKeyAssoc,
+                @[SSFavKey(fav, SSFavParts()[i]),
+                  L([NSString stringWithFormat:@"SPLITSCREEN_BOX_%ld", (long)(i + 1)])],
+                OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            [btn addTarget:self action:@selector(boxTapped:) forControlEvents:UIControlEventTouchUpInside];
+            [box addSubview:btn];
+            x += 40;
         }
     } else {
-        // App boxes for this favorite's parts (part 2 = first boxes row,
-        // part 3 = remaining). Tapping a box opens the app picker.
-        NSArray *parts = SSFavParts();
-        NSInteger boxes = [self boxCount:[self layoutOf:fav]];
-        NSInteger start = (part == 2) ? 0 : 2;
-        double x = 16;
-        for (NSInteger i = start; i < MIN(boxes, start + 2) && i < (NSInteger)parts.count; i++) {
-            NSString *bid = [self stringForKey:SSFavKey(fav, parts[i])];
-            UIButton *boxBtn = [self chip:bid ? SSAppName(bid) : L(@"SPLITSCREEN_PICKER_NONE")
-                                      key:SSFavKey(fav, parts[i])];
-            boxBtn.tag = i;
-            [boxBtn addTarget:self action:@selector(boxTapped:) forControlEvents:UIControlEventTouchUpInside];
-            boxBtn.frame = CGRectMake(x, 6, (width - 48) / 2, 36);   // [INFERRED frame]
-            [box addSubview:boxBtn];
-            x += (width - 48) / 2 + 16;
-        }
+        // Done row (part 3) @0x3b38c: a single left-aligned system
+        // button, title SPLITSCREEN_FAV_DONE at 15pt Semibold,
+        // frame (16, 4, width-32, 40).
+        UIButton *done = [UIButton buttonWithType:UIButtonTypeSystem];
+        [done setTitle:L(@"SPLITSCREEN_FAV_DONE") forState:UIControlStateNormal];
+        done.titleLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightSemibold];
+        done.frame = CGRectMake(16, 4, width - 32, 40);
+        done.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        [done addTarget:self action:@selector(doneEditing) forControlEvents:UIControlEventTouchUpInside];
+        [box addSubview:done];
     }
     return cell;
 }
 
-- (void)layoutPicked:(UIButton *)sender {
-    // The favorite being edited is self.editing; the chip tag is the code.
-    [self storeValue:@(sender.tag) forKey:SSFavKey(self.editing, @"Layout")];
+- (void)layoutPicked:(UISegmentedControl *)sender {
+    // Original @0x3b610: the segment index selects the layout code
+    // from the constant code array; the control's tag is the favorite.
+    NSNumber *code = SSFavLayoutCodes()[sender.selectedSegmentIndex];
+    [self storeValue:code forKey:SSFavKey(sender.tag, @"Layout")];
     [self reloadSection:3];
 }
 
 - (void)nameEdited:(UITextField *)field {
-    [self storeValue:field.text ?: @"" forKey:SSFavKey(field.tag, @"Name")];
+    // Original @0x3b4d8: the name is whitespace-trimmed; an empty
+    // result stores nil (removing the pref).
+    NSString *trimmed = [field.text stringByTrimmingCharactersInSet:
+                         [NSCharacterSet whitespaceCharacterSet]];
+    [self storeValue:trimmed.length ? trimmed : nil forKey:SSFavKey(field.tag, @"Name")];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)field {
+    // Original @0x3b5dc: resign, reload section 3, return YES.
     [field resignFirstResponder];
+    [self reloadSection:3];
     return YES;
 }
 
@@ -450,8 +544,10 @@ static NSString *SSAppName(NSString *bundleID) {
 }
 
 - (void)boxTapped:(UIButton *)sender {
-    NSString *key = objc_getAssociatedObject(sender, &kSSChipKeyAssoc);
-    if (key) [self pickAppForKey:key title:[self nameOf:self.editing]];
+    // Original @0x3b7dc: the associated object is the @[key, title]
+    // pair editorCell: attached to the box button.
+    NSArray *pair = objc_getAssociatedObject(sender, &kSSChipKeyAssoc);
+    [self pickAppForKey:pair[0] title:pair[1]];
 }
 
 - (void)doneEditing {

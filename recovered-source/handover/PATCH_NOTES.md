@@ -1377,3 +1377,704 @@ passes on device.
 
 ## S16H - Correction after CI run 42503451473 (FAT verify failed at ls; the build itself compiled clean)
 Tree control Version reverted 1.0.3-rebuilt-prefsround -> 1.0.3 (project/control). The macOS FAT workflow addresses the package by the fixed name com.anlai.omnicar_1.0.3_iphoneos-arm64.deb; with the round suffix in the tree control, Theos emitted a suffixed filename and the verify step failed before any lipo check ran. Prior rounds kept the tree control at 1.0.3 and carried the round name on the delivered file only - that convention is restored. The local prefsround candidate recorded in S16 (built before this revert; its internal control reads 1.0.3-rebuilt-prefsround) is unaffected. The CI FAT artifact will be renamed to the prefsround-fat name on delivery, as in prior rounds.
+
+# §17 — Vòng sửa 3 (fixround3)
+
+Ngày: 2026-11-09. Candidate local: `com.anlai.omnicar_1.0.3-rebuilt-fixround3_iphoneos-arm64.deb`
+— 969.344 byte, SHA-256 `cc4ea835d82636cd9f3aaa837a25968b038a3a538c32b59d55e38592abd05e34`,
+payload 176 file, control trong gói `Version: 1.0.3-rebuilt-fixround3` (cây đã trả về
+`Version: 1.0.3` sau khi đóng gói — giữ nguyên tắc tên cố định cho workflow FAT).
+UUID 8 binary (arm64): OmniCar `4C4C4450-5555-3144-A1A3-58843B0F2EA6` ·
+Core `4C4C4462-...-68112DE02120` · AppBridge `4C4C44C5-...-1D7128382BDF` ·
+CarProbe `4C4C44CF-...-60B43FDF44ED` · SpeedBubble `4C4C4485-...-AEDFFDE46718` ·
+SplitScreen `4C4C44A6-5555-3144-A134-7A20C9D62ABA` (MỚI) ·
+StartupScreen `4C4C44B4-...-0E8998F52385` ·
+Prefs `4C4C4485-5555-3144-A1C6-B7C5F0F88CE8` (MỚI).
+Chỉ SplitScreen + Prefs đổi UUID so với prefsround — đúng hai module có sửa.
+Parity bề mặt selector (so candidate prefsround local cùng toolchain):
+SplitScreen 587 = 587 tên, Prefs 825 = 825, thiếu 0 / thêm 0 ở cả hai.
+
+## Lỗi A — trang Khởi động (Cài đặt) văng: điểm ném nằm trong applyUnit: phía Prefs
+
+Hồ sơ: log 09/11, handler [W1] ghi 3 lần chết giống hệt:
+`NSInvalidArgumentException '-[__NSPlaceholderArray initWithObjects:count:]:
+attempt to insert nil object from objects[0]'`. Symbol gần nhất trong stack là
+SSSampleHudItems — SAI LỆCH do binary stripped (method ObjC bị strip thành local,
+mọi địa chỉ rơi về global gần nhất). SSSampleHudItems của ta KHỚP gốc (đối chiếu
+dump sub_50180: 5 dict, key `text`/`ok`, OMCTr ×5) và lời gọi SSApplySampleData
+đã chạy xong (log [W1] bracket ra: hudClass=__NSArrayI).
+
+Điểm ném thật: `src/Prefs/OMCPrefs/SSStartupView.m`, thân `applyUnit:` — vòng
+`for (UILabel *l in @[_timeLabel, ..., _updatedLabel])` dựng array literal từ
+8 ivar THÔ. Style 0: clearContent nil hoá cả 8 label, reload chỉ dựng poster →
+`_timeLabel` = nil → ném ngay tại lúc dựng literal; `if (!l) continue` bên trong
+là code chết. Ngay trên đó có sẵn một mảng đã coalesce `?: [UILabel new]` cho từng
+phần tử nhưng bị `(void)labels;` bỏ đi không dùng.
+
+Gốc (dump Prefs, applyUnit: va=0x48d4c): 8 ivar nạp vào **C array trên stack**
+(stores 0x48d8c–0x48e58, retain từng phần tử), vòng 0x48e6c–0x48ee0 **bỏ qua nil
+bằng cbz tại 0x48e74**, mỗi label sống được set `shadowRadius = 1.5 × unit`
+(fmul 0x48e5c–0x48e60) và `shadowOffset = (0, 0.5 × unit)` (hệ số 0.5 tại
+0x48e64–0x48e68; width = 0 tại 0x48ec0; setShadowOffset: tại 0x48ecc). Toàn hàm
+gốc có **0** lần arrayWithObjects:count: (đã tự grep kiểm vùng dump).
+Đã sửa đúng cấu trúc đó; giữ nguyên từ `_stackMaxWidth.constant = -12 * unit`
+trở xuống (dòng đó khớp dump 0x48ee4).
+Bằng chứng binary: object đã biên dịch của SSStartupView (Prefs) cho thấy
+applyUnit: nạp ivar → objc_retain → store vào stack slots theo đúng mẫu gốc;
+toàn TU còn **0** tham chiếu arrayWithObjects:count:.
+Phụ (lệnh GPT): bản phía XE `src/StartupScreen/SSStartupView.m` ĐÃ ở đúng cấu
+trúc C-array (liquidfix viết lại theo dump module xe, applyUnit: tại dòng 310,
+shadowOffset (0, 0.5u)) — grep xác nhận không còn mẫu literal thô; không sửa.
+
+## Lỗi B — app native không giữ được ô: CGRectValue gửi tới scene settings (23 lần)
+
+Cơ chế: hai helper `SCPGuarded` (SCPCarSplit.m:27) và `SCPGuardedSend`
+(SCPShared.m:33) ép MỌI kết quả qua chữ ký trả object
+`((id (*)(id, SEL))objc_msgSend)`. Trong `verifySceneOfPane:expected:retry:`
+(bản cũ): `frameValue = SCPGuarded(settings, @"frame")` — `-frame` TỒN TẠI trên
+settings (FBSceneSettings con: CRSUIProxyApplicationSceneSettings /
+UICarPlayApplicationSceneSettings) nhưng trả **CGRect theo giá trị** (v0–v3),
+không ghi x0; objc_msgSend tail-jump giữ x0 = receiver → "kết quả" chính là
+settings → `[frameValue CGRectValue]` ném unrecognized selector. Log máy xác
+nhận 23/23 lần receiver là class settings. Chuỗi gọi: hook presentBaseViewController
+(SCPHooks.m:194) → adoptViewController: → adopt:slot: → (dòng cộng thêm 1041)
+verifySceneOfPane — ĐỒNG BỘ ngay trong stack present → @catch → closeGoingHome:NO
+→ "tat split" (53 lần trong log).
+
+Đã sửa theo dump gốc của verify (IMP 0x1cce0):
+1. Cổng vào: `!active` / `!pane.vc` → return; cổng staleness (0x1cd48–0x1cd6c):
+   **return khi pane.sceneSize KHÁC expected, đi tiếp khi BẰNG** (fcmp + b.ne về
+   epilogue) — caller pushSceneSizes ghi sceneSize rồi mới hẹn verify; cổng này
+   giết bản verify cũ khi layout đã đổi. (Mô tả ban đầu trong đề bài ngược cực;
+   đã làm theo dump.)
+2. Frame đọc TRỰC TIẾP (0x1ce5c–0x1ce9c): NSSelectorFromString(@"frame") +
+   respondsToSelector → `((CGRect (*)(id, SEL))objc_msgSend)(settings, sel).size`;
+   không có → CGSizeZero. KHÔNG qua SCPGuarded, KHÔNG NSValue/CGRectValue
+   (0 lần trong dump). Settings vẫn lấy qua @try như gốc (pad 0x1ce1c–0x1ce54).
+3. actual == CGSizeZero → log `CarSplit: khong doc duoc kich thuoc scene %@` → return.
+4. Khớp (0x1cf40–0x1cf84): (|aw−ew| ≤ 2 ∧ |ah−eh| ≤ 2) **hoặc hoán vị**
+   (|aw−eh| ≤ 2 ∧ |ah−ew| ≤ 2).
+5. Log SAU MỌI lần đọc được frame (0x1cf88–0x1d02c):
+   `CarSplit: scene %@ that = %@ (can %@)%@`, hậu tố = khớp ? "" :
+   (retry≠0 ? " -> ve nen roi len lai" : " -> van sai") (csel 0x1cfd4–0x1cff8).
+6. Retry chỉ khi retry≠0 ∧ chưa khớp: allowBackground +1 (0x1d070–0x1d080) →
+   backgroundSceneWithCompletion: (block rỗng — block global gốc 0x78c40 có
+   invoke là một lệnh ret) → allowBackground −1 → hẹn 0.25 s block sub_1d2a8:
+   foregroundSceneWithSettings:nil completion:block-rỗng → hẹn 0.8 s (hằng
+   *(0x6f080)) block sub_1d444: verify lại với retry:0. Hai block dump đã sinh
+   bổ sung vào `src/SplitScreenA/disasm/sub_1d2a8_verify_retry_block.txt` và
+   `sub_1d444_verify_retry_block2.txt`. Xoá `pane.sceneSize = actual;` ở đuôi
+   bản cũ — dump verify có 0 lần setSceneSize (chỉ getter tại 0x1cd4c).
+7. adopt:slot: — xoá điểm gọi verify cộng thêm; khôi phục `showPickerForSlot:`
+   (đối số [pane slot], có cbz pane 0x19b5c) đúng vị trí gốc giữa raise và
+   relayoutAnimated: (đuôi dump adopt 0x19b48–0x19bec). Verify chỉ còn được gọi
+   từ block +0.9 s của pushSceneSizes như gốc.
+8. Hook: sau @catch đi THẲNG tới lời gọi orig như gốc (pad 0x6614–0x6654 →
+   0x644c) bằng cờ `threw` riêng — hết log "tat split" + closeGoingHome lần hai.
+   (Hai vùng @try phụ của hook gốc — "closeGoingHome" và "(sau)" — chưa khôi
+   phục; ghi nhận là khoảng trống fidelity, ngoài phạm vi vòng này.)
+9. Rà toàn bộ call site SCPGuarded/SCPGuardedSend trong SplitScreenA/B/C:
+   `frame` là selector struct-return DUY NHẤT từng đi qua hai helper — đã sửa;
+   mọi selector còn lại đều trả object. Không còn ca cùng bệnh.
+
+Bằng chứng binary: object đã biên dịch của SCPCarSplit còn **0** tham chiếu
+undefined tới stub CGRectValue trong toàn TU (verify là nơi dùng duy nhất);
+binary đóng gói mang chuỗi log verify mới + hậu tố " -> ve nen roi len lai",
+chuỗi log sai cũ ("kich thuoc scene %@ %@ -> van sai") đã biến mất; [GPT-F] ×1,
+sharedApplicationLibrary ×2 còn nguyên.
+
+## Lỗi C — CarPlay chết 06:34:33: hợp đồng paneForView: là gốc chung
+
+Chuỗi: nút X "hủy mở" nằm TRONG loader (showLoaderInPane: tạo tại Picker.m:1076,
+loader gắn vào pane.view, accessibilityIdentifier = bundle) →
+loaderCancelTapped: → `paneForView:sender` → bản cũ của paneForView:
+(SCPCarSplit.m:368) chỉ khớp `pane.view == view || pane.host == view` → nút là
+descendant 2 tầng (nút ⊂ loader ⊂ pane.view) → **nil tất định** → bundle = nil →
+log `CarSplit: huy mo (null) o 0` (log 06:34:31.583, khớp từng ký tự) → guard sẵn
+có chỉ bảo vệ cancelledLaunches → launchFailed:nil chạy tiếp →
+`[self.pending removeObjectForKey:nil]` (dòng đầu launchFailed:) → CRASH.
+
+Symbolicate (hồ sơ riêng `work/fix-round3/symbolicate-063433.md`, slice arm64
+UUID 690e2902-54db-3bad-97a0-d0ff9b98ae91 khớp .ips): **KHỚP TOÀN BỘ** —
+offset 0x755C nằm trong `-[SCPCarSplit launchFailed:slot:]` (0x74F8–0x76E0),
+lệnh ném là removeObjectForKey: ở dòng đầu method; offset 0x303A8 nằm trong
+`-[SCPCarSplit loaderCancelTapped:]` (0x302A8–0x303CC), lời gọi launchFailed
+nằm NGOÀI nhánh guard nil; cfstring log giải ra nguyên văn
+'CarSplit: huy mo %@ o %d'.
+
+Đã sửa:
+1. paneForView: khôi phục hợp đồng gốc @0x23914 (dump
+   `-SCPCarSplit_paneForView_.txt`): duyệt allPanes,
+   `[view isDescendantOfView:pane.view]` (bl tại 0x239d4) — một nhánh duy nhất,
+   dump không kiểm pane.host. isDescendantOfView: đúng cho cả chính view đó nên
+   pane.view/host vẫn khớp như cũ, cộng thêm mọi descendant sâu.
+2. Rà MỌI call site: pickerPaneTapped: (Picker.m:193, gr.view = picker — con
+   trực tiếp của pane.view) nay chạy đúng → **chạm ô trống mở được picker**
+   (đây là gốc của "hai ô trắng" cuối video 1 + "phím + không click được");
+   các wrapper paneSolo:/paneBackground:/paneClose: (nút trong bar ⊂ pane.view),
+   Drag.m handlePanned:, Zoom.m handle*/panePopOut:, Panel.m paneChoose: — đều
+   nằm trong cây pane.view, verdict đúng, không sửa. Hai site fallback sau
+   pickerSheetPane (Picker.m:756/778) truyền view của tray window — chết cả
+   trước/sau, KHỚP gốc (gốc cũng dùng cùng hợp đồng) — giữ nguyên.
+3. loaderCancelTapped: khôi phục gốc @0x2b980: `pane == nil || bundle == nil`
+   → return NGAY (đích chung 0x2ba98), TRƯỚC log/ghi cancelledLaunches/
+   launchFailed. Sửa comment offset sai "0x38000 (approx.)" → 0x2b980.
+   (Khoảng trống ghi nhận: gốc có @catch log `CarSplit: loi huy mo app %@`
+   (cfstring 0x7c500) quanh thân — bản ta chưa có; ngoài phạm vi vòng này.)
+4. launchFailed:slot: — khôi phục điều kiện gỡ loader theo dump @0x17e70:
+   gỡ khi **slot khớp HOẶC loader-id khớp** (isEqualToString: tại 0x17f54–0x17f7c,
+   gỡ tại 0x17f94) — bản cũ AND hai điều kiện nên watchdog gọi slot −1 không bao
+   giờ gỡ được loader (loader GOFA mở 06:32:53, watchdog 06:33:13 "còn sót"
+   nhưng loader + nút X vẫn sống tới cú chạm chết 06:34:31). Sau khi gỡ, nếu
+   `!pane.vc && !slotOccupied(pane.slot)` thì showPickerForSlot: bằng slot của
+   chính pane (0x17fa4–0x17fe8).
+5. **SAI KHÁC CÓ CHỦ ĐÍCH (lệnh GPT):** guard đầu launchFailed: —
+   `if (!bundleID) { log "CarSplit: launchFailed bundle nil o %d -> bo qua
+   (guard GPT)"; return; }`. Gốc KHÔNG có guard này (removeObjectForKey: tại
+   0x17ecc không kiểm nil; gốc dựa hoàn toàn vào hợp đồng caller). Vẫn thêm
+   theo lệnh GPT làm lớp chặn cuối; chuỗi guard đã có mặt trong binary đóng gói.
+
+## Picker — showPickerForSlot: (dump @0x31530)
+
+- Frame/hệ tọa độ: bản cũ tạo picker bằng frameForSlot: (tọa độ CONTAINER) rồi
+  gắn vào trong pane. Gốc: lấy **size** từ frameForSlot:, ép origin (0,0)
+  (0x315cc–0x315e4), setPicker: ngay (0x315c0), gắn vào **pane.view** (0x317b0).
+  Đã khôi phục.
+- Màu nền (0.93333, 0.94117, 0.98431, 1.0) tại 0x315ec–0x3160c — bản cũ dùng
+  ĐÚNG giá trị nhưng ghi chú INFERRED → đã sửa nhãn VERIFIED.
+- Viền: bản cũ trắng alpha 0.55 — SAI. Gốc 0x3163c–0x31690:
+  colorWithRed:0.6078431372549019 green:0.5294117647058824 blue:0.9725490196078431
+  alpha:1.0; dump không có setBorderWidth. Đã khôi phục màu gốc.
+- Glyph '+': cfstring 0x7c720 giải mã từ binary gốc = "+" (text trơn) ✓.
+- Màu chữ: bản cũ trắng 0.85 — SAI. Gốc 0x316d4–0x31704:
+  `[SCPColorSecondary() colorWithAlphaComponent:0.6]` (helper @0x2b380 =
+  0.29019/0.30980/0.50196). Đã khôi phục — đây là gốc của '+' gần như vô hình
+  trên nền sáng trong video.
+- Font: size 40 đúng (0x4044000000000000); weight bản cũ Bold — SAI: GOT
+  0x782a8 = _UIFontWeightLight. Đã sửa.
+- Đuôi hàm bị thiếu, đã khôi phục: bringSubviewToFront:handle (0x317e8),
+  relayoutAnimated: (0x31818), fade-in alpha 0→1 trong 0.25 s (block 0x31954),
+  refreshPickerSheetSoon (0x3187c).
+- Quan sát chưa sửa: stub đầu hàm trong dump là `activate` (@0x56b00) trong khi
+  bản ta dùng `self.active`; trong cây gộp `-activate` là action khởi động
+  split (IMP 0x15c24) nên đổi theo tên stub sẽ đổi hành vi — giữ self.active,
+  chờ vòng kết tội riêng nếu cần.
+
+## paneSize:forBundle: — ABI gốc khác hẳn bản tái dựng (dump @0x1b328)
+
+Gốc là **`- (BOOL)paneSize:(CGSize *)outSize forBundle:`** — x2 là con trỏ ra
+(caller hook @0x5d8c truyền sp, test BOOL tại 0x5db4). Bản cũ khai
+`(CGSize)paneSize:(CGRect)frame forBundle:` + thứ tự guard sai:
+`slot = [self paneForBundle:bundleID].slot` — nhắn nil trả 0 nên check slot<0
+không bao giờ chạy, pendingSlotForBundle: không bao giờ được tra cho app chưa
+gán; comment "VERIFIED call sequence" là nhãn sai.
+Đã khôi phục theo dump: guard `!active || !bundleID` → NO (0x1b350–0x1b360),
+`!container` → NO (0x1b37c); slot = pane ? pane.slot :
+pendingSlotForBundle:; `slot < 0` → NO (0x1b3c0); hợp lệ khi MIN(w,h) ≥ 2
+(0x1b3cc–0x1b3d8); *outSize chỉ ghi khi hợp lệ và outSize != NULL
+(0x1b3dc–0x1b3ec). Hệ quả bắt buộc ngoài danh sách file gốc của đề bài: đã sửa
+kèm khai báo trong SCPCarSplit.h và caller Hook_sceneFrameForAppInfo trong
+SCPHooks.m (nếu không cây không nhất quán biên dịch được).
+Bằng chứng binary: metadata của binary đóng gói ghi types của paneSize:forBundle:
+= `B32@0:8^{CGSize=dd}16@24` — BOOL + con trỏ CGSize*, đúng ABI gốc.
+
+## Các rà phụ D — trạng thái tại thời điểm build tích hợp
+
+Theo lệnh chia việc của Muse chính, D1–D4 do các agent song song riêng phụ
+trách; trạng thái cây tại lúc build (kiểm timestamp/hash từng file):
+
+- **D1 (cell "Hiện trong bảng" hai công tắc chồng): ĐÃ KẾT TỘI** bởi investigator
+  của vòng này — bản cũ dựng UIStackView DỌC chứa hai hàng label+UISwitch
+  (frame cứng (0,0,190,52), tự ghi [INFERRED]) trong khi gốc dùng MỘT stack
+  NGANG chứa hai chip RECENT/FAVORITES (chip:key: @0x3a4d4 — UIButton pill,
+  font 12.5 Semibold, bật = chữ trắng nền #8B7CFF, tắt = secondaryLabel nền
+  trắng mờ, radius 10, cao 30, rộng = ceil(textWidth)+20; chipTapped: @0x3a820
+  XOR pref rồi reloadSection:4; bản cũ chipTapped: là stub rỗng reload nhầm
+  section 3). **Bản sửa của agent D1+D4 đã landed trong cây trước build**
+  (OMCSplitScreenController.m mtime 2026-11-08 23:57 UTC, src = project
+  identical) nên nằm TRONG candidate này; tôi không tự rà lại từng dòng của
+  agent đó.
+- **D2 (icon preview Màn chính co về mép trái sau khi chọn hình nền): ĐÃ KẾT TỘI**
+  bởi investigator của vòng này — hai lệch cùng đường: (1) `boxInCell:` tạo box
+  frame CGRectZero, không autoresizingMask; gốc @0x22284 initWithFrame:
+  contentView.bounds + mask 0x12 (FlexibleWidth|FlexibleHeight); (2) preview bị
+  gắn vào box thay vì thẳng vào contentView (gốc @0x209d8–0x20b58: kiểm
+  preview.superview == cell.contentView, frame (10,10,w−60,floor((w−60)·300/800))
+  tại 0x20b38). drawRect:/updatePreview/bản đồ tên đều khớp gốc (minh oan).
+  **NHƯNG tại lúc build, file của mảng D2 chưa có thay đổi nào landed**
+  (OMCAppBridgeAppsController.m / OMCHSPreview.m mtime 16:01–16:02 UTC, từ thời
+  prefsround) → **bản sửa D2 KHÔNG nằm trong candidate này** — đã kết tội, để
+  vòng sau hoặc chờ agent D2 của Muse chính chốt.
+- **D3 (splash Liquid chữ/logo chồng nhau):** tại lúc build, SSStartupView.m /
+  SSStartupViewBuilders.m phía StartupScreen không có thay đổi mới (mtime
+  16:21 / 06:53 UTC) → chưa có kết luận trong cây này; để vòng sau.
+- **D4 (editor bố cục yêu thích chật/lệch):** cùng file với D1 (đã landed theo
+  agent D1+D4); nội dung rà chi tiết thuộc hồ sơ của agent đó.
+
+## Build + kiểm chứng của vòng
+
+- Toolchain VM bị rollback (mất symlink ld.lld + ldid): đã khôi phục theo recipe
+  đã lưu (symlink → ld.lld-18; ldid-real từ bản sao lưu + shim ký qua /tmp),
+  smoke test ký Mach-O + link arm64 đạt trước khi build.
+- Build TỪNG MODULE (không tin aggregate): 8/8 module exit 0, 0 error;
+  đóng gói FINALPACKAGE=1. Mirror src↔project: mọi file đã sửa đều cmp
+  identical (kèm SHA-256 trong báo cáo fixer); 5 file của các agent song song
+  cũng identical tại lúc build.
+- Discriminator trong candidate trích lại: xem từng mục Lỗi A/B/C/paneSize ở
+  trên. Chuỗi hồi quy các vòng trước còn nguyên: rescue UTF-16LE byte-exact
+  trong Core, [GPT-F] ×1, MILESTONE ×8 (AppBridge), sharedApplicationLibrary ×2.
+
+## Tiêu chí nghiệm thu vòng này (theo GPT — cho lần test xe gộp)
+
+Facebook/GOFA/Waze vào được ô; đổi app trong từng ô; hủy loader bằng nút X;
+chạm ô trống mở picker; kéo divider; đóng/mở lại split; mở được trang Khởi động
+trong Cài đặt mà không văng; hàng "Hiện trong bảng" hiện hai chip Ngang
+Gần đây/Yêu thích. **"Chỉ hiện biểu tượng đang tải" KHÔNG tính là đạt.**
+
+---
+# PHỤ LỤC §17 — các mảng bổ sung sau bản build đầu (D5, K1, K2, D6) + CANDIDATE CUỐI
+
+Candidate ở đầu §17 (SHA cc4ea835…, build 00:01 UTC) đã bị THAY THẾ bởi bản
+build cuối cùng của vòng sau khi các mảng D5/K1/K2/D6 landed:
+**`com.anlai.omnicar_1.0.3-rebuilt-fixround3_iphoneos-arm64.deb` — 969.994 B,
+SHA-256 `c075bf37d8e040d34280ff452e97ac109411940913da3b28b081392b2c14c45f`**,
+payload 176 file, build từng module 8/8 exit 0. UUID mới: SplitScreen
+`4C4C4485-5555-3144-A1D2-1EF3D2720C96` · StartupScreen
+`4C4C44A2-5555-3144-A12D-E9E34236B9E1` · Prefs
+`4C4C44BD-5555-3144-A116-D9DD13D2D2E8`; 5 binary còn lại giữ UUID prefsround.
+Parity bề mặt selector vs prefsround local: SplitScreen 587 = 587, Prefs
+825 = 825, StartupScreen 290 = 290 — thiếu 0 / thêm 0 ở cả ba.
+
+## D5 — nút '...' (handle) trong ô
+
+Gốc không có nút "ellipsis": '...' là handle pill 34×12 ba chấm ở đỉnh giữa ô
+(setupBarForPane: @0x22adc), chạm mở action bar 5 nút (Đổi app / Toàn màn /
+Cửa sổ nổi / Chạy nền / Tắt app); double-tap = zoom, kéo = di ô. Bản ta dựng
+đủ cả hai (Chrome.m) — thiếu là các mắt nối:
+1. paneForView: equality → đã sửa ở Lỗi C (isDescendantOfView:) — handleTapped:
+   sống lại nhờ đó. Kiểm cuối: cây project dòng 376 còn nguyên dạng
+   isDescendantOfView: (chống staging ghi đè — điểm E1.2).
+2. layoutBarForPane:: audit D5 kết luận "không có điểm gọi" vì rà trên cây
+   src — cây src THIẾU HẲN file SCPCarSplit+Relayout.m (thân relayout phía src
+   chỉ có ở bản handoff không thuộc build). TU THẬT được Makefile biên dịch
+   (project/OmniCarSplitScreen/Makefile:13) là SCPCarSplit+Relayout.m và nó
+   ĐÃ CÓ ĐẦY ĐỦ hai lời gọi: dòng 78 trong vòng slots (sau host.frame →
+   picker.frame → layoutBar, khớp trình tự dump @0x1bc80 → 0x1bce0 → 0x1bcfc)
+   và dòng 95 cho floatPane (trước bringSubviewToFront:floatPane.view, khớp
+   @0x1c058 → 0x1c08c). Toàn gốc chỉ có 3 call site (thêm setBarVisible:
+   @0x24328 = Chrome.m:234). **Không sửa gì ở điểm này** — ghi nhận lệch cấu
+   trúc src↔project để phía staging xử lý (đừng để bản src thiếu file này
+   gây kết luận sai ở vòng sau).
+3. Handle ẩn khi pane.vc == nil là LUẬT GỐC (layoutBarForPane:); ô native
+   mất handle vì adopt gãy (Lỗi B) chứ không phải lỗi riêng — chuỗi tĩnh sau
+   sửa: adopt hoàn tất → pane.vc được gán (SCPCarSplit.m đường present) →
+   layoutBar chạy mỗi relayout → handle hiện. Đã xác nhận theo code; máy thật
+   do Nguyen kiểm.
+4. Rà 5 action: paneChoose: (@0x29f28), paneSolo: (@0x287b8), paneBackground:
+   (@0x28a30), paneClose: (@0x2a0e0) — đã kiểm, khớp dump. **panePopOut: CHẾT
+   NÚT — đã sửa**: gốc @0x201f0 truyền thẳng sender vào paneForView: (không
+   gửi `view`); bản ta khai tham số là UIGestureRecognizer* rồi gọi
+   paneForView:gr.view trong khi sender thật là UIButton của thanh bar (không
+   đáp `view`) → nút Cửa sổ nổi chết. Đã sửa tại SCPCarSplit+Zoom.m
+   (pane = paneForView:sender; pane≠nil mới popOutPane:) + khai báo ở
+   SCPCarSplit.h hai bản.
+5. setupBarForPane: đã kiểm — khớp (đúng 1 setHidden: trên bar @0x233b0;
+   handle.hidden chỉ do layoutBarForPane: gán theo vc).
+
+## K1 — dispatch lệnh native thiếu 4 action (E2, dump block 0x7bec)
+
+ĐÍNH CHÍNH SỐ LIỆU: census nói 11 action; dump block 0x7bec chỉ có **10 nhánh**
+isEqualToString: (close, closeApp, open, pair, fav, picker, layout, ratio,
+swap, zoom) — khôi phục đủ 10 theo dump, không bịa nhánh 11.
+- layout → `urlLayout:` đọc khóa `@"id"` (@0x7f14). Nhánh cũ gọi SAI
+  openSetupLayout:apps: đọc khóa @"layout" → luôn 0. Đã thay.
+- ratio → `urlRatio:` đọc `@"r"` double (@0x7f54); swap → `urlSwap` (@0x7f74);
+  zoom → `urlZoomPane:` kèm phép kẹp csinc (pane ≤ 1 nâng thành 1,
+  @0x7fb0–0x7fb4). Bốn handler url* trong +Zoom.m từ mồ côi thành có caller
+  (SCPHooks.m:512/514/516/521).
+- Hai lệch phụ: nhánh open thiếu khóa slot → gốc mặc định **−1** (@0x7d48 →
+  0x7e18), bản cũ nhắn nil ra 0; dòng log dispatch của gốc in **toàn bộ
+  userInfo** (@0x7c4c), bản cũ chỉ in action. Đã sửa cả hai.
+- Khôi phục @try/@catch của khối: catch → SCPExceptionLog("yeu cau tu
+  SpringBoard") (@0x80a8), ack `splitscreen.ack` post NGOÀI @try (@0x7e70).
+  Comment "VERIFIED (read end-to-end)" sai đã thay bằng mô tả đúng.
+
+## K2 — kênh knob-touch ô hosted nối sai handler (E2, block gốc 0x7b00)
+
+Bản cũ gọi bridgeHandleTapped:(identifier) → remoteKnobTouch: mồ côi. Đã nối
+lại theo dump: `[[SCPCarSplit shared] remoteKnobTouch:note.userInfo]` — đúng
+handler, payload TOÀN BỘ userInfo (call @0x7b50; handler @0x2edfc đọc
+index/phase/x/y) + @try/@catch SCPExceptionLog("AB_KNOB_TOUCH") (@0x7bc4).
+bridgeHandleTapped: trở về đúng 1 caller (block tap).
+
+## PiP (đọc, không sửa)
+
+Chuỗi "%@ can't go picture-in-picture" chỉ tồn tại như KHÓA localization
+trong Prefs bundle (Car.strings — có cả ở payload gốc lẫn project), không code
+nào tiêu thụ (0 lời gọi OMCTr); popOutBlockReason: @0x20054 chỉ có 2 khóa chặn
+và bản ta khớp. Không kết tội được ở vòng này.
+
+## D6 phía Prefs — điểm neo ss_label (kết tội độc lập trên dump Prefs)
+
+Bản sao ss_label phía Prefs nhân size×_unit đúng (phép nhân thuộc helper)
+nhưng neo `center = pt` vô điều kiện. Dump PREFS (ss_label: va=0x4a504)
+0x4a78c–0x4a79c: center.x = left ? pt.x + width/2 : pt.x (fmul 0.5 → fadd →
+fcsel theo cờ left). Đã sửa bản Prefs (src + mirror):
+`center = left ? (pt.x + fit.width/2, pt.y) : pt`. Bằng chứng compiled: thân
+ss_label đã biên dịch có đúng mẫu fmov #0.5 → fmul → cmp cờ → fcsel → fadd →
+setCenter:. (Phần kẹp bề rộng theo bounds khi maxWidth ≤ 0 của gốc là điểm
+lệch riêng, ngoài phạm vi ghi chú D6 — chưa đụng.)
+Phía xe: bản sửa D6 của agent riêng ĐÃ landed trước build cuối
+(SSStartupView.m phía StartupScreen mtime 00:10 UTC, src = project identical)
+nên nằm trong candidate này; SSStartupViewBuilders.m không đổi.
+
+## ĐÍNH CHÍNH BẰNG CHỨNG (quan trọng — đọc trước khi trích dẫn §17)
+
+Một discriminator tôi báo ở bản build đầu là RỖNG: "object SCPCarSplit còn 0
+tham chiếu undefined tới CGRectValue". Các object của dự án KHÔNG hề mang
+stub selector theo tên — mọi lời gọi đi qua _objc_msgSend +
+NSSelectorFromString/selref, nên phép đếm đó cho 0 ở cả bản lỗi lẫn bản đúng.
+Bằng chứng binary thay thế cho Lỗi B (đã kiểm trên object của candidate cuối):
+thân verifySceneOfPane đã biên dịch chứa **2 lời gọi NSSelectorFromString**
+(@"frame" cho đường đọc frame + @"backgroundSceneWithCompletion:" cho nhánh
+retry), **0 lời gọi SCPGuarded**, 17 lời gọi objc_msgSend và các đệm
+@try/@catch — đối lập hẳn thân cũ (2 lời gọi SCPGuarded, 0 NSSelectorFromString
+trực tiếp). Cộng với chuỗi log format mới có mặt / format cũ biến mất trong
+binary đóng gói và cơ chế đã chứng minh bằng log máy. Các discriminator còn
+lại của §17 (applyUnit đọc trực tiếp lệnh máy, paneSize types, chuỗi mới,
+parity, UUID) không bị ảnh hưởng.
+
+# §17G — CỤM G (GPT Expanded Audit 09/11) — BẢN GỘP CUỐI
+
+Hợp nhất từ s17g-draft.tmp.md (SplitScreen) + notes-G-prefs.md (Prefs) +
+notes-G-startup.md (SpeedBubble/StartupScreen), do agent chốt hạ đối chiếu
+lại toàn bộ trên đĩa trước khi build (xem mục "Đối chiếu lại" bên dưới).
+Mọi mục dưới đây là KIỂM TRA TĨNH (source + disassembly object/binary);
+không mục nào là kết quả chạy trên máy. Ma trận truy vết giữ nhãn
+"đã kiểm tra tĩnh" — không ghi PASS hành vi.
+
+## G1 (§2) applyUnit phía Prefs — ĐÃ ĐẠT SẴN, ĐÃ KIỂM TRA TĨNH LẠI
+
+Prefs SSStartupView.m:595-603 đã đúng nguyên mẫu GPT từ vòng 3 chính, đối
+chiếu lại đủ 4 điểm, không sửa: C array `UILabel *labels[8]` chứa 8 ivar —
+cả hai NSArray (mảng dự phòng + literal chứa ivar nullable) đã bị xóa,
+không còn arrayWithObjects:count: trong thân hàm; vòng lặp `if (!l)
+continue;`; `l.layer.shadowRadius = 1.5 * unit;`;
+`l.layer.shadowOffset = CGSizeMake(0, 0.5 * unit);` (điểm GPT bắt —
+bản dựng cũ CGSizeZero — đã khôi phục). Comment tại chỗ dẫn va=0x48d4c,
+cbz 0x48e74, fmul 0x48e5c-0x48e60. Bản StartupScreen là module khác,
+không thuộc §2.
+Quan sát ngoài phạm vi (không sửa, thiếu bằng chứng dump Prefs riêng):
+factory nhãn ở Prefs SSStartupView.m:147-148 đặt shadowRadius 7 /
+shadowOffset CGSizeZero, nhãn [INFERRED placement] — để vòng fidelity sau.
+
+## G2 (§3) paneForView + loaderCancelTapped — ĐÃ SỬA + KIỂM TRA TĨNH
+
+- SCPCarSplit.m paneForView: thêm guard `if (!view) return nil;` và
+  `if (!pane.view) continue;` trước isDescendantOfView: (hợp đồng hậu duệ
+  đã có từ Lỗi C). Caller audit (tĩnh): Drag.m:54, Panel.m:157,
+  Picker.m:217/780/802/1025, Zoom.m:53/65/261, SCPCarSplit.m:3156/3181/3204
+  (run* wrappers) — mọi caller truyền view/sender nằm trong cây pane.view;
+  hai site fallback 780/802 truyền view của tray window (chết theo thiết
+  kế, khớp gốc dùng cùng hợp đồng). Không caller nào cần đổi.
+- SCPCarSplit+Picker.m loaderCancelTapped: khôi phục chuỗi xác thực đủ:
+  pane tồn tại → pane.loader hiện hành tồn tại → [sender isDescendantOfView:
+  loader] → bundle = loader.accessibilityIdentifier là NSString không rỗng
+  → mới ghi cancelledLaunches + launchFailed:. CẤM fallback pane.bundleID
+  (đã xác nhận không có dòng nào đọc pane.bundleID trong thân hàm — từ
+  "pane.bundleID" chỉ xuất hiện trong comment giải thích việc cố ý không
+  dùng). Phần pane/bundle nil khớp dump gốc 0x2b980 (cbz 0x2b9e8/0x2b9ec);
+  hai mắt loader-membership + non-empty là guard theo lệnh GPT §3 (phòng
+  thủ có chủ đích, cùng loại guard launchFailed).
+- Kiểm tra tĩnh tầng object (SCPCarSplit.o): thân paneForView chứa
+  isDescendantOfView:; thân launchFailed chứa đủ chuỗi slot → loader →
+  accessibilityIdentifier → isEqualToString: → removeLoaderFromPane:
+  animated: → vc → slotOccupied: → showPickerForSlot:.
+
+## G3 (§4) launchFailed — ĐÃ KIỂM TRA TĨNH, KHÔNG SỬA THÊM
+
+Trạng thái cây đã khớp §4 từ vòng 3 chính (agent chốt hạ đã đọc lại thân
+hàm trên đĩa và xác nhận): điều kiện gỡ loader là OR (pane.slot == slot
+|| loader.accessibilityIdentifier isEqualToString: bundle); sau gỡ chỉ
+hiện picker khi !pane.vc && !slotOccupied(pane.slot) bằng slot của chính
+pane; guard !bundleID đứng TRƯỚC removeObjectForKey: (guard GPT có chủ
+đích); watchdog trong showLoaderInPane giữ check p.loader == weakLoader
+(Picker.m) nên timeout của lần mở trước không dọn loader của lần mở mới.
+Không sửa thêm ở vòng G.
+
+## G4 (§5) paneSize — ĐÃ KIỂM TRA TĨNH, KHÔNG SỬA THÊM
+
+Hợp đồng -(BOOL)paneSize:(CGSize *)outSize forBundle: đã đồng bộ ở
+SCPCarSplit.h:165 + SCPCarSplit.m:1255 từ vòng 3 chính, thuật toán khớp
+dump 0x1b328: !active/!bundle → NO; !container → NO; pane ? pane.slot :
+pendingSlotForBundle:; slot < 0 → NO; MIN(w,h) >= 2; chỉ ghi *outSize
+khi hợp lệ và outSize != NULL. Caller: Hook_sceneFrameForAppInfo
+(SCPHooks.m:149 — chỉ thay frame.size khi YES, giữ origin) và sau G5 thêm
+caller thứ hai Hook_safeAreaInsetsForAppInfo (SCPHooks.m:169) — đúng số
+caller của gốc (đã đếm lại trên đĩa: chỉ 2 điểm gọi trong toàn module).
+
+## G5 (§6) safe-area hook — ĐÃ SỬA + KIỂM TRA TĨNH
+
+SCPHooks.m Hook_safeAreaInsetsForAppInfo viết lại theo dump 0x5e84: gọi
+orig trước và giữ insets; SCPRealBundleForInfos; paneSize:&size
+forBundle: → YES thì trả UIEdgeInsetsZero, NO giữ insets gốc; @catch ghi
+SCPExceptionLog("safeAreaInsetsForAppInfo") và rơi về insets gốc. Comment
+mô tả hành vi "clamped" không có thật đã bị xóa. ĐÍNH CHÍNH NHỎ so với
+bản nháp: chữ "clamped" còn xuất hiện đúng một chỗ — trong comment ghi
+lại việc xóa đó ("its \"clamped\" comment described behaviour that did
+not exist") — không còn comment nào khẳng định hành vi clamped nữa.
+Kiểm tra tĩnh tầng object (SCPHooks.o): thân hook tham chiếu
+_UIEdgeInsetsZero và selref paneSize:forBundle:.
+
+## G6 (§7) Home — ĐÃ SỬA + KIỂM TRA THỨ TỰ BẰNG DISASSEMBLY
+
+- SCPCarSplit.h:198 + SCPCarSplit.m:1620: homePressedDuringSplit: đổi từ
+  (BOOL)(id)event thành -(void)homePressedDuringSplit:(BOOL)wasActive
+  (ABI gốc v20@0:8B16). Thân khôi phục theo dump 0x40298:
+  dismissStuckBaseSoon khi wasActive HOẶC (currentBase tồn tại VÀ ==
+  soloReturnedVC); LUÔN setSoloReturnedVC:nil sau đó (không return sớm);
+  ignoreHomeOnce → xóa cờ; CHỈ KHI không ignore mới endHostedSolo nếu
+  soloHostedBundle còn. (Agent chốt hạ đã đọc lại thân helper trên đĩa:
+  điều kiện viết dạng `wasActive || (currentBase && currentBase ==
+  self.soloReturnedVC)` — tương đương ngữ nghĩa cây rẽ nhánh của dump.)
+- SCPHooks.m Hook_handleHomeEvent viết lại theo dump 0x601c.
+- KIỂM THỨ TỰ GỌI BẰNG DISASSEMBLY (object SCPHooks.o của build vòng G):
+  thân _Hook_handleHomeEvent đã biên dịch gọi theo thứ tự — msgSend
+  `active` (kết quả giữ làm wasActive) → khi đúng: msgSend
+  `closeGoingHome:` với w2 = #0 (NO) → msgSend `homePressedDuringSplit:`
+  với x2 = wasActive, KHÔNG điều kiện → nạp con trỏ
+  orig_DBDashboard_handleHomeEvent và blr CUỐI CÙNG bằng event thật;
+  đường @catch (qua SCPExceptionLog "_handleHomeEvent") nối lại vào đúng
+  điểm gọi orig. Thân helper đã biên dịch (SCPCarSplit.o) có cấu trúc rẽ
+  nhánh khớp dump gốc: tbz wasActive → dismiss; cbz currentBase → bỏ qua;
+  cmp + b.eq → dismiss; setSoloReturnedVC: (x2 = 0) nằm trên đường chung
+  MỌI nhánh đều đi qua, trước điểm ret duy nhất ở cuối hàm; đuôi
+  ignoreHomeOnce/setIgnoreHomeOnce:/soloHostedBundle/endHostedSolo đúng
+  thứ tự gốc. (Kiểm tra tĩnh bằng disassembly — không phải kiểm chứng
+  hành vi.)
+
+## G7 (§8) Sổ P2 — 6 mục, mỗi mục một nhãn
+
+- **P2-A (§8A) SPPBubbleView render — ĐÃ SỬA.** Gốc: render tail-call
+  contentSize @0x158c8 → trả CGSize ({CGSize=dd}16@0:8); caller gốc
+  -[SPPBubble renderBubble] @0x19cb0-0x19ce0 hứng d0/d1 đặt bounds card.
+  Đã sửa: SPPBubbleView.m:72 khai báo -(CGSize)render; (khai báo nằm
+  trong interface copy ở đầu .m — module này không có SPPBubbleView.h);
+  thân :151 trả self.contentSize; SPPBubble.m:79 (interface copy trong TU
+  caller) đồng bộ; caller :648 dùng CGSize trả về đặt bounds. Kèm theo,
+  cùng hàm, bằng chứng dump trực tiếp: style ngoài miền (âm hoặc >8) rẽ
+  về 0 (0x15870 tbnz sign / 0x1587c cmp 8, b.gt → x20=0) — bản cũ kẹp >8
+  thành 8; đã sửa thành `if (style < 0 || style > 8) style = 0;`.
+- **P2-B (§8B) sliderForKey:min:max:def:format:width: — ĐÃ SỬA.** Gốc
+  (OMCCardPage.asm): types `@64@0:8@16q24q32q40@48d56` → min/max/def là
+  NSInteger, width double. Đồ thị gọi đã kiểm toàn bộ: 1 declaration + 1
+  implementation + 2 caller trong OMCSpeedBubbleController.m (:486
+  min:60 max:220 def:100; :694 min:-10 max:10 def:5 — gồm khoảng âm của
+  speedBubbleWarnOver); không cast objc_msgSend nào cho selector này.
+  Đã đổi: OMCCardPage.h:31 + OMCCardPage.m:151-152 (double → NSInteger;
+  bỏ cast thừa (NSInteger)def ở lời gọi intForKey).
+- **P2-C (§8C) OMCAppBridgeAppsController num:def: — ĐÃ SỬA.** Gốc
+  (va=0x215e4): types `q32@0:8@16q24` → trả NSInteger. Mọi caller trong
+  cùng file (268, 391-395, 824, 873). Đã đổi: header :50 NSNumber* →
+  NSInteger; thân :174 trả thẳng `v ? [v integerValue] : def`; caller
+  268 + 391-395 bỏ .integerValue; 824 bỏ .floatValue; 873 bọc
+  @([self num:key def:0]) cho indexOfObject:.
+- **P2-D (§8D) ss_addMote:layer:to: / SSMote — ĐÃ SỬA.** Gốc (va=0x4a89c):
+  types `v88@0:8{?=qdddddd}16@72@80` — trường đầu struct là int64
+  (prologue `mov x21, x2`). Writer: 5 điểm dựng SSMote, kind luôn literal
+  nguyên {0,1,2}; reader ss_applyMotes: chỉ so kind == 0/== 1; struct chỉ
+  sống trong TU SSStartupView.m (Prefs); sizeof không đổi 56 byte. Đã
+  đổi: SSStartupView.m (Prefs) :32 typedef thành
+  `typedef struct { long long kind; double x, y, a, b, c, d; } SSMote;`
+  kèm comment dẫn encoding gốc + va.
+- **P2-E (§8E) ss_drawCanvas:size: — ĐÃ SỬA (chữ ký + caller).** Gốc
+  (01a30c): tham số đầu (x2) được cbz kiểm nil @0x1a31c rồi truyền thẳng
+  làm CGContextRef cho ss_drawParticles:t:/ss_drawFireworks:t:; thân
+  không gọi UIGraphicsGetCurrentContext; drawRect: gốc (00c584) truyền
+  UIGraphicsGetCurrentContext(), không guard riêng. Đã sửa
+  SSStartupView.m (StartupScreen): khai báo :71, drawRect: :143, thân
+  :967 — dùng ctx được truyền, bỏ dòng tự lấy context, giữ nguyên logic
+  dispatch phía dưới. QUAN SÁT CÒN MỞ (không sửa, để vòng fidelity):
+  dispatch trong thân gốc gate bằng ivar BOOL ==1 + hai ivar object
+  (khả năng cao _particles/_bursts) thay vì proxy _sceneStyle 6/11
+  [INFERRED] của bản ta — đã kiểm tra tĩnh tới đây, chưa đối chiếu tên
+  ivar tới mức kết tội.
+- **P2-F (§8F) applyUnit + constraint max-width (StartupScreen) — ĐÃ
+  SỬA.** Chuỗi bằng chứng: objc.json — _stackMaxWidth là
+  @"NSLayoutConstraint" (offset 152), _cardInsets là @"NSArray" (offset
+  160); bản cũ khai ngược hai ivar. reload gốc (00c9f4, đuôi chung
+  0xd360-0xd4a8): _stack setTranslatesAutoresizingMaskIntoConstraints:NO,
+  tạo [widthAnchor constraintLessThanOrEqualToAnchor:self.widthAnchor
+  constant:-16.0] lưu ivar slot 0xcf4 (= _stackMaxWidth), activate @[
+  centerX, centerY, widthCap]. applyUnit gốc (00f110) @0xf2a8-0xf2bc:
+  setConstant: -12*unit lên slot 0xcf4; nhánh weather subscript slot
+  0xd00 (= _cardInsets): [0]/[1] → 5*unit, [2]/[3] → 3.5*unit. Đã sửa:
+  SSStartupScreen.h:111 (_stackMaxWidth về NSLayoutConstraint *);
+  SSStartupView.m (reload thêm khối pinning sau lời gọi builder ~:236-248;
+  applyUnit :368 _stackMaxWidth.constant = -12.0*unit thay comment
+  [NOT restored]; nhánh weather đổi subscript sang _cardInsets, giữ giá
+  trị 5/5/3.5/3.5 + guard count); SSStartupViewScenesB.m:381 (buildWeather
+  lưu 4 constraint vào _cardInsets + activateConstraints:_cardInsets).
+- **Bổ sung §8F (lệnh coordinator, bằng chứng dump trực tiếp) —
+  applyUnit StartupScreen cornerRadius — ĐÃ SỬA.** Gốc: 0xf568
+  setCornerRadius: nhận d9 = 5.5*unit (fmul 0xf45c-0xf460, vết register
+  0xf460→0xf568, không ghi đè ở giữa); bản ta ghi 5*unit. Đã sửa
+  SSStartupView.m (StartupScreen) :387 thành 5.5 * unit (src + mirror).
+
+## Marker build — ĐÃ ÁP ĐỦ CẢ HAI PHÍA
+
+- CarPlay: SCPHooks.m SCPInitDashboardHooks — dòng log nạp module là
+  "loaded into CarPlay [fixround3]" (SCPHooks.m:693).
+- Preferences: bundle Prefs KHÔNG có dòng "loaded into ..." riêng; dòng
+  nhận dạng build hiện hành của bundle là diagnostic [GPT-F] trong
+  OMCRootListController.specifiers (phát một lần mỗi lần dựng
+  specifiers). Đã gắn tag vào chính dòng đó, giữ nguyên phần còn lại:
+  "[GPT-F] specifiers build [fixround3]: controller=%@ total=%lu
+  features=[%@]" (OMCRootListController.m:57, src + mirror identical).
+  Chuỗi "[fixround3]" vì vậy có mặt trong cả hai binary OmniCarPrefs và
+  OmniCarSplitScreen của candidate.
+
+## Ma trận truy vết TĨNH — paneForView
+(mọi dòng: đã kiểm tra tĩnh theo đường code)
+| Ca | Đường code | Kết quả tĩnh |
+| Ô gốc (sender == pane.view) | isDescendantOfView: trả YES cho chính view đó | ra đúng pane |
+| Host con trong ô | host nằm trong pane.view | ra đúng pane |
+| Nút hủy lồng nhiều cấp (nút ⊂ card ⊂ loader ⊂ pane.view) | quan hệ hậu duệ đệ quy | ra đúng pane + đúng loader ở loaderCancelTapped |
+| Nút ở ô 1/2 | duyệt allPanes, khớp theo cây chứa | ra pane của ô đó |
+| View ngoài cây split | không pane nào chứa | nil → caller return sớm, không suy slot 0 |
+| view == nil | guard đầu hàm | nil |
+| pane chưa dựng view (pane.view == nil) | continue | bỏ qua pane đó |
+
+## Ma trận truy vết TĨNH — launchFailed
+| Ca | Đường code | Kết quả tĩnh |
+| Đúng slot / sai bundle | pane.slot == slot khớp (OR) | gỡ loader của pane đó |
+| Sai slot / đúng bundle | loader.accessibilityIdentifier isEqualToString: khớp (OR) | gỡ đúng loader |
+| slot:-1 (watchdog) / đúng bundle | slot không khớp ô nào; bundle khớp | vẫn gỡ được loader (ca chết ở bản AND cũ) |
+| Pane đã có VC | !pane.vc sai sau khi gỡ | không hiện picker chồng lên nội dung |
+| Callback loader cũ sau khi đã có loader mới | watchdog check p.loader == weakLoader trước khi gọi | không gọi launchFailed cho loader mới |
+| bundle == nil | guard GPT đầu hàm | return, không removeObjectForKey:nil |
+
+## Ma trận truy vết TĨNH — paneSize + hai hook
+Khẳng định tường minh: KHÔNG ca nào mặc định nhận kích thước ô 0.
+Đường NO của paneSize khiến Hook_sceneFrameForAppInfo giữ nguyên frame
+gốc và Hook_safeAreaInsetsForAppInfo giữ nguyên insets gốc.
+| Ca | paneSize | Hệ quả tại hook |
+| Split đang active, app có pane ở ô 1 | slot = pane.slot | YES → frame.size/insets theo ô 1 |
+| App CHỈ có pending ở ô 1/2 | pane == nil → pendingSlotForBundle: trả slot pending (1/2) | YES theo kích thước ô pending — KHÔNG phải ô 0 |
+| App ngoài split (không pane, không pending) | slot = -1 → NO | giữ frame/insets gốc |
+| bundle == nil | guard đầu → NO | giữ frame/insets gốc |
+| Split inactive | guard đầu → NO | giữ frame/insets gốc |
+| frame ô < 2pt (min(w,h) < 2) | NO | giữ frame/insets gốc |
+| outSize == NULL | không ghi, vẫn trả tính hợp lệ | hai hook luôn truyền &size hợp lệ |
+
+## Ma trận truy vết TĨNH — Home
+| Ca | Đường hook + helper | Kết quả tĩnh |
+| wasActive = YES | hook: closeGoingHome:NO → helper(wasActive=YES) → orig | helper gọi dismissStuckBaseSoon theo nhánh wasActive; soloReturnedVC vẫn được xóa |
+| wasActive = NO, currentBase == soloReturnedVC | helper nhánh so sánh pointer | dismissStuckBaseSoon chạy; soloReturnedVC xóa sau đó |
+| wasActive = NO, currentBase nil/khác | không dismiss | soloReturnedVC vẫn xóa (không return sớm) |
+| ignoreHomeOnce = YES | helper: xóa cờ, KHÔNG endHostedSolo | soloHostedBundle giữ nguyên cho lần Home sau |
+| ignoreHomeOnce = NO + soloHostedBundle còn | helper: endHostedSolo | đúng thứ tự gốc |
+| Ngoại lệ giữa hook | @catch → SCPExceptionLog | orig _handleHomeEvent: vẫn chạy cuối bằng event thật |
+
+## Mirror + header SplitScreenB (agent chốt hạ kiểm lại trên đĩa)
+
+- Mirror src↔project identical cho MỌI file cụm G chạm tới (đã cmp từng
+  cặp): Prefs — OMCCardPage.h/.m, OMCAppBridgeAppsController.h/.m,
+  SSStartupView.m, OMCRootListController.m (marker); SpeedBubble —
+  SPPBubbleView.m, SPPBubble.m; StartupScreen — SSStartupView.m,
+  SSStartupScreen.h, SSStartupViewScenesB.m; SplitScreen (src
+  SplitScreenA = bản chuẩn của project) — SCPCarSplit.h, SCPCarSplit.m,
+  SCPHooks.m; SCPCarSplit+Picker.m (src SplitScreenB = project). Ghi chú:
+  SPPBubbleView không tồn tại file .h ở cả hai cây (khai báo render nằm
+  trong interface copy đầu .m) — không phải lệch mirror.
+- src/SplitScreenB/SCPCarSplit.h: THUỘC cây bàn giao (có mặt trong
+  staging recovered-source/src/SplitScreenB/ và là header làm việc của
+  các .m strand B), nhưng còn khai báo cũ. ĐÃ ĐỒNG BỘ: dòng 177
+  `- (CGSize)paneSize:(NSInteger)slot forBundle:` →
+  `- (BOOL)paneSize:(CGSize *)outSize forBundle:` (kèm comment ABI
+  @0x1b328); bổ sung khai báo còn thiếu
+  `- (void)homePressedDuringSplit:(BOOL)wasActive;` (ABI @0x40298).
+  Bản SplitScreenA của cùng header vốn đã đúng cả hai khai báo.
+
+## Build + cổng kiểm (agent chốt hạ, 09/11)
+
+Toolchain đã kiểm trước build: clang-18 có mặt, /usr/bin/ld.lld →
+ld.lld-18, ldid có mặt, SDK iPhoneOS16.5 nguyên vẹn (không rollback).
+Build bằng build3.sh: clean TỪNG MODULE rồi make (tránh object cũ),
+8/8 module exit 0, 0 error; đóng gói FINALPACKAGE=1. Candidate:
+project/packages/com.anlai.omnicar_1.0.3-rebuilt-fixround3_iphoneos-arm64.deb
+— 970.286 byte, SHA-256
+752e39118354563cf65d4882a379619a70a634f274b8bfe05522cbbee16ae07a
+(thay candidate 07:18, SHA c075bf37…). control Version giữ 1.0.3; tên
+file mang tag vòng theo quy ước các vòng trước. Mọi cổng dưới đây chạy
+trên DEB trích lại (arm64) + object .o MỚI của chính build này
+(.theos/obj, mtime 00:51 UTC). Tất cả là kiểm tra tĩnh.
+
+Cổng tầng binary (DEB trích lại):
+- paneSize encoding `B32@0:8^{CGSize=dd}16@24` CÓ; encoding cũ dạng
+  CGRect/CGSize-return KHÔNG còn. — ĐẠT
+- homePressedDuringSplit encoding `v20@0:8B16` CÓ. — ĐẠT
+- Marker CarPlay "loaded into CarPlay [fixround3]" trong
+  OmniCarSplitScreen. — ĐẠT
+- Marker Prefs "[GPT-F] specifiers build [fixround3]: …" trong
+  OmniCarPrefs. — ĐẠT (chuỗi [GPT-F] thứ hai trong binary là diagnostic
+  cellForRow có từ vòng trước, không thuộc dòng nhận dạng — giữ nguyên.)
+- Rescue UTF-16LE: đủ 6 literal tiếng Việt của OMCRescueAnnounce trong
+  OmniCarCore (dạng __ustring, không phải UTF-8). — ĐẠT
+- [GPT-F] ×1 dòng nhận dạng đã gắn tag; MILESTONE ×8 (AppBridge);
+  sharedApplicationLibrary ×2 (SplitScreen). — ĐẠT
+- Selector parity (parser metadata/tools/macho_objc, gốc arm64 vs bản
+  dựng arm64, gộp category theo target): 66 class — 61 exact-set,
+  0 selector thiếu; 5 class cộng thêm duy nhất: SPPBubble
+  (-hideIfShownWithReason:now:state:), SSStartupView-StartupScreen
+  (2 helper festive), OMCSplitScreenController (-gestureSwitchChanged:),
+  OMCStartupScreenController (+load — [W1], GPT đã duyệt), SSStartupView-
+  Prefs (-gradientLayer). Khớp baseline prefsround, không regress. — ĐẠT
+
+Cổng tầng object (disassembly .o của build này; resolve selref bằng
+symtab + relocation của chính object):
+- Lỗi A (Prefs applyUnit): thân hàm KHÔNG có arrayWithObjects:count:;
+  có setShadowRadius:/setShadowOffset:. — ĐẠT
+- Lỗi B (verifySceneOfPane): 2 lời gọi NSSelectorFromString, 17
+  objc_msgSend; frame đọc qua NSSelectorFromString(@"frame") + msgSend
+  trực tiếp sau respondsToSelector. ĐÍNH CHÍNH so với phụ lục §17: thân
+  hàm còn ĐÚNG 1 lời gọi SCPGuarded — guard `scene.settings` (truy cập
+  kiểu object, an toàn), KHÔNG nằm trên đường đọc frame; câu "0 lời gọi
+  SCPGuarded" ở phụ lục là nói quá, bản chất discriminator giữ nguyên.
+  — ĐẠT (kèm đính chính)
+- G2 paneForView: thân chứa isDescendantOfView:. — ĐẠT
+- G3 launchFailed: các selref nạp trong thân resolve đủ chuỗi slot /
+  loader / accessibilityIdentifier / isEqualToString: /
+  removeLoaderFromPane:animated: / vc / slotOccupied: /
+  showPickerForSlot:, sau pending → removeObjectForKey: (guard nil ở
+  source đứng trước). — ĐẠT
+- G5 safe-area: thân hook gọi orig (BLR) TRƯỚC → SCPRealBundleForInfos →
+  paneSize:forBundle: → tham chiếu _UIEdgeInsetsZero ×2. — ĐẠT
+- G6 Home (kiểm THỨ TỰ bằng disassembly trên object của build này):
+  Hook_handleHomeEvent: shared → active → closeGoingHome: (trước đó
+  `mov w2, #0x0` = NO, sau `cbz w0` của wasActive) →
+  homePressedDuringSplit: → BLR orig CUỐI CÙNG. Helper: SCPCurrentBase-
+  ViewController → dismissStuckBaseSoon → soloReturnedVC →
+  setSoloReturnedVC: → ignoreHomeOnce → setIgnoreHomeOnce: →
+  soloHostedBundle → endHostedSolo. — ĐẠT
+- E1/D5 relayout TU: TU thật được biên dịch SCPCarSplit+Relayout.o chứa
+  layoutBarForPane: trong block relayoutAnimated:pushScenes:, theo sau
+  là bringSubviewToFront:. — ĐẠT
+- P2-A render: -[SPPBubbleView render] kết thúc bằng tail-branch msgSend
+  tới contentSize (selref .12 = contentSize) — khớp tail-call @0x158c8
+  của gốc. — ĐẠT
+- §8F bổ sung: applyUnit (StartupScreen) có `fmov d0, #5.50000000` trên
+  đường setCornerRadius:. — ĐẠT
+- D6 giữ nguyên: SSStartupView.o (xe) tham chiếu
+  _UIFontDescriptorSystemDesignRounded; chuỗi có trong dylib
+  OmniCarStartupScreen của DEB. — ĐẠT
+
+## Điểm còn mở sau vòng G (không chặn candidate)
+- P2-E quan sát dispatch ss_drawCanvas (gate bằng ivar BOOL + 2 ivar
+  object thay vì proxy _sceneStyle) — để vòng fidelity, chưa kết tội.
+- Factory nhãn Prefs SSStartupView.m:147-148 [INFERRED placement] — chờ
+  bằng chứng dump Prefs riêng.
+- Phần kẹp bề rộng theo bounds khi maxWidth ≤ 0 ở ss_label phía Prefs
+  (ngoài phạm vi ghi chú D6) — chưa đụng.
+- Mọi ma trận ở §17G là "đã kiểm tra tĩnh"; hành vi thật chờ phiên test
+  xe gộp theo tiêu chí nghiệm thu §17 + GPT §10.

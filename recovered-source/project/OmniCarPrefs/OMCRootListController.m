@@ -54,7 +54,7 @@
                     NSStringFromClass([[spec propertyForKey:@"cellClass"] class])]];
             }
             OMCLogWrite(@"Prefs", [NSString stringWithFormat:
-                @"[GPT-F] specifiers build: controller=%@ total=%lu features=[%@]",
+                @"[GPT-F] specifiers build [fixround3]: controller=%@ total=%lu features=[%@]",
                 NSStringFromClass([self class]), (unsigned long)_specifiers.count,
                 [featureLines componentsJoinedByString:@", "]]);
         }

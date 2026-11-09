@@ -174,7 +174,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)switchToLayout:(NSInteger)layout;
 - (void)layoutChosenID:(NSInteger)layoutID;
 - (void)openSetupLayout:(NSInteger)layout apps:(NSArray *)apps;
-- (CGSize)paneSize:(NSInteger)slot forBundle:(NSString *)bundleID;
+- (BOOL)paneSize:(CGSize *)outSize forBundle:(NSString *)bundleID; // binary ABI @0x1b328 (BOOL + CGSize* out-param) — synced fix-round3 G; the (CGSize)(NSInteger)slot declaration was a stale strand-B copy
+- (void)homePressedDuringSplit:(BOOL)wasActive; // binary ABI @0x40298: v20@0:8B16 (void, BOOL arg) — synced fix-round3 G (was undeclared in this header)
 - (void)swapSlot:(NSInteger)a with:(NSInteger)b;
 
 @end
@@ -210,7 +211,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)canPopOutPane:(SCPCarPane *)pane;
 - (nullable NSString *)popOutBlockReason:(SCPCarPane *)pane;
 - (void)popOutPane:(SCPCarPane *)pane;
-- (void)panePopOut:(UIGestureRecognizer *)recognizer;
+- (void)panePopOut:(UIView *)view; // button-action entry point (IMP 0x201f0): sender passed straight to paneForView:, no -view extraction
 - (void)floatPanned:(UIPanGestureRecognizer *)recognizer;
 - (void)floatDragPhase:(NSInteger)phase at:(CGPoint)point;
 

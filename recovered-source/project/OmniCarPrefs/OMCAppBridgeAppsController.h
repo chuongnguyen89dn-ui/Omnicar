@@ -47,7 +47,7 @@
 - (void)updatePreview;
 - (void)resetAdvancedOnce;
 - (void)resetLayout;
-- (NSNumber *)num:(NSString *)key def:(NSInteger)def;
+- (NSInteger)num:(NSString *)key def:(NSInteger)def;
 - (UITableViewCell *)cellWithId:(NSString *)ident inTable:(UITableView *)table;
 - (UITableViewCell *)appCell:(NSDictionary *)app inTable:(UITableView *)table;
 - (UITableViewCell *)headerCellFor:(NSInteger)section inTable:(UITableView *)table;

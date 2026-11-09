@@ -69,7 +69,7 @@
 @property (nonatomic) CGSize contentSize;
 @property (nonatomic) CGRect outlineRect;
 - (void)rebuild;
-- (void)render;
+- (CGSize)render;
 - (NSInteger)speedState;
 - (void)buildStyle:(NSInteger)style;
 - (void)renderStyle;
@@ -143,15 +143,19 @@
     _builtStyle = -1;
 }
 
-// -render @0x1585c — VERIFIED.
-- (void)render {
+// -render @0x1585c — VERIFIED: an out-of-range style falls back to 0
+// (the dump branches to 0 both when style is negative and when it is
+// > 8 — it does NOT clamp to 8), a changed style rebuilds, then the
+// method renders and RETURNS -contentSize (tail call at 0x158c8).
+// [Return type + clamp restored fix-round3 G/§8A — was void / clamp-to-8.]
+- (CGSize)render {
     NSInteger style = _style;
-    if (style < 0) style = 0;
-    if (style > 8) style = 8;
+    if (style < 0 || style > 8) style = 0;
     if (style != _builtStyle) {
         [self buildStyle:style];
     }
     [self renderStyle];
+    return self.contentSize;
 }
 
 #pragma mark - Layout helpers (all VERIFIED from their dumps)

@@ -148,14 +148,14 @@ static const void *kOMCControlKeyAssoc = &kOMCControlKeyAssoc;
 // WITHOUT sync/notify and prefChanging: fires; on touch-up (omcSliderDone:)
 // the value goes through storeValue:forKey: (sync + notify) and
 // prefChanged: fires. Values are stored as integers (numberWithLong:).
-- (UIView *)sliderForKey:(NSString *)key min:(double)min max:(double)max
-                     def:(double)def format:(NSString *)format width:(double)width {
+- (UIView *)sliderForKey:(NSString *)key min:(NSInteger)min max:(NSInteger)max
+                     def:(NSInteger)def format:(NSString *)format width:(double)width {
     UIView *box = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 44)];
     UISlider *slider = [[UISlider alloc] initWithFrame:box.bounds];
     slider.minimumValue = (float)min;
     slider.maximumValue = (float)max;
     slider.minimumTrackTintColor = OMCAccentColor();
-    slider.value = (float)[self intForKey:key def:(NSInteger)def];
+    slider.value = (float)[self intForKey:key def:def];
     UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
     label.font = [UIFont monospacedDigitSystemFontOfSize:13 weight:UIFontWeightMedium];
     label.textColor = [UIColor secondaryLabelColor];

@@ -251,8 +251,15 @@ extern void SCPDispatchAfter(double delaySeconds, void (^block)(void)); // 0x12e
     return nil;
 }
 
-- (void)panePopOut:(UIGestureRecognizer *)gr {                           // 0x201d8 (approx.)
-    [self popOutPane:[self paneForView:gr.view]];
+- (void)panePopOut:(UIView *)sender {                                    // 0x201f0 VERIFIED
+    // Button action (SCPBarButton in setupBarForPane:): the dump passes
+    // the sender straight to paneForView: (bl @0x20200, NO "view" send —
+    // contrast handleTapped: @0x2540c, whose recogniser IS unwrapped)
+    // and calls popOutPane: only for a non-nil pane (cbz @0x20210).
+    // The previous gr.view form sent -view to the UIButton sender,
+    // which does not respond to it — the button was dead.
+    SCPCarPane *pane = [self paneForView:sender];
+    if (pane) [self popOutPane:pane];
 }
 
 - (void)popOutPane:(SCPCarPane *)pane {                                  // 0x20244

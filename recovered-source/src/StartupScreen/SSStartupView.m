@@ -68,16 +68,37 @@ typedef struct {
 - (void)ss_buildLiquid;
 - (void)ss_buildFestive;
 - (void)ss_drawFireworks:(CGContextRef)ctx t:(double)t;
-- (void)ss_drawCanvas:(SSCanvasView *)canvas size:(CGSize)size;
+- (void)ss_drawCanvas:(CGContextRef)ctx size:(CGSize)size;
 - (void)buildGreetingWithDate:(NSDate *)date period:(NSInteger)period;
 - (void)buildWeatherWithPeriod:(NSInteger)period;
 - (void)applyUnit:(double)unit;
 @end
 
-// Font helper used by every label path (sub_f6ac). [INFERRED scaling: the
-// layout unit multiplies the base size in applyUnit:/layout paths.]
+// Font helper used by every label path (sub_f6ac) — rounded-design system
+// font, NO scaling inside: callers scale (applyUnit/title at the call site,
+// ss_label: internally). [VERIFIED from dump 0xf6ac — restored fix-round3 D6;
+// the previous body returned the plain system font.]
 static UIFont *SSFont(double size, UIFontWeight weight) {
-    return [UIFont systemFontOfSize:size weight:weight];
+    UIFont *font = [UIFont systemFontOfSize:size weight:weight];
+    UIFontDescriptor *rounded = [font.fontDescriptor fontDescriptorWithDesign:UIFontDescriptorSystemDesignRounded];
+    if (rounded) font = [UIFont fontWithDescriptor:rounded size:size];
+    return font;
+}
+
+// sub_da28 — the scene label factory (local copy; same body as the
+// Builders/ScenesB copies). [VERIFIED from dump 0xda28 — added fix-round3 D6]
+static UILabel *SSSceneLabel(NSString *text) {
+    UILabel *label = [UILabel new];
+    label.text = text;
+    label.textColor = [UIColor whiteColor];
+    label.textAlignment = NSTextAlignmentCenter;          // 1
+    label.numberOfLines = 1;
+    label.adjustsFontSizeToFitWidth = YES;
+    label.minimumScaleFactor = 0.45;                      // @0x28e60
+    label.layer.shadowColor = [UIColor blackColor].CGColor;
+    label.layer.shadowOpacity = 0.22f;                    // float @0x29420
+    [label setContentCompressionResistancePriority:250 forAxis:UILayoutConstraintAxisHorizontal];
+    return label;
 }
 
 // ===========================================================================
@@ -114,9 +135,12 @@ static UIFont *SSFont(double size, UIFontWeight weight) {
 @end
 
 @implementation SSCanvasView
-- (void)drawRect:(CGRect)rect {   // 0xc584 [VERIFIED]
-    if (!UIGraphicsGetCurrentContext()) return;
-    [self.owner ss_drawCanvas:self size:self.bounds.size];
+- (void)drawRect:(CGRect)rect {   // 0xc584 [VERIFIED — passes the current
+                                  // context straight to the owner, exactly
+                                  // as the dump; the nil check lives inside
+                                  // ss_drawCanvas:size: (0x1a31c).
+                                  // Signature restored fix-round3 G/§8E.]
+    [self.owner ss_drawCanvas:UIGraphicsGetCurrentContext() size:self.bounds.size];
 }
 @end
 
@@ -206,6 +230,22 @@ static UIFont *SSFont(double size, UIFontWeight weight) {
 
     if (self.weather) [self buildWeatherWithPeriod:period];
     else [self buildGreetingWithDate:date period:period];
+
+    // Common tail of the original (dump 0xd360-0xd4a8 — the greeting path
+    // branches into it at 0xd144, the weather path falls through): _stack
+    // (built by either builder) is pinned into self: centred on both axes,
+    // width <= self.width - 16, and that width constraint is stored in
+    // _stackMaxWidth so -applyUnit: can drive its constant (-12*unit).
+    // [Restored fix-round3 G/§8F — the whole pinning block was absent.]
+    _stack.translatesAutoresizingMaskIntoConstraints = NO;
+    [self addSubview:_stack];
+    _stackMaxWidth = [_stack.widthAnchor constraintLessThanOrEqualToAnchor:self.widthAnchor
+                                                                   constant:-16.0];
+    [NSLayoutConstraint activateConstraints:@[
+        [_stack.centerXAnchor constraintEqualToAnchor:self.centerXAnchor],
+        [_stack.centerYAnchor constraintEqualToAnchor:self.centerYAnchor],
+        _stackMaxWidth]];
+
     [self setNeedsLayout];
 }
 
@@ -321,10 +361,11 @@ static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {
         l.layer.shadowRadius = 1.5 * unit;
         l.layer.shadowOffset = CGSizeMake(0, 0.5 * unit);
     }
-    // [NOT restored: at 0xf2a8 the original next sets a stack max-width
-    //  constraint (ivar-table slot 0xcf4, created in reload when pinning
-    //  _stack) to -12*unit. That constraint ivar and reload's _stack
-    //  pinning block are absent from this tree — see liquidfix-notes.]
+    // Stack width cap (0xf2a8): the single _stackMaxWidth constraint
+    // created in -reload is driven to -12*unit on the common path (both
+    // content branches). No nil check in the original — messaging nil is
+    // a no-op. [Restored fix-round3 G/§8F.]
+    _stackMaxWidth.constant = -12.0 * unit;
     if (_timeLabel) {
         // Greeting branch (0xf2c4): time/title/date only, then the tail.
         _timeLabel.font = SSFont(30 * unit, UIFontWeightLight);
@@ -343,11 +384,17 @@ static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {
         _row.spacing = 4 * unit;   // ivar-table 0xcbc
         [_row setCustomSpacing:6 * unit afterView:_tempLabel];
         _cardStack.spacing = 1.2 * unit;   // ivar-table 0xcb8; 1.2 at 0x28eb0
-        _card.layer.cornerRadius = 5 * unit;   // ivar-table 0xcf0
-        if (_stackMaxWidth.count > 0) ((NSLayoutConstraint *)_stackMaxWidth[0]).constant = 5 * unit;
-        if (_stackMaxWidth.count > 1) ((NSLayoutConstraint *)_stackMaxWidth[1]).constant = 5 * unit;
-        if (_stackMaxWidth.count > 2) ((NSLayoutConstraint *)_stackMaxWidth[2]).constant = 3.5 * unit;
-        if (_stackMaxWidth.count > 3) ((NSLayoutConstraint *)_stackMaxWidth[3]).constant = 3.5 * unit;
+        _card.layer.cornerRadius = 5.5 * unit;   // ivar-table 0xcf0; 5.5 per dump (fmul 0xf45c-0xf460 -> setCornerRadius: 0xf568)
+        // The 4 card-inset constraints live in _cardInsets (original
+        // NSArray ivar, table slot 0xd00 — subscripted directly at
+        // 0xf584-0xf61c: [0]/[1] -> 5*unit, [2]/[3] -> 3.5*unit). An
+        // earlier integration phase mistakenly subscripted _stackMaxWidth
+        // here; that ivar is the single width-cap constraint above.
+        // [Corrected fix-round3 G/§8F.]
+        if (_cardInsets.count > 0) ((NSLayoutConstraint *)_cardInsets[0]).constant = 5 * unit;
+        if (_cardInsets.count > 1) ((NSLayoutConstraint *)_cardInsets[1]).constant = 5 * unit;
+        if (_cardInsets.count > 2) ((NSLayoutConstraint *)_cardInsets[2]).constant = 3.5 * unit;
+        if (_cardInsets.count > 3) ((NSLayoutConstraint *)_cardInsets[3]).constant = 3.5 * unit;
     }
     _stack.spacing = 3 * unit;   // common tail at 0xf638 (ivar-table 0xcc0)
 }
@@ -523,20 +570,28 @@ static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {
 
 - (UILabel *)ss_label:(NSString *)text at:(CGPoint)point size:(double)size
                weight:(UIFontWeight)weight color:(UIColor *)color
-                 left:(BOOL)left in:(UIView *)container maxWidth:(double)maxWidth {   // 0x108c8 [VERIFIED]
-    UILabel *label = [UILabel new];
-    label.text = text;
-    label.font = SSFont(size, weight);
+                 left:(BOOL)left in:(UIView *)container maxWidth:(double)maxWidth {   // 0x108c8 [VERIFIED — rewritten fix-round3 D6:
+    // the previous transcription dropped the internal _k scaling of `size`,
+    // the left-edge semantics of `at:` for left-aligned labels, the
+    // SSSceneLabel factory and the width clamp. See work/fix-round3/audit-D6.md]
+    UILabel *label = SSSceneLabel(text);                        // sub_da28
+    label.font = SSFont(MAX(size * _k, 1.0), weight);           // 0x10940: size*_k, fmaxnm 1.0 -> sub_f6ac
     label.textColor = color ?: UIColor.whiteColor;
-    label.textAlignment = left ? NSTextAlignmentLeft : NSTextAlignmentCenter;
-    label.layer.shadowOpacity = 0.6;   // [INFERRED values]
-    label.layer.shadowRadius = 6;
+    label.textAlignment = left ? NSTextAlignmentLeft : NSTextAlignmentCenter;   // eor w2, left, #1
+    label.layer.shadowOpacity = 0.4f;                           // float @0x29428
+    label.layer.shadowRadius = MAX(7.0 * _k, 1.0);              // 0x109ec: max(7*_k, 1)
     label.layer.shadowOffset = CGSizeZero;
     label.layer.shouldRasterize = YES;
-    label.layer.rasterizationScale = self.traitCollection.displayScale;
-    CGSize fit = [label sizeThatFits:CGSizeMake(maxWidth > 0 ? maxWidth : CGFLOAT_MAX, CGFLOAT_MAX)];
-    label.bounds = CGRectMake(0, 0, fit.width, fit.height);
-    label.center = point;
+    double displayScale = self.traitCollection.displayScale;    // 0x10a58
+    label.layer.rasterizationScale = displayScale > 0 ? displayScale : 2.0;   // 0x10aa0 fcsel
+    CGSize fit = [label sizeThatFits:CGSizeMake(DBL_MAX, DBL_MAX)];           // 0x10ad0: unconstrained
+    double limit;                                               // 0x10aec-0x10b1c
+    if (maxWidth > 0) limit = maxWidth;
+    else if (left) limit = (container.bounds.size.width - point.x) - 6.0 * _k;
+    else limit = container.bounds.size.width - 12.0 * _k;
+    double width = MIN(ceil(fit.width), MAX(limit, 10.0));      // 0x10b20-0x10b34
+    label.bounds = CGRectMake(0, 0, width, ceil(fit.height));   // 0x10b38-0x10b4c
+    label.center = CGPointMake(left ? point.x + width * 0.5 : point.x, point.y);   // 0x10b50-0x10b6c
     [container addSubview:label];
     return label;
 }
@@ -909,8 +964,12 @@ typedef struct { double x, y, start, hue; } SSFirework;
     }
 }
 
-- (void)ss_drawCanvas:(SSCanvasView *)canvas size:(CGSize)size {   // 0x1a30c [VERIFIED dispatch]
-    CGContextRef ctx = UIGraphicsGetCurrentContext();
+- (void)ss_drawCanvas:(CGContextRef)ctx size:(CGSize)size {   // 0x1a30c [signature
+                                   // restored fix-round3 G/§8E: the original
+                                   // takes the CGContextRef (nil-checked at
+                                   // 0x1a31c) and forwards it to the two draw
+                                   // helpers — it does not fetch the current
+                                   // context itself. Dispatch below unchanged.]
     if (!ctx) return;
     double t = [self ss_now];
     if (_sceneStyle == 6) [self ss_drawParticles:ctx t:t];        // Particles [INFERRED number]

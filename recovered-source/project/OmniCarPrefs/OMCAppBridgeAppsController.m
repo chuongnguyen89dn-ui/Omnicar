@@ -171,9 +171,9 @@ static char kOMCSliderAssocKey;   // global at 0x90020 in the original
     OMCPrefWrite(@"appBridgeAdvancedReset", (id)kCFBooleanTrue);
 }
 
-- (NSNumber *)num:(NSString *)key def:(NSInteger)def {
+- (NSInteger)num:(NSString *)key def:(NSInteger)def {
     id v = OMCPrefRead(key);
-    return v ? @([v integerValue]) : @(def);
+    return v ? [v integerValue] : def;
 }
 
 // ---------------------------------------------------------------- loadState
@@ -265,7 +265,7 @@ static char kOMCSliderAssocKey;   // global at 0x90020 in the original
     BOOL wall = [OMCPrefOrDef(@"homeScreenWallpaper", (id)kCFBooleanFalse) boolValue];
     self.wallpaper = nil;
     if (wall) {
-        self.wallStyle = [self num:@"homeScreenWallpaperStyle" def:7].integerValue;
+        self.wallStyle = [self num:@"homeScreenWallpaperStyle" def:7];
         if (self.wallStyle == 8) {
             self.wallpaper = self.videoThumb;
         } else {
@@ -388,11 +388,11 @@ static char kOMCSliderAssocKey;   // global at 0x90020 in the original
     self.preview.items = items;
     self.preview.wallpaper = self.wallpaper;
     self.preview.video = (self.wallStyle == 8);
-    self.preview.size = [self num:@"homeScreenIconSize" def:100].integerValue;
-    self.preview.blur = [self num:@"homeScreenBlur" def:0].integerValue;
-    self.preview.dim = [self num:@"homeScreenDim" def:25].integerValue;
-    self.preview.cols = [self num:@"homeScreenGridCols" def:0].integerValue;
-    self.preview.rows = [self num:@"homeScreenGridRows" def:0].integerValue;
+    self.preview.size = [self num:@"homeScreenIconSize" def:100];
+    self.preview.blur = [self num:@"homeScreenBlur" def:0];
+    self.preview.dim = [self num:@"homeScreenDim" def:25];
+    self.preview.cols = [self num:@"homeScreenGridCols" def:0];
+    self.preview.rows = [self num:@"homeScreenGridRows" def:0];
     self.preview.names = [OMCPrefOrDef(@"homeScreenShowNames", (id)kCFBooleanTrue) boolValue];
     [self.preview setNeedsDisplay];
 }
@@ -545,8 +545,16 @@ static char kOMCSliderAssocKey;   // global at 0x90020 in the original
 - (UIView *)boxInCell:(UITableViewCell *)cell {
     UIView *box = [cell.contentView viewWithTag:16984];
     if (!box) {
-        box = [UIView new];
+        // [VERIFIED va 0x22284 (size 228): the original creates the box
+        // with initWithFrame:[contentView bounds] @0x222f8-0x22300 and
+        // setAutoresizingMask:0x12 @0x22320-0x22324 (FlexibleWidth |
+        // FlexibleHeight) before addSubview:. The pre-fix code used
+        // [UIView new] (CGRectZero, mask 0), so the box never tracked the
+        // contentView it hosts content in.]
+        box = [[UIView alloc] initWithFrame:cell.contentView.bounds];
         box.tag = 16984;
+        box.autoresizingMask = UIViewAutoresizingFlexibleWidth |
+                               UIViewAutoresizingFlexibleHeight;
         [cell.contentView addSubview:box];
     }
     return box;
@@ -628,11 +636,23 @@ static NSArray *OMCGridEntries(void) {
     NSInteger section = ip.section, row = ip.row;
     if (section == 0) {   // Home Screen preview
         UITableViewCell *cell = [self cellWithId:@"preview" inTable:tv];
-        if (!self.preview) self.preview = [OMCHSPreview new];
-        UIView *box = [self boxInCell:cell];
+        // [VERIFIED va 0x20a24-0x20b58: the original parents the preview
+        // DIRECTLY to cell.contentView (no box). It compares
+        // preview.superview with contentView @0x20a24/0x20a38; on mismatch
+        // it removeFromSuperview @0x20a80, creates a FRESH OMCHSPreview
+        // (setPreview: @0x20aa4) and addSubview:s it to contentView
+        // @0x20ae0, then setFrame: @0x20b48 and tail-calls updatePreview
+        // @0x20b58. The pre-fix code kept ONE persistent preview inside
+        // the zero-frame boxInCell box, so a re-queried preview cell
+        // could keep showing a stale instance the original would have
+        // discarded and rebuilt.]
+        if (self.preview.superview != cell.contentView) {
+            [self.preview removeFromSuperview];
+            self.preview = [OMCHSPreview new];
+        }
+        [cell.contentView addSubview:self.preview];
         CGFloat w = tv.bounds.size.width;
         self.preview.frame = CGRectMake(10, 10, w - 60, floor((w - 60) * 300.0 / 800.0));
-        [box addSubview:self.preview];
         [self updatePreview];
         return cell;
     }
@@ -801,7 +821,7 @@ static NSArray *OMCGridEntries(void) {
     UISlider *slider = [[UISlider alloc] initWithFrame:CGRectMake(0, 0, 150, 32)];
     slider.minimumValue = min;
     slider.maximumValue = max;
-    slider.value = [self num:key def:def].floatValue;
+    slider.value = [self num:key def:def];
     slider.minimumTrackTintColor = OMCAccentColor();
     UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(154, 0, 42, 32)];
     label.textAlignment = NSTextAlignmentRight;
@@ -850,7 +870,7 @@ static NSArray *OMCGridEntries(void) {
     stepper.minimumValue = 0;
     stepper.maximumValue = (double)values.count - 1;
     stepper.stepValue = 1;
-    NSUInteger idx = [values indexOfObject:[self num:key def:0]];
+    NSUInteger idx = [values indexOfObject:@([self num:key def:0])];
     stepper.value = idx == NSNotFound ? 0 : (double)idx;
     objc_setAssociatedObject(stepper, &kOMCSliderAssocKey, @[key, values, label],
                              OBJC_ASSOCIATION_RETAIN_NONATOMIC);

@@ -108,10 +108,14 @@ void          SSApplySampleData(SSStartupView *view);   // exported; fills previ
     UIStackView *_row, *_cardStack;
     UIVisualEffectView *_card;
     NSLayoutConstraint *_iconW, *_iconH;
-    NSArray<NSLayoutConstraint *> *_stackMaxWidth;   // [integration phase 2; backported to src in phase 3] slot 0x3ad00 actually stores
-                       // the NSArray of the 4 card constraints built in -buildWeatherWithPeriod:
-                       // (ScenesB), NOT a single constraint — type reconciled per
-                       // StartupScreenB_REPORT.md §6 header nit (b). Name kept.
+    NSLayoutConstraint *_stackMaxWidth;   // single width-cap constraint on _stack
+                       // (original ivar type @"NSLayoutConstraint" per the class
+                       // dump, object offset 152): created in -reload as
+                       // _stack.width <= self.width - 16, constant driven to
+                       // -12*_unit in -applyUnit:. The 4 card constraints built
+                       // in -buildWeatherWithPeriod: live in _cardInsets below.
+                       // [Type corrected fix-round3 G/§8F — an integration phase
+                       // had this declared as the NSArray and _cardInsets unused.]
     NSArray *_cardInsets;
     NSInteger _sceneStyle, _sky;
     CGSize _sceneSize;

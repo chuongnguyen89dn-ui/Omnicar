@@ -365,9 +365,22 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     return nil;
 }
 
+// -paneForView: (0x23914) VERIFIED: the original walks allPanes and
+// returns the first pane whose pane.view CONTAINS the argument
+// ([view isDescendantOfView:pane.view] @0x239d4 — isDescendantOfView:
+// is YES for the view itself, so pane.view and every deep descendant
+// (host, loader, picker, bar buttons) match). There is NO separate
+// pane.host equality branch in the dump.
+// [fix-round3 G] Explicit nil guards (GPT expanded audit §3): a nil
+// view resolves to NO pane, and a pane whose view is not built yet is
+// skipped — nil must never "match" nil into a phantom pane (the old
+// pointer-equality body's nil==nil failure mode).
 - (SCPCarPane *)paneForView:(UIView *)view {
-    for (SCPCarPane *pane in [self allPanes])
-        if (pane.view == view || pane.host == view) return pane;
+    if (!view) return nil;
+    for (SCPCarPane *pane in [self allPanes]) {
+        if (!pane.view) continue;
+        if ([view isDescendantOfView:pane.view]) return pane;
+    }
     return nil;
 }
 
@@ -645,16 +658,30 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
 }
 
-// -launchFailed:slot: VERIFIED: drop the pending entry and the loader
-// (matched by accessibilityIdentifier == bundleID); show the picker again
-// when the slot is free; relayout.
+// -launchFailed:slot: (0x17e70) VERIFIED against the full dump: drop the
+// pending entry; then PER PANE, when the pane's slot matches OR the
+// pane's loader accessibilityIdentifier equals bundleID (isEqualToString:
+// @0x17f54-0x17f7c, remove at @0x17f94 — OR, not AND, so the watchdog's
+// slot -1 call still clears a loader by id), remove the loader; if that
+// pane then has no VC and its OWN slot is unoccupied, show the picker
+// for the pane's own slot (@0x17fa4-0x17fe8). Relayout at the end.
 - (void)launchFailed:(NSString *)bundleID slot:(NSInteger)slot {
+    // GUARD (GPT directive — intentional divergence from the original):
+    // the dump has NO nil-bundle guard at 0x17ecc (removeObjectForKey:
+    // would raise on nil). This guard is added on purpose; see report.
+    if (!bundleID) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: launchFailed bundle nil o %d -> bo qua (guard GPT)", (int)slot]);
+        return;
+    }
     [self.pending removeObjectForKey:bundleID];
     for (SCPCarPane *pane in [self allPanes]) {
-        if (pane.slot == slot && [pane.loader.accessibilityIdentifier isEqualToString:bundleID])
+        if (pane.slot == slot ||
+            [pane.loader.accessibilityIdentifier isEqualToString:bundleID]) {
             [self removeLoaderFromPane:pane animated:YES];
-        if (pane.slot == slot && ![self slotOccupied:slot])
-            [self showPickerForSlot:slot];
+            if (!pane.vc && ![self slotOccupied:pane.slot])
+                [self showPickerForSlot:(int)pane.slot];
+        }
     }
     [self relayoutAnimated:YES];
 }
@@ -1037,8 +1064,12 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self rememberPair];
     [self rememberRecent];
     [self raise];
+    // Dump tail @0x19b48-0x19b7c: rememberPair -> rememberRecent -> raise
+    // -> showPickerForSlot: (pane's slot, only when the pane is non-nil)
+    // -> relayoutAnimated:. There is NO verifySceneOfPane: call in the
+    // original adopt: tail (the retry:2 call here was an addition).
+    if (pane) [self showPickerForSlot:(int)pane.slot];
     [self relayoutAnimated:YES];
-    [self verifySceneOfPane:pane expected:pane.sceneSize retry:2];
 }
 
 // -detachVC:background: VERIFIED (call sequence): the deliberate-background
@@ -1123,43 +1154,114 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
 }
 
-// -verifySceneOfPane:expected:retry: VERIFIED (call sequence): reads the
-// scene's settings frame (valueForKey "settings" -> "frame" via the scene
-// walk) and compares against the expected size with a 2 pt tolerance;
-// retries after 2.0 s while retry > 0, logging "-> van sai" when it stays
-// wrong and "CarSplit: khong doc duoc kich thuoc scene %@" when unreadable.
+// -verifySceneOfPane:expected:retry: (IMP 0x1cce0) VERIFIED — rewritten
+// from the full dump (370 lines) + block dumps sub_1d2a8 / sub_1d444:
+//  * Entry gates: !active -> return (@0x1cd2c); !pane.vc -> return
+//    (@0x1cd44); then a STALENESS gate (@0x1cd48-0x1cd6c): pane.sceneSize
+//    is compared to expected with exact fcmp on both dimensions and the
+//    method returns when they DIFFER (b.ne -> epilogue) — pushSceneSizes
+//    records pane.sceneSize = size before scheduling this call, so a
+//    mismatch means a newer size superseded this check. (An earlier
+//    transcription inverted this gate.)
+//  * The scene's settings object comes from SCPGuarded (object return —
+//    sound), but -frame must NEVER go through SCPGuarded: -frame returns
+//    a CGRect BY VALUE in v0-v3 while x0 keeps the receiver, so the
+//    guarded object-returning send yields `settings` itself and the old
+//    code's [frameValue CGRectValue] threw. The dump (@0x1ce5c-0x1ce9c)
+//    reads it directly: NSSelectorFromString(@"frame") +
+//    respondsToSelector: + a CGRect-returning objc_msgSend cast;
+//    no responds -> CGSizeZero.
+//  * actual == CGSizeZero -> log "khong doc duoc kich thuoc scene" and
+//    return (@0x1cee0-0x1cf3c).
+//  * Match test (@0x1cf40-0x1cf84): within 2 pt on both axes, straight
+//    OR swapped (landscape/portrait permutation included).
+//  * The "scene %@ that = %@ (can %@)%@" log fires whenever a frame was
+//    read, matched or not (@0x1cf88-0x1d02c); suffix is "" when matched,
+//    else " -> ve nen roi len lai" (retry != 0) or " -> van sai"
+//    (retry == 0), selected at @0x1cfd4-0x1cff8.
+//  * retry == 0 or matched -> return (@0x1d050-0x1d058). Otherwise the
+//    retry branch (@0x1d05c-0x1d120) backgrounds the scene under the
+//    allowBackground counter and, after 0.25 s, foregrounds it again and
+//    re-verifies with retry:0 after a further 0.8 s.
+//  * The dump contains NO setSceneSize in this method (grep: only the
+//    sceneSize getter @0x1cd4c) — the old trailing
+//    `pane.sceneSize = actual;` was an addition and is removed.
 - (void)verifySceneOfPane:(SCPCarPane *)pane expected:(CGSize)expected retry:(NSInteger)retry {
-    if (!self.active || !pane.vc) return;
+    if (!self.active) return;
+    if (!pane.vc) return;
+    CGSize recorded = pane.sceneSize;
+    if (recorded.width != expected.width || recorded.height != expected.height)
+        return;
     id scene = SCPSceneOfVC(pane.vc);
     id settings = SCPGuarded(scene, @"settings");
-    NSValue *frameValue = SCPGuarded(settings, @"frame");
-    if (!frameValue) {
+    CGSize actual = CGSizeZero;
+    SEL frameSel = NSSelectorFromString(@"frame");
+    if ([settings respondsToSelector:frameSel])
+        actual = ((CGRect (*)(id, SEL))objc_msgSend)(settings, frameSel).size;
+    if (actual.width == 0 && actual.height == 0) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
             @"CarSplit: khong doc duoc kich thuoc scene %@", pane.bundleID]);
         return;
     }
-    CGSize actual = [frameValue CGRectValue].size;
-    if (fabs(actual.width - expected.width) <= 2.0 && fabs(actual.height - expected.height) <= 2.0)
-        return;
-    if (retry > 0) {
-        __weak SCPCarSplit *weakSelf = self;
-        SCPDispatchAfter(2.0, ^{ [weakSelf verifySceneOfPane:pane expected:expected retry:retry - 1]; });
-    } else {
+    BOOL matched = (fabs(actual.width - expected.width) <= 2.0 &&
+                    fabs(actual.height - expected.height) <= 2.0) ||
+                   (fabs(actual.width - expected.height) <= 2.0 &&
+                    fabs(actual.height - expected.width) <= 2.0);
+    NSString *suffix = matched ? @""
+        : (retry != 0 ? @" -> ve nen roi len lai" : @" -> van sai");
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: scene %@ that = %@ (can %@)%@",
+        pane.bundleID, NSStringFromCGSize(actual),
+        NSStringFromCGSize(expected), suffix]);
+    if (retry == 0 || matched) return;
+    UIViewController *vc = pane.vc;
+    self.allowBackground = self.allowBackground + 1;
+    @try {
+        SEL bgSel = NSSelectorFromString(@"backgroundSceneWithCompletion:");
+        ((void (*)(id, SEL, id))objc_msgSend)(vc, bgSel, (id)^{});
+    } @catch (NSException *ex) {
+        // Original catch (landing pad @0x1d180-0x1d1d4): log and continue
+        // to the allowBackground decrement below.
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"CarSplit: kich thuoc scene %@ %@ -> van sai", pane.bundleID, NSStringFromCGSize(actual)]);
+            @"CarSplit: background loi %@", ex]);
     }
-    pane.sceneSize = actual;
+    self.allowBackground = self.allowBackground - 1;
+    __weak SCPCarSplit *weakSelf = self;
+    SCPDispatchAfter(0.25, ^{
+        SCPCarSplit *self = weakSelf;
+        if (!self || !self.active) return;
+        if (pane.vc != vc) return;
+        SEL fgSel = NSSelectorFromString(@"foregroundSceneWithSettings:completion:");
+        ((void (*)(id, SEL, id, id))objc_msgSend)(vc, fgSel, nil, (id)^{});
+        SCPDispatchAfter(0.8, ^{
+            [weakSelf verifySceneOfPane:pane expected:expected retry:0];
+        });
+    });
 }
 
-// -paneSize:forBundle: VERIFIED (call sequence): the size the scene-frame
-// hook answers with — the container's frame for the bundle's (pending)
-// slot; CGSizeZero when the split is inactive or the app has no slot.
-- (CGSize)paneSize:(CGRect)frame forBundle:(NSString *)bundleID {
-    if (!self.active || !self.container) return CGSizeZero;
-    NSInteger slot = [self paneForBundle:bundleID].slot;
-    if (slot < 0) slot = [self pendingSlotForBundle:bundleID];
-    if (slot < 0) return CGSizeZero;
-    return [self frameForSlot:slot].size; // [phase2; backported to src in phase 3] A's C placeholder was B's -frameForSlot: method (SCPCarSplit+Layout.m)
+// -paneSize:forBundle: (IMP 0x1b328) VERIFIED — the binary ABI is
+// - (BOOL)paneSize:(CGSize *)outSize forBundle:, NOT the previously
+// declared (CGSize)paneSize:(CGRect)frame forBundle: (that declaration
+// was false; the scene-frame hook caller @0x5d8c passes a stack CGSize*
+// and tests the BOOL result @0x5db4). Dump order: return NO when
+// !active or bundleID == nil (@0x1b350-0x1b360) or container == nil
+// (@0x1b37c); slot = paneForBundle: hit ? pane.slot (@0x1b39c, tested
+// for nil FIRST @0x1b398 — messaging nil for .slot yields 0 and defeats
+// the slot<0 check, which is why unassigned apps never reached the
+// pending lookup) : pendingSlotForBundle: (@0x1b3b0); slot < 0 -> NO
+// (@0x1b3c0). The result is valid only when MIN(frame width, height)
+// >= 2 (@0x1b3cc-0x1b3d8); *outSize is written only when valid and
+// outSize != NULL (@0x1b3dc-0x1b3ec); the return value is the validity.
+- (BOOL)paneSize:(CGSize *)outSize forBundle:(NSString *)bundleID {
+    if (!self.active || !bundleID) return NO;
+    if (!self.container) return NO;
+    SCPCarPane *pane = [self paneForBundle:bundleID];
+    NSInteger slot = pane ? pane.slot : [self pendingSlotForBundle:bundleID];
+    if (slot < 0) return NO;
+    CGRect frame = [self frameForSlot:slot];
+    BOOL valid = MIN(frame.size.width, frame.size.height) >= 2.0;
+    if (valid && outSize != NULL) *outSize = frame.size;
+    return valid;
 }
 
 // -repairPresentedViewController: (0x19e04) VERIFIED (remediation,
@@ -1503,27 +1605,28 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self publishKnobsSoon];
 }
 
-// -homePressedDuringSplit: VERIFIED (call sequence): returns YES when the
-// home press was consumed by the split (one-shot ignore flag, or a solo
-// hosted app returning). The DBDashboard _handleHomeEvent: hook falls back
-// to closeGoingHome: when this returns NO.
-- (BOOL)homePressedDuringSplit:(id)event {
-    (void)event;
+// -homePressedDuringSplit: (0x40298) VERIFIED against the full dump
+// (fix-round3 G; GPT expanded audit §7). Signature is (void)(BOOL):
+// wasActive is captured by the hook BEFORE any close. Body per dump:
+// dismissStuckBaseSoon runs when wasActive (@0x40318 tbz w22), OR —
+// only when wasActive is NO — when the dashboard's currentBase exists
+// AND is identical to soloReturnedVC (@0x40328 cbz currentBase,
+// @0x40344-0x40348 cmp + b.eq to the same call). soloReturnedVC is
+// then ALWAYS cleared (@0x4034c setSoloReturnedVC:nil) — the previous
+// body returned early from three branches and skipped this cleanup.
+// Tail: ignoreHomeOnce is consumed when set (@0x40358-0x40370); only
+// when it was NOT set does a live soloHostedBundle end the hosted
+// solo (@0x40374-0x40394). No return value, no early return.
+- (void)homePressedDuringSplit:(BOOL)wasActive {
     UIViewController *currentBase = SCPCurrentBaseViewController(self);
-    if (currentBase) { [self dismissStuckBaseSoon]; return YES; }
-    if (self.soloReturnedVC) {
-        self.soloReturnedVC = nil;
-        return YES;
-    }
+    if (wasActive || (currentBase && currentBase == self.soloReturnedVC))
+        [self dismissStuckBaseSoon];
+    self.soloReturnedVC = nil;
     if (self.ignoreHomeOnce) {
         self.ignoreHomeOnce = NO;
-        return YES;
-    }
-    if (self.soloHostedBundle) {
+    } else if (self.soloHostedBundle) {
         [self endHostedSolo];
-        return YES;
     }
-    return NO;
 }
 
 // -dismissStuckBaseSoon (0x3ff28) VERIFIED (remediation,

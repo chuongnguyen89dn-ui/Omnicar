@@ -162,7 +162,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable id)sceneOfViewController:(UIViewController *)vc;
 - (void)scene:(id)scene destroyedForViewController:(UIViewController *)vc ownScene:(nullable id)ownScene;
 - (void)verifySceneOfPane:(SCPCarPane *)pane expected:(CGSize)expected retry:(NSInteger)retry;
-- (CGSize)paneSize:(CGRect)frame forBundle:(NSString *)bundleID;
+- (BOOL)paneSize:(CGSize *)outSize forBundle:(NSString *)bundleID; // binary ABI @0x1b328 (BOOL + CGSize* out-param; the earlier CGRect-frame/CGSize-return declaration was wrong)
 
 // --- hosted (AppBridge) panes (A) ---------------------------------------------
 - (NSArray<SCPCarPane *> *)hostedPanes;
@@ -195,7 +195,7 @@ NS_ASSUME_NONNULL_BEGIN
 // --- close / home (A) ----------------------------------------------------------
 - (void)closeApp:(NSString *)bundleID;
 - (void)closeGoingHome:(BOOL)goHome;
-- (BOOL)homePressedDuringSplit:(id)event;
+- (void)homePressedDuringSplit:(BOOL)wasActive; // binary ABI @0x40298: v20@0:8B16 (void, BOOL arg) — the earlier (BOOL)(id) declaration was wrong
 - (void)dismissStuckBaseSoon;
 // [phase2; backported to src in phase 3]] three SCPCarSplit methods present in the binary (objc.json) and
 // called from B's Panel.m — transcribed from A's own disasm dumps in
@@ -247,7 +247,9 @@ NS_ASSUME_NONNULL_BEGIN
 // dropped — conflicts dropped: layoutChosenID: (B void vs A BOOL impl —
 // remediation RESOLVED: the binary is void (IMP 0x3c61c), B was right and
 // A's declaration + implementation above are now void),
-// paneSize:forBundle: (B NSInteger-slot vs A CGRect-frame impl),
+// paneSize:forBundle: (B NSInteger-slot vs A CGRect-frame impl — BOTH
+// wrong: the binary is BOOL + CGSize* out-param @0x1b328, restored in
+// the fixer round),
 // soloBundle: (B SCPCarPane* vs A BOOL impl), hostSolo: (B BOOL vs A
 // NSString* impl), hostPassInsetsForPane: (B UIEdgeInsets vs A NSDictionary*
 // impl — discrepancy flagged in the phase-2 log, A's live body kept).
@@ -301,7 +303,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)canPopOutPane:(SCPCarPane *)pane;
 - (nullable NSString *)popOutBlockReason:(SCPCarPane *)pane;
 - (void)popOutPane:(SCPCarPane *)pane;
-- (void)panePopOut:(UIGestureRecognizer *)recognizer;
+- (void)panePopOut:(UIView *)view; // button-action entry point (IMP 0x201f0): sender passed straight to paneForView:, no -view extraction
 - (void)floatPanned:(UIPanGestureRecognizer *)recognizer;
 - (void)floatDragPhase:(NSInteger)phase at:(CGPoint)point;
 @end
