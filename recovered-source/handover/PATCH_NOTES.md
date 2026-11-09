@@ -3979,3 +3979,398 @@ rà; đuôi !logoView playIntro phía xe; cellClass giữ nhãn
 UNVERIFIED. QA20 vẫn là bản dùng hằng ngày của Nguyen —
 wake1/fs1 là bản nghiệm thu, chưa thay QA20 cho tới khi
 fullscreen được nghiệm thu trên xe.
+
+## 24) VÒNG YTZ2 — KHẮC PHỤC TỔNG HỢP SAU FS1 THEO WO GPT (2026-11-09)
+
+### 24.1 Bối cảnh: fs1 lên xe, kiểm toán GPT, WO và bản ytz1 bị cách ly
+- fs1 được Nguyen cài và test trên xe chiều 2026-11-09. Hai
+phát hiện trên xe TRƯỚC khi GPT kiểm toán: (a) nhóm TEST
+của controller KHÔNG hề hiện trong trang Chia màn hình —
+specifier `fullscreenTestExpand` chỉ nằm trong
+FeatureSplitScreen.plist, trong khi OMCSplitScreenController
+dựng trang 100% bằng code và không bao giờ nạp plist đó;
+strand Prefs của fs1 đã kiểm chứng nhầm cơ chế (đường
+loadSpecifiersFromPlistName của các trang feature khác).
+(b) AutoHide mờ được toàn bộ controls kể cả logo, nhưng
+chạm nội dung app KHÔNG gọi lại được — chỉ bấm trúng đúng
+vị trí nút logo vô hình mới hiện (đường F3 sống; đường
+activity từ chạm nội dung gãy).
+- GPT đối chiếu báo cáo với source trên repo và kết án BA
+lỗi bằng mã nguồn (không cần log/video): (1) act phía app
+bị cổng độ tươi state 2,5 s tự khoá đường gọi lại
+(ABInApp.m:505 `if (BWFresh()) BWPostAct();` — owner không
+phát state liên tục nên khi đã mờ lâu, cú chạm cần reveal
+mang state cũ và không bao giờ phát act); (2) PINCH-IN
+KHÔNG THỂ XẢY RA: controller luôn gọi
+bwSetExpandedActive:forBundle:nil (SCPFullscreenController.m:306)
+trong khi arbiter đòi pane.bundleID == bwExpandedBundle ở
+ba điểm (BridgeWake.m:231/:320/:658 — điểm thứ ba do strand
+sửa phát hiện thêm, xem 24.5(v)) → hàng EXPANDED không mở
+cho pane nào; cổng Gate 1 của fs1 chỉ kiểm ĐIỂM GỌI của
+bwSetExpandedActive, không kiểm GIÁ TRỊ truyền vào; (3)
+YT-Zoom nhận diện split sai ở ca hỗn hợp: ABYTZoom.m:151
+dùng host.panes.count <= 1 để suy không-split — ca 1 ô
+native + 1 ô YouTube hosted thì ABHost chỉ có 1 hosted
+pane nhưng xe đang split → isSplit sai.
+- Hệ quả phán quyết của GPT: KHÔNG chấp thuận pinch
+ENFORCE mặc định trên mọi ô khi ba điểm chưa sửa; ra WO
+"KHẮC PHỤC TỔNG HỢP SAU FS1" (W1–W5, P1–P4, Y1–Y4 +
+Weather giữ nguyên + núm giữ nguyên) và giữ yêu cầu MỘT
+DEB duy nhất với công tắc runtime độc lập từng tính năng
++ nghiệm thu theo thứ tự 5 bước.
+- Bản ytz1 (vòng "nối pinch luôn" theo lệnh Nguyen 14:37:
+pinch mặc định ENFORCE, gỡ staging, YTZ mặc định BẬT —
+impl-pinch-wiring.md, integration-ytz1.md; candidate
+1.013.910 B SHA 119d6108…; source main 0c5da2e) bị CÁCH LY
+theo WO: chứa cả ba lỗi trên. Ghi đúng sự thật thao tác:
+coordinator ra lệnh dừng strand CI của ytz1 SAU khi run
+dispatch 42581690791 đã được kích hoạt; lệnh dừng tới khi
+run đã chạy xong nên FAT ytz1 VẪN RA LÒ (1.210.344 B,
+SHA-256 4caa2568d6ef9d145a609ca92e82f30591da45a729688d3d86cfdb7bd1c186a1,
+ci-fat-test fa15909; biên bản ci-ytz1.md) — bản này nằm
+cách ly ở handover, KHÔNG giao, bị ytz2 thay thế.
+- Mức báo cáo của vòng: cả năm strand = SOURCE HOÀN
+THIỆN + STATIC PASS (hai lượt kiểm độc lập + tích hợp +
+kiểm hai lát trên FAT, 24.3/24.4). Nghiệm thu xe: mọi
+track PENDING (24.6). Baseline bất biến: fs1 FAT
+41bb5b8b….
+
+### 24.2 Năm strand sửa (mỗi strand một chủ file)
+STRAND A — phía app, W2-A/W3/W1 (fix-w-act-app.md; file
+duy nhất ABInApp.m + mirror, 8 hunk):
+- W2-A tách act khỏi độ tươi: cờ danh tính phiên riêng
+BWActSessionVerified (khai báo :152), đặt = YES tại đúng
+điểm BWOnStatePacket chấp nhận gói state hợp lệ cho
+chính bundle (:423, cùng điểm đặt BWKnown), xoá tại
+BWResetAll khi phiên đóng (:766). Điểm gọi tại mở dãy
+(:629) đổi `if (BWFresh()) BWPostAct();` thành
+BWActOnSequenceStart(began) — vẫn TRƯỚC đánh giá cổng
+nuốt, nên dãy bị nuốt vẫn tính activity.
+- W3 trói scene: BWActHostedScene() (:316) — thẩm quyền
+theo thứ tự: lease YT-Zoom đã ghim sceneID → scene khớp
+qua YZSceneCandidateID (cơ chế sẵn có, chỉ đọc); ngược
+lại scene của ABKeyWindow() (cùng cửa sổ cổng nuốt dùng
+xác minh target). Không định danh được → act-drop-
+target-unknown, KHÔNG phát; touch thuộc scene khác (màn
+hình iPhone) → act-drop-scene, KHÔNG phát. window != nil
+không bao giờ đủ một mình.
+- W1 instrumentation: BWPostAct (:291) đổi chữ ký trả
+BOOL + mã notify_set_state/notify_post và bộ đếm fail;
+mọi quyết định act log [autohide] kèm stamp monotonic
+t= (BWActNowMs :198, mach_absolute_time) + stateage=
+(tuổi bản sao state tại Began): act-posted /
+act-drop-nosession / act-drop-scene /
+act-drop-target-unknown.
+- Kỷ luật không đụng (grep chứng minh): BWFresh() còn
+đúng 6 điểm gọi, tất cả thuộc đường nuốt/probe/mode/query
+— suppression nguyên vẹn; YZ section diff = 0;
+BridgeWakePack.h không sửa. Harness codec độc lập 21/21.
+STRAND B — phía owner, W1/W2/P1/P4 (fix-wp-owner.md;
+SCPCarSplit+BridgeWake.m/.h, SCPCarSplit+AutoHide.m):
+- W1: bwHandleActPacket: viết lại — 6 reason loại riêng,
+đúng thứ tự kiểm của WO: decode-fail (gói sai
+type/valid) → bad-hash → bad-gen (log cả gen hiện tại) →
+session-inactive (!self.active) → not-assigned (pane
+nil/lệch slot/không thuộc hostedPanes) → split-inactive
+(state slot INACTIVE); chấp nhận → log act-accepted rồi
+mới gọi ahNoteActWithKbActive:. Điểm session-inactive
+trước đây lọt qua owner rồi chết ở guard !self.active
+trong ahNoteActivity: — nay loại sớm kèm reason, kết quả
+cuối không đổi. ahRevealBody: log reveal-applied
+reason=%s views=%lu (views = số view còn giữ bản lưu
+opacity đếm TRƯỚC khi khôi phục); tay trao fade xuống
+host giữ nguyên (pushHostFramesLive:NO ngay sau khôi
+phục).
+- W2 state renewal: bwRenewTimer + bwRenewMaintain /
+bwRenewTick: (BridgeWake.m:243–282 theo bản kiểm độc
+lập). Chu kỳ 1,0 s; mỗi tick phát lại state HIỆN TẠI của
+MỌI pane hosted qua bwQueueEmitForPane: → emit queue
+giãn 30 ms → poster duy nhất BWEmitStatePacket → seq
+tăng, gen giữ nguyên, nội dung/ngữ nghĩa không đổi.
+Vòng đời: maintain gọi ở cuối bwRecomputeForPane: và
+trong bwSessionTeardown; điều kiện bwInstalled &&
+active && hostedPanes.count > 0. Độ cũ biên mỗi pane
+≈ 1,0 s + 30 ms × (số pane − 1) ≪ 2,5 s — suppression có
+state tươi sau khi ẩn lâu; act KHÔNG dựa vào renewal
+(act đi theo danh tính phiên, strand A).
+- P1 arbiter EXPANDED theo PHIÊN: gỡ equality với
+bwExpandedBundle ở CẢ BA điểm dùng (bwPinchAllowedForPane:
+— cờ gói; pinchDispositionForPane: — đường bắn; điểm
+promote HIDDEN→VISIBLE trong bwRecomputeForPane:). Hai
+hàm arbiter dùng cùng một vị từ: bwExpandedFlag &&
+self.active && pane ∈ allPanes && !bwWakePendingBySlot[slot]
+&& !self.resizing (allPanes có chủ đích: pane native của
+split hỗn hợp không thuộc hostedPanes nhưng là pane sống
+của phiên). bwExpandedBundle chỉ còn vai trò ghi/log ở
+setter. Truy vết tĩnh 6 trường hợp WO trong biên bản
+strand §3 (xem thêm caveat 24.5(ii)/(iii)).
+- P4: pinchMode mặc định về DRY_RUN ở cả static init
+(:46) và nhánh pref vắng trong bwReloadModesAndRepublish
+(:476) — supersede mặc định ENFORCE của vòng
+impl-pinch-wiring theo phán quyết GPT, lý do ghi ngay
+trong comment code. ENFORCE vẫn tới được trong cùng bản
+qua pref tường minh bridgewake.pinchMode = 2 (0/1/2 tôn
+trọng). wakeMode giữ DRY_RUN.
+STRAND C — đường kiểm thử controller độc lập + đường
+thoát + nhóm Chẩn đoán (fix-p-diag.md;
+SCPFullscreenController.m/.h + toàn bộ OmniCarPrefs):
+- Controller: khôi phục listener pref dưới marker
+[fs-diag] — fsInstallIfNeeded (:119–135) đọc nền
+fullscreenDiagExpand (không hành động lúc cài) + đăng ký
+notify_register_dispatch trên kênh prefschanged sẵn có;
+fsDiagPrefsChanged (:149–167): đổi cạnh → ON gọi đúng
+fsRequestExpand…provenance:@"diag", OFF gọi
+fsRequestRestore…provenance:@"diag" — cùng cổng
+vào/txn/xác-nhận-đọc-lại với pinch. LEVEL SAFETY: bất kỳ
+post nào thấy pref OFF trong khi máy EXPANDED vẫn restore
+kể cả khi lỡ cạnh — đường thoát không phụ thuộc
+recognizer (P4). Controller CHỈ ĐỌC pref (grep API ghi =
+0), không bao giờ tự sửa trạng thái pref.
+- Prefs: MỘT nhóm "Chẩn đoán" (section 6, cuối trang Chia
+màn hình) dựng 100% BẰNG CODE trong
+OMCSplitScreenController.m theo idiom trang (bài học
+specifier-plist của fs1): numberOfSections 6→7 (:145),
+case 6 (:154), header/footer (:170/:178), ba control tại
+:363–407 persist qua storeValue:forKey: (domain
+com.anlai.omnicar + notify_post prefschanged): (a)
+switch fullscreenDiagExpand def NO (:378); (b) switch
+youtubeVirtualize def YES — vắng = ON khớp YZPrefEnabled,
+làm đối chứng Y2 ngay trên máy (:389); (c) segment
+bridgewake.pinchMode ghi nguyên văn 0/1/2, def 1 = Đo
+(:400). Strings SplitScreen en/vi 46 → 56 khoá (10 khoá
+DIAG, 46 khoá cũ nguyên giá trị, bplist round-trip sạch).
+Sections 0–5 không đổi hành vi.
+- Cổng strand: binary Prefs chứa cả 3 khoá chẩn đoán
+trong CODE (×1 mỗi khoá) — đúng cổng đã FAIL ở fs1.
+STRAND D — Y1 isSplit + Y4 instrument (fix-y-issplit.md;
+SCPCarSplit.m chỉ trong builder hostFrameInfo +
+ABYTZoom.m; không đụng 4 hàm cấm ABHost):
+- Nguồn sự thật tại owner trình bày: split =
+self.active && self.paneCount >= 2 && self.zoomedSlot == nil.
+Hai hạng tử cuối là NGUYÊN VĂN vị từ trình bày VERIFIED
+của module -[SCPCarSplit dividersVisible]
+(SCPCarSplit+Layout.m:270–273, IMP @0x11b50); active có
+điểm đặt YES duy nhất tại SCPCarSplit.m:132; paneCount =
+slots.count (:445). KHÔNG suy từ key single của bar (WO
+cấm). EXPANDED của FS controller không đặt zoomedSlot
+(controller chỉ đọc tại :298/:540; gán chỉ ở tính năng
+zoom) → split giữ YES khi phình, đúng ngữ nghĩa phiên.
+- Vận chuyển: cộng split + splitver = @1 tại
+SCPCarSplit.m:2082–2083 trong builder
+hostFrameInfo:pane:live:handle: (:2042), phủ cả hai điểm
+phát (open :1896, frame :2013). Phía host: YZComputeIsSplit
+(ABYTZoom.m:189) đọc kho session YZSessionSplit{Value,At,Ver}
+(ghi bởi YZNoteSessionSplit :167 qua observer open/frame
+:540); giá trị là trạng thái-sự-kiện, không hết hạn theo
+tuổi; gói open đầu tiên tới trước launch-complete nên kho
+có dữ liệu trước lần publish đầu. panes.count còn đúng 1
+chỗ (:199) trong fallback cho gói thiếu trường, mỗi lần
+fallback log [ytz] isSplit-fallback (throttle 5 s).
+- Y4 chỉ instrument, không đổi hành vi, không đảo quyết
+định không-restore-snapshot: log [ytz] lease-lapse: …
+gen=… heal=… trong nhánh ack expired TRƯỚC các guard
+(:456) + [ytz] owner phien host: <uuid> tại
+YZRegisterHostLease (:517).
+STRAND E — W4 probe thụ động (fix-w-probe.md; TU mới
+SCPTouchProbe.h/.m + 2 hunk cài trong SCPHooks.m +
+Makefile +1 TU):
+- Hook -[UIApplication sendEvent:] phía CarPlayApp: gọi
+orig TRƯỚC, nguyên vẹn, quan sát sau trong @try/@catch;
+không huỷ touch, không đổi hitTest target, không cài
+recognizer trong lúc dispatch, không gọi bất kỳ API
+activity/reveal/nuốt nào (grep = 0). Chỉ tồn tại trong
+process CarPlayApp (điểm cài sau cổng SCPHostIsCarPlayApp
++ crash guard trong SCPInitDashboardHooks).
+- Phân loại mỗi Began: scene theo cơ chế của module
+(touch.window == container.window → carplay; ==
+trayWindow → carplay-aux; còn lại foreign/unknown ghi
+[probe-foreign], không bao giờ quy thành wake; class
+window luôn được log) + pane trúng theo hình học layout
+hiện tại (chỉ đọc; slot + bundle + hosted|native) +
+chuỗi chạm theo con trỏ UITouch (Began đầy đủ kèm t=
+monotonic + seq; Moved đếm; Ended/Cancelled đóng bằng
+dòng tổng kết complete/dur; phase không Began → orphans).
+Kết luận ở mức hình chữ nhật của ô — đúng granular WO W4
+yêu cầu để GPT quyết có dời feed activity về CarPlayApp
+hay không. Probe luôn bật trong bản chứa nó (không pref
+tắt — tính chất bản đo một phiên); gỡ = bỏ TU + điểm cài.
+
+### 24.3 Ba lượt kiểm độc lập (chỉ đọc, không hoà giải lệch)
+- verify-wake-act.md: đường act — ĐẠT cả 5 mục (a)–(e):
+điểm gọi act duy nhất :629 không qua BWFresh; thân hai
+hàm act chứa 0 BWFresh; cờ phiên đặt/xoá đúng điểm; trói
+scene fail-closed đủ 4 chuỗi trong binary; owner đủ 6
+reason đúng thứ tự (BridgeWake.m:605–657); renewal qua
+poster duy nhất, seq tăng/gen giữ; ahRevealBody
+(AutoHide.m:186–207) + tay trao fade nguyên vẹn. Không
+phát hiện lệch nội dung so với hai biên bản strand; một
+khác biệt MÔ TẢ ghi ở 24.5(iv).
+- verify-arbiter-diag-probe.md: arbiter/diag/probe — ĐẠT
+(a)–(d); mục (e) probe ĐẠT về chất nhưng con số hook
+"32" KHÔNG khớp phép đếm call-site — ghi ở 24.5(i). Hai
+ghi chú arbiter ở 24.5(ii)/(iii).
+- Kiểm độc lập YZ (đọc lại trực tiếp source + tính lại
+độc lập, ghi trong handover-ytz2 §3): nguồn sự thật
+isSplit, đường vận chuyển 2 khoá, kho session phía host,
+EXPANDED-vs-split (grep toàn module: controller không
+gán zoomedSlot), 4 hash cấm ABHost MATCH cả 4 (tự tính
+lại SHA-256 thân hàm signature→^}: setFrame 8606f40a…,
+setBarVisible: 3044b10d…, setHandleVisible: 409cfb14…,
+setKnobs: b98a9f26…), lease/ack/heartbeat ngoài Y1+Y4
+không đổi, hostFrameInfo superset = 30 khoá (vòng này
+chỉ cộng đúng split/splitver).
+
+### 24.4 Tích hợp + CI FAT ytz2 (integration-ytz2.md, ci-ytz2.md)
+- Mirror: strand D chỉ sửa cây project/ — tích hợp đối
+chiếu 13 cặp file của 5 strand, chép project/ → src/
+đúng 2 file lệch (ABYTZoom.m, SCPCarSplit.m); sau chép
+13/13 identical (audit CI độc lập đếm 14/14 cặp gồm cả
+file .h — cùng kết luận).
+- Candidate local com.anlai.omnicar_1.0.3-ytz2_iphoneos-arm64.deb:
+1.021.310 B, SHA-256 4737cfa93c2c5a6a7c7ade37a0b7731718f626bb267dd2d03cf6d9f54018d6ad;
+control diff vs ytz1 chỉ Installed-Size (3712 → 3748);
+danh sách file identical ytz1 (176 file, cùng một lệnh
+đếm cho cả hai candidate — xem 24.5 điểm phụ).
+- Gate 1 trên candidate: selector parity vs fs1 — 6/8
+thành phần identical; AppBridge mất 0 (+73 = bề mặt YZ
+của ytz1, identical ytz1); SplitScreen mất đúng 4 (bề
+mặt [fs1-test] đã gỡ ở vòng ytz1 theo lệnh 14:37, không
+phải mất ở vòng này) + cộng 7 (đúng bề mặt WO: 3 diag +
+2 renewal + sendEvent: + valueWithPointer: của probe);
+hồi quy g1/g2/h(C-A+C-B)/f PASS; hostFrameInfo superset
+PASS (chỉ cộng split/splitver so với vòng này, fade từ
+vòng fs1); điểm ghi requestedOrientation duy nhất;
+sendEvent phía app 1 hook/1 orig.
+- Git: source main a7630303fbd9a1af705fbf880093185401c46dc0
+(27 file); ci-fat-test 5c5698f04f7b2e7721c1f1abfef36e97d8b533be
+(merge main; diff project/src giữa hai nhánh = 0).
+- CI: workflow 410962367 dispatch trên ci-fat-test, run
+42583754018 SUCCESS (theo dõi foreground + truy vấn trực
+tiếp). FAT com.anlai.omnicar_1.0.3-rebuilt-ytz2-fat_iphoneos-arm64.deb:
+1.221.708 B, SHA-256 bb59ab5653540f21d915631213621c0158fc2850038f6d0959b3eca95087dc20;
+members debian-binary + control.tar.gz + data.tar.lzma.
+- Kiểm hai lát trên lát thin trích từ chính FAT: kênh
+bridgewake 5/5 × (SplitScreen + AppBridge) × 2 lát;
+ytlease/ytleaseack trong AppBridge cả hai lát; chuỗi mới
+của vòng đủ vị trí (act-posted/act-drop ×3 phía AppBridge;
+bw renew ×3, [fs-diag] ×3, [probe]/[probe-foreign] phía
+SplitScreen; isSplit-fallback phía AppBridge; splitver
+cả hai phía); fullscreenTestExpand = 0 TOÀN GÓI;
+fullscreenDiagExpand có trong SplitScreen cả hai lát;
+binary Prefs chứa cả 3 khoá chẩn đoán trong CODE ở cả hai
+lát; publishKnobsNow đúng 1 eor mỗi lát (arm64 @0x129dc,
+arm64e @0x13318 — cùng dạng lệnh như fs1/ytz1, chỉ lệch
+địa chỉ); g1 csel + cổng mask + sentinel đủ hai lát, địa
+chỉ trùng ytz1; parity vs FAT fs1 khớp kỳ vọng (SplitScreen
+1384 → 1387: mất 4 bề mặt test, thêm 7; AppBridge 724 →
+797: mất 0). UUID 8 binary × 2 lát: bảng trong
+ACCEPTANCE_YTZ2 / ci-ytz2 §3.
+
+### 24.5 Điểm diễn giải — ghi trung thực để GPT phán
+(i) QUY ƯỚC ĐẾM HOOK. Con số "32" trong biên bản strand E
+và cổng các vòng trước là đếm DÒNG GREP gồm cả dòng
+comment. Đếm call-site thật trên source cuối:
+SCPHooks.m = 29 call-site thật (31 dòng grep, có 2 dòng
+comment tại :2/:614); SCPSpringBoardHooks.m = 1 (:175;
+2 dòng grep, 1 comment :169); SCPHomeHooks.m = 0 (1 dòng
+comment); SCPTouchProbe.m = 1 (:198). TỔNG MODULE = 31.
+Baseline thật của fs1 = 30 (29 + 1) → delta của vòng này
+= đúng +1 = probe, và binary khớp (import
+_MShookMessageEx + sendEvent: xuất hiện trong tập
+methname của SplitScreen). Kết luận "thêm đúng 1 hook"
+ĐẠT; con số tuyệt đối "toàn module 32" KHÔNG đạt theo
+phép đếm call-site. Từ vòng này hồ sơ dùng phép đếm
+call-site.
+(ii) ĐIỂM PROMOTE KHÔNG NGUYÊN VĂN CÙNG VỊ TỪ. Hai hàm
+arbiter dùng nguyên văn vị từ phiên 5 toán hạng, nhưng
+điểm promote HIDDEN→VISIBLE trong bwRecomputeForPane:
+(BridgeWake.m:399–400) chỉ viết dạng rút gọn
+`state == BWStateHidden && bwExpandedFlag`. Tương đương
+ngữ nghĩa nhờ các guard bao quanh đã thiết lập sẵn:
+assigned (:356) = self.active ∧ bundle.length ∧ pane ∈
+hostedPanes; state HIDDEN chỉ tới được khi không
+wake-pending (nhánh WAKING :362 đứng trước) và không
+resizing (resizing ⊂ transient → UNKNOWN, :373–378).
+Không phải lỗi hành vi — ghi để GPT biết dạng thật của
+code. Bất đối xứng cấu trúc kèm theo: promote chỉ chạy
+cho pane hosted (state packet chỉ tồn tại cho pane
+hosted); hai hàm arbiter bao cả allPanes gồm native —
+đúng vai trò từng điểm.
+(iii) RANH GIỚI CA PANE-BỊ-XOÁ-KHI-EXPANDED. Khẳng định
+"cờ rơi về INACTIVE" (bảng truy vết ca 5 của strand B)
+phụ thuộc recompute/teardown ĐÃ chạy cho pane bị xoá.
+Nếu bwStateBySlot của pane đó còn giữ VISIBLE cũ và
+recompute chưa chạy, disposition rơi về HÀNG SPLIT
+THƯỜNG (VISIBLE → Allowed theo hàng thường, không phải
+hàng EXPANDED) — hành vi cũ, nằm ngoài bảng 6 trường hợp
+của WO, vòng này không đổi.
+(iv) MÔ TẢ ĐIỂM BWFresh :633 PHÍA APP. fix-w-act-app.md
+gọi điểm này là "báo cáo mode tại mở dãy" — mô tả không
+chính xác. Đọc code (verify-wake-act (b) mục 5): đó là
+hiệu chỉnh wouldSwallow khi gói state ra lệnh wakeMode ==
+Off — BWSeqWouldSwallow && BWKnown && BWFresh() &&
+BWWakeMode == BWModeOff → huỷ wouldSwallow, reason
+@"mode"; đứng SAU điểm phát act :629, thuộc đường
+nuốt/probe. Phân loại đường không đổi; chỉ sửa cách gọi
+tên trong hồ sơ này.
+(v) ĐIỂM EQUALITY THỨ BA. WO kể hai điểm arbiter; strand
+B phát hiện và sửa thêm điểm thứ ba dùng cùng mô hình
+bundle sai — điểm promote HIDDEN→VISIBLE trong
+bwRecomputeForPane: (nay là BridgeWake.m:399–400). Không
+sửa điểm này thì state vẫn sai dù hai hàm arbiter đúng.
+Đây là cùng một lỗi mô hình, đã sửa cả ba.
+- Phụ 1: strand C cảnh báo lệch default (trang Chẩn đoán
+hiện "Đo" khi pref vắng trong khi owner lúc đó còn đọc
+vắng = ENFORCE) — ĐÃ ĐÓNG bởi thay đổi P4 của strand B
+(default DRY_RUN ở cả hai phía; kiểm độc lập (b) xác
+nhận nhất quán, segment Prefs def:1 khớp).
+- Phụ 2: comment §7 đầu mục YT-ZOOM trong ABChannels.m
+còn câu mô tả observer "track the single key for the
+lease's isSplit field" — nay single chỉ còn nuôi nhánh
+fallback. Việc dọn comment, không ảnh hưởng hành vi;
+xếp cùng comment tồn dư SCPPinchController cho vòng dọn.
+- Phụ 3: đếm file trong gói — integration-ytz1 ghi 179
+(đếm cả thư mục/mục phụ), vòng này đếm 176 = 176 bằng
+một lệnh find . -type f cho cả hai candidate; kết luận
+identical không đổi.
+
+### 24.6 Trạng thái nghiệm thu (thang WO) + việc còn mở
+- Mọi track: STATIC_PASS. RUNTIME_PASS / DEVICE_PASS:
+tất cả PENDING — bản này chưa chạy trên xe. Kịch bản
+nghiệm thu MỘT phiên theo đúng thứ tự 5 bước của WO
+nằm trong ACCEPTANCE_YTZ2: (1) AutoHide + Wake DRY_RUN
+theo W5 (mờ 4 s / +10 s / +30 s chạm đều phải hiện;
+YouTube đang phát / Maps đang mở / bàn phím đang hoạt
+động; chạm màn hình iPhone không gọi nhầm controls xe;
+10 chu kỳ không mất controls vĩnh viễn — DRY_RUN và
+ENFORCE chấm RIÊNG, không gọi DRY_RUN là đạt chuẩn nuốt
+QA180); (2) controller trực tiếp qua [fs-diag], Pinch
+OFF (ma trận P2: 10 chu kỳ expand/restore, chụp frame
+trước/sau — hai ô giữ tỉ lệ, dock/Home/status bar ẩn
+đúng, chạm đúng vị trí, restore trả frame + clipping,
+không kẹt dock sau disconnect/teardown/app crash);
+(3) Pinch DRY_RUN rồi ENFORCE khi đường restore đạt;
+(4) YTZ OFF đối chứng → ON (Y2: lease cấp đúng scene/
+kích thước, windows ≥ 1, mismatch = 0; ca kết án
+YouTube hosted + Maps native phải có split=1 và KHÔNG
+có isSplit-fallback); (5) Weather (tiêu chí bắt buộc
+fixround7) + núm + hồi quy toàn bộ.
+- Điều kiện mở ENFORCE pinch cập nhật theo P4: default
+trong bản = DRY_RUN; ENFORCE chỉ qua segment Chẩn đoán
+= 2 SAU KHI controller qua nghiệm thu độc lập ở bước 2
+và đường restore đạt ở bước 3. Ba điều kiện xe của §23.8
+(controller staging đạt + ≥ 3 pinch-in từ EXPANDED do
+công tắc tạo + 1 ngắt giữa EXPANDED sạch) vẫn là căn cứ
+đánh giá, nay công tắc tạo EXPANDED là fullscreenDiagExpand.
+- Giữ nguyên các giới hạn còn mở từ handover-ytz2 §5:
+quyết định dời feed activity về CarPlayApp chờ dữ kiện
+[probe]; cặp pinch trên ô hosted có tới recognizer
+container không vẫn chưa đo; thang leo Y3 chưa dùng;
+đo Y4 (hết hạn lease/đổi owner) chưa chạy;
+VISUAL_ORIGINAL_COMPARISON = PENDING; bản sao Weather
+phía Prefs chỉ audit đọc khi có lệnh; ahForgetView: chờ
+GPT phán; đuôi !logoView playIntro + SSSplash
+userInteractionEnabled [INFERRED] vẫn đỗ. QA20 vẫn là
+bản dùng hằng ngày — ytz2 là bản nghiệm thu duy nhất
+hiện hành, ytz1 cách ly, fs1 giữ baseline rollback cùng
+fixround7 FAT + gói hợp nhất QA20.

@@ -2103,3 +2103,156 @@ by ci-fs1; plus strand A's connectedScenes window scan
 and current-superview restore measurement). QA20
 remains Nguyen's daily build — wake1/fs1 are acceptance
 builds until fullscreen is accepted on the car.
+
+YTZ2 (GPT WO remediation round after fs1; PATCH_NOTES
+section 24): fs1 went to the car and produced two device
+findings before any audit — the Prefs TEST group never
+rendered (the specifier sat in FeatureSplitScreen.plist,
+but OMCSplitScreenController builds its page 100% in
+code and never loads that plist; the fs1 Prefs strand
+had verified the wrong mechanism), and AutoHide faded
+every control including the logo but content touches
+never recalled them (only a tap exactly on the invisible
+logo button worked — the F3 path was alive, the
+content-touch activity path was dead). GPT then audited
+the reports against the pushed source and convicted
+THREE defects from code alone: (1) the in-app act feed
+was gated by BWFresh() at ABInApp.m:505 — the owner emits
+state only on change/query, so after a long fade the
+very touch that needs the reveal carries stale state and
+never posts act (the wake path locks itself); (2)
+pinch-in could NEVER fire — the fullscreen controller
+always calls bwSetExpandedActive:forBundle:nil while
+the arbiter demanded pane.bundleID == bwExpandedBundle
+at three sites, so the EXPANDED row opened for no pane
+(Gate 1 of fs1 had checked the call SITES of
+bwSetExpandedActive, never the VALUE passed); (3)
+YT-Zoom derived isSplit from host.panes.count <= 1 at
+ABYTZoom.m:151, wrong for a mixed split (one native +
+one YouTube hosted pane = one hosted pane but a real
+split). GPT did NOT approve the ENFORCE-by-default
+posture and issued a consolidated work order (W1–W5,
+P1–P4, Y1–Y4) under the standing ONE-deb rule with
+per-feature runtime switches and a 5-step ordered
+acceptance sequence. The intermediate ytz1 build (pinch
+wired live per Nguyen's 14:37 order: ENFORCE default,
+staging removed, YTZ default on; candidate 1,013,910 B
+SHA 119d6108..., source 0c5da2e) is QUARANTINED: it
+carries all three defects. Recorded honestly: the
+coordinator's stop order for the ytz1 CI strand arrived
+after dispatch run 42581690791 had already been started,
+so the FAT was still produced (1,210,344 B, SHA-256
+4caa2568d6ef9d145a609ca92e82f30591da45a729688d3d86cfdb7bd1c186a1,
+ci-ytz1.md) — it sits in handover, never delivered,
+superseded by ytz2. The fix round ran five strands by
+file ownership. App side (fix-w-act-app): act emission
+rebased from state freshness to a verified-session flag
+(BWActSessionVerified, set at the state-packet accept
+point ABInApp.m:423, cleared at BWResetAll :766) plus
+scene binding (hosted scene from the YTZ lease sceneID
+or ABKeyWindow's scene; unidentifiable -> drop with
+reason, iPhone-scene touches -> drop, window != nil
+never sufficient alone); every act decision logs a
+monotonic stamp + state age + reason; suppression is
+untouched (BWFresh keeps exactly its 6 call sites, all
+on swallow/probe paths). Owner side (fix-wp-owner):
+every act drop now logs its own reason (decode-fail /
+bad-hash / bad-gen / session-inactive / not-assigned /
+split-inactive) and reveal logs reveal-applied with the
+restored view count; a 1.0 s state-renewal timer
+re-emits the CURRENT state of every hosted pane in
+rotation through the single BWEmitStatePacket poster
+(seq increases, gen unchanged; worst-case staleness per
+pane ~1.03 s even with two panes) so suppression can
+have fresh state after long hidden periods; the
+EXPANDED arbiter is now session-based at ALL THREE
+former bundle-equality sites — the two arbiter
+functions share one predicate (bwExpandedFlag &&
+self.active && pane in allPanes && !wakePending &&
+!resizing), and the owner strand found and fixed a
+THIRD site the WO had not listed (the HIDDEN->VISIBLE
+promotion in bwRecomputeForPane:); pinchMode default
+returns to DRY_RUN at both static init and the
+pref-absent reload branch (P4 supersede of the wiring
+round's ENFORCE default; ENFORCE remains reachable in
+the same deb via the explicit pref). Diagnostics
+(fix-p-diag): the [fs-diag] controller listener is
+restored (read-only pref access; any prefschanged post
+that finds the diag switch OFF while EXPANDED restores
+— the non-recognizer escape), and a code-built
+"Diagnostics" group (section 6) in the Split Screen
+Prefs page carries fullscreenDiagExpand (default OFF),
+youtubeVirtualize (default ON, the Y2 control switch)
+and a 0/1/2 pinchMode segment (default 1) — all three
+keys verified present in the Prefs bundle BINARY, the
+exact gate fs1 failed. YT-Zoom (fix-y-issplit): isSplit
+now comes from the presentation owner's own VERIFIED
+predicate (active && paneCount >= 2 && zoomedSlot ==
+nil — the last two terms are the module's
+dividersVisible verbatim), transported as split/
+splitver fields in the hostFrameInfo builder
+(SCPCarSplit.m:2082-2083, covering both emission
+points) into a host session store; panes.count survives
+only in a logged fallback for field-less packets; Y4
+instrumentation logs lease-lapse and host-owner changes
+without reversing the no-snapshot-restore decision.
+Probe (fix-w-probe): a strictly passive
+-[UIApplication sendEvent:] probe in CarPlayApp
+(SCPTouchProbe; orig called first and intact; no
+activity/reveal/swallow API) classifying scene and pane
+per Began so the next session's log can convict whether
+the CarPlayApp layer sees touches on hosted panes at
+all. Two independent read-only verifications
+(verify-wake-act: 5/5 sections pass; verify-arbiter-
+diag-probe: pass with recorded notes) plus an
+independent YZ re-check (source re-read; all four
+forbidden ABHost body hashes recomputed MATCH) preceded
+integration. Honest counting correction recorded in
+section 24.5(i): the "32 hooks" figure in strand
+reports was a grep-line count including comments — by
+call site the SplitScreen module has 31 hooks total
+(SCPHooks 29 + SCPSpringBoardHooks 1 + probe 1) against
+a true fs1 baseline of 30, so the round's delta is
+exactly +1 (the probe) as designed. Two further
+interpretation notes are recorded, not smoothed over:
+the promotion point uses an abbreviated form of the
+session predicate (semantically equivalent via its
+surrounding guards, 24.5(ii)), and the removed-pane-
+while-expanded trace depends on recompute having run
+for that pane, else the disposition falls back to the
+normal SPLIT row (pre-existing behaviour, 24.5(iii)).
+Integration: candidate com.anlai.omnicar_1.0.3-ytz2_
+iphoneos-arm64.deb, 1,021,310 B, SHA-256
+4737cfa93c2c5a6a7c7ade37a0b7731718f626bb267dd2d03cf6d9f54018d6ad
+(parity vs fs1: AppBridge loses 0, SplitScreen loses
+exactly the 4 removed [fs1-test] selectors and gains
+exactly the 7 WO-surface selectors; regressions
+g1/g2/h/f pass). Git: main a763030 (ytz2 source),
+ci-fat-test 5c5698f (merge). CI dispatch run 42583754018
+SUCCESS (foreground-verified). FAT com.anlai.omnicar_
+1.0.3-rebuilt-ytz2-fat_iphoneos-arm64.deb: 1,221,708 B,
+SHA-256 bb59ab5653540f21d915631213621c0158fc2850038f6d0959b3eca95087dc20;
+two-slice checks on thin slices extracted from the FAT
+itself pass (bridgewake channels 5/5 in both binaries
+on both slices, ytlease pair in AppBridge, the round's
+new strings in their proper binaries, fullscreenTestExpand
+absent package-wide, the 3 diagnostics keys in the Prefs
+binary code on both slices, publishKnobsNow exactly one
+eor per slice, g1 csel form per slice, parity vs the
+fs1 FAT as expected; UUIDs for all 8 binaries x 2
+slices in ci-ytz2 section 3 and ACCEPTANCE_YTZ2).
+DEVICE_TEST for ytz2 remains PENDING: ONE car session
+follows the WO's 5-step order (AutoHide+Wake DRY_RUN
+per W5 — reveal after 4 s / +10 s / +30 s idle, YouTube
+playing, Maps open, keyboard active, iPhone-screen
+touch must not wake car controls, 10 cycles; then the
+controller directly via [fs-diag] with Pinch OFF;
+then Pinch DRY_RUN and ENFORCE only after the restore
+path passes; then YTZ OFF as control and ON, with the
+mixed-split YouTube+Maps-native case as the conviction
+case; then Weather, knob and full regression). Wake
+ENFORCE stays locked (Gate 3-6 are a separate round).
+QA20 remains Nguyen's daily build; ytz2 is the single
+current acceptance build, ytz1 is quarantined, and the
+rollback line is unchanged (fs1 FAT, fixround7 FAT,
+QA20 unified package).
