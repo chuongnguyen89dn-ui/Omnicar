@@ -6504,11 +6504,13 @@ tiêu chí.
   dùng hằng ngày; ytz1 vẫn CÁCH LY;
   VISUAL_ORIGINAL_COMPARISON = PENDING.
 
-## 29) VÒNG YTZ5 — SAU PHIÊN YTZ4: LỆNH NGUYEN, WORK ORDER GPT, BẢN ĐỒ PHA 1, PHÁN QUYẾT W1(c) (2026-11-09) — ĐANG THI CÔNG
+## 29) VÒNG YTZ5 — SAU PHIÊN YTZ4: LỆNH NGUYEN, WORK ORDER GPT, BẢN ĐỒ PHA 1, PHÁN QUYẾT W1(c) (2026-11-09) — THI CÔNG + BUILD XONG (29.7), CHỜ CI FAT + PHIÊN XE
 
 Mục này mở đầu ngay trong ngày để lịch sử không đứt quãng (lệnh hồ sơ
 19:00–19:05, xem 29.8): ghi các quyết định/lệnh/phán quyết/bản đồ đã chốt.
-Phần thi công (29.7) bổ sung khi build xong — chưa có candidate/SHA/CI.
+Phần thi công (29.7) ĐÃ bổ sung trong cùng đợt push với commit nguồn
+ytz5: candidate local đã có SHA; CI FAT dispatch ngay sau push, kết
+quả bổ sung cùng khối công việc.
 
 ### 29.0 Bảng mốc vòng ytz5 (nhãn verdict tường minh)
 
@@ -6523,9 +6525,9 @@ Phần thi công (29.7) bổ sung khi build xong — chưa có candidate/SHA/CI.
 | Bản đồ thay đổi Pha 1 (18:21) | XONG (CHANGE_MAP_YTZ5.md + map-m1..m5) |
 | Điểm vướng W1 + W3 + W5 | ĐÃ BÁO TRƯỚC BUILD |
 | Phán quyết GPT: W1(c) + pinch OFF (18:45) | ĐÃ CHỐT — GO thi công |
-| Thi công ytz5 (4 strand) | ĐANG THI CÔNG |
-| Harness 4 ca cấu trúc + kiểm tĩnh | CHƯA |
-| Build candidate + CI FAT | CHƯA — chưa có SHA |
+| Thi công ytz5 (4 strand) | XONG — commit nguồn đi cùng đợt push này (29.7) |
+| Harness 4 ca cấu trúc + kiểm tĩnh | XONG — harness 24/24 PASS; kiểm tĩnh PASS mọi cổng trừ parity: mất đúng 1 method là THAY THẾ CÓ CHỦ ĐÍCH theo hợp đồng (29.7) — chờ GPT miễn trừ |
+| Build candidate + CI FAT | Candidate XONG — 1.036.636 B, SHA-256 `2d1cf435…` (29.7); CI FAT dispatch ngay sau push, kết quả bổ sung cùng khối |
 | Phiên xe nghiệm thu 6 bước | CHƯA |
 | Wake ENFORCE (Gate 3) | VẪN KHOÁ — chưa bật mặc định |
 
@@ -6800,16 +6802,132 @@ tracking không bao phủ được một kiểu nhập liệu: giữ UNKNOWN và
 khai đúng giới hạn, không biến thiếu quan sát thành INACTIVE để
 vượt Gate 3.
 
-### 29.7 Thi công [ĐANG THI CÔNG — bổ sung khi build xong]
+### 29.7 Thi công [XONG — BUILD XONG, CI FAT + PHIÊN XE CHƯA]
 
-Đội thi công đang chạy theo hợp đồng giao thức đã chốt với GPT:
-kênh object NSDistributed mới `com.anlai.omnicar/bridgewake.v1.kbstate`
-mang báo cáo phiên nhập liệu (định dạng gói 64-bit BridgeWakePack.h
-KHÔNG đổi, type 7 giữ reserved); logic validate/decay/aggregate ở
-lõi C99 dùng chung `BWInputStore.h` cho owner thật + harness 4 ca.
-Chưa có candidate, chưa có CI, chưa có SHA — các mục candidate /
-parity / harness / kiểm tĩnh / FAT / bàn giao sẽ bổ sung vào mục
-này trong cùng khối công việc khi build xong, kèm commit nguồn.
+Bốn strand song song (file không giao nhau) + tích hợp + harness +
+kiểm tĩnh độc lập. Biên bản: fix-ytz5-k5.md, fix-ytz5-b5.md,
+fix-ytz5-p5.md, fix-ytz5-i5.md, build-ytz5.md, verify-ytz5.md
+(handover/reports/). Nguồn đi cùng commit của mục này.
+
+**Diff tóm tắt:** 13 file tracked (+1049/−135) + 2 file mới
+(`SplitScreenC/BWInputStore.h`, `SplitScreenC/SCPHomeApply.h`).
+Phạm vi đúng bản đồ §4 của CHANGE_MAP — kiểm tĩnh xác nhận 0 file
+ngoài phạm vi.
+
+- **K5 (AppBridge — cổng phím + reporter):** điểm đọc pref duy nhất
+  phía host `ABNativeKeyboardEnabled()` (ABHostBMethods.m:64): vắng/
+  =1 → native, =0 → drawn. App KHÔNG đọc CFPreferences (grep 0):
+  nhận cổng qua trường `drawnKeyboard` trong payload host→app
+  (`ABPostOrientationToApp`, ABHostGeometry.m:44/:67); mặc định chỉ
+  suppress khi bridge nói rõ drawn=1. Native: không blank inputView
+  (ABInApp.m:1907), `ABKeyboardPublish` bọc cả hai chiều (:1983),
+  dispatch chặn show; lật drawn→native giữa phiên: phục hồi CHỈ
+  inputView mang marker `ABBlankInputViewKey` (`ABRestoreBlankInputView`
+  :1894) + host đóng panel đang sống qua đường hide hiện có.
+  Reporter kbstate theo hợp đồng: ACTIVE chỉ sau xác nhận focus
+  thành công; INACTIVE hoãn 1 nhịp runloop + kiểm responder hiện
+  hành (transfer guard); heartbeat 1 s; session sinh 1 lần/nạp, seq
+  đơn điệu. `BWKbEffective` không đổi luật. Điểm ngoài phạm vi đã
+  khai: funnel F5 tại AppBridgeA/ABHostLaunch.m:261 (chỉ phát NO lúc
+  đóng app — teardown).
+- **B5 (SplitScreen — owner kb + AutoHide + cleanup + pinch + src=):**
+  `BWInputStore.h` C99 header-only đúng hợp đồng (lệch nhỏ đã khai:
+  tham số `hosted` là `const int *` thay `const bool *`, ngữ nghĩa
+  giữ nguyên). Identity qua cổng duy nhất `bwApplyAssignmentForSlot:
+  bundle:` (BridgeWake.m:330) — gen tăng ở MỌI sự kiện vòng đời gán;
+  handler `bwHandleKbStateNote:` (:403) validate qua BWInputStore,
+  log `[kbstate] accept` / `reject reason=<badhash|badgen|
+  badsession|staleseq|noassignment>`; type 6 tính known/active từ
+  `BWInputSlotStateAt` tại thời điểm phát, nguồn `app-input-session`;
+  act handler chỉ còn activity + log. Cổng fade `ahFadeBlockedReason`
+  đọc aggregate theo hosted: 2 → giữ `kb`, 1 → giữ `kbunknown` + log,
+  0 → không giữ; nhả hold qua `bwCheckKbHoldRelease` (sau accept +
+  tick 1 s) → `ahNoteKbHoldReleased` reset mốc idle tại thời điểm
+  nhả. Cleanup `ahCloseCleanup` chèn tại SCPCarSplit.m:1769 TRƯỚC
+  hostCloseAll (không qua ahRevealBody:; idempotent); thứ tự solo:
+  `ahSetSuspended:YES` của soloBundle: tại :2375 SAU closeGoingHome:
+  :2367 (điểm đặt đã dời theo phán quyết 18:45). Pinch: vắng pref →
+  OFF (:746) + migration một lần có marker
+  `bridgewake.pinchOffMigratedYtz5` (ghi 0 + log `[pinch1] legacy
+  pinchMode overridden to OFF (ytz5)`). src= gắn tại mọi điểm gọi
+  close (pane-last/tweak-exit/solo/native-close trong SCPCarSplit.m;
+  home-system/open-other/dismiss trong SCPHooks.m) + log cả
+  early-return !active; `SCPLogInjectedIconState(before-close/
+  after-close)` tại :1760/:1815.
+- **P5 (Picker):** chụp `hasContent` tại Picker.m:162 sau sửa (SAU
+  removeLoaderFromPane:, TRƯỚC khi pane.picker gán — tránh bẫy
+  slotOccupied: tự đọc pane.picker); nền: có app → clearColor,
+  trống → màu đặc gốc nguyên giá trị; log `[picker] hasContent=%d`.
+  Đường huỷ xác minh gỡ sạch ở completion — không thêm cơ chế.
+- **I5 (Icon instrument):** `SCPLogInjectedIconState` đi publish
+  walk đúng (home VC yếu → model → lists → icons), KHÔNG qua
+  connectedScenes; cổng hiệu lực lists>0 && modelIcons>0; trạng
+  thái BLIND (kèm reason) / ABSENT-MODEL / PRESENT-MODEL +
+  dock=present/absent/unknown; cell chỉ ghi khi walk chạm đúng
+  *IconView của bundle, còn lại cell=unreadable — không khẳng định
+  cell. Điểm gọi thứ ba after-home trong SCPHomeApply, throttle 1 s
+  tại điểm gọi. Reader cũ SCPCarHomeBundles bị đánh dấu blind=1
+  trong log (logic nguyên vẹn).
+
+**Harness 4 ca cấu trúc (BWInputStore.h THẬT, clang-18 C99 + C++,
+-Wall -Wextra -Werror): 24/24 PASS.** Ca 1 transfer responder A→B
+cùng app: ACTIVE liên tục, không INACTIVE giả. Ca 2 hai app cùng có
+phiên: đóng một app không giải hold app kia; aggregate chỉ nhả khi
+phiên ACTIVE cuối kết thúc. Ca 3 gán lại cùng bundle/slot (gen mới):
+báo cáo gen cũ bị loại đúng reason badgen, trạng thái giữ UNKNOWN.
+Ca 4 nguồn câm >3,5 s: UNKNOWN theo lastReport của NGUỒN (re-emit
+của owner không chạm store nên không gia hạn giả được); aggregate
+rơi về kbunknown-hold. Ca phụ đều PASS: badsession + takeover khi
+session cũ hết tươi; staleseq (bằng/thấp); noassignment; badhash;
+INACTIVE hết tươi decay về UNKNOWN (không nhớ INACTIVE).
+
+**Kiểm tĩnh độc lập (verify-ytz5.md): PASS mọi cổng trừ parity.**
+Phạm vi diff PASS; cấm kỵ a–f PASS cả sáu (event-1 vẫn 2 điểm như
+HEAD, điểm trong closeGoingHome: vẫn sau `if (goHome)` — KHÔNG cộng
+ở đường NO; ABChannels.m/ABKeyboard.m vắng trong diff; ABInApp 0
+lời gọi CFPreferences cho cổng; ABYTZoom/SCPTouchProbe/
+SCPFullscreenController vắng; ENFORCE vẫn khoá — vắng = DRY_RUN hai
+phía, nuốt chỉ khi Enforce; pinch vắng = OFF + marker migration);
+hợp đồng kbstate PASS (kênh có cả hai phía; BridgeWakePack.h không
+đổi, md5 = HEAD; type 7 không ai dùng; act mất quyền kb; cổng fade
+đọc aggregate); cleanup PASS (điểm chèn + không qua reveal + thứ tự
+solo); knob PASS (publishKnobsNow đúng 1 eor tại cùng offset tương
+đối 0x364, IMP dịch +0x268 do cộng code — cực giữ nguyên);
+discriminator trên deb PASS đủ.
+**Parity: SplitScreen 1398 → 1409 — mất đúng 1 method
+`bwHandleKbSyncNote:`, thêm 12** (đã truy hết: closeSource/
+noteCloseSource: (M5), ahCloseCleanup (M1), ahNoteKbHoldReleased
+(M3), nhóm bwHandleKbStateNote:/bwKbAggregateForHostedPanes/
+bwCheckKbHoldRelease/bwApplyAssignmentForSlot:bundle:/
+bwNoteAssignmentForPane:). 7/8 thành phần còn lại mất 0. Kiểm tĩnh
+chấm NO-SHIP theo tiêu chí cứng "mất method = FAIL" và ghi miễn
+trừ thuộc GPT/coordinator. **Coordinator miễn trừ tại hồ sơ này:**
+method mất duy nhất là consumer `appbridge.kbsync` — chính đường
+W2 mà phán quyết GPT ra lệnh đóng (không mang gen, ghi vô điều
+kiện, gói trễ ghi đè phiên mới), được thay bằng `bwHandleKbStateNote:`
++ BWInputStore có validation đầy đủ theo hợp đồng 18:45. Hệ quả phụ
+đã khai: host vẫn phát appbridge.kbsync (funnel panel) nhưng owner
+không còn consumer — đúng thiết kế nguồn panel tách riêng; phát
+vào kênh không người nghe là vô hại. Không method nào mất ngoài ý
+muốn. Phán quyết miễn trừ cuối cùng thuộc GPT.
+
+**Candidate + đồng bộ cây:** hai cây khớp (omnicar-re/src 15/15
+identical; project 12/15 identical, 3 file lệch đúng 1 dòng import
+làm phẳng theo quy ước project, gồm dòng SCPHomeWallView của
+SCPHomeApply.m được giữ nguyên). Build từng module sạch → aggregate
+FINALPACKAGE=1 EXIT=0. Candidate local arm64:
+`com.anlai.omnicar_1.0.3-ytz5_iphoneos-arm64.deb`, 1.036.636 B,
+SHA-256 `2d1cf435ada8d622427e85ae47eb1e0e85c8edc4d4dbd9b9dab3a834de0a3754`;
+members debian-binary + control.tar.gz + data.tar.lzma; control
+Version 1.0.3. **CI FAT: dispatch ngay sau push này; run id + SHA
+bản FAT bổ sung vào mục này trong cùng khối công việc.**
+
+**PENDING-DEVICE (chưa mục nào được gọi là đã chứng minh trên
+xe):** phím hosted native hiện ở màn nào/gõ/đóng (nghiệm thu riêng
+theo đặc tả); chuỗi kbstate khép trên xe; vòng đời AutoHide sau
+sửa (thoát lúc mờ → mở lại hiện đủ; giữ khi nhập, chạy lại sau
+đóng phím); picker nhìn xuyên + ô trống vẫn đặc; A/B icon với
+[iconstate] (trần đo model/dock — cell vẫn khoảng mù W5).
 
 ### 29.8 Quy tắc hồ sơ mới (Nguyen, 19:00–19:05)
 

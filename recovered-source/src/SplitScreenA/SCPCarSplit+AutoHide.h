@@ -68,11 +68,23 @@ typedef NS_ENUM(NSInteger, AHRevealReason) {
 - (void)ahNoteActivity:(AHActivitySource)source;
 
 /// F4 boundary: a bridgewake `act` packet (BWTypeAct) that the
-/// BridgeWake TU has already validated (hash/gen, design §3.2.1). The
-/// flag updates the keyboard hold (kbActive=YES arms a hold that
-/// self-expires after 10 s without a refreshing act; kbActive=NO
-/// clears it), then the packet counts as AHSourceApp activity.
+/// BridgeWake TU has already validated (hash/gen, design §3.2.1).
+/// [ytz5] The packet's kb flag no longer sets or clears ANY kb
+/// truth: since package YTZ5 the fade gate reads the owner's
+/// BWInputStore aggregate (bwKbAggregateForHostedPanes) directly,
+/// and an act packet is purely AHSourceApp activity. The method is
+/// kept as the act entry point so the BridgeWake TU's call and its
+/// diagnostic log line stay stable; kbActive is ignored.
 - (void)ahNoteActWithKbActive:(BOOL)kbActive;
+
+/// [ytz5] Kb hold release (package YTZ5, strand B5): the BridgeWake
+/// owner calls this when the hosted kb aggregate transitions from
+/// holding (ACTIVE or UNKNOWN) to 0 — the last ACTIVE input session
+/// ended (observed at an accepted kbstate report and at the owner's
+/// 1.0 s renewal tick). The idle clock restarts from the release
+/// moment: stamps the activity mark and re-arms the 4.0 s timer
+/// (self-guarded on installed/enabled/active/suspended).
+- (void)ahNoteKbHoldReleased;
 
 /// Reveal everything NOW (design §3.4 path 2): the wake owner calls
 /// this when it accepts a wake packet, so an ENFORCE wake restores the
@@ -111,6 +123,21 @@ typedef NS_ENUM(NSInteger, AHRevealReason) {
 /// clear hold/suspension. Host-side saves are restored by ABHost's own
 /// pane teardown; this TU owns only the CarPlay side.
 - (void)ahSessionTeardown;
+
+/// [ytz5] Close cleanup (package YTZ5, strand B5; CHANGE_MAP_YTZ5
+/// M1): SCPCarSplit calls this at the head of closeGoingHome: —
+/// after the active guard, BEFORE hostCloseAll and any detach — so
+/// the ordinary close path gets the same lifecycle cleanup the
+/// disconnect path gets from ahSessionTeardown. Stops the idle
+/// timer, restores every painted view DIRECTLY through the paint
+/// registry (never through ahRevealBody: — no frame/knob/Wake
+/// side effects on a dying session), clears the paint registry,
+/// and resets the split session's faded / kb-hold (+expiry) /
+/// suspended state and the activity mark. Idempotent: a second
+/// call is a no-op in effect, and it never re-arms the timer.
+/// Runs synchronously on the caller's thread context (main-thread
+/// callers execute inline).
+- (void)ahCloseCleanup;
 
 /// Re-apply the current fade state to ONE control view that was just
 /// (re)built or relaid out — the part-2 strand calls this at the end of

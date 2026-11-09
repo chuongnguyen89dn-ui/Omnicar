@@ -743,13 +743,17 @@ CHỜ PHÁN), không chôn verdict trong câu văn.
   **Baseline rollback:** ytz3 FAT + ytz2 FAT + fs1 FAT + fixround7 FAT + gói hợp nhất QA20.
 - **Git:** main — source ytz4 `237098c`; hồ sơ §28 tại `38735c5`; commit hồ sơ bổ sung đợt này
   ghi toàn bộ diễn biến từ trưa 09/11 tới 19:05 (kiểm kê độ phủ kèm báo cáo); ci-fat-test `aff33ed`.
-- **Vòng ytz5 [ĐANG THI CÔNG]:** 4 strand song song theo hợp đồng giao thức kbstate (kênh
-  object NSDistributed `com.anlai.omnicar/bridgewake.v1.kbstate` + lõi C99 `BWInputStore.h`
-  dùng chung owner/harness; định dạng gói 64-bit không đổi): cổng bỏ phím vẽ + reporter phiên
-  nhập liệu phía AppBridge; bản ghi kb owner + cổng fade đọc bảng phiên + cleanup vòng đời
-  AutoHide + pinch OFF/migration + `src=` close phía SplitScreen; picker trong suốt; instrument
-  icon tầng model/dock. **Chưa có candidate, chưa có CI, chưa có SHA** — commit nguồn và phần
-  thi công của PATCH_NOTES §29 bổ sung khi build xong.
+- **Vòng ytz5 [THI CÔNG + BUILD XONG — PATCH §29.7]:** 4 strand song song theo hợp đồng
+  giao thức kbstate (kênh object NSDistributed `com.anlai.omnicar/bridgewake.v1.kbstate` +
+  lõi C99 `BWInputStore.h` dùng chung owner/harness; định dạng gói 64-bit không đổi): cổng
+  bỏ phím vẽ + reporter phiên nhập liệu phía AppBridge; bản ghi kb owner + cổng fade đọc
+  bảng phiên + cleanup vòng đời AutoHide + pinch OFF/migration + `src=` close phía
+  SplitScreen; picker trong suốt; instrument icon tầng model/dock. Commit nguồn đi cùng
+  đợt push này. **Candidate local:** `com.anlai.omnicar_1.0.3-ytz5_iphoneos-arm64.deb`
+  1.036.636 B, SHA-256 `2d1cf435…`. **Harness 24/24 PASS; kiểm tĩnh PASS mọi cổng trừ
+  parity** (mất đúng 1 method `bwHandleKbSyncNote:` — consumer kbsync cũ bị thay có chủ
+  đích theo hợp đồng W2, coordinator đã miễn trừ tại §29.7, chờ GPT phán cuối). **CI FAT
+  dispatch ngay sau push — run id + SHA bản FAT bổ sung §29.7 cùng khối công việc.**
 - **Đã đóng trên xe:** thanh "..." hosted (fixround5); **YT-Zoom** (phiên ytz2 + đối chứng OFF
   hợp lệ ở phiên ytz3; ytz4 ack 51/51 giữ PASS); **wake hosted** đường activity/reveal (phiên
   ytz2); **wake native** qua feed CarPlayApp (phiên ytz3; ytz4 hồi quy PASS); **FS controller +
@@ -765,8 +769,8 @@ CHỜ PHÁN), không chôn verdict trong câu văn.
   OFF; `ahFadedState` — đóng bằng cleanup vòng đời của vòng này; weather/knob — giữ PENDING,
   không chặn gói UI, không xoá tiêu chí; consumer `appbridge.keyboard` chết — giữ nguyên;
   biên reset UNKNOWN cùng-bundle cùng-slot — đóng bằng cơ chế gen của W2.
-- **Chờ theo thứ tự:** (1) thi công ytz5 xong + bằng chứng harness 4 ca cấu trúc + kiểm tĩnh
-  độc lập; (2) CI FAT → **MỘT deb gộp duy nhất** kèm diff/SHA/commit; (3) MỘT phiên xe nghiệm
+- **Chờ theo thứ tự:** (1) ~~thi công ytz5 + harness + kiểm tĩnh~~ XONG (xem trên);
+  (2) CI FAT → **MỘT deb gộp duy nhất** kèm diff/SHA/commit; (3) MỘT phiên xe nghiệm
   thu 6 bước theo work order (vòng đời AutoHide → picker → phím hosted hiện/gõ/đóng + AutoHide
   giữ khi nhập → đường đánh thức sau đóng phím → A/B icon với instrument → hồi quy nhanh;
   nếu tiện: splash + núm cho hai mục PENDING); (4) Gate 3 vẫn **ĐÓNG** — Wake ENFORCE chưa

@@ -42,6 +42,35 @@ extern id OMCLogoMeshImage(int style);   // shared unit (OMCCommon.h:188)
 - (void)yzLogAppOrientBlockedForPane:(ABPane *)pane hash:(uint64_t)hash;
 @end
 
+// ===========================================================================
+// [ytz5-k5] Native-keyboard gate — the ONE host-side reader of the
+// unified gate pref (STRAND K5 contract; CHANGE_MAP_YTZ5 M2 with the
+// default law as fixed by the YTZ5 work order):
+//   key appBridgeNativeKeyboard, CFPreferences domain
+//   com.anlai.omnicar — read through OMCPref/OMCPrefsSync, the
+//   YZPrefEnabled pattern of ABYTZoom.m (sync, then a fresh
+//   uncached read; the zoom pref in -zoom below is this file's own
+//   precedent for the same idiom).
+//     pref ABSENT or = 1 -> NATIVE (system keyboard; drawn panel off)
+//     pref = 0           -> DRAWN  (drawn panel; the fallback path)
+// The HOST is the only side that reads this pref. A hosted app
+// NEVER reads CFPreferences for the gate (K5 contract; the QA179
+// lesson restated for BridgeWake above): the value reaches each
+// app inside the frame-info payload — ABPostOrientationToApp
+// (ABHostGeometry.m) stamps @"drawnKeyboard" on every post, and
+// the prefschanged handler there closes a live panel and re-posts
+// when the gate flips.
+// ===========================================================================
+BOOL ABNativeKeyboardEnabled(void) {
+    OMCPrefsSync();
+    id v = OMCPref(@"appBridgeNativeKeyboard", nil);
+    if (!v) return YES; // absent = native
+    return [v boolValue];
+}
+BOOL ABDrawnKeyboardEnabled(void) {
+    return !ABNativeKeyboardEnabled();
+}
+
 // Guarded private-selector sends, in the binary's own idiom: every private
 // send in setupLiveAppViewForPane:/teardownPane: is wrapped in
 // respondsToSelector: + objc_msgSend, with _ABMissingSelector on the miss

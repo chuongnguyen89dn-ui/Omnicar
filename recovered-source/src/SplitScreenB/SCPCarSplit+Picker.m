@@ -159,6 +159,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     if (pane == nil) return;
     [self removePickerFromPane:pane];
     [self removeLoaderFromPane:pane animated:NO];
+    BOOL hasContent = (pane.vc != nil || [self slotOccupied:pane.slot]);
     UIView *picker = [[UIView alloc] init];
     pane.picker = picker;                                                // @0x315c0 setPicker: precedes styling
     // Dump @0x315cc-0x315e4: the picker frame is (0, 0, slotSize) — the
@@ -168,10 +169,14 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // origin and displaced the picker inside the pane.
     CGRect slotFrame = [self frameForSlot:slot];
     picker.frame = CGRectMake(0, 0, slotFrame.size.width, slotFrame.size.height);
-    picker.backgroundColor = [UIColor colorWithRed:0.9333333333333333
-                                             green:0.9411764705882353
-                                              blue:0.984313725490196
-                                             alpha:1.0];   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
+    OMCLogWrite(@"SplitScreen",
+        [NSString stringWithFormat:@"[picker] hasContent=%d", (int)hasContent]);
+    picker.backgroundColor = hasContent
+        ? [UIColor clearColor]
+        : [UIColor colorWithRed:0.9333333333333333
+                             green:0.9411764705882353
+                              blue:0.984313725490196
+                             alpha:1.0];   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
     picker.autoresizingMask = 0x12;
     // Dump @0x3163c-0x31690: border colour is the lavender accent
     // colorWithRed:0.6078431372549019 green:0.5294117647058824
