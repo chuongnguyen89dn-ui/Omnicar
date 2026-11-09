@@ -15,6 +15,8 @@
 #import "SCPCarSplit+AutoHide.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
+#import <QuartzCore/QuartzCore.h>
+#import <substrate.h>
 
 static NSString *const OwnID = @"com.anlai.omnicar.app";
 static NSString *const OwnTag = @"OmniCarHomeLauncher";
@@ -299,4 +301,80 @@ BOOL SCPHomeLauncherConsumeLaunch(NSString *bid, NSString *source) {
         }
     });
     return YES;
+}
+
+// Verified on iOS 16.7.16 in DuoFace QA142 real Log21:
+// -[DBDashboardHomeViewController iconManager:launchIconForIconView:]
+// has method encoding v32@0:8@16@24.  Other Home overloads were absent.
+// Intercept ONLY the own OmniCar icon; forward the original exactly once
+// for native Apple apps, phone bridge apps and any unrecognized identity.
+// No guessed DBApplicationController, CPTemplate startup or fake scene.
+typedef void (*SCPHomeOriginalTap)(id, SEL, id, id);
+static SCPHomeOriginalTap SCPHomeTapOriginal;
+
+static id SCPHomeTypedGetter(id object, const char *name) {
+    if (!object || !name) return nil;
+    SEL selector = sel_registerName(name);
+    Method method = class_getInstanceMethod(object_getClass(object), selector);
+    if (!method || !method_getTypeEncoding(method) ||
+        strcmp(method_getTypeEncoding(method), "@16@0:8") != 0) return nil;
+    @try {
+        return ((id (*)(id, SEL))objc_msgSend)(object, selector);
+    } @catch (NSException *e) {
+        return nil;
+    }
+}
+
+static NSString *SCPHomeTapBundle(id object, NSUInteger depth) {
+    if (!object || depth > 3) return nil;
+    static const char *const identifiers[] = {
+        "applicationBundleID", "leafIdentifier", "bundleIdentifier",
+        "bundleID", "applicationIdentifier", "displayIdentifier", NULL
+    };
+    for (NSUInteger i = 0; identifiers[i]; i++) {
+        id value = SCPHomeTypedGetter(object, identifiers[i]);
+        if ([value isKindOfClass:[NSString class]] && [value length])
+            return value;
+    }
+    static const char *const children[] = {
+        "icon", "application", "representedApplication",
+        "applicationInfo", "representedIcon", "model", NULL
+    };
+    for (NSUInteger i = 0; children[i]; i++) {
+        id nested = SCPHomeTypedGetter(object, children[i]);
+        if (!nested || nested == object) continue;
+        NSString *candidate = SCPHomeTapBundle(nested, depth + 1);
+        if (candidate.length) return candidate;
+    }
+    return nil;
+}
+
+static void SCPHomeTapReplacement(id homeVC, SEL action, id manager, id iconView) {
+    NSString *bundle = nil;
+    @try { bundle = SCPHomeTapBundle(iconView, 0); }
+    @catch (NSException *e) {}
+    if (SCPHomeLauncherIsBundle(bundle) &&
+        SCPHomeLauncherConsumeLaunch(bundle, @"iconManager:launchIconForIconView:")) {
+        HLog(@"tap-gate", @"status=consumed-own-icon");
+        return;
+    }
+    // Exact single original forwarding for EVERY non-own/unknown icon.
+    if (SCPHomeTapOriginal) SCPHomeTapOriginal(homeVC, action, manager, iconView);
+}
+
+void SCPHomeLauncherInstallTapHook(void) {
+    if (SCPHomeTapOriginal) return;
+    Class homeVC = OMCCarClass("DBDashboardHomeViewController");
+    SEL action = sel_registerName("iconManager:launchIconForIconView:");
+    Method method = homeVC ? class_getInstanceMethod(homeVC, action) : NULL;
+    const char *type = method ? method_getTypeEncoding(method) : NULL;
+    if (!type || strcmp(type, "v32@0:8@16@24") != 0) {
+        HLog(@"tap-gate", [NSString stringWithFormat:
+            @"status=abi-unavailable observed=%s", type ?: "none"]);
+        return;  // never hook an unknown signature
+    }
+    MSHookMessageEx(homeVC, action,
+        (IMP)SCPHomeTapReplacement, (IMP *)&SCPHomeTapOriginal);
+    HLog(@"tap-gate", [NSString stringWithFormat:
+        @"status=%@ type=%s", SCPHomeTapOriginal ? @"installed" : @"not-confirmed", type]);
 }

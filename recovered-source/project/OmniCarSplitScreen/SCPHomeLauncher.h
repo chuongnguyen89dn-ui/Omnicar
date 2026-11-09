@@ -13,4 +13,5 @@ void SCPHomeLauncherInjectInfo(id _Nullable info);
 BOOL SCPHomeLauncherConsumeLaunch(NSString * _Nullable bid, NSString *source);
 void SCPHomeLauncherReconcile(NSString *reason);
 void SCPHomeLauncherAuditModel(NSString *reason);
+void SCPHomeLauncherInstallTapHook(void); // ABI-validated native Home callback
 NS_ASSUME_NONNULL_END

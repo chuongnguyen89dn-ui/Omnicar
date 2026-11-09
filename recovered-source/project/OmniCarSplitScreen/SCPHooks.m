@@ -694,6 +694,8 @@ static void SCPInitHomeHooks(void) {
     MSHookMessageEx(OMCCarClass("DBApplicationInfo"), @selector(_loadFromProxy:),
                     (IMP)Hook_loadFromProxy, (IMP *)&orig_DBApplicationInfo_loadFromProxy);
 
+    // [gpt-home] Real Home callback on iOS16: check encoding before hook.
+    SCPHomeLauncherInstallTapHook();
     Class homeVC = OMCCarClass("DBDashboardHomeViewController");
     MSHookMessageEx(homeVC, @selector(initWithEnvironment:),
                     (IMP)Hook_HomeVC_initWithEnvironment, (IMP *)&orig_HomeVC_initWithEnvironment);

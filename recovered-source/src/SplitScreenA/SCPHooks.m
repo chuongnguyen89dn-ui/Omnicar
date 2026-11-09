@@ -19,7 +19,7 @@
 #import "SCPFullscreenController.h" // [fs1] controller install (__init_1) + fsDidLayout reconcile at the root-layout seam (design-fullscreen-fs1 §4.1/§4.8)
 #import "SCPCarSplit+AutoHide.h" // [autohide] ahInstall beside bwInstallOwner (design-autohide §5.1)
 #import "SCPTouchProbe.h" // [fix-w] WO W4 passive sendEvent probe install (measure-only)
-#import "SCPHomeLauncher.h" // [gpt-home] OmniCar self native-Home icon
+#import "../SplitScreenC/SCPHomeLauncher.h" // [gpt-home] own icon
 #import <objc/message.h>
 #import <objc/runtime.h>      // class_copyIvarList / object_getIvar (final closure)
 #import <notify.h>
@@ -701,6 +701,8 @@ static void SCPInitHomeHooks(void) {
     MSHookMessageEx(OMCCarClass("DBApplicationInfo"), @selector(_loadFromProxy:),
                     (IMP)Hook_loadFromProxy, (IMP *)&orig_DBApplicationInfo_loadFromProxy);
 
+    // [gpt-home] Real Home callback on iOS16: check encoding before hook.
+    SCPHomeLauncherInstallTapHook();
     Class homeVC = OMCCarClass("DBDashboardHomeViewController");
     MSHookMessageEx(homeVC, @selector(initWithEnvironment:),
                     (IMP)Hook_HomeVC_initWithEnvironment, (IMP *)&orig_HomeVC_initWithEnvironment);
