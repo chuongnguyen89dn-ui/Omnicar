@@ -173,7 +173,8 @@ Từ log + ảnh phiên fixround3, GPT ra **Consolidated Repair Order (A–I)**,
   công tắc chẩn đoán trong bản ytz2. (iv) **Tăng agent song song (lệnh 15:05):** Nguyen ra lệnh
   tăng số agent làm việc đồng thời cho nhanh nhưng vẫn bảo đảm độ chính xác — mẫu áp dụng từ đó:
   các strand song song, mỗi agent một chủ file, kiểm độc lập riêng, một đầu mối đối hoà trước
-  khi giao. FAT 1.221.708 B, SHA `bb59ab56…`, CI 42583754018): vòng KHẮC PHỤC theo WO GPT
+  khi giao.
+- **ytz2** (`a763030`; FAT 1.221.708 B, SHA `bb59ab56…`, CI 42583754018): vòng KHẮC PHỤC theo WO GPT
   trên nền fs1/ytz1 — 5 strand theo chủ file: phía app tách act khỏi độ tươi state (danh tính phiên
   đã xác thực + trói scene, suppression không đổi); phía owner thêm state renewal 1,0 s + log reason
   từng điểm loại act + arbiter EXPANDED **theo phiên** ở cả 3 điểm dùng (bắt thêm điểm promote) +
