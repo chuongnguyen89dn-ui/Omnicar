@@ -15,6 +15,8 @@
 //     Prefs module shows in Settings.
 
 #import "SCPHomeCommon.h"
+#import "SCPHomeApply.h"
+#import "SCPHomeLauncher.h" // [gpt-home] own icon at YTZ5 close probes
 #import "SCPHomeWallView.h" // [phase3 sync] flat project layout (src keeps the ../SplitScreenB/ path) // B's class: applySettings:source:,
                                             // stopVideo, updatePlayback
 
@@ -25,6 +27,7 @@ NSInteger SCPHomeGridColumns(void);
 NSInteger SCPHomeGridRows(void);
 BOOL SCPHomeShowNames(void);
 void SCPHomePrefSet(NSString *key, id _Nullable value); // SCPAppIcons.m
+extern NSSet<NSString *> *SCPChosenPhoneApps(void);     // SCPAppIcons.m (0x9a60)
 
 static NSInteger SCPLastIconSize;      // static slot 0x87f48
 static NSString *SCPLastGridKey;       // static slot 0x87f40
@@ -224,6 +227,214 @@ void SCPHomeApply(id homeVC) {
                    dispatch_get_main_queue(), ^{
         SCPPublishCarAppsBlock(generation); // sub_4c438, below
     });
+
+    // [iconstate] (YTZ5 I5, log-only) third call point: post-apply probe.
+    // SCPHomeApply runs on every home layout/appear pass, which is far
+    // denser than one line per measured bundle warrants, so this call
+    // site — not the instrument itself, whose close-path callers (B5)
+    // must stay unthrottled — is throttled to at most one probe per
+    // second. The timestamp is a function-local static: no state is
+    // shared with, or retained for, the instrument.
+    static CFAbsoluteTime SCPHomeApplyLastIconStateProbe;
+    CFAbsoluteTime iconStateNow = CFAbsoluteTimeGetCurrent();
+    if (iconStateNow - SCPHomeApplyLastIconStateProbe >= 1.0) {
+        SCPHomeApplyLastIconStateProbe = iconStateNow;
+        SCPLogInjectedIconState(@"after-home", @"home");
+    }
+}
+
+// ---- [iconstate] instrument (YTZ5 strand I5, log-only) ----------------------
+//
+// SCPLogInjectedIconState(phase, src) — declared in SCPHomeApply.h; the
+// SplitScreen-A close-path strand (B5) calls it at its T1/T2/T3 points,
+// and SCPHomeApply calls it post-apply above (throttled there, not here).
+//
+// Ground rules (map-m5-icon.md §1/§4, CHANGE_MAP_YTZ5 M5):
+//  - The ONLY grid root is the weak home view controller
+//    (SCPApplyHomeVCWeak, falling back to SCPHomeVCWeak), walked exactly
+//    like SCPPublishCarAppsBlock below: SCPCollectIconListViews over its
+//    view, then model -> lists -> icons -> applicationBundleID per list
+//    view (SCPHomeApply.m:255-263 pattern). This function NEVER walks
+//    the scene/window hierarchy (that is the blind-by-construction
+//    reader in SCPCarApps.m, now tagged blind=1 in its own log line).
+//  - Measured bundles: SCPChosenPhoneApps() (SCPAppIcons.m, the
+//    `appBridgeApps` pref set) is the only enumerable source of truth in
+//    this tree — the injected set SCPAppIcons maintains
+//    (SCPInjectedAppsSet) is file-static there with no enumerator, so
+//    per-bundle injected status is sampled through its exported
+//    predicate SCPIsInjectedPhoneApp() and logged as injected=.
+//  - Validity gate: a walk vouches for itself only when it collected
+//    lists>0 AND modelIcons>0 (modelIcons = total icon objects iterated
+//    across every list's model->lists). Gate not met -> every bundle
+//    logs state=BLIND with a reason and NO presence conclusion.
+//  - Gate met: bundle in the model set -> PRESENT-MODEL; not in the
+//    model set -> ABSENT-MODEL. The state token claims MODEL presence
+//    only; the dock= field is always appended on gate-met lines so a
+//    dock-only bundle reads ABSENT-MODEL dock=present instead of being
+//    mistaken for absent everywhere.
+//  - Cell fields are reported only when the walk actually reaches the
+//    *IconView of that exact bundle (view -> icon -> bundle, the
+//    -iconLongPressedUnsafe: pattern); otherwise cell=unreadable. This
+//    instrument never claims cell-level presence in its state token.
+//  - Log-only: no state is written, no event is sent (in particular no
+//    dashboard event-1), and nothing outlives the call — the weak home
+//    VC is held only in a local for the duration of the walk, exactly
+//    like SCPPublishCarAppsBlock does.
+
+// Bundle id of an icon model object, walker fallback order (same getters
+// as SCPWalkerIconBundleID, SCPCarApps.m:74-85, via this family's safe
+// perform helper).
+static NSString *_Nullable SCPHomeIconStateBundleID(id _Nullable icon) {
+    if (!icon) return nil;
+    for (NSString *key in @[@"applicationBundleID", @"leafIdentifier",
+                            @"bundleIdentifier"]) {
+        id v = SCPHomeSafePerform(icon, key);
+        if ([v isKindOfClass:[NSString class]] && [(NSString *)v length] > 0)
+            return v;
+    }
+    return nil;
+}
+
+// Recursively collect, from a view subtree, the first *IconView per
+// wanted bundle (view -> @"icon" -> bundle, the hit-test pattern of
+// -iconLongPressedUnsafe: in SplitScreen-A). Depth-capped like the
+// other walkers in this tree; views are stored only in the caller's
+// call-scoped dictionary, never retained beyond the probe.
+static void SCPHomeIconStateCollectCells(UIView *view, NSInteger depth,
+                                         NSSet<NSString *> *wanted,
+                                         NSMutableDictionary<NSString *, UIView *> *cells) {
+    if (!view || depth > 14) return;
+    if ([NSStringFromClass([view class]) hasSuffix:@"IconView"]) {
+        id icon = SCPHomeSafePerform(view, @"icon");
+        NSString *bid = SCPHomeIconStateBundleID(icon);
+        if (bid.length && [wanted containsObject:bid] && !cells[bid])
+            cells[bid] = view;
+    }
+    for (UIView *sub in view.subviews)
+        SCPHomeIconStateCollectCells(sub, depth + 1, wanted, cells);
+}
+
+// Dock presence per bundle, through the existing dashboard dock path
+// (SCPShared.m:53-63 + SCPCarSplit.m:3160-3172 pattern, re-implemented
+// with this family's safe getters so SplitScreen-C stays self-contained):
+// dashboard (_currentDashboard) -> rootViewController ->
+// appDockViewController -> view. Returns @"unknown" when any link is
+// missing or the dock view is windowless/hidden (the conditions the
+// existing dock code itself treats as invalid); otherwise walks the
+// dock view's subtree with the same view->icon->bundle pattern, fills
+// dockBundles with every wanted bundle found there, and returns
+// @"read" (the caller derives per-bundle present/absent from the set).
+static NSString *SCPHomeIconStateDockStatus(NSSet<NSString *> *wanted,
+                                            NSMutableSet<NSString *> *dockBundles) {
+    id dashboard = SCPHomeSafeGet([UIApplication sharedApplication],
+                                   @"_currentDashboard");
+    id root = SCPHomeSafeGet(dashboard, @"rootViewController");
+    id dockVC = SCPHomeSafeGet(root, @"appDockViewController");
+    UIView *dockView = SCPHomeSafeGet(dockVC, @"view");
+    if (![dockView isKindOfClass:[UIView class]]) return @"unknown";
+    if (!dockView.window || dockView.isHidden) return @"unknown";
+    NSMutableDictionary<NSString *, UIView *> *dockCells =
+        [NSMutableDictionary dictionary];
+    SCPHomeIconStateCollectCells(dockView, 0, wanted, dockCells);
+    [dockBundles addObjectsFromArray:dockCells.allKeys];
+    return @"read";
+}
+
+void SCPLogInjectedIconState(NSString *phase, NSString *src) {
+    // [gpt-home] Reuse YTZ5 before/after-close measurement instants.
+    // Own OmniCar is NOT in appBridgeApps, so measure it independently.
+    SCPHomeLauncherAuditModel([NSString stringWithFormat:@"ytz5-%@-%@", phase ?: @"?", src ?: @"?"]);
+    NSString *safePhase = phase.length ? phase : @"?";
+    NSString *safeSrc = src.length ? src : @"?";
+    // Deterministic per-bundle line order across runs.
+    NSArray<NSString *> *bundles =
+        [[SCPChosenPhoneApps() allObjects]
+            sortedArrayUsingSelector:@selector(compare:)];
+    if (!bundles.count) return; // nothing chosen -> nothing to measure
+
+    NSSet<NSString *> *wanted = [NSSet setWithArray:bundles];
+    NSString *blindReason = nil;
+    NSUInteger listsCount = 0;
+    NSUInteger modelIcons = 0;
+    NSMutableSet<NSString *> *modelBundles = [NSMutableSet set];
+    NSMutableDictionary<NSString *, UIView *> *cells =
+        [NSMutableDictionary dictionary];
+    NSMutableSet<NSString *> *dockBundles = [NSMutableSet set];
+    NSString *dockStatus = @"unknown";
+    @try {
+        // Weak home VC only (no strong reference is kept anywhere):
+        // the apply-pass weak first, the hook-stored weak as fallback.
+        id homeVC = SCPApplyHomeVCWeak ?: SCPHomeVCWeak;
+        UIView *view = nil;
+        if (!homeVC) blindReason = @"no-homevc";
+        else if (![homeVC isViewLoaded]) blindReason = @"view-not-loaded";
+        else if (!(view = [homeVC view])) blindReason = @"no-view";
+        else if (!view.window) blindReason = @"no-window";
+        if (!blindReason) {
+            NSMutableArray *lists = [NSMutableArray array];
+            SCPCollectIconListViews(view, lists, 0);
+            listsCount = lists.count;
+            for (UIView *listView in lists) {
+                id model = SCPHomeSafePerform(listView, @"model");
+                for (id iconList in SCPHomeSafePerform(model, @"lists") ?: @[]) {
+                    for (id icon in SCPHomeSafePerform(iconList, @"icons") ?: @[]) {
+                        modelIcons++;
+                        NSString *bid =
+                            SCPHomeSafePerform(icon, @"applicationBundleID");
+                        if (bid.length) [modelBundles addObject:bid];
+                    }
+                }
+                // Cell attempt for the same list view's subtree; most
+                // bundles stay unreadable here (no model->cell path in
+                // the original — map-m5-icon §4c), which is reported,
+                // never papered over.
+                SCPHomeIconStateCollectCells(listView, 0, wanted, cells);
+            }
+            if (listsCount == 0) blindReason = @"no-listview";
+            else if (modelIcons == 0) blindReason = @"empty-model";
+            if (!blindReason)
+                dockStatus = SCPHomeIconStateDockStatus(wanted, dockBundles);
+        }
+    } @catch (NSException *e) {
+        blindReason = @"exception";
+        listsCount = 0;
+        modelIcons = 0;
+    }
+
+    BOOL gateOK = (blindReason == nil); // lists>0 && modelIcons>0, checked above
+    for (NSString *bid in bundles) {
+        if (!gateOK) {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[iconstate] phase=%@ src=%@ bundle=%@ state=BLIND reason=%@ lists=%lu modelIcons=%lu",
+                safePhase, safeSrc, bid, blindReason ?: @"unknown",
+                (unsigned long)listsCount, (unsigned long)modelIcons]);
+            continue;
+        }
+        NSString *dock = [dockStatus isEqualToString:@"read"]
+            ? ([dockBundles containsObject:bid] ? @"present" : @"absent")
+            : @"unknown";
+        if ([modelBundles containsObject:bid]) {
+            UIView *cell = cells[bid];
+            NSString *cellDesc = @"cell=unreadable";
+            if (cell) {
+                cellDesc = [NSString stringWithFormat:
+                    @"cell=read window=%d hidden=%d alpha=%.2f frame=%@",
+                    cell.window ? 1 : 0, cell.isHidden ? 1 : 0,
+                    (double)cell.alpha, NSStringFromCGRect(cell.frame)];
+            }
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[iconstate] phase=%@ src=%@ bundle=%@ state=PRESENT-MODEL lists=%lu modelIcons=%lu injected=%d dock=%@ %@",
+                safePhase, safeSrc, bid,
+                (unsigned long)listsCount, (unsigned long)modelIcons,
+                SCPIsInjectedPhoneApp(bid) ? 1 : 0, dock, cellDesc]);
+        } else {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[iconstate] phase=%@ src=%@ bundle=%@ state=ABSENT-MODEL lists=%lu modelIcons=%lu injected=%d dock=%@",
+                safePhase, safeSrc, bid,
+                (unsigned long)listsCount, (unsigned long)modelIcons,
+                SCPIsInjectedPhoneApp(bid) ? 1 : 0, dock]);
+        }
+    }
 }
 
 // ---- delayed sync: publish the car-home app list for Settings ----------------

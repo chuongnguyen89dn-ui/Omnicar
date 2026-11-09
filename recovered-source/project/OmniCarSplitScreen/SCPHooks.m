@@ -19,7 +19,7 @@
 #import "SCPFullscreenController.h" // [fs1] controller install (__init_1) + fsDidLayout reconcile at the root-layout seam (design-fullscreen-fs1 §4.1/§4.8)
 #import "SCPCarSplit+AutoHide.h" // [autohide] ahInstall beside bwInstallOwner (design-autohide §5.1)
 #import "SCPTouchProbe.h" // [fix-w] WO W4 passive sendEvent probe install (measure-only)
-#import "SCPHomeLauncher.h" // [gpt-home] OmniCar self native-Home icon
+#import "SCPHomeLauncher.h" // [gpt-home] own icon
 #import <objc/message.h>
 #import <objc/runtime.h>      // class_copyIvarList / object_getIvar (final closure)
 #import <notify.h>
@@ -248,7 +248,10 @@ static void Hook_handleHomeEvent(id self, SEL _cmd, id event) {
     @try {
         SCPCarSplit *split = [SCPCarSplit shared];
         BOOL wasActive = [split active];
-        if (wasActive) [split closeGoingHome:NO];
+        if (wasActive) {
+            [split noteCloseSource:@"home-system"]; // [ytz5] M5 src=
+            [split closeGoingHome:NO];
+        }
         [split homePressedDuringSplit:wasActive];
     } @catch (NSException *ex) { SCPExceptionLog("_handleHomeEvent", ex); }
     ((void (*)(id, SEL, id))orig_DBDashboard_handleHomeEvent)(self, _cmd, event);
@@ -307,6 +310,7 @@ static void Hook_presentBaseViewController(id self, SEL _cmd, UIViewController *
         } @catch (NSException *ex) {
             threw = YES;
             SCPExceptionLog("presentBaseViewController (adopt)", ex);
+            [split noteCloseSource:@"open-other"]; // [ytz5] M5 src=
             [split closeGoingHome:NO];
         }
         if (adopted) {
@@ -323,6 +327,7 @@ static void Hook_presentBaseViewController(id self, SEL _cmd, UIViewController *
         if (!threw) {
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                 @"CarSplit: DashBoard mo %@ toan man -> tat split", vc]);
+            [split noteCloseSource:@"open-other"]; // [ytz5] M5 src=
             [split closeGoingHome:NO];
         }
     }
@@ -370,6 +375,7 @@ static void Hook_dismissBaseViewController(id self, SEL _cmd, BOOL animated, voi
             if (!base) {
                 OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                     @"CarSplit: DashBoard ve man chinh -> tat split"]);
+                [split noteCloseSource:@"dismiss"]; // [ytz5] M5 src=
                 [split closeGoingHome:NO];
             }
         }
@@ -613,6 +619,7 @@ static void SCPNativeCommandBlock(NSNotification *note) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: yeu cau %@", info]);
         SCPCarSplit *split = [SCPCarSplit shared];
         if ([action isEqualToString:@"close"]) {
+            [split noteCloseSource:@"dismiss"]; // [ytz5] M5 src=: remote close command
             [split closeGoingHome:YES];                                    // @0x7cb4
         } else if ([action isEqualToString:@"closeApp"]) {
             [split closeApp:info[@"identifier"]];                          // @0x7cf4
