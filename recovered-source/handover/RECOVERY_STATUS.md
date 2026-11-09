@@ -2607,3 +2607,161 @@ session findings alone — the mechanism-clear
 ones (AutoHide suspension, revoke symmetry)
 wait for GPT's rulings and then ship together
 in ONE deb under Nguyen's one-deb rule.
+
+YTZ4 ROUND (2026-11-09; built under GPT's rulings on
+the ytz3 session, PATCH_NOTES section 27; no device
+session has run on this build yet). GPT accepted the
+ytz3 device verdicts (fullscreen, native wake, YTZ)
+but convicted the keyboard-signal proposal carried
+over from section 26.3: the app-side act flag is
+emitted as (BWKb == BWKbActive) at ABInApp.m:297,
+which yields 0 exactly when the state is
+BWKbUnknown, and the owner side at
+SCPCarSplit+BridgeWake.m:652-654 merely records and
+re-uses that same flag — so the ytz3 session's
+"38/38 app-side kb=-" and "26/26 owner kb=0" can
+both originate from a single UNKNOWN, and shipping
+the owner's value back to the app would only launder
+UNKNOWN into "known no keyboard". The fix built this
+round is an AUTHENTICATED three-state signal instead:
+the host's real hosted-keyboard session manager
+(ABKeyboardDispatch, the consumer that actually shows
+and hides ABKeyboard) funnels every open/close —
+dispatch show/hide, closeApp:terminate: teardown,
+CarPlay disconnect, and an initial snapshot when an
+app (re)opens — onto a new sibling channel
+com.anlai.omnicar/appbridge.kbsync (topology
+correction recorded in the round notes: hostFrameInfo
+is built by SCPCarSplit and consumed by ABHost, so kb
+could not ride it; the host-to-car NSDistributed
+family is the real ABHost-to-owner leg). The owner
+keeps a per-slot three-state record fed ONLY by that
+sync (reset to UNKNOWN at exactly the two assignment-
+change points), and emits a kb packet on the shared
+state channel as type 6 (bit 9 = kbKnown, bit 8 =
+kbActive) through a second poster sharing the state
+poster's register-check token and monotone seq
+counter. Cross-side layout compatibility was proven
+ABSOLUTE at integration with the project's own C core
+(all four BridgeWakePack.h copies bit-identical; all
+five kb words from both strands re-pack to the same
+words; the two strands' vector sets differ ONLY in
+their seq/gen parameters; V1/V9/V10 regressions
+bit-identical). App side, BWKbEffective resolves
+ACTIVE from any valid source (local first-responder
+session or a fresh owner snapshot), INACTIVE only
+from a fresh owner known=1/active=0 snapshot, and
+UNKNOWN whenever the snapshot is stale (freshness
+window 3.5 s) or says unknown itself; the act flag at
+the former :297 site now emits only positive ACTIVE
+evidence, and the probe logs kbKnown/kbActive/kbSrc/
+kbAge per sequence. The app harness passes 16/16.
+Gate 3 remains CLOSED by GPT's ruling: a fixed signal
+is not yet a proven suppression chain — the ytz4
+device session must still measure the full chain
+(swallow decision at wouldSwallow level, the next
+touch reaching the app, typing, teardown) before
+anyone may call suppression evidenced.
+
+AUTOHIDE IN EXPANDED is unlocked at all THREE points
+GPT named — the previous round's source analysis had
+judged the third one backwards and the record says so
+plainly (PATCH_NOTES 27.3): bwSetExpandedActive: no
+longer suspends AutoHide for EXPANDED (the only
+remaining ahSetSuspended: call sites are the
+hosted-solo enter/exit pair, kept by GPT's order);
+ahFadeBlockedReason loses its "expanded" term (solo,
+kbhold, surface-open and dragging locks all remain);
+and bwRecomputeForPane: loses the HIDDEN-to-VISIBLE
+promotion keyed on the expanded flag — the point GPT
+added at BridgeWake.m:395-400, without which controls
+could fade while the state packet still reported
+VISIBLE. Independent verification traced that an
+expanded pane meeting the ordinary conditions now
+reaches BWStateHidden (its own bar must still be down
+on its own timer — fading alone is not sufficient),
+and that pinch-in escape from EXPANDED stays
+independent of fade state (the arbiter's session row
+returns before any state read; the pinch controller
+never reads fade/suspend state). HOME-LIBRARY
+INSTRUMENTATION ([homelib], pure log additions,
+hook-installer count unchanged at 31): the process
+question GPT asked is answered from source — the
+dylib loads into both CarPlayApp and SpringBoard, but
+the entire Home/library family is reachable only
+through constructors gated SCPHostIsCarPlayApp(), so
+every measurement point executes in CarPlayApp, and
+every [homelib] line prints its runtime proc= to be
+checked directly against that claim. Points: the two
+library hooks in SCPHooks.m (new-library with the
+fresh library object's own allInstalledApplications
+count, loadFromProxy with post-inject membership), the
+decision journal in SCPAppIcons.m (the module's sole
+removeApplicationProxy: call site included), and the
+post-apply grid state in SCPHomeApply.m (apply-
+published with an omni sample taken before the
+seen/injected filters); decisions log only on change
+per bundle, except com.anlai.omnicar.app, which is
+never throttled and gets its own OMNI line for every
+decision including skips. One declared gap: a failed
+declaration write has no [homelib] token of its own
+(guarding it would break the pure-addition gate; the
+failure already has SCPHomeSafeSet's own log line).
+YTZ REVOKE: GPT accepted the ytz3 OFF control as the
+original disease reproducing on the original path
+(the written 4 is not YTZ residue) and refused a
+forced layout at revoke — this round only adds the
+ordered snapshot: [ytz-revoke-snap] at every revoke
+(full field set read at the revoke point, with
+reqOrient honestly the pre-lease frozen value and
+lastDecl=unavailable as a FIXED truthful field — the
+app's latest declaration is consumed in
+appWithHash: and never reaches the ABYTZoom
+translation unit), plus a one-shot [ytz-nextlayout]
+at the module's single publish point and a
+prevRevoke= field on the grant line; only an actual
+measured geometry mismatch between the pair would
+justify touching revoke behaviour later.
+
+TWO verifier side-findings are recorded UNRECONCILED
+for GPT (PATCH_NOTES 27.5): a second consumer of the
+appbridge.keyboard channel at ABChannels.m:358
+(hide-only, bypassing the kb funnel) is DEAD IN
+PRACTICE — it unpacks the hash from the low 32 bits
+of the notify state while the sender's verified
+packing puts the FNV-1a hash at <<24, so its
+bundleForHash: lookup returns nil short of a ~2^-24
+coincidence; it is pre-ytz4 reconstruction debris and
+waits for GPT to rule remove-or-keep. And the owner's
+UNKNOWN reset keys on the bundle STRING changing —
+re-assigning the same bundle to the same slot does
+not reset the record at owner level; mitigations on
+record are the host's snapshot re-post at every app
+(re)open and the app-side 3.5 s staleness expiry, but
+the owner-level edge itself is not closed. Build
+identity: source main 237098c (31 files), ci-fat-test
+aff33ed, CI dispatch run 42599165348 SUCCESS; local
+candidate 1,031,204 B sha256 27ecedd4...; delivered
+FAT com.anlai.omnicar_1.0.3-rebuilt-ytz4-fat_
+iphoneos-arm64.deb, 1,229,512 B, sha256
+53caff295b29c277a3db31c102f7817284345e573d0be3169ce4a6fccfe8a3a2.
+Selector parity against ytz3 is zero-loss on all
+eight components (SplitScreen +3 to the kb owner
+surface, AppBridge +9 to the Y2S snapshot properties;
+both FAT slices agree); the knob keeps exactly one
+eor per slice at the ytz3 addresses; the four
+forbidden ABHost body hashes match; hostFrameInfo
+stays at 30 keys. Static level: source complete /
+static PASS with independent verification (a)-(d)
+affirmed plus the two findings above. The ytz4 FAT
+replaces ytz3 as the standing test build; QA20
+remains the daily build. The next device session
+owes: the fullscreen-fade check in EXPANDED, the
+MANDATORY reverse guard case (popup open -> expand
+refused with picker=1 in the snapshot), the
+wouldSwallow-level suppression chain including the
+kb-ACTIVE positive case, the scripted pinch
+calibration sequence, the first [homelib] lines from
+the real Home path, and the revoke-snapshot pair if
+the YouTube switch is toggled mid-session. Wake
+ENFORCE (Gate 3) and pinch ENFORCE remain locked.
