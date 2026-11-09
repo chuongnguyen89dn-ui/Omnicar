@@ -399,6 +399,7 @@ __attribute__((constructor)) static void SSStartupScreenInit(void) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(15.0 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{   // sub_7cc0
             OMCLogWrite(@"StartupScreen", @"weather: warming the cache at startup");
+            OMCLogWrite(@"StartupScreen", @"[weather] source=warming-cache (internal startup call, NOT a CarPlay request)");   // [weatherinst] log-only
             SSAnswerWeatherRequest();
         });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10.0 * NSEC_PER_SEC)),
@@ -698,6 +699,15 @@ void SSWeatherFetch(double lat, double lon, void (^completion)(NSDictionary *)) 
 
 static BOOL SSWeatherAnswerInFlight;   // reentrancy guard [VERIFIED log line]
 
+// [weatherinst — WO GPT 4b, LOG ONLY] Answer-side correlation counters.
+// The Darwin weather.request channel is a bare notify_post: it carries NO
+// request id, so a SpringBoard answer can only be correlated with a
+// CarPlay-side ask by order + timestamps in the log. These two counters
+// are written/read ONLY by the added [weather] log lines; no logic reads
+// them and they never influence any branch.
+static int SSWeatherAnsLogSeq;   // bumped per SSAnswerWeatherRequest entry
+static int SSWeatherCurAnsSeq;   // ans# of the answer currently in flight
+
 // The in-flight one-shot lives in a global STRONG slot (original @0x3b190,
 // stored at 0x7f6c): CLLocationManager does not retain its delegate, so the
 // slot is what keeps the SSLocationOnce alive until it finishes. The done
@@ -706,10 +716,12 @@ static BOOL SSWeatherAnswerInFlight;   // reentrancy guard [VERIFIED log line]
 static SSLocationOnce *SSWeatherOnceSlot;
 
 static void SSNotifyWeatherReady(void) { // sub_a608
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] ans#%d ready-posted", SSWeatherCurAnsSeq]);   // [weatherinst] log-only
     notify_post("com.anlai.omnicar/startupscreen.weather.ready");
 }
 
 static void SSFetchAndAnswer(double lat, double lon, NSString *source) { // sub_9f1c [VERIFIED]
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] ans#%d fetch-begin source=%@", SSWeatherCurAnsSeq, source]);   // [weatherinst] log-only
     OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: SpringBoard fetching with the %@ position", source]);
     SSWeatherFetch(lat, lon, ^(NSDictionary *weather) {
         SSWeatherAnswerInFlight = NO;
@@ -729,11 +741,15 @@ static NSNumber *SSCoerceLoose(id value) { // sub_a184 [VERIFIED]: NSNumber pass
 static void SSAnswerWithStoredOrIP(void);   // sub_9b7c, below
 
 static void SSAnswerWeatherRequest(void) { // sub_7d10 [VERIFIED branch-for-branch]
+    int ansSeq = ++SSWeatherAnsLogSeq;   // [weatherinst] log-only id
     if (SSWeatherAnswerInFlight) {
         OMCLogWrite(@"StartupScreen", @"weather: request while another is being answered, ignored");
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] ans#%d dropped reason=in-flight (request channel carries no id; correlation by order/time only)", ansSeq]);   // [weatherinst] log-only
         return;
     }
+    SSWeatherCurAnsSeq = ansSeq;   // [weatherinst] log-only
     SSWeatherAnswerInFlight = YES;
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] ans#%d begin", ansSeq]);   // [weatherinst] log-only
     CLLocationManager *manager = [CLLocationManager new];
     CLAuthorizationStatus status = CLLocationManager.authorizationStatus;
     CLLocation *fix = manager.location;
@@ -829,6 +845,7 @@ static void SSAnswerWithStoredOrIP(void) { // sub_9b7c [VERIFIED branch-for-bran
                                  [NSString stringWithFormat:@"IP (%@)", city]);
             } else {
                 OMCLogWrite(@"StartupScreen", @"weather: SpringBoard has no position at all, answering without weather");
+                OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] ans#%d answered-without-weather (ready posted with no fresh temp/gradient)", SSWeatherCurAnsSeq]);   // [weatherinst] log-only
                 SSWeatherAnswerInFlight = NO;
                 SSNotifyWeatherReady();
             }
@@ -839,6 +856,7 @@ static void SSAnswerWithStoredOrIP(void) { // sub_9b7c [VERIFIED branch-for-bran
 
 static void SSWeatherRequestDarwinCallback(CFNotificationCenterRef center, void *observer,
                                            CFStringRef name, const void *object, CFDictionaryRef userInfo) {
+    OMCLogWrite(@"StartupScreen", @"[weather] request received via darwin notify (channel carries no request id)");   // [weatherinst] log-only
     dispatch_async(dispatch_get_main_queue(), ^{ SSAnswerWeatherRequest(); });   // sub_9b78 -> sub_7d10
 }
 

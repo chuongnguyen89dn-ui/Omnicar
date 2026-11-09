@@ -161,6 +161,7 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
     }
 
     [_startView setWeather:SSWeatherLoadCache(43200)];   // 12h, as @0x5774
+    OMCLogWrite(@"StartupScreen", @"[weather] display source=initial-cache (startup cache load, NOT a request answer)");   // [weatherinst] log-only
     [_startView reload];
 
     // Window assembly — compiler-outlined tail sub_5764. [VERIFIED flow]
@@ -339,9 +340,26 @@ static int SSWeatherReadyToken;
 static BOOL SSWeatherReadyRegistered;
 static int SSWeatherGeneration;   // @0x3b19c: bumped per SpringBoard ask (sub_8b74/sub_8bf0 guard on it)
 
+// [weatherinst — WO GPT 4b, LOG ONLY] Per-process ask counters used ONLY
+// by the added [weather] log lines to correlate req -> answer -> applied.
+// They never feed SSWeatherGeneration, the pending slot, or any guard.
+// SSWeatherPendingReqLogSeq mirrors which req# stored the pending
+// completion so the (singly-registered) ready handler can name it.
+static int SSWeatherReqLogSeq;
+static int SSWeatherPendingReqLogSeq;
+
 - (void)refreshWeather {   // 0x6434 [VERIFIED structure]
+    int wxReq = ++SSWeatherReqLogSeq;   // [weatherinst] log-only ask id
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] req#%d begin t=%.3f", wxReq, CACurrentMediaTime()]);   // [weatherinst] log-only
     __weak SSSplash *weakSelf = self;
     void (^apply)(NSDictionary *) = ^(NSDictionary *weather) {   // sub_67d0
+        // [weatherinst] log-only: every completion that reaches the
+        // display path is recorded here, including nil (nothing applied).
+        NSDate *wxDate = [weather[@"date"] isKindOfClass:NSDate.class] ? weather[@"date"] : nil;
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:
+            @"[weather] applied req#%d temp=%@ code=%@ isDay=%@ dataAge=%.0fs",
+            wxReq, weather[@"temp"] ?: @"none", weather[@"code"] ?: @"none",
+            weather[@"isDay"] ?: @"none", wxDate ? -wxDate.timeIntervalSinceNow : -1.0]);
         SSSplash *splash = weakSelf;
         if (!splash || !weather) return;
         if (splash->_finished) return;   // @0x680c [VERIFIED]: a finished
@@ -380,6 +398,8 @@ static int SSWeatherGeneration;   // @0x3b19c: bumped per SpringBoard ask (sub_8
                 NSDictionary *cache = SSWeatherLoadCache(43200);   // 12h, as @0x8adc
                 OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: SpringBoard answered (%@)",
                             cache ? @"cache loaded" : @"nothing usable in the cache"]);
+                OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] answer-received for req#%d gen=%d cacheTemp=%@",   // [weatherinst] log-only
+                            SSWeatherPendingReqLogSeq, SSWeatherGeneration, cache[@"temp"] ?: @"none"]);
                 if (completion) completion(cache);
             });
         }
@@ -387,7 +407,9 @@ static int SSWeatherGeneration;   // @0x3b19c: bumped per SpringBoard ask (sub_8
                                                   // on every ask, before
                                                   // the pending store
         SSPendingWeatherCompletion = apply;
+        SSWeatherPendingReqLogSeq = wxReq;   // [weatherinst] log-only mirror
         OMCLogWrite(@"StartupScreen", @"weather: no location access here, asking SpringBoard");
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] req#%d gen=%d ask-springboard (darwin post; channel carries no id)", wxReq, generation]);   // [weatherinst] log-only
         notify_post("com.anlai.omnicar/startupscreen.weather.request");
         // sub_8b74 [VERIFIED]: the original enumerates the static delay
         // array @[@2, @5] (@0x35488) and arms one dispatch_after per
@@ -401,6 +423,7 @@ static int SSWeatherGeneration;   // @0x3b19c: bumped per SpringBoard ask (sub_8
                            dispatch_get_main_queue(), ^{
                 if (SSWeatherGeneration == generation && SSPendingWeatherCompletion) {
                     OMCLogWrite(@"StartupScreen", @"weather: no answer yet, asking SpringBoard again");
+                    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] req#%d gen=%d retry-post (+%@s, same ask re-posted)", wxReq, generation, delay]);   // [weatherinst] log-only
                     notify_post("com.anlai.omnicar/startupscreen.weather.request");
                 }
             });
@@ -412,6 +435,7 @@ static int SSWeatherGeneration;   // @0x3b19c: bumped per SpringBoard ask (sub_8
             if (!completion) return;
             SSPendingWeatherCompletion = nil;
             OMCLogWrite(@"StartupScreen", @"weather: SpringBoard did not answer in 10s");
+            OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] req#%d gen=%d timeout-no-answer", wxReq, generation]);   // [weatherinst] log-only
             completion(nil);   // nil, NOT the cache: the apply block
                                // bails on nil and the view is unchanged
         });
@@ -419,9 +443,11 @@ static int SSWeatherGeneration;   // @0x3b19c: bumped per SpringBoard ask (sub_8
     }
     CLLocation *fix = manager.location;
     if (fix) {
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] req#%d source=direct-fix (self-answered in-process, no SpringBoard ask)", wxReq]);   // [weatherinst] log-only
         SSWeatherFetch(fix.coordinate.latitude, fix.coordinate.longitude, apply);
     } else {
         OMCLogWrite(@"StartupScreen", @"weather: no last known location, using the cache");
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] req#%d source=none (no last fix; nothing fresh applied)", wxReq]);   // [weatherinst] log-only
         // @0x6724 [VERIFIED]: the original invokes the completion with
         // nil on this path — the apply block bails on nil, so the view
         // keeps the cache that -init already loaded. (W4c mechanism.)

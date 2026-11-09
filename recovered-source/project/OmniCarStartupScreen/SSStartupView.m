@@ -263,6 +263,13 @@ static UILabel *SSSceneLabel(NSString *text) {
         NSDictionary *weather = self.weather;
         BOOL isDay = [weather[@"isDay"] boolValue];
         _sky = SSWeatherCategory([weather[@"code"] integerValue], isDay);
+        // [weatherinst — WO GPT 4b, LOG ONLY] The display sink: this is
+        // where the weather dict actually becomes category + gradient on
+        // screen. Correlate with the [weather] applied line in SSSplash
+        // by timestamp; temp=none means the card renders without a real
+        // temperature (fallback/no-data dict).
+        OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"[weather] display category=%ld isDay=%d temp=%@ code=%@ (gradient re-selected from category)",
+                    (long)_sky, (int)isDay, weather[@"temp"] ?: @"none", weather[@"code"] ?: @"none"]);
         // dump 0xd10c-0xd35c [VERIFIED — restored fix-round6 weather
         // W-item 3]: BEFORE the weather card is built, the original
         // re-selects the main gradient's colours from the category
