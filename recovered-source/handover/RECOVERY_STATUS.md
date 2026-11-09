@@ -1475,3 +1475,96 @@ the panes without the carPlayDeclaration exception,
 and the still-owed disconnect-while-splash run.
 
 S16 correction (see PATCH_NOTES S16H): tree control Version reverted to 1.0.3 after CI run 42503451473 failed its verify step on the fixed package filename; round identity is carried by the delivered filename, per prior-round convention. Local candidate unchanged.
+
+
+## §17 — Fixround3 (2026-11-09): log convictions A/B/C + audits D1–D6 + censuses E1/E2 (K1/K2) + cluster G (GPT Expanded Audit) in one candidate
+
+**What this build carries.** Everything in §16, plus the
+fixes convicted by the 2026-11-09 device logs and by GPT's
+DEB-vs-DEB Expanded Audit of the prefsround FAT. Lỗi A:
+the Startup settings ejection — a nil UILabel inserted
+into an NSArray literal inside Prefs applyUnit: (the [W1]
+handler's recorded exception, three identical deaths);
+restored to the original's C-array loop with per-label
+nil skip, shadowRadius 1.5*unit, shadowOffset
+(0, 0.5*unit). Lỗi B: no native app could hold a pane —
+the adopt path sent CGRectValue to
+CRSUIProxyApplicationSceneSettings (23 caught exceptions,
+28 split teardowns in one log); frame extraction restored
+to the original's respondsToSelector + direct-msgSend
+form. Lỗi C: the 06:34:33 CarPlay death — paneForView:
+matched only pane.view/pane.host by pointer, so the
+loader's deep-subview cancel button resolved to pane=nil
+and launchFailed: hit removeObjectForKey: with a nil key;
+the contract is restored to the original's
+isDescendantOfView: walk, plus GPT's loaderCancelTapped:
+validation chain and the launchFailed: nil guard.
+Picker geometry and glyph contrast restored from the
+dump. D1/D4: the "Hiện trong bảng" row (horizontal chip
+stack, not two switches; chipTapped: was an empty
+function) and the favourite-layout editor
+(UISegmentedControl, not hand-drawn chips) restored.
+D2: Home preview icon grid lost after cell recycling —
+boxInCell: bounds + autoresizing and the original
+preview-instance lifecycle restored. D5/E1: the pane
+'...' handle — layoutBarForPane: call sites restored in
+the compiled relayout TU, 5-button bar wiring verified;
+the E1 census found NO button missing on the main
+screen. E2/K1: the native URL/Siri dispatch block
+restored to all 11 actions (layout reads @"id"); K2:
+the hosted-pane knob-touch channel re-routed to
+remoteKnobTouch:. D6: the splash tagline — ss_label:
+now scales the font by _k inside the helper (40.0pt →
+16.41pt at 640×342), anchors left-aligned labels by
+their left edge, and uses the original's SSSceneLabel
+factory + Rounded font; ~20 call sites restored through
+the one helper. Cluster G (GPT §2–§8): launchFailed: OR
+semantics restored (slot-match OR loader-bundle-match;
+picker only when !pane.vc and the slot is unoccupied;
+stale-loader identity check kept); paneSize:forBundle:
+contract restored to -(BOOL)paneSize:(CGSize *)outSize
+forBundle: (B32@0:8^{CGSize=dd}16@24) with the original
+pane-then-pending slot resolution — no path defaults to
+slot 0; the safe-area hook's pane branch restored (zero
+insets only when paneSize answers YES); the Home
+hook/helper restored to
+-(void)homePressedDuringSplit:(BOOL)wasActive with the
+original call order and cleanup, order verified by
+disassembly of the built object. The §8 P2 ledger gives
+each of the six items a disposition in PATCH_NOTES §17G
+(fixed / kept-different-with-reason / still open) — none
+silently dropped. Build markers carry the [fixround3]
+tag in both the CarPlay and Prefs binaries.
+
+**Candidate.** com.anlai.omnicar_1.0.3-rebuilt-fixround3_
+iphoneos-arm64.deb in project/packages/, 970,286 B,
+SHA-256 752e39118354563cf65d4882a379619a70a634f274b8bfe05522cbbee16ae07a.
+Tree control Version stays 1.0.3 (S16H convention); the
+round name rides on the delivered filename. Built
+per-module (clean builds via build3.sh, 8/8 exit 0).
+
+**Verification.** All round-3 gates are STATIC checks
+("đã kiểm tra tĩnh") on the re-extracted DEB and the
+build's own objects: paneSize and homePressed type
+encodings present, old encodings absent; [fixround3]
+markers in both binaries; applyUnit body free of
+arrayWithObjects:count: with setShadowRadius:/
+setShadowOffset: present; selector parity 61/66
+exact-set with ZERO selectors missing (the same five
+additive-only classes as §16, no regression); four
+static trace matrices (paneForView, launchFailed,
+paneSize + hooks, Home) recorded in PATCH_NOTES §17G.
+No matrix is a behavioural PASS.
+
+**Status.** DEVICE_TEST = PENDING. Acceptance:
+handover/ACCEPTANCE_FIXROUND3.md (written against the
+shipped FAT's own SHA-256 and slice UUIDs) and the
+combined car session in PATCH_NOTES §17 / GPT §10 —
+Facebook/GOFA/Waze into panes, loader cancel in BOTH
+panes, timeout wait, empty-pane tap, tray pick, divider
+drag, Home + reopen split, an app outside the split
+keeping its original frame/safe-area. Still open after
+cluster G (PATCH_NOTES §17G): the P2-E ss_drawCanvas
+dispatch observation, the Prefs SSStartupView
+label-factory [INFERRED placement], and the Prefs
+ss_label bounds clamp when maxWidth ≤ 0.

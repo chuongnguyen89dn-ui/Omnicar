@@ -143,24 +143,43 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 
 // MARK: - Per-slot picker (empty-slot placeholder)
 
-- (void)showPickerForSlot:(int)slot {                                     // 0x2fbc0 (approx.)
+- (void)showPickerForSlot:(int)slot {                                     // 0x31530 VERIFIED
     if (!self.active) return;
     if (![self validSlot:slot]) slot = [self autoSlot];
     SCPCarPane *pane = [self paneAtSlot:slot];
     if (pane == nil) return;
     [self removePickerFromPane:pane];
     [self removeLoaderFromPane:pane animated:NO];
-    UIView *picker = [[UIView alloc] initWithFrame:[self frameForSlot:slot]];
+    UIView *picker = [[UIView alloc] init];
+    pane.picker = picker;                                                // @0x315c0 setPicker: precedes styling
+    // Dump @0x315cc-0x315e4: the picker frame is (0, 0, slotSize) — the
+    // SIZE of frameForSlot: with origin ZEROED, because the picker is
+    // added INSIDE pane.view (pane-local coordinates). The previous
+    // initWithFrame:[self frameForSlot:slot] used the container-space
+    // origin and displaced the picker inside the pane.
+    CGRect slotFrame = [self frameForSlot:slot];
+    picker.frame = CGRectMake(0, 0, slotFrame.size.width, slotFrame.size.height);
     picker.backgroundColor = [UIColor colorWithRed:0.9333333333333333
                                              green:0.9411764705882353
-                                              blue:0.9843137254901961
-                                             alpha:1.0];   // INFERRED colour reuse
+                                              blue:0.984313725490196
+                                             alpha:1.0];   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
     picker.autoresizingMask = 0x12;
-    picker.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.55].CGColor;
+    // Dump @0x3163c-0x31690: border colour is the lavender accent
+    // colorWithRed:0.6078431372549019 green:0.5294117647058824
+    // blue:0.9725490196078431 alpha:1.0 — NOT white at 0.55.
+    picker.layer.borderColor = [UIColor colorWithRed:0.6078431372549019
+                                               green:0.5294117647058824
+                                                blue:0.9725490196078431
+                                               alpha:1.0].CGColor;
     UILabel *label = [[UILabel alloc] initWithFrame:picker.bounds];
-    label.text = @"+";   // INFERRED text (setText: with a cfstring in the binary)
-    label.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.85];
-    label.font = [UIFont systemFontOfSize:40 weight:UIFontWeightBold];   // INFERRED metrics
+    label.text = @"+";   // VERIFIED: cfstring @0x7c720 == "+"
+    // Dump @0x316d4-0x31704: text colour is
+    // [SCPColorSecondary() colorWithAlphaComponent:0.6] — the navy
+    // helper @0x2b380 at 60% — NOT white at 0.85.
+    label.textColor = [SCPColorSecondary() colorWithAlphaComponent:0.6];
+    // Dump @0x31718-0x31734: systemFontOfSize:40 weight:UIFontWeightLight
+    // (weight GOT slot @0x782a8 == _UIFontWeightLight) — NOT Bold.
+    label.font = [UIFont systemFontOfSize:40 weight:UIFontWeightLight];
     label.textAlignment = NSTextAlignmentCenter;
     label.autoresizingMask = 0x12;
     [picker addSubview:label];
@@ -168,8 +187,13 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         [[UITapGestureRecognizer alloc] initWithTarget:self
                                                 action:@selector(pickerPaneTapped:)];
     [picker addGestureRecognizer:tap];
-    pane.picker = picker;
-    [pane.view addSubview:picker];
+    [pane.view addSubview:picker];                                       // @0x317b0-0x317c8
+    [pane.view bringSubviewToFront:pane.handle];                         // @0x317e8-0x31804
+    [self relayoutAnimated:YES];                                         // @0x31818
+    picker.alpha = 0;                                                    // @0x31824
+    [UIView animateWithDuration:0.25                                     // @0x3186c; block @0x31954 sets alpha = 1
+                     animations:^{ picker.alpha = 1; }];
+    [self refreshPickerSheetSoon];                                       // @0x3187c
 }
 
 - (void)removePickerFromPane:(SCPCarPane *)pane {                         // 0x313ac VERIFIED
@@ -997,13 +1021,30 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
 
 // MARK: - Loader (launch-in-progress overlay)
 
-- (void)loaderCancelTapped:(UIView *)sender {                            // 0x38000 (approx.)
+- (void)loaderCancelTapped:(UIView *)sender {                            // 0x2b980 VERIFIED + GPT guard chain
+    // Dump @0x2b9e8 (cbz pane) / @0x2b9ec (cbz bundle) -> shared return
+    // @0x2ba98: when either is nil the original returns silently — no
+    // log, no cancelledLaunches entry, no launchFailed:.
+    // [fix-round3 G] GPT expanded audit §3 validation chain, applied in
+    // full: pane must exist -> the pane's CURRENT loader must exist ->
+    // sender must belong to that current loader -> the bundle read from
+    // the loader's accessibilityIdentifier must be a non-empty NSString
+    // -> only then cancel. There is deliberately NO fallback to
+    // pane.bundleID: during an app swap the pane can still carry the OLD
+    // bundle while the loader is opening the NEW one, and cancelling by
+    // the stale id was the 06:34:33 nil-key crash path. (The log format
+    // is verified verbatim: the .ips symbolication of 2026-11-09 decoded
+    // the cfstring at the crash site to exactly this string.)
     SCPCarPane *pane = [self paneForView:sender];
-    NSString *bundle = pane.loader.accessibilityIdentifier;
+    if (pane == nil) return;
+    UIView *loader = pane.loader;
+    if (loader == nil) return;
+    if (![sender isDescendantOfView:loader]) return;
+    NSString *bundle = loader.accessibilityIdentifier;
+    if (![bundle isKindOfClass:[NSString class]] || bundle.length == 0) return;
     OMCLogWrite(@"SplitScreen",
-        [NSString stringWithFormat:@"CarSplit: huy mo %@ o %d", bundle, pane.slot]); // INFERRED wording
-    if (bundle != nil)
-        self.cancelledLaunches[bundle] = [NSDate date];
+        [NSString stringWithFormat:@"CarSplit: huy mo %@ o %d", bundle, (int)pane.slot]);
+    self.cancelledLaunches[bundle] = [NSDate date];
     [self launchFailed:bundle slot:pane.slot];
 }
 

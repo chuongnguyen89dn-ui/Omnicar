@@ -142,28 +142,51 @@ static CGRect Hook_sceneFrameForAppInfo(id self, SEL _cmd, id appInfo, id proxyI
     CGRect frame = ((CGRect (*)(id, SEL, id, id))orig_DBDashboard_sceneFrameForAppInfo)(self, _cmd, appInfo, proxyInfo);
     @try {
         NSString *bundle = SCPRealBundleForInfos(appInfo, proxyInfo);
-        CGSize size = [[SCPCarSplit shared] paneSize:frame forBundle:bundle];
-        if (size.width > 0 && size.height > 0) frame.size = size;
+        // Dump @0x5d8c-0x5db8: the original calls
+        // [split paneSize:&size forBundle:bundle] with a stack CGSize*
+        // and replaces the orig frame's size only when it returns YES.
+        CGSize size = CGSizeZero;
+        if ([[SCPCarSplit shared] paneSize:&size forBundle:bundle])
+            frame.size = size;
     } @catch (NSException *ex) { SCPExceptionLog("sceneFrameForAppInfo", ex); }
     return frame;
 }
 
-// sub_5e84 INFERRED companion: safe-area insets for a pane app are the
-// original insets clamped to the pane (body not individually read).
+// sub_5e84 VERIFIED (full dump read; fix-round3 G, GPT expanded audit
+// §6): call the original first and keep its insets; resolve the bundle
+// and ask paneSize:forBundle: (@0x5f2c); only a YES replaces the
+// result with UIEdgeInsetsZero (@0x5f48-0x5f54). A NO — app outside
+// the split, inactive split, nil bundle — keeps the ORIGINAL insets:
+// nothing is zeroed globally. The exception path logs
+// "safeAreaInsetsForAppInfo" (@0x5fe4) and also falls through to the
+// original insets. (The previous body returned orig unchanged and its
+// "clamped" comment described behaviour that did not exist.)
 static UIEdgeInsets Hook_safeAreaInsetsForAppInfo(id self, SEL _cmd, id appInfo, id proxyInfo) {
-    return ((UIEdgeInsets (*)(id, SEL, id, id))orig_DBDashboard_safeAreaInsetsForAppInfo)(self, _cmd, appInfo, proxyInfo);
+    UIEdgeInsets insets = ((UIEdgeInsets (*)(id, SEL, id, id))orig_DBDashboard_safeAreaInsetsForAppInfo)(self, _cmd, appInfo, proxyInfo);
+    @try {
+        NSString *bundle = SCPRealBundleForInfos(appInfo, proxyInfo);
+        CGSize size = CGSizeZero;
+        if ([[SCPCarSplit shared] paneSize:&size forBundle:bundle])
+            return UIEdgeInsetsZero;
+    } @catch (NSException *ex) { SCPExceptionLog("safeAreaInsetsForAppInfo", ex); }
+    return insets;
 }
 
-// sub_601c VERIFIED (call order): when the split is active, the split gets
-// first say on the home event; if it does not consume it, the split closes
-// as "going home". The original implementation still runs afterwards.
+// sub_601c VERIFIED (full dump read; fix-round3 G, GPT expanded audit
+// §7): capture wasActive = split.active FIRST (@0x605c-0x6060); when
+// it was active call closeGoingHome:NO (@0x6068-0x6070 — NO, not YES);
+// call homePressedDuringSplit:wasActive ALWAYS (@0x6074-0x607c), even
+// when the split was inactive; the original _handleHomeEvent: runs
+// LAST with the real event (@0x6088-0x609c), on the @catch path too.
+// (The previous body gated everything on active, let the helper's
+// BOOL decide closeGoingHome:YES, and never ran the helper when
+// inactive — a different algorithm under a VERIFIED label.)
 static void Hook_handleHomeEvent(id self, SEL _cmd, id event) {
     @try {
         SCPCarSplit *split = [SCPCarSplit shared];
-        if ([split active]) {
-            if (![split homePressedDuringSplit:event])
-                [split closeGoingHome:YES];
-        }
+        BOOL wasActive = [split active];
+        if (wasActive) [split closeGoingHome:NO];
+        [split homePressedDuringSplit:wasActive];
     } @catch (NSException *ex) { SCPExceptionLog("_handleHomeEvent", ex); }
     ((void (*)(id, SEL, id))orig_DBDashboard_handleHomeEvent)(self, _cmd, event);
 }
@@ -196,6 +219,7 @@ static void Hook_presentBaseViewController(id self, SEL _cmd, UIViewController *
                                            void (^completion)(void)) {
     SCPCarSplit *split = [SCPCarSplit shared];
     BOOL adopted = NO;
+    BOOL threw = NO;
     if ([split active]) {
         @try {
             if ([split wantsViewController:vc]) {
@@ -203,6 +227,7 @@ static void Hook_presentBaseViewController(id self, SEL _cmd, UIViewController *
                 adopted = YES;
             }
         } @catch (NSException *ex) {
+            threw = YES;
             SCPExceptionLog("presentBaseViewController (adopt)", ex);
             [split closeGoingHome:NO];
         }
@@ -210,9 +235,18 @@ static void Hook_presentBaseViewController(id self, SEL _cmd, UIViewController *
             if (completion) completion();
             return;   // original NOT called
         }
-        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"CarSplit: DashBoard mo %@ toan man -> tat split", vc]);
-        [split closeGoingHome:NO];
+        // Dump hook_RootVC_presentBaseViewController_0x636c.txt, landing
+        // pad @0x6614-0x6654: after the @catch handler (log +
+        // closeGoingHome:) control jumps STRAIGHT to the orig call
+        // (@0x644c) — the "!adopted" log + second closeGoingHome: below
+        // (@0x6404-0x6448) run only on the non-throwing path. The `threw`
+        // flag restores that skip (previously the exception path fell
+        // through and logged/closed a second time).
+        if (!threw) {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"CarSplit: DashBoard mo %@ toan man -> tat split", vc]);
+            [split closeGoingHome:NO];
+        }
     }
     ((void (*)(id, SEL, id, BOOL, unsigned long long, id))orig_RootVC_presentBaseViewController)
         (self, _cmd, vc, animated, launchSource, completion);
@@ -426,9 +460,10 @@ static void SCPBridgeStateBlock(NSNotification *note) {
     } @catch (NSException *ex) { SCPExceptionLog("appbridge.state", ex); }
 }
 // blocks 0x76a0 / 0x77c8 / 0x78b4 / 0x7a4c / 0x7b00: the remaining bridge
-// input channels forward their userInfo into SCPCarSplit's bridge*
-// handlers (identification VERIFIED by registration order in __init_1;
-// interiors at call-sequence fidelity).
+// input channels forward their userInfo into SCPCarSplit handlers
+// (bridge* for 0x76a0-0x7a4c; remoteKnobTouch: for 0x7b00 — see K2 note
+// on SCPBridgeKnobTouchBlock; identification VERIFIED by registration
+// order in __init_1; interiors at call-sequence fidelity).
 static void SCPBridgeHandleTapBlock(NSNotification *note) {
     // VERIFIED (integration, disasm/rem3_bridgeTapBlock_76a0.txt): the
     // binary's block @0x76a0 passes userInfo[@"identifier"] — the
@@ -446,37 +481,69 @@ static void SCPBridgeBarDismissBlock(NSNotification *note) {
     [[SCPCarSplit shared] bridgeBarAction:@"dismiss" forBundle:note.userInfo[@"identifier"]];
 }
 static void SCPBridgeKnobTouchBlock(NSNotification *note) {
-    // Same bundle-string argument as the tap block (integration note:
-    // a full-text scan finds exactly ONE bridgeHandleTapped: call site
-    // in the binary, @0x770c, passing userInfo[@"identifier"]).
-    [[SCPCarSplit shared] bridgeHandleTapped:note.userInfo[@"identifier"]];
+    // CORRECTED (fix-round3 K2, dump block_appbridge_knobtouch_0x7b00.txt):
+    // the original block @0x7b00 calls remoteKnobTouch: with the WHOLE
+    // userInfo (call @0x7b50; the handler @0x2edfc reads index/phase/x/y
+    // from the dictionary). The earlier reconstruction called
+    // bridgeHandleTapped: with userInfo[@"identifier"] — wrong handler
+    // and wrong payload shape; its "ONE call site @0x770c" justification
+    // belongs to the tap block 0x76a0, not this block. The dump's @catch
+    // pad logs via SCPExceptionLog("AB_KNOB_TOUCH", ex) @0x7bc4.
+    @try {
+        [[SCPCarSplit shared] remoteKnobTouch:note.userInfo];
+    } @catch (NSException *ex) { SCPExceptionLog("AB_KNOB_TOUCH", ex); }
 }
 
-// block 0x7bec VERIFIED (read end-to-end): the splitscreen.native command
-// channel. userInfo[@"action"] dispatches into SCPCarSplit; every command
-// is answered with a splitscreen.ack post.
+// block 0x7bec (dump block_splitscreen_native_0x7bec.txt): the
+// splitscreen.native command channel. userInfo[@"action"] dispatches
+// into SCPCarSplit through an 11-branch isEqualToString: chain in the
+// dump's order (close, closeApp, open, pair, fav, picker, layout,
+// ratio, swap, zoom); every path — including the @catch path, which
+// rejoins at the ack — ends in a splitscreen.ack post. (The earlier
+// reconstruction dispatched only 7 actions, routed "layout" to
+// openSetupLayout:apps: reading the wrong userInfo key, and carried a
+// false "VERIFIED (read end-to-end)" label; corrected in fix-round3 K1.)
 static void SCPNativeCommandBlock(NSNotification *note) {
-    NSDictionary *info = note.userInfo;
-    NSString *action = info[@"action"];
-    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: yeu cau %@", action]);
-    SCPCarSplit *split = [SCPCarSplit shared];
-    if ([action isEqualToString:@"close"]) {
-        [split closeGoingHome:YES];
-    } else if ([action isEqualToString:@"closeApp"]) {
-        [split closeApp:info[@"identifier"]];
-    } else if ([action isEqualToString:@"open"]) {
-        [split openApp:info[@"identifier"] slot:[info[@"slot"] intValue]];
-    } else if ([action isEqualToString:@"pair"]) {
-        [split openPairLeft:info[@"left"] right:info[@"right"]];
-    } else if ([action isEqualToString:@"fav"]) {
-        [split openFavorite:[info[@"index"] integerValue]];
-    } else if ([action isEqualToString:@"picker"]) {
-        [split showPickerForFocusedPane];
-    } else if ([action isEqualToString:@"layout"]) {
-        [split openSetupLayout:[info[@"layout"] integerValue] apps:info[@"apps"]];
+    @try {
+        NSDictionary *info = note.userInfo;
+        NSString *action = info[@"action"];
+        // Dump @0x7c4c: the logged vararg is the whole userInfo (x20),
+        // not the action string.
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: yeu cau %@", info]);
+        SCPCarSplit *split = [SCPCarSplit shared];
+        if ([action isEqualToString:@"close"]) {
+            [split closeGoingHome:YES];                                    // @0x7cb4
+        } else if ([action isEqualToString:@"closeApp"]) {
+            [split closeApp:info[@"identifier"]];                          // @0x7cf4
+        } else if ([action isEqualToString:@"open"]) {
+            // Dump @0x7d48/@0x7e18: a missing "slot" object means -1,
+            // not the 0 that messaging nil would produce.
+            NSNumber *slot = info[@"slot"];
+            [split openApp:info[@"identifier"]
+                      slot:(slot ? slot.intValue : -1)];                   // @0x7e24
+        } else if ([action isEqualToString:@"pair"]) {
+            [split openPairLeft:info[@"left"] right:info[@"right"]];       // @0x7dcc
+        } else if ([action isEqualToString:@"fav"]) {
+            [split openFavorite:[info[@"index"] integerValue]];            // @0x7e10
+        } else if ([action isEqualToString:@"picker"]) {
+            [split showPickerForFocusedPane];                              // @0x7ed0
+        } else if ([action isEqualToString:@"layout"]) {
+            [split urlLayout:[info[@"id"] intValue]];                      // @0x7f14
+        } else if ([action isEqualToString:@"ratio"]) {
+            [split urlRatio:[info[@"r"] doubleValue]];                     // @0x7f54
+        } else if ([action isEqualToString:@"swap"]) {
+            [split urlSwap];                                               // @0x7f74
+        } else if ([action isEqualToString:@"zoom"]) {
+            // Dump @0x7fb0-0x7fb4: cmp pane,1 + csinc (unsigned hi) —
+            // a pane value <= 1 is raised to 1 before urlZoomPane:.
+            int pane = [info[@"pane"] intValue];
+            [split urlZoomPane:((unsigned)pane > 1 ? pane : 1)];           // @0x7fbc
+        }
+    } @catch (NSException *ex) {
+        SCPExceptionLog("yeu cau tu SpringBoard", ex);                     // @0x80a8
     }
     [[NSDistributedNotificationCenter defaultCenter]
-        postNotificationName:SCPNoteNativeAck object:nil userInfo:nil];
+        postNotificationName:SCPNoteNativeAck object:nil userInfo:nil];   // @0x7e70
 }
 
 // block 0x54bc VERIFIED: prefschanged (Darwin) -> refresh the home/app-icon
@@ -623,7 +690,7 @@ __attribute__((constructor))
 static void SCPInitDashboardHooks(void) {
     if (!SCPHostIsCarPlayApp()) return;
     if (!OMCCrashGuard(@"splitScreen")) return;
-    OMCLogWrite(@"SplitScreen", @"loaded into CarPlay");
+    OMCLogWrite(@"SplitScreen", @"loaded into CarPlay [fixround3]");
 
     Class dashboard = OMCCarClass("DBDashboard");
     MSHookMessageEx(dashboard, @selector(sceneFrameForAppInfo:proxyAppInfo:),

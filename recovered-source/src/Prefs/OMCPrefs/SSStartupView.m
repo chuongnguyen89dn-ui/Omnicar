@@ -29,7 +29,7 @@
 
 // One mote/particle record: 7 doubles {kind, x, y, p3, p4, p5, p6} packed
 // into NSMutableData. [VERIFIED: appendBytes:length: with 56-byte records]
-typedef struct { double kind, x, y, a, b, c, d; } SSMote;
+typedef struct { long long kind; double x, y, a, b, c, d; } SSMote;   // first field is int64 in the original: ss_addMote:layer:to: types v88@0:8{?=qdddddd}16@72@80 (disasm va=0x4a89c)
 
 // Two-stop gradient color array from two packed 0xRRGGBB values.
 // [VERIFIED: sub_4732c — UIColor colorWithRed:green:blue:alpha:1 per stop]
@@ -584,18 +584,22 @@ NSArray *SSSampleHudItems(NSString *carName) {
 }
 
 // Scales every font/constraint of the text scenes to the unit.
-// [VERIFIED: font size factors and weights per label, from applyUnit:]
+// [VERIFIED: font size factors and weights per label, from applyUnit:
+//  va=0x48d4c — 8 label ivars loaded into a C array on the stack
+//  (stores 0x48d8c-0x48e58, each retained), loop 0x48e6c-0x48ee0
+//  skips nil via cbz at 0x48e74; no arrayWithObjects:count: in the
+//  original. Per live label: shadowRadius = 1.5 * unit
+//  (fmul 0x48e5c-0x48e60), shadowOffset = (0, 0.5 * unit)
+//  (0.5 at 0x48e64-0x48e68, width 0 at 0x48ec0, setShadowOffset:
+//  at 0x48ecc).]
 - (void)applyUnit:(double)unit {
-    NSArray<UILabel *> *labels = @[_timeLabel ?: [UILabel new], _titleLabel ?: [UILabel new],
-                                   _dateLabel ?: [UILabel new], _tempLabel ?: [UILabel new],
-                                   _condLabel ?: [UILabel new], _rangeLabel ?: [UILabel new],
-                                   _rainLabel ?: [UILabel new], _updatedLabel ?: [UILabel new]];
-    (void)labels;
-    for (UILabel *l in @[_timeLabel, _titleLabel, _dateLabel, _tempLabel,
-                         _condLabel, _rangeLabel, _rainLabel, _updatedLabel]) {
+    UILabel *labels[8] = {_timeLabel, _titleLabel, _dateLabel, _tempLabel,
+                          _condLabel, _rangeLabel, _rainLabel, _updatedLabel};
+    for (int i = 0; i < 8; i++) {
+        UILabel *l = labels[i];
         if (!l) continue;
         l.layer.shadowRadius = 1.5 * unit;
-        l.layer.shadowOffset = CGSizeZero;
+        l.layer.shadowOffset = CGSizeMake(0, 0.5 * unit);
     }
     _stackMaxWidth.constant = -12 * unit;
     if (_timeLabel) {   // greeting layout metrics
@@ -813,7 +817,11 @@ NSArray *SSSampleHudItems(NSString *carName) {
     l.layer.rasterizationScale = self.traitCollection.displayScale * 2;
     CGSize fit = [l sizeThatFits:CGSizeMake(maxWidth > 0 ? maxWidth : CGFLOAT_MAX, CGFLOAT_MAX)];
     l.bounds = CGRectMake(0, 0, fit.width, fit.height);
-    l.center = pt;
+    // Anchor [VERIFIED from the Prefs dump, ss_label: va=0x4a504]: for
+    // left-aligned labels the point is the LEFT edge — center.x =
+    // pt.x + width/2 (fmul/fadd 0x4a78c-0x4a794, fcsel on the left flag
+    // at 0x4a798-0x4a79c); centred labels take the point as-is.
+    l.center = left ? CGPointMake(pt.x + fit.width / 2, pt.y) : pt;
     [container addSubview:l];
     return l;
 }

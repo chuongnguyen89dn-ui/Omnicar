@@ -28,7 +28,7 @@
 - (void)omcSwitchChanged:(UISwitch *)sender;
 - (UISegmentedControl *)segmentForKey:(NSString *)key titles:(NSArray<NSString *> *)titles def:(NSInteger)def;
 - (void)omcSegmentChanged:(UISegmentedControl *)sender;
-- (UIView *)sliderForKey:(NSString *)key min:(double)min max:(double)max def:(double)def format:(NSString *)format width:(double)width;
+- (UIView *)sliderForKey:(NSString *)key min:(NSInteger)min max:(NSInteger)max def:(NSInteger)def format:(NSString *)format width:(double)width;
 - (void)omcSliderMoved:(UISlider *)sender;
 - (void)omcSliderDone:(UISlider *)sender;
 - (void)toast:(NSString *)message;

@@ -372,19 +372,19 @@ static void SSHSLToRGB(double h, double s, double l, double out[3]) {
     _card.contentView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.18];    // alpha @0x28e80
     [_card.contentView addSubview:_cardStack];
     _cardStack.translatesAutoresizingMaskIntoConstraints = NO;
-    // The 4 constraints are also stored in the ivar at ivar-offset slot
-    // 0x3ad00 (an NSArray) before activation.
-    // [integration phase 2; backported to src in phase 3]] The 4 constraints are stored in _stackMaxWidth
-    // (the NSArray-typed slot 0x3ad00) before activation, as this file's own
-    // comment above and StartupScreenB_REPORT.md §6(b) state; src activated
-    // an anonymous literal and never performed the store.
-    _stackMaxWidth = @[
+    // The 4 constraints are stored in _cardInsets (the original's NSArray
+    // ivar for them — applyUnit subscripts it at table slot 0xd00) before
+    // activation. [Store target corrected fix-round3 G/§8F: an integration
+    // phase stored them in _stackMaxWidth, but the class dump shows that
+    // ivar is a single NSLayoutConstraint — the _stack width cap created
+    // in -reload.]
+    _cardInsets = @[
         [_cardStack.leadingAnchor constraintEqualToAnchor:_card.contentView.leadingAnchor constant:12],
         [_card.contentView.trailingAnchor constraintEqualToAnchor:_cardStack.trailingAnchor constant:12],
         [_cardStack.topAnchor constraintEqualToAnchor:_card.contentView.topAnchor constant:8],
         [_card.contentView.bottomAnchor constraintEqualToAnchor:_cardStack.bottomAnchor constant:8],
     ];
-    [NSLayoutConstraint activateConstraints:_stackMaxWidth];
+    [NSLayoutConstraint activateConstraints:_cardInsets];
 
     _row = [[UIStackView alloc] initWithArrangedSubviews:@[_logoView, _tempLabel, _card]];
     _row.axis = UILayoutConstraintAxisHorizontal;         // 0

@@ -1,0 +1,67 @@
+; sub_1d2a8
+0x01d2a8  sub      sp, sp, #0x80
+0x01d2ac  stp      x22, x21, [sp, #0x50]
+0x01d2b0  stp      x20, x19, [sp, #0x60]
+0x01d2b4  stp      x29, x30, [sp, #0x70]
+0x01d2b8  add      x29, sp, #0x70
+0x01d2bc  mov      x20, x0
+0x01d2c0  add      x0, x0, #0x30
+0x01d2c4  bl       #0x5674c ; call _objc_loadWeakRetained
+0x01d2c8  mov      x19, x0
+0x01d2cc  bl       #0x56b60 ; objc_msgSend$active
+0x01d2d0  cbz      w0, #0x1d394
+0x01d2d4  ldr      x0, [x20, #0x20]
+0x01d2d8  bl       #0x5cae0 ; objc_msgSend$vc
+0x01d2dc  mov      x29, x29
+0x01d2e0  bl       #0x567dc ; call _objc_retainAutoreleasedReturnValue
+0x01d2e4  mov      x21, x0
+0x01d2e8  ldr      x22, [x20, #0x28]
+0x01d2ec  bl       #0x567b8 ; call _objc_release
+0x01d2f0  cmp      x21, x22
+0x01d2f4  b.ne     #0x1d394
+0x01d2f8  ldr      x21, [x20, #0x28]
+0x01d2fc  adrp     x0, #0x7b000
+0x01d300  add      x0, x0, #0x960 ; -> 0x7b960 @"foregroundSceneWithSettings:completion:"
+0x01d304  bl       #0x56374 ; call _NSSelectorFromString
+0x01d308  mov      x1, x0
+0x01d30c  adrp     x3, #0x78000
+0x01d310  add      x3, x3, #0xc60 ; -> 0x78c60
+0x01d314  mov      x0, x21
+0x01d318  mov      x2, #0
+0x01d31c  bl       #0x56758 ; call _objc_msgSend
+0x01d320  adrp     x8, #0x78000
+0x01d324  ldr      x8, [x8, #0x338] ; [0x78338] __NSConcreteStackBlock
+0x01d328  str      x8, [sp, #0x10]
+0x01d32c  adrp     x8, #0x6e000
+0x01d330  ldr      d0, [x8, #0xff8]
+0x01d334  adrp     x8, #0x1d000
+0x01d338  add      x8, x8, #0x444 ; -> 0x1d444 sub_1d444
+0x01d33c  str      d0, [sp, #0x18]
+0x01d340  adrp     x9, #0x78000
+0x01d344  add      x9, x9, #0xc10 ; -> 0x78c10
+0x01d348  stp      x8, x9, [sp, #0x20]
+0x01d34c  add      x22, sp, #0x10
+0x01d350  add      x0, x22, #0x28
+0x01d354  add      x1, x20, #0x30
+0x01d358  bl       #0x566f8 ; call _objc_copyWeak
+0x01d35c  ldr      x21, [x20, #0x20]
+0x01d360  mov      x0, x21
+0x01d364  bl       #0x567c4 ; call _objc_retain
+0x01d368  str      x21, [sp, #0x30]
+0x01d36c  ldur     q0, [x20, #0x38]
+0x01d370  str      q0, [sp, #0x40]
+0x01d374  adrp     x8, #0x6f000
+0x01d378  ldr      d0, [x8, #0x80]
+0x01d37c  add      x0, sp, #0x10
+0x01d380  bl       #0x12efc ; -> sub_12efc
+0x01d384  ldr      x0, [sp, #0x30]
+0x01d388  bl       #0x567b8 ; call _objc_release
+0x01d38c  add      x0, x22, #0x28
+0x01d390  bl       #0x56704 ; call _objc_destroyWeak
+0x01d394  mov      x0, x19
+0x01d398  bl       #0x567b8 ; call _objc_release
+0x01d39c  ldp      x29, x30, [sp, #0x70]
+0x01d3a0  ldp      x20, x19, [sp, #0x60]
+0x01d3a4  ldp      x22, x21, [sp, #0x50]
+0x01d3a8  add      sp, sp, #0x80
+0x01d3ac  ret      

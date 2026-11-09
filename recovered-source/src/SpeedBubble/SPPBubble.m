@@ -76,7 +76,7 @@ static void SPPApplyCrispScaleToLayer(CALayer *layer, double scale,
 @property (nonatomic, strong) NSArray *tickLabels;
 @property (nonatomic, strong) UIView *flashView;
 - (void)rebuild;
-- (void)render;
+- (CGSize)render;
 - (NSInteger)speedState;
 @end
 
@@ -645,9 +645,11 @@ static void SPPStripLayerShadows(CALayer *layer) {
         _iconApp = _app;
     }
     CGPoint center = _card.center;
-    [bv render];
-    _card.bounds = CGRectMake(0, 0, bv.contentSize.width,
-                              bv.contentSize.height);
+    CGSize bubbleSize = [bv render];   // original uses the returned size
+                                       // directly for the card bounds
+                                       // (dump 0x19cb0-0x19ce0)
+    _card.bounds = CGRectMake(0, 0, bubbleSize.width,
+                              bubbleSize.height);
     _card.center = center;
     bv.frame = _card.bounds;
     _outlineRect = bv.outlineRect;
