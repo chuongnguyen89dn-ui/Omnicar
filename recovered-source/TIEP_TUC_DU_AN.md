@@ -176,6 +176,15 @@ cửa sổ màn xe, ẩn khi split bận — không thể bám vách ngăn).
   "cham tron vach"**, điểm chạm lệch tới ~96 pt khỏi tâm vách — các chạm định dành cho app gần vách bị
   nuốt thành chạm núm, khớp verdict của Nguyen. Split hỗn hợp nhìn nửa ẩn vì nửa hosted vẽ bằng gương
   phình sáng, nửa native vẽ bằng núm local nhỏ mờ.
+- **Khả năng "bề mặt native che gương" đã bị LOẠI trên giấy** (strand audit-knob-layer, 09/11): gương là
+  subview trực tiếp của cửa sổ AB (windowLevel StatusBar + 60,0) và được `bringSubviewToFront:` ở mọi
+  lần reconcile (@0x14294); phía SpringBoard **không tồn tại** surface/pane đại diện nào của app native
+  để mà che; frame gương tính theo tọa độ cửa sổ (convertPoint:toView:nil), không tổ tiên nào
+  clipsToBounds với nó (clips của pane.box chỉ cắt con của box). Runtime ủng hộ: 118 chạm lệch tới
+  ~96 pt sang phía native vẫn bị gương bắt và relay. Hệ quả: triệu chứng "mất hiển thị ở split hỗn hợp"
+  chỉ còn **một** nguyên nhân đứng được — chính lỗi đảo cực này (lệch cỡ/sáng hai nửa). Sau khi sửa cực,
+  đĩa phải liền; nếu vẫn nửa vòng thì nguyên nhân nằm ngoài cả hai giả thuyết hiện tại, phải lấy dữ
+  kiện mới.
 - **Trạng thái: GIỮ** — cực này từng được ghi trong audit vòng 2 mà không được triển khai qua các vòng
   3–5 (lỗi quy trình đã nhận). Bản sửa là bỏ một phép phủ định; không đụng z-order/vùng chạm (66×66 và
   phình 26 pt/cạnh của gốc là thiết kế). Chỉ vào bản khi GPT/Nguyen thả theo thứ tự bằng chứng.
