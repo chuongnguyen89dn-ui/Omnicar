@@ -895,6 +895,8 @@ picker + Gate-3 trial vẫn chờ log phiên hl2 phân định.
    viết từ bản đọc bị cắt): sau mỗi lần ghi phải kiểm dung lượng + đuôi file + grep marker = 0.
 6. **Một phiên test gộp cho mỗi bản**; báo cáo dùng "đã sửa và build" — "hoàn thiện" chỉ sau nghiệm thu.
 
+**Cập nhật 10/11 (phân tích log phiên hl3 — ĐÃ ĐỐI CHIẾU LOG — PATCH §29.23):** đọc trọn 6.891 dòng hl3 (file .log nhỏ là đoạn cuối sau xoay log, không mất đoạn). **Nuốt YouTube ĐẠT ở mức log: 12 ca swallowed, nuốt nhầm = 0 → ĐIỀU KIỆN MỞ RỘNG ENFORCE CHO MỌI APP HOSTED ĐẠT** (5 ca Facebook would=1 đang bị giữ ở DRY_RUN); vết kèm L1 ack timeout 7/12 ở PID re-host + L2 latch tụt tối đa 18 seq. **Pinch kết án 2 tầng:** YouTube chết 100% tại cổng kbunknown của trọng tài (7/7 cặp); chiều thu chết 100% tại owner badstate vì nhãn committed không bao giờ lật EXPANDED (52/52 dòng = split, reject 25/26) — cả hai đang sửa ở hl4 §29.22, chờ phiên sau kiểm chứng. **Picker vẫn NO-DATA kết án:** measure2 giống hệt hosted/native, trayWin bg alpha=0 (giả thuyết nền đặc bị bác); thiếu bg của sheet — ứng viên duy nhất còn đứng — chờ GPT phán phép đo bổ sung. kbstate: reject 291→12 (L8 đạt), nhưng reporter-stop dừng sớm oan 16/19 (L7). Hồi quy sạch: restored 29 ms sau thoát-mờ, act lệch 0, không đổi PID, weather/knob NO-DATA phiên 5.
+
 ---
 *Hết mục tiếp tục. Khi có vòng mới: cập nhật mục 4 (dòng thời gian), mục 7 (mở/đóng), mục 8 (ảnh chụp)
 và PATCH_NOTES như thường lệ.*
