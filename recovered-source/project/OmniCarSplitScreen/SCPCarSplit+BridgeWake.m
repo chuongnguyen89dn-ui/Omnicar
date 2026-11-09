@@ -21,6 +21,11 @@
 #import "SCPCommon.h" // OMCLogWrite / OMCPref (module-local header)
 #import <notify.h>
 
+@interface SCPCarSplit (BridgeWakePrivate)
+- (void)bwRenewTick:(NSTimer *)timer;
+- (void)bwRenewMaintain;
+@end
+
 #pragma mark - Owner state (file statics, keyed by slot 0..9)
 
 static uint32_t       bwGenBySlot[10];        // design §1.3: 1..4095, wraps
@@ -38,12 +43,19 @@ static __weak SCPCarPane *bwPaneBySlot[10];   // last pane object per slot
 
 static uint16_t       bwStateSeq;             // owner state seq (§3.2)
 static NSInteger      bwWakeMode  = BWModeDryRun;   // §4: absent = DRY_RUN
-static NSInteger      bwPinchMode = BWModeEnforce;  // absent = ENFORCE since
-// 2026-11-09 (Nguyen: pinch wired live, staging removed — see reload).
+static NSInteger      bwPinchMode = BWModeDryRun;   // §4: absent = DRY_RUN
+// (an ENFORCE default shipped briefly on 2026-11-09 under Nguyen's
+// "noi pinch luon" order; GPT's post-fs1 audit WO superseded it —
+// ENFORCE is reachable only via an explicit pref until the fullscreen
+// controller has independent device acceptance. See reload below.)
 static NSArray<NSString *> *bwPinchAllowlist;       // §2.2 (nil = absent =
 // no restriction: every eligible pane; an array = only its members)
-static BOOL           bwExpandedFlag;               // §2.1 input (A1: no
-static NSString      *bwExpandedBundle;             //   producer this round)
+static BOOL           bwExpandedFlag;               // §2.1 input; since
+// fs1 its producer is SCPFullscreenController (settle points only).
+static NSString      *bwExpandedBundle;             // WO P1: LOG ONLY —
+// EXPANDED is a session state (the controller reports forBundle:nil
+// because fullscreen covers the whole split); arbitration never
+// compares a pane's bundle against this value any more.
 static BOOL           bwAutoHideEnabled = YES;      // [autohide] owner's cached
 // read of bridgewake.autoHide (absent = ON, design-autohide §3.5); the
 // AutoHide TU keeps its own copy via ahReloadConfig, refreshed at the
@@ -58,6 +70,7 @@ static int bwWakeRecvToken;
 static int bwAckRecvToken;
 static int bwActRecvToken;     // [autohide] bridgewake.v1.act receiver
 static int bwPrefsRecvToken;
+static NSTimer       *bwRenewTimer;    // WO W2: state renewal (1.0 s)
 
 #pragma mark - Small helpers
 
@@ -209,6 +222,64 @@ static void BWEmitDrain(void) {
     for (SCPCarPane *pane in [self hostedPanes]) [self bwQueueEmitForPane:pane];
 }
 
+#pragma mark - State renewal (WO W2)
+
+// The app side treats a state copy older than 2.5 s as stale (§4
+// freshness), but the owner otherwise emits only on change — after
+// controls have been hidden a long time, a hosted app's copy is
+// guaranteed stale at exactly the moment a suppression decision
+// needs it. While the split session is live and at least one pane
+// is hosted, the owner therefore re-publishes the CURRENT state of
+// every hosted pane every 1.0 s. The channel carries a single word,
+// so the panes are posted in rotation through the 30 ms emit queue
+// inside each cycle: every pane's word (its own bundle hash) is
+// re-posted well inside the 2.5 s freshness bound even with two
+// hosted panes — no pane can be overwritten past freshness by the
+// other. Content is the stored state verbatim: seq advances
+// (inside BWEmitStatePacket), generation and semantics do not
+// change. The timer lives and dies with the session —
+// bwRenewMaintain is re-evaluated at every bwRecomputeForPane: and
+// at bwSessionTeardown.
+- (void)bwRenewMaintain {
+    if (![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(),
+            ^{ [self bwRenewMaintain]; });
+        return;
+    }
+    BOOL shouldRun = bwInstalled && self.active &&
+                     [self hostedPanes].count > 0;
+    if (shouldRun && !bwRenewTimer) {
+        bwRenewTimer = [NSTimer scheduledTimerWithTimeInterval:1.0
+            target:self selector:@selector(bwRenewTick:) userInfo:nil
+            repeats:YES];
+        OMCLogWrite(@"SplitScreen", @"[wake1] bw renew start (1.0s)");
+    } else if (!shouldRun && bwRenewTimer) {
+        [bwRenewTimer invalidate];
+        bwRenewTimer = nil;
+        OMCLogWrite(@"SplitScreen", @"[wake1] bw renew stop");
+    }
+}
+
+- (void)bwRenewTick:(NSTimer *)timer {
+    (void)timer;
+    NSArray<SCPCarPane *> *hosted = [self hostedPanes];
+    if (!self.active || hosted.count == 0) {
+        [self bwRenewMaintain]; // conditions ended: stop the timer
+        return;
+    }
+    NSMutableArray<NSString *> *hashes = [NSMutableArray array];
+    for (SCPCarPane *pane in hosted) {
+        if (pane.bundleID.length)
+            [hashes addObject:[NSString stringWithFormat:
+                @"%07x", BWBundleHash28(pane.bundleID)]];
+        [self bwQueueEmitForPane:pane];
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[wake1] bw renew panes=%lu hashes=%@",
+        (unsigned long)hosted.count,
+        [hashes componentsJoinedByString:@","]]);
+}
+
 #pragma mark - Arbitration (design §2.2)
 
 // popup(p): a panel (tray / ratio menu / picker sheet) is open, or
@@ -227,8 +298,15 @@ static void BWEmitDrain(void) {
     if (!BWSlotValid(pane)) return NO;
     NSString *bundle = pane.bundleID;
     if (!bundle.length) return NO;
-    // EXPANDED row: pinch-in has priority, allowlist does not apply.
-    if (bwExpandedFlag && [bundle isEqualToString:bwExpandedBundle])
+    // EXPANDED row (WO P1 session model): fullscreen covers the
+    // WHOLE split, so EXPANDED is a property of the session, never
+    // of one bundle — pinch-in has priority on any pane still
+    // assigned+live in the current split session while no other
+    // transition (wake txn on this slot / divider drag) is running.
+    // Mirrors pinchDispositionForPane:'s EXPANDED row exactly.
+    if (bwExpandedFlag && self.active &&
+        [[self allPanes] containsObject:pane] &&
+        !bwWakePendingBySlot[pane.slot] && !self.resizing)
         return YES;
     // Every other row requires the pane VISIBLE (HIDDEN belongs to
     // wake; UNKNOWN/INACTIVE/WAKING fail open with pinchAllowed = 0).
@@ -314,10 +392,11 @@ static void BWEmitDrain(void) {
         } else {
             state = BWStateVisible;
         }
-        // EXPANDED (§2.2 first row): never HIDDEN while expanded.
-        // UNKNOWN stays UNKNOWN — fail-open beats a guessed VISIBLE.
-        if (state == BWStateHidden && bwExpandedFlag &&
-            [bundle isEqualToString:bwExpandedBundle])
+        // EXPANDED (§2.2 first row, WO P1 session model): never
+        // HIDDEN while the SESSION is expanded — fullscreen covers
+        // every pane, not one bundle. UNKNOWN stays UNKNOWN —
+        // fail-open beats a guessed VISIBLE.
+        if (state == BWStateHidden && bwExpandedFlag)
             state = BWStateVisible;
         // Hash collision between two live panes (§3.3): both go
         // UNKNOWN (fail-open) rather than risk a misrouted state.
@@ -347,6 +426,10 @@ static void BWEmitDrain(void) {
     uint64_t sig = BWEmitSig(bwStateBySlot[slot], pinch, bwWakeMode,
                              bwPinchMode, bwGenBySlot[slot]);
     if (sig != bwEmitSigBySlot[slot]) [self bwQueueEmitForPane:pane];
+    // WO W2: assignment/session changes are the renewal timer's
+    // lifecycle inputs (first hosted pane starts it, losing the
+    // last one stops it).
+    [self bwRenewMaintain];
 }
 
 - (void)bwSessionTeardown {
@@ -371,6 +454,7 @@ static void BWEmitDrain(void) {
         }
     }
     BWPublishChainSuppressed(); // [pinch1] all transactions closed above
+    [self bwRenewMaintain]; // WO W2: session over -> renewal stops
     OMCLogWrite(@"SplitScreen", @"[wake1] bw session teardown -> INACTIVE");
 }
 
@@ -379,15 +463,17 @@ static void BWEmitDrain(void) {
 - (void)bwReloadModesAndRepublish {
     // The owner (CarPlayApp, the tweak's own process — not an App
     // Store sandbox) is the ONLY reader of these prefs; apps learn the
-    // modes solely from state packets. Wake: absent = DRY_RUN (as
-    // designed). Pinch: absent = ENFORCE — Nguyen's decision
-    // 2026-11-09 ("bỏ staging, nối pinch luôn"): pinch is a live
-    // feature by default now; an explicit pref still wins, so
-    // pinchMode = 0/1 remains available as an off/dry-run switch.
+    // modes solely from state packets. Both modes: absent = DRY_RUN.
+    // Pinch history: the 2026-11-09 "noi pinch luon" wiring briefly
+    // made pinch absent = ENFORCE; GPT's post-fs1 audit WO superseded
+    // that (fix-wp-owner): with pinch-in dead under the old bundle
+    // arbiter and the FS controller unproven on device, ENFORCE is
+    // reachable ONLY via an explicit pref (0/1/2 all still honoured,
+    // so OFF and DRY_RUN remain available in this same build).
     id w = OMCPref(@"bridgewake.wakeMode", nil);
     id p = OMCPref(@"bridgewake.pinchMode", nil);
     bwWakeMode  = w ? MIN(MAX([w integerValue], 0), 2) : BWModeDryRun;
-    bwPinchMode = p ? MIN(MAX([p integerValue], 0), 2) : BWModeEnforce;
+    bwPinchMode = p ? MIN(MAX([p integerValue], 0), 2) : BWModeDryRun;
     id al = OMCPref(@"bridgewake.pinchAllowlist", nil);
     if ([al isKindOfClass:[NSArray class]]) {
         NSMutableArray<NSString *> *clean = [NSMutableArray array];
@@ -518,15 +604,53 @@ static void BWEmitDrain(void) {
 // This handler NEVER posts anything (anti-loop rule, §3.2.1).
 - (void)bwHandleActPacket:(uint64_t)raw {
     BWPacket pkt = BWUnpack(raw);
-    if (!pkt.valid || pkt.type != BWTypeAct) return;
+    // WO W1: EVERY drop point logs its own [autohide] reason — a
+    // silently swallowed act is what made the on-car reveal failure
+    // undiagnosable. The accepted path logs too, so a log reader can
+    // walk the whole chain: act in -> reason or accepted -> reveal.
+    if (!pkt.valid || pkt.type != BWTypeAct) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[autohide] act drop reason=decode-fail raw=%llx valid=%d type=%u",
+            (unsigned long long)raw, (int)pkt.valid, (unsigned)pkt.type]);
+        return;
+    }
     NSInteger slot = BWSlotForHash28(pkt.hash28);
-    if (slot < 0) return;
-    if (pkt.gen != bwGenBySlot[slot]) return; // stale session (§3.2.1)
+    if (slot < 0) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[autohide] act drop reason=bad-hash hash=%07x",
+            pkt.hash28]);
+        return;
+    }
     NSString *bundle = bwBundleBySlot[slot];
+    if (pkt.gen != bwGenBySlot[slot]) { // stale session (§3.2.1)
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[autohide] act drop reason=bad-gen bundle=%@ gen=%u cur=%u",
+            bundle, pkt.gen, bwGenBySlot[slot]]);
+        return;
+    }
+    if (!self.active) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[autohide] act drop reason=session-inactive bundle=%@",
+            bundle]);
+        return;
+    }
     SCPCarPane *pane = [self paneForBundle:bundle];
     if (!pane || pane.slot != slot ||
-        ![[self hostedPanes] containsObject:pane])
+        ![[self hostedPanes] containsObject:pane]) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[autohide] act drop reason=not-assigned bundle=%@ pane=%d",
+            bundle, pane != nil]);
         return;
+    }
+    if (bwStateBySlot[slot] == BWStateInactive) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[autohide] act drop reason=split-inactive bundle=%@ slot=%ld",
+            bundle, (long)slot]);
+        return;
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[autohide] act-accepted bundle=%@ kb=%d seq=%u -> ahNoteActivity",
+        bundle, (int)pkt.flag, pkt.seq]);
     [self ahNoteActWithKbActive:pkt.flag];
 }
 
@@ -654,8 +778,16 @@ static void BWEmitDrain(void) {
                                touchesSuppressed:(BOOL)anyTouchSuppressed {
     (void)anyTouchSuppressed;
     if (!BWSlotValid(pane)) return SCPArbiterPinchBlockedUnknown;
-    // EXPANDED row (§2.2): pinch-in has priority, wake suppression off.
-    if (bwExpandedFlag && [pane.bundleID isEqualToString:bwExpandedBundle])
+    // EXPANDED row (§2.2, WO P1 session model): fullscreen expands
+    // the WHOLE split and the controller reports it with
+    // forBundle:nil, so the row keys on the session flag alone —
+    // pinch-in is allowed on any pane still assigned+live in the
+    // current split session (allPanes: native panes included) while
+    // no other transition (wake txn on this slot / divider drag) is
+    // running. Mirrors bwPinchAllowedForPane:'s EXPANDED row.
+    if (bwExpandedFlag && self.active &&
+        [[self allPanes] containsObject:pane] &&
+        !bwWakePendingBySlot[pane.slot] && !self.resizing)
         return SCPArbiterPinchAllowed;
     switch (bwStateBySlot[pane.slot]) {
         case BWStateHidden:

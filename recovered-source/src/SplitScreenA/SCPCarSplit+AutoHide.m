@@ -186,13 +186,24 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
 - (void)ahRevealBody:(AHRevealReason)reason {
     if (!ahFadedState) return;
     ahFadedState = NO;
+    // WO W1 evidence point: count the CarPlay-side views actually
+    // carrying a saved opacity BEFORE restoring, so the log proves
+    // the reveal landed on this side. The hosted mirrors are a
+    // different strand's surface: they receive the cleared flag
+    // through the pushHostFramesLive:NO hand-off below (the
+    // hostFrameInfo `fade` key), not from this TU.
+    NSUInteger restored = 0;
+    for (UIView *view in ahPaintedViews.allObjects)
+        if (objc_getAssociatedObject(view, &ahSavedOpacityKey) != nil)
+            restored++;
     [self ahRestoreAllPainted];
     [self pushHostFramesLive:NO];
     [self publishKnobsSoon];
     for (SCPCarPane *pane in [self hostedPanes])
         [self bwRecomputeForPane:pane];
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[autohide] reveal reason=%s", AHRevealName(reason)]);
+        @"[autohide] reveal-applied reason=%s views=%lu",
+        AHRevealName(reason), (unsigned long)restored]);
 }
 
 #pragma mark - Public interface

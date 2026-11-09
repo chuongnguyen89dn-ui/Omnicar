@@ -14,13 +14,16 @@
 // and restored exactly — no external chrome symbol is referenced.
 //
 // All entry points funnel to the main queue. All log lines carry the
-// [fs1] prefix. Commands arrive only through the adapter (pinch).
+// [fs1] prefix. Commands arrive through the adapter (pinch) and
+// through the [fs-diag] prefs listener (diagnostic drive + escape
+// path, GPT WO fix-p).
 
 #import "SCPFullscreenController.h"
 #import "SCPCarSplit.h"
 #import "SCPCarSplit+BridgeWake.h" // bwSetExpandedActive:forBundle: (§4.10)
 #import "SCPShared.h"               // SCPDispatchAfter
 #import "SCPCommon.h"               // OMCLogWrite
+#import <notify.h>                  // [fs-diag] prefs listener
 
 #pragma mark - File statics (thresholds copied from the reference source)
 
@@ -78,6 +81,10 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     uint64_t _pendingTxn;
     NSString *_pendingProvenance;
     BOOL _inReconcile;      // fsDidLayout re-entrancy guard (§4.8)
+    // [fs-diag] diagnostic drive: prefs-listener token + the last
+    // fullscreenDiagExpand value this controller acted on (edge base).
+    int _fsDiagPrefsToken;
+    BOOL _fsDiagWant;
     // Chrome (§4.7): status-bar window -> its ORIGINAL hidden flag,
     // recorded on first sight only, restored exactly, then cleared.
     NSMapTable<UIWindow *, NSNumber *> *_chromeOriginals;
@@ -109,10 +116,54 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
 - (void)fsInstallIfNeeded {
     if (_installed) return;
     _installed = YES;
-    // No staging trigger remains (2026-11-09: the prefs test switch
-    // and its prefs observer were removed with the staging itself).
-    // The only command source is the adapter — pinch.
+    // Command sources: the adapter (pinch) and the [fs-diag] prefs
+    // listener below — a controlled diagnostic drive restored under
+    // GPT's WO (fix-p) after the fs1 staging switch was removed: it
+    // is the controller's independent acceptance trigger AND the
+    // recognizer-independent escape path (pref OFF from anywhere
+    // while EXPANDED restores — see fsDiagPrefsChanged).
+    _fsDiagWant = [OMCPref(@"fullscreenDiagExpand", @NO) boolValue];
+    __weak typeof(self) weakSelf = self;
+    notify_register_dispatch(SCPNotePrefsChanged.UTF8String,
+        &_fsDiagPrefsToken, dispatch_get_main_queue(), ^(int token) {
+            (void)token;
+            [weakSelf fsDiagPrefsChanged];
+        });
     OMCLogWrite(@"SplitScreen", @"[fs1] fs controller installed (CarPlayApp)");
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[fs-diag] diag listener installed want=%d", (int)_fsDiagWant]);
+}
+
+#pragma mark - Diagnostic prefs drive [fs-diag]
+
+/// [fs-diag] pref fullscreenDiagExpand changed (any prefs write wakes
+/// this — the channel is global). The pref is an INPUT: this
+/// controller only READS it (OMCPref) and never writes it back.
+/// ON -> the same internal expand the adapter forwards to (identical
+/// entry gates, transaction and read-back confirmation); OFF ->
+/// restore; provenance "diag" either way. Edge-triggered on the
+/// stored last-acted value, with one level safety: a post that finds
+/// the pref OFF while the machine sits EXPANDED still restores, so
+/// switching the pref off from anywhere is always an escape from
+/// fullscreen even if the change edge itself was somehow missed.
+- (void)fsDiagPrefsChanged {
+    BOOL want = [OMCPref(@"fullscreenDiagExpand", @NO) boolValue];
+    if (want == _fsDiagWant) {
+        if (!want && _phase == SCPFSPhaseExpanded) {
+            OMCLogWrite(@"SplitScreen",
+                @"[fs-diag] pref off while EXPANDED (no edge) -> restore");
+            [self fsRequestRestoreWithCompletion:nil provenance:@"diag"];
+        }
+        return;
+    }
+    _fsDiagWant = want;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[fs-diag] fullscreenDiagExpand -> %@ (%@)",
+        want ? @"ON" : @"OFF", want ? @"expand" : @"restore"]);
+    if (want)
+        [self fsRequestExpandWithCompletion:nil provenance:@"diag"];
+    else
+        [self fsRequestRestoreWithCompletion:nil provenance:@"diag"];
 }
 
 #pragma mark - Settled state + area consultation

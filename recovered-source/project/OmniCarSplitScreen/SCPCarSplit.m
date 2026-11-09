@@ -2062,6 +2062,25 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     // original keys keep their names/formulas (superset rule, §5.4).
     // The fade is NEVER encoded through `handle` itself (§2.2).
     info[@"fade"] = @([self ahFaded]);
+    // [ytz-y1] additive keys (GPT WO Y1): the AUTHORITATIVE split
+    // presentation state rides the same packet, computed HERE on the
+    // owner from its own presentation state — split session active
+    // (self.active, set at activateWithCount:) AND at least two
+    // panes in the layout (paneCount = slots.count, SCPCarSplit.m
+    // -paneCount) AND no slot zoomed (with a zoomed slot the screen
+    // presents ONE pane — the same third term as this module's
+    // VERIFIED -dividersVisible predicate, SCPCarSplit+Layout.m
+    // @0x11b50). ABHost must NOT infer this from its hosted-pane
+    // count: a mixed split (one native pane + one hosted pane)
+    // shows ABHost exactly one pane while the car IS split.
+    // `splitver` versions the field (1 = this BOOL); a packet
+    // without the field is "unknown" host-side and takes the logged
+    // fallback there. The bar's `single` key is deliberately NOT
+    // reused: its semantics are the bar's zoom state, not the
+    // presentation's (WO Y1). Superset rule holds — every original
+    // key keeps its name/formula.
+    info[@"split"] = @(self.active && self.paneCount >= 2 && self.zoomedSlot == nil);
+    info[@"splitver"] = @1;
     info[@"r"] = @(pane.view.layer.cornerRadius);
     info[@"corners"] = @(pane.view.layer.maskedCorners);
     info[@"hx"] = @([self handleShiftForPane:pane]);

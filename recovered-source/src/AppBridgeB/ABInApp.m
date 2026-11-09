@@ -25,6 +25,7 @@
 #import "ABYTLease.h"
 #import <objc/runtime.h>
 #import <substrate.h>
+#import <mach/mach_time.h> // WO fix-w W1: act decision log stamps
 
 // [integration phase 1; backported to src in phase 3] forward
 // declarations: the in-app hook replacements below are installed near
@@ -51,6 +52,13 @@ static NSUInteger ABHook_VCSupportedOrientations(UIViewController *self, SEL _cm
 static NSUInteger ABHook_VCSupportedOrientationsPrivate(UIViewController *self, SEL _cmd);
 static NSInteger ABHook_SceneInterfaceOrientation(UIWindowScene *self, SEL _cmd);
 static void ABHook_UIWindowRotateWindow(UIWindow *self, SEL _cmd, NSInteger orientation, BOOL updateStatusBar, double duration, BOOL skipCallbacks);
+// AutoHide act scene binding (WO fix-w W3): the BridgeWake section sits
+// above the YT-ZOOM section, so the scene-candidate reader is forward
+// declared here and the lease scene id is declared as a tentative
+// definition; its single initializing definition lives with the YZ
+// statics below.
+static NSString *YZSceneCandidateID(UIWindowScene *scene);
+static NSString *YZLeaseSceneID;
 
 NSInteger ABForcedOrientation = -1;  // 0x3E7D0 (stored as int32 in the original)
 int64_t   ABAppOrientation    = 0;   // 0x3E9C8
@@ -134,6 +142,16 @@ static uint32_t BWQuerySeq     = 0;
 static uint32_t BWActSeq       = 0;   // app-side act sequence (§3.2.1)
 static NSTimeInterval BWLastActAt = 0; // 0.12 s act throttle stamp
 static NSTimeInterval BWLastQueryAt = 0;
+// AutoHide act basis (WO fix-w W2-A): session-verified identity. Set at
+// the exact point BWOnStatePacket accepts a packet (valid pack, own
+// hash, gen accepted) — the owner has authenticated this bundle's
+// hosted session; cleared in BWResetAll when the session closes. The
+// act feed posts on THIS basis, never on state freshness: BWFresh()
+// remains the sole currency of the suppression path (BWGatePass, the
+// effective-mode helpers, the probe) and is not touched by act.
+static BOOL     BWActSessionVerified = NO;
+static NSUInteger BWActSetFail  = 0; // notify_set_state failures (act)
+static NSUInteger BWActPostFail = 0; // notify_post failures (act)
 
 // ---- keyboard guard state (§5.5) ----
 enum { BWKbUnknown = 0, BWKbInactive = 1, BWKbActive = 2 };
@@ -172,6 +190,17 @@ static NSUInteger BWLoggedSeqs = 0;  // 200/launch individual-log cap
 static NSUInteger BWOverSeqs = 0, BWOverSwallow = 0, BWOverPinch = 0;
 static NSTimeInterval BWNow(void) {
     return [NSProcessInfo processInfo].systemUptime;
+}
+
+// Monotonic stamp for act decision logs (WO fix-w W1):
+// mach_absolute_time converted to milliseconds; immune to wall-clock
+// changes, so app-side and owner-side lines can be ordered by it.
+static uint64_t BWActNowMs(void) {
+    static mach_timebase_info_data_t tb;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ mach_timebase_info(&tb); });
+    return (uint64_t)((mach_absolute_time() * (uint64_t)tb.numer)
+                      / (uint64_t)tb.denom / 1000000ULL);
 }
 
 static uint32_t BWOwnHash28(void) {
@@ -233,24 +262,115 @@ static void BWPostWake(uint32_t seq) {
     notify_post(BWNameWake);
 }
 
-// AutoHide activity feed (design-autohide §3.2.1/§5.3): posted from the
-// Began observation path of the existing sendEvent: hook when the
-// hosted session is valid — BEFORE any swallow decision, so a chain
-// that gets swallowed still counts as activity (it is the touch that
-// fires the wake). Posted in every WAKE_MODE, including OFF/DRY_RUN:
-// AutoHide is independent of suppression (the QA19 relay precedent).
-// Throttled at 0.12 s (the QA19/QA20 on-car-proven value). The packet
-// carries no touch content — hash/gen/seq only; flag = kbActive, the
-// keyboard-guard state at post time (§5.5 of design-bridgewake).
-static void BWPostAct(void) {
+// AutoHide activity feed (design-autohide §3.2.1/§5.3; emission basis
+// reworked by WO fix-w W2-A/W3): posted from the Began observation
+// path of the existing sendEvent: hook — BEFORE any swallow decision,
+// so a chain that gets swallowed still counts as activity (it is the
+// touch that fires the wake). Posted in every WAKE_MODE, including
+// OFF/DRY_RUN: AutoHide is independent of suppression (the QA19 relay
+// precedent). Throttled at 0.12 s (the QA19/QA20 on-car-proven value).
+// The packet carries no touch content — hash/gen/seq only;
+// flag = kbActive, the keyboard-guard state at post time (§5.5 of
+// design-bridgewake).
+//
+// Emission basis (W2-A): session-verified identity + scene binding,
+// NOT state freshness. The retired rule (post only while BWFresh())
+// starved this feed exactly when it mattered: the owner emits state
+// on change and on query, so once the controls had been faded for a
+// while the app's state copy was older than 2.5 s and the revealing
+// touch itself posted nothing — the feed locked its own reveal path
+// out (convicted from source by the post-fs1 audit; Nguyen's car
+// report matches: only a tap on the invisible logo button, whose
+// handler lives in CarPlayApp, brought the controls back). An act
+// packet claims nothing but "the verified hosted session saw a touch
+// on the hosted scene": the owner re-validates hash/gen/assignment/
+// session on receipt, and act never grants suppression rights —
+// BWGatePass keeps demanding fresh state exactly as before.
+// Returns YES when a packet was actually posted (NO when throttled);
+// the notify status codes are handed back for the decision log (W1).
+static BOOL BWPostAct(int *setStatus, int *postStatus) {
     NSTimeInterval now = BWNow();
-    if (now - BWLastActAt < 0.12) return;
+    if (now - BWLastActAt < 0.12) return NO;
     BWLastActAt = now;
     if (!BWActToken) notify_register_check(BWNameAct, &BWActToken);
     uint64_t raw = BWPackFields(BWOwnHash28(), (++BWActSeq) & 0xFFFu, BWGen,
                                 BWKb == BWKbActive, 0, 0, 0, BWTypeAct);
-    notify_set_state(BWActToken, raw);
-    notify_post(BWNameAct);
+    int ss = notify_set_state(BWActToken, raw);
+    int ps = notify_post(BWNameAct);
+    if (ss != 0) BWActSetFail++;
+    if (ps != 0) BWActPostFail++;
+    if (setStatus) *setStatus = ss;
+    if (postStatus) *postStatus = ps;
+    return YES;
+}
+
+// ---- act scene binding (WO fix-w W3) ----
+// An act may only be posted for touches on the scene CarPlay actually
+// hosts in this process. Authority order: when a YT-Zoom lease has
+// pinned a scene id, the scene whose candidate id matches it is the
+// hosted scene; otherwise the scene of ABKeyWindow() — the same
+// window the suppression gate verifies targets against (sub_61D0:
+// first key, non-hidden window). A non-nil touch.window is NEVER
+// sufficient on its own: an iPhone-screen touch in the same process
+// lives in a different scene and must not wake the car's controls.
+static UIWindowScene *BWActHostedScene(void) {
+    if (YZLeaseSceneID.length > 0) {
+        for (UIScene *s in [UIApplication sharedApplication].connectedScenes) {
+            if (![s isKindOfClass:UIWindowScene.class]) continue;
+            NSString *cand = YZSceneCandidateID((UIWindowScene *)s);
+            if (cand && [cand isEqualToString:YZLeaseSceneID])
+                return (UIWindowScene *)s;
+        }
+        return nil; // the lease names a scene this process cannot find
+    }
+    UIWindow *kw = ABKeyWindow();
+    return kw ? kw.windowScene : nil;
+}
+
+// Act decision at a sequence's Began (WO fix-w W1/W2-A/W3). Every
+// outcome is logged once per sequence with a monotonic ms stamp and
+// the age of the state copy, so a car log can convict "the hook saw
+// the touch but the state was old" (act-posted with a large stateage)
+// separately from "no session was ever verified" (act-drop-nosession)
+// and from scene mis-binding (act-drop-scene / -target-unknown).
+static void BWActOnSequenceStart(NSSet *began) {
+    uint64_t tms = BWActNowMs();
+    long ageMs = BWKnown ? (long)((BWNow() - BWStateRxAt) * 1000.0) : -1L;
+    if (!BWActSessionVerified) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[autohide] act-drop-nosession t=%llu stateage=%ld",
+            (unsigned long long)tms, ageMs]);
+        return;
+    }
+    UIWindowScene *hosted = BWActHostedScene();
+    BOOL unknown = (hosted == nil);
+    BOOL foreign = NO;
+    if (!unknown) {
+        for (UITouch *t in began) {
+            if (!t.window) { unknown = YES; break; }
+            if (t.window.windowScene != hosted) { foreign = YES; break; }
+        }
+    }
+    if (unknown) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[autohide] act-drop-target-unknown t=%llu stateage=%ld",
+            (unsigned long long)tms, ageMs]);
+        return;
+    }
+    if (foreign) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[autohide] act-drop-scene t=%llu stateage=%ld",
+            (unsigned long long)tms, ageMs]);
+        return;
+    }
+    int ss = -1, ps = -1;
+    if (BWPostAct(&ss, &ps)) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[autohide] act-posted t=%llu stateage=%ld gen=%lu set=%d post=%d setfail=%lu postfail=%lu",
+            (unsigned long long)tms, ageMs, (unsigned long)BWGen,
+            ss, ps,
+            (unsigned long)BWActSetFail, (unsigned long)BWActPostFail]);
+    }
 }
 
 static void BWCompleteTxn(void) {
@@ -300,6 +420,9 @@ static void BWOnStatePacket(uint64_t raw) {
     BWPinchMode = BWNormMode(p.pinchMode);
     BWPinchAllowed = (p.flag != 0);
     BWKnown = YES;
+    BWActSessionVerified = YES; // WO fix-w W2-A: this acceptance (valid
+                                // pack + own hash + gen accepted) is the
+                                // act feed's session identity.
     BWStateRxAt = now;
     // A fresh state packet is the unlock condition of §5.4 for both the
     // mixed-touch lock and the ack-timeout latch.
@@ -498,11 +621,12 @@ static BOOL BWHandleTouchEvent(UIEvent *event) {
             for (UITouch *t in began)
                 if (!t.window) { BWSeqHosted = NO; break; }
         }
-        // AutoHide activity feed (design-autohide §5.3): a Began in a
-        // valid hosted session (sessionValid, §5.1 of design-bridgewake
-        // — BWFresh() over the state client's existing facts, no new
-        // criterion) is activity whatever the gate decides below.
-        if (BWFresh()) BWPostAct();
+        // AutoHide activity feed (design-autohide §5.3; basis reworked
+        // by WO fix-w W2-A/W3): a Began in the session-verified hosted
+        // session, bound to the hosted scene, is activity whatever the
+        // gate decides below. State freshness is NOT the criterion —
+        // it remains the suppression gate's alone (BWGatePass).
+        BWActOnSequenceStart(began);
         NSString *reason = nil;
         BWSeqWouldSwallow = BWGatePass(event, &reason);
         BWSeqFailOpen = reason;
@@ -639,6 +763,7 @@ static void BWResetAll(void) {
     BWFailOpenLatch = NO;
     BWState = BWStateUnknown;
     BWKnown = NO;
+    BWActSessionVerified = NO; // WO fix-w W2-A: session closed
     BWGen = 0;
     BWKb = BWKbUnknown;
     BWWakeMode = BWModeDryRun;
