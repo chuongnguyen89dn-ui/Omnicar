@@ -106,6 +106,46 @@ static NSString *SCPViewMeasureDesc(UIView *view) {
         NSStringFromCGRect(view.frame), bg];
 }
 
+// [picker-measure3] (hl4, MEASURE ONLY): raw background of a colour
+// for the measure line — unlike SCPViewMeasureDesc, a nil colour is
+// reported as "nil" (not "?"), because 29.23 L5 showed the sheet's
+// and the scene host's backgroundColor are in fact nil (their "bg=?"
+// in measure2 hid whether the colour was absent or unreadable).
+static NSString *SCPMeasureBgRaw(UIColor *color) {
+    if (color == nil) return @"nil";
+    CGFloat r = 0, g = 0, b = 0, a = 0;
+    if ([color getRed:&r green:&g blue:&b alpha:&a])
+        return [NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f", r, g, b, a];
+    return @"?";
+}
+
+// [picker-measure3] (hl4, MEASURE ONLY): class-prefixed live-state
+// summary of every subview of a view, joined with " | " ("none" when
+// the view has no subviews, "nil" when the view itself is nil).
+// SCPViewMeasureDesc names the SUPERVIEW's class, not the view's own,
+// so the class is spelled out here — 29.23 L5 needs the class of the
+// picker's single subview and of the scene host's content subviews.
+static NSString *SCPMeasureSubviewDescs(UIView *view) {
+    if (view == nil) return @"nil";
+    if (view.subviews.count == 0) return @"none";
+    NSMutableArray<NSString *> *parts = [NSMutableArray array];
+    for (UIView *sub in view.subviews)
+        [parts addObject:[NSString stringWithFormat:@"%@{%@}",
+            NSStringFromClass(sub.class), SCPViewMeasureDesc(sub)]];
+    return [parts componentsJoinedByString:@" | "];
+}
+
+// [picker-measure3] (hl4, MEASURE ONLY): index of a view inside its
+// superview's subview order (back-to-front), with the sibling count —
+// the z-order evidence 29.23 L5 asked for. -1/0 when detached.
+static NSString *SCPMeasureZIndex(UIView *view) {
+    if (view == nil || view.superview == nil) return @"-1/0";
+    NSUInteger idx = [view.superview.subviews indexOfObject:view];
+    return [NSString stringWithFormat:@"%lu/%lu",
+        (unsigned long)(idx == NSNotFound ? 0 : idx + 1),
+        (unsigned long)view.superview.subviews.count];
+}
+
 // Bridged-phone-app predicate @0x101bc (name INFERRED; also called from
 // module A methods — dedupe at integration, A owns most call sites).
 static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
@@ -688,6 +728,25 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // sheet, picker, cover, scene host and tray window are read in
     // their final presented state. Read-only: logs only, no view
     // behaviour is changed.
+    // [picker-measure3] (hl4, MEASURE ONLY): the hl3 session
+    // (29.23 L5) still could not convict a cover: every measure2
+    // field matched between hosted and native opens, the trayWin
+    // opaque-background hypothesis was refuted on its bg field, and
+    // the SHEET was left as the only standing candidate while its
+    // background was absent from 10/10 lines. This extension adds
+    // exactly the fields 29.23 L5 listed as missing, at the same
+    // post-presentation point: (1) sheetBg/sheetFx/fxContentBg —
+    // the sheet's own background (nil: its face is the
+    // UIVisualEffectView subview) plus that effect view's state and
+    // its contentView background; (2) sceneBg/sceneSubs — the pane
+    // scene host's own background (nil) plus the class/state of the
+    // subviews that actually carry the hosted scene; (3) psub —
+    // class/frame/bg/alpha/hidden of the picker's single subview
+    // (subs=1 in hl3); (4) shield/pshield — popupShield and
+    // pickerShield state AT presented (measure2 omitted both);
+    // (5) z{...} — subview-order position of picker vs scene host
+    // inside the pane and of the sheet inside its host, plus both
+    // window levels. All measure2 fields are kept verbatim.
     {
         BOOL measureHasContent = (pane.vc != nil || [self slotOccupied:pane.slot]);
         UIWindow *measureWin = self.trayWindow;
@@ -697,13 +756,34 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
             if ([measureWin.backgroundColor getRed:&wr green:&wg blue:&wb alpha:&wa])
                 measureWinBg = [NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f", wr, wg, wb, wa];
         }
+        UIVisualEffectView *measureFx = nil;
+        for (UIView *sub in self.pickerSheet.subviews)
+            if ([sub isKindOfClass:UIVisualEffectView.class]) {
+                measureFx = (UIVisualEffectView *)sub;
+                break;
+            }
+        UIView *measurePSub = pane.picker.subviews.firstObject;
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[picker-measure2] phase=presented slot=%d hosted=%d hasContent=%d picker{%@ subs=%lu} sheet{%@} cover{%@} scene{%@} trayWin{hidden=%d alpha=%.2f frame=%@ level=%.0f bg=%@ root{%@}}",
+            @"[picker-measure2] phase=presented slot=%d hosted=%d hasContent=%d picker{%@ subs=%lu} psub{%@} sheet{%@} sheetBg=%@ sheetFx{%@} fxContentBg=%@ cover{%@} scene{%@} sceneBg=%@ sceneSubs{%@} shield{%@} pshield{%@} z{picker=%@ host=%@ sheet=%@ pwin=%.0f swin=%.0f} trayWin{hidden=%d alpha=%.2f frame=%@ level=%.0f bg=%@ root{%@}}",
             pane.slot, SCPIsBridgedPhoneApp(pane.bundleID) ? 1 : 0, (int)measureHasContent,
             SCPViewMeasureDesc(pane.picker), (unsigned long)pane.picker.subviews.count,
+            measurePSub ? [NSString stringWithFormat:@"%@{%@}",
+                NSStringFromClass(measurePSub.class),
+                SCPViewMeasureDesc(measurePSub)] : @"none",
             SCPViewMeasureDesc(self.pickerSheet),
+            SCPMeasureBgRaw(self.pickerSheet.backgroundColor),
+            SCPViewMeasureDesc(measureFx),
+            SCPMeasureBgRaw(measureFx.contentView.backgroundColor),
             SCPViewMeasureDesc(pane.cover),
             SCPViewMeasureDesc(pane.host),
+            SCPMeasureBgRaw(pane.host.backgroundColor),
+            SCPMeasureSubviewDescs(pane.host),
+            SCPViewMeasureDesc(self.popupShield),
+            SCPViewMeasureDesc(self.pickerShield),
+            SCPMeasureZIndex(pane.picker), SCPMeasureZIndex(pane.host),
+            SCPMeasureZIndex(self.pickerSheet),
+            pane.picker.window ? pane.picker.window.windowLevel : -1.0,
+            self.pickerSheet.window ? self.pickerSheet.window.windowLevel : -1.0,
             measureWin ? (int)measureWin.isHidden : -1,
             measureWin ? measureWin.alpha : 0.0,
             measureWin ? NSStringFromCGRect(measureWin.frame) : @"nil",
