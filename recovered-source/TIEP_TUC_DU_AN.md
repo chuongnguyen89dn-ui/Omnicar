@@ -853,6 +853,21 @@ CÙNG bản hl3, vẫn một deb giao xe.
 
 **Cập nhật vòng hl3 (lệnh Nguyen 22:14 — PATCH §29.14):** cổng phím đã lật về NATIVE KHOÁ CỨNG cho app hosted (commit source `5eac902`): host không còn đọc pref, migration hl2 bị xoá và marker của nó vô hiệu, payload luôn drawnKeyboard=0 (mode=native-locked-hl3), phía app khôi phục mặc định native của ytz5 và bỏ qua mọi payload drawn=1. Đây là lệnh trực tiếp của Nguyen GHI ĐÈ phán quyết drawn-mặc định của GPT và mảng K6 của hl2; hệ quả native không hiện phím cho app hosted (đã chứng minh ở §29.12) là điều Nguyen đã biết và vẫn chốt — quyết định của chủ dự án. kbstate giữ nguyên; pinch/Gate-3/picker/dock của hl2 không đụng. Trạng thái: source-complete — ĐÓNG GÓI GIỮ LẠI theo lệnh 22:19+ (sự cố điều phối: sync ci-fat-test + dispatch đã chạy lúc 22:19:14, ngay trước khi lệnh giữ tới; artifact không tải, không giao — chi tiết ở §29.14). Chờ fix pinch/Gate-3 theo log phiên hl2 gộp vào cùng build hl3 rồi mới dispatch lại — vẫn một deb giao xe.
 
+**Cập nhật 22:21 (đối chiếu pinch hl2 vs bản thành công 21–35 — PATCH §29.16):** Nguyen hỏi
+"Có làm đúng với bản thành công trước đây không?" — trả lời: **KHÔNG**. Pinch hl2 khác mẫu
+21–35 ở 4 điểm cốt tử: (1) kích hoạt chờ ngưỡng tỉ lệ khoảng cách 1.10/0.90 + điều kiện
+mid-drift thay vì **Began ngay khi ngón thứ hai chạm**; (2) thông số lấy từ
+SCPPinchController của bản gốc 1.0.3 thay vì dùng cơ chế đã chứng minh làm đặc tả; (3) thêm
+cổng chặn (SPLIT+HIDDEN không bao giờ nhận, kb UNKNOWN chặn, owner validate 6 lớp) trong
+khi bản thành công gần như không có cổng giữa ngón chạm và hành động; (4) phân hướng theo
+hình học cử chỉ (tách = bung, chụm = thu) thay vì **toggle theo trạng thái fullscreen hiện
+tại** — hỏng lệch một chiều đúng triệu chứng phiên xe hl2 (bung 1–2 lần, thu 0 lần). Kết
+luận ghi hồ sơ: **lỗi chọn sai mẫu thiết kế khi thi công hl2**, dù Nguyen đã chỉ đúng mẫu
+21–35 lúc 20:39 cùng ngày; không phải giới hạn xe/phần cứng. Hướng sửa đã chốt: làm lại
+pinch theo mẫu 21–35 (Began khi ngón 2 chạm + cancelsTouchesInView + toggle theo trạng
+thái; bỏ ngưỡng khỏi điều kiện kích hoạt), gộp vào hl3 đang giữ CI cùng sửa cổng phím;
+picker + Gate-3 trial vẫn chờ log phiên hl2 phân định.
+
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 
 1. **Cực của nhánh quyết định là bệnh tái phát** (C-A, publishKnobsNow, hai cổng hướng — bốn lần đảo
