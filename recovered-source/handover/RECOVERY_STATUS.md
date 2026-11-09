@@ -2408,3 +2408,202 @@ remains Nguyen's daily build; ytz3 supersedes ytz2
 as the single acceptance build, ytz1 remains
 quarantined, and the rollback line gains the ytz2
 FAT (ytz2, fs1, fixround7, QA20 unified package).
+
+YTZ3 DEVICE SESSION (2026-11-09; logs uploaded in
+9be396b, analysed by three parallel analysts —
+analysis-b1/b2/b3; full verdicts in PATCH_NOTES
+section 26). The analysis window runs from the
+first [probe-feed] line (OmniCar.log.old line
+2332, 16:18:14, CarPlay PID 34964) to the end of
+OmniCar.log (16:50:44) — 5,505 lines; CarPlay
+changed PID three times in the window (34964 ->
+34985 -> 35035, SpringBoard in sync) with ZERO
+crash/exception signatures in either file, so the
+restart cause remains undetermined (same pattern
+as the ytz2 session). FULLSCREEN: DEVICE PASS —
+the diagnostics switch was exercised 20 ON / 20
+OFF, every toggle logged; expand confirmed 13,
+restore confirmed 11 plus 2 abbreviated
+session-end restores, books balanced; all 16
+refusals are state-based (inactive x7, state=
+SPLIT x9), reason tray/picker/popup = 0, and all
+16 refusal snapshots are identical with every
+popup content pointer at 0 while the retained
+trayWindow (tw=1, hidden) and the sticky
+trayOverlay flag (to=1) are present — direct
+device proof the new content-based guard works
+where the ytz2 existence-based guard would have
+refused with reason=tray. GPT's mandatory case
+(open picker -> close completely -> expand must
+run) appears in full TWICE (picker open 16:21:06
+-> picker=0 by 16:22:03 -> expand confirmed
+16:22:04.454; and 16:27:30 -> 16:27:50.015). The
+reverse direction (a genuinely open popup must
+still block) has NO direct fullscreen case this
+session — the guard never faced an open popup;
+blocking-while-open is evidenced only at the
+feed layer (drop-popup x6 for the picker).
+NATIVE WAKE: DEVICE PASS — the CarPlayApp feed
+fired 41 times, 100% on native panes (Maps x39,
+GOFA x2), and the decisive chain fade -> native
+Began -> fired -> reveal-applied completed 6/6
+with 0–3 ms latency, against the ytz2 conviction
+baseline of 41 native Began -> 0 reveals; the
+native wake gap is closed at mechanism level for
+live split sessions. Hosted act stayed closed:
+26 posted -> 26 accepted -> 0 owner drops; the
+12 app-side act-drop-nosession lines all follow
+the 16:25:58 split teardown (YouTube went solo),
+so the loop ended because the session ended. Of
+14 fades, exactly one orphan — a fade at
+16:18:31 in PID 34964 followed only by two
+ineligible touches (Home corner, split already
+off) before that PID died: orphaned by session
+death, not by a skipped eligible touch.
+
+GATE 3 (swallowing the first touch) stays
+CLOSED, and the blocker has narrowed to exactly
+one signal: on all 38 app-side DRY_RUN probe
+lines the kb field is "-" (undetermined) — the
+app never once observed a definite keyboard
+state — while the owner recorded kb=0 on 26/26
+accepted acts; all 4 failopen=kbunknown cases
+sit at state=H, precisely the suppression-
+deciding cases, so wouldSwallow stayed 0/38.
+State freshness is no longer part of the
+blocker: posted-act stateage maxed at 987 ms
+(0 over 1,000 ms), and the W2 discriminating
+case (an act older than 2,500 ms) again never
+occurred — renewal keeps state young, so the
+freshness split remains proven only indirectly.
+AUTOHIDE IN EXPANDED: Nguyen's complaint is
+confirmed numerically — 13 expanded intervals
+total ~961 s (longest 521.3 s, i.e. 130x the
+4.00 s idle threshold) with ZERO fades inside
+them; suspend paired 1-1 with all 13 expands
+and the feed still fired (9 lines) into a
+no-op. The two stacked suspension locks were
+already pinpointed from source in the previous
+round (hard suspend via bwSetExpandedActive:
+at SCPCarSplit+BridgeWake.m:331, whose
+ahNoteActivity becomes a full no-op, plus the
+"expanded" term at the head of
+ahFadeBlockedReason, SCPCarSplit+AutoHide.m:
+141); lifting only one lock changes nothing,
+and GPT must rule before both are lifted.
+YT-ZOOM: DEVICE PASS with the FIRST VALID OFF
+CONTROL — the OFF interval finally measured
+11.121 s (ytz2 had only 0.5 s). In one and the
+same session: lease granted gen=0, revoked by
+pref at 16:22:22.329 (app virtualisation off
++4 ms, ack revoked windows=0), and during OFF
+the original disease reproduced on the ORIGINAL
+path — the app issued 4 orientation requests,
+the two mask-24 (fullscreen player) requests
+were answered by inferring orientation 4 and
+WRITING it into requestedOrientation, proven
+positively by the "sua residue:
+requestedOrientation 4 -> 0" cleanup line the
+moment the switch came back on (16:22:33.449),
+immediately followed by re-grant gen=10 and
+the first mask-24 packet after re-grant being
+blocked in the same millisecond. Session
+totals: ack applied 38/38, all windows=1
+mismatch=0; expired 0, lease-lapse 0,
+isSplit-fallback 0. The revoke-runs-no-layout
+finding (R1, convicted from source last round)
+is consistent with the log: zero layout/commit
+lines for the YouTube pane in the 2 s after
+revoke and across the whole OFF interval, the
+host's first settings action coming at +5.7 s —
+but the OFF skew needs neither R1 nor R3: the
+live original path is sufficient cause. R3 did
+not occur in its "no new declaration" form (a
+new declaration arrived at +5.7 s and was
+itself mishandled by the original path). R2
+(the app-side restore snapshot being the
+session-start size) is NOT checkable from this
+log — the revoke line carries no snapshot
+size.
+
+KEYBOARD: the right pane at photo time was
+Google Maps running NATIVE (scene
+Car[2-3]:...:com.google.Maps via
+DBApplicationSceneViewController, frame
+{254, 240} after the 16:19:49 divider drag) —
+hypothesis H2 is PROVEN and H1 holds at
+geometry level: the squeezed keyboard in the
+photo is the system keyboard rendered inside
+Maps' own pane-sized native scene, not the
+self-drawn hosted keyboard (zero "ban phim xe:
+hien cho" lines all session; host-attach only
+ever YouTube). The ytz2->ytz3 delta was
+already eliminated file by file last round
+(AppBridge untouched; every changed line is
+logging or pure reads). Note for Gate 3: kb=1
+never appears anywhere in the window — a
+native app's keyboard is invisible to the wake
+gate. TOUCHSET: all 62 active=2 snapshots are
+DUPLICATE representations of one physical
+contact (0/62 pairs with different evB, 0/62
+with two distinct start points; the gesture
+window's record freezes at the start point
+while the content window's record tracks the
+finger) — naive pairing would have produced
+62 fake pinches, including Home-corner touches
+and one-finger map drags. No genuine
+two-contact sample exists in either the ytz2
+or ytz3 session, so CarPlayApp-level pairing
+has nothing to calibrate against; the
+container recogniser again formed zero pairs
+all session and the pinch path stayed fully
+dormant under DRY_RUN, as designed. ICON /
+WHITE PANE: the [applib] reader is BLIND —
+live-grid-read returned count=0 in 5/5 reads,
+so no populated grid was ever observed to
+compare against; com.anlai.omnicar.app appears
+nowhere (0 hits in every list, and it is not
+in the drop list either — the 12 library-walk
+drops are all (no-carplay-ui)), i.e. the icon
+is constantly absent from every built list
+with no 1->0 transition: the ytz2 icon-loss
+mechanism is NOT in this log to convict, and
+going further needs a round at the real Home
+path (SCPHooks.m / SCPAppIcons.m /
+SCPHomeApply.m) under a new GPT ruling. The
+white pane did not recur: scenevis verify
+25/25 fully healthy, every attached=0 line is
+the structurally normal hosted-YouTube
+scene=nil state. WEATHER: zero real CarPlay
+requests all session (req# / answer-received /
+applied / display all 0); two warming-cache
+transactions, one after each SpringBoard
+restart, both completed (location status 0 ->
+nav-app fallback, HTTP 200 in ~1.1–1.2 s) —
+the request -> answer -> display chain STILL
+has no evidence, now for the stronger reason
+that no real request ever fired. SIX questions
+now wait on GPT: (i) an app-side kb signal for
+Gate 3 (including the native-keyboard case);
+(ii) lifting BOTH AutoHide suspension locks in
+EXPANDED; (iii) revoke symmetry for YTZ and
+the R2 snapshot-size policy; (iv) opening the
+real Home-library files for the icon
+mechanism; (v) pinch — calibrate against a
+genuine two-contact sample (never yet
+recorded) or park CarPlayApp pairing, with
+(evB + start point + window) dedup as a proven
+prerequisite; (vi) fullscreen semantics —
+the current build expands the SPLIT SURFACE
+over the whole display (panes keep their
+ratio, dock area reclaimed), not one pane to
+full screen, and Nguyen asked directly how
+fullscreen works. The standing test build
+remains the ytz3 FAT; QA20 remains the daily
+build; VISUAL_ORIGINAL_COMPARISON remains
+PENDING; the knob verdict remains PENDING on
+NO DATA. No fix enters a build on these
+session findings alone — the mechanism-clear
+ones (AutoHide suspension, revoke symmetry)
+wait for GPT's rulings and then ship together
+in ONE deb under Nguyen's one-deb rule.

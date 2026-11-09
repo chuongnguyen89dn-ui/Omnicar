@@ -4937,3 +4937,518 @@ bằng ngoặc của phần cộng) đều sạch — 0 thay đổi
   thu duy nhất hiện hành. Rollback: ytz2 FAT +
   fs1 FAT + fixround7 FAT + gói hợp nhất QA20.
   ytz1 vẫn CÁCH LY.
+
+## 26) PHIÊN XE YTZ3 — PHÁN QUYẾT TỪ LOG
+(2026-11-09)
+
+### 26.0 Nguồn dữ kiện
+
+- Hai file log Nguyen upload (commit 9be396b):
+  OmniCar.log.old 2.100.219 B, SHA-256
+  ea0b20ba… (6.957 dòng, 15:33:22 →
+  16:35:40) và OmniCar.log 107.094 B, SHA-256
+  7c14140d… (879 dòng, 16:35:40 → 16:50:44).
+- Cửa sổ ytz3: từ dòng [probe-feed] đầu tiên
+  (log.old dòng 2332, 16:18:14.148, CarPlay
+  PID 34964) tới hết OmniCar.log — 5.505
+  dòng. Phần trước mốc trong log.old là đuôi
+  phiên ytz2, ngoài phạm vi.
+- CarPlay PID trong cửa sổ: 34964 → 34985 →
+  35035 (SpringBoard đồng bộ 34934 → 34986 →
+  35036); YouTube: 34974 / 35007 / 35060.
+- Ba đội phân tích song song chỉ-đọc:
+  analysis-b1-fs-icon-weather (FS / icon /
+  scenevis / weather), analysis-b2-wake-feed
+  (wake / feed / failopen),
+  analysis-b3-ytz-kb-touchset (YTZ / bàn phím
+  / touchset) — số đếm độc lập khớp nhau ở
+  các điểm giao. Biên bản: handover/reports/.
+
+### 26.1 Fullscreen — controller + guard:
+DEVICE PASS
+
+- Công tắc chẩn đoán: 20 lần ON, 20 lần OFF —
+  mọi lần gạt đều có dòng [fs-diag] tương ứng
+  (khớp báo cáo của Nguyen "công tắc
+  fullscreen có hoạt động").
+- Expand confirmed 13 (PID 34985 ×7, 35035
+  ×6); restore confirmed 11 + 2 restore rút
+  gọn ở session-end (teardown). Sổ sách khép
+  kín: 13 = 11 + 2; 20 ON = 13 chạy + 7 từ
+  chối; 20 OFF = 11 restore + 9 từ chối.
+- Refusal 16, TẤT CẢ state-based: expand
+  refused reason=inactive ×7; restore refused
+  state=SPLIT ×9. reason tray / picker /
+  popup / solo / zoom = 0 trong toàn cửa sổ.
+  Snapshot 16/16 giống hệt nhau: tw=1 twh=1
+  to=1 (window giữ lại + đang ẩn + cờ dính)
+  nhưng tray=0 picker=0 ratio=0 — không bề
+  mặt popup nào đang hoạt động tại bất kỳ
+  lần từ chối nào. Bằng chứng trực tiếp cho
+  guard mới: ca 16:19:08.507 mang đúng tổ hợp
+  mà vị từ cũ của ytz2 sẽ kết án reason=tray,
+  nay chỉ bị từ chối vì inactive.
+- Ca bắt buộc của GPT (mở picker → đóng HOÀN
+  TOÀN → gạt công tắc: expand phải chạy)
+  xuất hiện TRỌN VẸN 2 lần: (a) picker mở
+  ~16:21:06 (feed drop-popup(picker) ở
+  16:21:08–16:21:11) → snapshot picker=0 lúc
+  16:22:03.749 → expand confirmed
+  16:22:04.454; (b) picker mở 16:27:30.396 →
+  picker=0 lúc 16:27:49.518 → expand
+  confirmed 16:27:50.015.
+- Chiều ngược (popup đang mở thật thì vẫn
+  phải chặn): KHÔNG có ca FS trực tiếp trong
+  phiên — guard không đối mặt một popup đang
+  mở nào (picker=0 ở 16/16 snapshot). Tính
+  chặn-khi-mở chỉ có bằng chứng ở tầng feed
+  (drop-popup phía feed ×6 riêng cho picker,
+  tổng drop-popup ×15). Ghi đúng phạm vi:
+  nửa này của cổng chưa đạt DEVICE, giữ ở
+  mức tĩnh + feed.
+
+### 26.2 Wake — feed native DEVICE PASS;
+act hosted khép kín
+
+- [probe-feed] tổng 155 dòng: fired 41 +
+  drop 114. Fired 100% là ô native (Maps
+  slot1 ×32, Maps slot0 ×7, GOFA slot1 ×2;
+  một số cú chạm vật lý có 2 dòng qua 2 cửa
+  sổ → ≈38 cú phân biệt). Drop: inactive
+  ×44, hosted ×36 (nhường đường act), popup
+  ×15, systemregion ×9, notassigned ×5,
+  unconverted ×5; drop-display = 0 — cổng
+  display chưa từng kích hoạt, chưa kiểm
+  chứng (không phải đã chứng minh).
+- Ca quyết định fade → Began trên ô native →
+  fired → reveal-applied: TRỌN 6/6 (1 ca
+  biên ngay trước mốc cửa sổ + 5 trong cửa
+  sổ), trễ Began → reveal 0–3 ms. Đối chiếu
+  phiên ytz2 (kết án cũ): fade 15:37:49 → 16
+  Began native → 0 reveal; fade 15:39:33 →
+  25 Began → 0 reveal (41 Began, tỉ lệ
+  chuyển đổi 0%). Khe wake phía native đã
+  ĐÓNG ở tầng cơ chế đối với các phiên split
+  đang active.
+- Act hosted: act-posted 26 (chỉ YouTube —
+  PID 35007 ×20, 35060 ×6), act-accepted 26,
+  drop phía owner 0 trên cả 6 lý do → vòng
+  khép kín 26/26. 12 ca act-drop-nosession
+  phía app (stateage=-1) đều nằm SAU
+  teardown phiên split 16:25:58 (YouTube
+  chuyển solo toàn màn, renew dừng): vòng
+  act kết thúc vì PHIÊN kết thúc, không phải
+  đứt đường truyền.
+- Fade 14, reveal-applied 13 (activity ×9,
+  unsuspend ×4 — các reveal unsuspend là dọn
+  fade tại miệng vào EXPANDED, không phải do
+  chạm). MỒ CÔI đúng 1 ca: fade
+  16:18:31.943 (PID 34964) — sau fade chỉ có
+  2 cú chạm đều không đủ điều kiện (góc Home
+  → drop-systemregion; split đã tắt →
+  drop-inactive) rồi PID chết 16:19:08: mồ
+  côi do PHIÊN CHẾT, không phải feed/act bỏ
+  qua chạm hợp lệ. Gương host: applied hụt
+  đúng 1 ở cả kênh fade lẫn kênh knob =
+  chính ca mồ côi này; teardown cuối phiên
+  (16:42:18) ghi faded=0 — không fade nào
+  treo lúc ngắt.
+- Renewal: 1.275 dòng bw renew, 100%
+  panes=1 (chỉ ô hosted — ô native nay có
+  feed riêng), nhịp tick 1,00 s.
+
+### 26.3 Gate 3 (nuốt cú chạm đầu) — vật cản
+duy nhất còn lại là tín hiệu kb phía app
+
+- Dòng đánh giá DRY_RUN phía app ([do] bw
+  probe): 38, toàn bộ YouTube (35007 ×32,
+  35060 ×6). wouldSwallow=0 ở 38/38;
+  wouldPinch=0 ở 38/38; dòng nuốt thật: 0
+  (đúng thiết kế DRY_RUN — cổng chưa mở).
+- Trường kb= phía app là "-" (không xác
+  định) ở 38/38 dòng — phía app KHÔNG một
+  lần nào quan sát được giá trị kb xác định
+  trong phiên này; trong khi phía owner ghi
+  kb=0 ở 26/26 act-accepted. Failopen:
+  kbunknown ×4 — cả 4 đều ở state=H (đúng
+  các ca quyết định cho suppression) và đều
+  trùng một reveal đóng bởi act; unknown ×12
+  đều state=U, là giai đoạn solo sau
+  teardown (không có phiên — trung thực theo
+  thiết kế, không phải lỗi cổng).
+- Hệ quả: cứ khi nào đủ điều kiện state=H
+  (4/4 ca) cổng đều fail-open vì kbunknown.
+  Bằng chứng suppression vẫn CHƯA trọn,
+  nhưng vật cản đã thu về đúng MỘT điểm: tín
+  hiệu kb phía app chưa từng known — KHÔNG
+  còn là độ tươi của state: stateage của 26
+  act đã posted max 987 ms, 0 ca >1.000 ms.
+- Ca phân định W2 (act với stateage > 2.500
+  ms) LẠI không xuất hiện — phiên thứ hai
+  liên tiếp: renewal giữ state luôn trẻ nên
+  phép tách freshness của W2 vẫn chỉ có bằng
+  chứng gián tiếp. Phát biểu đúng cho GPT:
+  feed xác nhận gán-ô-hiện-hành đọc tại chỗ
+  + độ tươi state đã đủ; điều kiện
+  suppression còn thiếu duy nhất kênh kb
+  phía app.
+
+### 26.4 AutoHide khi EXPANDED — complaint
+của Nguyen XÁC NHẬN BẰNG SỐ
+
+- 13 khoảng expanded (expand confirmed →
+  restore / session-end) tổng ≈961 s; ba
+  khoảng dài nhất 77,6 s / 226,8 s / 521,3 s
+  — gấp 19× / 57× / 130× ngưỡng idle 4,00 s.
+- [autohide] suspend ×13 khớp 1-1 với 13
+  expand (cùng mili-giây), resume ×12 (11
+  khớp restore confirmed + 1 khớp
+  session-end 16:25:58; khoảng expand cuối
+  khép bằng teardown 16:42:18, không có
+  resume). Trong 14 fade của
+  cửa sổ, fade rơi vào khoảng expanded: 0.
+  Feed vẫn bắn trong lúc suspend (9 dòng
+  fired) nhưng ahNoteActivity no-op; controls
+  vốn đã được suspend khôi phục về hiện nên
+  không phát sinh reveal nào.
+- Báo cáo của Nguyen lúc 16:25 ("khi
+  fullscreen thì logo không tự ẩn") nằm
+  trong khoảng 77,6 s — được log xác nhận
+  bằng số, không phải lỗi cảm nhận. Cơ chế
+  đã chỉ đích danh ở probe-ytz3-session-q.md:
+  HAI khoá treo chồng nhau — (1) treo cứng:
+  bwSetExpandedActive: gọi [self
+  ahSetSuspended:active] (SCPCarSplit+
+  BridgeWake.m:331); khi treo, timer bị huỷ
+  và ahNoteActivity no-op toàn phần; (2)
+  chặn ở cổng fade: ahFadeBlockedReason trả
+  "expanded" (SCPCarSplit+AutoHide.m:141).
+  Gỡ một khoá thì không có tác dụng — bản
+  sửa muốn ẩn như ở split phải xử lý cả hai.
+  Việc gỡ chờ GPT phán (mục 26.10).
+- Artefact cần biết khi đọc log các phiên
+  sau: fade 16:23:11.230 ghi idle=97.00 — nó
+  bắn 4,003 s sau resume 16:23:07 nhưng bộ
+  đếm idle tính từ activity cuối TRƯỚC cả
+  giai đoạn suspend. Không ảnh hưởng ghép
+  cặp fade → reveal.
+
+### 26.5 YT-Zoom — DEVICE PASS + đối chứng
+OFF hợp lệ đầu tiên
+
+- Tổng cửa sổ: lease cấp 6 (mọi lease
+  split=1, 6/6), ack phase=applied 38/38 —
+  tất cả windows=1 mismatch=0; ack expired
+  0; lease-lapse 0; isSplit-fallback 0.
+- Ca quyết định cùng một phiên (SpringBoard
+  34986 / YouTube 35007): lease gen=0 cấp
+  16:19:26.759, sống qua các cập nhật cỡ
+  divider (gen 1–9) → 16:22:22.329 [ytz]
+  lease thu hoi ly do=pref → app ao hoa TAT
+  ly do=revoke 16:22:22.333 → ack
+  phase=revoked 16:22:22.337 → 16:22:33.449
+  sua residue: requestedOrientation 4 -> 0 →
+  lease cấp lại gen=10 cùng mili-giây.
+  Khoảng OFF = 11,121 s — lần đầu đối chứng
+  OFF dài ≥10 s thực sự đo được (phiên ytz2
+  chỉ 0,5 s; caveat cũ đã sửa).
+- Trong kỳ OFF, bệnh gốc lộ nguyên hình trên
+  đường gốc: 4 tuyên bố hướng của app được
+  đáp trên đường gốc (không dòng [ytz] chan
+  nào); hai tuyên bố mask 24 (16:22:29.725,
+  16:22:30.378) bị đường gốc suy ra huong 4
+  và GHI vào requestedOrientation — bằng
+  chứng dương là dòng sua residue 4 -> 0 lúc
+  bật lại: trong kỳ OFF trường này đã mang
+  4, phải dọn trước khi cấp lease mới. Đúng
+  cơ chế tiền đề của YTZ (mask 24 → suy ra 4
+  → hoán trục trong hộp dọc). Lời Nguyen
+  "tắt → sai chiều + bó giao diện / bật lại
+  → phóng tốt" khớp log từng đoạn.
+- Ngay sau cấp lại, tuyên bố đầu tiên bị
+  chặn đúng thiết kế: 16:22:33.810 app phát
+  (ma 255, mask 24) → 16:22:33.811 [ytz]
+  chan apporient: pane dang ao hoa.
+- Kiểm R1 (revoke không chạy layout — vòng
+  trước chỉ đích danh từ source): trong 2 s
+  sau revoke phía host chỉ có đúng 2 dòng
+  (thu hồi + ack revoked) — 0 dòng
+  layout/commit khung cho ô YouTube; mở rộng
+  cả khoảng OFF cũng không có lệnh hình học
+  nào; hành động settings đầu tiên của host
+  sau revoke là đáp tuyên bố hướng của app
+  lúc 16:22:28.044 (+5,715 s). Kết hợp bằng
+  chứng dương ở trên: lệch hình học của kỳ
+  OFF không cần tới R1/R3 riêng lẻ — ĐƯỜNG
+  GỐC ĐANG SỐNG là đủ gây ra. (Chuỗi
+  "layoutPane" không tồn tại trong log —
+  phép kiểm này là bằng chứng vắng mặt trên
+  các họ dòng commit khung có trong log.)
+- Kiểm R3: ca này KHÔNG xảy ra theo dạng
+  "không có tuyên bố mới" — app có tuyên bố
+  mới sau +5,7 s, nhưng tuyên bố được xử lý
+  bằng đường gốc nên tự nó tạo trạng thái
+  sai thay vì chữa.
+- R2 (snapshot khôi phục phía app là cỡ đầu
+  phiên): KHÔNG kiểm được từ log này — dòng
+  ao hoa TAT ly do=revoke không kèm kích
+  thước snapshot. Giữ nguyên trạng thái: đã
+  chỉ đích danh ở source (biên bản
+  probe-ytz3-ytzoff-kb.md), chưa có bằng
+  chứng xe.
+
+### 26.6 Bàn phím — ô phải là Google Maps
+NATIVE (H2 chứng minh)
+
+- Dòng ban phim xe: hien cho <bundle> (bàn
+  phím tự vẽ ABKeyboard của đường hosted):
+  0 trong toàn cửa sổ. host-attach chỉ có
+  com.google.ios.youtube ×5 — Maps/GOFA
+  không bao giờ vào ô qua ABHost.
+- Danh tính ô phải tại thời điểm ảnh
+  (~16:20): com.google.Maps ở dạng NATIVE —
+  scene Car[2-3]:…:com.google.Maps qua
+  DBApplicationSceneViewController (attach
+  16:19:25.941), khung {191, 240} lúc dựng;
+  sau cú kéo divider 16:19:49 (ti le cac o =
+  0.33 / 0.67) scene thành {254, 240} — kích
+  thước còn hiệu lực tại thời điểm ảnh
+  (vùng app toàn màn {382, 240} sau dock 45
+  trên màn 427×240; lần đổi cỡ tiếp theo là
+  16:21:25, về {191, 240}). GOFA trong cửa
+  sổ cũng native cùng kiểu.
+- Phán: H2 ĐÚNG và là kết luận chính — phiên
+  này Maps chạy native nên bàn phím trong
+  ảnh là bàn phím HỆ THỐNG dựng trong scene
+  template của chính Maps, không phải
+  ABKeyboard. H1 đúng ở mức hình học (không
+  phải nguyên nhân độc lập): phím bị nén
+  theo bề rộng scene native cỡ ô là hệ quả
+  hình học trực tiếp. Delta ytz2→ytz3 đã bị
+  loại toàn bộ ở vòng điều tra trước
+  (AppBridge 0 file đổi; 8 file đổi đều log
+  thuần / vị từ đọc thuần / quan sát
+  sau-giao — không dòng mới nào chạm được
+  tới hình học bàn phím).
+- Giới hạn bằng chứng: bàn phím native
+  không phát sự kiện nào vào log (kb=1: 0
+  lần trong cả cửa sổ — phím native VÔ HÌNH
+  với cổng wake, xem thêm 26.3); log không
+  cho biết phiên trước ("lần trước không
+  lỗi") app lên hosted hay native — chỉ
+  chốt được phiên này.
+
+### 26.7 Touchset / pinch — 62/62 biểu diễn
+trùng; chưa có mẫu hai-ngón-thật nào
+
+- [touchset] 335 dòng; snapshot active=2:
+  62; active>=3: 0. Trong 62 ca: cặp có evB
+  KHÁC nhau: 0/62; cặp có hai điểm bắt đầu
+  phân biệt (hai ngón thật): 0/62.
+- Mẫu hình cả 62 ca: một contact vật lý bị
+  nhân đôi qua hai window (ba biến thể:
+  cùng điểm + cùng evB ở _UISystemGesture
+  Window — record đóng băng tại điểm bắt
+  đầu — và ở window nội dung — record trượt
+  theo ngón; cặp vùng hệ thống gesture +
+  DBStatusBarWindow, đúng họ ca mẫu
+  {15,222.5} GPT từng cảnh báo; record ma
+  win=(nil) không toạ độ nhưng evB vẫn
+  trùng). Chuỗi kéo dài nhất (16:18:44–49)
+  cũng giữ mẫu: MỘT ngón kéo bản đồ, hai
+  biểu diễn.
+- Hệ quả đo được: nếu ghép mọi record đồng
+  thời thành "hai ngón", 62/62 ca sẽ là
+  pinch GIẢ — gồm cả chạm góc Home và kéo
+  một ngón. Dữ kiện xác nhận hướng của GPT:
+  chưa được ghép cặp tại CarPlayApp nếu
+  không có khử trùng theo (evB + điểm bắt
+  đầu + window). Và ngay cả sau khử trùng:
+  trong CẢ HAI phiên ytz2 + ytz3 không ghi
+  được một pinch hai-ngón-thật nào để hiệu
+  chuẩn (các lần Nguyen pinch thử hoặc
+  không tới CarPlayApp thành hai contact,
+  hoặc bị nuốt vào cùng một biểu diễn — log
+  không phân biệt được hai khả năng đó).
+- Đường pinch trong cửa sổ: 0 tuyệt đối,
+  đúng DRY_RUN — recognizer trên container
+  hợp thành 0 cặp cả phiên (tổng kết phiên
+  16:42:18: pairs complete=0 truncated=0 ở
+  cả split lẫn expanded), wouldPinch=1:
+  0/38 dòng probe, dòng disposition: 0, mọi
+  expand/restore đều provenance=diag ×40 /
+  teardown ×2, provenance=pinch: 0.
+
+### 26.8 Icon / ô trắng — đầu đọc applib MÙ;
+ô trắng không tái hiện
+
+- [applib] 26 dòng, 5 cụm build (16:19:23,
+  16:21:06, 16:21:09, 16:25:47 — PID 34985;
+  16:27:30 — PID 35035). live-grid-read:
+  count=0 omni=0 ở 5/5 lần — đầu đọc
+  lưới-đang-sống trả về RỖNG tại mọi lần
+  đọc; trong suốt phiên không quan sát được
+  một lưới có dữ liệu nào để làm mốc so
+  sánh.
+- com.anlai.omnicar.app xuất hiện 0 lần
+  trong toàn cửa sổ: không ở live-grid-read,
+  không ở picker-native (omni=0,
+  omniFromGrid=0 ×5), không ở bridged-
+  rebuild (omni=0 ×4), không ở
+  publish-for-settings (omni=0 ×2), và
+  KHÔNG nằm trong danh sách drop. Không tồn
+  tại mốc chuyển 1→0 nào: icon vắng một cách
+  HẰNG ĐỊNH ở mọi danh sách được dựng, ngay
+  từ cụm đầu tiên 16:19:23.862. Drop: 5 dòng
+  giống hệt nhau — 12 bundle, tất cả
+  source=library-walk, tất cả cùng một lý
+  do (no-carplay-ui); không drop vì
+  duplicate / not-installed.
+- Phán đúng phạm vi: cơ chế mất icon của vụ
+  ytz2 KHÔNG có trong log này để kết án —
+  omni=0 không phân biệt được "icon đã bị
+  gỡ khỏi lưới" với "lưới không đọc được từ
+  process/ngữ cảnh này". Đầu đọc mù chính là
+  kết quả của vòng này: muốn đi tiếp phải mở
+  vòng tại đường Home thật (SCPHooks.m /
+  SCPAppIcons.m / SCPHomeApply.m) — chờ GPT
+  phán (26.10); không coi mất icon là tự
+  khỏi theo sửa wake. Tương quan phụ: 4 lần
+  tat split không có cụm build nào rơi ngay
+  sau một lần thoát Home; 2 lần đổi PID
+  không kèm dòng [applib] bất thường.
+- Ô trắng: [scenevis] 64 dòng — verify
+  25/25 khoẻ tuyệt đối (attached=1 inHost=1
+  hidden=0 alpha=1.00 window=1; Maps ×14,
+  GOFA ×11). Mọi dòng attached=0 (19 dòng)
+  đều là ô hosted YouTube với scene=nil tại
+  các điểm host-attach / host-state /
+  going-home / detach-bg / invalidate —
+  trạng thái cấu trúc bình thường của ô
+  hosted, không phải chữ ký ô trắng.
+  Going-home snapshot (4 sự kiện, 7 dòng):
+  không ô native nào bị detach/hidden tại
+  thời điểm thoát Home. Phiên này ô trắng
+  KHÔNG tái hiện (Nguyen cũng không phàn
+  nàn) — instrument đã chạy đúng nhưng
+  không có ca để kết án; vụ ô trắng ytz2
+  giữ nguyên trạng thái: thiếu bằng chứng
+  trạng thái tại đúng thời điểm trắng.
+
+### 26.9 Weather + đổi PID
+
+- Weather: 8 dòng [weather] — toàn bộ thuộc
+  2 giao dịch warming-cache phía
+  SpringBoard, mỗi giao dịch ngay sau một
+  lần SpringBoard khởi động lại (16:19:28,
+  PID 34986; 16:27:35, PID 35036). Cả hai
+  kết thúc trọn vẹn: ans# begin →
+  fetch-begin (location status 0, last fix
+  none → fallback vị trí app dẫn đường) →
+  ready-posted; legacy ghi updated HTTP 200
+  trong ~1,2 s / ~1,1 s. Cả hai đều mang
+  nhãn tường minh source=warming-cache
+  (internal startup call, NOT a CarPlay
+  request). Timeout trong cửa sổ: 0.
+- Request thật từ CarPlay: 0 — grep toàn
+  cửa sổ: req# = 0 dòng, answer-received =
+  0, applied (weather) = 0, display
+  (weather) = 0, timeout-no-answer = 0.
+  Chuỗi request-từ-CarPlay → answer →
+  display TIẾP TỤC chưa có bằng chứng —
+  không phải vì chuỗi gãy, mà vì phiên
+  không phát sinh request thật nào để truy.
+  Trạng thái mục weather: THIẾU DỮ KIỆN
+  (giữ nguyên từ §25.1, sau hiệu chỉnh phạm
+  vi của GPT). Nguyen không phàn nàn weather
+  phiên này.
+- Đổi PID: CarPlay đổi 3 lần trong cửa sổ
+  (34964 → 34985 → 35035), SpringBoard đổi
+  đồng bộ (34934 → 34986 → 35036); hai mốc
+  khởi động lại ~16:19:09–13 và ~16:27:16–19.
+  Grep exception / SIGBUS / abort / EXC_ /
+  unrecognized-selector toàn cửa sổ: 0 chữ
+  ký crash thật (2 hit duy nhất là chuỗi
+  "exception" nằm trong tên thuộc tính của
+  DIAG dump của DBDashboardHomeViewController).
+  Nguyên nhân đổi PID: KHÔNG xác định được
+  từ log này (cùng mẫu phiên ytz2).
+
+### 26.10 Trạng thái + chờ GPT phán
+
+- Mức đạt của phiên, từng track ghi rõ mức:
+  FS controller + guard — DEVICE PASS (sổ
+  sách khép kín, ca bắt buộc của GPT trọn 2
+  lần; riêng tính chặn-khi-popup-mở chưa có
+  ca FS trực tiếp); feed native — DEVICE
+  PASS (chuỗi quyết định 6/6, khe wake
+  native bị kết án ở phiên ytz2 đã đóng ở
+  tầng cơ chế); act hosted — DEVICE PASS
+  (26/26); YTZ — DEVICE PASS kèm đối chứng
+  OFF hợp lệ đầu tiên (bệnh gốc tái hiện
+  trên đường gốc đúng vai trò đối chứng);
+  AutoHide phía split — giữ PASS từ ytz2;
+  AutoHide khi EXPANDED — FAIL so với kỳ
+  vọng của Nguyen (0 fade / ≈961 s; cơ chế
+  đã rõ, chờ phán gỡ treo); bàn phím — ĐÃ
+  CHỐT danh tính (Maps native, không phải
+  delta của ytz3); touchset — ĐẠT mục đích
+  đo (khử trùng là bắt buộc; chưa có mẫu
+  pinch thật); icon — THIẾU DỮ KIỆN (đầu
+  đọc mù); ô trắng — không tái hiện;
+  weather — THIẾU DỮ KIỆN (0 request thật);
+  Gate 3 — CHƯA MỞ (vật cản duy nhất còn
+  lại: tín hiệu kb phía app).
+- ENFORCE vẫn ĐÓNG (wake Gate 3 + pinch) —
+  không mục nào của phiên này tự mở cổng.
+- SÁU điểm chờ GPT phán quyết: (i) Tín hiệu
+  kb phía app → Gate 3: kb không xác định
+  38/38 trong khi owner kb=0 ở 26/26 — bổ
+  sung kênh kb cho phía app (hay suy kb từ
+  trạng thái phiên/kênh khác) rồi mở Gate
+  3, hay giữ DRY_RUN; lưu ý phím native vô
+  hình với cổng (kb=1 không xuất hiện dù
+  Maps native có mở phím) — thiết kế
+  kb-signal phải nói rõ ca native. (ii) Gỡ
+  HAI khoá treo AutoHide khi EXPANDED để
+  logo/controls tự ẩn như ở split (phân
+  tích tương tác ở probe-ytz3-session-q.md:
+  gỡ cả hai không làm vỡ đường nào theo
+  source). (iii) Đối xứng revoke YTZ: grant
+  chạy layoutPane commit settings, revoke
+  không chạy layout nào — có đóng mắt này
+  không; và R2 (snapshot cỡ đầu phiên) xử
+  lý theo hướng đối chiếu cỡ ô hiện tại hay
+  giữ nguyên chờ bằng chứng. (iv) Mở vòng
+  tại đường Home thật (SCPHooks.m /
+  SCPAppIcons.m / SCPHomeApply.m) cho cơ
+  chế mất icon — đầu đọc phía picker đã mù,
+  phạm vi hiện tại không còn dữ kiện nào
+  lấy được nữa. (v) Pinch: hiệu chuẩn bằng
+  mẫu hai-contact-thật (chưa từng ghi được
+  ở cả hai phiên) hay park kiến trúc ghép
+  cặp tại CarPlayApp; khử trùng theo (evB +
+  điểm bắt đầu + window) là điều kiện tiên
+  quyết đã có số. (vi) Ngữ nghĩa fullscreen:
+  bản hiện tại là MẶT SPLIT PHỦ KÍN (hai ô
+  giữ tỉ lệ, thu hồi vùng dock, container
+  xác nhận ±0,5 pt) — giữ ngữ nghĩa này hay
+  chuyển sang MỘT Ô BUNG KÍN như nút Toàn
+  màn của bản gốc; Nguyen đã hỏi trực tiếp
+  "fullscreen hoạt động thế nào" trong
+  phiên này.
+- Giữ nguyên: bản đứng test vẫn là ytz3 FAT
+  (SHA c1872b93…); QA20 vẫn là bản dùng hằng
+  ngày của Nguyen; VISUAL_ORIGINAL_
+  COMPARISON = PENDING; núm vẫn PENDING
+  diện NO DATA (phiên này không có thêm dữ
+  kiện payload nào). Hai đề xuất của §25.5
+  còn hiệu lực ở phần phiên này chưa trả
+  lời: accessor gen chỉ-đọc (feed vẫn dùng
+  epoch của probe) và generation qua notify
+  state cho kênh weather (phiên này cộng
+  thêm sự thật: không request thật nào phát
+  sinh để tương quan). Các sửa đã rõ cơ chế
+  (gỡ treo AutoHide, đối xứng revoke) KHÔNG
+  tự vào bản — chờ GPT phán rồi gom MỘT deb
+  theo quy tắc một-deb của Nguyen.

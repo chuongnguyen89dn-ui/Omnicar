@@ -180,8 +180,17 @@ Từ log + ảnh phiên fixround3, GPT ra **Consolidated Repair Order (A–I)**,
   SCPHooks/SCPAppIcons/SCPHomeApply — ngoài phạm vi vòng này, chỉ ghi vị trí); (W) instrument
   `[weather]` request→answer→display bằng 2 bộ đếm log-only req#/ans# (kênh request là notify
   trần, không mang id). Static PASS cả candidate lẫn FAT hai lát (parity SplitScreen +7/0 mất;
-  hai strand instrument thuần cộng 163 dòng/0 xoá). **Đang chờ MỘT phiên xe theo ACCEPTANCE_YTZ3:**
-  controller sạch → native wake → touchset → YTZ OFF dài → hồi quy weather/icon. ENFORCE (wake +
+  hai strand instrument thuần cộng 163 dòng/0 xoá). **Phiên xe ĐÃ chạy** (16:18–16:50, log upload
+  `9be396b`, ba đội phân tích B1/B2/B3 — phán quyết đầy đủ ở PATCH_NOTES §26): FS controller +
+  guard **DEVICE PASS** (ca bắt buộc của GPT trọn 2 lần; 16 refusal đều state-based, reason
+  tray/picker/popup = 0); feed native **DEVICE PASS** (fired 41, chuỗi quyết định 6/6 — khe
+  native của ytz2 đã đóng ở tầng cơ chế); act hosted 26/26; YTZ **DEVICE PASS** + đối chứng OFF
+  hợp lệ đầu tiên (11,121 s — bệnh gốc tái hiện trên đường gốc, cấp lại dọn residue 4→0);
+  AutoHide khi EXPANDED **FAIL kỳ vọng của Nguyen** (0 fade / ≈961 s expanded — hai khoá treo đã
+  chỉ đích danh, chờ GPT phán gỡ); Gate 3 còn duy nhất vật cản tín hiệu kb phía app (không xác
+  định 38/38, wouldSwallow 0/38); bàn phím chốt Maps **native** (H2 chứng minh); touchset 62/62
+  biểu diễn trùng; đầu đọc icon mù (live-grid-read count=0 ở 5/5); weather 0 request thật; PID
+  CarPlay đổi 3 lần, 0 chữ ký crash. Sáu điểm chờ GPT ở PATCH_NOTES §26.10. ENFORCE (wake +
   pinch) vẫn đóng theo GPT.
 
 ## 5. Các kết tội lớn — nguyên nhân và cách đóng
@@ -325,7 +334,7 @@ phiên YouTube — hai việc không gộp nguyên nhân.
 - **Để dành chưa diễn tập:** bài kiểm hết hạn (epoch 1809104400), cứu crash có chủ đích, kiểm tải.
 
 
-## 7. Đang giữ và đang mở (toàn bộ, tính đến sau ytz2)
+## 7. Đang giữ và đang mở (toàn bộ, tính đến sau phiên ytz3)
 
 **Đang giữ theo thứ tự đã chốt (không tự động vào bản):**
 - Núm vách ngăn: ĐÃ SỬA ở wake1 (mục 5.4; `@(!scaled)` → `@(scaled)`, cổng object + FAT hai slice
@@ -357,15 +366,23 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   (kịch bản trong ACCEPTANCE_YTZ2). **Phiên ytz2 đã chạy:** bước 1 đạt phía hosted (act 32/32,
   reveal 17/17) nhưng FAIL phía native — mắt gãy nằm ngoài kịch bản gốc (không agent trong
   process native); bước 2 không chạy được vì guard chặn 100% (kết luận chặn-đúng đã thu hồi,
-  §25.2). ytz3 đã sửa cả hai (guard vị từ nội dung + feed native tại CarPlayApp); nay chờ phiên
-  ytz3 (ACCEPTANCE_YTZ3 bước 1–2) chấm lại: controller sạch + feed native.
+  §25.2). ytz3 đã sửa cả hai (guard vị từ nội dung + feed native tại CarPlayApp). **Phiên ytz3
+  ĐÃ chấm lại: cả hai ĐẠT** — controller sạch DEVICE PASS (bước 1: ca bắt buộc của GPT trọn 2
+  lần, refusal 16/16 state-based) và feed native DEVICE PASS (bước 2: chuỗi 6/6) — PATCH_NOTES
+  §26.1–26.2. Điểm treo cùng cụm: AutoHide bị treo trọn khi EXPANDED (0 fade / ≈961 s expanded;
+  hai khoá treo ở `SCPCarSplit+BridgeWake.m:331` + `SCPCarSplit+AutoHide.m:141`) — Nguyen yêu
+  cầu logo/controls tự ẩn như ở split; chờ GPT phán gỡ cả hai khoá (§26.4, §26.10(ii)).
 - **Wake Gate 2–6: Gate 2 đã chạy ở phiên ytz2** — phía hosted đạt, phía native fail kết án;
   dữ kiện [probe] cho thấy CarPlayApp THẤY Began trên ô native (140 ca gán ô) nhưng nhãn scene
   không dùng được (117/140 foreign qua _UISystemGestureWindow) → **GPT đã phán W4: đặt feed
-  tại CarPlayApp, khóa theo gán ô hình học** — đã cài ở ytz3 (PATCH_NOTES §25.3), chấm ở phiên
-  ytz3 bước 2. ENFORCE của wake (Gate 3 — nuốt cú chạm đầu) vẫn KHOÁ theo GPT: bằng chứng hiện
-  có mới tới đường activity/reveal, log còn failopen=kbunknown nên điều kiện suppression chưa
-  hoàn tất; feed vòng này không nuốt chạm native nào.
+  tại CarPlayApp, khóa theo gán ô hình học** — đã cài ở ytz3 (PATCH_NOTES §25.3) và **phiên
+  ytz3 ĐÃ chấm ĐẠT ở bước 2** (fired 41, chuỗi fade→Began→reveal trọn 6/6,
+  PATCH_NOTES §26.2). ENFORCE của wake (Gate 3 — nuốt cú chạm đầu) vẫn KHOÁ theo GPT, nhưng vật
+  cản nay thu về ĐÚNG MỘT điểm: tín hiệu kb phía app không xác định ở 38/38 dòng probe (owner
+  ghi kb=0 ở 26/26 act-accepted; failopen kbunknown ×4 đều ở state=H) → wouldSwallow 0/38; độ
+  tươi state không còn là vật cản (stateage max 987 ms; ca phân định W2 >2,5 s vẫn chưa từng
+  xảy ra ở cả hai phiên). Chờ GPT phán §26.10(i) — gồm cả ca phím native vô hình với cổng
+  (kb=1 không hề xuất hiện ở phiên ytz3).
 - **Điểm diễn giải vòng ytz2 đã ghi vào hồ sơ (PATCH_NOTES §24.5), không tự hoà giải:** điểm
   promote HIDDEN→VISIBLE dùng vị từ phiên dạng rút gọn (tương đương nhờ guard bao quanh); ca
   pane-bị-xoá-khi-expanded còn ranh giới phụ thuộc recompute đã chạy hay chưa (rơi về hàng SPLIT
@@ -400,7 +417,12 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   chứng biểu diễn TRÙNG của một contact qua hai window (15:37:57.243/.246 cùng điểm {15,222.5})
   phải chống đếm trùng. ytz3 đã cộng phép đo `[touchset]` (tập touch theo con trỏ: window, điểm
   raw + screen-space, ô, event.timestamp); GPT quyết kiến trúc (ghép cặp tại CarPlayApp hay
-  đường khác) SAU dữ kiện phiên ytz3. Chưa recognizer trong app, ENFORCE vẫn đóng.
+  đường khác) SAU dữ kiện phiên ytz3. **Dữ kiện phiên ytz3 ĐÃ CÓ (PATCH_NOTES §26.7):** 62
+  snapshot active=2 và 62/62 là biểu diễn TRÙNG của một contact (0 cặp evB khác nhau, 0 cặp hai
+  điểm bắt đầu) — ghép cặp ngây thơ sẽ cho 62 pinch giả; khử trùng theo (evB + điểm bắt đầu +
+  window) là điều kiện tiên quyết đã có số. Nhưng trong CẢ HAI phiên không ghi được một pinch
+  hai-ngón-thật nào để hiệu chuẩn → chờ GPT phán: hiệu chuẩn bằng mẫu thật hay park kiến trúc
+  ghép cặp (§26.10(v)). Chưa recognizer trong app, ENFORCE vẫn đóng.
 - **Ba đề xuất chờ GPT sau vòng ytz3 (PATCH_NOTES §25.5):** (i) accessor gen chỉ-đọc trong
   `SCPCarSplit+BridgeWake.h` để feed native tương quan gen thật của owner (hiện dùng epoch của
   probe); (ii) vòng instrument/sửa tại đường Home thật — `SCPHooks.m` (hook
@@ -410,12 +432,25 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   (iii) chở generation qua notify state của kênh `weather.request` (hiện là notify trần không
   mang id; instrument ytz3 tương quan req#↔ans# theo thứ tự + timestamp — mẫu
   notify_register_dispatch/notify_get_state có sẵn ở kênh location cùng file).
+- **Sáu điểm chờ GPT sau PHIÊN ytz3 (PATCH_NOTES §26.10) — danh sách hiện hành:** (i) tín hiệu kb
+  phía app → Gate 3 (vật cản duy nhất còn lại của suppression); (ii) gỡ HAI khoá treo AutoHide
+  khi EXPANDED (Nguyen yêu cầu ẩn như ở split; gỡ một khoá thì vô tác dụng); (iii) đối xứng
+  revoke YTZ — grant chạy layout commit, revoke không — và chính sách R2 (snapshot cỡ đầu phiên;
+  R2 chưa kiểm được từ log); (iv) mở vòng tại đường Home thật (`SCPHooks.m` / `SCPAppIcons.m` /
+  `SCPHomeApply.m`) cho cơ chế mất icon — phiên ytz3 xác nhận đầu đọc `[applib]` phía picker MÙ
+  (live-grid-read count=0 ở 5/5 lần, icon vắng hằng định, không mốc 1→0) nên đề xuất (ii) ở mục
+  trên nay là đường duy nhất còn dữ kiện; (v) pinch: hiệu chuẩn bằng mẫu hai-contact-thật hay
+  park kiến trúc ghép cặp; (vi) ngữ nghĩa fullscreen — mặt split phủ kín (bản hiện tại) hay một
+  ô bung kín như nút Toàn màn của bản gốc (Nguyen hỏi trực tiếp trong phiên). Đề xuất §25.5(i)
+  accessor gen vẫn mở (feed tiếp tục dùng epoch của probe); §25.5(iii): phiên ytz3 không phát
+  sinh request weather thật nào (0 dòng req#) nên chuỗi request→answer→display vẫn chưa có bằng
+  chứng dù instrument đã sẵn.
 - **Núm divider — verdict PENDING diện NO DATA:** log phiên ytz2 có 0 dòng payload
   publishKnobsNow/scaled= (mọi dòng "knob" là cặp fade AutoHide). Chờ GPT phán: khôi phục
   instrument payload hay chốt bằng quan sát xe (kịch bản ACCEPTANCE_YTZ3 bước 5 chấm quan sát).
 - Các nhóm nghiệm thu §9 ngoài các phiên đã chạy; ba bài kiểm để dành ở mục 6.
 
-## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~16:15)
+## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~17:00)
 
 - **Bản test mới nhất:** `com.anlai.omnicar_1.0.3-rebuilt-ytz3-fat_iphoneos-arm64.deb` — 1.224.728 byte,
   SHA-256 `c1872b936a01969418b68cc5f69e1bd72639a1f5e2e2f1da16132edcfc6bcf3f`; candidate local
@@ -430,17 +465,22 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   ytz2 FAT + fs1 FAT + fixround7 FAT + gói hợp nhất QA20.
 - **Git:** main — ytz3 source `36135b8`; ci-fat-test `dd47375`.
   Phiên xe ytz2 đã chạy và phân tích xong (log upload `0bf3273`): verdict đầy đủ ở PATCH_NOTES
-  §25.1; vòng sửa sau log (ytz3) đã build + CI xong — chờ phiên xe theo ACCEPTANCE_YTZ3.
-- **Đã đóng trên xe:** thanh "..." hosted (fixround5); **YT-Zoom** (phiên ytz2 — đối chứng OFF
-  dài còn nợ ở phiên ytz3); **wake hosted** đường activity/reveal (phiên ytz2). **Đã đóng ở
-  tầng giao thức:** hai cổng hướng (log fixround6). **Đóng điều tra tĩnh:** fullscreen YouTube
-  (mục 5.3). **Static PASS:** wake Gate 0/1 (PATCH_NOTES §22); FS1 controller + AutoHide Gate 1
-  (PATCH_NOTES §23); vòng khắc phục WO (PATCH_NOTES §24); vòng sửa sau log — 4 strand + kiểm
-  độc lập + tích hợp + hai lát FAT (PATCH_NOTES §25). **Chờ xe:** phiên ytz3 theo ACCEPTANCE_YTZ3
-  — controller sạch, native wake qua feed mới, đo touchset cho quyết định kiến trúc pinch, YTZ
-  OFF dài, hồi quy weather/icon/ô trắng. **Vẫn mở:** ENFORCE wake/pinch đóng theo GPT; cơ chế
-  mất icon chưa có dữ kiện (instrument đã vào ytz3, đường Home thật chờ GPT mở vòng);
-  VISUAL_ORIGINAL_COMPARISON = PENDING.
+  §25.1; vòng sửa sau log (ytz3) đã build + CI xong. **Phiên xe ytz3 ĐÃ chạy và phân tích xong**
+  (log upload `9be396b`, ba biên bản analysis-b1/b2/b3): verdict đầy đủ ở PATCH_NOTES §26 — nay
+  chờ GPT phán sáu điểm ở §26.10, chưa có vòng sửa nào được mở.
+- **Đã đóng trên xe:** thanh "..." hosted (fixround5); **YT-Zoom** (phiên ytz2 + đối chứng OFF
+  hợp lệ ở phiên ytz3); **wake hosted** đường activity/reveal (phiên ytz2); **wake native** qua
+  feed CarPlayApp (phiên ytz3); **FS controller + guard** (phiên ytz3 — ca bắt buộc của GPT trọn
+  2 lần). **Đã đóng ở tầng giao thức:** hai cổng hướng (log fixround6). **Đóng điều tra tĩnh:**
+  fullscreen YouTube (mục 5.3). **Static PASS:** wake Gate 0/1 (PATCH_NOTES §22); FS1 controller
+  + AutoHide Gate 1 (PATCH_NOTES §23); vòng khắc phục WO (PATCH_NOTES §24); vòng sửa sau log —
+  4 strand + kiểm độc lập + tích hợp + hai lát FAT (PATCH_NOTES §25); phán quyết phiên ytz3
+  (PATCH_NOTES §26). **Chờ GPT phán (không chờ xe):** sáu điểm §26.10 — kb-signal → Gate 3; gỡ
+  hai khoá treo AutoHide khi EXPANDED; đối xứng revoke YTZ + R2; mở vòng đường Home thật cho mất
+  icon; pinch hiệu chuẩn hay park; ngữ nghĩa fullscreen. **Vẫn mở:** ENFORCE wake/pinch đóng
+  theo GPT; cơ chế mất icon chưa có dữ kiện (đầu đọc applib phía picker mù — đường Home thật
+  chờ GPT mở vòng); weather thiếu dữ kiện (0 request thật ở phiên ytz3); nguyên nhân đổi PID
+  giữa phiên không xác định được từ log (0 chữ ký crash); VISUAL_ORIGINAL_COMPARISON = PENDING.
 
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 
