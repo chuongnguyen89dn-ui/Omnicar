@@ -1680,3 +1680,81 @@ splash, markers; evidence types recorded in PATCH_NOTES §18
 supplement). The shipped FAT and its acceptance manifest
 (ACCEPTANCE_FIXROUND4.md) supersede this paragraph's candidate.
 DEVICE_TEST remains PENDING on the same combined session script.
+
+ROUND 5 (fixround5) — INTEGRATED LOCALLY, NOT YET SHIPPED. Two
+fixes. (1) Hosted-bar last hop (Chain-2): runtime from the
+fixround4 car session exonerated hit-testing and the handletap
+post (73 SpringBoard 'cham thanh' events paired 1-1 with 73
+CarPlay bridge arrivals, per bundle) and the CarPlay-side toggle;
+the break was in the SpringBoard-side
+-[ABHost setBarVisible:pop:dim:single:forApp:] (original
+@0x11868): C-A — the state-transition guard was INVERTED (the
+original acts only when isHidden == visible, cmp @0x11ac0 +
+b.ne to the tail; the rebuild tested !=, so from the bar's
+initial hidden=YES state a show command could never reach the
+show branch) and C-B — the show entrance block lacked the
+original's alpha restore (sub_125C0 sets alpha=1.0 via fmov
+before setTransform:; the bar is born at alpha 0 and the hide
+completion deliberately does not restore it, so the bar would
+have stayed invisible even with C-A fixed). Both fixed in
+ABHostBMethods.m (project + src/AppBridgeB, mirrors identical);
+z-order and the toggle argument verified already-matching, the
+false 'VERIFIED' comment on the function rewritten with the
+dump offsets. (2) StartupScreen playIntro restored from the
+merged INFERRED variant to the original three logoEffect
+branches (dump @0xf768): ==1 scale 0.5 + spring 1.1/0.1/0.7;
+==2 identity + glow (shadow radius 7·max(unit,1), model opacity
+0.6f set before the animation, CABasicAnimation shadowOpacity
+0.0→0.95 over 1.2 s, autoreverses, repeatCount HUGE_VALF, key
+ssGlow) + 0.9 s fade; otherwise scale 0.96 + 1.2 s/0.05 delay
+plain animation. The hard-coded shadow radius 32 / opacity 0.8
+is gone; note the 0.86 damping belongs to the SCENE spring in
+the !logoView tail, not to logoEffect==1. GPT's independent
+findings agree with C-A/C-B and with every playIntro constant,
+and GPT's hosted-bar patch was diffed and coincides with the
+in-tree fix (not applied separately). A local candidate
+(974,536 B, SHA-256
+bf1a1438c4030a2d84a8bcf6dab4c9a2f272e3bc3140093c80a5672d14ca35e0,
+Version 1.0.3) passed the round-5 gates on its own extracted
+binaries (host-bar guard structure + entrance block order,
+playIntro branch/constant set with 32.0 and 0.8 absent in every
+load form, [fixround5] markers in SplitScreen/Prefs/AppBridge,
+regressions 'cham thanh' + picker 150.0). OPEN: the Prefs
+preview playIntro (original @0x493a4, spring 1.1/0.1/0.7,
+constants 0x65ba0/0x65748/0x65700 per GPT section G) still
+carries divergent values in the rebuild — a separate fixer is
+on it — and THIS CANDIDATE PREDATES that fix: it must not ship
+as fixround5 until a rebuild includes it (CI dispatch and the
+FAT acceptance are held for that decision). The playIntro
+!logoView tail (ivar slots 0xcb0/0xcc0/0xcc8 not yet mapped to
+names) remains open for a dedicated branch-fidelity round.
+DEVICE_TEST for round 5 is PENDING.
+
+ROUND 5 SHIP REBUILD (2026-11-09, later): the Prefs preview
+playIntro fix has landed (work/fix-round4/fix-playintro-
+prefs.md; original @0x493a4; the Prefs ivar table WAS
+mappable — _unit 8 / _stack 16 / _logoView 24 / _posterView
+32 / _sceneStyle 168 / _t0 256 / _playing 264 / _link 272 —
+so the Prefs !logoView tail is restored in full, unlike the
+car side). A fresh per-module clean rebuild supersedes the
+candidate above: 974,214 B, SHA-256
+146e26572fbd040de4bc0e5dee1429a00cbe166d0152ab3a9cde5d22d0a51437,
+Version 1.0.3; 7 of 8 binaries byte-identical to the
+first-pass candidate, only the Prefs binary changed. All
+round-5 gates re-run on this candidate's own extracted
+binaries pass (29/29 static checks), including the new
+gate (b2) on the Prefs playIntro: logoEffect consulted;
+three branches in the release cmp encoding (cmp #1
+@0x52d60 b.ne, logoEffect re-call then cmp #2 b.ne, else
+fallthrough — the subs form in the fixer's debug object
+encodes the same structure); the full constant set {1.1,
+0.1, 0.7, 0.6f, 0.95, 1.2, 0.9, 0.05, 0.96, 0.92} present;
+{32.0, 0.8f, 1.6, 0.15} absent in every load form. STILL
+OPEN: only (1) the CAR-side playIntro !logoView tail (ivar
+slots 0xcb0/0xcc0/0xcc8 unmapped) for a dedicated
+branch-fidelity round, and (2) the unidentified round
+element at the screen's right edge in the fixround4 session
+photos — no log evidence identifies it, so the speed-bubble
+state machine is NOT touched (GPT's conclusion agrees).
+The FAT build and acceptance follow from this candidate;
+DEVICE_TEST for round 5 remains PENDING.

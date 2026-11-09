@@ -480,31 +480,59 @@ static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {
 // Intro + animation clock
 // ---------------------------------------------------------------------------
 
-- (void)playIntro {   // 0xf768 [VERIFIED]
+- (void)playIntro {   // 0xf768 [logo branches restored from the dump,
+                     // fix-round4 — replaces the merged INFERRED variant;
+                     // the no-logo tail at the bottom is NOT from this
+                     // dump pass and stays as reconstructed earlier]
     [self layoutIfNeeded];
+    double s1 = MAX(_unit, 1.0);   // 0xf790-0xf7a4: max(_unit, 1)
     if (_logoView) {
-        CALayer *layer = _logoView.layer;
-        [layer removeAllAnimations];
-        layer.shadowOpacity = 0.0;
-        _logoView.alpha = 0.0;
-        _logoView.transform = CGAffineTransformMakeScale(0.8, 0.8);   // [INFERRED per-logoEffect variant]
-        [UIView animateWithDuration:0.9 delay:0.0 usingSpringWithDamping:0.7
-              initialSpringVelocity:0.0 options:0 animations:^{
-            self->_logoView.alpha = 1.0;
-            self->_logoView.transform = CGAffineTransformIdentity;
-            layer.shadowColor = UIColor.whiteColor.CGColor;
-            layer.shadowOffset = CGSizeZero;
-            layer.shadowRadius = 32;
-            layer.shadowOpacity = 0.8;
-        } completion:nil];
-        CABasicAnimation *glow = [CABasicAnimation animationWithKeyPath:@"shadowOpacity"];
-        glow.fromValue = @0.4;
-        glow.toValue = @0.9;
-        glow.duration = 1.6;
-        glow.autoreverses = YES;
-        glow.repeatCount = HUGE_VALF;
-        glow.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-        [layer addAnimation:glow forKey:@"ssGlow"];
+        UIView *logoView = _logoView;
+        CALayer *layer = logoView.layer;
+        [layer removeAllAnimations];          // 0xf7d4
+        layer.shadowOpacity = 0.0;            // 0xf7f4
+        logoView.alpha = 0.0;                 // 0xf804
+        // Branch source (0xf814, re-read at 0xf928): self.logoEffect —
+        // the NSInteger property SSSplash assigns from the pref
+        // @"startupScreenLogoEffect" (default 0). 1 -> spring scale-in;
+        // 2 -> identity + ssGlow shadow pulse; anything else -> the
+        // 0.96 settle. No branch but 2 touches the layer shadow: the
+        // logo keeps layoutSubviews' shadowRadius 7*_unit, and the
+        // shadowOpacity zeroed above stays 0 for effects 1 and 3.
+        NSInteger effect = self.logoEffect;
+        if (effect == 1) {
+            logoView.transform = CGAffineTransformMakeScale(0.5, 0.5);   // 0xf820
+            [UIView animateWithDuration:1.1 delay:0.1        // @0x28ec8 / @0x28ed0
+                  usingSpringWithDamping:0.7                 // @0x28e10
+                  initialSpringVelocity:0.0 options:0 animations:^{
+                logoView.alpha = 1.0;                        // sub_fd2c
+                logoView.transform = CGAffineTransformIdentity;
+            } completion:nil];
+        } else if (effect == 2) {
+            logoView.transform = CGAffineTransformIdentity;  // 0xf934
+            layer.shadowColor = UIColor.whiteColor.CGColor;  // 0xf958
+            layer.shadowOffset = CGSizeZero;                 // 0xf9a8
+            layer.shadowRadius = 7.0 * s1;                   // 0xf9dc: 7*max(_unit,1)
+            layer.shadowOpacity = 0.6f;                      // float @0x29424
+            CABasicAnimation *glow = [CABasicAnimation animationWithKeyPath:@"shadowOpacity"];
+            glow.fromValue = @0.0;                           // const NSNumber @0x35710
+            glow.toValue = @0.95;                            // const NSNumber @0x35720
+            glow.duration = 1.2;                             // @0x28eb0
+            glow.autoreverses = YES;
+            glow.repeatCount = HUGE_VALF;
+            glow.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+            [layer addAnimation:glow forKey:@"ssGlow"];      // 0xfae4
+            [UIView animateWithDuration:0.9 animations:^{     // @0x28e70; sub_fd80
+                logoView.alpha = 1.0;
+            }];
+        } else {
+            logoView.transform = CGAffineTransformMakeScale(0.96, 0.96);   // @0x28eb8
+            [UIView animateWithDuration:1.2 delay:0.05       // @0x28eb0 / @0x28ec0
+                  options:0 animations:^{                    // sub_fd8c
+                logoView.alpha = 1.0;
+                logoView.transform = CGAffineTransformIdentity;
+            } completion:nil];
+        }
         return;
     }
     [self ss_applyTime:0];
