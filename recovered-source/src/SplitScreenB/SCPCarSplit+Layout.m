@@ -19,9 +19,18 @@
 #import "SCPCarSplit.h"
 #import "SCPCommon.h"
 
-// _SCPMissingSelector is a named C symbol of this dylib (@0x4f330); it is
-// called with a C string whenever a dynamically probed selector is absent.
-extern void SCPMissingSelector(id object, const char *selectorName);
+// _SCPMissingSelector is a named C symbol of this dylib (@0x4f330).
+// Second argument is an NSString object, matching SCPShared.h/.m —
+// the earlier local declaration here said `const char *`, and the call
+// sites below passed C literals: the real implementation formats the
+// argument with %@, so a C-string pointer could fault on the
+// missing-selector path (GPT wiring audit N14; fixround3 binary
+// 0x26ec4/0x26f1c pass C strings, the original passes CFStrings).
+// The shared prototype lives in SCPShared.h:61, but this TU cannot
+// import that header without colliding with the file-local static
+// SCPDashboardObject/SCPDashboardRootViewController below, so the
+// local declaration is kept — with the correct type.
+extern void SCPMissingSelector(id object, NSString *selectorName);
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -38,7 +47,7 @@ static id _Nullable SCPDashboardObject(void)
         return nil;
     }
     if (![app respondsToSelector:sel]) {
-        SCPMissingSelector(app, "_currentDashboard");
+        SCPMissingSelector(app, @"_currentDashboard");
         return nil;
     }
     return [app performSelector:sel];
@@ -54,7 +63,7 @@ static id _Nullable SCPDashboardRootViewController(void)
     }
     SEL sel = NSSelectorFromString(@"rootViewController");
     if (![dashboard respondsToSelector:sel]) {
-        SCPMissingSelector(dashboard, "rootViewController");
+        SCPMissingSelector(dashboard, @"rootViewController");
         return nil;
     }
     return [dashboard performSelector:sel];
@@ -374,14 +383,21 @@ NS_ASSUME_NONNULL_END
 
 // MARK: - App area measurement
 
-// VERIFIED (front half): measures the usable CarPlay app area.
-// The argument is ignored by the binary; the host is always the dashboard
-// root view controller (helper @0x12658). Its content view is probed via
-// the dynamic selector "contentView" (SCPMissingSelector fallback) and the
-// dock via "appDockViewController"; the content frame is converted through
-// the screen coordinate space and intersected with the dock-side rect.
-// The dashboard's statusBarInsets are fetched through the helper
-// @0xe5b4 (SCPDashboardObject) under a respondsToSelector: guard.
+// VERIFIED (front half): measures the usable CarPlay app area in the
+// CALLER's parent space. The host is the dashboard root view controller
+// (helper @0x12658). Its content view is probed via the dynamic
+// selector "contentView" (SCPMissingSelector fallback); when that
+// yields nil the root's own view is used (@0x11ebc). The content
+// bounds are then converted DIRECTLY into parent space
+// ([parent convertRect:content.bounds fromView:content], @0x11ee8 —
+// stub-verified selector). The dock is probed via
+// "appDockViewController"; only the DOCK bounds round-trip through
+// the screen coordinate space (see the tail). The dashboard's
+// statusBarInsets are fetched through the helper @0xe5b4
+// (SCPDashboardObject) under a respondsToSelector: guard.
+// (An earlier draft ignored the parent argument, round-tripped the
+// CONTENT through screen space and sent convertRect: to the root
+// controller — GPT wiring audit N7.)
 // VERIFIED (tail, CLOSURE-2): the inset-adjustment expressions were
 // line-read at register level from IMP 0x11dfc
 // (disasm/rem2_appAreaInParent.txt). The result is the parent-space
@@ -395,27 +411,21 @@ NS_ASSUME_NONNULL_END
     if ([host respondsToSelector:contentSel])
         content = [host performSelector:contentSel];
     else
-        SCPMissingSelector(host, "contentView");
+        SCPMissingSelector(host, @"contentView");
+    if (content == nil)
+        content = ((UIViewController *)host).view;   // @0x11ebc: root.view fallback
     id dock = nil;
     SEL dockSel = NSSelectorFromString(@"appDockViewController");
     if ([host respondsToSelector:dockSel])
         dock = [host performSelector:dockSel];
 
-    // The binary round-trips the content bounds through the screen
-    // coordinate space (convertRect:toCoordinateSpace: then
-    // convertRect:fromCoordinateSpace: into the host's space).
-    CGRect contentFrame = content.bounds;
-    id screenSpace = content.window.screen.coordinateSpace;
-    if (screenSpace != nil)
-        contentFrame = [content convertRect:contentFrame
-                        toCoordinateSpace:screenSpace];
-    id hostSpace = nil;
-    SEL spaceSel = NSSelectorFromString(@"coordinateSpace");
-    if ([host respondsToSelector:spaceSel])
-        hostSpace = [host performSelector:spaceSel];
-    if (hostSpace != nil)
-        contentFrame = [host convertRect:contentFrame
-                     fromCoordinateSpace:screenSpace];
+    // @0x11edc-0x11ee8: content.bounds converted straight into parent
+    // space — receiver is the parent argument (x19), the argument is
+    // the content view (x21); the stub 0x57920 resolves to
+    // convertRect:fromView: (selector_stub_verification). No screen
+    // round trip for the content, and no convertRect: is ever sent to
+    // the root controller.
+    CGRect R = [parent convertRect:content.bounds fromView:content];
 
     UIEdgeInsets insets = UIEdgeInsetsZero;
     id dashboard = SCPDashboardObject();
@@ -426,32 +436,35 @@ NS_ASSUME_NONNULL_END
     }
 
     // VERIFIED tail (CLOSURE-2; IMP 0x11dfc; disasm/rem2_appAreaInParent.txt).
-    // R below is the binary's spilled parent-space content frame (the
-    // local contentFrame; in the binary R is taken before the screen
-    // round trip — front-half correspondence as documented above). The
-    // second intersection operand is the dock view's frame in parent
-    // space (bounds round-tripped through the screen coordinate space),
-    // CGRectNull when the dock view is missing, windowless or hidden.
+    // R above is the binary's parent-space content frame. The second
+    // intersection operand is the dock view's frame in parent space —
+    // the only rect that round-trips through the screen coordinate
+    // space — CGRectNull when the dock view is missing, windowless
+    // or hidden.
     UIView *dockView = nil;
     if (dock != nil) {
         SEL viewSel = NSSelectorFromString(@"view");
         if ([dock respondsToSelector:viewSel])
             dockView = [dock performSelector:viewSel];
+        else
+            SCPMissingSelector(dock, @"view");   // @0x11fac
     }
     CGRect dockFrame = CGRectNull;
     if (dockView != nil && dockView.window != nil && !dockView.isHidden &&
         parent.window != nil) {
-        id fromSpace = dockView.window.screen.coordinateSpace;
-        id toSpace = parent.window.screen.coordinateSpace;
-        if (toSpace == nil) toSpace = fromSpace;
-        if (fromSpace != nil && toSpace != nil) {
+        // @0x12028-0x12120: ONE screen — the parent window's screen,
+        // falling back to the dock view's window screen (@0x1205c) —
+        // supplies the coordinate space at BOTH ends of the round trip.
+        UIScreen *screen = parent.window.screen;
+        if (screen == nil) screen = dockView.window.screen;
+        if (screen != nil) {
+            id space = screen.coordinateSpace;
             dockFrame = [dockView convertRect:dockView.bounds
-                            toCoordinateSpace:fromSpace];
+                            toCoordinateSpace:space];
             dockFrame = [parent convertRect:dockFrame
-                        fromCoordinateSpace:toSpace];
+                        fromCoordinateSpace:space];
         }
     }
-    CGRect R = contentFrame;
     CGRect inter = CGRectIntersection(R, dockFrame);
     double L = insets.left, Rt = insets.right;
     double T = insets.top,  B  = insets.bottom;
@@ -492,7 +505,7 @@ NS_ASSUME_NONNULL_END
         self.loggedArea = YES;
         OMCLogWrite(@"SplitScreen",
             [NSString stringWithFormat:@"CarSplit: content=%@ dock=%@ statusBarInsets={%.0f,%.0f,%.0f,%.0f} -> vung app=%@",
-                NSStringFromCGRect(contentFrame), NSStringFromCGRect(dockFrame),
+                NSStringFromCGRect(R), NSStringFromCGRect(dockFrame),
                 insets.top, insets.left, insets.bottom, insets.right,
                 NSStringFromCGRect(area)]);
     }
