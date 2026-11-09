@@ -205,8 +205,10 @@ void SCPStyleGhostIcon(UIImageView *imageView) {
 - (void)clearPaneDragMarks {                                             // 0x27e60 (approx.)
     self.dragGhost = nil;
     self.dragTarget = -1;
-    for (SCPCarPane *pane in self.slots)
+    for (SCPCarPane *pane in self.slots) {
+        pane.view.layer.borderWidth = 0;   // sub_132cc @0x27ef0: clear the drag-mark border
         pane.cover.alpha = 1.0;
+    }
 }
 
 - (void)cancelPaneDrag {                                                 // 0x27fcc

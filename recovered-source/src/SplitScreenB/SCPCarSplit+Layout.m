@@ -607,10 +607,21 @@ NS_ASSUME_NONNULL_END
         if (divider.index == 0) {
             CGRect f = [self dividerFrameAt:1];
             CGPoint mid = CGPointMake(CGRectGetMidX(f), CGRectGetMidY(f));
-            CGPoint center = [self.container convertPoint:mid fromView:self.container];
+            // Dump @0x2cdac-0x2cdd0: the conversion receiver is the
+            // DIVIDER (x19) and fromView is the container (x22) —
+            // dividerFrameAt: yields a container-space point, while
+            // knob.center lives in the divider's own space. (Was:
+            // container->container, an identity conversion that left
+            // a container-space point in divider space — off by the
+            // divider's origin, visible in the 1-large+2 / 2+1-large
+            // layouts.) The cross-axis half-extent ALSO comes from
+            // the divider: d8/d9 at @0x2cdf0-0x2cdf4 are
+            // divider.bounds.size, loaded once at entry (@0x2c880-
+            // 0x2c88c, [divider bounds]) — NOT the container's size.
+            CGPoint center = [divider convertPoint:mid fromView:self.container];
             knob.center = self.vertical
-                ? CGPointMake(center.x, self.container.bounds.size.height / 2.0)
-                : CGPointMake(self.container.bounds.size.width / 2.0, center.y);
+                ? CGPointMake(center.x, divider.bounds.size.height / 2.0)
+                : CGPointMake(divider.bounds.size.width / 2.0, center.y);
         }
     } else {
         knob.hidden = NO;

@@ -308,11 +308,17 @@ static void SSHSLToRGB(double h, double s, double l, double out[3]) {
 // -[SSStartupView buildWeatherWithPeriod:] @0xdcdc — [VERIFIED]
 // Layout tree built here (all literals from the dump):
 //   _stack (vertical, alignment 3) = [_titleLabel, _row, _updatedLabel]
-//   _row (horizontal, alignment 3) = [_logoView, _tempLabel, _card]
+//   _row (horizontal, alignment 3) = [_iconView, _tempLabel, _card]
 //   _card.contentView -> _cardStack (vertical, alignment 1)
 //                      = [_condLabel, _rangeLabel, _rainLabel]
 // The three card labels get textAlignment 4 (natural) after creation.
-// _logoView carries the weather SF Symbol in this style.
+// _iconView (ivar table slot 0xcc4 — NOT _logoView @0xccc) carries the
+// weather SF Symbol in this style: the dump stores the image view at
+// 0xdeec through the 0xcc4 offset load at 0xdee4, and never references
+// 0xccc in this method. [Store target corrected fix-round4 strand 2
+// (audit-S LP-2): an integration phase stored it in _logoView, which
+// hijacked the shared-logo layout/intro steps and left the real logo
+// stuck at CGRectZero.]
 - (void)buildWeatherWithPeriod:(NSInteger)period {
     NSDictionary *weather = self.weather;
     NSInteger code = [weather[@"code"] integerValue];
@@ -329,12 +335,12 @@ static void SSHSLToRGB(double h, double s, double l, double out[3]) {
                 [UIImageSymbolConfiguration configurationPreferringMulticolor]];
     UIImage *image = [UIImage systemImageNamed:symbol withConfiguration:config];
     if (!image) image = [UIImage systemImageNamed:@"cloud.fill" withConfiguration:config];
-    _logoView = [[UIImageView alloc] initWithImage:image];
-    _logoView.contentMode = UIViewContentModeScaleAspectFit;   // 1
-    _logoView.tintColor = [UIColor whiteColor];
-    _logoView.translatesAutoresizingMaskIntoConstraints = NO;
-    _iconW = [_logoView.widthAnchor constraintEqualToConstant:30];
-    _iconH = [_logoView.heightAnchor constraintEqualToConstant:30];
+    _iconView = [[UIImageView alloc] initWithImage:image];
+    _iconView.contentMode = UIViewContentModeScaleAspectFit;   // 1
+    _iconView.tintColor = [UIColor whiteColor];
+    _iconView.translatesAutoresizingMaskIntoConstraints = NO;
+    _iconW = [_iconView.widthAnchor constraintEqualToConstant:30];
+    _iconH = [_iconView.heightAnchor constraintEqualToConstant:30];
     [NSLayoutConstraint activateConstraints:@[_iconW, _iconH]];
 
     _tempLabel = SSSceneLabel(SSTemperatureText(weather[@"temp"]));
@@ -386,7 +392,7 @@ static void SSHSLToRGB(double h, double s, double l, double out[3]) {
     ];
     [NSLayoutConstraint activateConstraints:_cardInsets];
 
-    _row = [[UIStackView alloc] initWithArrangedSubviews:@[_logoView, _tempLabel, _card]];
+    _row = [[UIStackView alloc] initWithArrangedSubviews:@[_iconView, _tempLabel, _card]];
     _row.axis = UILayoutConstraintAxisHorizontal;         // 0
     _row.alignment = UIStackViewAlignmentCenter;          // 3
 

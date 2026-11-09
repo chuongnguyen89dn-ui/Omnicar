@@ -257,20 +257,29 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         }];
 }
 
-// CLOSED (was PARTIAL): re-derives the sheet's pane (first pane in reading
-// order that shows a picker; the stored pickerSheetPane is kept only while
-// its picker is live and it is still in allPanes), rebuilds the sheet when
-// the state key changed, and re-marks the panes. @0x31eac.
+// CLOSED (was PARTIAL): resolves the sheet's pane, rebuilds the sheet
+// when the state key changed, and re-marks the panes. The stored
+// pickerSheetPane WINS while it is still in allPanes and its picker is
+// live: the original keeps it in x20 and the fallback enumeration tests
+// a candidate only while x20 == nil (@0x31fd8 cbnz skips the test), so
+// the reading-order scan is a fallback for an invalid stored pane,
+// never an override. (A previous draft validated the stored pane and
+// then discarded it, always rescanning from nil — the sheet jumped
+// back to the first picker pane on every refresh; GPT Deep Function
+// Wiring Audit N2, fixed 2026-11-09.) There is no float-pane branch in
+// the body; the fallback order is panesInReadingOrder (sorted
+// allPanes). @0x31eac.
 - (void)refreshPickerSheet {
     NSArray *panes = self.active ? self.allPanes : @[];
     SCPCarPane *sheetPane = self.pickerSheetPane;
     if (sheetPane.picker == nil || ![panes containsObject:sheetPane])
         sheetPane = nil;
     NSArray *order = self.active ? [self panesInReadingOrder] : @[];
-    SCPCarPane *found = nil;
-    for (SCPCarPane *pane in order) {
-        if (found != nil) break;
-        if (pane.picker != nil) found = pane;
+    SCPCarPane *found = sheetPane;
+    if (found == nil) {
+        for (SCPCarPane *pane in order) {
+            if (pane.picker != nil) { found = pane; break; }
+        }
     }
     self.pickerSheetPane = found;
     if (found == nil) {
@@ -293,9 +302,13 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 
 // CLOSED (was STUB-UNRECOVERED): the app-grid sheet. Hosted in the tray
 // window when one exists (frames converted to window coordinates), else
-// directly in the container. Layout: a slot-map header, title/subtitle,
-// then a paging scroll view of 62x56 app cells (SCPCButton) with a dot
-// strip when more than one page. @0x334e4 (9,628 bytes).
+// directly in the container. Layout: TWO regions — a paging scroll view
+// of 62x56 app cells (SCPCButton) at x=0 in contentView, and a 150-pt
+// side column at (gridW, 0) holding the slot-map header, title/subtitle
+// and cancel in column-local coordinates. (The two-region tree was
+// restored 2026-11-09 per the GPT video audit: the previous build
+// parented the header block to contentView with area-wide coordinates,
+// so the grid drew over it.) @0x334e4 (9,628 bytes).
 - (void)buildPickerSheetForPane:(SCPCarPane *)pane {
     UIView *oldSheet = self.pickerSheet;
     UIView *oldShield = self.pickerShield;
@@ -382,11 +395,16 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     [sheet addSubview:effectView];
     UIView *contentView = effectView.contentView;
 
-    // Clear strip right of the grid carrying a vertical fade gradient.
-    UIView *clearView = [[UIView alloc] initWithFrame:
-        CGRectMake(sheetW, 0, areaW, sheetH)];
-    clearView.backgroundColor = UIColor.clearColor;
-    [contentView addSubview:clearView];
+    // Side column right of the grid: a dedicated UIView at (gridW, 0)
+    // with width 150.0 (constant loaded @0x33b7c; frame built
+    // @0x33d98-0x33da8) and height sheetH, child of contentView. The
+    // slot-map wrapper (@0x34114), title, subtitle (@0x3429c) and cancel
+    // (@0x3445c) are ALL children of this column in column-local
+    // coordinates; the scroll grid stays in contentView (@0x344e8).
+    UIView *sideColumn = [[UIView alloc] initWithFrame:
+        CGRectMake(sheetW, 0, 150.0, sheetH)];
+    sideColumn.backgroundColor = UIColor.clearColor;
+    [contentView addSubview:sideColumn];
     CAGradientLayer *grad = [CAGradientLayer layer];
     grad.frame = CGRectMake(0, 10, 1, sheetH - 20);
     UIColor *navy = [UIColor colorWithRed:0.2901960784313726
@@ -397,20 +415,23 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                     (id)[navy colorWithAlphaComponent:0.32].CGColor,
                     (id)[navy colorWithAlphaComponent:0].CGColor];
     grad.locations = @[@0.0, @0.2, @0.8, @1.0];
-    [clearView.layer addSublayer:grad];
+    [sideColumn.layer addSublayer:grad];
 
     // Slot-map header.
     UIView *map = [self pickerMapForPane:pane height:scale];
     double mapW = (map != nil) ? map.bounds.size.width + 10.0 : 106.0;
+    // Wrapper x is (150.0 - mapW)/2 in sideColumn-local coordinates
+    // (dump @0x33ff4-0x33ffc) and the vertical offset constant is 54.0
+    // (dump @0x33fe8, bit pattern 0x404b000000000000), not 52.0.
     UIView *wrapper = [[UIView alloc] initWithFrame:CGRectMake(
-        (areaW - mapW) * 0.5,
-        MAX((sheetH - 68.0 - headerH) * 0.5, 0) + 52.0, mapW, scale + 10.0)];
+        (150.0 - mapW) * 0.5,
+        MAX((sheetH - 68.0 - headerH) * 0.5, 0) + 54.0, mapW, scale + 10.0)];
     wrapper.backgroundColor = [UIColor colorWithWhite:1 alpha:0.35];
     wrapper.layer.cornerRadius = 12;
     wrapper.layer.cornerCurve = kCACornerCurveContinuous;
     wrapper.layer.borderWidth = 1;
     wrapper.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.7].CGColor;
-    [contentView addSubview:wrapper];
+    [sideColumn addSubview:wrapper];
     if (map != nil) {
         map.frame = CGRectMake(5, 5, map.bounds.size.width, scale);
         [wrapper addSubview:map];
@@ -423,7 +444,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     titleLabel.textColor = navy;
     titleLabel.numberOfLines = 2;
     titleLabel.textAlignment = NSTextAlignmentCenter;
-    [contentView addSubview:titleLabel];
+    [sideColumn addSubview:titleLabel];
 
     UILabel *subLabel = [[UILabel alloc] initWithFrame:CGRectMake(
         8, CGRectGetMaxY(titleLabel.frame) + 2, 134, subH)];
@@ -432,13 +453,15 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     subLabel.textColor = SCPColorSecondary();
     subLabel.numberOfLines = 2;
     subLabel.textAlignment = NSTextAlignmentCenter;
-    [contentView addSubview:subLabel];
+    [sideColumn addSubview:subLabel];
 
     NSInteger otherPickers = 0;
     for (SCPCarPane *p in self.allPanes)
         if (p.picker != nil && p != pane) otherPickers++;
 
-    // Cancel chip (top-left of the sheet's side column).
+    // Cancel chip in the side column: centre (120, 30) in column-local
+    // coordinates (dump @0x34448-0x34458). The previous build had the
+    // axes swapped — centre (30, 120) — and the wrong parent.
     UIView *cancel = SCPWrapRatioChip(SCPSymbolImage(@"close", 14.0),
                                       self, @selector(pickerCancel:));
     cancel.bounds = CGRectMake(0, 0, 32, 32);
@@ -446,8 +469,8 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     SCPStyleChip(cancel, 16.0);
     cancel.tintColor = [UIColor colorWithRed:1.0 green:0.35294117647058826
                                         blue:0.37254901960784315 alpha:1.0];
-    cancel.center = CGPointMake(30, 120);
-    [contentView addSubview:cancel];
+    cancel.center = CGPointMake(120, 30);
+    [sideColumn addSubview:cancel];
 
     UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(
         0, MAX((sheetH - gridH - extra) * 0.5, 8), sheetW, gridH)];
@@ -930,11 +953,19 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
     return win;
 }
 
-- (void)hideTrayWindowIfIdle {                                           // 0x31d00 (approx.)
+- (void)hideTrayWindowIfIdle {                                           // 0x28180
     UIWindow *window = self.trayWindow;
     if (window == nil) return;
+    // The background toast (Reopen / "Mở lại", tag 0x5c9b, created by
+    // showBackgroundToastFor:slot:) lives in this same window: while it
+    // is up the window is NOT idle (@0x28214–0x2822c). The toast's two
+    // removal paths (the Reopen action and the auto-dismiss completion)
+    // remove the view BEFORE calling here, so the view test IS the
+    // state — no separate boolean flag. (Guard restored 2026-11-09,
+    // GPT Deep Function Wiring Audit N5.)
     if (self.tray == nil && self.ratioMenu == nil &&
-        self.pickerSheet == nil && self.dragGhost == nil)
+        self.pickerSheet == nil && self.dragGhost == nil &&
+        [window viewWithTag:0x5c9b] == nil)
         window.hidden = YES;
 }
 

@@ -2078,3 +2078,264 @@ symtab + relocation của chính object):
   (ngoài phạm vi ghi chú D6) — chưa đụng.
 - Mọi ma trận ở §17G là "đã kiểm tra tĩnh"; hành vi thật chờ phiên test
   xe gộp theo tiêu chí nghiệm thu §17 + GPT §10.
+
+# §18 — Vòng sửa 4 (fixround4, 2026-11-09)
+
+Cơ sở: verdict thiết bị trên fixround3 (phiên 08:13–08:20, video
+IMG_8163) + hai file kết tội của GPT trên log thô 0814 (adopt-vacated,
+KVC) và picker (cây view) + Consolidated Repair Order (mục A–I, cổng
+binary, §XII) + Deep Function Wiring Audit (N1–N6). Điều tra nội bộ:
+work/fix-round4/convictions.md (chuỗi 1–4, (e), (f), (g)) và
+audit-S-splash.md (LP-1/2/3). Năm nhánh sửa (fix-strand1..5) chạy song
+song, một chủ sở hữu mỗi file; tích hợp + cổng kiểm bởi một agent chốt
+hạ trên candidate đóng từ cây đã gộp. §I của Consolidated Order (các
+sửa fixround3 đã đúng) được GIỮ NGUYÊN toàn bộ, không vá lùi điểm nào.
+
+Ghi chú đặc tả E2 (recoverPending): đặc tả chữ ghi ==2; dump thô
+@0x17618 ghi b.gt #2 — theo dump, GPT hiệu đính nếu khác. Cụ thể:
+điều kiện retry trong bản giao là attempt <= 2 (terminal khi
+attempt > 2) và giây trong log retry là attempt<<1 (0s/2s/4s), đúng
+`cmp x21, #0x2; b.gt` + `lsl w8, w21, #1` đọc từ slice gốc và đã kiểm
+lại trên object của build này (xem cổng E).
+
+## Chuỗi launch/solo + native pane (Consolidated Order A–I)
+
+- A — launchPhoneAppIfNeeded: — ĐÃ SỬA. Hợp đồng khôi phục: tham số
+  là NSString bundleID trực tiếp (gốc @0x403d0); bỏ đường đọc
+  applicationInfo/proxyApplicationInfo từ tham số; header khai
+  (NSString *). Hook_launchAppWithInfo trích bundleIdentifier từ
+  app-info object rồi truyền STRING (gốc @0x61d0); 
+  Hook_launchInfoWithSettings và SCPCarLaunchApp vốn truyền string —
+  giữ nguyên.
+- B — ba nhánh solo trong cùng hàm — ĐÃ SỬA. active → openApp:bundle
+  slot:-1; inactive + cùng solo bundle → trả consumed, KHÔNG
+  endHostedSolo; inactive + bundle khác → endHostedSolo cũ trước,
+  showSoloCoverForBundle:, hostSolo:.
+- C — hostedApp:state: — ĐÃ SỬA. State machine khôi phục: solo ready
+  → hideSoloCover + giữ app + RETURN (nhảy qua endHostedSolo); solo
+  non-ready → log + endHostedSolo + hideSoloCover + RETURN; đường
+  split non-ready có closeSlot:pane.slot background:NO ở đuôi
+  (@0x3f5a0); membership được xác nhận trước khi callback chạm pane.
+- D — adopt:slot: — ĐÃ SỬA (nhánh 1). Biến vacatedPane riêng gán
+  trong vòng dọn duplicate; đuôi hàm chỉ showPickerForSlot: cho
+  vacatedPane; giữ removePicker ở destination và early-return
+  same-VC.
+- E — recoverPending:attempt: — ĐÃ SỬA. Map đọc bằng valueForKey:
+  trong @try/@catch + kiểm NSDictionary + đối chiếu bundle từng VC
+  (nhánh 1); nhánh terminal khôi phục (nhánh 4 + micro-fix theo dump
+  ở đầu §18): log danh sách VC dashboard đang giữ, toast, gọi
+  launchFailed:slot: với slot đọc mới từ pendingSlotForBundle:.
+- F — swapSlot:with: — ĐÃ SỬA. Giao dịch đầy đủ: guard a==b/ngoài
+  miền; exchange slots; hoán focusedSlot; exchange fractions khi
+  !mainStack && fractions.count == paneCount; duyệt SNAPSHOT
+  pending.allKeys hoán slot GIỮ NGUYÊN timestamp; reindexPanes;
+  rememberPair; rememberRecent; relayoutAnimated:YES.
+  Slot 9: GIỮ KHÁC CÓ LÝ DO — dump không có nhánh slot-9 riêng; pane
+  nổi không nằm trong `slots` nên guard paneCount là toàn bộ cơ chế.
+- G — buildPickerSheetForPane: — ĐÃ SỬA (nhánh 1). Cây hai vùng:
+  sideColumn (gridW, 0, 150.0, sheetH); wrapper/title/sub/cancel là
+  con của sideColumn theo tọa độ local; wrapper x = (150 − mapW)/2;
+  offset dọc 54.0; cancel center (120, 30); scrollView giữ ở
+  contentView x=0. showPickerForSlot: frame origin (0,0) vốn đã đúng
+  từ vòng 3. Điểm vào [self activate]: GIỮ KHÁC CÓ LÝ DO — rà toàn
+  bộ 9 đường gọi, mọi đường đều guard active hoặc activate trước;
+  thêm vào sẽ tạo tác dụng phụ tự bật split từ callback bridge.
+- H — setFullscreenBridgeHidden:bundle: — ĐÃ SỬA. Đường solo khôi
+  phục: soloHostedBundle nil → return; hidden == trayHidesBridge →
+  return; cập nhật cờ; post appbridge.frame với CGRectZero khi ẩn /
+  soloHostedFrame khi hiện, identifier solo, live=NO, handle=NO.
+- I — paneForBundle: — ĐÃ SỬA. Thêm điều kiện pane.vc != nil trước
+  khi so bundle (gốc @0x108ac). pendingSlotForBundle: giữ riêng.
+
+## Cụm wiring (Deep Function Wiring Audit N1–N6) + thanh "..." (C3)
+
+- N1 (= C3-4) bardismiss — ĐÃ SỬA. Block bardismiss gọi thẳng
+  bridgeOutsideTouched (gốc @0x7a4c); route bridgeBarAction:@"dismiss"
+  chết đã xóa. Các @"dismiss" còn lại thuộc kênh bàn phím AppBridge.
+- N2 — refreshPickerSheet — ĐÃ SỬA (nhánh 5). Giữ pane đã chọn:
+  found = sheetPane đã kiểm hợp lệ; chỉ khi found == nil mới quét
+  reading order. Bản cũ kiểm xong bỏ kết quả, sheet nhảy về ô đầu tiên.
+- N3 (= XI-2) layoutKnobOf: mainStack — ĐÃ SỬA (nhánh 4). Receiver
+  convertPoint:fromView: là DIVIDER, kích thước từ divider.bounds
+  (gốc @0x2c848/@0x2cdac). Lỗi knob này KHÔNG giải thích menu tỉ lệ
+  tự đóng — hai đường riêng.
+- N4 (= XI-1) clearPaneDragMarks — ĐÃ SỬA (nhánh 4). Thêm
+  pane.view.layer.borderWidth = 0 trong vòng slots (helper gốc
+  sub_132cc @0x27ef0), trước cover.alpha = 1.0. Thứ tự chụp
+  target/ghost ở endPaneDrag:/cancelPaneDrag: đã kiểm — giữ nguyên.
+- N5 — hideTrayWindowIfIdle — ĐÃ SỬA (nhánh 5). Thêm phép thử
+  [window viewWithTag:0x5c9b] == nil (toast "Mở lại") làm điều kiện
+  cuối trong chuỗi thoát sớm (gốc @0x28180/@0x28214).
+- N6 — setBarVisible:forPane: — ĐÃ SỬA. (a)–(l) của vòng nghiệm thu
+  nhánh 5: bản nhánh 3 đã tương đương; (m) completion VỪA BỔ SUNG:
+  bốn lệnh đúng thứ tự gốc @0x24cbc (setHidden:YES → setAlpha: 1.0 →
+  setTransform: → pushHostFramesLive:NO có cổng hai weak), BỎ guard
+  `if (bar.alpha == 0)` mượn từ hideBarForPane: phía AB (hàm khác).
+- C3-1 layoutBarForPane: — ĐÃ SỬA (nhánh 3). Scale bar theo bề rộng
+  ô; nút Pop/Solo đổi icon + nhãn theo trạng thái (hm_split/"Chia
+  màn" khi float hoặc đã zoom; hm_float/"Cửa sổ nổi"; hm_full/"Toàn
+  màn"); xóa dòng INFERRED soloButton.selected.
+- C3-2 setBarVisible: — ĐÃ SỬA (nhánh 3, hoàn thiện bởi N6(m)).
+  Accent handle qua bản sao TU-local của SCPApplyAccent @0x293a0 —
+  mức bằng chứng yếu hơn các mục khác (thân sub_24794 không có trong
+  dump của cây; xem CÒN MỞ).
+- C3-3 handleShift — ĐÃ SỬA (nhánh 3). Cộng vào trục X, Y giữ 12
+  (gốc @0x23c1c).
+- Instrumentation [do] — ĐÃ GẮN, không phải hành vi gốc: log điểm
+  vào SCPBridgeHandleTapBlock; caller-id __builtin_return_address(0)
+  ở đầu closePopups; hit-test shield ghi point + exempt + quyết định
+  + toàn bộ rect miễn trừ; updatePopupShield ghi host/superview;
+  dividerTapOn: ghi index vách + sắp mở/đóng. Mọi dòng gắn thẻ [do].
+  Kèm khôi phục log CỦA GỐC "cham thanh ••• cua %@" trong ABHost
+  handleTapped: TRƯỚC cú post (dump: log @0x15428, post @0x154b4) —
+  đây là khôi phục, không phải instrumentation.
+
+## Splash (audit-S: LP-1/2/3) — ĐÃ SỬA (nhánh 2)
+
+- LP-1 reload: bỏ phép thử dữ liệu `if (self.weather)`; khôi phục
+  suy ra style hiệu lực (11 → cổng occasion [1,6); 3 → có weather
+  thì 3 không thì 2; clamp theo predicate mã máy: >= 10 và số âm →
+  2) gán _sceneStyle; dispatch: == 3 mới buildWeather (category qua
+  SSWeatherCategory lưu _sky — ivar này trước đây KHÔNG được gán ở
+  bất cứ đâu trong cây), != 3 buildGreeting và nhảy qua buildWeather.
+- LP-2 buildWeatherWithPeriod:: icon thời tiết về ivar _iconView
+  (slot 0xcc4) ở đủ 8 chỗ; _logoView (0xccc) chỉ còn của logo chung.
+- LP-3 applyUnit: đọc trọn dump cho thấy gốc rẽ theo label-presence
+  (_timeLabel rồi _tempLabel) như bản ta — nhánh vốn đúng, chỉ sai
+  hệ quả vì LP-1; siết duy nhất đuôi chung _stack.spacing = 3·unit
+  thành có điều kiện (gốc chỉ tới được từ nhánh đã rẽ).
+
+## Marker build [fixround4]
+
+- SplitScreen/CarPlay: SCPHooks.m — "loaded into CarPlay [fixround4]".
+- Preferences: OMCRootListController.m — "[GPT-F] specifiers build
+  [fixround4]: …" (bundle Prefs không có dòng "loaded into" riêng,
+  giữ mẫu vòng 3).
+- AppBridge: module CÓ dòng log load sẵn — ABChannels.m constructor
+  "build %s (%s) loaded into %@ [fixround4]" (gắn tag vào chính dòng
+  đó; literal build "fbebb21" là stamp tĩnh của cây phục dựng, không
+  đổi). Cả ba chuỗi đã kiểm có mặt trong binary tương ứng của
+  candidate (strings: mỗi binary đúng 1).
+
+## Mirror
+
+cmp identical cho mọi cặp các nhánh đã đụng: Picker, SCPCarSplit.m/.h
+(SplitScreenA), SCPHooks, Chrome, Divider, Layout, Drag, TouchWatch,
+ABHostBMethods, SSStartupView.m + SSStartupViewScenesB.m
+(StartupScreen), ABChannels, OMCRootListController.
+src/SplitScreenB/SCPCarSplit.h: vẫn là header làm việc tiền-gộp của
+strand B (15.763 B, mtime 00:49 — trước mọi nhánh vòng 4), khác bản
+chuẩn SplitScreenA/project (21.622 B) — trạng thái đã ghi ở §17G,
+staging bàn giao vẫn mang nguyên trạng; header B không khai
+launchPhoneAppIfNeeded: nên không stale theo mục A. Không tự đồng bộ
+bừa; chờ quyết định riêng nếu muốn dọn.
+
+## Build + cổng kiểm (agent chốt hạ, trên candidate local)
+
+Build sạch từng module (make clean + FINALPACKAGE=1, 8/8 exit 0,
+0 error — bài học stale-object vòng liquidfix). Candidate local:
+com.anlai.omnicar_1.0.3-rebuilt-fixround4_iphoneos-arm64.deb,
+973.938 B, SHA-256
+14e7976167c64aa1732e0367ed951694934ffd26ff89b0db0d5a92cb1ee4fe66;
+member control.tar.gz + data.tar.lzma; control Version 1.0.3.
+Cổng chạy trên CHÍNH candidate vừa trích + object của build này;
+loại bằng chứng ghi từng cổng (bs = binary-string trên DEB đã trích,
+bx = binary-structure trên object, so = source):
+
+- A — ĐẠT (bx+so): thân launchPhoneAppIfNeeded: 0 selref
+  applicationInfo/proxyApplicationInfo; gọi SCPIsHostedApp trực tiếp
+  trên tham số; _Hook_launchAppWithInfo có respondsToSelector: guard
+  + cfstring bundleIdentifier trong TU + send launchPhoneAppIfNeeded:.
+- B — ĐẠT (bx+so): mov #-0x1 trước send openApp:slot:; cấu trúc ba
+  nhánh đọc lại trên source khớp gốc; endHostedSolo/hostSolo: mỗi
+  đúng 1 send.
+- C — ĐẠT (bx): hostedApp:state: đủ endHostedSolo/hideSoloCover/
+  removeLoaderFromPane:animated:/toast:; closeSlot:background: ở vị
+  trí đuôi (sau toast:).
+- D — ĐẠT (bx): adopt:slot: đúng 1 send showPickerForSlot:, nằm sau
+  cả 2 send detachVC:background: của vòng dọn, liền trước
+  relayoutAnimated:.
+- E — ĐẠT (bx+bs): valueForKey: + cfstring
+  "_entityIdentifierToViewControllerMap" trong dylib; terminal có
+  launchFailed:slot:; `cmp x21, #0x2; b.gt` → terminal và
+  `lsl w8, w21, #1` cho giây log (micro-fix theo dump đã biên dịch).
+- F — ĐẠT (bx+so): đủ exchangeObjectAtIndex (load selref được clang
+  gộp 1 lần cho 2 send — cả hai exchange đều có trên source),
+  allKeys + setObject:forKeyedSubscript:, reindexPanes, rememberPair,
+  rememberRecent, relayoutAnimated:.
+- G — ĐẠT (bs+so): hằng double 150.0 có trong dylib + Picker TU;
+  parenting sideColumn và các tọa độ (150−mapW)/2, +54.0, (120, 30)
+  trên source theo offset dump.
+- H — ĐẠT (bx+bs): thân hàm đủ soloHostedBundle/trayHidesBridge/
+  setTrayHidesBridge:/soloHostedFrame/hostPost:info:, 0 lần
+  paneForBundle:/sendHostFrameForPane:; dylib tham chiếu _CGRectZero.
+- I — ĐẠT (bx): trong paneForBundle:, selref vc đứng TRƯỚC
+  bundleID/isEqualToString: ở mọi vòng lặp.
+- N1 — ĐẠT (bs+bx): dylib SplitScreen không còn cfstring "dismiss"
+  độc lập; selref bridgeOutsideTouched có mặt; chuỗi kênh
+  appbridge.bardismiss nguyên vẹn.
+- N2 — ĐẠT (bx+so): refreshPickerSheet một điểm enumeration duy
+  nhất, có guard cbz ở lối vào + cbnz bỏ-qua theo phần tử (mẫu gốc
+  @0x31fd8); layout mã khác bản nhánh 5 do FINALPACKAGE — cấu trúc
+  guard tương đương.
+- N3 — ĐẠT (bs+so): selref bounds/convertPoint:fromView:/setCenter:/
+  bringSubviewToFront: đủ; receiver divider chốt ở source + dump
+  gốc (register-trace trên object không tách được receiver chỉ từ
+  danh sách selref — caveat của nhánh 4 giữ nguyên).
+- N4 — ĐẠT (bx): clearPaneDragMarks thứ tự view → layer →
+  setBorderWidth: → cover → setAlpha: đúng dump @0x27e60.
+- N5 — ĐẠT (bx): hideTrayWindowIfIdle có `mov w2, #0x5c9b` và chuỗi
+  thoát tray → ratioMenu → pickerSheet → dragGhost → viewWithTag: →
+  setHidden: đúng thứ tự gốc.
+- N6(m) — ĐẠT (bx): block completion của setBarVisible (block_invoke
+  .200) gửi đúng setHidden: → setAlpha: (fmov d0, #1.0) →
+  setTransform: → pushHostFramesLive:, KHÔNG có fcmp (guard alpha
+  cũ đã biến mất).
+- Splash — ĐẠT (bs+so): _SSWeatherCategory biên dịch trong
+  SSStartupView TU (bản sao per-TU như quy ước); discriminator đầy
+  đủ của nhánh 2 (dispatch style==3, 8 tham chiếu _iconView / 0
+  _logoView trong buildWeather) chụp trên object cùng source.
+
+Mọi cổng trên là "đã kiểm tra tĩnh" — KHÔNG phải PASS hành vi.
+Nghiệm thu thiết bị theo kịch bản gộp §18 dưới đây + Consolidated
+Order (KIỂM LOGIC TRƯỚC GỬI THIẾT BỊ / MỘT PHIÊN NGHIỆM THU).
+
+## Điểm CÒN MỞ sau vòng 4 (không chặn candidate)
+
+- Chuỗi handle→bar phía HOSTED còn đúng 2 ứng viên chưa phân định
+  được bằng dữ kiện tĩnh: (i) hit-test/recognizer tại handleHit lúc
+  chạm; (ii) cú post handletap → bridgeHandleTapped:. Vòng này đã
+  khôi phục log của gốc "cham thanh •••" + gắn instrumentation [do]
+  ở điểm vào phía CarPlay để PHIÊN ĐO TIẾP THEO kết tội bằng log —
+  không sửa mò (kết luận của convictions.md Chuỗi 2).
+- Giả thuyết E-2 (menu tỉ lệ tự đóng 65–73 ms): đã khoanh vào
+  hit-test của shield (tọa độ chạm mở menu nằm ngoài mọi rect miễn
+  trừ; shield do chính showRatioMenu dựng tính là chạm-ngoài). Ba
+  điểm log đã gắn (caller-id closePopups; point+exempt+rects trong
+  hit-test; host của shield) — chờ số liệu phiên tới để chốt 100%.
+  Thứ tự single-trước-double của dividerTapOn là CỦA GỐC (E-3),
+  không sửa.
+- Splash style 3: gốc còn chọn lại cặp gradient theo category
+  (sub_d6f0 @0xd10c–0xd300) sau ss_sceneColors; bản ta chưa có —
+  delta có từ trước vòng 4, chỉ ảnh hưởng màu nền style thời tiết.
+- Hoán vị thứ tự khai báo _wetMask ở header StartupScreen (bản ta
+  offset 376/trước _flash; gốc 424/sau _radar) — trung tính về hành
+  vi (mọi truy cập qua offset tượng trưng), chưa đụng header.
+- Helper accent sub_24794 (C3-2): thân không có trong dump của cây;
+  bản khôi phục dựa trên giải mã ở báo cáo tích hợp — mức bằng chứng
+  yếu, ghi rõ để không đọc nhầm thành đã kiểm từ mã máy.
+- Các mục §17G còn mở giữ nguyên: quan sát dispatch-gate của
+  ss_drawCanvas (P2-E); factory nhãn Prefs SSStartupView.m:147-148
+  [INFERRED placement]; nhánh clamp maxWidth ≤ 0 của ss_label phía
+  Prefs.
+- Consolidated Order §XI.4 (geometry chuyển tiếp: origin âm / Home
+  rect inf trước ổn định — không đặt launcher từ rect không hữu
+  hạn) và §XI.5 (call-diff preview/style phía Prefs): mới là đầu
+  mối rà, chưa kết tội, chưa sửa.
+- CarPlayTemplateUIHost.ips (dashboard setShortCutButtons: phần tử
+  nil) từ phiên prefsround: hệ quả hạ nguồn, chỉ theo dõi; nếu còn
+  xuất hiện ở phiên vòng 4 sẽ mở lại.
+
+DEVICE_TEST vòng 4 = PENDING. Bản FAT giao qua CI (macOS) được ghi
+nhận tại handover/ACCEPTANCE_FIXROUND4.md với SHA-256/UUID trích từ
+chính file đó.

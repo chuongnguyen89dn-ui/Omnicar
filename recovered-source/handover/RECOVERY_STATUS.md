@@ -1568,3 +1568,88 @@ cluster G (PATCH_NOTES §17G): the P2-E ss_drawCanvas
 dispatch observation, the Prefs SSStartupView
 label-factory [INFERRED placement], and the Prefs
 ss_label bounds clamp when maxWidth ≤ 0.
+
+## Fix round 4 (2026-11-09) — launch/solo chain, adopt/recovery,
+## swap transaction, picker tree, wiring N1–N6, splash leak
+
+**Basis.** fixround3 FAILED its device session (2026-11-09
+08:13–08:20): the "..." pane bar never appeared, native map apps
+appeared unable to open, the picker sheet rendered broken, and the
+greeting-only startup scene showed weather elements. GPT's
+log-verified convictions (adopt covering the destination pane,
+recovery reading the workspace map by getter instead of KVC), the
+Consolidated Repair Order (items A–I with binary gates) and the
+Deep Function Wiring Audit (N1–N6) were folded with an internal
+five-strand investigation/fix round (work/fix-round4/).
+
+**Fixed (see PATCH_NOTES §18 for the per-item ledger with
+ĐÃ SỬA / GIỮ KHÁC CÓ LÝ DO / CÒN MỞ labels).** The whole
+launch/solo chain as one unit: launchPhoneAppIfNeeded: bundle-ID
+contract restored (NSString in, hosted predicate on the string;
+dashboard hook extracts bundleIdentifier first), the three solo
+branches un-inverted, hostedApp:state: state machine restored
+(solo-ready keeps the app; split failure ends in closeSlot:),
+setFullscreenBridgeHidden: solo path restored (hidden flag
+honoured, CGRectZero/soloHostedFrame posted). Native pane chain:
+adopt:slot: picker only for the VACATED pane; recovery KVC read
+plus the terminal failure branch (log held VCs, toast,
+launchFailed:slot:) — with the terminal condition and retry-log
+seconds taken from the RAW dump (attempt > 2, attempt<<1) where
+the spec text differed, recorded in §18 for GPT correction;
+paneForBundle: requires a live VC. swapSlot:with: restored as a
+full transaction (focus, fractions, pending remap preserving
+timestamps, reindex, persist, relayout). Picker sheet two-region
+tree restored (150-pt side column; cancel at (120, 30); offset
+54.0). Wiring: bardismiss routes to bridgeOutsideTouched; picker
+refresh keeps the user's pane; mainStack knob converts via the
+divider; drag-mark cleanup clears borderWidth; tray window checks
+the toast tag 0x5c9b before hiding; setBarVisible completion
+restored to the original four sends without the borrowed alpha
+guard. Bar chrome: Solo/Pop icon-label swaps, narrow-pane scale,
+handleShift on the X axis. Splash: reload dispatches on the
+EFFECTIVE style (weather scene only when effective style == 3),
+the never-assigned _sky category ivar is populated, and the
+weather icon lives in _iconView again. The original's own
+"cham thanh •••" tap log was restored in the AppBridge host, and
+a minimal set of [do]-tagged instrumentation lines was added to
+convict the two still-open runtime questions by log evidence.
+
+**Deliberately kept different, with reasons on record.** The
+[ self activate ] entry of showPickerForSlot: was NOT restored —
+all nine call paths guard or activate first, and restoring it
+would let a bridge callback switch split on by itself. swapSlot:
+has no separate slot-9 branch because the original has none (the
+paneCount guard is the whole mechanism). applyUnit's
+label-presence branching was verified to BE the original's
+structure; only its unconditional tail was tightened.
+
+**Verification.** All round-4 gates are STATIC checks
+("đã kiểm tra tĩnh") run on the re-extracted local candidate and
+the build's own fresh objects: the full A–I + N1–N6 gate table in
+PATCH_NOTES §18 with per-gate evidence types (binary-string /
+binary-structure / source), [fixround4] markers present in the
+SplitScreen, Prefs and AppBridge binaries, mirror cmp identical
+for every touched file. No gate is a behavioural PASS.
+
+**Status.** DEVICE_TEST = PENDING. Acceptance:
+handover/ACCEPTANCE_FIXROUND4.md (written against the shipped
+FAT's own SHA-256 and slice UUIDs) and one combined car session:
+independent Home icons (one hosted app, one native map) opening;
+re-tapping the same solo icon keeps the app; switching solo apps
+leaves exactly one host; Maps/Waze/GOFA into both panes with real
+content and touch (no picker covering an adopted app); moving an
+app pane-to-pane leaves the picker only on the vacated pane; swap
+while a launch is pending; loader cancel and timeout ending in a
+clear failure, not a standing spinner; solo app yielding its
+frame when a panel opens and restored after; "..." bar on a
+native pane AND a hosted pane with all five buttons exercised
+(the hosted chain, if still dead, is now instrumented — the log
+will name the broken link); ratio menu staying open after a
+single knob tap; greeting-only startup scene showing only
+greeting elements. Still open after round 4 (PATCH_NOTES §18):
+the hosted handle→bar chain's two candidate links, the ratio
+menu self-close hypothesis E-2, the style-3 gradient re-selection,
+the _wetMask declaration permutation, the weak-evidence accent
+helper sub_24794, and the §17G leftovers (ss_drawCanvas dispatch
+observation, Prefs label-factory placement, Prefs ss_label
+maxWidth clamp).

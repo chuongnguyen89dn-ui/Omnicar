@@ -149,7 +149,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)openRememberedPair;
 - (void)openRememberedPairForConnect;               // reconnect/restore path
 - (void)autoLaunchAttempt:(int)attempt;
-- (BOOL)launchPhoneAppIfNeeded:(id)launchInfo;      // YES = consumed by AppBridge
+- (BOOL)launchPhoneAppIfNeeded:(NSString *)bundleID;      // YES = consumed by AppBridge (binary @0x403d0: the argument IS the bundle-id string)
 
 // --- scene adoption / VC lifecycle (A) ---------------------------------------
 - (BOOL)wantsViewController:(UIViewController *)vc;
