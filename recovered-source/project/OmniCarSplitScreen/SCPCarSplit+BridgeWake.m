@@ -38,8 +38,10 @@ static __weak SCPCarPane *bwPaneBySlot[10];   // last pane object per slot
 
 static uint16_t       bwStateSeq;             // owner state seq (§3.2)
 static NSInteger      bwWakeMode  = BWModeDryRun;   // §4: absent = DRY_RUN
-static NSInteger      bwPinchMode = BWModeDryRun;
-static NSArray<NSString *> *bwPinchAllowlist;       // §2.2 (default: empty)
+static NSInteger      bwPinchMode = BWModeEnforce;  // absent = ENFORCE since
+// 2026-11-09 (Nguyen: pinch wired live, staging removed — see reload).
+static NSArray<NSString *> *bwPinchAllowlist;       // §2.2 (nil = absent =
+// no restriction: every eligible pane; an array = only its members)
 static BOOL           bwExpandedFlag;               // §2.1 input (A1: no
 static NSString      *bwExpandedBundle;             //   producer this round)
 static BOOL           bwAutoHideEnabled = YES;      // [autohide] owner's cached
@@ -233,7 +235,9 @@ static void BWEmitDrain(void) {
     if (bwStateBySlot[pane.slot] != BWStateVisible) return NO;
     if ([self bwPopupForPane:pane]) return NO;
     if (self.resizing) return NO; // native divider gesture in flight
-    return [bwPinchAllowlist containsObject:bundle];
+    // Allowlist (2026-11-09): absent (nil) = every eligible pane; only
+    // a present array restricts, and then membership decides.
+    return bwPinchAllowlist ? [bwPinchAllowlist containsObject:bundle] : YES;
 }
 
 - (void)bwSetExpandedActive:(BOOL)active forBundle:(NSString *)bundleID {
@@ -375,17 +379,26 @@ static void BWEmitDrain(void) {
 - (void)bwReloadModesAndRepublish {
     // The owner (CarPlayApp, the tweak's own process — not an App
     // Store sandbox) is the ONLY reader of these prefs; apps learn the
-    // modes solely from state packets. Absent = DRY_RUN, never ENFORCE.
+    // modes solely from state packets. Wake: absent = DRY_RUN (as
+    // designed). Pinch: absent = ENFORCE — Nguyen's decision
+    // 2026-11-09 ("bỏ staging, nối pinch luôn"): pinch is a live
+    // feature by default now; an explicit pref still wins, so
+    // pinchMode = 0/1 remains available as an off/dry-run switch.
     id w = OMCPref(@"bridgewake.wakeMode", nil);
     id p = OMCPref(@"bridgewake.pinchMode", nil);
     bwWakeMode  = w ? MIN(MAX([w integerValue], 0), 2) : BWModeDryRun;
-    bwPinchMode = p ? MIN(MAX([p integerValue], 0), 2) : BWModeDryRun;
+    bwPinchMode = p ? MIN(MAX([p integerValue], 0), 2) : BWModeEnforce;
     id al = OMCPref(@"bridgewake.pinchAllowlist", nil);
     if ([al isKindOfClass:[NSArray class]]) {
         NSMutableArray<NSString *> *clean = [NSMutableArray array];
         for (id item in (NSArray *)al)
             if ([item isKindOfClass:[NSString class]]) [clean addObject:item];
         bwPinchAllowlist = [clean copy];
+    } else {
+        // Absent (or malformed) = nil: NO restriction — every pane
+        // that passes the state/popup/resizing checks above is
+        // eligible (2026-11-09, same decision as the pinch default).
+        bwPinchAllowlist = nil;
     }
     // [autohide] the AutoHide kill-switch rides the same prefs read
     // (design-autohide §3.5): absent = ON. The owner's cached copy
@@ -396,9 +409,11 @@ static void BWEmitDrain(void) {
     bwAutoHideEnabled = ah ? [ah boolValue] : YES;
     [self ahReloadConfig];
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[wake1] bw modes wake=%ld pinch=%ld allowlist=%lu autohide=%d",
+        @"[wake1] bw modes wake=%ld pinch=%ld allowlist=%@ autohide=%d",
         (long)bwWakeMode, (long)bwPinchMode,
-        (unsigned long)bwPinchAllowlist.count, (int)bwAutoHideEnabled]);
+        bwPinchAllowlist ? [NSString stringWithFormat:@"%lu",
+            (unsigned long)bwPinchAllowlist.count] : @"all",
+        (int)bwAutoHideEnabled]);
     // Mode changes re-run aggregation for every hosted pane (§1.3
     // point 6); the emit signature carries the modes, so any change
     // re-emits even when the state enum itself does not move.
@@ -617,9 +632,9 @@ static void BWEmitDrain(void) {
     return (SCPPinchMode)bwPinchMode;
 }
 
-// The arbiter's cached copy of the EXPANDED input (§2.1/§3.5) — the
-// adapter remains the source of truth; this round it is always NO
-// (A1 BLOCKED, no producer).
+// The arbiter's cached copy of the EXPANDED input (§2.1/§3.5), fed
+// by bwSetExpandedActive:forBundle: — since fs1 its producer is
+// SCPFullscreenController, which reports every settle there.
 - (BOOL)hostIsExpanded { return bwExpandedFlag; }
 
 // Answered purely from the owner's stored per-slot state (the same

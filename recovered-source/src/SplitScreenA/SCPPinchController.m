@@ -396,8 +396,8 @@ static NSString *SCPPinchDeadKindName(SCPPinchDeadKind kind) {
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _adapter = [[SCPFullscreenAdapter alloc] init];  // empty body — A1 = BLOCKED
-        _allowlistKeys = [NSMutableSet set];             // empty: everything OFF (§A4)
+        _adapter = [[SCPFullscreenAdapter alloc] init];  // forwards to SCPFullscreenController (fs1)
+        _allowlistKeys = [NSMutableSet set];             // empty = no restriction (§A4, amended 2026-11-09)
     }
     return self;
 }
@@ -473,7 +473,7 @@ static NSString *SCPPinchDeadKindName(SCPPinchDeadKind kind) {
     return self.adapter.currentState == SCPFullscreenStateExpanded;
 }
 
-#pragma mark Allowlist (§3.3 gate 5 / §A4) — (bundleID, scene) keyed, default OFF
+#pragma mark Allowlist (§3.3 gate 5 / §A4) — (bundleID, scene) keyed; an empty list restricts nothing (the staging-era default-OFF was lifted 2026-11-09 together with the staging itself)
 
 + (NSString *)scpAllowlistKeyForBundle:(NSString *)bundleID hosted:(BOOL)hosted {
     return [NSString stringWithFormat:@"%@|%@", bundleID, hosted ? @"H" : @"N"];
@@ -487,6 +487,11 @@ static NSString *SCPPinchDeadKindName(SCPPinchDeadKind kind) {
 
 - (BOOL)isAllowlistedBundle:(NSString *)bundleID hosted:(BOOL)hosted {
     if (!bundleID.length) return NO;
+    // §A4 as amended (2026-11-09): the list is a restriction only once
+    // it has entries. Empty = every (bundle, scene) passes — pinch is
+    // wired live by default now; allowBundle:hosted: remains the way
+    // to narrow it back down per app+scene.
+    if (_allowlistKeys.count == 0) return YES;
     return [_allowlistKeys containsObject:
         [SCPPinchController scpAllowlistKeyForBundle:bundleID hosted:hosted]];
 }
@@ -589,9 +594,10 @@ static BOOL SCPViewIsInHierarchyOf(UIView *view, UIView *ancestor) {
     BOOL modeOK = mode != SCPPinchModeOff;
     // Gate 2 — host state vs direction (§3.3, state read from the
     // adapter per §4): SPLIT accepts only pinch-out, EXPANDED only
-    // pinch-in. With the A1-BLOCKED empty adapter the state is always
-    // Unknown and this gate never passes — the design's self-lock
-    // (§4.3); PINCH ENFORCE therefore cannot fire this round.
+    // pinch-in. Since fs1 the adapter forwards to
+    // SCPFullscreenController, whose settled state is real (Split /
+    // Expanded; Unknown only before install), so this gate passes
+    // exactly on the matching direction.
     SCPFullscreenState host = self.adapter.currentState;
     BOOL out = recognizer.direction == SCPPinchDirectionOut;
     BOOL hostOK = (out && host == SCPFullscreenStateSplit)
@@ -605,7 +611,7 @@ static BOOL SCPViewIsInHierarchyOf(UIView *view, UIView *ancestor) {
     // Gate 4 — clean chain (§3.3): no touch of this pair belongs to a
     // chain held by wake suppression.
     BOOL cleanOK = !suppressed;
-    // Gate 5 — (bundleID, scene) allowlist (§A4); default OFF.
+    // Gate 5 — (bundleID, scene) allowlist (§A4); empty list passes.
     BOOL allowOK = [self isAllowlistedBundle:pane.bundleID
                                       hosted:SCPVCIsHosted(pane.vc)];
     // Final session re-check (§2.2): the assignment may have changed

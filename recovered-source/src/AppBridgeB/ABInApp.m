@@ -22,6 +22,7 @@
 
 #import "AppBridgeB.h"
 #import "BridgeWakePack.h"
+#import "ABYTLease.h"
 #import <objc/runtime.h>
 #import <substrate.h>
 
@@ -43,6 +44,13 @@ static void ABHook_UIDeviceBeginGen(UIDevice *self, SEL _cmd);
 static void ABHook_SceneRequestGeometry(UIWindowScene *self, SEL _cmd, id preferences, id errorHandler);
 static void ABHook_VCSetNeedsUpdate(UIViewController *self, SEL _cmd);
 static void ABHook_VCAttemptRotation(id self, SEL _cmd);
+// YT-ZOOM answer-surface hooks (design-ytzoom.md §5.2 #1/#2/#3/#5);
+// defined in the YZ section below, installed only in the YouTube
+// process, and inert unless a lease lives (YZActive()).
+static NSUInteger ABHook_VCSupportedOrientations(UIViewController *self, SEL _cmd);
+static NSUInteger ABHook_VCSupportedOrientationsPrivate(UIViewController *self, SEL _cmd);
+static NSInteger ABHook_SceneInterfaceOrientation(UIWindowScene *self, SEL _cmd);
+static void ABHook_UIWindowRotateWindow(UIWindow *self, SEL _cmd, NSInteger orientation, BOOL updateStatusBar, double duration, BOOL skipCallbacks);
 
 NSInteger ABForcedOrientation = -1;  // 0x3E7D0 (stored as int32 in the original)
 int64_t   ABAppOrientation    = 0;   // 0x3E9C8
@@ -639,8 +647,575 @@ static void BWResetAll(void) {
 }
 
 // ===========================================================================
-// Orientation block — sub_4728. Registered by the ctor for
-// ABChanOrientation; runs on the main queue. x0 = block, x1 = notification.
+// YT-ZOOM — orientation virtualization for hosted YouTube
+// (design-ytzoom.md §5/§6). NEW machinery beside BridgeWake; no
+// original function is rewritten — two existing hooks gain a
+// lease-first branch, three reporting hooks gain a mute branch, and
+// four answer surfaces are added. Principle (§0): while a host-issued
+// lease (ABYTLease.h) is valid, landscape never exists for this app —
+// every orientation query answers Portrait, every rotate command is
+// rewritten to Portrait, and the player's mask-24 declaration is
+// consumed in place instead of being published to appbridge.apporient.
+// The ONLY life condition is a fresh lease: the app never reads prefs
+// or plists (QA179 lesson). Lease gone/stale/revoked => every hook
+// falls back to its original IMP at the very next call — no answer is
+// ever latched (§5.6). The whole machine exists ONLY in the YouTube
+// process: the lease observer is registered under that bundle check
+// and the four new hooks are installed under it (§5.1).
+// ===========================================================================
+
+// ---- accepted lease (latest, §4.6) ----
+static BOOL     YZHaveLease      = NO;
+static BOOL     YZLeaseActiveFlag = NO;
+static NSString *YZLeaseOwner    = nil;
+static uint32_t YZLeaseGen       = 0;
+static NSTimeInterval YZLeaseIssuedAt = 0; // wall-clock epoch seconds
+static double   YZLeaseW = 0, YZLeaseH = 0;
+static BOOL     YZLeaseIsSplit   = NO;
+static NSString *YZLeaseSceneID  = nil;
+
+// ---- virtualization state ----
+static BOOL     YZInVirt         = NO; // an active lease was accepted
+static BOOL     YZHosted         = NO; // ABOrientationBlock ran: hosted
+static BOOL     YZHooksInstalled = NO;
+static NSUInteger YZSurfaceCount = 0;  // answer surfaces live (BAT log)
+static __weak UIWindowScene *YZSceneCache = nil;
+static NSString *YZSceneTier     = nil; // @"id" | @"single" | @"key" | @"none"
+static NSMapTable *YZSnapshots   = nil; // window(weak) -> {frame, bounds}
+static NSTimer  *YZWatchdog      = nil;
+static NSTimeInterval YZLastRequestAt = 0;
+static NSTimeInterval YZLastConsumeLogAt = 0;
+
+// Original IMP slots of the four new answer hooks (§5.2).
+static IMP orig_VC_supported, orig_VC_supportedPriv;
+static IMP orig_Scene_interfaceOrient, orig_UIWindow_rotate;
+
+// The lease clock is the WALL clock: issuedAt is epoch seconds and
+// both processes share the device clock (§4.2) — deliberately NOT
+// BWNow()'s uptime.
+static NSTimeInterval YZWallNow(void) {
+    return [[NSDate date] timeIntervalSince1970];
+}
+
+static BOOL YZIsYouTube(void) {
+    return [[[NSBundle mainBundle] bundleIdentifier]
+        isEqualToString:ABYTLeaseYouTubeBundle];
+}
+
+static BOOL YZLeaseFreshNow(void) {
+    if (!YZHaveLease || !YZLeaseActiveFlag) return NO;
+    return (YZWallNow() - YZLeaseIssuedAt) <= ABYTLeaseTTL;
+}
+
+// The one predicate every answer hook consults AT CALL TIME (§5.6):
+// virtualization answers only while the lease is fresh; the moment it
+// ages past the TTL the original answers return, watchdog or not.
+static BOOL YZActive(void) {
+    return YZInVirt && YZLeaseFreshNow();
+}
+
+// Consumed-declaration log (§8.2), throttled like the host-side gate.
+static void YZNoteConsumed(void) {
+    NSTimeInterval now = BWNow();
+    if (now - YZLastConsumeLogAt < 5.0) return;
+    YZLastConsumeLogAt = now;
+    OMCLogWrite(@"AppBridge", @"[ytz] tieu thu tuyen bo (lease song)");
+}
+
+// Ack/request postings (§4.5): the ONLY things the app side may say
+// on the lease channels — they carry no orientation data.
+static void YZPostAck(NSString *phase, NSInteger windows,
+                      double w, double h, NSInteger mismatch) {
+    NSString *bundle = [NSBundle mainBundle].bundleIdentifier;
+    NSDictionary *info = @{
+        ABYTLeaseAckKeyIdentifier: bundle ?: @"",
+        ABYTLeaseAckKeyPhase:      phase,
+        ABYTLeaseAckKeyGeneration: @(YZLeaseGen),
+        ABYTLeaseAckKeyWindows:    @(windows),
+        ABYTLeaseAckKeyWidth:      @(w),
+        ABYTLeaseAckKeyHeight:     @(h),
+        ABYTLeaseAckKeyMismatch:   @(mismatch),
+    };
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotificationName:ABYTLeaseAckChannel object:bundle userInfo:info];
+}
+
+// ---- leased-scene selection (§5.4 step 1): three tiers, the matched
+// tier is kept in YZSceneTier for the BAT log. Whether an FBScene
+// identifier is readable from inside the app at all is [SUY — do xe];
+// tiers (b)/(c) are the designed fallbacks, not afterthoughts. ----
+static NSString *YZSceneCandidateID(UIWindowScene *scene) {
+    @try {
+        id fb = [scene valueForKey:@"_scene"];
+        SEL idSel = NSSelectorFromString(@"identifier");
+        if (fb && [fb respondsToSelector:idSel]) {
+            id v = ((id (*)(id, SEL))objc_msgSend)(fb, idSel);
+            if ([v isKindOfClass:NSString.class]) return v;
+        }
+    } @catch (NSException *e) { (void)e; }
+    @try {
+        NSString *p = scene.session.persistentIdentifier;
+        if ([p isKindOfClass:NSString.class]) return p;
+    } @catch (NSException *e) { (void)e; }
+    return nil;
+}
+
+static UIWindowScene *YZSelectScene(NSString **tierOut) {
+    NSMutableArray *scenes = [NSMutableArray array];
+    for (UIScene *s in [UIApplication sharedApplication].connectedScenes)
+        if ([s isKindOfClass:UIWindowScene.class]) [scenes addObject:s];
+    // (a) lease sceneID against each scene's FBScene-side identifier.
+    if (YZLeaseSceneID.length > 0) {
+        for (UIWindowScene *s in scenes) {
+            NSString *cand = YZSceneCandidateID(s);
+            if (cand && [cand isEqualToString:YZLeaseSceneID]) {
+                *tierOut = @"id";
+                return s;
+            }
+        }
+    }
+    // (b) exactly one windowed scene.
+    NSMutableArray *windowed = [NSMutableArray array];
+    for (UIWindowScene *s in scenes)
+        if (s.windows.count > 0) [windowed addObject:s];
+    if (windowed.count == 1) {
+        *tierOut = @"single";
+        return windowed.firstObject;
+    }
+    // (c) the key window's scene.
+    UIWindow *kw = ABKeyWindow();
+    if (kw.windowScene) {
+        *tierOut = @"key";
+        return kw.windowScene;
+    }
+    *tierOut = @"none";
+    return nil;
+}
+
+static UIWindowScene *YZLeasedScene(void) {
+    if (YZSceneCache) {
+        BOOL still = NO;
+        for (UIScene *s in [UIApplication sharedApplication].connectedScenes)
+            if (s == (UIScene *)YZSceneCache) { still = YES; break; }
+        if (still) return YZSceneCache;
+        YZSceneCache = nil;
+    }
+    NSString *tier = nil;
+    UIWindowScene *s = YZSelectScene(&tier);
+    YZSceneCache = s;
+    YZSceneTier = tier;
+    return s;
+}
+
+// ---- window selection (§5.4 step 2): normal level, has a root VC,
+// and not a keyboard / text-effects window (class-name filter). ----
+static NSArray *YZTargetWindows(UIWindowScene *scene) {
+    NSMutableArray *out = [NSMutableArray array];
+    for (UIWindow *w in scene.windows) {
+        if (w.windowLevel != UIWindowLevelNormal) continue;
+        if (!w.rootViewController) continue;
+        NSString *cn = NSStringFromClass([w class]);
+        if ([cn containsString:@"Keyboard"] ||
+            [cn containsString:@"TextEffects"]) continue;
+        [out addObject:w];
+    }
+    return out;
+}
+
+// ---- per-window snapshots (§5.4 step 3): taken the FIRST time a
+// window is seen in the current lease session, never overwritten
+// within it; restored whole on revoke/close, dropped on expiry. ----
+static NSMapTable *YZSnapshotTable(void) {
+    if (!YZSnapshots)
+        YZSnapshots = [NSMapTable weakToStrongObjectsMapTable];
+    return YZSnapshots;
+}
+
+static void YZSnapshotWindow(UIWindow *w) {
+    NSMapTable *t = YZSnapshotTable();
+    if ([t objectForKey:w]) return;
+    [t setObject:@{ @"frame":  [NSValue valueWithCGRect:w.frame],
+                    @"bounds": [NSValue valueWithCGRect:w.bounds] }
+          forKey:w];
+}
+
+static void YZRestoreSnapshots(void) {
+    NSMapTable *t = YZSnapshotTable();
+    for (UIWindow *w in [t keyEnumerator]) {
+        NSDictionary *snap = [t objectForKey:w];
+        if (!snap) continue;
+        w.frame  = [snap[@"frame"] CGRectValue];
+        w.bounds = [snap[@"bounds"] CGRectValue];
+    }
+}
+
+// ---- leaving virtualization (§5.3): revoke/close restore the
+// snapshot; expiry/owner-change deliberately do NOT (the host's
+// geometry may have moved on — snapping windows back to a stale
+// snapshot is worse, the QA175 discipline). ----
+static void YZExitVirtualization(NSString *reason, BOOL restore) {
+    if (YZInVirt) {
+        if (restore) YZRestoreSnapshots();
+        YZInVirt = NO;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[ytz] ao hoa TAT ly do=%@", reason]);
+        if ([reason isEqualToString:@"revoke"])
+            YZPostAck(ABYTLeasePhaseRevoked, 0, 0, 0, 0);
+        else if ([reason isEqualToString:@"expiry"])
+            YZPostAck(ABYTLeasePhaseExpired, 0, 0, 0, 0);
+    }
+    [YZSnapshotTable() removeAllObjects];
+    YZSceneCache = nil;
+    YZSceneTier = nil;
+}
+
+// ---- the 0.12 s re-read (§5.5, split only): if the leased scene's
+// TRUE orientation (read through the original IMP, bypassing answer
+// hook #3) still is not Portrait after a relay apply, wake UIKit once
+// so it re-reads the Portrait answers, and ask the scene for Portrait
+// geometry through the ORIGINAL requestGeometry IMP — the one place
+// the app side initiates the iOS 16 geometry API, asking Portrait. ----
+static void YZScheduleReRead(UIWindowScene *scene, NSArray *windows) {
+    if (!YZLeaseIsSplit || !orig_Scene_interfaceOrient) return;
+    NSInteger cur = ((NSInteger (*)(id, SEL))orig_Scene_interfaceOrient)(
+        scene, @selector(interfaceOrientation));
+    if (cur == 1) return;
+    __weak UIWindowScene *weakScene = scene;
+    NSArray *wins = [windows copy];
+    dispatch_after(dispatch_time(0, 120000000LL /* 0.12 s */),
+                   dispatch_get_main_queue(), ^{
+        if (!YZActive()) return;
+        UIWindowScene *s = weakScene;
+        if (!s) return;
+        // Both surfaces used here are iOS 16+ (the module's floor is
+        // 15.0); virtualization itself only ever runs on the hosted
+        // iOS 16 path, so the guard costs nothing. Existence is probed
+        // with the installer's own idiom (OMCHasMethod on this very
+        // selector — the same probe ABOrientationBlock uses to decide
+        // whether the geometry hook may be installed) instead of the
+        // compile-time availability operator: that operator lowers to
+        // __isPlatformVersionAtLeast, which this toolchain does not
+        // provide to dylibs, so the module cannot link with it present.
+        if (OMCHasMethod("UIWindowScene", @"requestGeometryUpdateWithPreferences:errorHandler:")) {
+            // The reporting hook behind this call is muted while the
+            // lease lives (§6.1) — it publishes nothing; it only makes
+            // UIKit re-ask the (Portrait) answer surfaces. Both iOS 16
+            // surfaces are reached by dynamic dispatch (objc_msgSend
+            // cast, dynamic class lookup, the original IMP) — the
+            // idiom the rest of this module uses for them — so this
+            // path needs no availability annotation either.
+            for (UIWindow *w in wins)
+                ((void (*)(id, SEL))objc_msgSend)(w.rootViewController,
+                    @selector(setNeedsUpdateOfSupportedInterfaceOrientations));
+            if (orig_Scene_reqGeometry) {
+                id prefs = [[objc_getClass("UIWindowSceneGeometryPreferencesIOS") alloc] init];
+                [prefs setInterfaceOrientations:UIInterfaceOrientationMaskPortrait];
+                ((void (*)(id, SEL, id, id))orig_Scene_reqGeometry)(
+                    s, @selector(requestGeometryUpdateWithPreferences:errorHandler:),
+                    prefs, nil);
+            }
+            OMCLogWrite(@"AppBridge", @"[ytz] doc lai 0.12s: da phat");
+        }
+    });
+}
+
+// ---- the relay (§5.4 steps 4–5): rotate back to Portrait through
+// the ORIGINAL IMP of hook #5 (straight to UIKit, no publish layer),
+// then frame = bounds = the lease size, layout, re-measure, ack. ----
+static void YZRelayApply(void) {
+    UIWindowScene *scene = YZLeasedScene();
+    NSArray *windows = scene ? YZTargetWindows(scene) : @[];
+    if (!scene || windows.count == 0) {
+        // No tier matched: measurement data (§5.4), not silent failure.
+        OMCLogWrite(@"AppBridge", @"[ytz] relay ap: windows=0 mismatch=-1");
+        YZPostAck(ABYTLeasePhaseApplied, 0, 0, 0, -1);
+        return;
+    }
+    CGRect target = CGRectMake(0, 0, YZLeaseW, YZLeaseH);
+    SEL rotateSel = NSSelectorFromString(
+        @"_rotateWindowToOrientation:updateStatusBar:duration:skipCallbacks:");
+    for (UIWindow *w in windows) {
+        YZSnapshotWindow(w);
+        if (orig_UIWindow_rotate)
+            ((void (*)(id, SEL, NSInteger, BOOL, double, BOOL))orig_UIWindow_rotate)(
+                w, rotateSel, 1, NO, 0.0, YES);
+        else if ([w respondsToSelector:rotateSel])
+            ((void (*)(id, SEL, NSInteger, BOOL, double, BOOL))objc_msgSend)(
+                w, rotateSel, 1, NO, 0.0, YES);
+        w.frame = target;
+        w.bounds = target;
+        [w layoutIfNeeded];
+    }
+    NSInteger mismatch = 0;
+    double mw = 0, mh = 0;
+    BOOL first = YES;
+    for (UIWindow *w in windows) {
+        CGSize sz = w.bounds.size;
+        if (first) { mw = sz.width; mh = sz.height; first = NO; }
+        if (fabs(sz.width - YZLeaseW) > 1.0 ||
+            fabs(sz.height - YZLeaseH) > 1.0) mismatch++;
+    }
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[ytz] relay ap: windows=%lu mismatch=%ld",
+        (unsigned long)windows.count, (long)mismatch]);
+    YZPostAck(ABYTLeasePhaseApplied, (NSInteger)windows.count, mw, mh, mismatch);
+    YZScheduleReRead(scene, windows);
+}
+
+// Entry into virtualization once hooks exist (§5.3): relay, then the
+// BAT verdict line with the surface count and the matched tier.
+static void YZActivateNow(void) {
+    YZRelayApply();
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[ytz] ao hoa BAT hooks=%lu match=%@",
+        (unsigned long)YZSurfaceCount, YZSceneTier ?: @"none"]);
+}
+
+// ---- lease acceptance (§4.6): malformed payloads are dropped with a
+// log and change nothing; a revoke (active = NO) from the CURRENT
+// owner takes effect immediately; an owner change is accepted only
+// when the current lease has expired or the new lease opens a fresh
+// host session (generation == 0, fresh issuedAt), and resets the
+// virtualization state WITHOUT restoring before the new lease is
+// applied. Heartbeats (same generation) only refresh issuedAt. ----
+static void YZLogBad(NSString *why) {
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[ytz] lease hong: %@", why]);
+}
+
+static void YZOnLease(NSNotification *note) {
+    NSDictionary *info = note.userInfo;
+    if (![info isKindOfClass:NSDictionary.class]) {
+        YZLogBad(@"payload khong phai dict");
+        return;
+    }
+    id verV = info[ABYTLeaseKeyVersion];
+    id ownV = info[ABYTLeaseKeyOwner];
+    id issV = info[ABYTLeaseKeyIssuedAt];
+    id actV = info[ABYTLeaseKeyActive];
+    if (![verV isKindOfClass:NSNumber.class] ||
+        [verV integerValue] != ABYTLeaseVersion) { YZLogBad(@"version"); return; }
+    if (![ownV isKindOfClass:NSString.class] ||
+        [(NSString *)ownV length] == 0)          { YZLogBad(@"owner"); return; }
+    if (![issV isKindOfClass:NSNumber.class])    { YZLogBad(@"issuedAt"); return; }
+    if (![actV isKindOfClass:NSNumber.class])    { YZLogBad(@"active"); return; }
+    NSString *owner = ownV;
+    NSTimeInterval issuedAt = [issV doubleValue];
+    NSTimeInterval now = YZWallNow();
+
+    if (![actV boolValue]) {
+        // Revoke: current owner only, effective immediately.
+        if (YZHaveLease && [owner isEqualToString:YZLeaseOwner]) {
+            YZExitVirtualization(@"revoke", YES);
+            YZHaveLease = NO;
+            YZLeaseActiveFlag = NO;
+        }
+        return;
+    }
+
+    id genV = info[ABYTLeaseKeyGeneration];
+    id oriV = info[ABYTLeaseKeyOrientation];
+    id wV   = info[ABYTLeaseKeyWidth];
+    id hV   = info[ABYTLeaseKeyHeight];
+    if (![genV isKindOfClass:NSNumber.class])    { YZLogBad(@"generation"); return; }
+    if (![oriV isKindOfClass:NSNumber.class] ||
+        [oriV integerValue] != 1)                { YZLogBad(@"orientation"); return; }
+    if (![wV isKindOfClass:NSNumber.class] ||
+        ![hV isKindOfClass:NSNumber.class] ||
+        [wV doubleValue] <= 0 || [hV doubleValue] <= 0) {
+        YZLogBad(@"size");
+        return;
+    }
+    if (now - issuedAt > ABYTLeaseTTL) return; // stale copy: dropped
+    uint32_t gen = (uint32_t)[genV unsignedIntegerValue];
+
+    BOOL sameOwner = YZHaveLease && [owner isEqualToString:YZLeaseOwner];
+    if (YZHaveLease && !sameOwner) {
+        BOOL currentExpired = !YZLeaseActiveFlag ||
+            (now - YZLeaseIssuedAt) > ABYTLeaseTTL;
+        if (!currentExpired && gen != 0) return; // foreign owner, ours lives
+        YZExitVirtualization(@"owner", NO);      // reset, no restore
+        YZHaveLease = NO;
+        sameOwner = NO;
+    }
+    if (sameOwner && issuedAt < YZLeaseIssuedAt) return; // out-of-order copy
+
+    id splitV = info[ABYTLeaseKeyIsSplit];
+    BOOL isSplit = [splitV isKindOfClass:NSNumber.class]
+        ? [splitV boolValue] : NO;
+    id sidV = info[ABYTLeaseKeySceneID];
+    NSString *sceneID = [sidV isKindOfClass:NSString.class] ? sidV : nil;
+    BOOL contentChanged = !YZHaveLease || gen != YZLeaseGen ||
+        [wV doubleValue] != YZLeaseW || [hV doubleValue] != YZLeaseH ||
+        isSplit != YZLeaseIsSplit ||
+        ![(sceneID ?: @"") isEqualToString:(YZLeaseSceneID ?: @"")];
+
+    YZLeaseOwner = [owner copy];
+    YZLeaseGen = gen;
+    YZLeaseIssuedAt = issuedAt;
+    YZLeaseW = [wV doubleValue];
+    YZLeaseH = [hV doubleValue];
+    YZLeaseIsSplit = isSplit;
+    YZLeaseSceneID = [sceneID copy];
+    YZHaveLease = YES;
+    YZLeaseActiveFlag = YES;
+
+    if (contentChanged) {
+        YZSceneCache = nil; // scene choice may follow the new content
+        NSString *shortOwner = owner.length > 8
+            ? [owner substringToIndex:8] : owner;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[ytz] lease nhan gen=%lu owner=%@ size=%.0fx%.0f",
+            (unsigned long)gen, shortOwner, YZLeaseW, YZLeaseH]);
+    }
+    if (!YZInVirt) {
+        YZInVirt = YES;
+        if (YZHooksInstalled) YZActivateNow();
+        // else: the lease waits; YZInstallHooks finishes the
+        // activation the moment the hooks land (§5.1).
+    } else if (contentChanged && YZHooksInstalled) {
+        YZRelayApply();
+    }
+}
+
+// ---- expiry watchdog (§5.6): 0.5 s tick. Pure housekeeping — the
+// answer hooks check the lease age themselves, so correctness never
+// depends on this timer. Silent expiry leaves virtualization WITHOUT
+// restoring the snapshot, reports `expired`, and — while the app is
+// still hosted — keeps asking for a lease (phase `request`, 2 s
+// throttle, §4.5), which also covers the never-granted race. ----
+static void YZWatchdogTick(void) {
+    NSTimeInterval now = YZWallNow();
+    if (YZHaveLease && YZLeaseActiveFlag &&
+        (now - YZLeaseIssuedAt) > ABYTLeaseTTL) {
+        YZExitVirtualization(@"expiry", NO);
+        YZHaveLease = NO;
+        YZLeaseActiveFlag = NO;
+    }
+    if (YZHosted && !YZInVirt && (now - YZLastRequestAt) >= 2.0) {
+        YZLastRequestAt = now;
+        YZPostAck(ABYTLeasePhaseRequest, 0, 0, 0, 0);
+    }
+}
+
+static void YZStartWatchdog(void) {
+    if (YZWatchdog) return;
+    YZWatchdog = [NSTimer scheduledTimerWithTimeInterval:0.5 repeats:YES
+        block:^(NSTimer *t) { (void)t; YZWatchdogTick(); }];
+}
+
+// ---- teardown (§5.1): registered next to BWResetAll for close /
+// close-all in ABInstallInAppObservers. Leaving via close restores
+// the snapshot (it is a revoke-shaped exit) and drops the lease. ----
+static void YZResetAll(void) {
+    if (YZInVirt) YZExitVirtualization(@"close", YES);
+    else {
+        [YZSnapshotTable() removeAllObjects];
+        YZSceneCache = nil;
+        YZSceneTier = nil;
+    }
+    YZHaveLease = NO;
+    YZLeaseActiveFlag = NO;
+    YZLeaseOwner = nil;
+    YZLeaseSceneID = nil;
+    YZLeaseGen = 0;
+    YZLeaseIssuedAt = 0;
+    YZHosted = NO;
+}
+
+// ---- install (§5.1): called from ABOrientationBlock right after
+// BWInstallBridgeWake(), in the same one-shot block — so the new
+// hooks exist only in a hosted session, and (bundle self-check) only
+// in the YouTube process. Surfaces #4/#6 are the pre-existing hooks
+// ABHook_UIDeviceOrientation / ABHook_UIWindowSetRotatable, whose
+// bodies consult YZActive() first; they are counted here because
+// virtualization re-purposes them (§5.2). ----
+static void YZInstallHooks(void) {
+    if (YZHooksInstalled) return;
+    if (!YZIsYouTube()) return;
+    YZHooksInstalled = YES;
+    YZHosted = YES;
+    NSUInteger surfaces = 2; // #4 + #6, already hooked above
+    Class vcCls = objc_getClass("UIViewController");
+    // #1 — public, always present: installed unconditionally (§5.2).
+    MSHookMessageEx(vcCls, @selector(supportedInterfaceOrientations),
+                    (IMP)ABHook_VCSupportedOrientations, &orig_VC_supported);
+    surfaces++;
+    // #2 — private twin of #1: existence-guarded; absent => skip + log.
+    SEL privSel = NSSelectorFromString(@"__supportedInterfaceOrientations");
+    if (class_getInstanceMethod(vcCls, privSel)) {
+        MSHookMessageEx(vcCls, privSel,
+                        (IMP)ABHook_VCSupportedOrientationsPrivate,
+                        &orig_VC_supportedPriv);
+        surfaces++;
+    } else {
+        OMCLogWrite(@"AppBridge",
+            @"[ytz] khong co __supportedInterfaceOrientations: bo qua");
+    }
+    // #3 — public since iOS 13, certain on 16.7.16 (§5.2).
+    MSHookMessageEx(objc_getClass("UIWindowScene"),
+                    @selector(interfaceOrientation),
+                    (IMP)ABHook_SceneInterfaceOrientation,
+                    &orig_Scene_interfaceOrient);
+    surfaces++;
+    // #5 — private rotate command: existence-guarded.
+    SEL rotSel = NSSelectorFromString(
+        @"_rotateWindowToOrientation:updateStatusBar:duration:skipCallbacks:");
+    if (class_getInstanceMethod(objc_getClass("UIWindow"), rotSel)) {
+        MSHookMessageEx(objc_getClass("UIWindow"), rotSel,
+                        (IMP)ABHook_UIWindowRotateWindow, &orig_UIWindow_rotate);
+        surfaces++;
+    }
+    YZSurfaceCount = surfaces;
+    YZStartWatchdog();
+    // A lease may already be waiting (§5.1): finish its activation
+    // now — or, if it aged out while waiting, leave by the expiry
+    // path (no restore: nothing was ever applied).
+    if (YZInVirt) {
+        if (YZLeaseFreshNow()) YZActivateNow();
+        else {
+            YZExitVirtualization(@"expiry", NO);
+            YZHaveLease = NO;
+            YZLeaseActiveFlag = NO;
+        }
+    }
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[ytz] cai may ao hoa (%@)",
+        [NSBundle mainBundle].bundleIdentifier]);
+}
+
+// ---- the four new answer hooks (§5.2). Every one consults
+// YZActive() first; outside a live lease the original IMP runs with
+// the original arguments, untouched. ----
+// #1 -[UIViewController supportedInterfaceOrientations]
+static NSUInteger ABHook_VCSupportedOrientations(UIViewController *self, SEL _cmd) {
+    if (YZActive()) return UIInterfaceOrientationMaskPortrait; // 2
+    return ((NSUInteger (*)(id, SEL))orig_VC_supported)(self, _cmd);
+}
+// #2 -[UIViewController __supportedInterfaceOrientations] (private)
+static NSUInteger ABHook_VCSupportedOrientationsPrivate(UIViewController *self, SEL _cmd) {
+    if (YZActive()) return UIInterfaceOrientationMaskPortrait;
+    return ((NSUInteger (*)(id, SEL))orig_VC_supportedPriv)(self, _cmd);
+}
+// #3 -[UIWindowScene interfaceOrientation]: Portrait only for the
+// leased scene; any other scene (e.g. the same app's iPhone scene)
+// keeps the original answer.
+static NSInteger ABHook_SceneInterfaceOrientation(UIWindowScene *self, SEL _cmd) {
+    if (YZActive() && self == YZLeasedScene())
+        return 1; // UIInterfaceOrientationPortrait
+    return ((NSInteger (*)(id, SEL))orig_Scene_interfaceOrient)(self, _cmd);
+}
+// #5 -[UIWindow _rotateWindowToOrientation:updateStatusBar:duration:
+// skipCallbacks:]: the orientation argument is rewritten to Portrait;
+// the other three arguments pass through unchanged.
+static void ABHook_UIWindowRotateWindow(UIWindow *self, SEL _cmd,
+                                        NSInteger orientation,
+                                        BOOL updateStatusBar,
+                                        double duration, BOOL skipCallbacks) {
+    if (YZActive()) orientation = 1;
+    ((void (*)(id, SEL, NSInteger, BOOL, double, BOOL))orig_UIWindow_rotate)(
+        self, _cmd, orientation, updateStatusBar, duration, skipCallbacks);
+}
 // The one-time hook installation and the per-notification work are in the
 // SAME function in the original.
 // ===========================================================================
@@ -707,6 +1282,11 @@ static void ABOrientationBlock(NSNotification *note) {
         // keyboard observers + first query, installed in the same
         // one-shot block so they exist only in a hosted session.
         BWInstallBridgeWake();
+        // YT-ZOOM (design-ytzoom §5.1): the virtualization machine
+        // installs in the same one-shot block, right after BridgeWake;
+        // it self-gates on the YouTube bundle, so no YZ hook exists in
+        // any other app's process.
+        YZInstallHooks();
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"%@: dua len xe, cai hook",
                                    [NSBundle mainBundle].bundleIdentifier]);
     }
@@ -810,12 +1390,29 @@ void ABInstallInAppObservers(NSString *bundleID) {
                     usingBlock:^(NSNotification *n) { ABOrientationBlock(n); }];
     [center addObserverForName:ABChanKey object:bundleID queue:queue
                     usingBlock:^(NSNotification *n) { ABKeyBlock(n); }];
+    // YT-ZOOM (design-ytzoom §5.1): the lease observer exists ONLY in
+    // the YouTube process. A lease may arrive before the first
+    // orientation packet; it is only stored until the hooks land.
+    BOOL isYouTube = [bundleID isEqualToString:ABYTLeaseYouTubeBundle];
+    if (isYouTube) {
+        [center addObserverForName:ABYTLeaseChannel object:bundleID queue:queue
+                        usingBlock:^(NSNotification *n) { YZOnLease(n); }];
+    }
     // BridgeWake teardown (§5.6): a close of this app (or a close-all)
-    // resets the wake client to pristine, fail-open state.
+    // resets the wake client to pristine, fail-open state. YT-ZOOM
+    // registers its reset (design-ytzoom §5.1) next to it.
     [center addObserverForName:ABChanClose object:bundleID queue:queue
-                    usingBlock:^(NSNotification *n) { (void)n; BWResetAll(); }];
+                    usingBlock:^(NSNotification *n) {
+                        (void)n;
+                        BWResetAll();
+                        if (isYouTube) YZResetAll();
+                    }];
     [center addObserverForName:ABChanCloseAll object:nil queue:queue
-                    usingBlock:^(NSNotification *n) { (void)n; BWResetAll(); }];
+                    usingBlock:^(NSNotification *n) {
+                        (void)n;
+                        BWResetAll();
+                        if (isYouTube) YZResetAll();
+                    }];
 }
 
 // ===========================================================================
@@ -945,6 +1542,15 @@ static void ABKeyboardPublish(BOOL shown, id traits) {
 // log it, and schedule a (debounced) report to SpringBoard; always calls the
 // original.
 static void ABHook_UIDeviceSetOrientation(UIDevice *self, SEL _cmd, NSInteger orientation, BOOL animated) {
+    // YT-ZOOM (design-ytzoom §6.1): while a lease lives, the
+    // declaration is consumed in place — the original still runs,
+    // but nothing is recorded in ABAppOrientation and nothing is
+    // published to appbridge.apporient.
+    if (YZActive()) {
+        ((void (*)(id, SEL, NSInteger, BOOL))orig_UIDevice_setOrientation)(self, _cmd, orientation, animated);
+        YZNoteConsumed();
+        return;
+    }
     if (ABForcedOrientation >= 1) {
         ABAppOrientation = (orientation == 3 || orientation == 4) ? orientation : 0;
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"app setOrientation %lld -> %lld",
@@ -957,6 +1563,10 @@ static void ABHook_UIDeviceSetOrientation(UIDevice *self, SEL _cmd, NSInteger or
 // -[UIDevice orientation] (sub_55D8): the app's own choice wins; else the
 // host's fake device orientation; else the real one.
 static NSInteger ABHook_UIDeviceOrientation(UIDevice *self, SEL _cmd) {
+    // YT-ZOOM (design-ytzoom §5.2 #4): while a lease lives, the lease
+    // outranks both branches below — the answer is Portrait
+    // (UIDeviceOrientationPortrait == 1).
+    if (YZActive()) return 1;
     if (ABAppOrientation > 0) return ABAppOrientation;
     if (ABDeviceFake >= 1) return ABDeviceFake;
     return ((NSInteger (*)(id, SEL))orig_UIDevice_orientation)(self, _cmd);
@@ -975,6 +1585,14 @@ static void ABHook_UIDeviceBeginGen(UIDevice *self, SEL _cmd) {
 // computes the window mask via sub_5EC0; its comparison only gates a branch
 // that cannot change the outcome when hosted — see report §4.3.)
 static void ABHook_UIWindowSetRotatable(UIWindow *self, SEL _cmd, NSInteger orientation, double duration, BOOL force) {
+    // YT-ZOOM (design-ytzoom §5.2 #6): while a lease lives —
+    // Portrait with force = YES (the DuoFace-proven value: make the
+    // rotatable view settle Portrait even when UIKit believes it
+    // already is). Outside a lease the body below is untouched.
+    if (YZActive()) {
+        ((void (*)(id, SEL, NSInteger, double, BOOL))orig_UIWindow_setRotatable)(self, _cmd, 1, duration, YES);
+        return;
+    }
     NSInteger effective = ABAppOrientation > 0 ? ABAppOrientation : ABForcedOrientation;
     NSInteger use = effective >= 1 ? effective : orientation;
     ((void (*)(id, SEL, NSInteger, double, BOOL))orig_UIWindow_setRotatable)(self, _cmd, use, duration, force);
@@ -997,6 +1615,14 @@ static NSInteger ABOrientationDerivedFromMask(NSUInteger mask) {
 }
 
 static void ABHook_SceneRequestGeometry(UIWindowScene *self, SEL _cmd, id preferences, id errorHandler) {
+    // YT-ZOOM (design-ytzoom §6.1): while a lease lives, the request
+    // is consumed in place — the original runs with the app's own
+    // preferences, nothing is derived, recorded or published.
+    if (YZActive()) {
+        ((void (*)(id, SEL, id, id))orig_Scene_reqGeometry)(self, _cmd, preferences, errorHandler);
+        YZNoteConsumed();
+        return;
+    }
     if (ABForcedOrientation >= 1 &&
         [preferences respondsToSelector:@selector(interfaceOrientations)]) {
         NSUInteger mask = [preferences interfaceOrientations];
@@ -1014,6 +1640,9 @@ static void ABHook_SceneRequestGeometry(UIWindowScene *self, SEL _cmd, id prefer
 // field 0xFF ("recompute from mask" — consumed by ABHost, see report).
 static void ABHook_VCSetNeedsUpdate(UIViewController *self, SEL _cmd) {
     ((void (*)(id, SEL))orig_VC_setNeedsUpdate)(self, _cmd);
+    // YT-ZOOM (design-ytzoom §6.1): while a lease lives, the
+    // declaration is consumed in place — no publish is scheduled.
+    if (YZActive()) { YZNoteConsumed(); return; }
     if (ABForcedOrientation >= 1) ABScheduleAppOrientationPublish(0xFF);
 }
 static void ABHook_VCAttemptRotation(id self, SEL _cmd) {
