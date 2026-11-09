@@ -6504,7 +6504,7 @@ tiêu chí.
   dùng hằng ngày; ytz1 vẫn CÁCH LY;
   VISUAL_ORIGINAL_COMPARISON = PENDING.
 
-## 29) VÒNG YTZ5 — SAU PHIÊN YTZ4: LỆNH NGUYEN, WORK ORDER GPT, BẢN ĐỒ PHA 1, PHÁN QUYẾT W1(c) (2026-11-09) — THI CÔNG + BUILD XONG (29.7), CHỜ CI FAT + PHIÊN XE
+## 29) VÒNG YTZ5 — SAU PHIÊN YTZ4: LỆNH NGUYEN, WORK ORDER GPT, BẢN ĐỒ PHA 1, PHÁN QUYẾT W1(c) (2026-11-09) — THI CÔNG + BUILD XONG (29.7); DEB TỔNG HỢP CHỜ GPT BÀN GIAO ICON HOME (PHÂN CÔNG 19:15)
 
 Mục này mở đầu ngay trong ngày để lịch sử không đứt quãng (lệnh hồ sơ
 19:00–19:05, xem 29.8): ghi các quyết định/lệnh/phán quyết/bản đồ đã chốt.
@@ -6802,7 +6802,7 @@ tracking không bao phủ được một kiểu nhập liệu: giữ UNKNOWN và
 khai đúng giới hạn, không biến thiếu quan sát thành INACTIVE để
 vượt Gate 3.
 
-### 29.7 Thi công [XONG — BUILD XONG, CI FAT + PHIÊN XE CHƯA]
+### 29.7 Thi công [XONG — BUILD XONG; DEB TỔNG HỢP HOÃN THEO PHÂN CÔNG 19:15, XEM KHỐI TÍCH HỢP]
 
 Bốn strand song song (file không giao nhau) + tích hợp + harness +
 kiểm tĩnh độc lập. Biên bản: fix-ytz5-k5.md, fix-ytz5-b5.md,
