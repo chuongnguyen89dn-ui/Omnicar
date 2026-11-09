@@ -363,12 +363,14 @@ static void ABKeyboardPublish(BOOL shown, id traits) {
 // Orientation machinery hooks
 // ===========================================================================
 // -[UIDevice setOrientation:animated:] (sub_5504): while hosted, remember the
-// app's own landscape choice (values 3,4,5 kept, others zeroed), log it, and
-// schedule a (debounced) report to SpringBoard; always calls the original.
+// app's own landscape choice (only values 3 and 4 kept, everything else
+// zeroed — the original filters via `sub x8,x20,#3; cmp x8,#2; csel x8,x20,
+// xzr, lo` at 0x553c-0x5544, i.e. (value-3) <u 2, so 5/FaceUp also becomes 0),
+// log it, and schedule a (debounced) report to SpringBoard; always calls the
+// original.
 static void ABHook_UIDeviceSetOrientation(UIDevice *self, SEL _cmd, NSInteger orientation, BOOL animated) {
     if (ABForcedOrientation >= 1) {
-        NSInteger v = orientation - 3;
-        ABAppOrientation = ((NSUInteger)v <= 2) ? orientation : 0;
+        ABAppOrientation = (orientation == 3 || orientation == 4) ? orientation : 0;
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"app setOrientation %lld -> %lld",
                                    (long long)orientation, (long long)ABAppOrientation]);
         ABScheduleAppOrientationPublish(ABAppOrientation);
