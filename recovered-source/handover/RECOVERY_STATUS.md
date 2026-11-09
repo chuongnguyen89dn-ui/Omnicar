@@ -2256,3 +2256,155 @@ QA20 remains Nguyen's daily build; ytz2 is the single
 current acceptance build, ytz1 is quarantined, and the
 rollback line is unchanged (fs1 FAT, fixround7 FAT,
 QA20 unified package).
+
+YTZ2 DEVICE SESSION (2026-11-09; logs uploaded in
+0bf3273, analysed by three parallel analysts —
+analysis-a1/a2/a3): YT-Zoom DEVICE PASS (two leases,
+both split=1 — including the decisive mixed case,
+YouTube hosted + Maps native, where the owner renew
+saw one hosted pane; ack applied 6/6 windows=1
+mismatch=0; the app's landscape declaration blocked
+at the consumption gate in the same millisecond;
+zero scene-rotate requests inside the lease window;
+the OFF control window lasted only 0.5 s, so the
+Y2 OFF comparison remains unmeasured). Hosted wake
+DEVICE PASS on the activity/reveal path (act loop
+closed 32/32 with zero owner drops across all six
+reasons; renewal ticks at exactly 1.00 s; 17
+reveal-applied, all reason=activity, 0–3 ms after
+act; no state-age above 2.5 s occurred, so the W2
+discriminating case was not exercised — the
+evidence for W2 is indirect and recorded as such).
+Native wake DEVICE FAIL, convicted end-to-end
+twice (fade 15:37:49 -> 16 Began on native panes,
+zero act, zero reveal; fade 15:39:33 -> 25 Began,
+zero act, zero reveal): native processes have no
+agent, hence no activity path. The "two system
+apps" collapse is a CONSEQUENCE of that gap, not
+an assignment defect — all 7 two-native
+constructions completed with both scenes placed
+and frame-confirmed, and the escape chain was
+fade-without-reveal -> bottom-left corner touch on
+DBStatusBarWindow -> tat split 47–80 ms later ->
+stock Home -> 4 resprings in 15:31–15:40. The
+icon-loss mechanism and the respring cause are NOT
+in the logs (zero crash/exception signatures in
+both files). Pinch died at pair formation
+(recognizer summaries complete=0 truncated=0;
+wouldPinch 0/124 records). Weather conclusion
+NARROWED on GPT's correction: the ytz2 window
+holds 5 transactions (4 updated, 1 timeout at
+exactly 3.0 s), all cache-warming — they prove the
+fetch/fallback branch terminates with the
+permission-0 fallback engaged, NOT that a
+CarPlay-originated request received an answer and
+displayed temperature/gradient. Knob: NO DATA (no
+publishKnobsNow payload lines in either file);
+verdict stays PENDING. RETRACTION: the earlier
+conclusion that the four reason=tray fullscreen
+refusals were "true positives" (analysis-a1
+section 2) is WITHDRAWN — GPT rebutted it from
+source: the old guard tested trayWindow/trayOverlay
+existence, but the close paths only HIDE the window
+(Picker.m) and trayOverlay is a sticky mode flag
+assigned exactly once (Panel.m:188, never reset),
+so the four lines cannot prove a popup was open
+(PATCH_NOTES section 25.2).
+
+YTZ3 (post-log remediation round on GPT's rulings;
+PATCH_NOTES section 25): four strands by file
+ownership plus one read-only independent
+verification. Guard: the fullscreen refuse
+predicate now tests content actually open
+(pickerSheet / popupOpen from the module's own
+panelOpen / dragGhost-or-toast remainder via
+fsTraySurfaceBusy:) instead of window existence,
+with trayOverlay demoted to a reported field, and
+every refusal at the entry gate carries an
+fsRefusalSnapshot state vector (6/6 refusal
+points); static traces pass — picker opened then
+fully closed must expand, a genuinely open popup
+still blocks under a more precise reason. Native
+feed: the CarPlayApp probe TU grew an activity
+feed for NATIVE panes only — explicit
+screen-space conversion through named coordinate
+spaces (zero cross-window fromView:nil on the
+decision path), gate chain display -> active ->
+system region (DBStatusBarWindow identity +
+48x48 pt Home corner) -> popup -> live geometry
+assignment -> hosted drop (F4 owns hosted), firing
+exactly one call into the existing F1 activity
+entry; touches pass through untouched, nothing is
+swallowed this round. The feed's session marker is
+the probe's own epoch, NOT the owner's per-slot
+generation (bwGenBySlot is file-static in
+BridgeWake.m and not exposed): the independent
+verifier's risk verdict is functional risk ~0 —
+the epoch feeds no decision, only the log line —
+with five enumerated epoch-vs-generation
+discordance cases confined to log
+cross-referencing (PATCH_NOTES 25.3). Touch-set
+measurement records the live touch set per
+UITouch pointer (window class, raw and
+screen-space points, pane, event timestamps) so a
+later analysis can separate two independent
+contacts from duplicate cross-window
+representations of one contact (the 15:37:57.243/
+.246 same-point case); no pairing, no recognizer,
+no command. Narrow instrumentation: [applib] on
+the picker/split app-list path (including a
+live-grid read probing whether
+com.anlai.omnicar.app is still on the live Home
+grid) and [scenevis] at nine scene
+presentation points — the actual Home-library
+machinery (SCPHooks.m _newApplicationLibrary
+hooks, SCPAppIcons.m, SCPHomeApply.m) was outside
+this round's file scope and is recorded by
+location only; [weather] request/answer/display
+correlation via two log-only per-process counters
+(the request channel is a bare notify_post
+carrying NO id — the next-round proposal is to
+carry the generation in the channel's notify
+state, a pattern already present in the same file
+for the location channel). Integration: candidate
+com.anlai.omnicar_1.0.3-ytz3_iphoneos-arm64.deb,
+1,027,106 B, SHA-256
+b6c5f32864eed1d471632b1bcb73708553c7100adf8443e791d044400f5e9414
+(parity 0 lost across all 8 components, SplitScreen
++7 exactly as designed; g1/g2/h/f byte-identical;
+knob exactly one eor; the two instrumentation
+strands verified purely additive — 163 lines
+added, 0 deleted across 5 files). Git: main
+36135b8 (ytz3 source), ci-fat-test dd47375
+(merge). CI dispatch run 42590500247 SUCCESS
+(foreground-verified). FAT com.anlai.omnicar_
+1.0.3-rebuilt-ytz3-fat_iphoneos-arm64.deb:
+1,224,728 B, SHA-256
+c1872b936a01969418b68cc5f69e1bd72639a1f5e2e2f1da16132edcfc6bcf3f;
+two-slice checks pass with the ytz2-calibrated
+parser (bridgewake channels 5/5, ytlease pair in
+AppBridge, new strings at exact format counts per
+slice, fullscreenTestExpand absent package-wide,
+the 3 diagnostics keys in the Prefs binary code,
+knob one eor per slice, parity vs the ytz2 FAT
+loses 0 with the +7 delta fully traced). DEVICE
+acceptance for ytz3 follows ACCEPTANCE_YTZ3:
+clean controller test first (picker opened, fully
+closed, then toggle — expand must run; genuinely
+open popup must still block), then native wake via
+[probe-feed] fired lines, then touch-set data
+collection for GPT's pinch-architecture decision,
+then the long YTZ OFF control (>=10 s), then
+weather/icon/white-pane regression read from the
+new log tags. Wake and pinch ENFORCE both stay
+CLOSED on GPT's ruling. Three proposals await
+GPT: a read-only generation accessor in
+BridgeWake.h, a follow-up round at the real
+Home-library path once [applib] localises the
+icon loss, and carrying the weather generation in
+the request channel's notify state.
+VISUAL_ORIGINAL_COMPARISON remains PENDING. QA20
+remains Nguyen's daily build; ytz3 supersedes ytz2
+as the single acceptance build, ytz1 remains
+quarantined, and the rollback line gains the ytz2
+FAT (ytz2, fs1, fixround7, QA20 unified package).

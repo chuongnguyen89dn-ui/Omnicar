@@ -4374,3 +4374,566 @@ userInteractionEnabled [INFERRED] vẫn đỗ. QA20 vẫn là
 bản dùng hằng ngày — ytz2 là bản nghiệm thu duy nhất
 hiện hành, ytz1 cách ly, fs1 giữ baseline rollback cùng
 fixround7 FAT + gói hợp nhất QA20.
+
+## 25) VÒNG YTZ3 — SỬA SAU LOG PHIÊN YTZ2 THEO PHÁN QUYẾT GPT (2026-11-09)
+
+### 25.1 Phán quyết phiên xe ytz2 (hai log, upload 0bf3273)
+
+Nguyen cài ytz2 và chạy phiên 15:27–15:42 (cửa sổ phân
+tích theo dấu code: ytz2 từ dòng [probe] đầu 15:27:28,
+PID 34376; trước đó là fs1). Hai file: OmniCar.log
+724.079 B (15:33–15:42) + OmniCar.log.old 2.098.672 B
+(13:49–15:33). Ba đội phân tích song song (analysis-a1
+vòng đời, a2 wake, a3 ytz/pinch/weather/núm — nộp ở
+reports/ vòng này), số đếm khớp nhau giữa các đội.
+Cả hai file: 0 chữ ký crash/exception (Exception /
+unrecognized / SIGBUS / abort / EXC_ đều 0).
+
+- **YT-Zoom — DEVICE PASS.** Lease cấp 2 lần (gen=0
+  15:27:42; gen=1 sau revoke pref), cả hai mang
+  split=1. Ca quyết định là ca hỗn hợp khó nhất:
+  YouTube hosted + Maps native — chủ renew ghi
+  `panes=1` (chỉ một pane hosted) nhưng lease vẫn
+  split=1: sửa Y1 đúng đúng tại điểm phép đếm pane
+  cũ cho kết quả sai. Ack: applied 6/6 windows=1
+  mismatch=0; request 5; revoked 2 (pref + teardown);
+  expired 0; lease-lapse 0; isSplit-fallback 0.
+  Fullscreen YouTube 15:27:45.036: app phát tuyên bố
+  ngang (mask 2), host chặn gói tại cổng tiêu thụ
+  CÙNG mili-giây; trong toàn cửa sổ lease: 0 dòng
+  `doi yeu cau xoay`. Kéo divider đổi size lease theo
+  (318→325→224→238, cao 300). Khớp báo cáo xe của
+  Nguyen (video phóng to hoàn chỉnh). **Caveat giữ
+  nguyên:** cửa sổ đối chứng OFF chỉ kéo dài 0,5 s —
+  hành vi OFF chưa đo được; đối chứng Y2 phải đo lại
+  dài ở phiên ytz3 (ACCEPTANCE_YTZ3 bước 4: tắt ≥ 10 s).
+- **Wake phía hosted — DEVICE PASS (đường
+  activity/reveal).** Vòng act khép kín 32/32:
+  act-posted 32 (YouTube 12, Facebook 18, TikTok 2)
+  → act-accepted 32 → owner drop 0 ở cả 6 reason.
+  Phía app: drop nosession ×1 duy nhất (TikTok
+  15:33:15, stateage=-1 — cổng danh tính phiên chặn
+  đúng thiết kế), scene 0, target-unknown 0.
+  reveal-applied 17, 100% reason=activity, views=5,
+  trễ act→reveal 0–3 ms. State renewal: 362 tick,
+  Δ đo thực = 1,00 s đều. State age trong act: 3–883
+  ms + một ca 2.056 ms — **không ca nào > 2.500 ms**,
+  nên ca phân định của sửa W2 (act khi state đã cũ)
+  không phát sinh trong phiên: bằng chứng cho W2 là
+  gián tiếp (cổng mới tồn tại và có tác dụng qua ca
+  drop-nosession + 32/32 tới nơi), ghi đúng mức này,
+  không khẳng định quá dữ kiện.
+- **Wake phía native — DEVICE FAIL, kết án bằng log
+  hai lần trọn vẹn.** Fade 15:37:49.590 (PID 34490)
+  → 16 Began trên ô native → 0 act → 0 reveal; fade
+  15:39:33.323 (PID 34521) → 25 Began → 0 act →
+  0 reveal, kéo dài tới khi ngắt kết nối.
+  reveal-applied theo PID: 34376 ×7, 34442 ×10,
+  34490 ×0, 34521 ×0. Gốc: không có agent nào trong
+  process native nên không tồn tại đường activity —
+  controls mờ được mà không gọi lại được. Dữ kiện
+  probe (W4): CarPlayApp THẤY Began trên ô native —
+  381 began / 381 chuỗi trọn; gán ô native 140
+  (Music/Maps/GOFA), hosted 81, pane=none 155,
+  outside 5. Nhưng nhãn scene không dùng được: chỉ
+  23/140 ca native được phân loại scene=carplay,
+  117/140 rơi vào foreign vì cửa sổ chạm là
+  _UISystemGestureWindow (phía hosted tương tự: 0
+  carplay thuần, 71 foreign). Hệ quả thiết kế: feed
+  cho ô native tại CarPlayApp phải khóa theo **gán
+  ô hình học**, không theo nhãn scene — đây là căn
+  cứ của việc vòng này (§25.3).
+- **Chuỗi "2 app hệ thống" — KHÔNG phải lỗi gán ô.**
+  Cả 7 lần dựng cấu hình 2-native trong cửa sổ ytz2
+  đều HOÀN TẤT: cả hai scene native được đặt +
+  xác nhận khung {190|191, 240}, mẫu dòng y hệt ca
+  hỗn hợp thành công; 0 dòng DashBoard invalidate
+  trong cửa sổ ytz2 (đường invalidate chỉ xuất hiện
+  ở cửa sổ fs1, 15:15 ×3). Chuỗi gãy thật: phiên
+  toàn-native (PID 34413) fade lúc 15:31:58.660 và
+  không bao giờ reveal (không ô hosted ⇒ không
+  đường activity) → lối thoát duy nhất của người
+  dùng là chạm góc dưới-trái trên DBStatusBarWindow
+  → `tat split (goHome=0)` sau đó 47–80 ms (4/4 ca
+  kiểm chi tiết khớp mẫu này) → CarPlay Home gốc.
+  Tổng cửa sổ 15:31–15:40: 6 lần tat split, 4
+  respring (15:31:42, 15:32:54, 15:37:32, 15:39:20 —
+  nguyên nhân không xác định được từ log; respring
+  tay để khôi phục là khả thi). **Cơ chế mất icon
+  OmniCar khỏi lưới/dock gốc KHÔNG có trong log**
+  (log chỉ ghi 5 app đã chọn được ghép lúc mở
+  phiên); ô phải trắng trong video cũng không giải
+  thích được từ log (phiên cuối cả hai scene đều
+  xác nhận khung). Tức thảm hoạ là CHUỖI HẬU QUẢ
+  của khe wake native ở trên, không phải lỗi dựng
+  ô; bản QA20 "chọn 2 app hệ thống chạy tốt" vì
+  controls của QA20 không đẩy người dùng vào thế
+  kẹt này.
+
+- **Pinch — chết ở tầng hình thành cặp, tầng phân
+  xử không chạy.** Tóm tắt recognizer: complete=0
+  truncated=0 ở mọi summary; probe phía app
+  wouldPinch 0/124 bản ghi cửa sổ ytz2 (fs1: 0/91);
+  chuỗi disposition/BlockedHidden KHÔNG xuất hiện
+  trong log (đường pinch không đi tới tầng phân
+  xử); gói state luôn pinch=0, pm=1 (DRY_RUN theo
+  P4). Expand từ pinch: 0. Câu hỏi mở để lại cho
+  GPT: chạm hai ngón dường như tới CarPlayApp dưới
+  dạng các chuỗi đơn tách rời — recognizer trên
+  container không bao giờ ghép được cặp theo cách
+  phân phối này (xem thêm §25.2 về cách đọc số
+  chuỗi của GPT và phép đo [touchset] ở §25.3).
+- **Weather — HIỆU CHỈNH PHẠM VI KẾT LUẬN theo
+  GPT.** Con số "10 transaction" trong phân tích
+  A3 là tổng CẢ HAI file log; riêng cửa sổ ytz2 có
+  **5**: 4 updated (http 200, ~1,1 s) + 1 failed
+  (timeout đúng 3,0 s, http 0). Cả 10 đều là giao
+  dịch warming cache phía SpringBoard lúc khởi
+  động; location status = 0 ở 10/10 nên nhánh
+  fallback vị trí cached chạy 10/10; mọi giao dịch
+  kết thúc đúng một lần; sau failure các giao dịch
+  sau vẫn updated (in-flight không kẹt). **Phạm vi
+  đúng:** các dòng này chứng minh nhánh fetch/
+  fallback KẾT THÚC — chúng KHÔNG tự chứng minh
+  một request xuất phát từ CarPlay đã nhận answer
+  và đã hiển thị nhiệt độ/gradient (đường answer
+  phía xe không có dòng log riêng trong build này;
+  giá trị nhiệt độ/gradient không nằm trong log).
+  Phát biểu "Weather DEVICE PASS trên tiêu chí bắt
+  buộc của GPT" trong bản tổng hợp gửi GPT sau
+  phiên nay được thu hẹp về đúng phạm vi này; việc
+  đóng khoảng trống bằng chứng là instrument
+  request→answer ở §25.3.
+- **Núm — NO DATA, verdict giữ PENDING.** 0 dòng
+  payload publishKnobsNow / scaled= trong cả hai
+  file (mọi dòng "knob" là cặp fade applied/
+  restored của AutoHide). Không có khiếu nại núm ở
+  phiên này. Đóng verdict cần hoặc khôi phục
+  instrument payload, hoặc chấm bằng quan sát xe —
+  để GPT phán.
+
+### 25.2 Sửa chữa kết luận: guard fullscreen và 4 lần reason=tray
+
+Kết luận 2 trong analysis-a1-lifecycle.md (và bản
+tổng hợp gửi GPT sau phiên) phát biểu 4 lần refuse
+`reason=tray` lúc 15:29 là guard "chặn đúng sự
+thật" vì popup chọn app cho ô 1 đang mở. **GPT bác
+bằng source, và phép bác đúng:** guard cũ tại
+SCPFullscreenController.m:~302 là
+`else if (split.trayWindow || split.trayOverlay) refuse = @"tray";`
+— điều kiện theo TỒN TẠI window. Nhưng các đường
+đóng trong SCPCarSplit+Picker.m chỉ ẨN window chứ
+không huỷ: hideTrayWindowIfIdle (Picker.m:965–978)
+chỉ đặt window.hidden = YES; đóng tray
+(Picker.m:1016–1029) cũng chỉ ẩn; đóng picker
+(Picker.m:658–677) cũng giữ lại window. Vậy
+trayWindow != nil có thể chặn expand VĨNH VIỄN sau
+khi popup từng mở một lần, dù window đã ẩn — và
+từ 4 dòng reason=tray trong log KHÔNG kết luận
+được popup có đang mở thật tại các mốc đó hay
+không (A1 đối chiếu thêm mốc mở/đóng popup trong
+log, nhưng trạng thái nền có thể là window đã ẩn
+mà vẫn bị giữ lại). Chưa hết: `trayOverlay` là cờ
+DÍNH — điểm gán duy nhất Panel.m:188, không có
+điểm reset nào — không mang nghĩa "popup đang mở"
+chút nào. **Kết luận "chặn đúng sự thật" bị thu
+hồi.** Phần còn đứng vững: kênh pref SỐNG (mọi lần
+gạt đều có dòng [fs-diag] đúng chiều, listener
+đăng ký lại sau respring với want=1); expand chạy
+0 lần trong cả phiên; 2 lần reason=inactive lúc
+15:39:09.105 / 15:39:10.808 khớp split đã tắt từ
+15:37:57.342 — phần inactive không sửa. Hệ quả
+đúng cho xe: phát biểu "công tắc fullscreen không
+hoạt động" của Nguyen là hệ quả của guard dưới
+điều kiện chặn thật lúc đó, KHÔNG phải bằng chứng
+đường expand/chrome hỏng — nghiệm thu controller
+sạch (split active + tray/picker đóng hẳn) CHƯA
+từng chạy; nó là bước 1 của ACCEPTANCE_YTZ3.
+Ghi chú về văn bản liên quan: ACCEPTANCE_YTZ2.md
+KHÔNG chứa câu tương đương (đã grep kiểm chứng:
+0 hit cho 'tray' — văn bản đó viết trước phiên
+xe, mọi verdict ở mức PENDING), nên không cần ghi
+chú trỏ từ đó; sửa chữa này áp cho
+analysis-a1-lifecycle.md §2 — file đó được nộp
+NUGUYÊN VĂN trong vòng này và phải đọc cùng §25.2
+này, đồng thời INDEX.md của reports/ đã mang dòng
+cảnh báo tương ứng.
+Bổ sung cùng mục, về cách đọc số chuỗi chạm của
+GPT: mỗi dòng `chain … began=1` của probe là thống
+kê của MỘT UITouch, không phải của toàn gesture —
+"381 chuỗi đơn" KHÔNG chứng minh không có đa
+chạm. Và có bằng chứng biểu diễn trùng phải chống
+đếm trùng: 15:37:57.243 _UISystemGestureWindow và
+15:37:57.246 DBStatusBarWindow ghi CÙNG điểm
+{15,222.5} — có thể là hai biểu diễn của cùng một
+thao tác vật lý qua hai window. Vì vậy mục pinch
+của vòng này chỉ là PHÉP ĐO có chống trùng
+(§25.3), chưa ghép cặp, chưa quyết kiến trúc.
+
+### 25.3 Việc của vòng ytz3 (4 strand theo chủ file + kiểm độc lập)
+
+**Guard fullscreen — chặn theo nội dung đang mở
+(fix-g-fsguard).** Đọc lại Picker.m/RatioMenu.m/
+Panel.m cho bảng trạng thái thật: module tự định
+nghĩa "đang mở" bằng tập con trỏ nội dung của
+window — `tray` / `pickerSheet` / `ratioMenu` đều
+nil-hoá NGAY ĐẦU đường đóng, trước animation
+(Picker.m:651, Picker.m:999, RatioMenu.m:469);
+đây cũng là vị từ của panelOpen (Chrome.m:388) và
+của phép thử rảnh hideTrayWindowIfIdle
+(Picker.m:977–980). Ngược lại trayWindow chỉ nil
+ở teardown/đổi screen và còn tự un-hide khi tái
+dùng (Picker.m:884) — tồn tại không nói lên điều
+gì, và `trayOverlay` là cờ chế độ hosting dính
+(mục §25.2). Sửa (chỉ SCPFullscreenController.m):
+chuỗi guard mới (:344–353) = pickerSheet →
+popupOpen (= panelOpen || anyBarVisible) →
+`fsTraySurfaceBusy:` (:289: chỉ còn dragGhost
+đang bay ∨ toast nền tag 0x5c9b trong tray
+window). Mọi từ chối kèm snapshot một dòng
+`fsRefusalSnapshot:` (:299) —
+snap{tw twh to tray picker ratio dg toast rz fc
+phase} — gắn ở cả 6 điểm log refuse của
+controller (expand-busy, expand state=EXPANDED,
+gate reason, invalid-rect, restore-busy, restore
+state=SPLIT): từ nay log phân định được chặn đúng
+hay oan ngay tại dòng refuse. Truy vết tĩnh bắt
+buộc, khẳng định bởi kiểm độc lập: (a) mở picker
+→ đóng hoàn toàn → expand QUA guard (trạng thái
+giữ lại tw=1 hidden, trayOverlay dính=1 không còn
+chặn — đúng ca 4 lần reason=tray của ytz2 mà vị
+từ cũ chặn vĩnh viễn); (b) popup mở thật → vẫn
+chặn, bằng reason chính xác hơn (picker/popup);
+(c) tray từng mở rồi ẩn → không chặn. Vị từ trần
+cũ trong source controller: 0 hit. Ranh giới ghi
+rõ: các dòng KẾT QUẢ sau quyết định (expand
+unconfirmed, restore-unconfirmed, rollback,
+session-end, external-override, chrome FAILED)
+KHÔNG mang snap — chúng không phải điểm từ chối
+ở cổng vào; snap ở đường unconfirmed là việc
+cộng thêm nếu GPT muốn, hiện chưa có. Điểm để
+lại cho GPT: hạng tử toast trong vị từ mới có
+thể bỏ nếu GPT không muốn toast (sống ~2 s) chặn
+expand — strand giữ theo đúng định nghĩa "bận"
+của chính module.
+
+**Feed activity cho ô native tại CarPlayApp
+(fix-np-nativefeed).** SCPTouchProbe tiến hoá
+(24.825 B): hook sendEvent: vẫn gọi orig trước
+nguyên vẹn; tại mỗi Began, sau dòng [probe] cũ,
+chạy SCPProbeFeedEvaluate với chuỗi cổng: split
+active → touch quy đổi được → **màn chứa
+container** (so UIScreen identity) → vùng hệ
+thống (class DBStatusBarWindow mọi điểm + góc
+Home 48×48 pt dưới-trái của screen.bounds — bắt
+cả biểu diễn trùng qua gesture window; các điểm
+thoát mẫu {12.5–23.5, 217–226} đều nằm trong) →
+popup đang hoạt động (vị từ khớp strand guard,
+in sub-reason) → thuộc ô theo screen-space từ
+gán ô LIVE → ô hosted thì drop-hosted (F4 sở
+hữu, không phát trùng) → ô native thì **fired**:
+đúng MỘT lời gọi activity, chính đường F1
+`[split ahNoteActivity:AHSourceContainer]`
+(:324). Quy đổi tọa độ RÕ qua không gian màn
+hình: điểm chạm và hình ô đều đi qua
+coordinateSpace có tên (window → screen của nó),
+giao nhau chỉ trong screen space;
+`fromView:nil` xuyên window trên đường quyết
+định của feed = 0 (chỉ còn ở classifier [probe]
+ghi log và fallback `raw` khi touch không có
+window — cả hai ngoài đường feed). Nhãn
+foreign/_UISystemGestureWindow KHÔNG phải cổng
+loại (feed không đọc nhãn scene; loại theo
+window duy nhất là DBStatusBarWindow). Mọi quyết
+định log `[probe-feed] t=… epoch=… fired |
+drop-<reason>` đủ 8 format. Chạm đi qua nguyên
+vẹn: vòng này KHÔNG nuốt, không chặn, không
+reveal trực tiếp ngoài đường activity hiện có.
+Hai điểm thiếu API đã khai trung thực: (1) enum
+AHActivitySource không có giá trị riêng cho
+probe-native → dùng AHSourceContainer; "last
+source" nội bộ của AutoHide sẽ đọc là container,
+attribution chính xác nằm ở dòng [probe-feed]
+fired. (2) Generation — xem phán rủi ro ngay
+dưới đây.
+
+**Đo tập touch có chống trùng (fix-np, phần B).**
+Probe duy trì tập touch đang sống theo con trỏ
+UITouch: {win class, raw, scr đã quy đổi screen
+space, pane gán, evB/evL = event.timestamp,
+tB/tL monotonic}. Mỗi event làm đổi tập → một
+dòng `[touchset] … active=N [ptr=… win=… raw=…
+scr=… pane=… evB=…]`. Đủ dữ kiện phân định 2
+contact ĐỘC LẬP đồng thời cùng ô (scr khác hẳn)
+vs 2 biểu diễn TRÙNG của 1 contact (scr gần
+bằng, evB lệch mili-giây — ca mẫu 15:37:57.243/
+.246). KHÔNG ghép cặp, KHÔNG bắn lệnh pinch,
+KHÔNG recognizer mới — đầu vào cho quyết định
+kiến trúc pinch của GPT sau phiên ytz3.
+
+**Generation của feed — phán rủi ro của kiểm độc
+lập (verify-ytz3 mục d), ghi nguyên.** Hai hệ
+"generation" khác nhau bản chất: gen của owner
+(`bwGenBySlot[10]`, SCPCarSplit+BridgeWake.m:31)
+là theo TỪNG SLOT, 1..4095 wrap, chỉ tăng khi
+bundle của slot đổi (:351) hoặc vòng teardown
+tăng mọi slot đang có bundle (:443), và là khoá
+kiểm cho gói XUYÊN PROCESS (bwHandleActPacket:
+loại gói khi pkt.gen != bwGenBySlot[slot], :526;
+phía app cũng đối chiếu khi nhận state). Header
+SCPCarSplit+BridgeWake.h KHÔNG phơi biến này →
+khẳng định của strand "TU probe không đọc được"
+là ĐÚNG. Epoch của probe (SCPProbeFeedEpoch,
+SCPTouchProbe.m:206–219) là MỘT biến toàn cục
+neo trên identity của split.container / window
+của nó + cạnh rơi `active` được lấy mẫu; và grep
+chứng minh sau khi tính nó CHỈ xuất hiện trong
+format string [probe-feed]: không cổng, không so
+sánh, không nuôi quyết định nào (quyết định
+fired/drop đọc mọi đầu vào live cùng một pass;
+đường có kiểm gen thật F4 không bị đụng). **Các
+ca lệch epoch ↔ gen owner có thể xảy ra:** (1)
+đổi app trong ô giữa phiên → gen slot tăng,
+epoch đứng yên; (2) teardown + dựng lại mà không
+có Began nào ở giữa VÀ container/window giữ
+nguyên con trỏ → epoch có thể không tăng qua
+ranh giới phiên trong khi gen đã tăng (ca CÓ
+ĐIỀU KIỆN — container dựng mới thì đổi con trỏ
+tự bắt ở Began đầu, và quyết định đầu phiên mới
+đã mang epoch mới); (3) churn container/window
+giữa phiên → epoch tăng khi gen đứng yên; (4)
+epoch là 1 số toàn cục, mất hạt 10 slot; (5) hai
+hệ không bao giờ so trị số 1-1 được (gen wrap/
+reset theo slot, epoch đơn điệu theo process) —
+đối chiếu chỉ bằng timestamp. **Phán: rủi ro
+chức năng ≈ 0; rủi ro thật nằm ở tầng nhãn/đối
+chiếu** (ai đối chiếu epoch= với gen trong state
+packet sẽ thấy lệch ở các ca 1–4 mà dòng log
+không tự cảnh báo). Giảm nhẹ sẵn có: trường log
+đặt tên `epoch=` chứ không phải `gen=`, biên bản
+strand ghi rõ bản chất. Phát biểu đúng hiện tại
+là "feed xác nhận gán-ô-hiện-hành đọc tại chỗ",
+KHÔNG phải "feed xác nhận generation của owner".
+Muốn tương quan gen thật phải phơi accessor
+chỉ-đọc ở BridgeWake.h (vd bwGenerationForSlot:)
+— đề xuất chờ GPT, ghi ở §25.5.
+
+**Instrument mất icon + ô trắng (fix-i-iconwhite).**
+Bản đồ app-library đọc từ source: phía picker/
+split, nguồn = SCPCarPlayAppInfos() (thư viện hệ
+thống lọc CarPlayUI GỘP lưới Home đang sống qua
+SCPCarHomeBundles()) + SCPChosenPhoneAppInfos()/
+SCPBridgedChosenApps() (pref appBridgeApps ∩ app
+đã cài, cache 60 s); sự kiện dựng lại: mở picker
+(Picker.m:339), publishCarPlayApps lúc màn xe
+hiện, prefschanged / hết hạn cache. Điểm [applib]
+cộng ở SCPCarApps.m + 1 điểm SCPCarSplit.m:2666:
+`live-grid-read` (count + omni — thăm dò TRỰC
+TIẾP bundle của chính OmniCar com.anlai.omnicar.app
+còn trên lưới gốc đang sống hay không),
+`bridged-rebuild`, `drop chosen-not-installed`,
+tally drop (duplicate)/(no-carplay-ui) tại đúng
+2 điểm continue sẵn có, `build picker-native`
+(count/omni/fromGrid/omniFromGrid), `build
+picker-chosen`, `build publish-for-settings`.
+[scenevis]: helper chỉ-đọc SCPCarSplit.m:56,
+format bundle/slot/scene-id/attached/inHost/
+hidden/alpha/window tại 9 điểm: attach :1173,
+detach(-bg) :1206 (trước khi detach chạm view),
+scene-destroyed :1266, verify :1343 (cạnh dòng
+verdict khung sẵn có — ĐIỂM phân định ô trắng:
+khung đúng nhưng hidden=1/inHost=0/window=0 sẽ
+lộ tại đây), pane-remove :1538, invalidate :285,
+going-home :1736 (snapshot mọi pane đúng điểm
+thoát Home của sự cố), host-attach :1917,
+host-state-* :1990. Vòng đời = force không
+throttle; verify/host-state throttle 1 s.
+**Đường Home gốc — KHÔNG nằm trong 2 file được
+giao vòng này** (ghi đúng vị trí thật, không
+instrument): hook _newApplicationLibrary /
+_loadFromProxy: ở SCPHooks.m:56/72; họ tiêm/gỡ
+app ở SCPAppIcons.m (SCPAddChosenAppsToLibrary,
+SCPInjectDeclarationIfChosen,
+SCPRefreshAppIconsBlock — có removeApplicationProxy:,
+crash-guard); đồng bộ trình bày ở SCPHomeApply.m.
+Phần duy nhất của đường đó trong phạm vi là
+reader SCPCarHomeBundles() — dòng live-grid-read
+nói trên.
+
+**Instrument weather request→answer→display
+(fix-w-weatherinst).** Sự thật cốt lõi: kênh
+`com.anlai.omnicar/startupscreen.weather.request`
+là notify_post TRẦN — KHÔNG mang id nào;
+SSWeatherGeneration phía CarPlay chỉ là guard
+nội bộ, không bao giờ truyền qua kênh. Vòng này
+cấm đổi giao thức nên instrument dùng hai bộ
+đếm LOG-ONLY độc lập theo process, tương quan
+bằng thứ tự + timestamp: req# (SSSplash.m:348)
+và ans# (SSStartupScreen.m:708–709) — cả hai chỉ
+được đọc bởi chính các dòng log cộng thêm (grep
+chứng minh không logic nào đọc chúng). 17 điểm
+log `[weather]` phủ kín 3 đầu — yêu cầu: req#
+begin / gen= ask-springboard / retry-post /
+timeout-no-answer / source=direct-fix /
+source=none / answer-received for req# gen=
+cacheTemp=; trả lời: request received via darwin
+notify / ans# begin / ans# dropped
+reason=in-flight / ans# fetch-begin source=<nhãn
+vị trí gốc> / ans# answered-without-weather /
+ans# ready-posted; hiển thị: applied req# temp=
+code= isDay= dataAge= tại apply block (ghi cả ca
+nil) + display category= isDay= temp= tại đúng
+điểm _sky/gradient được tính trong -reload
+(SSStartupView.m:271). Cache khởi tạo có nhãn
+riêng `display source=initial-cache (NOT a
+request answer)`; warming nay có nhãn tường minh
+`source=warming-cache (internal startup call,
+NOT a CarPlay request)` và chuỗi warming KHÔNG
+chứa dòng req# nào — phân biệt dứt khoát với
+request thật, đúng điểm GPT hiệu chỉnh ở §25.1.
+Giới hạn ghi rõ: phía SpringBoard không phân
+biệt được post gốc với retry-post (+2s/+5s) của
+cùng ask (đều là notify trần); ánh xạ req#↔ans#
+là theo thứ tự, không 1-1 tuyệt đối (in-flight
+guard + single pending slot là thiết kế gốc).
+Đề xuất vòng sau (chưa làm, chờ GPT — đây là đổi
+giao thức): chở generation qua notify state của
+chính kênh request; mẫu notify_register_dispatch
++ notify_get_state đã có sẵn trong cùng file ở
+kênh location.
+
+**Kiểm độc lập vòng (verify-ytz3, chỉ-đọc):**
+(a) guard — KHẲNG ĐỊNH (cả ranh giới snapshot ở
+trên); (b) feed — KHẲNG ĐỊNH, một lệch MÔ TẢ thứ
+tự: đề bài liệt kê "màn CarPlay" trước "active",
+code đặt active trước và chèn cổng unconverted;
+cả hai đều là drop cứng và cổng display về kỹ
+thuật không chạy được trước quy đổi, nên tập
+quyết định không đổi — ghi nguyên trạng; kỷ luật
+lời gọi grep toàn file: ahNoteActivity: đúng 1
+điểm, reveal/swallow/cancel = 0; (c) hai strand
+instrument — KHẲNG ĐỊNH thuần cộng: git diff
+81c6751 → 36135b8 trên đúng 5 file = **163 dòng
+cộng / 0 dòng xoá** (SCPCarApps +57, SCPCarSplit
++55, SSSplash +26, SSStartupScreen +18,
+SSStartupView +7); mọi hunk thuộc 4 loại log-only
+và 3 điểm soi kỹ (hunk feature-off chèn TRƯỚC
+return gốc, hai if tally vị từ thuần đọc, cân
+bằng ngoặc của phần cộng) đều sạch — 0 thay đổi
+điều kiện/hành vi; (d) phán gen như trên.
+
+### 25.4 Số đo của vòng
+
+- **Candidate local:** com.anlai.omnicar_1.0.3-ytz3_
+  iphoneos-arm64.deb — 1.027.106 B, SHA-256
+  `b6c5f32864eed1d471632b1bcb73708553c7100adf8443e791d044400f5e9414`;
+  build từ sạch EXIT=0, 0 error; control khác ytz2
+  duy nhất Installed-Size 3748→3764; mirror 9/9
+  identical (integration-ytz3).
+- **Cổng cũ trên candidate:** file list 176 = 176;
+  parity selector 8/8 thành phần 0 mất; SplitScreen
+  +7 đúng thiết kế (fsRefusalSnapshot:,
+  fsTraySurfaceBusy:, convertPoint:toCoordinateSpace:,
+  CGPointValue, valueWithCGPoint:, pointerValue,
+  timestamp); g1/g2/h (C-A + C-B)/f diff toàn hàm
+  = 0, địa chỉ + dạng y hệt ytz2; knob IMP 356 lệnh
+  đúng 1 eor; 4 hash cấm ABHost MATCH cả 4;
+  hostFrameInfo đủ 30 key, `split` vẫn từ vị từ
+  trình bày; điểm ghi requestedOrientation có giá
+  trị duy nhất nguyên vẹn; MSHookMessageEx
+  SplitScreen = 31 call-site, KHÔNG tăng; kênh
+  bridgewake ×5 + ytlease/ytleaseack nguyên vẹn
+  từng chuỗi.
+- **Cổng mới trên candidate:** SplitScreen binary
+  chứa [probe-feed] ×8 format, [touchset] ×1,
+  [applib] ×8, [scenevis] ×1, snap{ ×1 (marker cũ
+  [probe]/[fs-diag]/[fs1]/[pinch1] còn nguyên);
+  StartupScreen [weather] đúng 17/17 format; vị từ
+  trần `trayWindow || trayOverlay` trong source
+  controller = 0 hit.
+- **Git:** main `36135b8a355626a2d57103624d16cbcda6ebe273`
+  (đúng 16 file = 8 file strand × 2 cây, không thay
+  đổi phụ); ci-fat-test
+  `dd4737522539d450a7024f22e6ef696d9f1a35b9` (merge
+  main); diff main ↔ ci-fat-test trên project/src
+  = 0.
+- **CI:** workflow 410962367, run dispatch
+  **42590500247** — SUCCESS, theo dõi foreground
+  (gh run watch) + truy vấn trực tiếp (gh run view),
+  09:03:53Z → 09:07:17Z.
+- **FAT:** com.anlai.omnicar_1.0.3-rebuilt-ytz3-fat_
+  iphoneos-arm64.deb — **1.224.728 B**, SHA-256
+  **`c1872b936a01969418b68cc5f69e1bd72639a1f5e2e2f1da16132edcfc6bcf3f`**
+  (tự đo trên đĩa tại handover); members
+  debian-binary + control.tar.gz + data.tar.lzma.
+- **Kiểm hai lát** (parser Mach-O tự viết, ĐÃ HIỆU
+  CHUẨN trên FAT ytz2 trước khi đo: tái lập đúng
+  16/16 UUID + bảng methname + IMP/khoảng/eor của
+  knob + IMP g1 của ci-ytz2, gồm giải mã chained-
+  fixup arm64e): bridgewake 5/5 ×1 ở SplitScreen +
+  AppBridge cả hai lát; ytlease ×1 + ytleaseack ×1
+  chỉ ở AppBridge; chuỗi mới MỖI lát đúng số format
+  của strand ([probe-feed] ×8, [touchset] ×1,
+  [applib] ×8, [scenevis] ×1, snap{ ×1 ở
+  SplitScreen; [weather] ×17 ở StartupScreen);
+  marker cũ khớp ytz2 từng số; fullscreenTestExpand
+  = 0 trong toàn bộ gói; binary Prefs chứa cả 3
+  khoá chẩn đoán ×1 mỗi lát; knob đúng 1 eor mỗi
+  lát (arm64 IMP 0x12f9c, eor @0x13208; arm64e IMP
+  0x138e8, eor @0x13b58 — cùng số lệnh trong khoảng
+  như ytz2); g1 IMP trùng ytz2 từng địa chỉ
+  (0x7464/0x775c); parity vs FAT ytz2: 7 binary
+  identical số đếm, SplitScreen 1387 → 1394, mất 0,
+  thêm đúng 7 truy hết vào fix-g (2) + fix-np (5),
+  fix-i/fix-w thêm 0 selector (đúng tính chất
+  instrument thuần — AppBridge/StartupScreen/Prefs
+  identical từng tên). UUID 8 binary × 2 lát: bảng
+  trong ci-ytz3 §3 và ACCEPTANCE_YTZ3.
+
+### 25.5 Trạng thái + còn mở
+
+- **Mức đạt của vòng: source complete / static PASS
+  (candidate + FAT hai lát). Mọi verdict xe:
+  PENDING** — kịch bản nghiệm thu trong
+  ACCEPTANCE_YTZ3: (1) controller sạch — mở picker
+  → đóng HOÀN TOÀN → gạt công tắc: expand phải
+  chạy; popup đang mở thật: vẫn bị chặn; (2) native
+  wake — fade → chạm ô native → reveal qua
+  [probe-feed] fired; (3) touchset — pinch tự
+  nhiên, đội phân tích đọc log phân định trùng/
+  độc lập; (4) đối chứng YTZ OFF dài (tắt ≥ 10 s
+  rồi mở video — sửa caveat 0,5 s của phiên ytz2);
+  (5) hồi quy weather/icon/ô trắng — đọc chuỗi
+  [weather] req#→ans#→applied→display và
+  [applib]/[scenevis] từ log của chính phiên.
+- **ENFORCE vẫn ĐÓNG theo GPT** — cả wake (Gate 3
+  là nuốt cú chạm đầu; phiên ytz2 mới chứng minh
+  đường activity/reveal, và log còn failopen=
+  kbunknown — điều kiện suppression chưa đủ bằng
+  chứng) lẫn pinch (chưa ghép cặp, chưa recognizer
+  trong app). Feed native vòng này chỉ cộng
+  activity, chạm native đi qua nguyên vẹn.
+- **Ba đề xuất chờ GPT phán:** (i) phơi accessor
+  gen chỉ-đọc trong SCPCarSplit+BridgeWake.h để
+  feed tương quan được gen thật của owner (mục d
+  ở §25.3); (ii) khi log [applib]/[scenevis] của
+  phiên ytz3 khoanh được vùng, mở vòng
+  instrument/sửa tại đường Home thật (SCPHooks.m /
+  SCPAppIcons.m / SCPHomeApply.m) cho cơ chế mất
+  icon — KHÔNG coi là tự khỏi theo sửa wake;
+  (iii) chở generation qua notify state của kênh
+  weather.request để req#↔ans# thành tương quan
+  tuyệt đối (đổi giao thức, mẫu có sẵn ở kênh
+  location cùng file).
+- Giữ nguyên từ các vòng trước: VISUAL_ORIGINAL_
+  COMPARISON = PENDING (thiếu footage deb gốc
+  cùng kịch bản); núm chờ phán (instrument payload
+  hay chấm quan sát); bản sao Weather phía Prefs
+  (OMCCommon.m) chỉ audit đọc; ahForgetView: chờ
+  GPT; comment tồn dư (SCPPinchController đã dọn ở
+  các vòng trước; ghi chú §7 trong ABChannels.m về
+  `single` còn lại). **QA20 vẫn là bản dùng hằng
+  ngày của Nguyen** — ytz3 thay ytz2 làm bản nghiệm
+  thu duy nhất hiện hành. Rollback: ytz2 FAT +
+  fs1 FAT + fixround7 FAT + gói hợp nhất QA20.
+  ytz1 vẫn CÁCH LY.
