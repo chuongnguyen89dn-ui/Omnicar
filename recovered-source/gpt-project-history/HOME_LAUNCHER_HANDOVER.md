@@ -8,12 +8,13 @@
 - Repository **duy nhất**: `chuongnguyen89dn-ui/Omnicar`. Cây thi công `recovered-source/`; đầu mối chung `recovered-source/TIEP_TUC_DU_AN.md`; lịch sử GPT `recovered-source/gpt-project-history/README.md`.
 - Main khi tạo nhánh: `3e25499d62cb471e0aa468871535182eb7abaec8` (2026-11-09; YTZ5 của Muse đã có trên main, commit nguồn `e6b50a4`).
 - Nhánh code **đã tồn tại và kiểm trực tiếp**: `feature/omnicar-home-launcher`. Tạo trước khi GPT ghi code, tip nền đúng main `3e25499d`; GPT **không tạo lại** nhánh.
-- Bốn commit source liên tiếp, GitHub connector trả thành công:
+- Năm commit source liên tiếp, GitHub connector trả thành công:
   1. `81e4b23cadda2ecfc59b7c616a40250acd191366`: app/library/declaration/model/launch cơ bản.
   2. `c4641f7891a4b7f8998943f4e57a3adf5a789344`: hook callback chạm thật, đúng ABI iOS16; đo trước/sau close bằng điểm Muse đã có.
   3. `14404b2c9cf8ea31fad80ebe57b8dd2140599870`: import tương thích hai cây + `string.h` + log danh tính chạm.
-  4. **TIP mã bàn giao** `1479711ed7e33405bb16de2687fe08ec78214567`: chống chọn nhầm OmniCar làm hosted phone app từ preferences cũ.
-- Kết quả GitHub compare `3e25499d...feature/omnicar-home-launcher`: **ahead=4, behind=0**, tổng 14 đường dẫn thay đổi (trong đó 4 file mới vì có cặp `src/project`). Đây là dữ kiện GitHub, không phải local checkout hoặc build.
+  4. `1479711ed7e33405bb16de2687fe08ec78214567`: chống chọn nhầm OmniCar làm hosted phone app từ preferences cũ.
+  5. **TIP mã bàn giao** `050eddb0ada8be356dc61ccb27852dd5c837b97c`: khi FBS record tồn tại nhưng chưa có declaration, promotion cũng là thay đổi cần refresh Home model (không chỉ khi proxy vừa thêm).
+- Kết quả GitHub compare `3e25499d...feature/omnicar-home-launcher`: **ahead=5, behind=0**, tổng 14 đường dẫn thay đổi (trong đó 4 file mới vì có cặp `src/project`). Đây là dữ kiện GitHub, không phải local checkout hoặc build.
 - Không động nguồn DuoFace; chỉ **đọc** lịch sử QA134–146 để chốt đúng đường Home; không copy mã độc quyền DuoNavi/DuoDash hoặc mã tham khảo CarSurf.
 
 ## 2. Đối chiếu lịch sử DuoFace — tránh lặp sai lầm
@@ -34,7 +35,7 @@ Nguồn khảo sát: `Duoface/sideplay/audit/carplay-home-icons-20261031/`, `Duo
 **Danh tính tuyệt đối**: `com.anlai.omnicar.app` (trong app Info.plist binary và AppDelegate của dự án); icon resource `OmniCarApp/Resources/AppIcon60x60@2x.png`, `@3x.png`. Không thay Info.plist, icon của app, ký entitlement hay cài đặt iPhone.
 
 - **Module mới**: `src/SplitScreenC/SCPHomeLauncher.{h,m}` cùng bản build-root `project/OmniCarSplitScreen/SCPHomeLauncher.{h,m}`. Bản `src` dùng import `../SplitScreenA/`, bản `project` dùng import phẳng — đây là sai khác chỉ để đáp ứng cây thư mục.
-- **Đăng ký thư viện**: `SCPHomeLauncherEnsureInLibrary`, được gọi từ `SCPHooks.m:Hook_newApplicationLibrary` sau original. Tìm `DBApplicationInfo` hiện hữu trước; chỉ thêm `LSApplicationProxy` của đúng self-bundle có `appState.isValid`, gọi `addApplicationProxy:withOverrideURL:` của library **hiện tại**; không thêm trùng.
+- **Đăng ký thư viện**: `SCPHomeLauncherEnsureInLibrary`, được gọi từ `SCPHooks.m:Hook_newApplicationLibrary` sau original. Tìm `DBApplicationInfo` hiện hữu trước; chỉ thêm `LSApplicationProxy` của đúng self-bundle có `appState.isValid`, gọi `addApplicationProxy:withOverrideURL:` của library **hiện tại**; không thêm trùng. Nếu record có sẵn nhưng thiếu declaration, đổi từ thiếu→có cũng đánh dấu `changed=YES` để refresh model trên Home reentry.
 - **Declaration**: `SCPHomeLauncherInjectInfo` khi `DBApplicationInfo _loadFromProxy:` và sau library lookup. Chỉ self-bundle; giữ nguyên declaration có sẵn; khi thiếu, tạo `CRCarPlayAppDeclaration` theo contract `SCPAppIcons.m` (supportsMaps YES, supportsTemplates NO), ghi `_carPlayDeclaration` + tag `OmniCarHomeLauncher` + `_valid` khi cần; không thay on-disk entitlements. Đây là **implementation candidate**, phải kiểm thực tế iOS/CarPlay policy trên xe.
 - **Model**: `SCPHomeHooks.m:SCPHook_IsIconVisible` có cổng riêng cho own-bundle khi splitScreen enabled; còn lại **giữ đường original** cho native và phone injected. `SCPHomeLauncherAuditModel` đi `SCPHomeVCWeak.view → *IconListView → model.lists.icons`, log `BLIND / ABSENT-MODEL / PRESENT-MODEL`, và chỉ log cell khi đọc được *IconView của đúng bundle. Không coi model hoặc library là chứng minh pixel/tap.
 - **Chạm**: `SCPHomeLauncherInstallTapHook` gọi trong constructor Home đã có; kiểm ABI đúng `v32@0:8@16@24` rồi hook `DBDashboardHomeViewController iconManager:launchIconForIconView:`. Đọc identifier của iconView/icon qua các getter object ABI `@16@0:8`; **chỉ** own-bundle bị consume, mọi app khác và unknown gọi **original đúng một lần**. Các hook launch-info và `DBDashboard _launchAppWithInfo:` cũ có dự phòng same-bundle.
@@ -64,7 +65,7 @@ Nguồn khảo sát: `Duoface/sideplay/audit/carplay-home-icons-20261031/`, `Duo
 
 ## 5. Bàn giao tích hợp cho Muse (không tạo DEB thứ hai)
 
-1. Đối chiếu nhánh `feature/omnicar-home-launcher` tip `1479711ed7e33405bb16de2687fe08ec78214567` với main nguồn YTZ5. Lấy **hunk riêng** ở A/C và module mới, tránh chép nguyên `SCPHooks.m` bản project cũ phủ lên YTZ5. Chú ý `SCPHomeApply.m` chỉ bổ sung lời gọi audit tại entry `SCPLogInjectedIconState`; giữ nguyên toàn bộ phần Muse.
+1. Đối chiếu nhánh `feature/omnicar-home-launcher` tip `050eddb0ada8be356dc61ccb27852dd5c837b97c` với main nguồn YTZ5. Lấy **hunk riêng** ở A/C và module mới, tránh chép nguyên `SCPHooks.m` bản project cũ phủ lên YTZ5. Chú ý `SCPHomeApply.m` chỉ bổ sung lời gọi audit tại entry `SCPLogInjectedIconState`; giữ nguyên toàn bộ phần Muse.
 2. Staging `src` → `project` theo hợp đồng project/Makefile thật, kiểm compile đã link module `SCPHomeLauncher.m`; confirm ký, version, arch và hash trên CHÍNH artifact tích hợp, không dựa artifact pre-order `42615117251`.
 3. Chạy kiểm soát tĩnh trên artifact/cùng commit: `git diff --check`; không duplicate symbol, no missing selector without guard; kiểm method signature `v32@0:8@16@24` của máy đích, log `[home-launch]`. Regression các app native, app AppBridge, picker, YTZ5/kb, AutoHide, Home/dock.
 4. Chỉ build/ký **một DEB tổng hợp** khi source của cả hai phần cùng nền. **Không** merge main, dispatch thêm CI, deploy Sileo hoặc nhắn Muse bên ngoài theo quyền GPT. Nguyen là người test xe.
