@@ -6528,7 +6528,7 @@ công tích hợp GPT 19:15 (xem khối TÍCH HỢP ở 29.7).
 | Thi công ytz5 (4 strand) | XONG — commit nguồn đi cùng đợt push này (29.7) |
 | Harness 4 ca cấu trúc + kiểm tĩnh | XONG — harness 24/24 PASS; kiểm tĩnh PASS mọi cổng trừ parity: mất đúng 1 method là THAY THẾ CÓ CHỦ ĐÍCH theo hợp đồng (29.7) — chờ GPT miễn trừ |
 | Build candidate + CI FAT + ghép Home launcher | ĐÃ XONG (29.9) — ghép tip GPT `050eddb0` (merge `c74c878`, 0 xung đột) + staging project `74635d1` + fix nullability tích hợp `8a2c7aa`; CI run dispatch **42622552103** SUCCESS; DEB tổng hợp duy nhất (ytz5hl1) FAT 1.245.714 B, SHA-256 `e28883b9…`. Candidate local ytz5 riêng: 1.036.636 B `2d1cf435…` (29.7) |
-| Phiên xe nghiệm thu 6 bước | ĐÃ CHẠY 20:34 (báo cáo tại xe, LOG CHƯA UP — 29.10): bước 1/2/6 TẠM ỔN; bước 3 picker **THẤT BẠI**; bước 4 phím gốc hosted **THẤT BẠI** (không hiện phím); bước 5 reveal ĐẠT; bước 7 lỗi trình bày kịch bản của Muse |
+| Phiên xe nghiệm thu 6 bước | ĐÃ ĐỐI CHIẾU LOG (29.12): bước 1 icon Home ĐẠT tầng log (11 chạm routed; model NO-DATA); bước 2 vòng đời AutoHide ĐẠT; bước 3 picker **THẤT BẠI** — nhánh (b), lớp phủ khác placeholder (nghi phạm pane.cover/shield); bước 4 phím gốc hosted **THẤT BẠI** — nhánh (i), phím hệ thống không dựng trên màn xe, bridge vô tội; bước 5 reveal ĐẠT + Gate 3 có 4 ca would=1 sạch; bước 6 A/B icon ĐẠT một phần (model NO-DATA) |
 | Wake ENFORCE (Gate 3) | VẪN KHOÁ — Nguyen nâng thành vấn đề 20:37; Muse đề xuất bật cho app hosted ở bản sau (29.10a) — chờ Nguyen chốt lệnh + GPT tham vấn (ngược phán quyết hiện hành) |
 | Pinch recognizer trong app hosted | MỚI LẬP LẠI 20:39 (29.10b) — ĐÍNH CHÍNH: pinch đã thành công ở bản 21–35; số touchset "trùng" là artefact vị trí đo; kế hoạch recognizer ABInApp → host → FS controller, chờ GPT phán điểm giao tiếp |
 
@@ -7189,3 +7189,109 @@ recognizer + `cancelsTouchesInView` / overlay trong app / kết hợp;
 pinch đầu khi controls đang ẩn có bị tính là cú chạm gọi logo không);
 (iii) hành vi pinch khi controls đang ẩn và khi đang EXPANDED (zoom
 out = thu về split?). Các mục chờ khác giữ nguyên như cuối 29.10.
+
+### 29.12 Phân tích log phiên ytz5hl1 [ĐÃ ĐỐI CHIẾU LOG — verdict log thay verdict miệng của 29.10]
+
+Nguồn: `OmniCar.log` (965.241 B, SHA-256 `e7e62a0b…`) + `OmniCar.log.old`
+(2.102.266 B), Nguyen up ở commit `5e745bc`. Năm strand song song + bản
+đối hoà `analysis-ytz5hl1-final.md` và 5 biên bản strand đã chép vào
+`handover/reports/`. Mọi đếm bằng grep trên file gốc, kết luận ghim dòng
+có timestamp.
+
+**Khung phiên:** file .old chứa cả phiên ytz4 (dòng 1–2477, 17:40:49–
+17:49:22, CP 36057) lẫn đầu phiên ytz5hl1; thế hệ mới bắt đầu
+`20:18:10.158` (SB 36658, CP 36683); hai file nối liên tục tại 20:36:45
+(seq kb-sync 1976→1977); đổi PID đồng loạt SB+CP lúc 20:39:51–57 (dạng
+respring, không crash/exception/SIG quanh đó — nguyên nhân NO-DATA);
+pha 2 CP 36712 tới 20:52:18. Lỗi toàn cục = 0. Chuỗi build giống hệt hai
+thế hệ — chỉ phân biệt bằng PID + timestamp + tag riêng ([home-launch]
+121, [kbstate] 1.430, [ytz5-k5] 7; đoạn ytz4 đều 0).
+
+**Bảng verdict (log):** bước 1 icon Home **ĐẠT ở tầng log** (library/
+declaration/tap-gate đủ 2 lần dựng; 11 lần chạm THẬT routed-existing-
+panel 20:18:56→20:32:27, openURL = 0; tầng model NO-DATA — xem dưới);
+bước 2 vòng đời AutoHide **ĐẠT** (3/3 thoát lúc mờ → mở lại hiện đủ,
+restored ≤44 ms, fade lại đúng idle 4.00; không lần mở lại nào bắt đầu ở
+trạng thái mờ — lỗi rò ahFadedState của ytz4 không tái diễn); bước 3
+picker **THẤT BẠI — cơ chế nhánh (b)**; bước 4 phím gốc hosted **THẤT
+BẠI — phân định nhánh (i)**; bước 5 reveal **ĐẠT**, Gate 3 có tiến triển
+bằng chứng lớn (dưới); bước 6 A/B icon **ĐẠT một phần / model NO-DATA**
+(thoát lúc mờ ⇒ goHome=NO 3/3 khớp ytz4, nhưng lúc hiện cũng NO 4/4 —
+`src=` là biến trội phiên này; cell giữ 5/7 ca after-close; remove = 0).
+
+**Bước 3 — cơ chế:** toàn phiên đúng 2 lần mở picker thật (nút "Đổi
+app", ô 0 YouTube hosted): 20:25:25.561 và 20:25:36.896, cả hai
+`[picker] hasContent=1`; `hasContent=0` xuất hiện 0 lần → nhánh (a) của
+29.10 bị log bác (phép bắt occupancy ĐÚNG; placeholder `pane.picker`
+cùng hunk với dòng log nên vô tội ở tầng log). Lớp phủ là phần tử KHÁC,
+nghi phạm xếp hạng: (b1) `pane.cover` — phủ toàn pane, đúng hằng màu
+đặc rgb(0.9333, 0.9412, 0.9843), nhưng add/remove không phát dòng log
+nào (NO-DATA sự hiện diện); (b2) shield của popup — xác nhận dựng đúng
+tại 2 mốc mở (20:25:25.951 / 20:25:37.092), màu/alpha không được ghi.
+Kết án đích danh cần đúng 1 dòng đo bổ sung: alpha + superview của
+`pane.cover` và `pane.picker` ngay sau điểm bắt hasContent trong
+`showPickerForSlot:`.
+
+**Bước 4 — cơ chế:** cổng trên thiết bị = native, xác nhận phía host
+bằng dòng thật `[ytz5-k5] cong ban phim doi: native (prefschanged)` ×7,
+không lần nào drawn (token `drawnKeyboard` vắng mặt trong log). Hai cửa
+sổ ACTIVE duy nhất: 20:25:46→20:26:31 và 20:35:46→20:36:14, tổng 75 báo
+cáo state=1, accept 100% trong cửa sổ. **Chuỗi kbstate KHÉP trọn vòng:**
+accept 1.425 / reject 5 (noassignment ×3, badgen ×2 — đều là sự kiện
+vòng đời); seq liền mạch 2 session; accept→emit 0–1 ms; emit
+`source=app-input-session` active=1 ×148; có ca stale→UNKNOWN thật sau
+badgen (freshness neo vào nguồn, đúng luật W2). AutoHide giữ đúng:
+`fade deferred (kb)` ×11, fade thật trong lúc ACTIVE = 0. Nhánh (ii)
+(cổng lệch/vẫn suppress) bị log bác: không dòng suppression, host không
+chặn panel lúc nhập liệu. **Kết luận nhánh (i): phím hệ thống không
+dựng trên màn xe cho scene hosted — kết án tầng xe, cầu bridge vô tội;**
+ở chế độ native, app hosted trên bộ máy này không có bàn phím dùng
+được. (Giới hạn: tầng trình bày phím câm log tuyệt đối, `UIKeyboard` =
+0 mọi process; kết án dựa trên chuỗi bridge khép kín + verdict màn
+hình của Nguyen.)
+
+**Gate 3 — trạng thái bằng chứng sau phiên:** điều kiện nuốt đầy đủ
+(HIDDEN + known + kb INACTIVE từ nguồn xác thực) có 9 ca; **would=1
+SẠCH ở 4 ca** (seq 1/8/17/20, kbAge 9–625 ms, failopen=`-`) — phiên đầu
+tiên có ca dương tính sạch trên nguồn kb đã sửa; 4 ca would=0 do stale
+(fail-open đúng thiết kế); **1 ca bất thường seq=45** (20:37:23.977, H +
+fresh mà would=0, đúng nhịp host đang reveal — nghi race snapshot với
+state-flip, chưa chứng minh). Mắt xích "chạm lúc HIDDEN + kb ACTIVE"
+vẫn không có ca nào, VÀ tổ hợp đó không đồng tồn tại: cả 3 cửa sổ kb
+ACTIVE đều có owner = VISIBLE vì chính thiết kế kb-hold của ytz5 giữ
+controls hiện khi phím mở — tiêu chuẩn như viết hiện tại tự mâu thuẫn
+với thiết kế đã chốt, cần GPT phán lại tiêu chuẩn. Mắt xích "chạm sau
+đóng phím cùng assignment" ĐÃ CÓ (seq 42–47 sau cửa sổ B, gen=20; ca H
+trong đó là seq=45 bất thường). Bằng chứng gõ phím vẫn NO-DATA (hệ quả
+bước 4).
+
+**Hồi quy/phụ:** native feed lệch đúng 1 act (posted 47 / accepted 46;
+seq=19 posted 20:27:50.617 gen=8 không accepted ở cả hai file) +
+stateage tối đa 42.546 ms ở kênh state wake (kênh kbstate mới thì
+sạch). FS1: expand confirmed 2/9 thao tác; **5 lần refused có snap toàn
+0** (`picker=0 ratio=0 dg=0 toast=0 tray=0`), cờ sống chung duy nhất
+`to=1` — guard từ chối khi các con trỏ nội dung được mô tả là nó canh
+đều tắt, cần truy `to` là đầu vào nào của predicate. YTZ sạch: mismatch
+0, revoke 6 lần frame giữ nguyên (không layout cưỡng bức), mask 24
+không rò. Weather/knob NO-DATA phiên thứ 4 (chỉ 2 chu trình ans#1
+warming lúc startup). Pinch: OFF nhất quán (pinch=0 ×9, wouldPinch=0
+×34); **bằng chứng hai ngón phía trong app ĐÃ CÓ** — probe seq=49
+(20:38:23.821) `ph B=2 M=17 E=2` do chính YouTube ghi, củng cố đính
+chính 29.11; dòng migration riêng NO-DATA (grep `migration` = 0).
+Tầng model icon mù toàn phiên ở cả hai phía đo (58/58 mẫu BLIND,
+lists=3 icons=0; ABSENT/PRESENT đều 0) — theo chuẩn bằng chứng đã sửa
+ở vòng trước, đây là NO-DATA (giới hạn W5), không phải bằng chứng mất
+icon.
+
+**Đối chiếu phán quyết GPT `5ae47da`** (gpt-project-history/
+YTZ5HL1_GATE3_PINCH_RULING_20261109.md — GPT phán trên báo cáo miệng,
+log chưa tải): log nay xác nhận độc lập hướng (5) phím — drawn là đường
+duy nhất có phím dùng được cho hosted, native chết ở tầng xe; điều
+kiện tiền đề (4) của Gate 3: hai mắt (a) assignment/gen tươi + HIDDEN
+hiệu lực và (b) kb known INACTIVE từ nguồn phiên app ĐÃ CÓ trong log ở
+4 ca would=1 sạch; mắt (c) (bằng chứng orig_SendEvent bị bỏ qua) chỉ
+đo được khi ENFORCE chạy thật; điều tra picker ở (6) đã có kết quả
+tầng log như trên (nhánh b + dòng đo còn thiếu đã chỉ đích danh).
+Trạng thái chờ giữ nguyên: quyết định thi công theo phán quyết thuộc
+vòng tiếp theo; miễn trừ `bwHandleKbSyncNote:` vẫn chờ GPT phán cuối;
+weather/knob + VISUAL_ORIGINAL_COMPARISON giữ PENDING.

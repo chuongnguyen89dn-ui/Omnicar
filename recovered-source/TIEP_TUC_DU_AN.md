@@ -819,6 +819,23 @@ hứng chạm trước (nhận xét cơ chế chưa kết luận: phủ phía ho
 scene hosted — khác tiến trình/render; phủ trong app hứng được cả chạm 1 ngón nên phải
 tự chuyển tiếp, phức tạp hơn recognizer). Kèm chờ phán: thứ tự pinch vs wake-swallow tại
 cùng điểm chạm + hành vi khi controls ẩn / đang EXPANDED.
+**Cập nhật ~21:00 (phân tích log phiên ytz5hl1 — PATCH §29.12):** log đã up (commit
+`5e745bc`), 5 strand phân tích + đối hoà xong (`handover/reports/analysis-ytz5hl1-final.md`).
+Verdict log thay verdict miệng: bước 1 icon Home ĐẠT tầng log (11 chạm thật mở panel;
+tầng model NO-DATA vì reader BLIND cả phiên — giới hạn W5); bước 2 vòng đời AutoHide ĐẠT
+(thoát lúc mờ → mở lại hiện đủ, không rò faded-state); bước 3 picker THẤT BẠI ở **nhánh (b)**
+— phép bắt occupancy đúng (hasContent=1 cả 2 lần mở), placeholder vô tội, lớp phủ là phần tử
+khác: nghi phạm `pane.cover` (không có log) / shield popup (dựng đúng 2 mốc mở), cần 1 dòng
+đo alpha/superview để kết án đích danh; bước 4 phím gốc hosted THẤT BẠI ở **nhánh (i)** —
+cổng native xác nhận trên thiết bị, chuỗi kbstate KHÉP trọn vòng (accept 1.425/reject 5,
+fade giữ đúng lúc ACTIVE), phím hệ thống **không dựng trên màn xe cho scene hosted** — tầng
+xe, bridge vô tội. Gate 3: lần đầu có **4 ca would=1 sạch** ở điều kiện đầy đủ; tiêu chuẩn
+"HIDDEN + kb ACTIVE" hoá ra bị chính thiết kế kb-hold chặn về cấu trúc (kb mở ⇒ controls
+luôn hiện) — cần GPT phán lại tiêu chuẩn; 1 ca bất thường seq=45 nghi race với nhịp reveal.
+GPT đã phán quyết Gate3/pinch/keyboard/picker ở commit `5ae47da` (trên báo cáo miệng);
+§29.12 đã đối chiếu: log xác nhận hướng phím drawn, hai tiền đề (a)/(b) của Gate 3 đã có
+trong log, điều tra picker đã có kết quả tầng log. Chờ: thi công theo phán quyết ở vòng
+tiếp; miễn trừ `bwHandleKbSyncNote:` vẫn chờ GPT; weather/knob + VISUAL PENDING.
 
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 
