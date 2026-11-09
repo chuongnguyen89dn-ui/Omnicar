@@ -34,12 +34,22 @@ extern const char *SCPBridgeWakeAct;   // app -> owner (AutoHide activity, desig
 // bit 9 = kbKnown, bit 8 = kbActive, all other payload fields 0.
 // kbKnown=0 means UNKNOWN — the owner holds no authenticated
 // snapshot for that assignment — and must never be read as
-// "keyboard inactive". The owner's only kb source is ABHost's
-// hosted-keyboard session, synced host->car on the
-// appbridge.kbsync distributed channel (SCPShared). Emitted on kb
-// session open/close, on app query, and in the 1.0 s renewal
-// rotation for every hosted pane. State packets (type 1) and the
-// V1-V10 harness vectors are unchanged, bit for bit.
+// "keyboard inactive". Emitted on kb session open/close, on app
+// query, and in the 1.0 s renewal rotation for every hosted pane.
+// State packets (type 1) and the V1-V10 harness vectors are
+// unchanged, bit for bit.
+//
+// [ytz5] Kb SOURCE replaced (package YTZ5, strand B5): the truth is
+// no longer ABHost's drawn-panel session (appbridge.kbsync is gone
+// with the panel — Nguyen's 2026-11-09 ruling). The hosted app's
+// own input session reports on the NSDistributed channel
+// "com.anlai.omnicar/bridgewake.v1.kbstate"
+// {hash, gen, session, seq, state, t}; the owner validates every
+// report through the pure-C BWInputStore (SplitScreenC/
+// BWInputStore.h) against the slot's live (hash, gen) assignment
+// identity before it may move the record, and type-6 packets are
+// packed from the store's state at emission time with source
+// string "app-input-session".
 
 @interface SCPCarSplit (BridgeWake) <SCPPinchArbiter>
 
@@ -77,6 +87,27 @@ extern const char *SCPBridgeWakeAct;   // app -> owner (AutoHide activity, desig
 // dashboardInvalidated): every known slot's generation advances and its
 // state goes INACTIVE with a single emission per pane.
 - (void)bwSessionTeardown;
+
+// [ytz5] Explicit assignment lifecycle event (package YTZ5, strand
+// B5): SCPCarSplit calls this at every point that assigns or clears
+// a pane's bundle (hostApp:/adopt: installs, pane teardown clears,
+// the closeGoingHome: loop). EVERY such event advances the slot's
+// generation — including a re-assignment of the SAME bundle to the
+// SAME slot — and re-registers the BWInputStore identity for the
+// slot (BWInputSlotAssign for a live bundle, BWInputSlotClear for
+// nil), so the kb record of the previous assignment can never leak
+// into the next one. bwRecomputeForPane: keeps its own bundle-change
+// detection as a backstop for paths without an explicit call.
+- (void)bwNoteAssignmentForPane:(SCPCarPane *)pane;
+
+// [ytz5] AutoHide's kb input (package YTZ5, strand B5): the
+// BWInputAggregate over the slots of the currently HOSTED panes
+// (hosted = [self hostedPanes], the pane table's own mechanism).
+// Returns 2 when any hosted assignment is freshly ACTIVE, 1 when
+// none is ACTIVE but at least one is UNKNOWN, 0 when every hosted
+// assignment is freshly INACTIVE (or none is hosted). AutoHide's
+// fade gate reads this — and only this — for its kb block.
+- (NSInteger)bwKbAggregateForHostedPanes;
 
 // Re-read bridgewake.wakeMode / bridgewake.pinchMode /
 // bridgewake.pinchAllowlist from prefs (design §4) and re-emit the state

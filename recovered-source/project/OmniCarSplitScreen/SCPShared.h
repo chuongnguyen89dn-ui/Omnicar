@@ -76,7 +76,7 @@ UIImage * _Nullable SCPAppIconForBundle(NSString *bundleID);        // 0xdec8
 // that exist nowhere) and three signatures were wrong; the corrected
 // signatures below are proven from the bodies and call sites (see report).
 NSSet<NSString *> *SCPChosenPhoneApps(void);                // 0x9a60
-BOOL SCPIsInjectedPhoneApp(NSString *bundleID);             // 0x9980
+BOOL SCPIsInjectedPhoneApp(NSString * _Nullable bundleID);  // 0x9980 [ytz5hl integrate: nullability aligned with SCPHomeCommon.h:45 + impl SCPAppIcons.m:108 — duplicate-declaration conflict when both headers share a TU (SCPHomeLauncher.m)]
 BOOL SCPAppIconsBeginInjection(void);                       // 0xc37c (BOOL: the 0x4af0 caller tests w0 at 0x4b40)
 void SCPAddChosenAppsToLibrary(id library);                 // 0xa500
 void SCPInjectDeclarationIfChosen(id appInfo);              // 0x9b34

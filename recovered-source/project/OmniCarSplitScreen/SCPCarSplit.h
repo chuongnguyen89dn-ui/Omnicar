@@ -195,6 +195,14 @@ NS_ASSUME_NONNULL_BEGIN
 // --- close / home (A) ----------------------------------------------------------
 - (void)closeApp:(NSString *)bundleID;
 - (void)closeGoingHome:(BOOL)goHome;
+// [ytz5] Close-source instrument (package YTZ5, strand B5;
+// CHANGE_MAP_YTZ5 M5): every closeGoingHome: call site stamps its
+// source here IMMEDIATELY before the call (the goHome flag alone
+// cannot attribute a close — solo-native-return also passes NO).
+// closeGoingHome: logs it as src=%@ — including on the !active
+// early return — and resets it to nil (logged as "unknown").
+@property (nonatomic, copy, nullable) NSString *closeSource;
+- (void)noteCloseSource:(nullable NSString *)source;
 - (void)homePressedDuringSplit:(BOOL)wasActive; // binary ABI @0x40298: v20@0:8B16 (void, BOOL arg) — the earlier (BOOL)(id) declaration was wrong
 - (void)dismissStuckBaseSoon;
 // [phase2; backported to src in phase 3]] three SCPCarSplit methods present in the binary (objc.json) and

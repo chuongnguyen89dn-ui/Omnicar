@@ -121,8 +121,14 @@ NSArray<NSString *> *SCPCarHomeBundles(void) {
             SCPWalkerWalkView(window, found, 0);
     }
     // [applib] direct probe of the live stock home grid at read time.
+    // BLIND-by-construction (YTZ5 I5): this reader walks
+    // connectedScenes -> windows and never touches the weak home view
+    // controller, so its count is not evidence about the live home grid
+    // (map-m5-icon.md §1.3). The blind=1 token marks every line it emits
+    // so count=0 can no longer be quoted as proof of absence; the real
+    // instrument is SCPLogInjectedIconState in SCPHomeApply.m.
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[applib] build reason=live-grid-read count=%lu omni=%d",
+        @"[applib] build reason=live-grid-read blind=1 count=%lu omni=%d",
         (unsigned long)found.count,
         [found containsObject:SCPAppLibSelfBundle] ? 1 : 0]);
     return [found array];

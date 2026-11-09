@@ -23,11 +23,16 @@
 #import <objc/message.h> // [integration phase 1; backported to src in phase 3] declares objc_msgSend used below
 #import <substrate.h> // FIX-ROUND2: ABInstallSpringBoardHooks (below) calls MSHookMessageEx/MSHookFunction from this TU
 #import <dlfcn.h>     // FIX-ROUND2: dlsym for BKSDisplayServicesSetScreenBlanked in ABInstallSpringBoardHooks
+#import <CoreFoundation/CoreFoundation.h> // [ytz5-k5] CFNotificationCenter (Darwin prefschanged observer, below)
 
 // OMC scaffold helpers (shared, not part of this module).
 extern BOOL OMCLiteActive(void);
 extern NSInteger OMCCarWireless(void);
 extern id OMCPref(NSString *key, id defaultValue);
+// [ytz5-k5] the native-keyboard gate readers (defined in
+// ABHostBMethods.m — the host's ONE reading point of the pref).
+extern BOOL ABNativeKeyboardEnabled(void);
+extern BOOL ABDrawnKeyboardEnabled(void);
 
 // ===========================================================================
 // C helper sub_E6B8 — post ABChanOrientation to one app.
@@ -50,6 +55,16 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
         @"orientation": @(orientation),
         @"device": @(MAX(orientation, 0)),
         @"fps": @((int)fps),
+        // [ytz5-k5] RELAY POINT (the frame-info payload this host
+        // posts to the app process): the native-keyboard gate,
+        // carried to the app because the app must never read the
+        // pref itself. 1 = drawn panel enabled (pref = 0),
+        // 0 = native (pref absent or = 1). Stamped on EVERY post —
+        // launch, layout re-posts, release — so the app's cache
+        // (ABOrientationBlock, ABInApp.m) always converges to the
+        // host's current reading, including after a mid-session
+        // flip re-post from the prefschanged handler below.
+        @"drawnKeyboard": @(ABDrawnKeyboardEnabled() ? 1 : 0),
     };
     [[NSDistributedNotificationCenter defaultCenter]
         postNotificationName:ABChanOrientation object:bundleID userInfo:info];
@@ -98,6 +113,19 @@ static void ABKbSyncPost(NSString *bundleID, BOOL active, uint32_t session) {
 
 void ABKbSyncNoteEvent(NSString *bundleID, BOOL active) {
     if (!bundleID.length) return;
+    // [ytz5-k5] native gate, funnel backstop: while native, a panel
+    // OPEN claim must never leave this host — no panel event may
+    // carry input-session truth in native mode (contract item 4);
+    // the app's own kbstate report (bridgewake.v1.kbstate) is the
+    // truth source then. NO events still pass: they are teardown /
+    // invalidation (disconnect, app close, the flip-to-native
+    // invalidation in ABNativeKbHandlePrefsChanged below), never a
+    // claim that a session is active.
+    if (active && ABNativeKeyboardEnabled()) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[ytz5-k5] kb-sync ACTIVE bi chan o cong native (%@)", bundleID]);
+        return;
+    }
     uint32_t session = 0;
     if (active) {
         abKbSessionCounter++;
@@ -119,9 +147,66 @@ void ABKbSyncNoteEvent(NSString *bundleID, BOOL active) {
 // covered by an event or a snapshot stays UNKNOWN there by design.
 static void ABKbSyncSnapshotForApp(NSString *bundleID) {
     if (!bundleID.length) return;
+    // [ytz5-k5] native gate: a snapshot is a panel-derived kb claim
+    // in either direction; while native it is not posted at all —
+    // the assignment's kb record stays to be governed by the app's
+    // kbstate report, not by the dead panel's bookkeeping.
+    if (ABNativeKeyboardEnabled()) return;
     BOOL active = abKbLiveBundle != nil &&
                   [abKbLiveBundle isEqualToString:bundleID];
     ABKbSyncPost(bundleID, active, active ? abKbLiveSession : 0);
+}
+
+// ===========================================================================
+// [ytz5-k5] Gate flip handling (host side). The observer registration
+// lives in ABSpringBoardReady below, on the YZPrefsChangedCallback
+// pattern of ABYTZoom.m (Darwin prefschanged -> hop to main queue ->
+// re-read the pref there). Two duties on a flip:
+//   * to NATIVE while a drawn-panel session is live: close the
+//     panel through the host's EXISTING hide path — the disconnect
+//     shape of ABCarPlayChanged below (capture the live bundle,
+//     force-hide, funnel NO). That one NO is snapshot INVALIDATION
+//     at the transition instant (CHANGE_MAP M2 (d)): without it the
+//     owner would keep re-emitting the panel's stale ACTIVE. It is
+//     not an ongoing truth source — from this moment the dispatch
+//     below shows nothing and funnels nothing for the panel, and
+//     the apps' kbstate reports govern. The panel SOURCE is
+//     disabled by the gate checks in ABKeyboardDispatch /
+//     ABKbSyncNoteEvent / ABKbSyncSnapshotForApp themselves, which
+//     re-read the pref on every event, so no latch is needed here.
+//   * BOTH directions: relay the fresh gate value to every hosted
+//     app by re-posting its frame info (ABPostOrientationToApp
+//     stamps drawnKeyboard). A flip to DRAWN never shows a panel
+//     here — the panel may only return on an app's next keyboard
+//     publish, which the app re-arms from its next responder event.
+// ===========================================================================
+static void ABNativeKbHandlePrefsChanged(void) {
+    BOOL native = ABNativeKeyboardEnabled();
+    if (native) {
+        NSString *kbBundle = abKbLiveBundle;
+        if (kbBundle) {
+            [[ABKeyboard shared] hideForApp:nil];
+            ABKbSyncNoteEvent(kbBundle, NO);
+        }
+    }
+    for (ABPane *pane in [[ABHost shared].panes copy]) {
+        // Only apps under a forced orientation consume the payload's
+        // keyboard machinery at all (ABOrientationBlock's gates key
+        // off ABForcedOrientation >= 1); a pane without one is left
+        // alone rather than being handed a release-shaped post.
+        if (pane.orientation >= 1)
+            ABPostOrientationToApp(pane.bundleID, pane.orientation);
+    }
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[ytz5-k5] cong ban phim doi: %@ (prefschanged)",
+        native ? @"native" : @"drawn"]);
+}
+
+static void ABNativeKbPrefsChangedCallback(CFNotificationCenterRef center,
+                                           void *observer, CFStringRef name,
+                                           const void *object,
+                                           CFDictionaryRef userInfo) {
+    dispatch_async(dispatch_get_main_queue(), ^{ ABNativeKbHandlePrefsChanged(); });
 }
 
 // ===========================================================================
@@ -187,6 +272,14 @@ void ABSpringBoardReady(id self, SEL _cmd, id application) {
     notify_register_dispatch(ABNotifyKeyboard, &keyboardToken,
                              dispatch_get_main_queue(),
                              ^(int token) { ABKeyboardDispatch(token); });
+    // [ytz5-k5] native-keyboard gate: watch the shared prefschanged
+    // signal (ABYTZoom registration pattern) so a mid-session flip
+    // closes a live panel and re-relays drawnKeyboard to the apps.
+    CFNotificationCenterAddObserver(
+        CFNotificationCenterGetDarwinNotifyCenter(), NULL,
+        ABNativeKbPrefsChangedCallback,
+        CFSTR("com.anlai.omnicar/prefschanged"), NULL,
+        CFNotificationSuspensionBehaviorDeliverImmediately);
     [[NSNotificationCenter defaultCenter]
         addObserverForName:@"CarPlayIsConnectedDidChange" object:nil queue:queue
                 usingBlock:^(NSNotification *n) { ABCarPlayChanged(n); }];
@@ -219,13 +312,23 @@ void ABKeyboardDispatch(int token) {
         if ((state & 1) == 0) {
             [[ABKeyboard shared] hideForApp:bundleID];
             // [ytz4-hb] the session just closed: sync it car-side.
-            ABKbSyncNoteEvent(bundleID, NO);
-        } else {
+            // [ytz5-k5] drawn mode only: while native this hide still
+            // runs (it cleans up a stale publish), but NO funnel
+            // event is emitted — a panel event must not carry
+            // input-session truth in native mode (contract item 4).
+            if (ABDrawnKeyboardEnabled()) ABKbSyncNoteEvent(bundleID, NO);
+        } else if (ABDrawnKeyboardEnabled()) {
             [[ABKeyboard shared] showForApp:bundleID
                                keyboardType:(UIKeyboardType)((state >> 1) & 0x7F)
                                  returnType:(UIReturnKeyType)((state >> 8) & 0xFF)];
             // [ytz4-hb] the session just opened: sync it car-side.
             ABKbSyncNoteEvent(bundleID, YES);
+        } else {
+            // [ytz5-k5] native gate: a show request (a stale publish
+            // from an app that has not yet consumed drawnKeyboard=0)
+            // never shows the panel and never reaches the funnel.
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[ytz5-k5] dispatch show bi chan o cong native (%@)", bundleID]);
         }
     } @catch (NSException *e) {
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"ban phim loi %@", e]);

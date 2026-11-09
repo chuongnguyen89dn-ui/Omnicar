@@ -13,7 +13,6 @@
 Theo Nguyen: GPT trực tiếp triển khai icon của chính OmniCar trên lưới CarPlay Home trong cây recovered-source/, ở nhánh code riêng dự kiến feature/omnicar-home-launcher. Muse tiếp tục YTZ5 và tích hợp/build/ký một DEB cuối. Phân vai này bổ sung/thay thế vai trò chỉ-cố-vấn của GPT ở mục 1 đối với riêng phần Home launcher; không thay đổi quyền sở hữu phần Muse.
 
 - Hồ sơ chuyên đề GPT: [gpt-project-history/README.md](gpt-project-history/README.md).
-- Hướng dẫn đầy đủ GPT: [gpt-project-history/HUONG_DAN_GPT.txt](gpt-project-history/HUONG_DAN_GPT.txt).
 - Mục này chỉ lưu phân công và điểm tiếp nối; chưa tạo nhánh code, chưa sửa chức năng hoặc build. Đọc hồ sơ chuyên đề bản mới nhất để biết tiến độ; không suy trạng thái mã nguồn từ phân công.
 
 
@@ -752,8 +751,13 @@ CHỜ PHÁN), không chôn verdict trong câu văn.
   đợt push này. **Candidate local:** `com.anlai.omnicar_1.0.3-ytz5_iphoneos-arm64.deb`
   1.036.636 B, SHA-256 `2d1cf435…`. **Harness 24/24 PASS; kiểm tĩnh PASS mọi cổng trừ
   parity** (mất đúng 1 method `bwHandleKbSyncNote:` — consumer kbsync cũ bị thay có chủ
-  đích theo hợp đồng W2, coordinator đã miễn trừ tại §29.7, chờ GPT phán cuối). **CI FAT
-  dispatch ngay sau push — run id + SHA bản FAT bổ sung §29.7 cùng khối công việc.**
+  đích theo hợp đồng W2, coordinator đã miễn trừ tại §29.7, chờ GPT phán cuối). Commit
+  nguồn YTZ5: `e6b50a4`. **CI + DEB tổng hợp HOÃN theo phân công tích hợp GPT (19:15):**
+  DEB chỉ build/ký sau khi GPT bàn giao commit icon Home (nhánh
+  feature/omnicar-home-launcher); run CI đã dispatch trước lệnh (42615117251) completed
+  success nhưng không lấy làm bản bàn giao, không giao deb xe — chi tiết khối TÍCH HỢP
+  tại §29.7, gồm danh sách file đầy đủ + các file Home/launch dùng chung đã đánh dấu
+  riêng cho phía GPT.
 - **Đã đóng trên xe:** thanh "..." hosted (fixround5); **YT-Zoom** (phiên ytz2 + đối chứng OFF
   hợp lệ ở phiên ytz3; ytz4 ack 51/51 giữ PASS); **wake hosted** đường activity/reveal (phiên
   ytz2); **wake native** qua feed CarPlayApp (phiên ytz3; ytz4 hồi quy PASS); **FS controller +
@@ -770,7 +774,8 @@ CHỜ PHÁN), không chôn verdict trong câu văn.
   không chặn gói UI, không xoá tiêu chí; consumer `appbridge.keyboard` chết — giữ nguyên;
   biên reset UNKNOWN cùng-bundle cùng-slot — đóng bằng cơ chế gen của W2.
 - **Chờ theo thứ tự:** (1) ~~thi công ytz5 + harness + kiểm tĩnh~~ XONG (xem trên);
-  (2) CI FAT → **MỘT deb gộp duy nhất** kèm diff/SHA/commit; (3) MỘT phiên xe nghiệm
+  (2) GPT bàn giao commit icon Home (nhánh feature/omnicar-home-launcher) → mới build/ký
+  **MỘT deb gộp duy nhất** kèm diff/SHA/commit; (3) MỘT phiên xe nghiệm
   thu 6 bước theo work order (vòng đời AutoHide → picker → phím hosted hiện/gõ/đóng + AutoHide
   giữ khi nhập → đường đánh thức sau đóng phím → A/B icon với instrument → hồi quy nhanh;
   nếu tiện: splash + núm cho hai mục PENDING); (4) Gate 3 vẫn **ĐÓNG** — Wake ENFORCE chưa
