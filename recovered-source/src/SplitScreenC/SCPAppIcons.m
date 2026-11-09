@@ -19,6 +19,7 @@
 //    re-syncs the live library.
 
 #import "SCPHomeCommon.h"
+#import "SCPHomeLauncher.h" // [gpt-home] exclude own app from phone host
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -94,7 +95,12 @@ NSSet<NSString *> *SCPChosenPhoneApps(void) {
     if (!OMCFeatureEnabled(@"appBridge")) return [NSSet set];
     OMCPrefsSync();
     id v = OMCPref(@"appBridgeApps", nil);
-    if ([v isKindOfClass:[NSArray class]]) return [NSSet setWithArray:v];
+    if ([v isKindOfClass:[NSArray class]]) {
+        NSMutableSet *ids = [NSMutableSet setWithArray:v];
+        // Own OmniCar is a CarPlay panel launcher, never AppBridge-hosted.
+        [ids removeObject:SCPHomeLauncherBundleIdentifier()];
+        return ids;
+    }
     return [NSSet set];
 }
 

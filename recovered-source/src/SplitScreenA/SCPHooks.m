@@ -19,6 +19,7 @@
 #import "SCPFullscreenController.h" // [fs1] controller install (__init_1) + fsDidLayout reconcile at the root-layout seam (design-fullscreen-fs1 §4.1/§4.8)
 #import "SCPCarSplit+AutoHide.h" // [autohide] ahInstall beside bwInstallOwner (design-autohide §5.1)
 #import "SCPTouchProbe.h" // [fix-w] WO W4 passive sendEvent probe install (measure-only)
+#import "SCPHomeLauncher.h" // [gpt-home] OmniCar self native-Home icon
 #import <objc/message.h>
 #import <objc/runtime.h>      // class_copyIvarList / object_getIvar (final closure)
 #import <notify.h>
@@ -91,6 +92,7 @@ static id Hook_newApplicationLibrary(id self, SEL _cmd) {
         if (SCPAppIconsBeginInjection())
             SCPAddChosenAppsToLibrary(library);
     }
+    SCPHomeLauncherEnsureInLibrary(library); // [gpt-home] independent of appBridgeApps
     // (The binary's @catch pad calls SCPLogException("_newApplicationLibrary",
     // e) at 0x5520; there is no unconditional "kick" call — A's earlier
     // SCPHomeKick placeholder was a misreading, removed in the seam fix.)
@@ -108,6 +110,7 @@ static id Hook_newApplicationLibrary(id self, SEL _cmd) {
 static void Hook_loadFromProxy(id self, SEL _cmd, id proxy) {
     ((void (*)(id, SEL, id))orig_DBApplicationInfo_loadFromProxy)(self, _cmd, proxy);
     SCPInjectDeclarationIfChosen(self);
+    SCPHomeLauncherInjectInfo(self); // [gpt-home] own app only
     // [homelib] per-info load event (log-only). The bundle is read with
     // the same guarded pattern the launchInfo hooks in this file use;
     // the inject/skip DECISION for this bundle is journaled inside
@@ -134,10 +137,12 @@ static id Hook_HomeVC_initWithEnvironment(id self, SEL _cmd, id environment) {
 static void Hook_HomeVC_viewDidLayoutSubviews(id self, SEL _cmd) {
     ((void (*)(id, SEL))orig_HomeVC_viewDidLayoutSubviews)(self, _cmd);
     SCPHomeApply(self);   // 0x4a6d8 — the binary's second call (0x4cd4)
+    SCPHomeLauncherAuditModel(@"home-layout"); // [gpt-home] read-only
 }
 static void Hook_HomeVC_viewDidAppear(id self, SEL _cmd, BOOL animated) {
     ((void (*)(id, SEL, BOOL))orig_HomeVC_viewDidAppear)(self, _cmd, animated);
     SCPHomeSetVisible(YES);   // one BOOL arg (0x4d3c: mov w0, #1)
+    SCPHomeLauncherReconcile(@"home-appear"); // [gpt-home] reconnect/reentry
     // @catch pad in the binary calls SCPLogException("SCPHomeSetVisible", e).
 }
 static void Hook_HomeVC_viewDidDisappear(id self, SEL _cmd, BOOL animated) {
@@ -158,6 +163,9 @@ static id Hook_launchInfoForApplication(id self, SEL _cmd, id app) {
         bundle = ((id (*)(id, SEL))objc_msgSend)(app, bundleSel);
     else
         SCPMissingSelector(app, NSStringFromSelector(bundleSel));
+    // [gpt-home] No side-effect in the no-settings factory: it may
+    // be queried before tap. Never manufacture a phone launch-info.
+    if (SCPHomeLauncherIsBundle(bundle)) return nil;
     if (SCPIsInjectedPhoneApp(bundle)) {
         return nil;   // 0x4e90: mov x20, #0
     }
@@ -170,6 +178,8 @@ static id Hook_launchInfoWithSettings(id self, SEL _cmd, id app, id settings) {
         bundle = ((id (*)(id, SEL))objc_msgSend)(app, bundleSel);
     else
         SCPMissingSelector(app, NSStringFromSelector(bundleSel));
+    // [gpt-home] Settings-aware factory: stock Home tap route.
+    if (SCPHomeLauncherConsumeLaunch(bundle, @"launch-info-settings")) return nil;
     if (SCPIsInjectedPhoneApp(bundle)) {
         // 0x4fd8-0x4ff8: [[SCPCarSplit shared] launchPhoneAppIfNeeded:bundle]
         // (the argument is the bundle-id string in x21), then return nil.
@@ -245,6 +255,7 @@ static void Hook_handleHomeEvent(id self, SEL _cmd, id event) {
         [split homePressedDuringSplit:wasActive];
     } @catch (NSException *ex) { SCPExceptionLog("_handleHomeEvent", ex); }
     ((void (*)(id, SEL, id))orig_DBDashboard_handleHomeEvent)(self, _cmd, event);
+    SCPHomeLauncherAuditModel(@"after-home-event"); // [gpt-home] no event injection
 }
 
 // sub_611c VERIFIED: dashboard invalidate == car display/session gone.
@@ -269,6 +280,8 @@ static void Hook_launchAppWithInfo(id self, SEL _cmd, id info, id url) {
             bundle = ((id (*)(id, SEL))objc_msgSend)(info, bundleSel);
         else
             SCPMissingSelector(info, NSStringFromSelector(bundleSel));
+        // [gpt-home] Own icon must not escape into iPhone/Settings.
+        if (SCPHomeLauncherConsumeLaunch(bundle, @"dashboard-launch")) return;
         handled = [[SCPCarSplit shared] launchPhoneAppIfNeeded:bundle];
     }
     @catch (NSException *ex) { SCPExceptionLog("_launchAppWithInfo", ex); }
@@ -647,6 +660,7 @@ static void SCPHandlePrefsChanged(void) {
     SCPRefreshAppIconsSoon();
     SCPRefreshHiddenAppsSoon();
     SCPHomeRefresh();
+    SCPHomeLauncherReconcile(@"prefs-changed"); // [gpt-home] independent refresh
     // (Binary 0x54bc: exactly these three calls; its @catch pad calls
     // SCPLogException("SCPHomeRefresh", e). No fourth "kick" call exists.)
 }
