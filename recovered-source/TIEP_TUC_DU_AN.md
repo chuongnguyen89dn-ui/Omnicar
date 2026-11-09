@@ -125,6 +125,20 @@ Từ log + ảnh phiên fixround3, GPT ra **Consolidated Repair Order (A–I)**,
   mất 0/8, harness giao thức 38/38, núm đúng 1 eor ở cả hai slice). **Pinch BLOCKED tại cổng A1**
   (dylib fullscreen QA20 không có entry điều khiển hợp lệ — PATCH_NOTES §22.3). **Đang chờ MỘT phiên
   xe gộp:** Gate 2 dry-run + kiểm núm + nghiệm thu Weather của fixround7.
+- **fs1** (`5427920`; FAT 1.200.648 B, SHA `41bb5b8b…`, CI 42578683063): vòng TÍNH NĂNG trên nền
+  wake1 — GPT **mở lại A1 theo phương án 2** cùng ngày: không chờ dylib mới của GPT nữa mà **tự dựng
+  controller fullscreen** trong cây rebuilt (SCPFullscreenController là chủ duy nhất của snapshot +
+  trạng thái expanded; adapter thành lớp chuyển tiếp thuần; đúng 1 dòng tham vấn tại return của
+  `appAreaInParent:`; chrome ẩn bằng hàm nội bộ — `OMCChromeSetHidden` thuộc dylib QA20, cấm tham
+  chiếu; dylib QA20 chỉ ở archive, không vào gói). Controller vòng này nghiệm thu qua **công tắc test
+  `fullscreenTestExpand`** trong Prefs, pinch giữ DRY_RUN. Cộng **AutoHide** (lệnh gộp của Nguyen:
+  ẩn hoàn toàn controls sau 4,0 s idle theo cơ chế mờ opacity của QA20 — chỉ `layer.opacity`, hit
+  target còn sống — cho handle/divider/knob/logo và các gương phía host qua key `fade`/`kfade`; gói
+  `act` mới trên bridgewake nuôi feed từ app hosted; HIDDEN của wake từ vòng này = barHidden ∧
+  faded). Gate 1 PASS trên candidate (parity mất 0 so với cả r7 và wake1, 4 thân ABHost cấm sửa khớp
+  hash, khoá pinch ENFORCE ở mức cấu trúc) và kiểm hai lát trên FAT đạt (kênh bridgewake 5/5, núm
+  1 eor × 2 lát, parity vs FAT wake1 mất 0 ở cả 4 lát). **Đang chờ MỘT phiên xe gộp:** staging
+  controller FS + 6 điểm đo AutoHide + Gate 2 wake + kiểm núm + nghiệm thu Weather của fixround7.
 
 ## 5. Các kết tội lớn — nguyên nhân và cách đóng
 
@@ -267,7 +281,7 @@ phiên YouTube — hai việc không gộp nguyên nhân.
 - **Để dành chưa diễn tập:** bài kiểm hết hạn (epoch 1809104400), cứu crash có chủ đích, kiểm tải.
 
 
-## 7. Đang giữ và đang mở (toàn bộ, tính đến sau wake1)
+## 7. Đang giữ và đang mở (toàn bộ, tính đến sau fs1)
 
 **Đang giữ theo thứ tự đã chốt (không tự động vào bản):**
 - Núm vách ngăn: ĐÃ SỬA ở wake1 (mục 5.4; `@(!scaled)` → `@(scaled)`, cổng object + FAT hai slice
@@ -278,14 +292,29 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   chưa ghép được đúng binary; không sửa dựa trên suy đoán (GPT đồng thuận).
 
 **Đang mở:**
-- **Pinch Fullscreen: BLOCKED tại cổng A1** (vòng wake1) — dylib fullscreen QA20 không có entry điều
-  khiển hợp lệ từ ngoài (OMCToggleHost static, đúng một điểm gọi nội bộ; kênh chrome một chiều;
-  không đường đọc expanded). Trong bản wake1 chỉ có recognizer + probe DRY_RUN + adapter rỗng khóa
-  ENFORCE. Mở lại khi GPT phát hành dylib mới có entry + đường đọc trạng thái đã kiểm chứng (MD5
-  mới, kiểm lại A1 từ đầu). Báo cáo: `reports/a1-fullscreen-entry.md`, PATCH_NOTES §22.3.
-- **Wake Gate 2–6: chờ MỘT phiên xe gộp** (kịch bản trong ACCEPTANCE_WAKE1): dry-run đếm
-  wouldSwallow/wouldPinch + phân loại phone, phân bố ba kết cục ack, kiểm núm, và nghiệm thu
-  Weather của fixround7 gộp cùng phiên. ENFORCE của wake chỉ được bàn sau khi Gate 2 đạt.
+- **Pinch Fullscreen: phán quyết BLOCKED tại cổng A1 (vòng wake1) ĐÃ BỊ THAY THẾ (superseded)**
+  bởi quyết định của Nguyen + GPT mở lại A1 theo phương án 2 (2026-11-09): không chờ dylib mới của
+  GPT nữa — fullscreen được **tự dựng** thành SCPFullscreenController trong cây rebuilt (vòng fs1,
+  PATCH_NOTES §23). Kết luận A1 về dylib QA20 giữ nguyên giá trị (vẫn không có entry hợp lệ; dylib
+  chỉ ở archive, không vào gói nào). Pinch không còn BLOCKED: recognizer + adapter chuyển tiếp đã
+  nối vào controller thật, nhưng **ENFORCE vẫn khóa** cho tới khi đủ 3 điều kiện nghiệm thu trên xe
+  (controller đạt staging qua công tắc test + ≥ 3 pinch-in khôi phục từ EXPANDED do công tắc tạo +
+  1 lần ngắt CarPlay giữa EXPANDED sạch — ACCEPTANCE_FS1). Báo cáo nền: `reports/a1-fullscreen-entry.md`,
+  PATCH_NOTES §22.3 (lịch sử) và §23 (cách đóng mới).
+- **FS controller staging + AutoHide: chờ MỘT phiên xe gộp** (kịch bản trong ACCEPTANCE_FS1):
+  staging Gate 3 rút gọn qua công tắc `fullscreenTestExpand` + 6 điểm đo AutoHide. Cả hai đang ở
+  mức static PASS, chưa có bằng chứng xe.
+- **Wake Gate 2–6: chờ cùng phiên xe gộp đó** (kịch bản trong ACCEPTANCE_WAKE1, nay là Phần C
+  của ACCEPTANCE_FS1): dry-run đếm wouldSwallow/wouldPinch + phân loại phone, phân bố ba kết cục
+  ack, kiểm núm, và nghiệm thu Weather của fixround7 gộp cùng phiên. ENFORCE của wake chỉ được
+  bàn sau khi Gate 2 đạt.
+- **ahForgetView: cho removeHomeButton** (vòng fs1 để ngỏ, PATCH_NOTES §23.7 mục 2): header của
+  TU AutoHide không có method gỡ bản lưu opacity theo view; đánh giá rủi ro thực tế gần như
+  không có (bản lưu chết theo view + registry yếu + nút luôn tạo lại qua refreshHomeButton đã có
+  áp-lại sơn). GPT muốn khóa cứng thì thêm method kiểu `ahForgetView:` ở TU AutoHide.
+- **Comment tồn dư trong SCPPinchController** (cổng 2, ~:590–594): vẫn mô tả adapter rỗng thời
+  A1-BLOCKED trong khi code đã đọc trạng thái thật của controller qua adapter chuyển tiếp — chỉ
+  chữ là cũ, code đúng; tác giả strand pinch/GPT cập nhật khi tiện.
 - Bản sao Weather phía Prefs (`OMCCommon.m`) — module riêng, chưa rà theo cụm W (phát hiện ở vòng 7).
 - SSSplash init: gốc đặt `contentView.userInteractionEnabled = YES` (@0x57d0); cây ghi NO kèm nhãn
   INFERRED — vi mục chờ xử lý.
@@ -303,20 +332,24 @@ phiên YouTube — hai việc không gộp nguyên nhân.
 - Các vụ tử vong oan `CarPlayTemplateUIHost` (shortcut-buttons.ips): chỉ xét lại nếu còn tái diễn.
 - Các nhóm nghiệm thu §9 ngoài các phiên đã chạy; ba bài kiểm để dành ở mục 6.
 
-## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~13:45)
+## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~14:35)
 
-- **Bản đứng:** `com.anlai.omnicar_1.0.3-rebuilt-wake1-fat_iphoneos-arm64.deb` — 1.184.484 byte,
-  SHA-256 `279005f45cb84d340e050461a46b4768fc4226c6edf80709af606004a9c3c2f1`; candidate local
-  994.274 B `12d41e98…`; CI run dispatch **42573985624** success (workflow 410962367).
-  Các bản trước: fixround7 `f2cc8ffe…`, fixround6 `0ce8a4f7…`, fixround5 `03010edc…`,
-  fixround4 `6ab47eab…`, fixround3 `77230019…`, prefsround `44019c7c…`, gatefix `1132c3a8…`,
-  arityfix `d61dc7ba…`. **Baseline rollback:** fixround7 FAT + gói hợp nhất QA20.
-- **Git:** main — ship wake1 source `a907505`; ci-fat-test `21e1b95`.
-  Log xe mới nhất trên repo: commit `9f20d83` (phiên fixround6, 878 dòng). Phiên wake1 chưa diễn ra.
+- **Bản test mới nhất:** `com.anlai.omnicar_1.0.3-rebuilt-fs1-fat_iphoneos-arm64.deb` — 1.200.648 byte,
+  SHA-256 `41bb5b8bf21f87926449070c881ae453daf2d311ab2c91295e531494ce4b8a82`; candidate local
+  1.006.126 B `0a9f76b3…`; CI run dispatch **42578683063** success (workflow 410962367).
+  **Bản dùng hằng ngày của Nguyen vẫn là gói hợp nhất QA20** — wake1/fs1 là bản nghiệm thu, chưa
+  thay QA20 cho tới khi fullscreen được nghiệm thu trên xe.
+  Các bản trước: wake1 `279005f4…`, fixround7 `f2cc8ffe…`, fixround6 `0ce8a4f7…`,
+  fixround5 `03010edc…`, fixround4 `6ab47eab…`, fixround3 `77230019…`, prefsround `44019c7c…`,
+  gatefix `1132c3a8…`, arityfix `d61dc7ba…`. **Baseline rollback:** fixround7 FAT + gói hợp nhất QA20.
+- **Git:** main — ship fs1 source `5427920`; ci-fat-test `c392db4`.
+  Log xe mới nhất trên repo: commit `9f20d83` (phiên fixround6, 878 dòng). Phiên gộp fs1 chưa diễn ra.
 - **Đã đóng trên xe:** thanh "..." hosted (fixround5). **Đã đóng ở tầng giao thức:** hai cổng hướng
   (log fixround6). **Đóng điều tra tĩnh:** fullscreen YouTube (mục 5.3). **Static PASS:** wake
-  Gate 0/1 (PATCH_NOTES §22). **BLOCKED:** pinch tại cổng A1. **Chờ xe:** phiên gộp wake1
-  (Gate 2 dry-run + kiểm núm) và Weather (fixround7).
+  Gate 0/1 (PATCH_NOTES §22); FS1 controller + AutoHide Gate 1 trên candidate và hai lát FAT
+  (PATCH_NOTES §23). **Không còn BLOCKED:** pinch — phán quyết A1 đã bị thay thế bởi controller tự
+  dựng (mục 7), ENFORCE khóa chờ nghiệm thu controller. **Chờ xe:** phiên gộp fs1 (staging FS +
+  AutoHide + Gate 2 dry-run + kiểm núm) và Weather (fixround7).
 
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 

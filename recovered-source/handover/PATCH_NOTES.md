@@ -3494,3 +3494,488 @@ ENFORCE của wake chỉ được bàn sau khi Gate 2 đạt.
 - Giữ nguyên từ các vòng trước: bản sao Weather phía
 Prefs (OMCCommon.m) chưa rà (§21.6); đuôi !logoView
 playIntro phía xe; cellClass giữ nhãn UNVERIFIED.
+
+## 23) VÒNG FS1 — FULLSCREEN CONTROLLER TỰ DỰNG + AUTOHIDE (2026-11-09)
+
+### 23.1 Phạm vi và mức báo cáo của vòng
+- Vòng TÍNH NĂNG trên nền wake1 (baseline khóa: wake1 FAT
+`279005f4…`). Hai tính năng: (1) FS1 — controller fullscreen
+ẩn dock TỰ DỰNG theo quyết định GPT mở lại A1 (phương án 2):
+không nạp dylib QA20, không mô phỏng nút menu, không offset;
+cơ chế host của QA20 (snapshot appArea → đổi nguồn diện tích
+→ relayout → khôi phục) được dựng lại thành code riêng trong
+cây rebuilt, pinch là trigger duy nhất khi ENFORCE được mở.
+Vòng này controller được nghiệm thu qua CÔNG TẮC TEST trong
+Prefs trước — pinch vẫn DRY_RUN. (2) AutoHide — tính năng
+gộp theo lệnh Nguyen 13:53: ẩn HOÀN TOÀN các nút trên màn
+hình sau 4,0 s idle (cơ chế mờ opacity của QA20) + gọi lại
+một chạm không click app (ngữ nghĩa QA180 qua Bridge Wake);
+AutoHide cấp đầu vào `faded` còn thiếu cho định nghĩa
+HIDDEN của wake.
+- Mức báo cáo: FS1 + AutoHide = SOURCE HOÀN THIỆN + STATIC
+PASS (Gate 1 trên candidate + kiểm hai lát trên FAT, mục
+23.5/23.6). Nghiệm thu xe: TẤT CẢ PENDING — FS controller
+staging, AutoHide, Gate 2 wake, Weather r7, núm (23.8).
+Không mục nào được gọi là hoàn thiện. Track YT-ZOOM chạy
+song song (điều tra + thiết kế + công tắc Prefs đã land ở
+mức hồ sơ) nhưng code/khoá của nó KHÔNG nằm trong bản fs1
+— ci-fs1 §4.3 kiểm vắng tuyệt đối trong cả 8 binary và
+mọi plist/strings của gói.
+
+### 23.2 Thiết kế (báo cáo: design-fullscreen-fs1.md,
+design-autohide.md)
+- FS1: chủ duy nhất SCPFullscreenController, máy trạng thái
+SPLIT → EXPANDING → EXPANDED → RESTORING → SPLIT, lỗi →
+rollback về SPLIT; controller sở hữu toàn bộ snapshot +
+cờ expanded; SCPFullscreenAdapter thành lớp chuyển tiếp
+thuần (currentState / requestExpand / requestRestore /
+stateDidChange); completion YES chỉ sau khi thay đổi
+layout được XÁC NHẬN bằng đọc lại (gọi relayout thành
+công không đủ); transaction id chống callback cũ.
+OMCChromeSetHidden ĐÃ CHỨNG MINH thuộc dylib QA20 (định
+nghĩa OmniCarChrome.xm:69, exported @0xa798, receiver
+sống cùng process CarPlayApp) — trong rebuilt KHÔNG có
+chủ sở hữu nên CẤM tham chiếu; thay bằng hàm nội bộ trong
+controller, cùng kỷ luật ghi cờ gốc/khôi phục đúng cờ.
+Điểm can thiệp hình học DUY NHẤT: một dòng tham vấn tại
+return của appAreaInParent:; fullscreen chỉ đổi vùng
+trình bày của cả split — không bao giờ dùng runSoloForPane:/
+toggleZoomForPane: thay thế. Năm luật biên EXPANDED ↔
+AutoHide (R1–R5): EXPANDED thắng phân xử (ép VISIBLE, tắt
+suppression); timer mờ ĐÔNG CỨNG khi EXPANDED; tập ẩn của
+FS không chứa bar/handle/knob/logo/gương ABHost; nút Home
+là phần tử chung duy nhất (FS ép ẩn khi vào, khi ra NHẢ
+về phán quyết hiện hành của trục mờ); hệ quả: trạng thái
+"EXPANDED + controls đã ẩn" không tồn tại ⇒ pinch-in
+luôn mở được.
+- AutoHide: HIDDEN của wake1 thực chất mới chỉ có bar —
+gốc 1.0.3 không có idle-hide cho handle/knob/logo (audit
+Gate 0), hành vi mờ quen thuộc là của QA20/QA19. Cơ chế
+QA20 đọc từ source: một NSTimer 4,0 s một lần; sơn bằng
+layer.opacity = 0,0 (về 0 hẳn, lưu trị gốc từng view,
+khôi phục nguyên trị, KHÔNG animation, không đụng
+hidden/alpha/userInteractionEnabled nên hit target còn
+sống khi mờ); QA20 sơn handle mọi pane + divider + knob
+của divider (loại trừ tường minh ratioKnob), QA19 sơn
+gương ABPane.handle/handleHit phía SpringBoard khi
+nativeVisible. Cờ `handle` trong hostFrameInfo ĐÃ CHỐT
+nghĩa: suy tại chỗ !CGRectIsEmpty(frame) ở đúng 2 điểm
+gọi (SCPCarSplit.m:1890/:1993) = "ô có khung trình chiếu
+hợp lệ" — CẤM mã hoá mờ qua cờ này. Đường mang trạng
+thái mờ: key `fade` mở rộng trong hostFrameInfo (cho
+gương handle) + key `kfade` cạnh `knobs` (cho ABKnobView)
+— tự đồng bộ theo mọi lần đẩy frame; kênh NSDistributed
+riêng bị loại vì rủi ro lệch đồng bộ. homeButton/logo bổ
+sung vào tập sơn theo lệnh Nguyen (QA20 không sơn).
+Chủ trạng thái: controller mới SCPCarSplit+AutoHide, một
+timer 4,0 s toàn phiên, độc lập hoàn toàn với 3 timer
+gốc (bar/tray/ratio). Feed: F1 hitTest của SCPCarSplitView
+(bộ lọc Began nguyên văn QA20), F2 handletap/knobtouch từ
+host, F3 homeButtonTapped, F4 gói `act` mới trên
+bridgewake (kênh thứ 5 bridgewake.v1.act, BWTypeAct = 5,
+flag = kbActive, throttle 0,12 s; vector V9 =
+0xE9DA706800803805, V10 = 0xE9DA706801003C05). ABHost
+không có feed — chỉ áp. HIDDEN đầy đủ:
+barHidden ∧ faded (handle ∧ knob ∧ logo do một ahFaded
+toàn cục bảo chứng); AutoHide tắt ⇒ fadedEffective = YES
+cố định ⇒ HIDDEN quay về ĐÚNG định nghĩa wake1 (luật
+tương thích). EXPANDED và phiên solo hosted TREO toàn bộ
+AutoHide. Pref bridgewake.autoHide, vắng = BẬT. Mức hoàn
+chỉnh nói thẳng trong thiết kế: DRY_RUN = parity QA20
+đầy đủ (chạm đầu vừa vào app vừa gọi controls hiện);
+ENFORCE mới là ngữ nghĩa QA180 và phụ thuộc cổng nghiệm
+thu riêng của wake.
+
+### 23.3 Ba strand cài đặt FS1
+STRAND A — controller + adapter (impl-fs-controller.md):
+- MỚI SCPFullscreenController.h/.m (560 dòng): phase lưu ở
+extension riêng; điểm cốt lõi xử lý đúng — fsAreaForParent:
+khoá trên CỜ NỘI BỘ _expandedFlag lật TRƯỚC relayout (như
+state.expanded của QA20; khoá trên phase đã chốt thì
+rootDidLayout không bao giờ kéo được container lên target),
+còn fsCommittedState khoá trên phase đã chốt (EXPANDING
+báo Split, RESTORING báo Expanded, chưa cài → Unknown).
+Snapshot {parent weak, originalArea, targetArea = window
+bounds trong parent, previousClips} chụp TRƯỚC khi lật;
+_txnCounter đơn điệu, lệnh chồng → từ chối `fs busy
+txn=<n>` + completion NO, không hàng đợi; retry restore
+mang txn, lệch thì bỏ.
+- Expand: cổng vào từ chối êm theo thứ tự inactive →
+host-unavailable → zoomed → solo → picker → popup → tray
+(không tự dọn gì); cặp relayoutAnimated:NO pushScenes:YES
++ rootDidLayout; XÁC NHẬN ĐỌC LẠI container.frame ±0,5 pt
++ superview == parent snapshot + window còn + active còn
+— lệch → log số đo `fs expand unconfirmed` + rollback
+(hạ cờ → clips → relayout → chrome NO → bw NO → SPLIT).
+Restore: hạ cờ TRƯỚC, đối chiếu diện tích gốc HIỆN HÀNH
+(appAreaInParent: tính lại lúc đó thắng snapshot), sai →
+đúng 1 retry sau 0,05 s (txn-guarded); vẫn sai → chốt an
+toàn SPLIT + log `fs restore-unconfirmed` — không EXPANDED
+giả. Restore rút gọn khi teardown/!active: không relayout,
+đúng mẫu setActive: của QA20.
+- Chrome nội bộ: quét cửa sổ theo tên class
+DBStatusBarWindow/CARStatusBarWindow, ghi cờ hidden gốc
+lần đầu vào NSMapTable yếu→mạnh, khôi phục đúng cờ từng
+cửa sổ; không thấy cửa sổ → log `fs chrome FAILED
+no-window`, không latch, không chặn expand. Nút Home ép
+hidden + reconcile ép lại, restore nhả theo R4; không gọi
+removeHomeButton ở đâu cả. Reconcile fsDidLayout: xác
+nhận frame; solo/zoom override → `fs external-override` +
+rút gọn (không gọi ngược hàm solo/zoom); guard
+re-entrancy. bwSetExpandedActive:forBundle:nil phát tại
+đúng các điểm chốt (YES expand-confirmed; NO ở
+restore-confirmed/unconfirmed/rollback/session-end).
+- Adapter viết lại thân (55 dòng): chuyển tiếp thuần
+theo §4.9 của thiết kế, header/protocol giữ nguyên từng
+chữ, pinch không phải sửa; 0 biến trạng thái FS.
+- Nhánh [fs1-test]: fsInstallIfNeeded nghe SCPNotePrefsChanged,
+pref fullscreenTestExpand vắng = NO, chỉ hành động ở cạnh
+đổi; lệnh test qua ĐÚNG cổng/txn/xác nhận như lệnh pinch,
+provenance `test`, log tiền tố [fs1-test].
+- Cổng tự kiểm: clang-18 -Wall -Wextra 0/0 cả hai file;
+grep chuỗi cấm (OMCChromeSetHidden, runSoloForPane:,
+toggleZoomForPane:, dividerDoubleTapped,
+ratioPresetTapped) = 0 trong cả 4 file FS kể cả comment.
+Hai điểm diễn giải của strand A ghi tại 23.7 mục 5–6.
+
+STRAND B — keo vòng đời + một dòng tham vấn (impl-fs-glue.md):
+- SCPCarSplit+Layout.m:513–521: ĐÚNG 1 dòng tại return duy
+nhất của appAreaInParent: —
+`return [[SCPFullscreenController shared] fsAreaForParent:parent nativeArea:area split:self];`
+Diff toàn file so baseline chỉ gồm import + hunk này; thân
+hàm gốc khớp từng câu lệnh còn lại.
+- SCPHooks.m: fsDidLayout tại seam rootDidLayout (sau
+syncArming, bọc @try/@catch như pinch); fsInstallIfNeeded
+ngay sau bwInstallOwner ở cuối __init_1. SCPCarSplit.m:251:
+fsSessionDidEnd tại dashboardInvalidated, đúng điểm
+self.active = NO, sau dòng pinch detach. Makefile +1 TU
+(SCPFullscreenController.m; adapter TU đếm = 1, không trùng).
+- Đối chiếu giao diện: cả 4 tên khớp tuyệt đối với header
+thật của strand A; tên giả định duy nhất ban đầu
+(fsInstall) đã sửa thành fsInstallIfNeeded ngay khi header
+land giữa chừng; grep tên sai = 0 cả hai cây. Cổng: số
+MSHookMessageEx trước = sau = 31 (không hook runtime mới);
+build module SplitScreen từ sạch thành công (dylib
+1.241.080 B), đủ 4 selector FS.
+
+STRAND C — công tắc Prefs (impl-fs-prefs.md):
+- FeatureSplitScreen.plist (bplist00 giữ nguyên): items
+2 → 4, hai specifier cũ nguyên vẹn từng giá trị; items[2]
+PSGroupCell nhóm TEST, items[3] PSSwitchCell key =
+fullscreenTestExpand, default = false (bool), defaults =
+com.anlai.omnicar, PostNotification =
+com.anlai.omnicar/prefschanged — tập keys identical với
+switch mẫu splitScreenEnabled (đúng 6 keys). Strings en +
+vi: 46 → 49 khoá/file, khoá cũ nguyên vẹn; nhóm hiện
+"TEST — Fullscreen (chỉ dùng nghiệm thu)" trên máy vi.
+- Đường ống pref TỰ ĐỘNG theo specifier (kết luận có bằng
+chứng): OMCFeatureListController nạp bằng
+loadSpecifiersFromPlistName:, không danh sách khoá cho
+phép; framework ghi domain + phát Darwin theo
+PostNotification của chính specifier; trang Split Screen
+không tự phát cho splitScreenEnabled mà phía SplitScreen
+vẫn nhận. Phía nhận đã có sẵn SCPNotePrefsChanged
+(SCPShared.m:10 cả hai cây). Không cần một dòng code Prefs.
+
+### 23.4 Bốn strand cài đặt AutoHide
+CARPLAY PHẦN 1 — TU + F1 + header (impl-autohide-car1.md):
+- MỚI SCPCarSplit+AutoHide.h/.m: một timer 4,0 s toàn
+phiên (kAHIdleSeconds), độc lập tuyệt đối với 3 timer gốc
+(0 tham chiếu ghi/huỷ); statics giữ ahFaded toàn cục +
+registry NSHashTable yếu. Sơn đúng kỷ luật QA20: chỉ
+layer.opacity, lưu/khôi phục nguyên trị per-view qua
+associated object, sơn lại không ghi đè bản lưu; grep 0
+phép gán .hidden/.alpha/userInteractionEnabled. Tập sơn:
+handle mọi pane + divider VÀ knob của nó (hai bản lưu
+riêng) + homeButton; loại trừ tường minh ratioKnob,
+pane.bar, launcherHost. Hiện lại dùng chung một thân —
+khôi phục MỌI view trong registry kể cả view đã rời tập
+sơn. Điều kiện không-mờ tại thời điểm bắn cài đủ §4.2:
+EXPANDED (đọc qua bwExpandedActive), solo hosted, kbHold
+(tự hết hạn 10 s), popup/picker/ratio/tray mở,
+resizing/kéo pane → log `fade deferred` + gài lại 4,0 s,
+không bỏ chu kỳ. Pref tắt giữa lúc mờ → khôi phục ngay +
+dừng timer.
+- SCPCarSplitView.m: điểm F1 duy nhất — sau khi có hit
+(không sửa câu lệnh gốc nào), bộ lọc Began nguyên văn
+thiết kế → ahNoteActivity:AHSourceContainer.
+- BridgeWakePack.h bản SplitScreen: BWTypeAct = 5 +
+vector V9/V10; V1–V8 và hàm pack/unpack không đổi một
+ký tự. Harness trên header cả hai cây: 15/15 PASS.
+Biên dịch TU + View: 0 cảnh báo ở cả -Wall và
+-Wall -Wextra.
+
+CARPLAY PHẦN 2 — điểm gọi + nối owner (impl-autohide-car2.md):
+- SCPCarSplit.m: fade trong hostFrameInfo: (:2062,
+superset — dict gốc nguyên công thức, cấm mã hoá qua
+handle được giữ); kfade cạnh knobs trong publishKnobsNow
+(:2651); F2 cuối bridgeHandleTapped: (:2532); F3 đầu
+homeButtonTapped (:3010); ahSessionTeardown cạnh
+bwSessionTeardown trong dashboardInvalidated (:252 — chỉ
+cộng, không đụng dòng pinch/FS1).
+- SCPCarSplit+BridgeWake.m/.h: bwRecomputeForPane: cộng
+fadedEffective = !bwAutoHideEnabled || [self ahFaded]
+(chỉ trong nhánh barHidden; bar ẩn nhưng chưa mờ →
+VISIBLE, không phải HIDDEN — wake rơi vào cửa sổ đó vẫn
+hiện bar + ack ngay; AutoHide tắt ⇒ HIDDEN y hệt wake1);
+bwHandleWakePacket: gọi ahRevealWithReason:AHRevealWake
+tại đúng 1 điểm trên đường chấp nhận, sau setBarVisible:;
+receiver kênh act + bwHandleActPacket: mới (kiểm
+hash/gen/bundle-còn-hosted như wake → chuyển
+ahNoteActWithKbActive:pkt.flag; KHÔNG phát lại gì);
+bwSetExpandedActive: gọi ahSetSuspended: cùng nhịp;
+bwReloadModesAndRepublish nạp bridgewake.autoHide
+(vắng = BẬT) + gọi ahReloadConfig.
+- SCPShared.m: hằng SCPBridgeWakeAct byte-identical phía
+app (grep đối chiếu 4 vị trí). SCPHooks.m: ahInstall ngay
+sau bwInstallOwner (:803). Makefile +1 TU AutoHide.
+Chrome.m cuối layoutBarForPane: + Layout.m cuối
+rebuildDividers: áp-lại sơn qua ahApplyCurrentStateToView:
+(handle; divider + knob riêng). Divider.m: AHSourceDragEnd
+trong endResize (sau chốt resizing = NO), AHSourceHostKnob
+trong remoteKnobTouch:.
+- Ba việc bổ sung đã nối: ahSessionStarted tại
+SCPCarSplit.m:133 trong activateWithCount:, ngay sau
+self.active = YES (:132 — điểm active = YES DUY NHẤT
+toàn module, sau ensureContainer thành công; nhánh
+raise-lại-khi-đã-active cố ý không nối); áp-lại sơn cuối
+refreshHomeButton (:2993); removeHomeButton — KHÔNG có
+helper trong header chính thức nên để ngỏ (23.7 mục 2).
+
+ABHOST — áp fade cho gương (impl-autohide-host.md):
+- ABChannels.m (596 → 683 dòng): mục §6 mới — observer
+riêng trên appbridge.open/.frame đọc key fade, trên
+appbridge.knobs đọc kfade, cộng observer close/closeall
+dọn dẹp; category ABHost (AutoHideApply) +
+AHRegisterHostApply() trong nhánh SpringBoard cạnh
+BWRegisterHostConfirm(). ABHostBMethods.m (1582 → 1753
+dòng): statics của strand (NSMapTable khoá yếu lưu
+opacity, bản ghi requested/applied theo bundle, trạng
+thái knob toàn cục) + helper AHHostPaintView/
+AHHostRestoreView + 3 method mới applyFade:forPane:,
+setKnobsFade:, ahRestorePaneForBundle:.
+bwAppliedSnapshotForBundle: cộng key `faded` đọc trạng
+thái ĐÃ ÁP (không tính lại từ key của owner).
+- Quyết định §5.2(i): chọn method riêng applyFade:forPane:
+(không nới thân setFrame:) — nativeVisible đọc từ chính
+kết quả đã áp pane.handleHit.hidden sau khi packet được
+áp; frame lấy mất handle → khôi phục + ghi fade = NO
+(quy tắc dừng QA19).
+- Lệch bắt buộc (đúng tiền lệ §5 BridgeWake): handler
+frame/open/knobs THẬT nằm ở ABHostGeometry.m (ngoài phạm
+vi file); bản sao trong ABChannels.m là #if 0 chết. Giải
+pháp: observer riêng trên cùng kênh + 1 hop main-queue để
+registrar áp packet trước; riêng close/closeall KHÔNG hop
+(khôi phục trước teardown, best-effort — bảng khoá yếu tự
+dọn, không rò opacity-0).
+- Kỷ luật sơn: layer.opacity chỉ ghi trong 2 helper (lưu
+trị gốc lần đầu → set 0,0f; khôi phục nguyên trị, không
+animation); grep toàn bộ dòng thêm mới: 0 phép gán
+.hidden/.alpha/userInteractionEnabled. Cổng: 4 thân cấm
+sửa khớp SHA-256 tuyệt đối trước/sau ở cả hai cây VÀ khớp
+giá trị đã công bố vòng wake (setFrame 8606f40a…,
+setBarVisible 3044b10d…, setHandleVisible 409cfb14…,
+setKnobs b98a9f26…); diff census vs bản sync wake1:
+BMethods +173/−2 (2 dòng trừ = comment của snapshot được
+nới cho key faded), Channels −1 dòng (if một hàng thành
+block thêm lời gọi đăng ký), còn lại toàn chèn mới. Build
+module sạch exit 0; dylib chứa đủ 3 IMP mới + chuỗi
+kfade/faded + format log [autohide] host.
+
+ABINAPP — phát gói act (impl-autohide-app.md):
+- BridgeWakePack.h bản AppBridge: BWTypeAct = 5 + V9/V10
+nguyên văn thiết kế. ABInApp.m: static BWNameAct cạnh 4
+tên sẵn có; hàm mới BWPostAct() ngay sau BWPostWake —
+token riêng theo idiom notify_register_check, throttle
+0,12 s, seq đơn điệu mod 4096, gen = BWGen, flag =
+(BWKb == BWKbActive) lấy từ trạng thái keyboard guard
+sẵn có, state/mode = 0, không mang nội dung chạm. Điểm
+gọi duy nhất TRONG hook sendEvent sẵn có, tại khối mở dãy
+(Began), TRƯỚC đánh giá cổng nuốt: `if (BWFresh())
+BWPostAct();` — BWFresh() = known + tươi ≤ 2,5 s, không
+thêm tiêu chí mới; dãy bị nuốt vẫn phát act; phát ở mọi
+WAKE_MODE kể cả OFF/DRY_RUN.
+- Kỷ luật: diff ABInApp.m so với bản wake1 đã ship là
+THÊM THUẦN — 0 dòng sửa, 0 dòng xoá; đường nuốt/probe/
+gate nguyên vẹn từng dòng; không thêm hook mới. Cổng:
+harness trên header cuối 23/23 PASS ở cả hai bản (V1–V7
+hai chiều + V8 + V9/V10 khớp hex thiết kế); build module
+sạch, ABInApp.m 0 warning, dylib 538.856 B chứa chuỗi
+bridgewake.v1.act; hook sendEvent đúng 1 điểm cài,
+orig_SendEvent đúng 1 điểm gọi, sendEvent chỉ tồn tại
+trong ABInApp.m.
+
+### 23.5 Tích hợp fs1 (biên bản:
+work/wake-round/integration-fs1.md)
+- Ba điểm nối cuối (chỉ cộng, cả hai cây cmp identical):
+(a) feed AHSourceDragEnd ở cuối endPaneDrag: trong
+SCPCarSplit+Drag.m — phễu kéo pane tự feed, feed
+idempotent nên trùng vô hại (car2 §4 để ngỏ, ĐÃ ĐÓNG);
+(b) treo AutoHide khi solo hosted: ahSetSuspended:YES
+ngay sau gán soloHostedBundle trong hostSolo:,
+ahSetSuspended:NO ngay sau xoá trong endHostedSolo —
+hai phễu set/clear duy nhất trong phiên sống;
+dashboardInvalidated xoá ivar trực tiếp nhưng
+ahSessionTeardown cùng method reset cả cờ treo + timer
+nên không rò trạng thái (car2 §4 để ngỏ, ĐÃ ĐÓNG);
+(c) ABChannelNames.m cộng hằng ABNotifyBWAct
+byte-identical với SCPShared.m + static ABInApp.
+- Chuẩn hoá: hai bản BridgeWakePack.h chỉ lệch comment
+(code-only diff = 0) → lấy bản SplitScreen làm chuẩn,
+4 vị trí md5 identical 17c004e0…; harness 15/15 PASS cả
+hai module (V1–V10); 5 chuỗi kênh byte-equal ở 3 nơi
+định nghĩa; Makefile hai module đủ TU mới.
+- Candidate local: com.anlai.omnicar_1.0.3-fs1_
+iphoneos-arm64.deb — 1.006.126 B, SHA-256
+0a9f76b34bae40d118123c2a8251bd29635e597a8d8c4cac31337901e829a755;
+control identical wake1 trừ Installed-Size; member lzma;
+đóng bằng Theos make package sau make clean; make toàn
+dự án (toolchain kiểm trước, đủ, không khôi phục).
+- Gate 1 trên candidate (bung DEB; baseline r7 FAT lát
+arm64 + wake1): selector parity 8/8 thành phần MẤT 0 so
+với cả r7 và wake1 (AppBridge 705→716→725; SplitScreen
+1093→1317→1385; 6 thành phần còn lại +0 so wake1); danh
+sách file ≡ wake1 (176), đúng 6 dylib chuẩn, 0 dylib
+QA19/QA20/DoubleTap/YouTubeHandle/NativeSolo; switch
+fullscreenTestExpand default false có trong gói. Hồi quy:
+g1 PASS (@0x7fb4 and #0x2 → cmp #0 → csel xzr,ne; sentinel
+cmp #0xff csel eq); g2 PASS (@0x173d8 tst #0x2 → csel eq);
+h C-A PASS (@0xc3c4 cmp w0,w22 → b.ne); h C-B PASS (block
+@0xcd60: fmov d0,#1.0 → setAlpha: → setTransform:); f PASS
+(sub #0x3 → cmp #0x2 → csel lo); publishKnobsNow đúng 1 eor
+@0x15e34 (payload = !IsIdentity). Bốn thân ABHost cấm sửa
+khớp SHA-256 giá trị đã công bố. hostFrameInfo superset
+PASS (key gốc nguyên công thức, cộng đúng `fade`; knobs
+cộng đúng `kfade`). Kỷ luật sơn PASS (AutoHide TU 0 phép
+gán cấm; ABHostBMethods ghi layer.opacity chỉ trong 2
+helper). FS PASS: OMCChromeSetHidden = 0; 0 điểm gọi
+runSoloForPane:/toggleZoomForPane:/dividerDoubleTapped/
+ratioPresetTapped từ code FS/AutoHide/Pinch; tham vấn
+appAreaInParent: đúng 1 điểm; bwSetExpandedActive: chỉ
+controller gọi (5 điểm chốt); adapter chuyển tiếp thuần,
+0 biến trạng thái. Khoá pinch ENFORCE PASS: điểm gọi
+requestExpand/Restore duy nhất trong nhánh
+`mode == Enforce && wouldPinch` (đủ 5 cổng + session
+re-check); mode mặc định DRY_RUN từ pref owner, pref vắng
+→ DRY_RUN; allowlist mặc định rỗng; gói không chứa pref
+đặt sẵn; entry của controller chỉ có 2 caller: adapter
+(pinch) + nhánh [fs1-test]. sendEvent: đúng 1/8 binary
+(AppBridge), 1 điểm cài hook, 1 điểm gọi orig_SendEvent.
+Markers [fs1-test]/[autohide]/[wake1]/[pinch1] + 5 chuỗi
+bridgewake có mặt đúng binary; 3 timer gốc không bị đụng.
+
+### 23.6 Ship fs1 + xác minh hai lát trên FAT
+(biên bản: work/wake-round/ci-fs1.md)
+- Git: main 5427920c16a385b389b57e09a858791bf5f377b3
+(source fs1), ci-fat-test c392db4f89d1a1d32f6606b5f6373b46edc15bc0
+(merge). CI workflow build-fat-macos.yml (410962367),
+run dispatch 42578683063 — SUCCESS (truy vấn foreground
+trực tiếp; headSha c392db4 khớp; job build-fat 3m10s).
+Run push-triggered 42578586477 trên cùng commit không
+dùng, như vòng wake1.
+- FAT: com.anlai.omnicar_1.0.3-rebuilt-fs1-fat_
+iphoneos-arm64.deb — 1.200.648 B, SHA-256
+41bb5b8bf21f87926449070c881ae453daf2d311ab2c91295e531494ce4b8a82
+(kiểm lại trên bản copy ở handover, khớp tuyệt đối);
+member debian-binary + control.tar.gz + data.tar.lzma;
+control Package com.anlai.omnicar, Version 1.0.3.
+SplitScreen 1.174.592 B và AppBridge 584.400 B đều FAT
+arm64 + arm64e.
+- Xác minh trên FAT (đo trên lát thin trích từ chính
+FAT): kênh bridgewake 5/5 (state/query/wake/ack/act) ở
+SplitScreen + AppBridge × cả hai lát; publishKnobsNow
+đúng 1 eor mỗi lát (arm64 @0x12940, arm64e @0x1327c —
+cùng mã lệnh eor w2,w26,#0x1); g1 dạng csel cả hai lát
+(arm64 @0x75b8/0x75dc/0x75e0; arm64e @0x78b4/0x78d8/
+0x78dc); markers đúng phân bổ ([fs1-test]×4, [autohide]×9,
+[wake1]×13, [pinch1]×5 ở SplitScreen hai lát; [autohide]×2
+ở AppBridge); ytlease/youtubeVirtualize vắng trong cả 8
+binary + mọi plist/strings (đúng kỳ vọng — fs1 đứng
+trước YTZ); selector parity so với FAT wake1: MẤT 0 ở cả
+4 lát (SplitScreen 620→664, +44: 17 ah* + bwHandleActPacket:
++ 24 method SCPFullscreenController + adapter -init + 1
+class method; AppBridge 194→197, +3 method fade phía
+host); tập selector hai lát trong cùng binary identical.
+UUID từng lát trong ACCEPTANCE_FS1.
+
+### 23.7 Điểm diễn giải — để lại cho GPT
+(theo integration-fs1 §4)
+1. md5 thân setBarVisible:forPane: (Chrome) mà car2
+công bố (a79bc0d5…) KHÔNG tái lập được bằng bất kỳ công
+thức trích nào tại tích hợp (sig→method kế:
+23e58032…; sig→} cột 0: f9466329…). Nhưng dưới MỘT công
+thức nhất quán, thân hiện tại byte-identical với thân
+trong cây wake1 đã ship (cùng md5 23e58032… ở cả hai) →
+cổng đạt THEO Ý NGHĨA (thân không đổi một byte từ
+wake1); lệch nằm ở công thức trích của car2, không ở
+code. Đề nghị GPT ghi nhận để các vòng sau dùng một
+công thức chung.
+2. ahForgetView: cho removeHomeButton GIỮ NGUYÊN trạng
+để ngỏ của car2 §3: header chính thức của TU AutoHide
+(đúng 10 method) không có method gỡ bản lưu opacity
+theo view; tích hợp không tự chế API. Đánh giá rủi ro
+của car2 giữ nguyên: bản lưu là associated object chết
+theo view + registry NSHashTable yếu + ahRevealBody:
+khôi phục mọi view đã đăng ký + button tạo lại luôn qua
+refreshHomeButton (đã có áp-lại sơn) → khe hở thực tế
+gần như không có; GPT muốn khoá cứng thì TU AutoHide
+cần thêm method kiểu ahForgetView:.
+3. Comment tồn dư trong SCPPinchController (cổng 2,
+~:590–594) vẫn mô tả adapter rỗng thời A1-BLOCKED
+("state is always Unknown…") — code đã đọc trạng thái
+thật của controller qua adapter chuyển tiếp; chỉ chữ là
+cũ. Không sửa tại tích hợp (file thuộc strand pinch);
+GPT/tác giả strand cập nhật khi tiện.
+4. Kiểm hai-lát trên FAT (mục 5 trong danh sách §4 của
+biên bản tích hợp: candidate local arm64-only nên các
+kiểm từng lát phải chạy lại trên FAT của CI như vòng
+wake1) — ĐÃ ĐÓNG bởi ci-fs1 §4: mọi kiểm hai-lát đã
+chạy lại trên chính FAT fs1 và đạt (23.6).
+Ghi chú thêm từ cùng §4: bất đối xứng solo ở
+dashboardInvalidated (mục 4 của biên bản) được xác nhận
+an toàn nhờ ahSessionTeardown reset cả cờ treo + timer
+trong cùng method — không phải thiếu điểm nối; và các
+câu hỏi runtime của Gate 2 (mục 6: hop ABHost,
+targetVerified, phân bố ack, probe pinch) giữ nguyên
+cho phiên xe gộp, tích hợp không tự quyết.
+Hai điểm diễn giải của strand A FS1 (impl-fs-controller):
+5. Quét cửa sổ chrome bằng idiom connectedScenes →
+UIWindowScene.windows sẵn có của module thay cho
+UIApplication.windows mà thiết kế §2 nêu — cùng tập cửa
+sổ của process, tránh API deprecated (cảnh báo duy nhất
+khi biên dịch với -Werror); không khác biệt hành vi.
+6. fsRestoreConfirmed đo appAreaInParent: trên superview
+HIỆN TẠI của container (sự thật tại chỗ) thay vì parent
+trong snapshot — nếu container bị re-parent giữa chừng,
+phép đo theo parent thật; hướng an toàn.
+
+### 23.8 Trạng thái nghiệm thu + điều kiện mở ENFORCE pinch
+- PENDING — chờ MỘT phiên xe gộp (kịch bản trong
+ACCEPTANCE_FS1): (a) FS controller staging theo Gate 3
+rút gọn của thiết kế §8 — bật công tắc fullscreenTestExpand:
+split phình đúng window bounds, cả hai ô phóng theo, tỉ
+lệ giữ nguyên, dock + status bar + nút Home biến mất;
+trong EXPANDED chạm/cuộn/gõ bình thường cả ô native và
+hosted; tắt công tắc → container về đúng frame trước,
+clips/cờ status bar/Home/dock trở lại đúng trạng thái
+trước, log chốt fs expand confirmed / fs restore
+confirmed (không unconfirmed/rollback); 10 chu kỳ không
+lệch tích luỹ; đang EXPANDED đổi app + ngắt CarPlay →
+kết nối lại ở SPLIT sạch. (b) AutoHide theo 6 điểm đo
+§5.5 của thiết kế. (c) Gate 2 wake dry-run (kịch bản từ
+ACCEPTANCE_WAKE1, không đổi). (d) Nghiệm thu Weather
+fixround7 (vẫn PENDING từ §21.9). (e) Kiểm núm trên xe
+(vẫn PENDING từ §22.9).
+- Điều kiện mở PINCH ENFORCE (cả ba phải đủ, theo thiết
+kế §8 + khoá A6): (1) controller đạt nghiệm thu staging
+trên xe; (2) ≥ 3 lần pinch-in khôi phục thành công từ
+EXPANDED do CÔNG TẮC TEST tạo ra ngay trong staging đó;
+(3) 1 lần ngắt CarPlay giữa EXPANDED sạch (về SPLIT,
+dock/status bar/Home bình thường). Thiếu một điều kiện →
+pinch giữ DRY_RUN.
+- Giữ nguyên từ các vòng trước (§22.9): VISUAL_ORIGINAL_COMPARISON
+= PENDING; bản sao Weather phía Prefs (OMCCommon.m) chưa
+rà; đuôi !logoView playIntro phía xe; cellClass giữ nhãn
+UNVERIFIED. QA20 vẫn là bản dùng hằng ngày của Nguyen —
+wake1/fs1 là bản nghiệm thu, chưa thay QA20 cho tới khi
+fullscreen được nghiệm thu trên xe.

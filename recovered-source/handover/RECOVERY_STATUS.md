@@ -1995,3 +1995,111 @@ externalChainSuppressed derived from the owner's
 WAKING transactions, assigned including self.active,
 immediate ack for wakes at VISIBLE, the two distinct
 default-empty pinch allowlist surfaces).
+
+FS1 (self-built fullscreen controller + AutoHide;
+PATCH_NOTES section 23): a NEW-feature round on the
+wake1 baseline. GPT REOPENED gate A1 the same day
+(phuong an 2): the wake1 BLOCKED verdict stands as
+correct for the QA20 dylib, but instead of waiting for a
+new GPT dylib, the fullscreen mechanism is rebuilt as
+original code in this tree from the repo's reference
+source (the QA20 dylib itself stays in the archive only,
+byte-identical, never shipped; no offsets, no simulated
+menu presses, no second fullscreen controller). FS1:
+SCPFullscreenController is the single owner of the
+expanded state and the snapshot (parent, originalArea,
+window-bounds target, previousClipsToBounds), captured
+before the internal flag flips; the state machine runs
+SPLIT -> EXPANDING -> EXPANDED -> RESTORING -> SPLIT
+with monotone transaction ids (overlapping commands
+rejected 'fs busy'), expand/restore are CONFIRMED by
+re-reading container.frame (+/-0.5 pt), superview,
+window and active after relayoutAnimated:NO
+pushScenes:YES + rootDidLayout, with full rollback on
+expand mismatch and one 0.05 s retry then a safe SPLIT
+settle on restore mismatch (never a false EXPANDED);
+teardown takes the shortened no-relayout restore.
+SCPFullscreenAdapter is now a pure forwarding layer
+(the pinch protocol is unchanged); the geometry
+intervention is exactly ONE consultation line at the
+return of appAreaInParent:, and status-bar/Home chrome
+is hidden by an internal function with the QA20
+record/restore discipline — OMCChromeSetHidden is
+proven to be owned by the QA20 dylib (exported
+@0xa798), has NO owner in the rebuilt tree, and is
+never referenced (grep 0 in all FS files). This round
+the controller is accepted through a Prefs test switch
+(fullscreenTestExpand, default false, TEST group in
+FeatureSplitScreen.plist; the pref pipeline is
+specifier-automatic, no Prefs code added); pinch stays
+DRY_RUN. AUTOHIDE (Nguyen's merged feature: QA20's fade
++ QA180's one-touch wake): the original has no idle
+hide for handle/knob/logo at all — AutoHide adds a
+single 4.0 s session timer in SCPCarSplit+AutoHide,
+fully independent of the three original timers,
+painting ONLY layer.opacity (originals saved/restored
+per view, no animation, hit targets stay live) over
+every pane handle, each divider AND its knob, and the
+homeButton/logo; the hosted mirrors follow via a new
+'fade' key in hostFrameInfo and a 'kfade' key beside
+'knobs' (the 'handle' flag keeps its geometry meaning
+!CGRectIsEmpty — encoding fade through it is
+forbidden), applied host-side only inside two paint/
+restore helpers, and the wake ack snapshot gains the
+APPLIED 'faded' fact. A fifth bridgewake channel
+(.act, BWTypeAct = 5, vectors V9/V10) carries hosted-app
+activity (0.12 s throttle, kbActive flag) out of the
+EXISTING sendEvent hook — the ABInApp diff vs shipped
+wake1 is purely additive, the swallow/probe paths are
+untouched line-for-line. The owner's HIDDEN is now
+barHidden AND faded (one global ahFaded), with the
+compatibility law that AutoHide OFF restores the exact
+wake1 definition; EXPANDED and hosted-solo suspend
+AutoHide entirely. Integration closed the three open
+wiring points (endPaneDrag drag-end feed, solo
+suspend/resume, the ABChannelNames act constant),
+normalised BridgeWakePack.h to md5-identical at 4
+locations (harness 15/15 in both modules, V1-V10).
+Local candidate: 1,006,126 B, SHA-256
+0a9f76b34bae40d118123c2a8251bd29635e597a8d8c4cac31337901e829a755.
+Gate 1 on the extracted candidate passes: selector
+parity loses 0 of 8 components vs BOTH fixround7 and
+wake1, regressions g1/g2/h(C-A+C-B)/f pass, exactly one
+eor in publishKnobsNow, the four forbidden ABHost
+bodies match their published SHA-256 values,
+hostFrameInfo is a strict superset, the paint
+discipline holds, pinch ENFORCE is structurally locked
+(expand/restore reachable only inside the
+mode==Enforce && wouldPinch branch, default DRY_RUN,
+empty allowlist), sendEvent exists only in AppBridge,
+no QA19/QA20/fullscreen dylib in the package. FAT
+build: CI run 42578683063 (workflow_dispatch, queried
+directly) SUCCESS; FAT 1,200,648 B, SHA-256
+41bb5b8bf21f87926449070c881ae453daf2d311ab2c91295e531494ce4b8a82;
+two-slice verification on the FAT passes (bridgewake
+strings 5/5 in both modules on both slices, one eor in
+publishKnobsNow on both slices, g1 csel form on both
+slices, markers in the right binaries, ytlease absent
+everywhere, selector parity vs the wake1 FAT loses 0 on
+all four slices: SplitScreen 620->664, AppBridge
+194->197). Git: main 5427920 (fs1 source), ci-fat-test
+c392db4 (merge). DEVICE_TEST for fs1 remains PENDING:
+ONE combined car session covers the FS controller
+staging (Gate 3 shortened, via the test switch), the
+six AutoHide measurement points, the still-pending
+Gate 2 dry-run, the knob device check and the
+fixround7 Weather acceptance. Pinch ENFORCE unlocks
+only when ALL THREE hold: the controller passes car
+staging, >= 3 pinch-in restores succeed from
+switch-made EXPANDED during that staging, and one
+mid-EXPANDED CarPlay disconnect is clean. Interpretation
+points left for GPT are listed in section 23.7 (the
+car2 setBarVisible: md5 formula discrepancy — the body
+is byte-identical to the shipped wake1 tree under one
+consistent formula; ahForgetView: left open with a
+near-zero risk assessment; the stale A1-BLOCKED comment
+in SCPPinchController; the two-slice rerun item, CLOSED
+by ci-fs1; plus strand A's connectedScenes window scan
+and current-superview restore measurement). QA20
+remains Nguyen's daily build — wake1/fs1 are acceptance
+builds until fullscreen is accepted on the car.
