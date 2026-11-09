@@ -13,7 +13,6 @@
 Theo Nguyen: GPT trực tiếp triển khai icon của chính OmniCar trên lưới CarPlay Home trong cây recovered-source/, ở nhánh code riêng dự kiến feature/omnicar-home-launcher. Muse tiếp tục YTZ5 và tích hợp/build/ký một DEB cuối. Phân vai này bổ sung/thay thế vai trò chỉ-cố-vấn của GPT ở mục 1 đối với riêng phần Home launcher; không thay đổi quyền sở hữu phần Muse.
 
 - Hồ sơ chuyên đề GPT: [gpt-project-history/README.md](gpt-project-history/README.md).
-- Hướng dẫn đầy đủ GPT: [gpt-project-history/HUONG_DAN_GPT.txt](gpt-project-history/HUONG_DAN_GPT.txt).
 - Mục này chỉ lưu phân công và điểm tiếp nối; chưa tạo nhánh code, chưa sửa chức năng hoặc build. Đọc hồ sơ chuyên đề bản mới nhất để biết tiến độ; không suy trạng thái mã nguồn từ phân công.
 
 
