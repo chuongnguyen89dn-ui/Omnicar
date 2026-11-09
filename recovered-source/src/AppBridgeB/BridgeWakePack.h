@@ -31,20 +31,25 @@
 //                              1..4095, wraps modulo)
 //   bit  10     flag        1  state packet -> pinchAllowed (arbitrated);
 //                              ack packet -> role (0 = owner->app,
-//                              1 = ABHost->owner); query/wake -> 0
+//                              1 = ABHost->owner); act packet -> kbActive
+//                              (design-autohide §4.2); query/wake -> 0
 //   bits  9-8   pinchMode   2  0=OFF, 1=DRY_RUN, 2=ENFORCE, 3=reserved
 //                              (receivers treat 3 as OFF)
 //   bits  7-6   wakeMode    2  same encoding as pinchMode
 //   bits  5-3   state       3  0=INACTIVE, 1=UNKNOWN, 2=VISIBLE, 3=HIDDEN,
 //                              4=WAKING, 5-7 reserved (receivers treat
 //                              as UNKNOWN)
-//   bits  2-0   type        3  1=state, 2=query, 3=wake, 4=ack; 0=invalid
+//   bits  2-0   type        3  1=state, 2=query, 3=wake, 4=ack,
+//                              5=act (design-autohide §3.2.1); 0=invalid,
+//                              6-7 reserved
 //
 // Field discipline (design §3.2): state/wakeMode/pinchMode/flag carry
 // meaning only in type=state packets (except flag=role and state=applied
-// state in ack packets); in query/wake packets they are 0. Receivers drop
-// packets with v=0, a type that does not match the channel, a hash that
-// is not their bundle's, or a gen older than the newest known gen.
+// state in ack packets); in query/wake packets they are 0. Act packets
+// (design-autohide §3.2.1) carry v/hash/gen/seq plus flag=kbActive; their
+// state/mode fields are 0. Receivers drop packets with v=0, a type that
+// does not match the channel, a hash that is not their bundle's, or a gen
+// older than the newest known gen.
 
 #ifndef BRIDGEWAKE_PACK_H
 #define BRIDGEWAKE_PACK_H
@@ -62,7 +67,9 @@ enum {
     BWTypeState   = 1,
     BWTypeQuery   = 2,
     BWTypeWake    = 3,
-    BWTypeAck     = 4
+    BWTypeAck     = 4,
+    BWTypeAct     = 5 // app -> owner activity (design-autohide §3.2.1)
+    // 6-7 reserved
 };
 
 // Chrome states (bits 5-3).
@@ -179,5 +186,8 @@ static inline uint32_t BWBundleHash28(NSString *bundleID) {
 // V7 wake: yt, gen=6 (stale), seq=42            -> 0xE9DA706815003003
 //    (owner drops it: gen 6 != current gen 7)
 // V8 empty slot reads 0                         -> v=0, no packet
+// V9 act: yt, gen=7, seq=1, flag=0 (kb inactive), state/mode fields 0
+//    (design-autohide §3.2.1)                   -> 0xE9DA706800803805
+// V10 act: yt, gen=7, seq=2, flag=1 (kbActive)  -> 0xE9DA706801003C05
 
 #endif // BRIDGEWAKE_PACK_H

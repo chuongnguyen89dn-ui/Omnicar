@@ -23,6 +23,7 @@ extern const char *SCPBridgeWakeState; // owner -> apps + ABHost (state)
 extern const char *SCPBridgeWakeQuery; // app -> owner (please re-emit)
 extern const char *SCPBridgeWakeWake;  // app -> owner (+ ABHost arm)
 extern const char *SCPBridgeWakeAck;   // owner -> app / ABHost -> owner
+extern const char *SCPBridgeWakeAct;   // app -> owner (AutoHide activity, design-autohide §3.2.1)
 
 @interface SCPCarSplit (BridgeWake) <SCPPinchArbiter>
 
@@ -50,6 +51,11 @@ extern const char *SCPBridgeWakeAck;   // owner -> app / ABHost -> owner
 - (void)bwHandleQueryPacket:(uint64_t)raw;
 - (void)bwHandleWakePacket:(uint64_t)raw;
 - (void)bwHandleAckPacket:(uint64_t)raw;
+// AutoHide `act` packet (BWTypeAct, design-autohide §3.2.1): validated
+// here (hash/gen, same anti-stale discipline as wake) and forwarded to
+// the AutoHide TU via ahNoteActWithKbActive:. The owner NEVER posts
+// anything in response to an act packet (anti-loop rule, §3.2.1).
+- (void)bwHandleActPacket:(uint64_t)raw;
 
 // Split teardown (design §1.3 call group 3, the "setActive:NO" point —
 // dashboardInvalidated): every known slot's generation advances and its

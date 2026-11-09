@@ -14,6 +14,7 @@
 #import "SCPCarDividerView.h"
 #import "SCPCarPane.h"
 #import "SCPCommon.h" // [phase2; backported to src in phase 3] OMC* declarations used in this TU
+#import "SCPCarSplit+AutoHide.h" // [autohide] knob-touch feed + drag-end feed (design-autohide §3.2/§5.1)
 
 extern void SCPDispatchAfter(double delaySeconds, void (^block)(void)); // 0x12efc (A, SCPShared)
 
@@ -62,6 +63,7 @@ static int    sStackDragKind; // 0x8816c
 - (void)endResize {                                                     // 0x2c25c
     if (!self.resizing) return;
     self.resizing = NO;
+    [self ahNoteActivity:AHSourceDragEnd]; // [autohide] §4.2: the clock runs from the release, not from the drag's last Began (additive line; original body untouched)
     [self pushHostFramesLive:NO];
     NSArray<SCPCarPane *> *panes = [self.slots copy];
     __weak SCPCarSplit *weakSelf = self;
@@ -457,6 +459,7 @@ static double  sRemoteLastTapTime;  // 0x88188
     @try {
         NSInteger idx = [payload[@"index"] intValue];
         NSInteger phase = [payload[@"phase"] intValue];
+        [self ahNoteActivity:AHSourceHostKnob]; // [autohide] F2 feed (design-autohide §3.2): a touch on the (possibly invisible) knob mirror is activity
 
         SCPCarDividerView *divider = nil;
         for (SCPCarDividerView *d in self.dividers)

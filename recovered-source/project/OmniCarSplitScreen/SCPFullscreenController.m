@@ -1,0 +1,557 @@
+// SCPFullscreenController.m — OmniCarSplitScreen [fs1, design-fullscreen-fs1 §4]
+//
+// Fullscreen (dock/chrome hidden) rebuilt from the QA20 reference
+// source as a first-class controller of this module — see the header
+// for ownership. Mechanism discipline copied from OMCToggleHost:
+// snapshot BEFORE the state flip, the layout target is the window
+// bounds inside the parent, the area source itself is switched (the
+// container frame is never set from here), restore flips the flag
+// first and lets the stock layout pull the container back.
+//
+// Chrome is an internal function of this file (§2 mapping): the
+// status-bar windows are found by class-name scan of the process
+// windows, their original hidden flags are recorded before hiding
+// and restored exactly — no external chrome symbol is referenced.
+//
+// All entry points funnel to the main queue. All log lines carry the
+// [fs1] prefix; the staging test-switch branch logs [fs1-test].
+
+#import "SCPFullscreenController.h"
+#import "SCPCarSplit.h"
+#import "SCPCarSplit+BridgeWake.h" // bwSetExpandedActive:forBundle: (§4.10)
+#import "SCPShared.h"               // SCPNotePrefsChanged, SCPDispatchAfter
+#import "SCPCommon.h"               // OMCLogWrite, OMCPref
+#import <notify.h>
+
+#pragma mark - File statics (thresholds copied from the reference source)
+
+/// OMCAreaValid [XM :50]: finite, every dimension > 50 pt.
+static BOOL FSAreaValid(CGRect r) {
+    return isfinite(r.origin.x) && isfinite(r.origin.y) &&
+           isfinite(r.size.width) && isfinite(r.size.height) &&
+           r.size.width > 50.0 && r.size.height > 50.0;
+}
+
+/// OMCWindowBoundsInParent [XM :55]: the whole window in parent space.
+static CGRect FSWindowBoundsInParent(UIView *parent) {
+    UIWindow *window = parent.window;
+    if (!window) return CGRectNull;
+    return [parent convertRect:window.bounds fromView:window];
+}
+
+/// Frame confirmation tolerance (§4.4 step 5): 0.5 pt per component.
+static BOOL FSRectClose(CGRect a, CGRect b) {
+    return fabs(a.origin.x - b.origin.x) <= 0.5 &&
+           fabs(a.origin.y - b.origin.y) <= 0.5 &&
+           fabs(a.size.width - b.size.width) <= 0.5 &&
+           fabs(a.size.height - b.size.height) <= 0.5;
+}
+
+static void FSOnMain(void (^block)(void)) {
+    if ([NSThread isMainThread]) block();
+    else dispatch_async(dispatch_get_main_queue(), block);
+}
+
+typedef NS_ENUM(NSInteger, SCPFSPhase) {
+    SCPFSPhaseSplit = 0,
+    SCPFSPhaseExpanding,
+    SCPFSPhaseExpanded,
+    SCPFSPhaseRestoring,
+};
+
+@interface SCPFullscreenController () {
+    SCPFSPhase _phase;
+    // Internal expanded flag, flipped BEFORE the relayout exactly like
+    // the reference toggle's state.expanded: fsAreaForParent: keys on
+    // this, while fsCommittedState keys on the settled phase (§4.1/§4.3).
+    BOOL _expandedFlag;
+    BOOL _installed;
+    uint64_t _txnCounter;   // monotone (§4.2)
+    uint64_t _currentTxn;   // transaction owning the live state/snapshot
+    // Snapshot — one at a time, owned by _currentTxn (§4.2).
+    __weak UIView *_snapParent;
+    CGRect _snapOriginalArea;
+    CGRect _snapTargetArea;
+    BOOL _snapPreviousClips;
+    uint64_t _snapTxn;
+    // Restore retry (§4.5 step 4): the only async tail of any chain.
+    void (^_pendingCompletion)(BOOL);
+    uint64_t _pendingTxn;
+    NSString *_pendingProvenance;
+    BOOL _inReconcile;      // fsDidLayout re-entrancy guard (§4.8)
+    // Chrome (§4.7): status-bar window -> its ORIGINAL hidden flag,
+    // recorded on first sight only, restored exactly, then cleared.
+    NSMapTable<UIWindow *, NSNumber *> *_chromeOriginals;
+    int _prefsToken;        // [fs1-test]
+    NSNumber *_testSwitchLast; // [fs1-test] last seen value (edge detect)
+}
+@end
+
+@implementation SCPFullscreenController
+
+@synthesize fsStateDidChange = _fsStateDidChange;
+
++ (instancetype)shared {
+    static SCPFullscreenController *instance;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ instance = [[self alloc] init]; });
+    return instance;
+}
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _phase = SCPFSPhaseSplit;
+        _chromeOriginals = [NSMapTable weakToStrongObjectsMapTable];
+    }
+    return self;
+}
+
+#pragma mark - Install + [fs1-test] staging switch
+
+- (void)fsInstallIfNeeded {
+    if (_installed) return;
+    _installed = YES;
+    // [fs1-test] Observe the same prefs-changed Darwin name the wake
+    // owner uses (design §8). The test switch is the ONLY reader of
+    // the fullscreenTestExpand key; the whole branch is one removal
+    // point, marked [fs1-test] everywhere it appears.
+    __weak typeof(self) weakSelf = self;
+    notify_register_dispatch(SCPNotePrefsChanged.UTF8String, &_prefsToken,
+        dispatch_get_main_queue(), ^(int token) {
+            (void)token;
+            [weakSelf fsTestPrefsChanged];
+        });
+    _testSwitchLast = @([self fsTestSwitchOn]); // baseline: no action
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[fs1] fs controller installed (CarPlayApp) [fs1-test] switch=%@",
+        _testSwitchLast.boolValue ? @"YES" : @"NO"]);
+}
+
+// [fs1-test]
+- (BOOL)fsTestSwitchOn {
+    id value = OMCPref(@"fullscreenTestExpand", nil);
+    return [value respondsToSelector:@selector(boolValue)]
+               ? [value boolValue] : NO; // absent = NO (design §8)
+}
+
+// [fs1-test]
+- (void)fsTestPrefsChanged {
+    BOOL on = [self fsTestSwitchOn];
+    if (_testSwitchLast && _testSwitchLast.boolValue == on) return;
+    _testSwitchLast = @(on);
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[fs1-test] fullscreenTestExpand -> %@", on ? @"YES" : @"NO"]);
+    if (on) {
+        [self fsRequestExpandWithCompletion:^(BOOL applied) {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[fs1-test] expand result applied=%d", applied]);
+        } provenance:@"test"];
+    } else {
+        [self fsRequestRestoreWithCompletion:^(BOOL applied) {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[fs1-test] restore result applied=%d", applied]);
+        } provenance:@"test"];
+    }
+}
+
+#pragma mark - Settled state + area consultation
+
+- (SCPFullscreenState)fsCommittedState {
+    if (!_installed) return SCPFullscreenStateUnknown;
+    switch (_phase) {
+        case SCPFSPhaseExpanded:
+        case SCPFSPhaseRestoring: // §4.1: still Expanded until confirmed
+            return SCPFullscreenStateExpanded;
+        default:                  // Split + Expanding (§4.1)
+            return SCPFullscreenStateSplit;
+    }
+}
+
+- (CGRect)fsAreaForParent:(UIView *)parent
+             nativeArea:(CGRect)nativeArea
+                  split:(SCPCarSplit *)split {
+    // §4.3: target ONLY while the internal flag is up (phases Expanding
+    // and Expanded — restore lowers the flag first, §4.5 step 2), for
+    // the snapshotted parent alone, split active, target valid. Every
+    // other caller/parent gets the native area bit for bit.
+    if (!_expandedFlag) return nativeArea;
+    if (_phase != SCPFSPhaseExpanding && _phase != SCPFSPhaseExpanded)
+        return nativeArea;
+    if (!parent || parent != _snapParent) return nativeArea;
+    if (!split.active) return nativeArea;
+    if (!FSAreaValid(_snapTargetArea)) return nativeArea;
+    return _snapTargetArea;
+}
+
+- (void)fsFireStateDidChange:(SCPFullscreenState)state {
+    if (_fsStateDidChange) _fsStateDidChange(state);
+}
+
+- (void)fsClearSnapshot {
+    _snapParent = nil;
+    _snapOriginalArea = CGRectZero;
+    _snapTargetArea = CGRectZero;
+    _snapTxn = 0;
+}
+
+#pragma mark - Chrome (§4.7 — internal, no external symbol)
+
+/// Sweep the process windows for the status-bar window classes and
+/// hide each, recording its ORIGINAL hidden flag on first sight only.
+/// Late-appearing windows are picked up by the reconcile re-sweep.
+/// No window observed -> FAILED log, nothing latched (§2 mapping);
+/// the failure is logged at the expand settle point only, the
+/// reconcile sweeps stay silent so the log is not spammed.
+- (BOOL)fsChromeSweepAndHide {
+    BOOL found = NO;
+    // Window walk in the module's own idiom (connectedScenes ->
+    // UIWindowScene.windows, as in -installIconLongPress): the same
+    // per-process window set the design's scan names, without the
+    // deprecated flat accessor.
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:[UIWindowScene class]]) continue;
+        for (UIWindow *window in ((UIWindowScene *)scene).windows) {
+            NSString *cls = NSStringFromClass([window class]);
+            if (![cls isEqualToString:@"DBStatusBarWindow"] &&
+                ![cls isEqualToString:@"CARStatusBarWindow"]) continue;
+            found = YES;
+            if (![_chromeOriginals objectForKey:window])
+                [_chromeOriginals setObject:@(window.hidden) forKey:window];
+            if (!window.hidden) window.hidden = YES;
+        }
+    }
+    return found;
+}
+
+- (void)fsChromeSetHidden:(BOOL)hidden {
+    if (hidden) {
+        if (![self fsChromeSweepAndHide])
+            OMCLogWrite(@"SplitScreen",
+                @"[fs1] fs chrome FAILED no-window");
+        return;
+    }
+    // Restore EXACTLY the recorded original flag per window (§2),
+    // never a blanket hidden = NO; then clear the records.
+    for (UIWindow *window in [[_chromeOriginals keyEnumerator] allObjects]) {
+        NSNumber *original = [_chromeOriginals objectForKey:window];
+        if (original) window.hidden = original.boolValue;
+    }
+    [_chromeOriginals removeAllObjects];
+}
+
+/// The rebuilt's own Home/launcher button is FS chrome while EXPANDED
+/// (§4.7 item 2): forced hidden here and re-asserted by every
+/// reconcile, because refreshHomeButton runs inside rootDidLayout and
+/// may raise it again. On restore FS does NOT force it back — it is
+/// released to the idle-fade axis verdict (law R4, §5); removeHomeButton
+/// is never used (it would disturb dock shift bookkeeping).
+- (void)fsAssertHomeButtonHidden {
+    UIButton *button = [SCPCarSplit shared].homeButton;
+    if (button && !button.hidden) button.hidden = YES;
+}
+
+#pragma mark - Expand (§4.4)
+
+- (void)fsRequestExpandWithCompletion:(void (^)(BOOL))completion
+                           provenance:(NSString *)provenance {
+    FSOnMain(^{ [self fsExpandWithCompletion:completion
+                                 provenance:provenance ?: @"?"]; });
+}
+
+- (void)fsExpandWithCompletion:(void (^)(BOOL))completion
+                    provenance:(NSString *)prov {
+    // §4.2: a second command during a transition is refused outright.
+    if (_phase == SCPFSPhaseExpanding || _phase == SCPFSPhaseRestoring) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[fs1] fs busy txn=%llu expand refused provenance=%@",
+            (unsigned long long)_currentTxn, prov]);
+        if (completion) completion(NO);
+        return;
+    }
+    if (_phase != SCPFSPhaseSplit) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[fs1] fs expand refused state=EXPANDED provenance=%@", prov]);
+        if (completion) completion(NO);
+        return;
+    }
+    // Entry gate (§4.4 step 1 / §6): refuse quietly, touch nothing —
+    // FS never closes a picker, ends a solo or cancels a zoom itself.
+    SCPCarSplit *split = [SCPCarSplit shared];
+    UIView *container = split.container;
+    UIView *parent = container.superview;
+    NSString *refuse = nil;
+    if (!split.active) refuse = @"inactive";
+    else if (!container || !parent || !parent.window)
+        refuse = @"host-unavailable";
+    else if (split.zoomedSlot) refuse = @"zoomed";
+    else if (split.soloHostedBundle) refuse = @"solo";
+    else if (split.pickerSheet) refuse = @"picker";
+    else if ([split popupOpen]) refuse = @"popup";
+    else if (split.trayWindow || split.trayOverlay) refuse = @"tray";
+    if (refuse) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[fs1] fs expand refused reason=%@ provenance=%@",
+            refuse, prov]);
+        if (completion) completion(NO);
+        return;
+    }
+    // Snapshot BEFORE the flip (§4.4 step 2): the pre-flip
+    // appAreaInParent: call still consults to the native area.
+    uint64_t txn = ++_txnCounter;
+    CGRect original = [split appAreaInParent:parent];
+    CGRect target = FSWindowBoundsInParent(parent);
+    if (!FSAreaValid(original) || !FSAreaValid(target)) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[fs1] fs expand refused reason=invalid-rect original=%@ "
+            @"target=%@ provenance=%@",
+            NSStringFromCGRect(original), NSStringFromCGRect(target),
+            prov]);
+        if (completion) completion(NO);
+        return;
+    }
+    _currentTxn = txn;
+    _snapParent = parent;
+    _snapOriginalArea = original;
+    _snapTargetArea = target;
+    _snapPreviousClips = parent.clipsToBounds;
+    _snapTxn = txn;
+    // Flip, un-clip, and let the stock layout pull the container —
+    // the exact command pair of the reference toggle (§4.4 steps 3–4).
+    _phase = SCPFSPhaseExpanding;
+    _expandedFlag = YES;
+    parent.clipsToBounds = NO;
+    [split relayoutAnimated:NO pushScenes:YES];
+    [split rootDidLayout];
+    // Confirmation (§4.4 step 5): a returned relayout call is NOT
+    // proof — read the world back.
+    BOOL confirmed = FSRectClose(container.frame, target) &&
+                     container.superview == parent &&
+                     parent.window != nil && split.active;
+    if (!confirmed) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[fs1] fs expand unconfirmed txn=%llu frame=%@ target=%@ "
+            @"superview-ok=%d window=%d active=%d provenance=%@",
+            (unsigned long long)txn, NSStringFromCGRect(container.frame),
+            NSStringFromCGRect(target), container.superview == parent,
+            parent.window != nil, split.active, prov]);
+        [self fsRollbackWithProvenance:prov];
+        if (completion) completion(NO);
+        return;
+    }
+    // Settle (§4.4 step 6): chrome, wake owner, event, completion.
+    _phase = SCPFSPhaseExpanded;
+    [self fsChromeSetHidden:YES];
+    [self fsAssertHomeButtonHidden];
+    [split bwSetExpandedActive:YES forBundle:nil];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[fs1] fs expand confirmed txn=%llu provenance=%@",
+        (unsigned long long)txn, prov]);
+    [self fsFireStateDidChange:SCPFullscreenStateExpanded];
+    if (completion) completion(YES);
+}
+
+/// Rollback (§4.6): an expand that failed mid-flight returns the
+/// system to a measurable pre-command state; completion was already
+/// answered NO by the caller.
+- (void)fsRollbackWithProvenance:(NSString *)prov {
+    SCPCarSplit *split = [SCPCarSplit shared];
+    _expandedFlag = NO;
+    UIView *parent = _snapParent;
+    if (parent) parent.clipsToBounds = _snapPreviousClips;
+    [split relayoutAnimated:NO pushScenes:YES];
+    [split rootDidLayout];
+    [self fsChromeSetHidden:NO];
+    [split bwSetExpandedActive:NO forBundle:nil];
+    _phase = SCPFSPhaseSplit;
+    [self fsClearSnapshot];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[fs1] fs rollback done provenance=%@ frame=%@ clips=%d",
+        prov, NSStringFromCGRect(split.container.frame),
+        parent ? (int)parent.clipsToBounds : -1]);
+}
+
+#pragma mark - Restore (§4.5)
+
+- (void)fsRequestRestoreWithCompletion:(void (^)(BOOL))completion
+                            provenance:(NSString *)provenance {
+    FSOnMain(^{ [self fsRestoreWithCompletion:completion
+                                  provenance:provenance ?: @"?"]; });
+}
+
+/// Read-back for restore (§4.5 step 4): the container frame must equal
+/// the CURRENT native area — recomputed now, flag already down. If the
+/// dashboard legitimately moved its area while expanded, the current
+/// area wins and the snapshot rect is simply dropped.
+- (BOOL)fsRestoreConfirmed {
+    SCPCarSplit *split = [SCPCarSplit shared];
+    UIView *container = split.container;
+    UIView *parent = container.superview;
+    if (!container || !parent) return NO;
+    return FSRectClose(container.frame, [split appAreaInParent:parent]);
+}
+
+- (void)fsRestoreWithCompletion:(void (^)(BOOL))completion
+                     provenance:(NSString *)prov {
+    if (_phase == SCPFSPhaseRestoring) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[fs1] fs busy txn=%llu restore refused provenance=%@",
+            (unsigned long long)_currentTxn, prov]);
+        if (completion) completion(NO);
+        return;
+    }
+    if (_phase == SCPFSPhaseExpanding) {
+        // §4.5 step 1: a restore demand against an in-flight expand is
+        // a cancel — it goes through rollback, never a second chain.
+        [self fsRollbackWithProvenance:prov];
+        if (completion) completion(NO);
+        return;
+    }
+    if (_phase != SCPFSPhaseExpanded) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[fs1] fs restore refused state=SPLIT provenance=%@", prov]);
+        if (completion) completion(NO);
+        return;
+    }
+    uint64_t txn = ++_txnCounter;
+    _currentTxn = txn;
+    _phase = SCPFSPhaseRestoring;
+    // Flag down FIRST (§4.5 step 2): the area consultation returns the
+    // native area from here on; clips restored while parent lives.
+    _expandedFlag = NO;
+    if (_snapParent) _snapParent.clipsToBounds = _snapPreviousClips;
+    SCPCarSplit *split = [SCPCarSplit shared];
+    [split relayoutAnimated:NO pushScenes:YES];
+    [split rootDidLayout];
+    if ([self fsRestoreConfirmed]) {
+        [self fsSettleRestoreWithCompletion:completion
+                                 provenance:prov txn:txn];
+        return;
+    }
+    // Exactly one retry after 0.05 s (§4.5 step 4) — the dashboard may
+    // be mid-layout. The block carries the txn; a stale one is dropped.
+    _pendingCompletion = [completion copy];
+    _pendingTxn = txn;
+    _pendingProvenance = [prov copy];
+    __weak typeof(self) weakSelf = self;
+    SCPDispatchAfter(0.05, ^{
+        __strong typeof(weakSelf) self = weakSelf;
+        if (!self) return;
+        if (self->_pendingTxn != txn || self->_currentTxn != txn ||
+            self->_phase != SCPFSPhaseRestoring) return; // stale (§4.2)
+        void (^done)(BOOL) = self->_pendingCompletion;
+        NSString *p = self->_pendingProvenance;
+        self->_pendingCompletion = nil;
+        self->_pendingProvenance = nil;
+        if ([self fsRestoreConfirmed])
+            [self fsSettleRestoreWithCompletion:done provenance:p txn:txn];
+        else
+            [self fsSettleRestoreUnconfirmedWithCompletion:done
+                                                provenance:p txn:txn];
+    });
+}
+
+- (void)fsSettleRestoreWithCompletion:(void (^)(BOOL))completion
+                           provenance:(NSString *)prov
+                                  txn:(uint64_t)txn {
+    SCPCarSplit *split = [SCPCarSplit shared];
+    [self fsChromeSetHidden:NO];
+    [split bwSetExpandedActive:NO forBundle:nil];
+    [self fsClearSnapshot];
+    _phase = SCPFSPhaseSplit;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[fs1] fs restore confirmed txn=%llu provenance=%@",
+        (unsigned long long)txn, prov]);
+    [self fsFireStateDidChange:SCPFullscreenStateSplit];
+    if (completion) completion(YES);
+}
+
+/// Unconfirmed restore (§4.5 step 4): close SAFE at SPLIT with every
+/// restoration applied and the failure logged — never keep an
+/// EXPANDED label that was not read back (principle §9.3).
+- (void)fsSettleRestoreUnconfirmedWithCompletion:(void (^)(BOOL))completion
+                                      provenance:(NSString *)prov
+                                             txn:(uint64_t)txn {
+    SCPCarSplit *split = [SCPCarSplit shared];
+    if (_snapParent) _snapParent.clipsToBounds = _snapPreviousClips;
+    [self fsChromeSetHidden:NO];
+    [split bwSetExpandedActive:NO forBundle:nil];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[fs1] fs restore-unconfirmed txn=%llu frame=%@ provenance=%@",
+        (unsigned long long)txn, NSStringFromCGRect(split.container.frame),
+        prov]);
+    [self fsClearSnapshot];
+    _phase = SCPFSPhaseSplit;
+    [self fsFireStateDidChange:SCPFullscreenStateSplit];
+    if (completion) completion(NO);
+}
+
+#pragma mark - Abbreviated restore (§4.6) + reconcile (§4.8)
+
+/// Session end: NO relayout — the session is dying; clips + chrome +
+/// wake flag are restored and the machine lands at SPLIT. Modelled on
+/// the reference setActive: teardown (§1.3).
+- (void)fsSessionDidEnd {
+    FSOnMain(^{
+        BOOL wasSettledExpanded = (_phase == SCPFSPhaseExpanded ||
+                                   _phase == SCPFSPhaseRestoring);
+        if (_phase == SCPFSPhaseSplit && !_expandedFlag && !_snapParent &&
+            !_pendingCompletion) return;
+        // Invalidate any in-flight retry before touching state (§4.2).
+        _currentTxn = ++_txnCounter;
+        void (^pending)(BOOL) = _pendingCompletion;
+        _pendingCompletion = nil;
+        _pendingProvenance = nil;
+        _expandedFlag = NO;
+        if (_snapParent) _snapParent.clipsToBounds = _snapPreviousClips;
+        [self fsChromeSetHidden:NO];
+        [[SCPCarSplit shared] bwSetExpandedActive:NO forBundle:nil];
+        _phase = SCPFSPhaseSplit;
+        [self fsClearSnapshot];
+        OMCLogWrite(@"SplitScreen",
+            @"[fs1] fs session-end abbreviated restore provenance=teardown");
+        if (wasSettledExpanded)
+            [self fsFireStateDidChange:SCPFullscreenStateSplit];
+        if (pending) pending(NO);
+    });
+}
+
+- (void)fsDidLayout {
+    if (![NSThread isMainThread]) return; // the seam is main-queue work
+    if (_phase != SCPFSPhaseExpanded || _inReconcile) return;
+    if (_snapTxn == 0 || _snapTxn != _currentTxn) return; // no live txn
+    SCPCarSplit *split = [SCPCarSplit shared];
+    if (!split.active) { [self fsSessionDidEnd]; return; }
+    // Outside override (§4.8): a solo/zoom that arrived through the
+    // bridge or UI owns the presentation area now — FS yields to the
+    // fact on the ground instead of fighting it, and never calls back
+    // into any solo/zoom entry to clean up (§6).
+    if (split.soloHostedBundle != nil || split.zoomedSlot != nil) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[fs1] fs external-override solo=%@ zoomed=%@",
+            split.soloHostedBundle, split.zoomedSlot]);
+        [self fsSessionDidEnd];
+        return;
+    }
+    UIView *container = split.container;
+    if (container && !FSRectClose(container.frame, _snapTargetArea)) {
+        _inReconcile = YES;
+        [split relayoutAnimated:NO pushScenes:YES];
+        [split rootDidLayout];
+        _inReconcile = NO;
+        if (!FSRectClose(container.frame, _snapTargetArea)) {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[fs1] fs reconcile frame-drift unrecovered frame=%@ "
+                @"target=%@", NSStringFromCGRect(container.frame),
+                NSStringFromCGRect(_snapTargetArea)]);
+            [self fsSessionDidEnd];
+            return;
+        }
+    }
+    // Re-assert chrome (§4.8): late status-bar windows get recorded +
+    // hidden; the Home button is forced back down after layout.
+    [self fsChromeSweepAndHide];
+    [self fsAssertHomeButtonHidden];
+}
+
+@end

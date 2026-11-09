@@ -105,6 +105,7 @@ static const char *BWNameState = "com.anlai.omnicar/bridgewake.v1.state";
 static const char *BWNameQuery = "com.anlai.omnicar/bridgewake.v1.query";
 static const char *BWNameWake  = "com.anlai.omnicar/bridgewake.v1.wake";
 static const char *BWNameAck   = "com.anlai.omnicar/bridgewake.v1.ack";
+static const char *BWNameAct   = "com.anlai.omnicar/bridgewake.v1.act";
 
 // ---- state client (§5.2) ----
 static BOOL     BWInstalled  = NO;
@@ -120,7 +121,10 @@ static int      BWStateRxToken = 0;
 static int      BWAckRxToken   = 0;
 static int      BWQueryToken   = 0;
 static int      BWWakeToken    = 0;
+static int      BWActToken     = 0;
 static uint32_t BWQuerySeq     = 0;
+static uint32_t BWActSeq       = 0;   // app-side act sequence (§3.2.1)
+static NSTimeInterval BWLastActAt = 0; // 0.12 s act throttle stamp
 static NSTimeInterval BWLastQueryAt = 0;
 
 // ---- keyboard guard state (§5.5) ----
@@ -219,6 +223,26 @@ static void BWPostWake(uint32_t seq) {
     uint64_t raw = BWPackFields(BWOwnHash28(), seq, BWGen, NO, 0, 0, 0, BWTypeWake);
     notify_set_state(BWWakeToken, raw);
     notify_post(BWNameWake);
+}
+
+// AutoHide activity feed (design-autohide §3.2.1/§5.3): posted from the
+// Began observation path of the existing sendEvent: hook when the
+// hosted session is valid — BEFORE any swallow decision, so a chain
+// that gets swallowed still counts as activity (it is the touch that
+// fires the wake). Posted in every WAKE_MODE, including OFF/DRY_RUN:
+// AutoHide is independent of suppression (the QA19 relay precedent).
+// Throttled at 0.12 s (the QA19/QA20 on-car-proven value). The packet
+// carries no touch content — hash/gen/seq only; flag = kbActive, the
+// keyboard-guard state at post time (§5.5 of design-bridgewake).
+static void BWPostAct(void) {
+    NSTimeInterval now = BWNow();
+    if (now - BWLastActAt < 0.12) return;
+    BWLastActAt = now;
+    if (!BWActToken) notify_register_check(BWNameAct, &BWActToken);
+    uint64_t raw = BWPackFields(BWOwnHash28(), (++BWActSeq) & 0xFFFu, BWGen,
+                                BWKb == BWKbActive, 0, 0, 0, BWTypeAct);
+    notify_set_state(BWActToken, raw);
+    notify_post(BWNameAct);
 }
 
 static void BWCompleteTxn(void) {
@@ -466,6 +490,11 @@ static BOOL BWHandleTouchEvent(UIEvent *event) {
             for (UITouch *t in began)
                 if (!t.window) { BWSeqHosted = NO; break; }
         }
+        // AutoHide activity feed (design-autohide §5.3): a Began in a
+        // valid hosted session (sessionValid, §5.1 of design-bridgewake
+        // — BWFresh() over the state client's existing facts, no new
+        // criterion) is activity whatever the gate decides below.
+        if (BWFresh()) BWPostAct();
         NSString *reason = nil;
         BWSeqWouldSwallow = BWGatePass(event, &reason);
         BWSeqFailOpen = reason;

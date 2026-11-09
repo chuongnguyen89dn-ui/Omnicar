@@ -15,6 +15,7 @@
 // new ivars on SCPCarSplit/SCPCarPane.
 
 #import "SCPCarSplit+BridgeWake.h"
+#import "SCPCarSplit+AutoHide.h" // [autohide] faded input + act/wake/suspend wiring (design-autohide §3.3–§3.4, §4.1, §5.1)
 #import "SCPPinchController.h" // [pinch1] arbiter conformance + chain-suppressed glue flag
 #import "SCPShared.h"
 #import "SCPCommon.h" // OMCLogWrite / OMCPref (module-local header)
@@ -41,6 +42,10 @@ static NSInteger      bwPinchMode = BWModeDryRun;
 static NSArray<NSString *> *bwPinchAllowlist;       // §2.2 (default: empty)
 static BOOL           bwExpandedFlag;               // §2.1 input (A1: no
 static NSString      *bwExpandedBundle;             //   producer this round)
+static BOOL           bwAutoHideEnabled = YES;      // [autohide] owner's cached
+// read of bridgewake.autoHide (absent = ON, design-autohide §3.5); the
+// AutoHide TU keeps its own copy via ahReloadConfig, refreshed at the
+// same point (bwReloadModesAndRepublish).
 static BOOL           bwInstalled;
 static unsigned       bwDroppedWakeCount;           // §3.4 V7-style drops
 
@@ -49,6 +54,7 @@ static int bwAckSendToken;
 static int bwQueryRecvToken;   // notify_register_dispatch tokens (receiving)
 static int bwWakeRecvToken;
 static int bwAckRecvToken;
+static int bwActRecvToken;     // [autohide] bridgewake.v1.act receiver
 static int bwPrefsRecvToken;
 
 #pragma mark - Small helpers
@@ -236,6 +242,11 @@ static void BWEmitDrain(void) {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[wake1] bw expanded %@ (%@)", active ? @"ON" : @"OFF",
         bundleID ?: @"-"]);
+    // [autohide] EXPANDED suspends the fade machine at this same point
+    // (design-autohide §4.1): suspending restores any fade first so
+    // fullscreen starts from a known visual state; unsuspending starts
+    // visible with a fresh 4.0 s clock.
+    [self ahSetSuspended:active];
     // §1.3 point 6: an EXPANDED change re-runs aggregation for all.
     for (SCPCarPane *pane in [self hostedPanes]) [self bwRecomputeForPane:pane];
 }
@@ -285,7 +296,17 @@ static void BWEmitDrain(void) {
         if (!liveSeen || !live || transient) {
             state = BWStateUnknown;
         } else if (barHidden) {
-            state = [self bwPopupForPane:pane] ? BWStateUnknown : BWStateHidden;
+            // [autohide] HIDDEN now also requires the fade
+            // (design-autohide §3.3): fadedEffective = autohideEnabled
+            // ? ahFaded : YES, so with AutoHide off the definition is
+            // exactly wake1's (bar-only). Bar down but NOT yet faded is
+            // not HIDDEN — handles/knob/logo are still on screen — so
+            // the pane reports VISIBLE; a wake landing in that window
+            // still re-shows the bar on the accepted path below.
+            BOOL fadedEffective = !bwAutoHideEnabled || [self ahFaded];
+            if ([self bwPopupForPane:pane]) state = BWStateUnknown;
+            else if (fadedEffective) state = BWStateHidden;
+            else state = BWStateVisible;
         } else {
             state = BWStateVisible;
         }
@@ -366,10 +387,18 @@ static void BWEmitDrain(void) {
             if ([item isKindOfClass:[NSString class]]) [clean addObject:item];
         bwPinchAllowlist = [clean copy];
     }
+    // [autohide] the AutoHide kill-switch rides the same prefs read
+    // (design-autohide §3.5): absent = ON. The owner's cached copy
+    // drives fadedEffective in bwRecomputeForPane:; the AutoHide TU
+    // re-reads its own copy via ahReloadConfig at this same point
+    // (switching off while faded restores everything immediately).
+    id ah = OMCPref(@"bridgewake.autoHide", nil);
+    bwAutoHideEnabled = ah ? [ah boolValue] : YES;
+    [self ahReloadConfig];
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[wake1] bw modes wake=%ld pinch=%ld allowlist=%lu",
+        @"[wake1] bw modes wake=%ld pinch=%ld allowlist=%lu autohide=%d",
         (long)bwWakeMode, (long)bwPinchMode,
-        (unsigned long)bwPinchAllowlist.count]);
+        (unsigned long)bwPinchAllowlist.count, (int)bwAutoHideEnabled]);
     // Mode changes re-run aggregation for every hosted pane (§1.3
     // point 6); the emit signature carries the modes, so any change
     // re-emits even when the state enum itself does not move.
@@ -424,6 +453,11 @@ static void BWEmitDrain(void) {
     // §2.3 isolation: the wake handler ONLY drives the Chrome show
     // path. It never posts a pinch command, never touches solo/zoom.
     [self setBarVisible:YES forPane:pane];
+    // [autohide] reveal path 2 (design-autohide §3.4): an accepted
+    // wake restores the FULL chrome set together with the bar — the
+    // AutoHide TU un-paints handles/dividers/knobs/logo and pushes the
+    // fade change to the hosted mirrors. Safe when nothing is faded.
+    [self ahRevealWithReason:AHRevealWake];
     if (state == BWStateVisible) {
         // Controls were already up; the wake's goal is met — ack at
         // once (role=0, state=VISIBLE, echo seq — vector V5 shape).
@@ -456,6 +490,29 @@ static void BWEmitDrain(void) {
         SCPCarPane *p = [weakSelf paneForBundle:bundle];
         if (p) [weakSelf bwQueueEmitForPane:p];
     });
+}
+
+// [autohide] Inbound `act` (design-autohide §3.2.1): the hosted app's
+// activity relay (ABInApp posts from its existing sendEvent probe,
+// throttled 0.12 s on its side). Validation mirrors the wake path —
+// hash resolves a CURRENT bundle, the generation must match the
+// slot's live generation (a packet from before a reconnect/reassign
+// is stale), and the candidate bundle must still be assigned AND
+// hosted. The packet's flag is the app session's kbActive truth; the
+// AutoHide TU owns the hold itself (arm/refresh/10 s self-expiry).
+// This handler NEVER posts anything (anti-loop rule, §3.2.1).
+- (void)bwHandleActPacket:(uint64_t)raw {
+    BWPacket pkt = BWUnpack(raw);
+    if (!pkt.valid || pkt.type != BWTypeAct) return;
+    NSInteger slot = BWSlotForHash28(pkt.hash28);
+    if (slot < 0) return;
+    if (pkt.gen != bwGenBySlot[slot]) return; // stale session (§3.2.1)
+    NSString *bundle = bwBundleBySlot[slot];
+    SCPCarPane *pane = [self paneForBundle:bundle];
+    if (!pane || pane.slot != slot ||
+        ![[self hostedPanes] containsObject:pane])
+        return;
+    [self ahNoteActWithKbActive:pkt.flag];
 }
 
 - (void)bwHandleAckPacket:(uint64_t)raw {
@@ -520,6 +577,15 @@ static void BWEmitDrain(void) {
                 uint64_t raw = 0;
                 notify_get_state(token, &raw);
                 [owner bwHandleAckPacket:raw];
+            });
+        // [autohide] the fifth channel (design-autohide §3.2.1):
+        // hosted-app activity for the fade machine. Receive-only here —
+        // the owner never posts on it.
+        notify_register_dispatch(SCPBridgeWakeAct, &bwActRecvToken,
+            dispatch_get_main_queue(), ^(int token) {
+                uint64_t raw = 0;
+                notify_get_state(token, &raw);
+                [owner bwHandleActPacket:raw];
             });
         // Mode source (§4): the existing prefs-changed Darwin name.
         notify_register_dispatch(SCPNotePrefsChanged.UTF8String,
