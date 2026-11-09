@@ -27,6 +27,7 @@
 #import "SCPPinchController.h" // [pinch1] integration glue: attach/detach (design-pinch §7, 2 lines max)
 #import "SCPFullscreenController.h" // [fs1] glue: shortened restore when the session ends (design-fullscreen-fs1 §4.6)
 #import "SCPCarSplit+AutoHide.h" // [autohide] fade payload keys + activity feeds + teardown (design-autohide §5.1)
+#import "../SplitScreenC/SCPHomeApply.h" // [ytz5] SCPLogInjectedIconState (M5 icon instrument points in closeGoingHome:)
 
 static id SCPGuarded(id obj, NSString *selName) {
     SEL sel = NSSelectorFromString(selName);
@@ -1132,6 +1133,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         if ([other.bundleID isEqualToString:bundle]) {
             [self detachVC:other.vc background:NO];
             other.vc = nil; other.bundleID = nil; other.sceneSize = CGSizeZero;
+            [self bwNoteAssignmentForPane:other]; // [ytz5] eviction = assignment teardown event
             vacatedPane = other;
         }
     }
@@ -1170,6 +1172,9 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     vc.additionalSafeAreaInsets = UIEdgeInsetsZero; // VERIFIED (_UIEdgeInsetsZero from GOT)
     pane.vc = vc;
     pane.bundleID = bundle;
+    // [ytz5] assignment event: generation advances + BWInputStore
+    // identity re-registered for this (bundle, assignment) pair.
+    [self bwNoteAssignmentForPane:pane];
     SCPSceneVisLog(@"attach", pane, vc, YES); // [scenevis]
     pane.sceneSize = CGSizeZero;   // VERIFIED: zeroed at adopt; filled by verifySceneOfPane:
     self.focusedSlot = (int)slot;
@@ -1545,6 +1550,9 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         if (!SCPVCIsHosted(pane.vc)) [self detachVC:pane.vc background:background];
         pane.vc = nil;
         pane.bundleID = nil;
+        // [ytz5] assignment teardown event (before reindexPanes
+        // shifts slots): generation advances + store identity cleared.
+        [self bwNoteAssignmentForPane:pane];
     }
     [pane.view removeFromSuperview];
     if (self.layoutKind != 0) {
@@ -1593,8 +1601,10 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     if (self.paneCount == 0) {
         if (self.floatPane.vc && self.floatPane.bundleID)
             [self soloBundle:self.floatPane.bundleID];
-        else
+        else {
+            [self noteCloseSource:@"pane-last"]; // [ytz5] M5 src=
             [self closeGoingHome:YES];
+        }
         return;
     }
     if (self.paneCount == 1 && !self.floatPane) {
@@ -1604,6 +1614,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         for (NSString *key in self.pending)
             if ([self pendingSlotForBundle:key] == 0) candidate = key;
         if (candidate) { [self soloBundle:candidate]; return; }
+        [self noteCloseSource:@"pane-last"]; // [ytz5] M5 src=
         [self closeGoingHome:YES];
         return;
     }
@@ -1729,9 +1740,35 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
 // synchronously — it is detached from the properties and faded out over
 // 0.2 s; the type-1 dashboard event send is explicit in the binary, not
 // inferred; the tail refreshes the app tab and knobs).
+- (void)noteCloseSource:(NSString *)source {
+    self.closeSource = source;
+}
+
 - (void)closeGoingHome:(BOOL)goHome {
-    if (!self.active) return;
-    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: tat split (goHome=%d)", goHome]);
+    // [ytz5] M5 src=: the source stamped by the call site (nil reads
+    // as "unknown"); it is reset to nil (unknown) before returning,
+    // on BOTH paths — the !active early return logs it too, instead
+    // of being invisible as before.
+    NSString *src = self.closeSource ?: @"unknown";
+    if (!self.active) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: tat split (goHome=%d) src=%@", goHome, src]);
+        self.closeSource = nil;
+        return;
+    }
+    // [ytz5] M5 measurement point T1: before ANY cleanup or detach.
+    SCPLogInjectedIconState(@"before-close", src);
+    // [ytz5] M1 cleanup (CHANGE_MAP_YTZ5 M1): IMMEDIATELY after the
+    // guard, BEFORE hostCloseAll — stop the AutoHide timer, restore
+    // painted views directly through AutoHide's restore mechanism
+    // (never ahRevealBody:), reset faded/kb-hold-expiry/activity and
+    // the split session's faded/hold/suspended state, clear the
+    // paint registry. The destination mode owns what follows: a
+    // hosted-solo target re-suspends AFTER this cleanup (see
+    // soloBundle:). Idempotent.
+    [self ahCloseCleanup];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: tat split (goHome=%d) src=%@", goHome, src]);
     for (SCPCarPane *pane in [self allPanes]) // [scenevis] snapshot at the exit-home point, before any detach
         SCPSceneVisLog(@"going-home", pane, pane.vc, YES);
     [self hostCloseAll];
@@ -1745,6 +1782,9 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         // unconditionally; only detachVC depends on vc existing]
         pane.vc = nil;
         pane.bundleID = nil;
+        // [ytz5] assignment teardown event: generation advances and
+        // the slot's BWInputStore identity is cleared with the pane.
+        [self bwNoteAssignmentForPane:pane];
         [pane.picker removeFromSuperview];
         pane.picker = nil;
     }
@@ -1771,6 +1811,9 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     if (goHome) SCPSendDashboardEvent(1, @"SplitScreen: dong split");
     [self refreshAppTabSoon];
     [self publishKnobsSoon];
+    // [ytz5] M5 measurement point T2: the close body is done.
+    SCPLogInjectedIconState(@"after-close", src);
+    self.closeSource = nil; // [ytz5] reset nguon = unknown
 }
 
 // -homePressedDuringSplit: (0x40298) VERIFIED against the full dump
@@ -1914,6 +1957,10 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     [pane.host addSubview:hosted.view];
     pane.vc = hosted;
     pane.bundleID = bundleID;
+    // [ytz5] assignment event (also covers re-assigning the SAME
+    // bundle to this slot): generation advances + BWInputStore
+    // identity re-registered, kb record reset to UNKNOWN.
+    [self bwNoteAssignmentForPane:pane];
     SCPSceneVisLog(@"host-attach", pane, hosted, YES); // [scenevis] hosted: scene=nil expected (scene lives SpringBoard-side)
     pane.sceneSize = CGSizeZero;
     pane.hostFrame = CGRectNull;
@@ -2307,6 +2354,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
 - (void)soloBundle:(NSString *)bundleID {
     if (!self.active) return;
     if (!bundleID) {
+        [self noteCloseSource:@"native-close"]; // [ytz5] M5 src=: no app kept, plain close
         [self closeGoingHome:YES];
         return;
     }
@@ -2315,8 +2363,16 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
             @"CarSplit: chi giu %@ (app iPhone) -> App Bridge toan man", bundleID]);
         [self hostSolo:bundleID];
         self.ignoreHomeOnce = YES;
+        [self noteCloseSource:@"solo"]; // [ytz5] M5 src=
         [self closeGoingHome:YES];
         self.ignoreHomeOnce = NO;
+        // [ytz5] Solo order (GPT ruling 2026-11-09 18:45): hostSolo:
+        // set ahSetSuspended:YES BEFORE the close (inside hostSolo:),
+        // and the M1 cleanup inside closeGoingHome: resets the split
+        // session's suspended state — so the DESTINATION mode
+        // (hosted-solo) sets its suspension AFTER the cleanup, here.
+        // Do NOT "preserve" the pre-close suspension inside cleanup.
+        [self ahSetSuspended:YES];
         return;
     }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
@@ -2335,7 +2391,9 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     if (vc && rootVC && [rootVC respondsToSelector:presentSel]) {
         target.vc = nil;
         target.bundleID = nil;
+        [self bwNoteAssignmentForPane:target]; // [ytz5] assignment teardown event
         [self detachVC:vc background:NO];
+        [self noteCloseSource:@"native-close"]; // [ytz5] M5 src=: native VC handed back to the dashboard
         [self closeGoingHome:NO];
         ((void (*)(id, SEL, id, BOOL, id, id))objc_msgSend)(
             rootVC, presentSel, vc, YES, nil, nil);
@@ -2381,6 +2439,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     id info = SCPApplicationInfoForBundle(bundleID);
     id launchInfo = OMCCarLaunchInfo(info);
     if (launchInfo) [self showSoloCoverForBundle:bundleID];
+    [self noteCloseSource:@"native-close"]; // [ytz5] M5 src=: native relaunch path
     [self closeGoingHome:YES];
     if (launchInfo) {
         // Block @0x1ee70 (+0.8 s, weak self): only while the split is
@@ -2444,7 +2503,10 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                 @"CarSplit: nut thoat -> thoat chia man%@", suffix]);
             if (keep) [self soloBundle:keep];
-            else [self closeGoingHome:YES];
+            else {
+                [self noteCloseSource:@"tweak-exit"]; // [ytz5] M5 src=
+                [self closeGoingHome:YES];
+            }
         } else {
             OMCLogWrite(@"SplitScreen", @"CarSplit: nut thoat (chua chia) -> dong bang");
         }

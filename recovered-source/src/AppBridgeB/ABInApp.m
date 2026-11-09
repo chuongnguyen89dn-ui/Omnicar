@@ -84,6 +84,7 @@ static IMP orig_Scene_reqGeometry, orig_VC_setNeedsUpdate, orig_VC_attemptRotati
 static void ABPublishAppOrientation(int64_t orientationField); // sub_67FC
 static void ABScheduleAppOrientationPublish(int64_t field);    // sub_6750
 static void ABKeyboardPublish(BOOL shown, id traits);          // sub_6AD4
+static void ABRestoreBlankInputView(id responder);             // [ytz5-k5] marker restore, defined with the FR hooks below
 static NSUInteger ABSupportedOrientationMask(void);            // sub_612C
 static UIWindow *ABKeyWindow(void);                            // sub_61D0
 static NSUInteger ABMaskFromViewController(UIViewController *vc, NSInteger depth); // sub_6498
@@ -485,6 +486,153 @@ static NSInteger BWKbEffective(NSInteger *srcOut, long *ageMsOut) {
     return eff;
 }
 
+// ===========================================================================
+// [ytz5-k5] K5 — drawn/native gate cache + kbstate reporter.
+//
+// ---- the gate, as RELAYED by the host ----
+// This side NEVER reads CFPreferences for the gate (contract — mode
+// comes only from the bridge; the QA179 lesson this file's header
+// already carries). The host stamps @"drawnKeyboard" (NSNumber:
+// 1 = drawn panel enabled, 0 = native) into every frame-info
+// payload it posts to this app (ABPostOrientationToApp stamps it in
+// ABHostGeometry.m), and ABOrientationBlock — the existing
+// frame-info handler — caches the value here via
+// ABDrawnKbNoteFrameInfo.
+// Default law: suppression and panel publish happen ONLY on an
+// explicit drawnKeyboard=1. An absent field, an absent payload, or
+// no payload yet — even with a live assignment — all mean NATIVE.
+// ===========================================================================
+static BOOL ABDrawnKb = NO; // cached drawnKeyboard; NO = native
+
+static BOOL ABDrawnKeyboardActive(void) { return ABDrawnKb; }
+
+static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
+    id v = info[@"drawnKeyboard"];
+    BOOL drawn = [v isKindOfClass:NSNumber.class] ? [v boolValue] : NO;
+    if (drawn == ABDrawnKb) return;
+    BOOL wasDrawn = ABDrawnKb;
+    ABDrawnKb = drawn;
+    if (wasDrawn && !drawn) {
+        // Flip drawn -> native MID-SESSION (contract item 2): hand
+        // the system keyboard back on the live responder — restore
+        // ONLY an inputView this tweak blanked (marker
+        // ABBlankInputViewKey), and clear the marker in the restore.
+        // A responder carrying its own custom inputView was never
+        // blanked, bears no marker, and is never touched.
+        ABRestoreBlankInputView(ABCurrentResponder);
+        OMCLogWrite(@"AppBridge",
+            @"[ytz5-k5] cong lat native: phuc hoi inputView theo marker");
+    }
+    // Flip native -> drawn: nothing is forced. Suppression applies
+    // from the next becomeFirstResponder and the panel from the
+    // next publish; a live native session is left exactly as it is.
+}
+
+// ===========================================================================
+// [ytz5-k5] kbstate reporter — app -> owner input-session truth
+// (contract item 3). While native, the drawn panel is dead and its
+// funnel (appbridge.kbsync, host-owned) must not speak for this
+// app's input session; THIS report is the session's truth source.
+// Transport: NSDistributedNotificationCenter, name
+// com.anlai.omnicar/bridgewake.v1.kbstate, object = own bundle id.
+// userInfo:
+//   hash    NSNumber uint32 — hash28 of OWN bundle (BWOwnHash28():
+//           the BridgeWakePack.h FNV-1a-32 >> 4 identity, the same
+//           hash every bridgewake packet for this bundle carries)
+//   gen     NSNumber — gen of the newest owner->app state packet
+//           accepted here (BWGen at send time)
+//   session NSNumber uint32 — minted ONCE per ABInApp load
+//           (arc4random); identifies this app-process session
+//   seq     NSNumber uint64 — per-source monotone, first post = 1
+//   state   NSNumber — 1 = ACTIVE, 0 = INACTIVE
+//   t       NSNumber double — app clock (BWNow(), systemUptime)
+// Identity rule: nothing is posted until a state packet for this
+// bundle has been accepted (BWKnown — the acceptance that also
+// sets BWActSessionVerified), i.e. while the reporter holds a live
+// (hash, gen) identity. No typed content is ever logged or sent —
+// the payload above is the whole surface.
+// ===========================================================================
+static NSString *const BWKbStateChannel = @"com.anlai.omnicar/bridgewake.v1.kbstate";
+static uint32_t BWKbSessionID = 0;    // minted once, first reporter use
+static uint64_t BWKbReportSeq = 0;    // monotone; first post carries 1
+static BOOL     BWKbReportedActive = NO; // last state actually posted
+static BOOL     BWKbHaveReported = NO;
+static NSTimer *BWKbHeartbeatTimer = nil;
+
+static uint32_t BWKbSession(void) {
+    if (!BWKbSessionID) {
+        BWKbSessionID = arc4random();
+        if (!BWKbSessionID) BWKbSessionID = 1; // 0 reads as "none"
+    }
+    return BWKbSessionID;
+}
+
+// The FR-tracking truth (§5.5 primary evidence): a session is live
+// exactly while the tracked responder stands. ABResponderBecame /
+// ABResponderResigned are its only writers.
+static BOOL BWKbSessionActiveNow(void) {
+    return ABCurrentResponder != nil;
+}
+
+static void BWKbStatePost(BOOL active) {
+    if (!BWKnown) return; // no live identity (hash+gen) yet
+    BWKbReportSeq++;
+    NSDictionary *info = @{
+        @"hash":    @(BWOwnHash28()),
+        @"gen":     @(BWGen),
+        @"session": @(BWKbSession()),
+        @"seq":     @(BWKbReportSeq),
+        @"state":   @(active ? 1 : 0),
+        @"t":       @(BWNow()),
+    };
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotificationName:BWKbStateChannel
+                      object:[NSBundle mainBundle].bundleIdentifier
+                    userInfo:info];
+    BWKbReportedActive = active;
+    BWKbHaveReported = YES;
+}
+
+// ACTIVE — called from ABResponderBecame, which the become hooks
+// invoke ONLY after the original becomeFirstResponder has already
+// succeeded: the responder is established and editing has begun.
+// Never called at become-call time.
+static void BWKbStateBecame(void) {
+    BWKbStatePost(YES);
+}
+
+// INACTIVE decision on resign — DEFERRED one runloop tick. A focus
+// move between two fields of this same app resigns the old field
+// and becomes the new one back to back; deciding instantly would
+// emit a false INACTIVE for a session that never ended. At the
+// tick, the CURRENT tracked responder decides: one stands -> the
+// session lives, nothing is posted; none stands -> the session
+// truly ended, INACTIVE is posted (once — a heartbeat or a second
+// deferred check finding the same closed state stays silent).
+static void BWKbStateResignedDeferred(void) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (BWKbSessionActiveNow()) return; // focus moved, not ended
+        if (BWKbHaveReported && !BWKbReportedActive) return;
+        BWKbStatePost(NO);
+    });
+}
+
+// Heartbeat (1 s, started in BWInstallBridgeWake): while the
+// identity lives (BWKnown), re-post the CURRENT state with a fresh
+// seq. This also carries the first INACTIVE of an identity learned
+// while no responder stands, and corrects the record if the
+// tracked responder died without a resign reaching the hooks (the
+// weak ABCurrentResponder simply nils out).
+static void BWKbHeartbeatTick(void) {
+    if (!BWKnown) return;
+    BOOL active = BWKbSessionActiveNow();
+    if (BWKbHaveReported && active == BWKbReportedActive) {
+        BWKbStatePost(active); // renewal, new seq
+        return;
+    }
+    BWKbStatePost(active); // first post for this identity, or a correction
+}
+
 static void BWCompleteTxn(void) {
     if (BWAckTimeoutBlock) {
         dispatch_block_cancel((dispatch_block_t)BWAckTimeoutBlock);
@@ -870,6 +1018,14 @@ static void BWInstallBridgeWake(void) {
                      queue:mq usingBlock:^(NSNotification *n) { BWKbFrameNote(n); }];
     [nc addObserverForName:UIKeyboardWillHideNotification object:nil
                      queue:mq usingBlock:^(NSNotification *n) { BWKbHideNote(n); }];
+    // [ytz5-k5] kbstate reporter heartbeat (1 s): posts only while
+    // the identity lives (BWKnown) — see BWKbHeartbeatTick. The
+    // timer is never invalidated; BWResetAll closes the identity
+    // and the tick goes silent with it, ready for the next session.
+    if (!BWKbHeartbeatTimer) {
+        BWKbHeartbeatTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES
+            block:^(NSTimer *t) { (void)t; BWKbHeartbeatTick(); }];
+    }
     BWStartSummaryTimer();
     BWSendQuery(); // ask for our state; never assume hidden (§5.1)
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
@@ -904,6 +1060,13 @@ static void BWResetAll(void) {
     BWKbOwnerKnown  = NO;
     BWKbOwnerActive = NO;
     BWKbOwnerRxAt   = 0;
+    // [ytz5-k5] the kbstate identity dies with the session too: the
+    // report latch resets so the next session's first heartbeat
+    // posts its true state under the new (hash, gen). The session
+    // id and the seq are NOT reset — the session is minted once per
+    // load and the seq is monotone per source for the load's life.
+    BWKbHaveReported = NO;
+    BWKbReportedActive = NO;
     BWWakeMode = BWModeDryRun;
     BWPinchMode = BWModeDryRun;
     BWPinchAllowed = NO;
@@ -1555,6 +1718,12 @@ static void ABOrientationBlock(NSNotification *note) {
     }
 
     NSDictionary *info = note.userInfo;
+    // [ytz5-k5] this handler IS the frame-info relay endpoint: the
+    // host stamps the gate into the same payload (drawnKeyboard) —
+    // cache it before anything below acts, so a release-resign in
+    // the else branch and every later responder event this session
+    // see the gate the host currently holds.
+    ABDrawnKbNoteFrameInfo(info);
     NSInteger orientation = [info[@"orientation"] intValue];
     NSInteger old = ABForcedOrientation;
     if (orientation > 0) {
@@ -1717,8 +1886,25 @@ static void ABAfterDelay(NSTimeInterval seconds) {
 // distinct, in-image address, never dereferenced by the runtime).
 static const void *ABBlankInputViewKey = &ABBlankInputViewKey;
 
+// [ytz5-k5] marker restore, shared by ABResponderResigned and the
+// drawn->native flip (ABDrawnKbNoteFrameInfo): give a responder its
+// system keyboard back ONLY if this tweak blanked it — the marker
+// is the ownership proof — and clear the marker as part of the
+// restore. Unmarked responders are never touched.
+static void ABRestoreBlankInputView(id responder) {
+    if (!responder) return;
+    if (objc_getAssociatedObject(responder, ABBlankInputViewKey)) {
+        objc_setAssociatedObject(responder, ABBlankInputViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
+        [responder setInputView:nil]; // restore the real input view
+    }
+}
+
 static void ABSuppressSystemKeyboard(id responder) {
     if (ABForcedOrientation < 1) return;
+    // [ytz5-k5] native gate: unless the bridge has explicitly said
+    // drawnKeyboard=1, the system keyboard is left fully alone —
+    // no blank inputView, no marker (contract item 2).
+    if (!ABDrawnKeyboardActive()) return;
     if (![responder respondsToSelector:@selector(setInputView:)]) return;
     if ([responder inputView] != nil) return;
     UIView *blank = [[UIView alloc] initWithFrame:CGRectZero];
@@ -1735,20 +1921,27 @@ static void ABResponderBecame(id responder) {
     BWKbLocalSet(BWKbActive); // BridgeWake kb guard: primary evidence
                               // (§5.5) — the local ACTIVE source of the
                               // effective kb (WO ytz4 K2)
+    // [ytz5-k5] kbstate report: ACTIVE only now — the hooks call
+    // this solely after the original becomeFirstResponder returned
+    // success, i.e. focus is confirmed and editing has begun.
+    BWKbStateBecame();
 }
 
 // sub_6D50 — after a successful resignFirstResponder.
 static void ABResponderResigned(id responder) {
-    if (objc_getAssociatedObject(responder, ABBlankInputViewKey)) {
-        objc_setAssociatedObject(responder, ABBlankInputViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
-        [responder setInputView:nil]; // restore the real input view
-    }
+    ABRestoreBlankInputView(responder);
     if (ABCurrentResponder == responder) {
         ABCurrentResponder = nil;
         ABKeyboardPublish(NO, nil);
         BWKbLocalSet(BWKbInactive); // BridgeWake kb guard: only the
                                     // responder session may lower
                                     // ACTIVE (§5.5)
+        // [ytz5-k5] kbstate report: the INACTIVE decision is NOT
+        // taken here — it is deferred one runloop tick so a focus
+        // move to another field of this app does not emit a false
+        // INACTIVE (see BWKbStateResignedDeferred). The local
+        // BWKbLocalSet law above is unchanged (K2/K5 contract).
+        BWKbStateResignedDeferred();
     }
 }
 
@@ -1780,6 +1973,14 @@ static BOOL ABHook_TVResign(UITextView *self, SEL _cmd) {
 //   state = shown | keyboardType<<1 | returnKeyType<<8 | FNV1a(bundleID)<<24
 // ===========================================================================
 static void ABKeyboardPublish(BOOL shown, id traits) {
+    // [ytz5-k5] native gate (contract item 2): while the bridge has
+    // not explicitly enabled the drawn keyboard, NO panel request
+    // is published in either direction — the Darwin keyboard
+    // channel stays silent for this app and the host panel can
+    // never be summoned. Gating at the publisher's head covers both
+    // call points (Became YES / Resigned NO) at once; the host
+    // dispatch double-checks the pref on its side regardless.
+    if (!ABDrawnKeyboardActive()) return;
     if (!ABKeyboardToken)
         notify_register_check(ABNotifyKeyboard, &ABKeyboardToken);
     uint64_t state = 0;

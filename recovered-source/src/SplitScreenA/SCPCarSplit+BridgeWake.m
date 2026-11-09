@@ -19,13 +19,17 @@
 #import "SCPPinchController.h" // [pinch1] arbiter conformance + chain-suppressed glue flag
 #import "SCPShared.h"
 #import "SCPCommon.h" // OMCLogWrite / OMCPref (module-local header)
+#import "../SplitScreenC/BWInputStore.h" // [ytz5] pure-C authenticated input-session store (package YTZ5, strand B5)
 #import <notify.h>
+#import <CoreFoundation/CoreFoundation.h> // [ytz5] pinch migration writes via CFPreferences (OMCCommon domain)
 
 @interface SCPCarSplit (BridgeWakePrivate)
 - (void)bwRenewTick:(NSTimer *)timer;
 - (void)bwRenewMaintain;
 - (void)bwKbEmitForPane:(SCPCarPane *)pane;
-- (void)bwHandleKbSyncNote:(NSNotification *)note;
+- (void)bwHandleKbStateNote:(NSNotification *)note;
+- (void)bwApplyAssignmentForSlot:(NSInteger)slot bundle:(NSString *)bundle;
+- (void)bwCheckKbHoldRelease;
 @end
 
 #pragma mark - Owner state (file statics, keyed by slot 0..9)
@@ -45,11 +49,15 @@ static __weak SCPCarPane *bwPaneBySlot[10];   // last pane object per slot
 
 static uint16_t       bwStateSeq;             // owner state seq (§3.2)
 static NSInteger      bwWakeMode  = BWModeDryRun;   // §4: absent = DRY_RUN
-static NSInteger      bwPinchMode = BWModeDryRun;   // §4: absent = DRY_RUN
+static NSInteger      bwPinchMode = BWModeOff;      // [ytz5] absent = OFF
 // (an ENFORCE default shipped briefly on 2026-11-09 under Nguyen's
 // "noi pinch luon" order; GPT's post-fs1 audit WO superseded it —
 // ENFORCE is reachable only via an explicit pref until the fullscreen
 // controller has independent device acceptance. See reload below.)
+// [ytz5] Package YTZ5 pinch ruling: the pinch reader's absent
+// default is OFF (was DRY_RUN), and a one-time targeted migration
+// in bwReloadModesAndRepublish rewrites a stored non-OFF pinchMode
+// to 0 exactly once (marker bridgewake.pinchOffMigratedYtz5).
 static NSArray<NSString *> *bwPinchAllowlist;       // §2.2 (nil = absent =
 // no restriction: every eligible pane; an array = only its members)
 static BOOL           bwExpandedFlag;               // §2.1 input; since
@@ -74,20 +82,50 @@ static int bwActRecvToken;     // [autohide] bridgewake.v1.act receiver
 static int bwPrefsRecvToken;
 static NSTimer       *bwRenewTimer;    // WO W2: state renewal (1.0 s)
 
-// [ytz4-hb] Authenticated keyboard truth (GPT ytz4 ruling, item 1).
-// Three-state model — UNKNOWN / INACTIVE / ACTIVE — never collapsed:
-// bwKbKnownBySlot[s] == NO means UNKNOWN (no authenticated snapshot
-// for the slot's CURRENT assignment yet), which must never be read
-// as "keyboard inactive". The ONLY source is the host-side hosted-
-// keyboard session, reported by ABHost on the appbridge.kbsync
-// distributed channel (show/hide points + open snapshots) and stored
-// here per slot. bwKbSessionBySlot[s] is the host session id the
-// snapshot describes (0 = none reported). All three reset to
-// UNKNOWN whenever the slot's generation advances (bundle change or
-// teardown): a snapshot belongs to one (bundle, assignment) pair.
-static BOOL     bwKbKnownBySlot[10];
-static BOOL     bwKbActiveBySlot[10];
-static uint32_t bwKbSessionBySlot[10];
+// [ytz5] Authenticated keyboard truth (package YTZ5, strand B5 —
+// replaces the ytz4-hb per-slot BOOL arrays). Three-state model —
+// UNKNOWN / INACTIVE / ACTIVE — never collapsed, held in the pure-C
+// BWInputStore (SplitScreenC/BWInputStore.h) so the Gate harness
+// exercises the exact validation the owner runs. A record belongs
+// to one (hash, gen) assignment identity: BWInputSlotAssign/Clear
+// run at every assignment lifecycle event (see
+// bwApplyAssignmentForSlot:bundle:), and the ONLY writer of records
+// is bwHandleKbStateNote: — the hosted app's own input session
+// reporting on the NSDistributed kbstate channel. A record decays
+// to UNKNOWN 3.5 s after its last accepted report; re-emission by
+// the owner never refreshes it.
+static BWInputStore bwInputStore;
+static BOOL         bwInputStoreReady;
+static NSInteger    bwKbAggPrev; // last hosted aggregate seen by the
+// hold-release watcher (bwCheckKbHoldRelease): a fall from non-zero
+// to 0 restarts AutoHide's idle clock at the release moment.
+
+static void BWEnsureInputStore(void) {
+    if (!bwInputStoreReady) {
+        BWInputStoreInit(&bwInputStore);
+        bwInputStoreReady = YES;
+    }
+}
+
+// The kbstate distributed channel (NSDistributed, app -> owner):
+// {hash, gen, session, seq, state, t}. Defined locally — SCPShared
+// is outside this strand's file scope, and the string must match
+// the app side's poster byte for byte.
+static NSString * const BWKbStateNoteName =
+    @"com.anlai.omnicar/bridgewake.v1.kbstate";
+
+// [kbstate] reject reason names (log-stable).
+static const char *BWKbReasonName(int reason) {
+    switch (reason) {
+        case BW_OK:           return "ok";
+        case BW_R_BADHASH:    return "badhash";
+        case BW_R_BADGEN:     return "badgen";
+        case BW_R_BADSESSION: return "badsession";
+        case BW_R_STALESEQ:   return "staleseq";
+        case BW_R_NOASSIGN:   return "noassignment";
+        default:              return "?";
+    }
+}
 
 // Kb-sync packet type (bits 2-0): the first unused value in the
 // BridgeWakePack.h type table (0 = invalid, 1 = state, 2 = query,
@@ -182,11 +220,11 @@ static void BWEmitStatePacket(NSString *bundle, uint32_t gen, NSInteger state,
 // packet, bits 9-8 — the pinchMode position in state packets —
 // carry bit 9 = kbKnown and bit 8 = kbActive; flag, wakeMode and
 // state are 0. kbKnown=0 is UNKNOWN: no authenticated snapshot for
-// this assignment; it does NOT mean the keyboard is inactive, and
-// the value the owner previously derived from the app's act flag
-// (BWKb == BWKbActive, which also yields 0 for BWKbUnknown) is never
-// republished as knowledge — the only source is the host-side
-// keyboard session (see bwHandleKbSyncNote:).
+// this assignment; it does NOT mean the keyboard is inactive.
+// [ytz5] The values packed here are the BWInputStore's state at
+// emission time (see bwKbEmitForPane:) — the only source is the
+// app's own input session ("app-input-session"); the act flag is
+// never republished as knowledge.
 static void BWEmitKbPacket(NSString *bundle, uint32_t gen,
                            BOOL kbKnown, BOOL kbActive) {
     if (!bundle.length) return;
@@ -199,7 +237,7 @@ static void BWEmitKbPacket(NSString *bundle, uint32_t gen,
     notify_set_state(bwStateSendToken, packet);
     notify_post(SCPBridgeWakeState);
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[kb-sync] emit %@ gen=%u seq=%u known=%d active=%d source=host-keyboard-session",
+        @"[kb-sync] emit %@ gen=%u seq=%u known=%d active=%d source=app-input-session",
         bundle, gen, bwStateSeq, (int)kbKnown, (int)kbActive]);
 }
 
@@ -278,63 +316,133 @@ static void BWEmitDrain(void) {
     for (SCPCarPane *pane in [self hostedPanes]) [self bwQueueEmitForPane:pane];
 }
 
-#pragma mark - Kb sync (GPT ytz4 ruling, item 1)
+#pragma mark - Kb input store (package YTZ5, strand B5)
 
-// Publish the slot's stored kb snapshot (possibly UNKNOWN) to the
-// pane's app as a type-6 packet on the state channel.
+// The single assignment-identity writer. EVERY assignment lifecycle
+// event for a slot funnels through here (explicit
+// bwNoteAssignmentForPane: calls in SCPCarSplit.m, the bundle-change
+// backstop in bwRecomputeForPane:, session teardown): the slot's
+// generation advances — first assignment starts at 1, every later
+// event wraps via BWGenNext — even when the same bundle is assigned
+// to the same slot again, and the BWInputStore identity is
+// re-registered for the new generation (Assign) or cleared
+// (teardown to nil), so no kb record survives its assignment.
+- (void)bwApplyAssignmentForSlot:(NSInteger)slot bundle:(NSString *)bundle {
+    if (slot < 0 || slot >= 10) return;
+    BWEnsureInputStore();
+    bwGenBySlot[slot] = bwGenBySlot[slot] ? BWGenNext(bwGenBySlot[slot]) : 1;
+    bwBundleBySlot[slot] = [bundle copy];
+    bwAssignAtBySlot[slot] = BWNow();
+    bwWakePendingBySlot[slot] = NO;
+    if (bundle.length)
+        BWInputSlotAssign(&bwInputStore, (int)slot,
+                          BWBundleHash28(bundle), bwGenBySlot[slot]);
+    else
+        BWInputSlotClear(&bwInputStore, (int)slot);
+}
+
+// Public assignment-event entry (SCPCarSplit+BridgeWake.h): the
+// pane's CURRENT bundleID is the event's identity (nil = teardown).
+- (void)bwNoteAssignmentForPane:(SCPCarPane *)pane {
+    if (!BWSlotValid(pane)) return;
+    [self bwApplyAssignmentForSlot:pane.slot bundle:pane.bundleID];
+}
+
+// AutoHide's kb accessor (SCPCarSplit+BridgeWake.h): aggregate over
+// the slots of the currently HOSTED panes — hosted determined by
+// the pane table's own mechanism ([self hostedPanes], i.e. panes
+// whose vc is a hosted AppBridge VC).
+- (NSInteger)bwKbAggregateForHostedPanes {
+    BWEnsureInputStore();
+    int hosted[10] = {0};
+    for (SCPCarPane *pane in [self hostedPanes])
+        if (BWSlotValid(pane)) hosted[pane.slot] = 1;
+    return BWInputAggregate(&bwInputStore, hosted, 10, BWNow());
+}
+
+// Hold-release watcher: when the hosted aggregate falls from
+// holding (2 = ACTIVE or 1 = UNKNOWN) to 0 — the last ACTIVE input
+// session ended — AutoHide's idle clock restarts at the release
+// moment. Observed at every accepted kbstate report (below) and at
+// the owner's 1.0 s renewal tick (bwRenewTick:), which is also how
+// a release caused purely by freshness expiry is caught.
+- (void)bwCheckKbHoldRelease {
+    NSInteger agg = [self bwKbAggregateForHostedPanes];
+    if (bwKbAggPrev != 0 && agg == 0) [self ahNoteKbHoldReleased];
+    bwKbAggPrev = agg;
+}
+
+// Publish the slot's kb truth (possibly UNKNOWN) to the pane's app
+// as a type-6 packet on the state channel. [ytz5] known/active are
+// read from the BWInputStore AT EMISSION TIME with real freshness:
+// known = (stateAt != UNKNOWN), active = (stateAt == ACTIVE). A
+// re-emission is a pure read — BWInputSlotStateAt never touches the
+// record's lastReport, so renewal cannot keep a stale record alive.
 - (void)bwKbEmitForPane:(SCPCarPane *)pane {
     if (!BWSlotValid(pane)) return;
     NSInteger slot = pane.slot;
     NSString *bundle = bwBundleBySlot[slot] ?: pane.bundleID;
     if (!bundle.length) return;
-    BWEmitKbPacket(bundle, bwGenBySlot[slot], bwKbKnownBySlot[slot],
-                   bwKbActiveBySlot[slot]);
+    BWEnsureInputStore();
+    int st = BWInputSlotStateAt(&bwInputStore, (int)slot, BWNow());
+    BWEmitKbPacket(bundle, bwGenBySlot[slot],
+                   st != BW_KB_UNKNOWN, st == BW_KB_ACTIVE);
 }
 
-// Inbound host->car kb sync (appbridge.kbsync, posted by ABHost at
-// the keyboard session's show/hide points and as an open snapshot):
-// {identifier, kbactive, kbsession, kbsource}. This is the owner's
-// ONLY kb source — authenticated by construction, because the
-// poster is the host process that actually opens/closes the car
-// keyboard for the app. A report for a bundle no slot currently
-// holds is dropped (logged): kb packets are addressed per pane, and
-// a session for an app outside the split is not this owner's data.
-- (void)bwHandleKbSyncNote:(NSNotification *)note {
+// Inbound app->owner input-session reports (NSDistributed kbstate
+// channel, posted by the hosted app's own input-session tracking):
+// {hash, gen, session, seq, state, t} — hash/gen name the assignment
+// the report claims, session/seq order it inside that assignment,
+// state is the wire boolean (nonzero = keyboard ACTIVE), t is the
+// sender's send stamp (log only; freshness runs on the owner's
+// receive clock). This is the owner's ONLY kb source since the
+// drawn panel — and with it the old appbridge.kbsync host channel —
+// was removed. Every report is validated by BWInputSlotReport
+// against the slot's live assignment identity; rejects are logged
+// with their reason and never touch the record.
+- (void)bwHandleKbStateNote:(NSNotification *)note {
     NSDictionary *info = note.userInfo;
-    NSString *bundle = info[@"identifier"];
-    if (!bundle.length) return;
-    BOOL active = [info[@"kbactive"] boolValue];
-    uint32_t session = [info[@"kbsession"] unsignedIntValue];
+    if (![info isKindOfClass:[NSDictionary class]]) return;
+    uint32_t hash    = [info[@"hash"] unsignedIntValue];
+    uint32_t gen     = [info[@"gen"] unsignedIntValue];
+    uint32_t session = [info[@"session"] unsignedIntValue];
+    uint64_t seq     = [info[@"seq"] unsignedLongLongValue];
+    int      wire    = [info[@"state"] intValue];
+    BWEnsureInputStore();
+    // Address the report by hash among the LIVE assignments (the
+    // store's registered identities). No live assignment carries
+    // this hash -> the report is not this owner's data.
     NSInteger slot = -1;
-    for (NSInteger s = 0; s < 10; s++)
-        if (bwBundleBySlot[s] && [bundle isEqualToString:bwBundleBySlot[s]]) {
-            slot = s;
-            break;
-        }
+    if (hash != 0)
+        for (NSInteger s = 0; s < 10; s++)
+            if (bwInputStore.slots[s].hash == hash) { slot = s; break; }
     if (slot < 0) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[kb-sync] drop not-assigned bundle=%@ active=%d session=%u",
-            bundle, (int)active, session]);
+            @"[kbstate] reject reason=%s hash=%07x gen=%u session=%u seq=%llu",
+            BWKbReasonName(BW_R_NOASSIGN), hash, gen, session,
+            (unsigned long long)seq]);
         return;
     }
-    BOOL changed = !bwKbKnownBySlot[slot] ||
-                   bwKbActiveBySlot[slot] != active ||
-                   bwKbSessionBySlot[slot] != session;
-    bwKbKnownBySlot[slot] = YES;
-    bwKbActiveBySlot[slot] = active;
-    bwKbSessionBySlot[slot] = session;
-    if (changed) {
+    int reason = BWInputSlotReport(&bwInputStore, (int)slot, hash, gen,
+                                   session, seq, wire, BWNow());
+    if (reason != BW_OK) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[kb-sync] change %@ known=1 active=%d session=%u source=host-keyboard-session",
-            bundle, (int)active, session]);
+            @"[kbstate] reject reason=%s slot=%ld hash=%07x gen=%u session=%u seq=%llu",
+            BWKbReasonName(reason), (long)slot, hash, gen, session,
+            (unsigned long long)seq]);
+        return;
     }
-    // Immediate emission on a session open/close (a change); a
-    // duplicate snapshot changes nothing and the 1.0 s renewal
-    // rotation re-publishes the stored value anyway.
-    if (changed) {
-        SCPCarPane *pane = [self paneForBundle:bundle];
-        if (pane && pane.slot == slot) [self bwKbEmitForPane:pane];
-    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[kbstate] accept slot=%ld hash=%07x gen=%u session=%u seq=%llu state=%d source=app-input-session",
+        (long)slot, hash, gen, session, (unsigned long long)seq, wire]);
+    // Republish this pane's fresh truth to its app at once, then run
+    // the hold-release watcher: an accepted INACTIVE that ends the
+    // last ACTIVE session restarts AutoHide's idle clock here.
+    SCPCarPane *pane = bwPaneBySlot[slot];
+    if (!pane || pane.slot != slot)
+        pane = [self paneForBundle:bwBundleBySlot[slot]];
+    if (pane && pane.slot == slot) [self bwKbEmitForPane:pane];
+    [self bwCheckKbHoldRelease];
 }
 
 #pragma mark - State renewal (WO W2)
@@ -377,6 +485,10 @@ static void BWEmitDrain(void) {
 
 - (void)bwRenewTick:(NSTimer *)timer {
     (void)timer;
+    // [ytz5] Hold-release observation point 2 (strand B5): a release
+    // caused purely by freshness expiry produces no kbstate report,
+    // so the 1.0 s tick re-checks the aggregate transition here.
+    [self bwCheckKbHoldRelease];
     NSArray<SCPCarPane *> *hosted = [self hostedPanes];
     if (!self.active || hosted.count == 0) {
         [self bwRenewMaintain]; // conditions ended: stop the timer
@@ -466,19 +578,17 @@ static void BWEmitDrain(void) {
 
     // Generation bookkeeping (§1.3): a slot whose bundle changes (new
     // assignment or teardown to nil) advances its generation; the
-    // first assignment starts at 1.
-    if (![bundle ?: @"" isEqualToString:bwBundleBySlot[slot] ?: @""]) {
-        bwGenBySlot[slot] = bwGenBySlot[slot] ? BWGenNext(bwGenBySlot[slot]) : 1;
-        bwBundleBySlot[slot] = [bundle copy];
-        bwAssignAtBySlot[slot] = now;
-        bwWakePendingBySlot[slot] = NO;
-        // [ytz4-hb] a new assignment invalidates the kb snapshot:
-        // it described the previous (bundle, assignment) pair, so
-        // the slot is UNKNOWN until ABHost reports for this one.
-        bwKbKnownBySlot[slot] = NO;
-        bwKbActiveBySlot[slot] = NO;
-        bwKbSessionBySlot[slot] = 0;
-    }
+    // first assignment starts at 1. [ytz5] This bundle-change check
+    // is now only the BACKSTOP: since package YTZ5 every assignment
+    // lifecycle event — including re-assigning the SAME bundle to
+    // the SAME slot, which this string comparison cannot see — is
+    // reported explicitly through bwNoteAssignmentForPane:, and both
+    // paths funnel into bwApplyAssignmentForSlot:bundle:, which
+    // advances the generation AND re-registers the BWInputStore
+    // identity (Assign/Clear), so a kb record never survives its
+    // assignment.
+    if (![bundle ?: @"" isEqualToString:bwBundleBySlot[slot] ?: @""])
+        [self bwApplyAssignmentForSlot:slot bundle:bundle];
 
     NSInteger old = bwStateBySlot[slot];
     NSInteger state;
@@ -575,11 +685,11 @@ static void BWEmitDrain(void) {
         bwWakePendingBySlot[s] = NO;
         bwStateBySlot[s] = BWStateInactive;
         bwBundleBySlot[s] = nil;
-        // [ytz4-hb] teardown ends every assignment: kb snapshots
-        // revert to UNKNOWN with it.
-        bwKbKnownBySlot[s] = NO;
-        bwKbActiveBySlot[s] = NO;
-        bwKbSessionBySlot[s] = 0;
+        // [ytz5] teardown ends every assignment: its BWInputStore
+        // identity is cleared with it (record back to UNKNOWN,
+        // hash = 0 — later reports are NOASSIGN until a new Assign).
+        BWEnsureInputStore();
+        BWInputSlotClear(&bwInputStore, (int)s);
         SCPCarPane *pane = bwPaneBySlot[s];
         if (pane) {
             // Emit INACTIVE under the bundle just torn down.
@@ -599,17 +709,41 @@ static void BWEmitDrain(void) {
 - (void)bwReloadModesAndRepublish {
     // The owner (CarPlayApp, the tweak's own process — not an App
     // Store sandbox) is the ONLY reader of these prefs; apps learn the
-    // modes solely from state packets. Both modes: absent = DRY_RUN.
+    // modes solely from state packets. Wake: absent = DRY_RUN.
     // Pinch history: the 2026-11-09 "noi pinch luon" wiring briefly
     // made pinch absent = ENFORCE; GPT's post-fs1 audit WO superseded
     // that (fix-wp-owner): with pinch-in dead under the old bundle
     // arbiter and the FS controller unproven on device, ENFORCE is
     // reachable ONLY via an explicit pref (0/1/2 all still honoured,
     // so OFF and DRY_RUN remain available in this same build).
+    // [ytz5] Package YTZ5 supersedes the pinch default once more:
+    // absent now reads OFF (0), and the one-time migration below
+    // forces any legacy stored value (including a stored DRY_RUN=1)
+    // to OFF exactly once.
     id w = OMCPref(@"bridgewake.wakeMode", nil);
     id p = OMCPref(@"bridgewake.pinchMode", nil);
+    // [ytz5] One-time targeted pinch migration: if the ytz5 marker
+    // is absent, a stored pinchMode != 0 is rewritten to 0 (with the
+    // discriminator log line) and the marker is set. No other pref
+    // is touched and nothing is deleted; once the marker exists this
+    // block never runs again, so a pinchMode stored AFTER the
+    // migration is honoured as an explicit user choice.
+    if (!OMCPref(@"bridgewake.pinchOffMigratedYtz5", nil)) {
+        if (p && [p integerValue] != 0) {
+            CFPreferencesSetAppValue(CFSTR("bridgewake.pinchMode"),
+                (__bridge CFPropertyListRef)@(0),
+                CFSTR("com.anlai.omnicar"));
+            OMCLogWrite(@"SplitScreen",
+                @"[pinch1] legacy pinchMode overridden to OFF (ytz5)");
+            p = @0;
+        }
+        CFPreferencesSetAppValue(CFSTR("bridgewake.pinchOffMigratedYtz5"),
+            (__bridge CFPropertyListRef)@(1),
+            CFSTR("com.anlai.omnicar"));
+        CFPreferencesAppSynchronize(CFSTR("com.anlai.omnicar"));
+    }
     bwWakeMode  = w ? MIN(MAX([w integerValue], 0), 2) : BWModeDryRun;
-    bwPinchMode = p ? MIN(MAX([p integerValue], 0), 2) : BWModeDryRun;
+    bwPinchMode = p ? MIN(MAX([p integerValue], 0), 2) : BWModeOff;
     id al = OMCPref(@"bridgewake.pinchAllowlist", nil);
     if ([al isKindOfClass:[NSArray class]]) {
         NSMutableArray<NSString *> *clean = [NSMutableArray array];
@@ -744,8 +878,10 @@ static void BWEmitDrain(void) {
 // hash resolves a CURRENT bundle, the generation must match the
 // slot's live generation (a packet from before a reconnect/reassign
 // is stale), and the candidate bundle must still be assigned AND
-// hosted. The packet's flag is the app session's kbActive truth; the
-// AutoHide TU owns the hold itself (arm/refresh/10 s self-expiry).
+// hosted. [ytz5] The packet's flag is kept ONLY as a diagnostic
+// field in the accepted log line: since package YTZ5 an act packet
+// neither sets nor clears any kb truth (the fade gate reads the
+// BWInputStore aggregate), it is forwarded purely as activity.
 // This handler NEVER posts anything (anti-loop rule, §3.2.1).
 - (void)bwHandleActPacket:(uint64_t)raw {
     BWPacket pkt = BWUnpack(raw);
@@ -796,7 +932,11 @@ static void BWEmitDrain(void) {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[autohide] act-accepted bundle=%@ kb=%d seq=%u -> ahNoteActivity",
         bundle, (int)pkt.flag, pkt.seq]);
-    [self ahNoteActWithKbActive:pkt.flag];
+    // [ytz5] Activity only — pkt.flag (the app's kb bit) is NOT
+    // forwarded into any hold: ahNoteActWithKbActive:'s hold writes
+    // are gone, and the AutoHide fade gate no longer reads a global
+    // hold at all (it reads bwKbAggregateForHostedPanes).
+    [self ahNoteActivity:AHSourceApp];
 }
 
 - (void)bwHandleAckPacket:(uint64_t)raw {
@@ -877,18 +1017,21 @@ static void BWEmitDrain(void) {
                 (void)token;
                 [owner bwReloadModesAndRepublish];
             });
-        // [ytz4-hb] Host->car kb sync (GPT ytz4 ruling, item 1):
-        // ABHost reports the hosted-keyboard session's open/close
-        // (and an open-time snapshot per app) on the appbridge.kbsync
-        // distributed channel — the same host->car family as
-        // appbridge.state / handletap. The owner stores it per slot
-        // and re-publishes it to the apps as type-6 state-channel
-        // packets (see bwHandleKbSyncNote: / BWEmitKbPacket).
+        // [ytz5] App->owner input-session reports (package YTZ5,
+        // strand B5): the hosted app's own input session reports on
+        // the NSDistributed kbstate channel {hash, gen, session,
+        // seq, state, t}; the owner validates each report through
+        // the BWInputStore and re-publishes the slot's truth to the
+        // apps as type-6 state-channel packets (see
+        // bwHandleKbStateNote: / bwKbEmitForPane:). The ytz4 host
+        // appbridge.kbsync registration is gone with the drawn
+        // panel it measured.
+        BWEnsureInputStore();
         [[NSDistributedNotificationCenter defaultCenter]
-            addObserverForName:SCPNoteBridgeKbSync object:nil
+            addObserverForName:BWKbStateNoteName object:nil
                          queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n) {
-                        [owner bwHandleKbSyncNote:n];
+                        [owner bwHandleKbStateNote:n];
                     }];
         [self bwReloadModesAndRepublish];
         // [pinch1] arbitration glue: the owner IS the pinch arbiter

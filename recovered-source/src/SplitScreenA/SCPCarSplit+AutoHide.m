@@ -29,6 +29,11 @@ NS_ASSUME_NONNULL_BEGIN
 NS_ASSUME_NONNULL_END
 
 static const NSTimeInterval kAHIdleSeconds    = 4.0;  // QA20/QA19: 4.0 s
+// [ytz5] Legacy act-hold expiry (design §4.2): since package YTZ5 no
+// code path arms the act hold any more — the fade gate reads the
+// BWInputStore aggregate via the BridgeWake TU — so this constant
+// and the ahKbHoldState/ahKbHoldExpiry statics below survive only
+// as lifecycle state that start/teardown/close-cleanup reset.
 static const NSTimeInterval kAHKbHoldSeconds  = 10.0; // design §4.2 expiry
 
 static BOOL           ahInstalled      = NO;
@@ -144,9 +149,26 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
     // unchanged, and hosted-solo still blocks via "solo" (and via
     // the ahSetSuspended: suspension driven from SCPCarSplit.m).
     if (self.soloHostedBundle != nil) return "solo";
-    if (ahKbHoldState) {
-        if (CACurrentMediaTime() < ahKbHoldExpiry) return "kbhold";
-        ahKbHoldState = NO; // hold expired without a refreshing act
+    // [ytz5] Kb block (package YTZ5, strand B5): the gate reads the
+    // SAME kb truth the owner publishes — the BWInputStore aggregate
+    // over the live HOSTED assignments (accessor on the BridgeWake
+    // TU; hosted determined by the pane table's hostedPanes). The
+    // old global act-fed ahKbHoldState is no longer read here: an
+    // act flag=0 from app A used to clear app B's hold, and opening
+    // a keyboard produced no act at all (the 17:32 fade of map-m3).
+    //   aggregate 2 (some hosted assignment freshly ACTIVE)
+    //     -> block, reason "kb";
+    //   aggregate 1 (no ACTIVE, some hosted assignment UNKNOWN)
+    //     -> block, reason "kbunknown" — YTZ5 rule: a hosted
+    //        assignment whose input state is not yet known HOLDS
+    //        the controls rather than failing open;
+    //   aggregate 0 (every hosted assignment freshly INACTIVE)
+    //     -> no kb block.
+    NSInteger kbAgg = [self bwKbAggregateForHostedPanes];
+    if (kbAgg == 2) return "kb";
+    if (kbAgg == 1) {
+        OMCLogWrite(@"SplitScreen", @"[autohide] hold reason=kbunknown");
+        return "kbunknown";
     }
     if ([self popupOpen] || self.pickerSheet != nil ||
         self.ratioMenu != nil ||
@@ -245,16 +267,33 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
             ^{ [self ahNoteActWithKbActive:kbActive]; });
         return;
     }
-    // Keyboard hold bookkeeping first (design §4.2): kbActive=1 arms a
-    // hold that self-expires 10 s after the last refreshing act;
-    // kbActive=0 clears it. Either way the packet is app activity.
-    if (kbActive) {
-        ahKbHoldState = YES;
-        ahKbHoldExpiry = CACurrentMediaTime() + kAHKbHoldSeconds;
-    } else {
-        ahKbHoldState = NO;
-    }
+    // [ytz5] The act packet's kb flag no longer sets or clears any
+    // kb truth (package YTZ5, strand B5): the fade gate reads the
+    // BWInputStore aggregate, which only authenticated kbstate
+    // reports may move. An act packet — flag 1 or 0, from any app —
+    // is purely app activity now; in particular a flag=0 act can no
+    // longer clear another app's keyboard hold.
+    (void)kbActive;
+    (void)kAHKbHoldSeconds; // legacy constant retained (see statics note)
     [self ahNoteActivity:AHSourceApp];
+}
+
+// [ytz5] Kb hold release: the hosted aggregate just fell to 0 (the
+// last ACTIVE input session ended, or the last UNKNOWN resolved to
+// a fresh INACTIVE). The idle clock restarts from THIS moment — not
+// from the activity that preceded the keyboard session — so the
+// controls get a full fresh 4.0 s before they may fade.
+- (void)ahNoteKbHoldReleased {
+    if (![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(),
+            ^{ [self ahNoteKbHoldReleased]; });
+        return;
+    }
+    if (!ahInstalled) return;
+    ahLastActivityAt = CACurrentMediaTime();
+    ahLastSource = AHSourceApp;
+    [self ahArmTimer]; // self-guards on enabled/active/suspended
+    OMCLogWrite(@"SplitScreen", @"[autohide] kb hold released -> idle reset");
 }
 
 - (void)ahRevealWithReason:(AHRevealReason)reason {
@@ -327,6 +366,15 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
         return;
     }
     if (!ahInstalled) return;
+    // [ytz5] Session-start resets (CHANGE_MAP_YTZ5 M1): a new session
+    // must not inherit the previous session's kb-hold bookkeeping or
+    // activity source. The faded flag is deliberately NOT reset here
+    // — paint saves live on the views themselves and are restored by
+    // the close-path cleanup (ahCloseCleanup) / teardown, not by a
+    // flag reset that would orphan them (map-m1 §5.2).
+    ahKbHoldState = NO;
+    ahKbHoldExpiry = 0;
+    ahLastSource = AHSourceContainer;
     ahLastActivityAt = CACurrentMediaTime();
     [self ahArmTimer];
     OMCLogWrite(@"SplitScreen", @"[autohide] session start");
@@ -343,9 +391,46 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
     ahFadedState = NO;
     [self ahRestoreAllPainted];
     ahKbHoldState = NO;
+    ahKbHoldExpiry = 0; // [ytz5] M1: expiry resets together with the hold
     ahSuspendedState = NO;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[autohide] teardown faded=%d", wasFaded ? 1 : 0]);
+}
+
+// [ytz5] Close cleanup for the ordinary close path (closeGoingHome:),
+// CHANGE_MAP_YTZ5 M1. Same lifecycle semantics as ahSessionTeardown
+// (stop timer + restore paint + clear session state) but callable
+// synchronously at the head of closeGoingHome:, BEFORE hostCloseAll
+// and any detach — the views of the dying session are still in the
+// hierarchy here, so the restore lands on live views instead of
+// silently no-oping through the weak registry after teardown.
+// Deliberately NOT ahRevealBody:: no pushHostFramesLive:, no
+// publishKnobsSoon, no bwRecomputeForPane:, and no timer re-arm —
+// the session is ending, not waking. The destination mode owns what
+// comes next: a hosted-solo target re-suspends AFTER this cleanup
+// (soloBundle: sets ahSetSuspended:YES after its closeGoingHome:
+// call — GPT ruling 2026-11-09 18:45), so suspended is reset here
+// unconditionally. Idempotent; never arms the timer.
+- (void)ahCloseCleanup {
+    if (![NSThread isMainThread]) {
+        // Synchronous hop: the caller's ordering guarantee (cleanup
+        // strictly before hostCloseAll) must survive the thread hop.
+        dispatch_sync(dispatch_get_main_queue(),
+            ^{ [self ahCloseCleanup]; });
+        return;
+    }
+    [self ahInvalidateTimer];
+    BOOL wasFaded = ahFadedState;
+    ahFadedState = NO;
+    [self ahRestoreAllPainted];       // direct restore, registry mechanism
+    [ahPaintedViews removeAllObjects]; // registry explicitly empty afterwards
+    ahKbHoldState = NO;
+    ahKbHoldExpiry = 0;
+    ahSuspendedState = NO;
+    ahLastActivityAt = 0;
+    ahLastSource = AHSourceContainer;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[autohide] close-cleanup faded=%d", wasFaded ? 1 : 0]);
 }
 
 - (void)ahApplyCurrentStateToView:(UIView *)view {
