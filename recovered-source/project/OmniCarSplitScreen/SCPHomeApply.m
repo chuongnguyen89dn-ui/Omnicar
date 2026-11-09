@@ -32,6 +32,15 @@ static BOOL SCPLastShowNames;          // static byte 0x87f50
 static NSTimer *SCPVideoRefreshTimer;  // 0x881f0
 static NSInteger SCPApplyGeneration;   // 0x881f8
 
+// [homelib] instrument (WO GPT ytz4 item I2, log-only): the executing
+// process, read at runtime (used by the post-apply line in
+// SCPPublishCarAppsBlock below).
+static NSString *SCPHomeLibProcDesc(void) {
+    NSString *name = [[NSProcessInfo processInfo] processName] ?: @"?";
+    NSString *bundle = [[NSBundle mainBundle] bundleIdentifier] ?: @"?";
+    return [NSString stringWithFormat:@"%@(%@)", name, bundle];
+}
+
 static void SCPPublishCarAppsBlock(NSInteger generation); // sub_4c438, below
 extern void SCPVideoWallpaperTimerTick(void); // sub_4bd7c (SCPHomeSettings.m)
 
@@ -243,6 +252,7 @@ static void SCPPublishCarAppsBlock(NSInteger generation) {
         NSMutableArray *lists = [NSMutableArray array];
         SCPCollectIconListViews(view, lists, 0);
         NSMutableArray<NSDictionary *> *found = [NSMutableArray array];
+        BOOL homelibOmniOnGrid = NO; // [homelib] OmniCar's own app seen in the walk below
         NSMutableSet<NSString *> *seen = [NSMutableSet set];
         for (UIView *listView in lists) {
             id model = SCPHomeSafePerform(listView, @"model");
@@ -251,6 +261,9 @@ static void SCPPublishCarAppsBlock(NSInteger generation) {
             for (id iconList in SCPHomeSafePerform(model, @"lists") ?: @[]) {
                 for (id icon in SCPHomeSafePerform(iconList, @"icons") ?: @[]) {
                     NSString *bid = SCPHomeSafePerform(icon, @"applicationBundleID");
+                    // [homelib] presence is sampled BEFORE the seen/injected
+                    // filters: an injected OmniCar icon is still on the grid.
+                    if ([bid isEqualToString:@"com.anlai.omnicar.app"]) homelibOmniOnGrid = YES;
                     if (!bid.length || [seen containsObject:bid]) continue;
                     if (SCPIsInjectedPhoneApp(bid)) continue;
                     [seen addObject:bid];
@@ -303,6 +316,13 @@ static void SCPPublishCarAppsBlock(NSInteger generation) {
                 (unsigned long)merged.count,
                 [ids componentsJoinedByString:@", "]]);
         }
+        // [homelib] post-apply grid state (log-only; every publish run.
+        // count = real icons the walk above collected from the live icon
+        // model — injected phone apps are excluded by the walk's own
+        // filter, omni= is sampled before that filter).
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[homelib] proc=%@ event=apply-published count=%lu omni=%d",
+            SCPHomeLibProcDesc(), (unsigned long)found.count, homelibOmniOnGrid]);
     } @catch (NSException *e) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
             @"HomeScreen: ghi danh sach app loi %@", e]);

@@ -107,12 +107,53 @@ BOOL SCPIsInjectedPhoneApp(NSString *_Nullable bundleId) {
     }
 }
 
+// ---- [homelib] instrument (WO GPT ytz4 item I2, log-only) -------------------
+//
+// Decision journal for the inject/remove path below. A per-bundle
+// decision is logged only when the decision for that bundle CHANGES
+// (in-memory cache, keyed by bundle); com.anlai.omnicar.app is exempt
+// from suppression — every decision touching it is logged and also
+// gets its own OMNI marker line so its fate can be grepped alone.
+// proc= reads the executing process at runtime (this family is reached
+// only through the CarPlayApp-gated hooks in SCPHooks.m).
+static NSString *SCPHomeLibProcDesc(void) {
+    NSString *name = [[NSProcessInfo processInfo] processName] ?: @"?";
+    NSString *bundle = [[NSBundle mainBundle] bundleIdentifier] ?: @"?";
+    return [NSString stringWithFormat:@"%@(%@)", name, bundle];
+}
+
+static NSMutableDictionary<NSString *, NSString *> *SCPHomeLibDecisionCache(void) {
+    static NSMutableDictionary *cache;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ cache = [NSMutableDictionary dictionary]; });
+    return cache;
+}
+
+static void SCPHomeLibLogDecision(NSString *bid, NSString *decision) {
+    if (!bid.length) return;
+    BOOL omni = [bid isEqualToString:@"com.anlai.omnicar.app"];
+    NSMutableDictionary *cache = SCPHomeLibDecisionCache();
+    @synchronized (cache) {
+        if (!omni && [cache[bid] isEqualToString:decision]) return;
+        cache[bid] = decision;
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[homelib] proc=%@ decision=%@ bundle=%@",
+        SCPHomeLibProcDesc(), decision, bid]);
+    if (omni)
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[homelib] OMNI decision=%@ bundle=%@", decision, bid]);
+}
+
 // ---- declaration injection -------------------------------------------------
 
 // 0x9b34 (_SCPInjectDeclarationIfChosen) — VERIFIED
 void SCPInjectDeclarationIfChosen(id info) {
     NSString *bid = SCPHomeSafeGet(info, @"bundleIdentifier");
     if (![bid isKindOfClass:[NSString class]] || bid.length == 0) return;
+    // [homelib] (log-only; the flow check below is untouched)
+    if (![SCPChosenPhoneApps() containsObject:bid])
+        SCPHomeLibLogDecision(bid, @"skip-not-chosen");
     if (![SCPChosenPhoneApps() containsObject:bid]) return;
 
     id decl = SCPHomeSafeKVCGet(info, @"_carPlayDeclaration");
@@ -120,6 +161,12 @@ void SCPInjectDeclarationIfChosen(id info) {
         // 0x9bc0: the binary reads the tag list from INFO via SCPHomeSafeGet
         // (sub_a26c, x0 = info), NOT from the declaration — verifier #5.
         id tags = SCPHomeSafeGet(info, @"tags");
+        // [homelib] (log-only)
+        if ([tags isKindOfClass:[NSArray class]] &&
+            [tags containsObject:@"OmniCarAppBridge"])
+            SCPHomeLibLogDecision(bid, @"skip-already-ours");
+        else
+            SCPHomeLibLogDecision(bid, @"skip-real-declaration");
         if ([tags isKindOfClass:[NSArray class]] &&
             [tags containsObject:@"OmniCarAppBridge"])
             return; // already ours
@@ -131,6 +178,7 @@ void SCPInjectDeclarationIfChosen(id info) {
     Class declClass = objc_getClass("CRCarPlayAppDeclaration");
     if (!declClass) {
         OMCLogWrite(@"SplitScreen", @"AppIcons: khong co lop CRCarPlayAppDeclaration");
+        SCPHomeLibLogDecision(bid, @"skip-no-decl-class"); // [homelib]
         return;
     }
     decl = [[declClass alloc] init];
@@ -160,6 +208,9 @@ void SCPInjectDeclarationIfChosen(id info) {
     }
 
     if (!SCPHomeSafeSet(info, @"_carPlayDeclaration", decl)) return;
+    // [homelib] past this point the declaration write succeeded (a
+    // failure returns above and is already logged by SCPHomeSafeSet).
+    SCPHomeLibLogDecision(bid, @"inject");
 
     // 0x9e54: the pre-prepend read is also SCPHomeSafeGet(info, @"tags")
     // in the binary; the KVC "_tags" form is only the WRITE below (0x9eb0).
@@ -225,17 +276,21 @@ void SCPAddChosenAppsToLibrary(id library) {
         if ([library respondsToSelector:lookup]) {
             info = ((id (*)(id, SEL, id))objc_msgSend)(library, lookup, bid);
         } else SCPMissingSelector(library, @"applicationInfoForBundleIdentifier:");
+        // [homelib] (log-only)
+        if (info) SCPHomeLibLogDecision(bid, @"lib-skip-present");
         if (info) continue; // the _loadFromProxy: hook injects on load
         id proxy = SCPValidProxyForBundle(bid);
         if (!proxy) {
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                 @"AppIcons: %@ khong cai / khong hop le -> bo qua", bid]);
+            SCPHomeLibLogDecision(bid, @"lib-skip-no-proxy"); // [homelib]
             continue;
         }
         SEL addSel = NSSelectorFromString(@"addApplicationProxy:withOverrideURL:");
         if ([library respondsToSelector:addSel]) {
             ((void (*)(id, SEL, id, id))objc_msgSend)(library, addSel, proxy, nil);
             added++;
+            SCPHomeLibLogDecision(bid, @"lib-add"); // [homelib]
         } else SCPMissingSelector(library, @"addApplicationProxy:withOverrideURL:");
     }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
@@ -288,10 +343,13 @@ static void SCPRefreshAppIconsBlock(NSInteger token) {
         }
         for (NSString *bid in removed) {
             id proxy = SCPValidProxyForBundle(bid);
+            // [homelib] (log-only)
+            if (!proxy) SCPHomeLibLogDecision(bid, @"remove-skip-no-proxy");
             if (!proxy) continue;
             SEL rmSel = NSSelectorFromString(@"removeApplicationProxy:");
             if ([library respondsToSelector:rmSel]) {
                 ((void (*)(id, SEL, id))objc_msgSend)(library, rmSel, proxy);
+                SCPHomeLibLogDecision(bid, @"remove"); // [homelib]
             } else SCPMissingSelector(library, @"removeApplicationProxy:");
         }
         SCPAddChosenAppsToLibrary(library);

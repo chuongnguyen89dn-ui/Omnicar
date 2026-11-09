@@ -65,6 +65,66 @@ void ABPostStateToApp(NSString *state, NSString *identifier) {
 }
 
 // ===========================================================================
+// [ytz4-hb] Hosted-keyboard session sync (GPT ytz4 ruling, item 1) —
+// NEW machinery, not part of the original binary. ABKeyboardDispatch
+// (below) is the management point where the car keyboard is actually
+// opened/closed for an app; this TU therefore owns the ONE live
+// session record (owning bundle + session id) and reports it to the
+// car side on the appbridge.kbsync host->car channel, where the
+// bridgewake owner keeps the authenticated kb truth per pane. The
+// session id increments on every open; a close reports the id of
+// the session it closes (0 when the closed app owns no recorded
+// session). Every show/hide in the module — the dispatch, the
+// per-app teardown in ABHostLaunch.m, the disconnect force-hide
+// below — funnels through ABKbSyncNoteEvent so the record and the
+// posts cannot diverge.
+// ===========================================================================
+static NSString *abKbLiveBundle;   // bundle owning the live kb session
+static uint32_t  abKbLiveSession;  // its session id (0 = none live)
+static uint32_t  abKbSessionCounter;
+
+static void ABKbSyncPost(NSString *bundleID, BOOL active, uint32_t session) {
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotificationName:ABChanKbSync object:nil userInfo:@{
+            @"identifier": bundleID,
+            @"kbactive": @(active),
+            @"kbsession": @(session),
+            @"kbsource": @"host-keyboard-session",
+        }];
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[kb-sync] host post %@ active=%d session=%u source=host-keyboard-session",
+        bundleID, (int)active, session]);
+}
+
+void ABKbSyncNoteEvent(NSString *bundleID, BOOL active) {
+    if (!bundleID.length) return;
+    uint32_t session = 0;
+    if (active) {
+        abKbSessionCounter++;
+        abKbLiveBundle = [bundleID copy];
+        abKbLiveSession = abKbSessionCounter;
+        session = abKbLiveSession;
+    } else if ([abKbLiveBundle isEqualToString:bundleID]) {
+        session = abKbLiveSession;
+        abKbLiveBundle = nil;
+        abKbLiveSession = 0;
+    }
+    ABKbSyncPost(bundleID, active, session);
+}
+
+// Snapshot for an app whose pane (re)opened (called from ABOpenBlock):
+// the app's kb truth as the host knows it at this moment — active
+// only if the app owns the live session. Gives the car side an
+// initial authenticated snapshot per assignment; anything not
+// covered by an event or a snapshot stays UNKNOWN there by design.
+static void ABKbSyncSnapshotForApp(NSString *bundleID) {
+    if (!bundleID.length) return;
+    BOOL active = abKbLiveBundle != nil &&
+                  [abKbLiveBundle isEqualToString:bundleID];
+    ABKbSyncPost(bundleID, active, active ? abKbLiveSession : 0);
+}
+
+// ===========================================================================
 // Registrar — sub_7004, replacement for
 // -[SpringBoard applicationDidFinishLaunching:]. Calls the original IMP
 // (slot 0x3E9F0) first, logs "SpringBoard ready", then registers:
@@ -158,10 +218,14 @@ void ABKeyboardDispatch(int token) {
         }
         if ((state & 1) == 0) {
             [[ABKeyboard shared] hideForApp:bundleID];
+            // [ytz4-hb] the session just closed: sync it car-side.
+            ABKbSyncNoteEvent(bundleID, NO);
         } else {
             [[ABKeyboard shared] showForApp:bundleID
                                keyboardType:(UIKeyboardType)((state >> 1) & 0x7F)
                                  returnType:(UIReturnKeyType)((state >> 8) & 0xFF)];
+            // [ytz4-hb] the session just opened: sync it car-side.
+            ABKbSyncNoteEvent(bundleID, YES);
         }
     } @catch (NSException *e) {
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"ban phim loi %@", e]);
@@ -188,7 +252,11 @@ void ABCarPlayChanged(NSNotification *note) {
         // the function's (non-)return value.
         ABMissingSelector(cls, @"currentCarPlayExternalDevice");
     if (!device) {
+        // [ytz4-hb] the force-hide below closes whichever session is
+        // live; report that close before the record is torn down.
+        NSString *kbBundle = abKbLiveBundle;
         [[ABKeyboard shared] hideForApp:nil];
+        if (kbBundle) ABKbSyncNoteEvent(kbBundle, NO);
         [[ABHost shared] carDisconnected];
     }
     // Connected case (device != nil): the binary does literally nothing
@@ -291,6 +359,10 @@ static void ABOpenBlock(NSNotification *note) {
     if ([u[@"aw"] doubleValue] > 0)
         host.carAppArea = CGRectMake([u[@"ax"] doubleValue], [u[@"ay"] doubleValue],
                                      [u[@"aw"] doubleValue], [u[@"ah"] doubleValue]);
+    // [ytz4-hb] initial kb snapshot for the (re)opened app: the car
+    // side's per-assignment kb record starts UNKNOWN and this is
+    // its first authenticated value.
+    ABKbSyncSnapshotForApp(app);
     } @catch (NSException *e) {
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"open loi %@", e]);
     }

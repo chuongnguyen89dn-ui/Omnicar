@@ -33,6 +33,7 @@ extern NSString *const ABChanHandleDrag;  // host->car   {identifier, phase, x, 
 extern NSString *const ABChanHandleTap;   // host->car   {identifier}, object nil
 extern NSString *const ABChanBarAction;   // host->car   (ABHost postBarAction:from: — module A)
 extern NSString *const ABChanBarDismiss;  // host->car   {}, object nil (+ local outsideTouched)
+extern NSString *const ABChanKbSync;      // host->car   {identifier, kbactive, kbsession, kbsource}, object nil [ytz4-hb NEW]
 
 // Darwin notify channels (state-carrying, notify_set_state/get_state):
 //   "com.anlai.omnicar/appbridge.keyboard"  packed uint64, proven layout:

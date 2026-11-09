@@ -153,9 +153,29 @@ static BOOL     BWActSessionVerified = NO;
 static NSUInteger BWActSetFail  = 0; // notify_set_state failures (act)
 static NSUInteger BWActPostFail = 0; // notify_post failures (act)
 
-// ---- keyboard guard state (§5.5) ----
+// ---- keyboard guard state (§5.5; three-state signal reworked by
+// WO ytz4 K2) ----
+// The kb truth is THREE-state end to end (UNKNOWN / INACTIVE /
+// ACTIVE); nothing in this TU may collapse UNKNOWN into INACTIVE.
+// Two sources feed the effective state (BWKbEffective, below):
+//   local — this app's own keyboard evidence: the first-responder
+//           session (primary, ABResponderBecame/Resigned) plus the
+//           frame notifications (§5.5). It is kept as a LOCAL ACTIVE
+//           source: a local ACTIVE is positive evidence and wins.
+//   owner — the host's authenticated snapshot of the hosted keyboard
+//           session, carried by kb packets on the state channel
+//           (BWOnKbPacket, below). GPT's ytz3 audit convicted the old
+//           arrangement, in which the act packet's one flag bit —
+//           derived by testing the raw local value against ACTIVE —
+//           let UNKNOWN masquerade as a measured "kb inactive" on
+//           the owner side (38/38 kb=- app-side against 26/26
+//           owner kb=0 in the ytz3 log).
 enum { BWKbUnknown = 0, BWKbInactive = 1, BWKbActive = 2 };
 static NSInteger BWKb = BWKbUnknown;
+// Effective three-state kb and its provenance (defined with the kb
+// sync machinery below; forward-declared for BWPostAct's flag).
+enum { BWKbSrcNone = 0, BWKbSrcLocal = 1, BWKbSrcOwner = 2 };
+static NSInteger BWKbEffective(NSInteger *srcOut, long *ageMsOut);
 
 // ---- suppression engine (§5.4) ----
 enum { BWEngIdle = 0, BWEngSwallowing = 1, BWEngFinished = 2 };
@@ -181,7 +201,14 @@ static NSUInteger BWProbeSeqNo = 0;
 static BOOL     BWSeqWouldSwallow = NO;
 static NSString *BWSeqFailOpen = nil;       // reason latched at seq start
 static NSInteger BWSeqStateAtStart = BWStateUnknown;
-static NSInteger BWSeqKbAtStart = BWKbUnknown;
+// kb instrument latched at sequence start (WO ytz4 K2): the effective
+// tri-state decomposed into known/active plus its source and the age
+// of the winning source's information, so a car log can audit every
+// suppression decision's kb basis instead of the old one-letter code.
+static BOOL     BWSeqKbKnownAtStart = NO;
+static BOOL     BWSeqKbActiveAtStart = NO;
+static NSInteger BWSeqKbSrcAtStart = 0; // BWKbSrc* (kb state section)
+static long     BWSeqKbAgeAtStart = -1; // ms; -1 = no kb information
 static BOOL     BWSeqHosted = NO;
 // Two-touch distance tracking for wouldPinch — INTERNAL ONLY: distances
 // are computed from touch locations but never written to any log.
@@ -270,8 +297,12 @@ static void BWPostWake(uint32_t seq) {
 // OFF/DRY_RUN: AutoHide is independent of suppression (the QA19 relay
 // precedent). Throttled at 0.12 s (the QA19/QA20 on-car-proven value).
 // The packet carries no touch content — hash/gen/seq only;
-// flag = kbActive, the keyboard-guard state at post time (§5.5 of
-// design-bridgewake).
+// flag = kbActive at post time (§5.5 of design-bridgewake), computed
+// from the EFFECTIVE three-state kb (WO ytz4 K2): the bit is 1 only
+// on positive ACTIVE evidence (local responder session or a fresh
+// owner snapshot); UNKNOWN never masquerades as a measured inactive
+// here — the tri-state itself travels in the probe log (kbKnown /
+// kbActive / kbSrc / kbAge), not in this bit.
 //
 // Emission basis (W2-A): session-verified identity + scene binding,
 // NOT state freshness. The retired rule (post only while BWFresh())
@@ -294,7 +325,8 @@ static BOOL BWPostAct(int *setStatus, int *postStatus) {
     BWLastActAt = now;
     if (!BWActToken) notify_register_check(BWNameAct, &BWActToken);
     uint64_t raw = BWPackFields(BWOwnHash28(), (++BWActSeq) & 0xFFFu, BWGen,
-                                BWKb == BWKbActive, 0, 0, 0, BWTypeAct);
+                                BWKbEffective(NULL, NULL) == BWKbActive,
+                                0, 0, 0, BWTypeAct);
     int ss = notify_set_state(BWActToken, raw);
     int ps = notify_post(BWNameAct);
     if (ss != 0) BWActSetFail++;
@@ -373,6 +405,86 @@ static void BWActOnSequenceStart(NSSet *began) {
     }
 }
 
+// ---- kb sync: owner snapshot + effective state (WO ytz4 K2) ----
+// Packet interface, fixed with the host strand: the kb packet rides
+// the STATE channel with the unchanged header (valid/hash28/seq/gen)
+// and type = 6 — the first previously-unused type value
+// (BridgeWakePack.h assigns 1-5 and reserves 6-7). Its payload
+// repurposes bits 9-8 (the pinchMode field position): bit9 = kbKnown,
+// bit8 = kbActive. The constant stays local to this TU so the shared
+// pack header is not forked from this side; the header gains the same
+// value with the SplitScreen copy.
+enum { BWTypeKbState = 6 };
+
+// Owner snapshot: the last kb packet accepted for THIS bundle.
+static BOOL BWKbOwnerKnown  = NO; // owner's snapshot itself knows kb
+static BOOL BWKbOwnerActive = NO;
+static NSTimeInterval BWKbOwnerRxAt = 0; // BWNow() stamp; 0 = never
+
+// Owner-sync freshness window: 3.5 s. The owner emits kb on session
+// open/close, on query, and with the 1 s state renew, which rotates
+// through the hosted panes — worst case for one bundle in a two-pane
+// split is therefore one kb-bearing emission every ~2 s. 3.5 s =
+// 2.0 s worst-case rotation + 1.0 s for one fully missed tick + 0.5 s
+// scheduling slack. Past the window the sync is stale and the kb
+// state is UNKNOWN again — never a remembered INACTIVE.
+static const NSTimeInterval BWKbOwnerFreshWindow = 3.5;
+
+// Local kb changes go through one setter so the local source carries
+// an age like the owner's.
+static NSTimeInterval BWKbLocalChangedAt = 0;
+static void BWKbLocalSet(NSInteger v) {
+    if (BWKb == v) return;
+    BWKb = v;
+    BWKbLocalChangedAt = BWNow();
+}
+
+// kb packet acceptance follows the state packet discipline exactly
+// (§3.2): own bundle hash + gen accepted against the newest known
+// gen; anything else is dropped and the previous snapshot (or its
+// absence) stands. A kb packet never touches the chrome state, the
+// act session identity, or the §5.4 unlock latches — those belong to
+// state packets alone.
+static void BWOnKbPacket(BWPacket p) {
+    if (p.hash28 != BWOwnHash28()) return;
+    if (!BWGenAccept(p.gen)) return;
+    BOOL known  = ((p.pinchMode >> 1) & 0x1u) != 0;       // bit 9
+    BOOL active = known && ((p.pinchMode & 0x1u) != 0);   // bit 8
+    BWKbOwnerKnown  = known;
+    BWKbOwnerActive = active;
+    BWKbOwnerRxAt   = BWNow();
+}
+
+// The effective three-state kb (§5.5 as reworked by WO ytz4 K2):
+// ACTIVE on ANY valid ACTIVE evidence — the local responder/frame
+// tracking or a fresh owner snapshot saying active. Otherwise a
+// fresh owner snapshot decides (its INACTIVE, or its own UNKNOWN).
+// No fresh sync and no local ACTIVE -> UNKNOWN. *srcOut receives the
+// winning source (BWKbSrc*), *ageMsOut the age of that source's
+// information in ms (-1 when there is none).
+static NSInteger BWKbEffective(NSInteger *srcOut, long *ageMsOut) {
+    NSTimeInterval now = BWNow();
+    NSInteger src = BWKbSrcNone;
+    long age = -1;
+    NSInteger eff = BWKbUnknown;
+    if (BWKb == BWKbActive) {
+        eff = BWKbActive;
+        src = BWKbSrcLocal;
+        age = (long)((now - BWKbLocalChangedAt) * 1000.0);
+    } else if (BWKbOwnerRxAt > 0
+               && (now - BWKbOwnerRxAt) <= BWKbOwnerFreshWindow) {
+        // A fresh sync governs even when its content is "owner does
+        // not know": the sync is live, the state is honestly UNKNOWN.
+        src = BWKbSrcOwner;
+        age = (long)((now - BWKbOwnerRxAt) * 1000.0);
+        if (BWKbOwnerKnown)
+            eff = BWKbOwnerActive ? BWKbActive : BWKbInactive;
+    }
+    if (srcOut) *srcOut = src;
+    if (ageMsOut) *ageMsOut = age;
+    return eff;
+}
+
 static void BWCompleteTxn(void) {
     if (BWAckTimeoutBlock) {
         dispatch_block_cancel((dispatch_block_t)BWAckTimeoutBlock);
@@ -408,6 +520,7 @@ static void BWArmAckTimeout(uint32_t seq) {
 static void BWOnStatePacket(uint64_t raw) {
     BWPacket p = BWUnpack(raw);
     if (!p.valid || p.type == BWTypeInvalid) return;
+    if (p.type == BWTypeKbState) { BWOnKbPacket(p); return; } // WO ytz4 K2
     if (p.type != BWTypeState) return;
     if (p.hash28 != BWOwnHash28()) return;
     if (!BWGenAccept(p.gen)) return;
@@ -455,12 +568,12 @@ static void BWKbFrameNote(NSNotification *note) {
     if (![v isKindOfClass:NSValue.class]) return;
     CGRect f = v.CGRectValue;
     CGFloat h = [UIScreen mainScreen].bounds.size.height;
-    if (f.origin.y > 0 && f.origin.y < h) BWKb = BWKbActive;
+    if (f.origin.y > 0 && f.origin.y < h) BWKbLocalSet(BWKbActive);
 }
 static void BWKbHideNote(NSNotification *note) {
     (void)note;
     // Definitive "not shown" only when no responder session is live.
-    if (!ABCurrentResponder && BWKb == BWKbUnknown) BWKb = BWKbInactive;
+    if (!ABCurrentResponder && BWKb == BWKbUnknown) BWKbLocalSet(BWKbInactive);
 }
 
 static const char *BWStateLetter(NSInteger s) {
@@ -485,8 +598,12 @@ static BOOL BWGatePass(UIEvent *event, NSString **reason) {
     // known && hidden: any other state (incl. WAKING) is a normal
     // pass-through, not a fail-open.
     if (BWState != BWStateHidden) return NO;
-    if (BWKb == BWKbActive)  { if (reason) *reason = @"kb"; return NO; }
-    if (BWKb == BWKbUnknown) { if (reason) *reason = @"kbunknown"; return NO; }
+    // kb guard on the EFFECTIVE three-state (WO ytz4 K2): ACTIVE from
+    // any valid source blocks; UNKNOWN blocks as kbunknown — it is
+    // never read as inactive. Only a known-inactive passes.
+    NSInteger kbEff = BWKbEffective(NULL, NULL);
+    if (kbEff == BWKbActive)  { if (reason) *reason = @"kb"; return NO; }
+    if (kbEff == BWKbUnknown) { if (reason) *reason = @"kbunknown"; return NO; }
     if (BWSuppressLocked) { if (reason) *reason = @"mixed"; return NO; }
     // transitioning: a wake transaction still in flight, or the state
     // flipped less than 0.25 s ago — never swallow on a moving state.
@@ -561,16 +678,21 @@ static void BWCloseSequence(void) {
     }
     if (!BWProbeLogging()) return;
     BWLoggedSeqs++;
-    const char *kb = BWSeqKbAtStart == BWKbActive ? "1"
-                   : BWSeqKbAtStart == BWKbInactive ? "0" : "-";
+    const char *kbSrc = BWSeqKbSrcAtStart == BWKbSrcOwner ? "owner"
+                      : BWSeqKbSrcAtStart == BWKbSrcLocal ? "local"
+                      : "none";
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[do] bw probe seq=%lu ph B=%lu M=%lu E=%lu C=%lu dur=%.2f "
-         "hosted=%d kb=%s state=%s wouldSwallow=%d wouldPinch=%d failopen=%@",
+         "hosted=%d kbKnown=%d kbActive=%d kbSrc=%s kbAge=%ld "
+         "state=%s wouldSwallow=%d wouldPinch=%d failopen=%@",
         (unsigned long)BWProbeSeqNo,
         (unsigned long)BWPhB, (unsigned long)BWPhM,
         (unsigned long)BWPhE, (unsigned long)BWPhC,
         BWNow() - BWSeqStartAt,
-        BWSeqHosted ? 1 : 0, kb, BWStateLetter(BWSeqStateAtStart),
+        BWSeqHosted ? 1 : 0,
+        BWSeqKbKnownAtStart ? 1 : 0, BWSeqKbActiveAtStart ? 1 : 0,
+        kbSrc, BWSeqKbAgeAtStart,
+        BWStateLetter(BWSeqStateAtStart),
         BWSeqWouldSwallow ? 1 : 0, wouldPinch ? 1 : 0,
         BWSeqFailOpen ? BWSeqFailOpen : @"-"]);
 }
@@ -615,7 +737,18 @@ static BOOL BWHandleTouchEvent(UIEvent *event) {
         BWSeqTouches = [NSMutableSet set];
         BWPairD0 = BWPairDMin = BWPairDMax = -1;
         BWSeqStateAtStart = BWState;
-        BWSeqKbAtStart = BWKb;
+        {
+            // kb instrument latch (WO ytz4 K2): decompose the
+            // effective tri-state at this exact instant; the close
+            // log below prints these verbatim.
+            NSInteger kbSrc = BWKbSrcNone;
+            long kbAge = -1;
+            NSInteger kbEff = BWKbEffective(&kbSrc, &kbAge);
+            BWSeqKbKnownAtStart  = (kbEff != BWKbUnknown);
+            BWSeqKbActiveAtStart = (kbEff == BWKbActive);
+            BWSeqKbSrcAtStart    = kbSrc;
+            BWSeqKbAgeAtStart    = kbAge;
+        }
         BWSeqHosted = (ABForcedOrientation >= 1);
         if (BWSeqHosted) {
             for (UITouch *t in began)
@@ -765,7 +898,12 @@ static void BWResetAll(void) {
     BWKnown = NO;
     BWActSessionVerified = NO; // WO fix-w W2-A: session closed
     BWGen = 0;
-    BWKb = BWKbUnknown;
+    BWKbLocalSet(BWKbUnknown);
+    // WO ytz4 K2: the owner's kb sync dies with the session too —
+    // a snapshot from a closed assignment must never govern the next.
+    BWKbOwnerKnown  = NO;
+    BWKbOwnerActive = NO;
+    BWKbOwnerRxAt   = 0;
     BWWakeMode = BWModeDryRun;
     BWPinchMode = BWModeDryRun;
     BWPinchAllowed = NO;
@@ -1594,7 +1732,9 @@ static void ABResponderBecame(id responder) {
     if (ABForcedOrientation < 1) return;
     ABCurrentResponder = responder;
     ABKeyboardPublish(YES, responder);
-    BWKb = BWKbActive; // BridgeWake kb guard: primary evidence (§5.5)
+    BWKbLocalSet(BWKbActive); // BridgeWake kb guard: primary evidence
+                              // (§5.5) — the local ACTIVE source of the
+                              // effective kb (WO ytz4 K2)
 }
 
 // sub_6D50 — after a successful resignFirstResponder.
@@ -1606,8 +1746,9 @@ static void ABResponderResigned(id responder) {
     if (ABCurrentResponder == responder) {
         ABCurrentResponder = nil;
         ABKeyboardPublish(NO, nil);
-        BWKb = BWKbInactive; // BridgeWake kb guard: only the responder
-                             // session may lower ACTIVE (§5.5)
+        BWKbLocalSet(BWKbInactive); // BridgeWake kb guard: only the
+                                    // responder session may lower
+                                    // ACTIVE (§5.5)
     }
 }
 

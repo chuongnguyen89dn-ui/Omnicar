@@ -156,5 +156,6 @@ extern NSString * const SCPNoteBridgeHandleDrag;    // com.anlai.omnicar/appbrid
 extern NSString * const SCPNoteBridgeBarAction;     // com.anlai.omnicar/appbridge.baraction
 extern NSString * const SCPNoteBridgeBarDismiss;    // com.anlai.omnicar/appbridge.bardismiss
 extern NSString * const SCPNoteBridgeKnobTouch;     // com.anlai.omnicar/appbridge.knobtouch
+extern NSString * const SCPNoteBridgeKbSync;        // com.anlai.omnicar/appbridge.kbsync [ytz4-hb: host->car kb session sync, NEW (not in the original binary)]
 
 NS_ASSUME_NONNULL_END

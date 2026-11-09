@@ -35,6 +35,7 @@ NSString *const ABChanHandleDrag  = @"com.anlai.omnicar/appbridge.handledrag";
 NSString *const ABChanHandleTap   = @"com.anlai.omnicar/appbridge.handletap";
 NSString *const ABChanBarAction   = @"com.anlai.omnicar/appbridge.baraction";
 NSString *const ABChanBarDismiss  = @"com.anlai.omnicar/appbridge.bardismiss";
+NSString *const ABChanKbSync      = @"com.anlai.omnicar/appbridge.kbsync"; // [ytz4-hb] host->car {identifier, kbactive, kbsession, kbsource}, object nil — NEW (GPT ytz4 kb ruling)
 
 const char *ABNotifyKeyboard  = "com.anlai.omnicar/appbridge.keyboard";
 const char *ABNotifyAppOrient = "com.anlai.omnicar/appbridge.apporient";

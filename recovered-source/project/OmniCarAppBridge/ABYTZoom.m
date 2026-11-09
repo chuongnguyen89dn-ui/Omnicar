@@ -67,6 +67,8 @@
 @property (nonatomic) BOOL contentDirty;        // candidate awaits a post
 @property (nonatomic) NSTimeInterval lastPostAt;
 @property (nonatomic) NSUInteger expiryHeals;   // consecutive expired-ack heals
+@property (nonatomic) BOOL revokeSnapPending;   // Y2S instrument: a revoke snapshot awaits its first republication
+@property (nonatomic) double revokeSnapAt;      // Y2S instrument: wall time of that revoke
 @end
 @implementation ABYTLeaseRecord
 @end
@@ -201,6 +203,97 @@ static BOOL YZComputeIsSplit(ABHost *host, NSString *bundleID) {
 }
 
 // ---------------------------------------------------------------------------
+// Y2S instrument (GPT ytz4 WO; LOG-ONLY). At every revoke, snapshot
+// the pane's size/orientation state ([ytz-revoke-snap]); the first
+// republication for the record after that revoke logs the same
+// field set plus the elapsed time ([ytz-nextlayout], armed in
+// yzLeaseRevokeForPane: and consumed at the tail of YZPublish —
+// this module's only emission point). Revoke behaviour is NOT
+// changed: no forced layout is added anywhere; a later round only
+// fixes something if a snapshot pair shows a real mismatch.
+// ---------------------------------------------------------------------------
+
+// The orientation actually committed in the hosted scene's
+// settings, read back through the same guarded private chain the
+// commit path uses (ABHostBMethods.m: ABSceneOfPane finds the
+// scene; ABSceneSettingsApply mutates its settings):
+// appViewController -sceneHandle -> -sceneIfExists, then the
+// scene's -settings -interfaceOrientation. Any missing link reads
+// @"unavailable" — never a guessed value.
+static NSString *YZSettingsOrientationString(ABPane *pane) {
+    id vc = pane.appViewController;
+    if (!vc) return @"unavailable";
+    @try {
+        SEL handleSel = NSSelectorFromString(@"sceneHandle");
+        if (![vc respondsToSelector:handleSel]) return @"unavailable";
+        id handle = ((id (*)(id, SEL))objc_msgSend)(vc, handleSel);
+        SEL sceneSel = NSSelectorFromString(@"sceneIfExists");
+        if (![handle respondsToSelector:sceneSel]) return @"unavailable";
+        id scene = ((id (*)(id, SEL))objc_msgSend)(handle, sceneSel);
+        if (!scene) return @"unavailable";
+        SEL settingsSel = NSSelectorFromString(@"settings");
+        if (![scene respondsToSelector:settingsSel]) return @"unavailable";
+        id settings = ((id (*)(id, SEL))objc_msgSend)(scene, settingsSel);
+        SEL orientSel = NSSelectorFromString(@"interfaceOrientation");
+        if (![settings respondsToSelector:orientSel]) return @"unavailable";
+        NSInteger value = ((NSInteger (*)(id, SEL))objc_msgSend)(settings, orientSel);
+        return [NSString stringWithFormat:@"%ld", (long)value];
+    } @catch (NSException *e) {
+        return @"unavailable";
+    }
+}
+
+// The shared snapshot field set for [ytz-revoke-snap] and
+// [ytz-nextlayout]:
+//   bundle / hash — the pane's identity; hash is ABBundleIDHash
+//     (FNV-1a-32 over the bundle ID, ABHostLaunch.m) — the value
+//     -bundleForHash: matches panes by.
+//   gen — the record's generation at log time.
+//   logical — the lease's latest committed candidate size
+//     (rec.width/height, set by the layout issuer hook);
+//     pub — the last published size.
+//   box — pane.sceneBox, the on-screen size layoutPane: last
+//     committed; frame — pane.frame in window coords.
+//   reqOrient — pane.requestedOrientation: the last declaration
+//     result appWithHash: STORED. While a lease lives, incoming
+//     declarations are consumed there and never stored, so at a
+//     revoke this is the pre-lease value, frozen since grant.
+//   paneOrient — pane.orientation: the launch-time baseline from
+//     the appBridgeOrientation pref (set once in ABHostLaunch.m);
+//     the fallback half of -effectiveOrientation:.
+//   settingsOrient — the orientation read back from the scene's
+//     committed settings (helper above), or "unavailable".
+//   lastDecl — the app's most recent orientation declaration as
+//     seen by the host: UNAVAILABLE from this TU. Under a live
+//     lease the declaration is consumed in appWithHash:
+//     (ABHostBMethods.m), which forwards only the packet hash to
+//     yzLogAppOrientBlockedForPane: — the changed/mask values
+//     never enter this file, and nothing here invents them.
+static NSString *YZSnapshotFields(ABPane *pane, ABYTLeaseRecord *rec) {
+    NSString *bundle = rec.bundleID ?: (pane ? pane.bundleID : @"?");
+    NSMutableString *fields = [NSMutableString stringWithFormat:
+        @"bundle=%@ hash=%08x gen=%lu logical=%gx%g pub=%gx%g",
+        bundle, (unsigned)ABBundleIDHash(bundle),
+        (unsigned long)rec.generation, rec.width, rec.height,
+        rec.pubWidth, rec.pubHeight];
+    if (pane) {
+        [fields appendFormat:
+            @" box=%gx%g frame=%g,%g,%gx%g reqOrient=%ld paneOrient=%ld settingsOrient=%@",
+            pane.sceneBox.width, pane.sceneBox.height,
+            pane.frame.origin.x, pane.frame.origin.y,
+            pane.frame.size.width, pane.frame.size.height,
+            (long)pane.requestedOrientation, (long)pane.orientation,
+            YZSettingsOrientationString(pane)];
+    } else {
+        [fields appendString:
+            @" box=unavailable frame=unavailable reqOrient=unavailable"
+            @" paneOrient=unavailable settingsOrient=unavailable"];
+    }
+    [fields appendString:@" lastDecl=unavailable"];
+    return fields;
+}
+
+// ---------------------------------------------------------------------------
 // Issuer. Every post carries the FULL lease state (design §4.2);
 // generation increments inside, only on a content change against
 // the last published set. Callers decide WHEN to post:
@@ -245,6 +338,17 @@ static void YZPublish(ABHost *host, ABYTLeaseRecord *rec) {
         postNotificationName:ABYTLeaseChannel object:rec.bundleID
                     userInfo:payload];
     rec.lastPostAt = [NSDate date].timeIntervalSince1970;
+    // Y2S one-shot (log-only): the first republication for this
+    // record since a revoke armed the snapshot — same field set
+    // as the [ytz-revoke-snap] line, plus the elapsed time since
+    // that revoke. The revoke's own post above cannot trip this:
+    // the flag is armed only after that post returns.
+    if (rec.revokeSnapPending) {
+        rec.revokeSnapPending = NO;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[ytz-nextlayout] %@ dt=%.3f", YZSnapshotFields(pane, rec),
+            rec.lastPostAt - rec.revokeSnapAt]);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -357,6 +461,11 @@ static void YZStopHeartbeatIfIdle(void) {
     if (![self.panes containsObject:pane]) return;
     ABYTLeaseRecord *rec = YZRecordFor(pane.bundleID, YES);
     BOOL fresh = !rec.active;
+    // Y2S instrument (log-only): if this grant follows a revoke
+    // whose snapshot is still pending, the fresh-grant line below
+    // carries the elapsed gap as prevRevoke=...s.
+    double y2sPrevRevoke = rec.revokeSnapPending
+        ? [NSDate date].timeIntervalSince1970 - rec.revokeSnapAt : -1.0;
     // Portrait repair (design §3.2.3) BEFORE the lease is published:
     // clear any r6 residue, then one layoutPane: transaction
     // re-commits {untransposed logical size, orientation 1}; the
@@ -373,9 +482,12 @@ static void YZStopHeartbeatIfIdle(void) {
     if (!rec.hasPublished) YZPublish(self, rec);
     if (fresh) {
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[ytz] lease cap gen=%lu size=%gx%g split=%d",
+            @"[ytz] lease cap gen=%lu size=%gx%g split=%d%@",
             (unsigned long)rec.generation, rec.pubWidth, rec.pubHeight,
-            rec.pubIsSplit ? 1 : 0]);
+            rec.pubIsSplit ? 1 : 0,
+            y2sPrevRevoke >= 0
+                ? [NSString stringWithFormat:@" prevRevoke=%.2fs", y2sPrevRevoke]
+                : @""]);
     }
     YZStartHeartbeatIfNeeded();
 }
@@ -392,6 +504,17 @@ static void YZStopHeartbeatIfIdle(void) {
     YZPublish(self, rec);
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[ytz] lease thu hoi ly do=%@", reason ?: @"teardown"]);
+    // Y2S instrument (GPT ytz4 WO; log-only): snapshot the pane's
+    // size/orientation state at the revoke and arm the one-shot
+    // that marks the first republication after it
+    // ([ytz-nextlayout], consumed at the tail of YZPublish). No
+    // state changes beyond the instrument's own bookkeeping; no
+    // forced layout.
+    rec.revokeSnapAt = [NSDate date].timeIntervalSince1970;
+    rec.revokeSnapPending = YES;
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[ytz-revoke-snap] ly do=%@ %@", reason ?: @"teardown",
+        YZSnapshotFields(pane, rec)]);
     YZStopHeartbeatIfIdle();
 }
 
@@ -484,6 +607,15 @@ static void YZHandlePrefChanged(void) {
                 // left holding a lease nobody will renew.
                 rec.active = NO;
                 YZPublish(host, rec);
+                // Y2S instrument (log-only): the same revoke
+                // snapshot for this orphan path; the pane is
+                // gone, so its geometry fields read unavailable
+                // in YZSnapshotFields.
+                rec.revokeSnapAt = [NSDate date].timeIntervalSince1970;
+                rec.revokeSnapPending = YES;
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"[ytz-revoke-snap] ly do=pref %@",
+                    YZSnapshotFields(nil, rec)]);
             }
         }
         YZStopHeartbeatIfIdle();
