@@ -61,9 +61,11 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
         // [ytz5-k5] RELAY POINT (the frame-info payload this host
         // posts to the app process): the native-keyboard gate,
         // carried to the app because the app must never read the
-        // pref itself. 1 = drawn panel enabled (pref = 0, or pref
-        // ABSENT since the hl2 default flip), 0 = native (pref = 1
-        // only). Stamped on EVERY post — launch, layout re-posts,
+        // pref itself. 1 = drawn panel enabled, 0 = native.
+        // [hl3] The host gate is hard-locked native (Nguyen's
+        // direct order 2026-11-09 22:14, overriding the hl2 drawn
+        // default), so this stamp is ALWAYS 0 in this build.
+        // Stamped on EVERY post — launch, layout re-posts,
         // release — so the app's cache (ABOrientationBlock,
         // ABInApp.m) always converges to the host's current
         // reading, including after a mid-session flip re-post from
@@ -76,7 +78,7 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
     // pref/mode and the payload value actually sent, in one line.
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[ytz5-k5] payload %@ drawnKeyboard=%d mode=%@",
-        bundleID, drawnKb ? 1 : 0, drawnKb ? @"drawn" : @"native"]);
+        bundleID, drawnKb ? 1 : 0, drawnKb ? @"drawn" : @"native-locked-hl3"]);
 }
 
 // C helper sub_BED4 — post ABChanState (object nil).
@@ -207,7 +209,7 @@ static void ABNativeKbHandlePrefsChanged(void) {
             ABPostOrientationToApp(pane.bundleID, pane.orientation);
     }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[ytz5-k5] cong ban phim doi: %@ (prefschanged)",
+        @"[ytz5-k5] cong ban phim: %@ (prefschanged; hl3 native khoa cung — che do khong do pref quyet dinh)",
         native ? @"native" : @"drawn"]);
 }
 

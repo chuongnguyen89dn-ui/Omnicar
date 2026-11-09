@@ -518,14 +518,18 @@ static NSInteger BWKbEffective(NSInteger *srcOut, long *ageMsOut) {
 // ABHostGeometry.m), and ABOrientationBlock — the existing
 // frame-info handler — caches the value here via
 // ABDrawnKbNoteFrameInfo.
-// Default law (HL2-K6, GPT ruling 2026-11-09 §5 + log review §4 —
-// supersedes the K5 default above): DRAWN is the cached default.
-// Before the bridge has said anything the app behaves as drawn; it
-// goes native ONLY on an explicit drawnKeyboard=0 in a payload. An
-// absent field, a non-NSNumber field, or no payload yet never flips
-// the cache to native — the cached value simply stands.
+// Default law (HL3 — supersedes the HL2-K6 law and restores the
+// K5 original): NATIVE is the cached default AND the lock. The
+// cache starts at NO (native) — exactly the ytz5 configuration
+// that ran on the car — and the host of this build only ever
+// stamps drawnKeyboard=0. A drawnKeyboard=1 payload, should one
+// ever arrive, is logged once and IGNORED under the lock (see
+// ABDrawnKbNoteFrameInfo): Nguyen's direct order 2026-11-09
+// 22:14 — all hosted apps on the stock CarPlay keyboard, the
+// drawn panel is not used — overrides the GPT drawn-default
+// ruling. The drawn code stays in the tree, unreachable.
 // ===========================================================================
-static BOOL ABDrawnKb = YES; // [hl2-k6] cached drawnKeyboard; YES = drawn (default), NO = native (explicit 0 only)
+static BOOL ABDrawnKb = NO; // [hl3] cached drawnKeyboard; NO = native (default + locked); host stamps 0 only
 static BOOL ABDrawnKbGateSeen = NO; // [hl2-k6] an explicit drawnKeyboard value has been received
 
 static BOOL ABDrawnKeyboardActive(void) { return ABDrawnKb; }
@@ -536,6 +540,18 @@ static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
     // fields keep the cached mode (which starts at DRAWN).
     if (![v isKindOfClass:NSNumber.class]) return;
     BOOL drawn = [v boolValue];
+    if (drawn) {
+        // [hl3] hard lock (Nguyen 22:14): a drawn=1 payload never
+        // flips this app to the drawn panel in this build — the
+        // cache stays native whatever the bridge carries.
+        static BOOL hl3DrawnIgnoredLogged;
+        if (!hl3DrawnIgnoredLogged) {
+            hl3DrawnIgnoredLogged = YES;
+            OMCLogWrite(@"AppBridge",
+                @"[ytz5-k5] hl3: drawnKeyboard=1 bi bo qua — native khoa cung (lenh Nguyen 22:14)");
+        }
+        return;
+    }
     if (!ABDrawnKbGateSeen) {
         // [hl2-k6] marker eye 1 of 3: the app received the gate.
         ABDrawnKbGateSeen = YES;
@@ -2395,10 +2411,11 @@ static void ABRestoreBlankInputView(id responder) {
 
 static void ABSuppressSystemKeyboard(id responder) {
     if (ABForcedOrientation < 1) return;
-    // [ytz5-k5] native gate, as amended by HL2-K6: the cache is
-    // DRAWN by default and only an explicit drawnKeyboard=0 makes
-    // it native; while native the system keyboard is left fully
-    // alone — no blank inputView, no marker (contract item 2).
+    // [ytz5-k5] native gate, as locked by HL3 (Nguyen 22:14): the
+    // cache is native by default and a drawn payload is ignored,
+    // so this suppression never runs in this build; while native
+    // the system keyboard is left fully alone — no blank
+    // inputView, no marker (contract item 2).
     if (!ABDrawnKeyboardActive()) return;
     if (![responder respondsToSelector:@selector(setInputView:)]) return;
     if ([responder inputView] != nil) return;
@@ -2412,9 +2429,8 @@ static void ABSuppressSystemKeyboard(id responder) {
 static void ABResponderBecame(id responder) {
     if (ABForcedOrientation < 1) return;
     ABCurrentResponder = responder;
-    // [hl2-k6] marker eye 2 of 3: a responder became first responder
-    // under the gate currently cached (drawn by default, native only
-    // on explicit drawnKeyboard=0).
+    // [hl3] marker eye 2 of 3: a responder became first responder
+    // under the gate currently cached (native, hard-locked).
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[ytz5-k5] responder became drawn=%d class=%@",
         ABDrawnKeyboardActive() ? 1 : 0, NSStringFromClass([responder class])]);
@@ -2474,14 +2490,14 @@ static BOOL ABHook_TVResign(UITextView *self, SEL _cmd) {
 //   state = shown | keyboardType<<1 | returnKeyType<<8 | FNV1a(bundleID)<<24
 // ===========================================================================
 static void ABKeyboardPublish(BOOL shown, id traits) {
-    // [ytz5-k5] native gate (contract item 2), as amended by
-    // HL2-K6: while the cached gate is native (only after an
-    // explicit drawnKeyboard=0 — the default is drawn), NO panel
-    // request is published in either direction — the Darwin
-    // keyboard channel stays silent for this app and the host panel
-    // can never be summoned. Gating at the publisher's head covers
-    // both call points (Became YES / Resigned NO) at once; the host
-    // dispatch double-checks the pref on its side regardless.
+    // [ytz5-k5] native gate (contract item 2), as locked by HL3
+    // (Nguyen 22:14): the cached gate is native by default and a
+    // drawn payload is ignored, so NO panel request is published
+    // in either direction in this build — the Darwin keyboard
+    // channel stays silent for this app and the host panel can
+    // never be summoned. Gating at the publisher's head covers
+    // both call points (Became YES / Resigned NO) at once; the
+    // host dispatch double-checks the gate on its side regardless.
     if (!ABDrawnKeyboardActive()) return;
     if (!ABKeyboardToken)
         notify_register_check(ABNotifyKeyboard, &ABKeyboardToken);
