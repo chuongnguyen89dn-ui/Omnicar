@@ -25,6 +25,7 @@ NSString * const SCPNoteBridgeHandleDrag = @"com.anlai.omnicar/appbridge.handled
 NSString * const SCPNoteBridgeBarAction  = @"com.anlai.omnicar/appbridge.baraction";
 NSString * const SCPNoteBridgeBarDismiss = @"com.anlai.omnicar/appbridge.bardismiss";
 NSString * const SCPNoteBridgeKnobTouch  = @"com.anlai.omnicar/appbridge.knobtouch";
+NSString * const SCPNoteBridgeKbSync     = @"com.anlai.omnicar/appbridge.kbsync";
 
 // bridgewake.v1 Darwin channels (design §3.1 — wake port, NEW; not part
 // of the original binary). Plain C names for the notify_* API. The

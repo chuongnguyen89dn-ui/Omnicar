@@ -138,7 +138,11 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
 // SCPCarSplit; no new signal is invented. Returns a static reason
 // string when fading is blocked, nil when it may proceed.
 - (const char *)ahFadeBlockedReason {
-    if ([self bwExpandedActive]) return "expanded";
+    // [ytz4-hb] the expanded-state block is gone (GPT ytz4 ruling,
+    // item 2 point 2): fading runs while the session is EXPANDED, as in
+    // split. The popup / dragging / keyboard-hold blocks below are
+    // unchanged, and hosted-solo still blocks via "solo" (and via
+    // the ahSetSuspended: suspension driven from SCPCarSplit.m).
     if (self.soloHostedBundle != nil) return "solo";
     if (ahKbHoldState) {
         if (CACurrentMediaTime() < ahKbHoldExpiry) return "kbhold";
@@ -276,8 +280,10 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
     ahSuspendedState = suspended;
     if (suspended) {
         [self ahInvalidateTimer];
-        // Fullscreen/solo must start from a known visual state: restore
-        // any fade BEFORE the other mechanism takes over (design §4.1).
+        // [ytz4-hb] Suspension is now hosted-solo only (EXPANDED no
+        // longer suspends — GPT ytz4 ruling): solo must start from a
+        // known visual state: restore any fade BEFORE the solo takes
+        // over (design §4.1).
         if (ahFadedState) [self ahRevealBody:AHRevealUnsuspend];
         OMCLogWrite(@"SplitScreen", @"[autohide] suspend");
     } else {

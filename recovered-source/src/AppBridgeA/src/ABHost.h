@@ -108,3 +108,12 @@ void ABPostAppState(NSString *bundleID, NSString *state);
 /// ABBundleIDHash(bundleID) — FNV-1a 32-bit over the UTF-8 bytes
 /// (offset basis 0x811C9DC5, prime 0x01000193). VERIFIED @ 0xf40c/0xf6b0.
 uint32_t ABBundleIDHash(NSString *bundleID);
+
+/// [ytz4-hb] Hosted-keyboard session sync (GPT ytz4 ruling, item 1):
+/// implemented in ABHostGeometry.m [B], which owns the session
+/// record at the ABKeyboardDispatch management point. Every
+/// hosted-keyboard open/close — dispatch show/hide, per-app
+/// teardown in closeApp:terminate: [A], CarPlay disconnect — must
+/// funnel through this one function so the record and the
+/// appbridge.kbsync posts to the car side can never diverge.
+void ABKbSyncNoteEvent(NSString *bundleID, BOOL active);

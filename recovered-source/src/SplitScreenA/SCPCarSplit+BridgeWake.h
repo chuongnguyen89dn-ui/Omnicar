@@ -25,6 +25,22 @@ extern const char *SCPBridgeWakeWake;  // app -> owner (+ ABHost arm)
 extern const char *SCPBridgeWakeAck;   // owner -> app / ABHost -> owner
 extern const char *SCPBridgeWakeAct;   // app -> owner (AutoHide activity, design-autohide §3.2.1)
 
+// [ytz4-hb] Kb-sync packets (GPT ytz4 ruling, item 1): a SIXTH packet
+// type on the state channel above — type 6 (first unused value in
+// the BridgeWakePack.h table; 0-5 are invalid/state/query/wake/ack/
+// act, 7 reserved). Header discipline is the state packet's (valid
+// bit, hash28 of the pane's bundle, owner's shared seq, the slot's
+// assignment gen); the payload is defined per type: bits 9-8 carry
+// bit 9 = kbKnown, bit 8 = kbActive, all other payload fields 0.
+// kbKnown=0 means UNKNOWN — the owner holds no authenticated
+// snapshot for that assignment — and must never be read as
+// "keyboard inactive". The owner's only kb source is ABHost's
+// hosted-keyboard session, synced host->car on the
+// appbridge.kbsync distributed channel (SCPShared). Emitted on kb
+// session open/close, on app query, and in the 1.0 s renewal
+// rotation for every hosted pane. State packets (type 1) and the
+// V1-V10 harness vectors are unchanged, bit for bit.
+
 @interface SCPCarSplit (BridgeWake) <SCPPinchArbiter>
 
 // One-time owner install (called from __init_1 in SCPHooks.m, CarPlayApp
@@ -78,9 +94,12 @@ extern const char *SCPBridgeWakeAct;   // app -> owner (AutoHide activity, desig
 // settle points with forBundle:nil. EXPANDED is a SESSION state
 // (WO P1): fullscreen covers the whole split, so the bundle argument
 // is retained for logging only and arbitration never compares
-// against it. While active, no pane of the session aggregates to
-// HIDDEN and pinch-in is allowed on any live pane of the session
-// (design §2.2, first row).
+// against it. Pinch-in is allowed on any live pane of the session
+// (design §2.2, first row) — keyed on the session flag in the
+// arbiter, independent of the fade state. [ytz4-hb] Since the GPT
+// ytz4 ruling, EXPANDED neither suspends AutoHide nor promotes
+// HIDDEN -> VISIBLE: a faded pane aggregates to HIDDEN while
+// expanded, exactly as in split.
 - (void)bwSetExpandedActive:(BOOL)active forBundle:(nullable NSString *)bundleID;
 - (BOOL)bwExpandedActive;
 

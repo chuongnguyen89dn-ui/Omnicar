@@ -24,6 +24,8 @@
 @interface SCPCarSplit (BridgeWakePrivate)
 - (void)bwRenewTick:(NSTimer *)timer;
 - (void)bwRenewMaintain;
+- (void)bwKbEmitForPane:(SCPCarPane *)pane;
+- (void)bwHandleKbSyncNote:(NSNotification *)note;
 @end
 
 #pragma mark - Owner state (file statics, keyed by slot 0..9)
@@ -71,6 +73,28 @@ static int bwAckRecvToken;
 static int bwActRecvToken;     // [autohide] bridgewake.v1.act receiver
 static int bwPrefsRecvToken;
 static NSTimer       *bwRenewTimer;    // WO W2: state renewal (1.0 s)
+
+// [ytz4-hb] Authenticated keyboard truth (GPT ytz4 ruling, item 1).
+// Three-state model — UNKNOWN / INACTIVE / ACTIVE — never collapsed:
+// bwKbKnownBySlot[s] == NO means UNKNOWN (no authenticated snapshot
+// for the slot's CURRENT assignment yet), which must never be read
+// as "keyboard inactive". The ONLY source is the host-side hosted-
+// keyboard session, reported by ABHost on the appbridge.kbsync
+// distributed channel (show/hide points + open snapshots) and stored
+// here per slot. bwKbSessionBySlot[s] is the host session id the
+// snapshot describes (0 = none reported). All three reset to
+// UNKNOWN whenever the slot's generation advances (bundle change or
+// teardown): a snapshot belongs to one (bundle, assignment) pair.
+static BOOL     bwKbKnownBySlot[10];
+static BOOL     bwKbActiveBySlot[10];
+static uint32_t bwKbSessionBySlot[10];
+
+// Kb-sync packet type (bits 2-0): the first unused value in the
+// BridgeWakePack.h type table (0 = invalid, 1 = state, 2 = query,
+// 3 = wake, 4 = ack, 5 = act; 7 stays reserved). Defined locally so
+// both BridgeWakePack.h copies stay bit-identical this round; the
+// app-side receiver keys on this value.
+static const uint8_t BWTypeKbSync = 6;
 
 #pragma mark - Small helpers
 
@@ -127,9 +151,13 @@ static void BWSeqRecord(NSInteger slot, uint16_t seq) {
 
 #pragma mark - Emission (single poster for the state channel)
 
-// The ONLY notify_set_state/notify_post pair for the state channel in
-// this module (design §7.1 Gate 1). bwEmitStateForPane: and the
-// teardown/OFF paths all funnel through here.
+// One of the state channel's two posters in this TU (design §7.1
+// Gate 1 counts state packets): state packets post here, kb-sync
+// packets (type 6) post through BWEmitKbPacket below. Both share
+// the single register-check token and the single monotone seq
+// counter, so the channel's word stream stays ordered and receivers
+// dispatch on (type, hash). bwEmitStateForPane: and the teardown/OFF
+// paths all funnel through here.
 static void BWEmitStatePacket(NSString *bundle, uint32_t gen, NSInteger state,
                               BOOL pinchAllowed, NSInteger wm, NSInteger pm) {
     if (!bundle.length) return;
@@ -145,6 +173,34 @@ static void BWEmitStatePacket(NSString *bundle, uint32_t gen, NSInteger state,
         @"[wake1] bw emit %@ state=%@ gen=%u seq=%u wm=%ld pm=%ld pinch=%d",
         bundle, BWStateName(state), gen, bwStateSeq, (long)wm, (long)pm,
         (int)pinchAllowed]);
+}
+
+// [ytz4-hb] Kb-sync packet poster (GPT ytz4 ruling, item 1): type 6
+// on the state channel, header discipline identical to state packets
+// (v / hash28 of the pane's bundle / shared monotone seq / the slot's
+// live assignment gen). The payload is defined PER TYPE: in a kb
+// packet, bits 9-8 — the pinchMode position in state packets —
+// carry bit 9 = kbKnown and bit 8 = kbActive; flag, wakeMode and
+// state are 0. kbKnown=0 is UNKNOWN: no authenticated snapshot for
+// this assignment; it does NOT mean the keyboard is inactive, and
+// the value the owner previously derived from the app's act flag
+// (BWKb == BWKbActive, which also yields 0 for BWKbUnknown) is never
+// republished as knowledge — the only source is the host-side
+// keyboard session (see bwHandleKbSyncNote:).
+static void BWEmitKbPacket(NSString *bundle, uint32_t gen,
+                           BOOL kbKnown, BOOL kbActive) {
+    if (!bundle.length) return;
+    if (!bwStateSendToken)
+        notify_register_check(SCPBridgeWakeState, &bwStateSendToken);
+    bwStateSeq = (uint16_t)((bwStateSeq + 1) & 0xFFF);
+    unsigned kbField = (kbKnown ? 0x2u : 0x0u) | (kbActive ? 0x1u : 0x0u);
+    uint64_t packet = BWPackFields(BWBundleHash28(bundle), bwStateSeq, gen,
+                                   NO, kbField, 0, 0, BWTypeKbSync);
+    notify_set_state(bwStateSendToken, packet);
+    notify_post(SCPBridgeWakeState);
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[kb-sync] emit %@ gen=%u seq=%u known=%d active=%d source=host-keyboard-session",
+        bundle, gen, bwStateSeq, (int)kbKnown, (int)kbActive]);
 }
 
 // §4 failure path: owner-side error -> one UNKNOWN packet per known
@@ -222,6 +278,65 @@ static void BWEmitDrain(void) {
     for (SCPCarPane *pane in [self hostedPanes]) [self bwQueueEmitForPane:pane];
 }
 
+#pragma mark - Kb sync (GPT ytz4 ruling, item 1)
+
+// Publish the slot's stored kb snapshot (possibly UNKNOWN) to the
+// pane's app as a type-6 packet on the state channel.
+- (void)bwKbEmitForPane:(SCPCarPane *)pane {
+    if (!BWSlotValid(pane)) return;
+    NSInteger slot = pane.slot;
+    NSString *bundle = bwBundleBySlot[slot] ?: pane.bundleID;
+    if (!bundle.length) return;
+    BWEmitKbPacket(bundle, bwGenBySlot[slot], bwKbKnownBySlot[slot],
+                   bwKbActiveBySlot[slot]);
+}
+
+// Inbound host->car kb sync (appbridge.kbsync, posted by ABHost at
+// the keyboard session's show/hide points and as an open snapshot):
+// {identifier, kbactive, kbsession, kbsource}. This is the owner's
+// ONLY kb source — authenticated by construction, because the
+// poster is the host process that actually opens/closes the car
+// keyboard for the app. A report for a bundle no slot currently
+// holds is dropped (logged): kb packets are addressed per pane, and
+// a session for an app outside the split is not this owner's data.
+- (void)bwHandleKbSyncNote:(NSNotification *)note {
+    NSDictionary *info = note.userInfo;
+    NSString *bundle = info[@"identifier"];
+    if (!bundle.length) return;
+    BOOL active = [info[@"kbactive"] boolValue];
+    uint32_t session = [info[@"kbsession"] unsignedIntValue];
+    NSInteger slot = -1;
+    for (NSInteger s = 0; s < 10; s++)
+        if (bwBundleBySlot[s] && [bundle isEqualToString:bwBundleBySlot[s]]) {
+            slot = s;
+            break;
+        }
+    if (slot < 0) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[kb-sync] drop not-assigned bundle=%@ active=%d session=%u",
+            bundle, (int)active, session]);
+        return;
+    }
+    BOOL changed = !bwKbKnownBySlot[slot] ||
+                   bwKbActiveBySlot[slot] != active ||
+                   bwKbSessionBySlot[slot] != session;
+    bwKbKnownBySlot[slot] = YES;
+    bwKbActiveBySlot[slot] = active;
+    bwKbSessionBySlot[slot] = session;
+    if (changed) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[kb-sync] change %@ known=1 active=%d session=%u source=host-keyboard-session",
+            bundle, (int)active, session]);
+    }
+    // Immediate emission on a session open/close (a change); a
+    // duplicate snapshot changes nothing and the 1.0 s renewal
+    // rotation re-publishes the stored value anyway.
+    if (changed) {
+        SCPCarPane *pane = [self paneForBundle:bundle];
+        if (pane && pane.slot == slot) [self bwKbEmitForPane:pane];
+    }
+}
+
 #pragma mark - State renewal (WO W2)
 
 // The app side treats a state copy older than 2.5 s as stale (§4
@@ -273,6 +388,10 @@ static void BWEmitDrain(void) {
             [hashes addObject:[NSString stringWithFormat:
                 @"%07x", BWBundleHash28(pane.bundleID)]];
         [self bwQueueEmitForPane:pane];
+        // [ytz4-hb] the kb snapshot rides the same 1.0 s rotation
+        // (GPT ytz4 ruling, item 1): a hosted app that missed the
+        // change emission re-syncs within one cycle.
+        [self bwKbEmitForPane:pane];
     }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[wake1] bw renew panes=%lu hashes=%@",
@@ -324,11 +443,12 @@ static void BWEmitDrain(void) {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[wake1] bw expanded %@ (%@)", active ? @"ON" : @"OFF",
         bundleID ?: @"-"]);
-    // [autohide] EXPANDED suspends the fade machine at this same point
-    // (design-autohide §4.1): suspending restores any fade first so
-    // fullscreen starts from a known visual state; unsuspending starts
-    // visible with a fresh 4.0 s clock.
-    [self ahSetSuspended:active];
+    // [ytz4-hb] EXPANDED no longer suspends the fade machine (GPT
+    // ytz4 ruling, item 2 point 1): AutoHide keeps running while the
+    // session is expanded, so controls fade and wake in fullscreen
+    // exactly as in split. The ahSetSuspended: call that used to sit
+    // here is gone; suspension remains ONLY for hosted-solo, driven
+    // by SCPCarSplit's own calls in SCPCarSplit.m.
     // §1.3 point 6: an EXPANDED change re-runs aggregation for all.
     for (SCPCarPane *pane in [self hostedPanes]) [self bwRecomputeForPane:pane];
 }
@@ -352,6 +472,12 @@ static void BWEmitDrain(void) {
         bwBundleBySlot[slot] = [bundle copy];
         bwAssignAtBySlot[slot] = now;
         bwWakePendingBySlot[slot] = NO;
+        // [ytz4-hb] a new assignment invalidates the kb snapshot:
+        // it described the previous (bundle, assignment) pair, so
+        // the slot is UNKNOWN until ABHost reports for this one.
+        bwKbKnownBySlot[slot] = NO;
+        bwKbActiveBySlot[slot] = NO;
+        bwKbSessionBySlot[slot] = 0;
     }
 
     NSInteger old = bwStateBySlot[slot];
@@ -392,12 +518,17 @@ static void BWEmitDrain(void) {
         } else {
             state = BWStateVisible;
         }
-        // EXPANDED (§2.2 first row, WO P1 session model): never
-        // HIDDEN while the SESSION is expanded — fullscreen covers
-        // every pane, not one bundle. UNKNOWN stays UNKNOWN —
-        // fail-open beats a guessed VISIBLE.
-        if (state == BWStateHidden && bwExpandedFlag)
-            state = BWStateVisible;
+        // [ytz4-hb] EXPANDED no longer promotes HIDDEN -> VISIBLE
+        // (GPT ytz4 ruling, item 2 point 3): while the session is
+        // expanded, a pane whose controls have faded aggregates to
+        // HIDDEN and the state packet says so — otherwise the app
+        // side would be told VISIBLE while its chrome is faded and
+        // suppression semantics would be wrong. Pinch-in does NOT
+        // depend on this promotion: the arbiter's EXPANDED row
+        // (bwPinchAllowedForPane: / pinchDispositionForPane:) keys
+        // on the session flag and short-circuits BEFORE any read of
+        // bwStateBySlot, so the escape stays independent of the
+        // fade state.
         // Hash collision between two live panes (§3.3): both go
         // UNKNOWN (fail-open) rather than risk a misrouted state.
         if (state != BWStateUnknown) {
@@ -444,6 +575,11 @@ static void BWEmitDrain(void) {
         bwWakePendingBySlot[s] = NO;
         bwStateBySlot[s] = BWStateInactive;
         bwBundleBySlot[s] = nil;
+        // [ytz4-hb] teardown ends every assignment: kb snapshots
+        // revert to UNKNOWN with it.
+        bwKbKnownBySlot[s] = NO;
+        bwKbActiveBySlot[s] = NO;
+        bwKbSessionBySlot[s] = 0;
         SCPCarPane *pane = bwPaneBySlot[s];
         if (pane) {
             // Emit INACTIVE under the bundle just torn down.
@@ -514,6 +650,15 @@ static void BWEmitDrain(void) {
     // §1.3 point 7 + §3.3(iii): re-emit every hosted pane's state,
     // spaced by the emit queue; the query itself changes no state.
     [self bwEmitAllHostedStates];
+    // [ytz4-hb] a query also pulls the ASKING app's kb snapshot
+    // (GPT ytz4 ruling, item 1: emit on query) — the app that just
+    // (re)registered gets its authenticated kb truth immediately,
+    // not at the next renewal tick.
+    NSInteger slot = BWSlotForHash28(pkt.hash28);
+    if (slot >= 0 && bwBundleBySlot[slot]) {
+        SCPCarPane *pane = [self paneForBundle:bwBundleBySlot[slot]];
+        if (pane && pane.slot == slot) [self bwKbEmitForPane:pane];
+    }
 }
 
 - (void)bwHandleWakePacket:(uint64_t)raw {
@@ -732,6 +877,19 @@ static void BWEmitDrain(void) {
                 (void)token;
                 [owner bwReloadModesAndRepublish];
             });
+        // [ytz4-hb] Host->car kb sync (GPT ytz4 ruling, item 1):
+        // ABHost reports the hosted-keyboard session's open/close
+        // (and an open-time snapshot per app) on the appbridge.kbsync
+        // distributed channel — the same host->car family as
+        // appbridge.state / handletap. The owner stores it per slot
+        // and re-publishes it to the apps as type-6 state-channel
+        // packets (see bwHandleKbSyncNote: / BWEmitKbPacket).
+        [[NSDistributedNotificationCenter defaultCenter]
+            addObserverForName:SCPNoteBridgeKbSync object:nil
+                         queue:[NSOperationQueue mainQueue]
+                    usingBlock:^(NSNotification *n) {
+                        [owner bwHandleKbSyncNote:n];
+                    }];
         [self bwReloadModesAndRepublish];
         // [pinch1] arbitration glue: the owner IS the pinch arbiter
         // (design-pinch §3.5); publish the initial chain flag (none held).

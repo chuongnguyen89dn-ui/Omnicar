@@ -49,6 +49,36 @@ void *orig_SceneVC_deactivateSceneWithReasonMask;
 void *orig_SceneVC_sceneManagerDidDestroyScene;
 void *orig_FBSDisplayLayoutPublisher_addElement;
 
+#pragma mark - [homelib] instrument (WO GPT ytz4 item I2, log-only)
+
+// The home/library family in this TU is installed only under the
+// CarPlayApp gate in the constructors below; the proc= field reads the
+// process at runtime so every line proves where it executed instead of
+// assuming a process from the file's location.
+static NSString *SCPHomeLibProcDesc(void) {
+    NSString *name = [[NSProcessInfo processInfo] processName] ?: @"?";
+    NSString *bundle = [[NSBundle mainBundle] bundleIdentifier] ?: @"?";
+    return [NSString stringWithFormat:@"%@(%@)", name, bundle];
+}
+
+// Guarded getter in this file's own idiom (respondsToSelector + @try),
+// used only to count the library's installed-app array the same way
+// SCPDumpAppLibraryOnce does. Returns nil when unreadable.
+static id SCPHomeLibSafeGet(id obj, NSString *name) {
+    @try {
+        SEL sel = NSSelectorFromString(name);
+        if (obj && [obj respondsToSelector:sel])
+            return ((id (*)(id, SEL))objc_msgSend)(obj, sel);
+    } @catch (NSException *e) {}
+    return nil;
+}
+
+// -1 when the count is not safely readable at the call site.
+static long SCPHomeLibLibraryCount(id library) {
+    id all = SCPHomeLibSafeGet(library, @"allInstalledApplications");
+    return [all isKindOfClass:[NSArray class]] ? (long)[all count] : -1;
+}
+
 #pragma mark - Replacements: home / app-library group (init_0)
 
 // sub_4af0 VERIFIED: after the original builds the application library,
@@ -64,6 +94,12 @@ static id Hook_newApplicationLibrary(id self, SEL _cmd) {
     // (The binary's @catch pad calls SCPLogException("_newApplicationLibrary",
     // e) at 0x5520; there is no unconditional "kick" call — A's earlier
     // SCPHomeKick placeholder was a misreading, removed in the seam fix.)
+    // [homelib] library-build event (log-only; unconditional per WO).
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[homelib] proc=%@ event=new-library libclass=%@ count=%ld chosen=%lu",
+        SCPHomeLibProcDesc(), NSStringFromClass([library class]),
+        SCPHomeLibLibraryCount(library),
+        (unsigned long)[SCPChosenPhoneApps() count]]);
     return library;
 }
 
@@ -72,6 +108,18 @@ static id Hook_newApplicationLibrary(id self, SEL _cmd) {
 static void Hook_loadFromProxy(id self, SEL _cmd, id proxy) {
     ((void (*)(id, SEL, id))orig_DBApplicationInfo_loadFromProxy)(self, _cmd, proxy);
     SCPInjectDeclarationIfChosen(self);
+    // [homelib] per-info load event (log-only). The bundle is read with
+    // the same guarded pattern the launchInfo hooks in this file use;
+    // the inject/skip DECISION for this bundle is journaled inside
+    // SCPInjectDeclarationIfChosen (SCPAppIcons.m).
+    NSString *hlBid = nil;
+    SEL hlBundleSel = NSSelectorFromString(@"bundleIdentifier");
+    if ([self respondsToSelector:hlBundleSel])
+        hlBid = ((id (*)(id, SEL))objc_msgSend)(self, hlBundleSel);
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[homelib] proc=%@ event=loadFromProxy bundle=%@ injected=%d",
+        SCPHomeLibProcDesc(), hlBid ?: @"?",
+        SCPIsInjectedPhoneApp(hlBid)]);
 }
 
 // sub_4c70 VERIFIED: remember the home view controller.

@@ -139,3 +139,12 @@ NS_ASSUME_NONNULL_END
 // implemented by module A in ABHostLaunch.m, declared only in A's ABHost.h.
 void ABPostAppState(NSString *_Nonnull bundleID, NSString *_Nonnull state);
 uint32_t ABBundleIDHash(NSString *_Nonnull bundleID);
+
+// [ytz4-hb] Hosted-keyboard session sync (GPT ytz4 ruling, item 1):
+// implemented in ABHostGeometry.m, which owns the session record at
+// the ABKeyboardDispatch management point. Every hosted-keyboard
+// open/close — dispatch show/hide, per-app teardown in
+// ABHostLaunch.m's closeApp:terminate:, CarPlay disconnect — must
+// funnel through this one function so the record and the
+// appbridge.kbsync posts to the car side can never diverge.
+void ABKbSyncNoteEvent(NSString *_Nonnull bundleID, BOOL active);

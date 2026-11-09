@@ -255,6 +255,10 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
     // called here via dynamic dispatch exactly as the binary does).
     id kb = [NSClassFromString(@"ABKeyboard") shared];
     [kb performSelector:@selector(hideForApp:) withObject:bundleID];
+    // [ytz4-hb] this teardown hide bypasses ABKeyboardDispatch, so
+    // the kb session record would go stale without its own sync:
+    // report the close through the same funnel (ABHostGeometry.m).
+    ABKbSyncNoteEvent(bundleID, NO);
     [self teardownPane:pane];
     [self.panes removeObject:pane];
     [self dropWindowIfEmpty];
