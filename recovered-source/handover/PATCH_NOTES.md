@@ -2715,3 +2715,99 @@ danh được từ log, chưa đủ căn cứ sửa máy trạng thái bong
 bóng (khớp kết luận GPT); (3) Chuỗi 2 đóng khi test xe
 fixround5 đạt mục thanh hosted; nếu thanh vẫn không hiện,
 điểm đo tiếp theo là thêm log [do] trong ABFrameBlock.
+
+## 20) VÒNG 6 — CỔNG SUY HƯỚNG BIT-2 BỊ ĐẢO Ở CẢ HAI PHÍA (2026-11-09)
+
+### 20.1 Thu hồi verdict của audit-zoomrotate ở cổng host
+Sau phiên fixround5, GPT đọc lại DEB gốc cả hai slice và bắt
+được lệnh quyết định tại phép suy requestedOrientation của
+-[ABHost appWithHash:changedOrientation:supportedMask:]:
+arm64 0xf860 cmp x8,#0 (x8 = mask & 2) rồi 0xf864
+`csel x8, xzr, x9, ne` — bit 2 CÓ mặt thì chọn 0, VẮNG mới
+giữ hướng đã tính x9. Audit-zoomrotate đã đọc đúng đại số
+ưu tiên (4>3>2) nhưng đọc NGƯỢC cực của chính lệnh csel
+này và kết luận "khớp" — verdict đó ở cổng host BỊ THU HỒI.
+Kiến trúc hai kênh (khung / hướng) không đổi; lỗi thuần là
+cực của cổng: derived = (mask != 0 && !(mask & 2)) ?
+ưu_tiên(mask) : 0. Log fixround5 phù hợp nhánh dựng ngược
+(YouTube mask 24 -> 'scene huong 1' ~20 lần do fallback về
+hướng pane; TikTok mask 30 -> 4).
+
+### 20.2 Hai hàm cùng đảo một cổng — đã sửa cả hai
+(a) Host, ABHostBMethods.m appWithHash: cổng cũ
+`mask != 0 && (mask & 2)` -> sửa thành
+`mask != 0 && !(mask & 2)`; thân ưu tiên giữ nguyên.
+(b) App, ABInApp.m ABOrientationDerivedFromMask: lệnh cuối
+cũ `if (!(mask & 2)) v = 0;` -> sửa thành
+`if (mask & 2) v = 0;` — cùng mẫu csel của gốc tại sub_5734
+@0x57c0–0x57c4 (tst w0,#2; csel x9, xzr, x8, ne); comment
+ghi ngược trên hàm cũng đã sửa. Bảng truy vết
+(changed = 255): mask 24 gốc 4 / cũ 0 / mới 4; mask 26 gốc
+0 / cũ 4 / mới 0; mask 30 gốc 0 / cũ 4 / mới 0; mask 0 và 2
+ra 0 ở cả hai phía mới.
+
+### 20.3 Kiểm hook phía app — kết luận (a): HẠ nghi vấn
+Audit work/fix-round5/audit-inapphook.md: đăng ký hook
+requestGeometryUpdateWithPreferences: khớp gốc (đích
+objc_getClass("UIWindowScene"), cổng OMCHasMethod, không
+lệch metaclass — tiền sử metaclass thuộc hai setter FPS,
+không liên quan); installer chạy trọn trong cả 5 app host
+của phiên. Dòng 'app xin huong' là log CỦA GỐC, nằm trong
+nhánh có hai cổng (ABForcedOrientation >= 1 và preferences
+respondsToSelector interfaceOrientations) và chỉ phát khi
+app TỰ gọi API scene-geometry; phiên fixround5 không app
+nào gọi API đó — mọi yêu cầu xoay đi đường VC/sentinel
+ma 255 (44 dòng 'bao SpringBoard' chứng minh kênh
+debounce + publish + Darwin phía app sống). Vắng dòng log
+vì thế là bình thường theo điều kiện nhánh, KHÔNG chứng
+minh hook trượt. Điểm trung thực: chưa từng có mẫu dương
+trong bất kỳ log nào đã thu; kết luận dựa trên đối chiếu
+tĩnh từng lệnh. KHÔNG sửa hook ở vòng này.
+
+### 20.4 Cổng trên candidate vòng 6 (đo trên binary trích từ candidate)
+Candidate local com.anlai.omnicar_1.0.3-rebuilt-fixround6
+_iphoneos-arm64.deb: 974.666 B, SHA-256 934e76df… (bản đầy
+đủ ở ACCEPTANCE_FIXROUND6), Version 1.0.3.
+- (g1) cổng host — ĐẠT (binary-structure): appWithHash imp
+  0x6b64; dãy suy tại 0x6ce8–0x6d20 ở dạng csel như gốc:
+  and #2 -> x8; (mask>>1)&2; tst #8 -> 3; tst #0x10 -> 4;
+  quyết định 0x6d0c cmp x8,#0 + 0x6d10
+  `csel x8, xzr, x9, ne` (bit 2 có mặt -> 0); mask==0 -> 0
+  tại 0x6d14–0x6d18; changed==0xFF chọn derived tại
+  0x6d1c–0x6d20. Truy vết: 24->4, 26->0, 30->0.
+- (g2) cổng app — ĐẠT (binary-structure): phép suy tại
+  0x14d84–0x14da8 (hàm chứa hook scene-geometry): ưu tiên
+  lsr/and -> 3 -> 4; lệnh cuối 0x14da4 `tst x0, #2` +
+  0x14da8 `csel x9, x8, xzr, eq` — bit vắng (eq) giữ giá
+  trị đã tính, bit có mặt (ne) lấy xzr = 0; tương đương
+  nguyên lệnh gốc `csel x9, xzr, x8, ne` @0x57c4. Truy
+  vết: 24->4, 26->0, 30->0.
+- (h) hồi quy — ĐẠT: cổng host-bar 19.3 còn nguyên
+  (setBarVisible imp 0xae64: isHidden qua slot 0x39178,
+  cmp w0,w22 @0xb0f8, b.ne -> epilogue 0xb258; tbz w22
+  -> hideBarForPane:; nhánh hiện setHidden: w2=0; block
+  entrance 0xba88: setAlpha: với fmov d0,#1.0 @0xbaa8
+  TRƯỚC setTransform:); marker [fixround6] đủ SplitScreen
+  + Prefs + AppBridge, fbebb21 giữ nguyên; 'cham thanh'
+  (UTF-16LE) còn trong AppBridge.
+Vẫn là 'đã kiểm tra tĩnh' — không phải PASS hành vi.
+
+### 20.5 CÒN MỞ — núm vách ngăn publishKnobsNow (CHỜ LỆNH)
+Audit-roundlogo đã định danh phần tử tròn là núm vách
+ngăn + gương SpringBoard của nó (không phải SpeedBubble)
+và kết tội: publishKnobsNow phát phần tử thứ 3 của spec
+núm NGƯỢC cực — gốc @0x3eff8 phát
+!CGAffineTransformIsIdentity (chỉ bật khi núm đang bị ấn,
+scale 1.6); bản ta phát IsIdentity. Hệ quả: gương kẹt
+active thường trực, dot nở 22.4 pt, dấu chân chạm phình
+~105.6x105.6 pt quanh tâm vách ngăn và nuốt chạm của app
+(log fixround5: 118 dòng 'cham tron vach', điểm chạm lệch
+tới ~96 pt khỏi tâm) — ở split mixed nửa hosted do gương
+phình vẽ, nửa native do núm local 14 pt vẽ nên trông như
+đĩa bị cắt nửa; hai app hosted thì đồng nhất. Vùng chạm
+gốc 66×66 + pointInside phình 26 pt/phía: bản ta khớp,
+không thuộc phần sửa. Lỗi cực này đã có trong audit lẻ
+vòng 2 mà chưa từng được sửa. Vòng 6 KHÔNG gồm sửa này —
+chờ lệnh riêng của Nguyen. Các mục mở cũ giữ nguyên: đuôi
+!logoView playIntro phía XE (3 slot 0xcb0/0xcc0/0xcc8);
+nhóm nghiệm thu còn lại; ba bài kiểm để dành.
