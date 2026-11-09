@@ -114,6 +114,12 @@ static NSHashTable *ABDisplayLinks(void);                      // sub_5C64 (weak
 // and fail-open for everything else (§4). Installed lazily inside
 // ABOrientationBlock (§5.1), so the sendEvent: hook exists only while
 // this app is actually hosted.
+// [hl3] Swallow-decision basis = QA180 h1wake3 shape: the host
+// PUSHES on every state change (change-driven emit, sig-gated in
+// SCPCarSplit+BridgeWake.m) and this side decides at sendEvent:
+// from the latched local state + its OWN first-hand kb state.
+// Freshness arithmetic and the owner round-trip kb (type-6) are
+// out of the decision; both survive for diagnostics/AutoHide.
 // ===========================================================================
 
 // Channel names (design §3.1). File-local copies of the same strings the
@@ -155,9 +161,13 @@ static NSTimeInterval BWLastQueryAt = 0;
 // the exact point BWOnStatePacket accepts a packet (valid pack, own
 // hash, gen accepted) — the owner has authenticated this bundle's
 // hosted session; cleared in BWResetAll when the session closes. The
-// act feed posts on THIS basis, never on state freshness: BWFresh()
-// remains the sole currency of the suppression path (BWGatePass, the
-// effective-mode helpers, the probe) and is not touched by act.
+// act feed posts on THIS basis, never on state freshness.
+// [hl3] BWFresh() is no longer the currency of the suppression
+// path either: BWGatePass decides on the latched push state +
+// local kb (QA180 shape). [hl3-L4] The pinch arbitration's
+// freshness veto is removed on the same principle (PATCH
+// 29.19): freshness now survives only as probe diagnostics
+// and the BWQueryIfStale self-heal trigger.
 static BOOL     BWActSessionVerified = NO;
 static NSUInteger BWActSetFail  = 0; // notify_set_state failures (act)
 static NSUInteger BWActPostFail = 0; // notify_post failures (act)
@@ -476,7 +486,10 @@ static void BWOnKbPacket(BWPacket p) {
     BWKbOwnerRxAt   = BWNow();
 }
 
-// The effective three-state kb (§5.5 as reworked by WO ytz4 K2):
+// The effective three-state kb (§5.5 as reworked by WO ytz4 K2).
+// [hl3] Consumers are now the AutoHide act flag, the pinch
+// arbitration and the probe instruments ONLY — the swallow gate
+// reads the local BWKb directly (see BWGatePass).
 // ACTIVE on ANY valid ACTIVE evidence — the local responder/frame
 // tracking or a fresh owner snapshot saying active. Otherwise a
 // fresh owner snapshot decides (its INACTIVE, or its own UNKNOWN).
@@ -607,14 +620,21 @@ static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
 // Identity rule: nothing is posted until a state packet for this
 // bundle has been accepted (BWKnown — the acceptance that also
 // sets BWActSessionVerified), i.e. while the reporter holds a live
-// (hash, gen) identity. No typed content is ever logged or sent —
-// the payload above is the whole surface.
+// (hash, gen) identity. [hl2-l8] The reporter posts only while
+// that identity is still live: BWKbStatePost requires BWKnown AND
+// BWKbReporterLive. BWKbReporterLive is set on every accepted state
+// packet, cleared by BWResetAll, and cleared by the heartbeat when
+// state packets fall silent for > 5 s (assignment presumed gone —
+// the app may outlive its pane); the next accepted packet revives
+// it. No typed content is ever logged or sent — the payload above
+// is the whole surface.
 // ===========================================================================
 static NSString *const BWKbStateChannel = @"com.anlai.omnicar/bridgewake.v1.kbstate";
 static uint32_t BWKbSessionID = 0;    // minted once, first reporter use
 static uint64_t BWKbReportSeq = 0;    // monotone; first post carries 1
 static BOOL     BWKbReportedActive = NO; // last state actually posted
 static BOOL     BWKbHaveReported = NO;
+static BOOL     BWKbReporterLive = NO; // [hl2-l8] identity still live (see rule above)
 static NSTimer *BWKbHeartbeatTimer = nil;
 
 static uint32_t BWKbSession(void) {
@@ -633,7 +653,7 @@ static BOOL BWKbSessionActiveNow(void) {
 }
 
 static void BWKbStatePost(BOOL active) {
-    if (!BWKnown) return; // no live identity (hash+gen) yet
+    if (!BWKnown || !BWKbReporterLive) return; // no live identity (hash+gen) yet
     BWKbReportSeq++;
     NSDictionary *info = @{
         @"hash":    @(BWOwnHash28()),
@@ -676,13 +696,24 @@ static void BWKbStateResignedDeferred(void) {
 }
 
 // Heartbeat (1 s, started in BWInstallBridgeWake): while the
-// identity lives (BWKnown), re-post the CURRENT state with a fresh
-// seq. This also carries the first INACTIVE of an identity learned
-// while no responder stands, and corrects the record if the
-// tracked responder died without a resign reaching the hooks (the
-// weak ABCurrentResponder simply nils out).
+// identity lives (BWKnown + BWKbReporterLive), re-post the CURRENT
+// state with a fresh seq. This also carries the first INACTIVE of
+// an identity learned while no responder stands, and corrects the
+// record if the tracked responder died without a resign reaching
+// the hooks (the weak ABCurrentResponder simply nils out).
+// [hl2-l8] Silence death: the owner renews a live assignment's
+// state ~every 1 s, so > 5 s without an accepted packet means the
+// assignment is presumed gone even though this app still lives —
+// the reporter stops (temporarily; the next accepted packet
+// revives it in BWOnStatePacket) instead of posting a stale
+// (hash, gen) forever for the owner to reject as noassignment.
 static void BWKbHeartbeatTick(void) {
     if (!BWKnown) return;
+    if (BWKbReporterLive && BWStateRxAt > 0 && (BWNow() - BWStateRxAt) > 5.0) {
+        BWKbReporterLive = NO;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"[kbstate] reporter-stop: state im lang %.1fs (assignment presumed gone)", BWNow() - BWStateRxAt]);
+        return;
+    }
     BOOL active = BWKbSessionActiveNow();
     if (BWKbHaveReported && active == BWKbReportedActive) {
         BWKbStatePost(active); // renewal, new seq
@@ -748,6 +779,10 @@ static void BWOnStatePacket(uint64_t raw) {
                                 // pack + own hash + gen accepted) is the
                                 // act feed's session identity.
     BWStateRxAt = now;
+    BWKbReporterLive = YES; // [hl2-l8] accepted packet = live assignment: reporter (re)starts
+    // [hl3] this accept IS the push latching the local decision
+    // state (BWState/BWWakeMode/BWPinch*) the swallow gate reads —
+    // no freshness window is applied to it downstream.
     // A fresh state packet is the unlock condition of §5.4 for both the
     // mixed-touch lock and the ack-timeout latch.
     BWSuppressLocked = NO;
@@ -804,10 +839,21 @@ static const char *BWStateLetter(NSInteger s) {
 // Evaluated ONCE at a sequence's Began. The mode check is the caller's
 // (the probe evaluates as-if ENFORCE); every other condition lives
 // here. *reason receives the fail-open cause for the probe log.
+// [hl3] Decision basis = QA180 h1wake3 shape: latched push state
+// (no freshness veto) + LOCAL first-hand kb (no owner round-trip).
 static BOOL BWGatePass(UIEvent *event, NSString **reason) {
     if (reason) *reason = nil;
     if (!BWKnown) { if (reason) *reason = @"unknown"; return NO; }
-    if (!BWFresh()) { if (reason) *reason = @"stale"; return NO; }
+    // [hl3] LOCAL-PUSH decision (QA180 h1wake3 shape): BWState is
+    // the pane state LATCHED at the last accepted push (or query
+    // answer) — there is NO freshness veto here any more. The
+    // 2.5 s staleness arithmetic that used to kill this gate
+    // (reason=stale) is removed from the swallow decision; the
+    // packet channel still feeds diagnostics/AutoHide, and the
+    // query path (BWQueryIfStale at sequence start) remains the
+    // self-heal if a push was missed. The ack-timeout latch below
+    // is an EVENT latch (set on ack timeout, cleared by the next
+    // accepted packet in BWOnStatePacket), not age arithmetic.
     if (BWFailOpenLatch) { if (reason) *reason = @"stale"; return NO; }
     // known && hidden: any other state (incl. WAKING) is a normal
     // pass-through, not a fail-open.
@@ -830,12 +876,20 @@ static BOOL BWGatePass(UIEvent *event, NSString **reason) {
             (unsigned long)BWStateSeq]);
         return NO;
     }
-    // kb guard on the EFFECTIVE three-state (WO ytz4 K2): ACTIVE from
-    // any valid source blocks; UNKNOWN blocks as kbunknown — it is
-    // never read as inactive. Only a known-inactive passes.
-    NSInteger kbEff = BWKbEffective(NULL, NULL);
-    if (kbEff == BWKbActive)  { if (reason) *reason = @"kb"; return NO; }
-    if (kbEff == BWKbUnknown) { if (reason) *reason = @"kbunknown"; return NO; }
+    // [hl3] kb guard on the LOCAL first-hand state ONLY (QA180
+    // shape): BWKb is this app's own input-session truth, written
+    // by the same responder hooks that drive the kbstate reporter
+    // (BWKbLocalSet) — a live session in THIS process cannot exist
+    // without them having fired, so local ACTIVE is the only kb
+    // block, and local UNKNOWN honestly means "no session ever
+    // observed here", not a missing measurement. The round-trip
+    // through the owner (type-6 bits -> BWKbEffective) is REMOVED
+    // from the swallow decision: BWKbEffective survives for the
+    // AutoHide act flag, the pinch arbitration and the probe
+    // instruments, where the loop delay is harmless. (The old
+    // kbunknown block belonged to the round-trip design; with a
+    // first-hand source it only disarmed the gate.)
+    if (BWKb == BWKbActive)  { if (reason) *reason = @"kb"; return NO; }
     if (BWSuppressLocked) { if (reason) *reason = @"mixed"; return NO; }
     // transitioning: a wake transaction still in flight, or the state
     // flipped less than 0.25 s ago — never swallow on a moving state.
@@ -924,7 +978,7 @@ static void BWCloseSequence(void) {
         @"[do] bw probe seq=%lu ph B=%lu M=%lu E=%lu C=%lu dur=%.2f "
          "hosted=%d kbKnown=%d kbActive=%d kbSrc=%s kbAge=%ld "
          "state=%s stateSeq=%lu stateAgeMs=%ld stateFlips=%lu "
-         "wouldSwallow=%d wouldPinch=%d failopen=%@",
+         "wouldSwallow=%d wouldPinch=%d failopen=%@ dsrc=local-push",
         (unsigned long)BWProbeSeqNo,
         (unsigned long)BWPhB, (unsigned long)BWPhM,
         (unsigned long)BWPhE, (unsigned long)BWPhC,
@@ -961,8 +1015,8 @@ static void BWStartSummaryTimer(void) {
 // this code never calls touchesCancelled on the app, never forges a
 // UIEvent, and never delays a one-finger touch
 // (delaysTouchesBegan=NO). The recognizer owns NO fullscreen engine:
-// on a crossed threshold it relays ONE command per gesture to the
-// host on the NSDistributed channel
+// the moment a validated pair forms it relays ONE toggle command
+// to the host on the NSDistributed channel
 // com.anlai.omnicar/bridgewake.v1.pinch and the host's existing
 // SCPFullscreenController remains the only FS owner.
 //
@@ -972,12 +1026,28 @@ static void BWStartSummaryTimer(void) {
 // a pair that starts ineligible never converts mid-gesture, and a
 // swallowed wake chain (BWHandleTouchEvent) is a different chain
 // that this recognizer never retro-claims.
-// Thresholds are REUSED from the legacy CarPlayApp pinch
-// (SCPPinchController.m, SCPPinchRecognizer touchesMoved):
-//   out cross  ratio >= 1.10                          (line 256)
-//   in cross   ratio <= 0.90                          (line 257)
-//   mid-drift  drift <= 0.6 * distChange + 10.0       (line 258)
-//   degenerate pair dist0 <= 0.01 has no scale        (line ~243)
+// [hl3] ACTIVATION LAW — rebuilt to the mechanism of the PROVEN
+// builds 21-35 (Nguyen 2026-11-09 20:39; rework order 22:22):
+// the recognizer Begins the moment the second finger lands and
+// the toggle FIRES AT BEGAN. No distance-ratio threshold and no
+// midpoint-drift condition exists anywhere in the activation
+// path: hl2 shipped the legacy CarPlayApp ratio-cross + drift
+// conditions (PATCH 29.13 W6) as the FIRE gate inside
+// touchesMoved, and the hl2 car session showed the result —
+// pinch near-unrecognizable, out fired 1-2x, in 0x (PATCH
+// 29.15). Those conditions were the wrong design template: in
+// builds 21-35 they never gated the trigger. Direction is NOT
+// read from gesture geometry either: dir is the toggle of the
+// committed state latched at formation (SPLIT -> out/expand,
+// EXPANDED -> in/restore), and the owner re-validates dir
+// against the FS controller's real currentState before
+// applying (bwHandlePinchNote: badstate). Pair arbitration
+// (ABPinchPairDecision — latch/allowed/kb/mode, incl. the two
+// GPT invariants: SPLIT+HIDDEN never recognises, and
+// EXPANDED+HIDDEN still can) was unchanged by the activation
+// rework; the [hl3-L4] fix then removed its freshness veto
+// and switched its kb source to the local first-hand state
+// (see the decision function itself; PATCH 29.19).
 // ===========================================================================
 static NSString *const BWPinchChannel = @"com.anlai.omnicar/bridgewake.v1.pinch";
 static uint64_t BWPinchReportSeq = 0;  // per-source monotone; first fire = 1
@@ -999,10 +1069,24 @@ enum { ABPinchBlock = 0, ABPinchDryRunPair = 1, ABPinchEnforcePair = 2 };
 static NSInteger ABPinchPairDecision(NSString **reasonOut, BOOL *expandedOut) {
     if (reasonOut) *reasonOut = nil;
     if (expandedOut) *expandedOut = NO;
-    if (!BWKnown) { if (reasonOut) *reasonOut = @"unknown"; return ABPinchBlock; }
-    if (!BWFresh()) { if (reasonOut) *reasonOut = @"stale"; return ABPinchBlock; }
-    // gen verified: BWKnown/BWGen are only ever set by BWOnStatePacket
-    // after the hash check and BWGenAccept have both passed.
+    // [hl3-L4] LATCH decision, same shape as BWGatePass after the
+    // QA180 restructure (45e629b): the state read below (BWState,
+    // BWPinchAllowed, BWPinchMode) is the pane state LATCHED at
+    // the last accepted push (or query answer) — there is NO
+    // freshness veto in pair formation. The 2.5 s staleness
+    // arithmetic that used to sit here (reason=stale) killed
+    // 63/165 pairs at formation in the hl2 car session (PATCH
+    // 29.18 L4) — the same mechanism already removed from the
+    // swallow gate. "Known" for pinch is now identity only:
+    // BWKnown means this app holds a latch for its own pane —
+    // BWKnown/BWGen are only ever set by BWOnStatePacket after
+    // the hash check and BWGenAccept have both passed, and are
+    // cleared in BWResetAll when the assignment dies. No packet
+    // age is consulted anywhere in this function. The owner
+    // still re-validates the relay against the FS controller's
+    // real state (badstate backstop), and BWQueryIfStale remains
+    // the self-heal if a push was missed.
+    if (!BWKnown) { if (reasonOut) *reasonOut = @"latch-missing"; return ABPinchBlock; }
     if (BWState != BWStateVisible && BWState != BWStateHidden) {
         if (reasonOut) *reasonOut = @"state"; return ABPinchBlock;
     }
@@ -1021,11 +1105,19 @@ static NSInteger ABPinchPairDecision(NSString **reasonOut, BOOL *expandedOut) {
     // a known INACTIVE keyboard leaves the pane free for pinch.
     // (Coordinator alignment fix at integration: the first cut let
     // UNKNOWN through, which reads the ruling's "fail-open" backwards.)
-    NSInteger kbEffPinch = BWKbEffective(NULL, NULL);
-    if (kbEffPinch == BWKbActive) {
+    // [hl3-L4] The INVARIANT is unchanged; the SOURCE is now the
+    // LOCAL first-hand BWKb — the same responder-hook state the
+    // kbstate reporter writes and (since 45e629b) the swallow
+    // gate reads — instead of the owner-echoed effective state,
+    // whose owner-snapshot leg folded a 3.5 s sync window into
+    // this decision: a packet-age dependency of exactly the kind
+    // removed above. The effective state survives for the
+    // AutoHide act flag and the probe instruments, where the
+    // loop delay is harmless.
+    if (BWKb == BWKbActive) {
         if (reasonOut) *reasonOut = @"kbactive"; return ABPinchBlock;
     }
-    if (kbEffPinch != BWKbInactive) {
+    if (BWKb != BWKbInactive) {
         if (reasonOut) *reasonOut = @"kbunknown"; return ABPinchBlock;
     }
     if (expandedOut) *expandedOut = (BWState == BWStateHidden);
@@ -1037,7 +1129,8 @@ static NSInteger ABPinchPairDecision(NSString **reasonOut, BOOL *expandedOut) {
     if (reasonOut) *reasonOut = @"modeoff"; return ABPinchBlock;
 }
 
-// Relay ONE command for a crossed gesture. Payload discipline is the
+// Relay ONE toggle command for a formed pair, fired at Began.
+// Payload discipline is the
 // kbstate reporter's (BWKbStatePost): hash = BWOwnHash28(), gen =
 // BWGen at fire time, session = BWKbSession() (minted once per
 // load), seq = own per-source monotone. t is the exception: the
@@ -1068,7 +1161,7 @@ static void ABPinchRelayFire(NSInteger dir, double ratio, NSUInteger gid,
                       object:[NSBundle mainBundle].bundleIdentifier
                     userInfo:info];
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[pinch2] recognized dir=%ld ratio=%.3f state=%s committed=%@ "
+        @"[pinch2] recognized trigger=began dir=%ld ratio=%.3f state=%s committed=%@ "
          "seq=%llu gid=%lu gen=%lu stateSeq=%lu",
         (long)dir, ratio, BWStateLetter(BWState),
         expanded ? @"expanded" : @"split",
@@ -1170,13 +1263,6 @@ static void ABPinchRelayFire(NSInteger dir, double ratio, NSUInteger gid,
     NSInteger decision = ABPinchPairDecision(&reason, &expanded);
     _abExpanded = expanded;
     if (decision == ABPinchEnforcePair) {
-        if (d0 <= 0.01) { // degenerate pair: no scale is meaningful (SCP law)
-            _abConcluded = YES;
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[pinch2] blocked gid=%lu reason=degenerate stateSeq=%lu",
-                (unsigned long)_abGid, (unsigned long)_abStateSeq]);
-            return;
-        }
         _abEnforce = YES;
         // Began NOW, on the validated pair: UIKit cancels the
         // touches already delivered to the app's views.
@@ -1186,10 +1272,24 @@ static void ABPinchRelayFire(NSInteger dir, double ratio, NSUInteger gid,
             (unsigned long)_abGid, BWStateLetter(BWState),
             expanded ? @"expanded" : @"split",
             (unsigned long)_abStateSeq, d0]);
+        // [hl3] FIRE AT BEGAN (builds 21-35 law): the toggle is
+        // decided by the committed state latched at formation —
+        // SPLIT fires dir=1 (expand), EXPANDED fires dir=2
+        // (restore) — with NO distance movement consulted, so the
+        // scale of the pair (even fingers landing together) is
+        // irrelevant. The gesture's work is done; Ended makes
+        // UIKit reset the book, and a fresh two-finger formation
+        // may toggle again.
+        NSInteger dir = expanded ? 2 : 1;
+        _abFired = YES;
+        _abConcluded = YES;
+        ABPinchRelayFire(dir, 1.0, _abGid, expanded);
+        self.state = UIGestureRecognizerStateEnded;
     } else if (decision == ABPinchDryRunPair) {
         _abDryRun = YES;
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[pinch2] would-fire pair gid=%lu mode=dryrun state=%s committed=%@ stateSeq=%lu (no Began, no cancel, no relay)",
+            @"[pinch2] would-fire trigger=began dir=%ld gid=%lu mode=dryrun state=%s committed=%@ stateSeq=%lu (no Began, no cancel, no relay)",
+            (long)(expanded ? 2 : 1),
             (unsigned long)_abGid, BWStateLetter(BWState),
             expanded ? @"expanded" : @"split",
             (unsigned long)_abStateSeq]);
@@ -1202,87 +1302,13 @@ static void ABPinchRelayFire(NSInteger dir, double ratio, NSUInteger gid,
     }
 }
 
-- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    if (!_abPairFormed || _abConcluded || _abFired) return;
-    if (!_abEnforce && !_abDryRun) return;
-    if (_abD0 <= 0.01) return;
-    if (_abEnforce) {
-        // A live pair whose snapshot conditions rot mid-gesture is
-        // Cancelled, never fired on stale rights.
-        NSString *reason = nil;
-        BOOL expandedNow = NO;
-        NSInteger nowDecision = ABPinchPairDecision(&reason, &expandedNow);
-        if (nowDecision != ABPinchEnforcePair || expandedNow != _abExpanded) {
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[pinch2] cancelled gid=%lu reason=%@ ratio=%.3f",
-                (unsigned long)_abGid,
-                (nowDecision != ABPinchEnforcePair)
-                    ? (reason ?: @"lost") : @"committed-flip",
-                _abLastRatio]);
-            _abConcluded = YES;
-            self.state = UIGestureRecognizerStateCancelled;
-            return;
-        }
-    }
-    CGPoint mid = CGPointZero;
-    double d = [self abDistance:&mid];
-    if (d < 0) return;
-    double ratio = d / _abD0;
-    _abLastRatio = ratio;
-    double distChange = fabs(d - _abD0);
-    double drift = hypot((double)(mid.x - _abMid0.x),
-                         (double)(mid.y - _abMid0.y));
-    BOOL outCross = ratio >= 1.10; // SCPPinchController.m:256 (reused)
-    BOOL inCross  = ratio <= 0.90; // SCPPinchController.m:257 (reused)
-    if (!outCross && !inCross) {
-        if (_abEnforce && self.state == UIGestureRecognizerStateBegan)
-            self.state = UIGestureRecognizerStateChanged;
-        return;
-    }
-    // Direction is gated on the committed state latched at
-    // formation: out only from SPLIT, in only from EXPANDED.
-    NSInteger dir = 0; // 1 = out/expand, 2 = in/restore
-    if (outCross && !_abExpanded) dir = 1;
-    else if (inCross && _abExpanded) dir = 2;
-    if (dir == 0) {
-        _abConcluded = YES;
-        if (_abEnforce) {
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[pinch2] cancelled gid=%lu reason=wrong-dir ratio=%.3f committed=%@",
-                (unsigned long)_abGid, ratio,
-                _abExpanded ? @"expanded" : @"split"]);
-            self.state = UIGestureRecognizerStateCancelled;
-        } else {
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[pinch2] would-fire suppressed gid=%lu reason=wrong-dir ratio=%.3f committed=%@",
-                (unsigned long)_abGid, ratio,
-                _abExpanded ? @"expanded" : @"split"]);
-        }
-        return;
-    }
-    // Mid-drift dominance (SCPPinchController.m:258, reused verbatim):
-    // a pair whose midpoint travelled as much as its fingers spread
-    // is a pan, not a pinch — keep tracking, a later Moved may cross.
-    if (!(drift <= 0.6 * distChange + 10.0)) {
-        if (_abEnforce && self.state == UIGestureRecognizerStateBegan)
-            self.state = UIGestureRecognizerStateChanged;
-        return;
-    }
-    if (_abDryRun) {
-        _abConcluded = YES;
-        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[pinch2] would-fire dir=%ld ratio=%.3f drift=%.1f gid=%lu state=%s committed=%@ (dryrun: no Began, no cancel, no relay)",
-            (long)dir, ratio, drift, (unsigned long)_abGid,
-            BWStateLetter(BWState),
-            _abExpanded ? @"expanded" : @"split"]);
-        return;
-    }
-    // The one fire of this gesture, then Ended; -reset clears the book.
-    _abFired = YES;
-    _abConcluded = YES;
-    ABPinchRelayFire(dir, ratio, _abGid, _abExpanded);
-    self.state = UIGestureRecognizerStateEnded;
-}
+// [hl3] -touchesMoved is intentionally NOT overridden: firing
+// happens at pair formation in touchesBegan (see the activation
+// law at the head of this section). The hl2 threshold engine
+// that lived here — ratio-cross + mid-drift fire gate evaluated
+// from Moved, with direction read off which cross tripped — is
+// DELETED, not bypassed: no movement of the pair is consulted
+// anywhere in this recognizer any more.
 
 - (void)abTouchesFinished:(NSSet<UITouch *> *)touches cancelled:(BOOL)cancelled {
     for (UITouch *t in touches) [_abTouches removeObject:t];
@@ -1414,18 +1440,22 @@ static BOOL BWHandleTouchEvent(UIEvent *event) {
         NSString *reason = nil;
         BWSeqWouldSwallow = BWGatePass(event, &reason);
         BWSeqFailOpen = reason;
-        if (BWSeqWouldSwallow && BWKnown && BWFresh()
+        if (BWSeqWouldSwallow && BWKnown
             && BWWakeMode == BWModeOff) {
             // The packet itself disables wake: report the mode, not a
             // phantom pass (probe still runs for pinch).
             BWSeqWouldSwallow = NO;
             BWSeqFailOpen = @"mode";
         }
-        if (BWSeqWouldSwallow && BWEffectiveWakeMode() == BWModeEnforce) {
+        // [hl3] execution follows the LATCHED mode of the last
+        // accepted packet (the trial writes ENFORCE into this
+        // pane's packets host-side) — BWEffectiveWakeMode()'s
+        // stale->OFF collapse no longer applies to the decision.
+        if (BWSeqWouldSwallow && BWWakeMode == BWModeEnforce) {
             BWBeginSwallow(began);
             swallowEvent = YES;
         }
-        if (!BWFresh()) BWQueryIfStale(); // stale/unknown: ask (§5.2)
+        if (!BWFresh()) BWQueryIfStale(); // self-heal: ask (§5.2)
     }
 
     // Phase counts, live set, pinch distances (internal only).
@@ -1522,9 +1552,10 @@ static void BWInstallBridgeWake(void) {
     [nc addObserverForName:UIKeyboardWillHideNotification object:nil
                      queue:mq usingBlock:^(NSNotification *n) { BWKbHideNote(n); }];
     // [ytz5-k5] kbstate reporter heartbeat (1 s): posts only while
-    // the identity lives (BWKnown) — see BWKbHeartbeatTick. The
-    // timer is never invalidated; BWResetAll closes the identity
-    // and the tick goes silent with it, ready for the next session.
+    // the identity lives (BWKnown + BWKbReporterLive) — see
+    // BWKbHeartbeatTick. The timer is never invalidated; BWResetAll
+    // closes the identity, and > 5 s of state silence stops the
+    // reporter, so the tick goes silent, ready for the next session.
     if (!BWKbHeartbeatTimer) {
         BWKbHeartbeatTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES
             block:^(NSTimer *t) { (void)t; BWKbHeartbeatTick(); }];
@@ -1570,6 +1601,7 @@ static void BWResetAll(void) {
     // load and the seq is monotone per source for the load's life.
     BWKbHaveReported = NO;
     BWKbReportedActive = NO;
+    BWKbReporterLive = NO; // [hl2-l8] identity teardown: reporter dies at once
     BWWakeMode = BWModeDryRun;
     BWPinchMode = BWModeDryRun;
     BWPinchAllowed = NO;
