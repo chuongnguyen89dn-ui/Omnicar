@@ -114,6 +114,12 @@ static NSHashTable *ABDisplayLinks(void);                      // sub_5C64 (weak
 // and fail-open for everything else (§4). Installed lazily inside
 // ABOrientationBlock (§5.1), so the sendEvent: hook exists only while
 // this app is actually hosted.
+// [hl3] Swallow-decision basis = QA180 h1wake3 shape: the host
+// PUSHES on every state change (change-driven emit, sig-gated in
+// SCPCarSplit+BridgeWake.m) and this side decides at sendEvent:
+// from the latched local state + its OWN first-hand kb state.
+// Freshness arithmetic and the owner round-trip kb (type-6) are
+// out of the decision; both survive for diagnostics/AutoHide.
 // ===========================================================================
 
 // Channel names (design §3.1). File-local copies of the same strings the
@@ -155,9 +161,12 @@ static NSTimeInterval BWLastQueryAt = 0;
 // the exact point BWOnStatePacket accepts a packet (valid pack, own
 // hash, gen accepted) — the owner has authenticated this bundle's
 // hosted session; cleared in BWResetAll when the session closes. The
-// act feed posts on THIS basis, never on state freshness: BWFresh()
-// remains the sole currency of the suppression path (BWGatePass, the
-// effective-mode helpers, the probe) and is not touched by act.
+// act feed posts on THIS basis, never on state freshness.
+// [hl3] BWFresh() is no longer the currency of the suppression
+// path either: BWGatePass decides on the latched push state +
+// local kb (QA180 shape). Freshness survives only as probe
+// diagnostics, the pinch arbitration's own discipline, and the
+// BWQueryIfStale self-heal trigger.
 static BOOL     BWActSessionVerified = NO;
 static NSUInteger BWActSetFail  = 0; // notify_set_state failures (act)
 static NSUInteger BWActPostFail = 0; // notify_post failures (act)
@@ -476,7 +485,10 @@ static void BWOnKbPacket(BWPacket p) {
     BWKbOwnerRxAt   = BWNow();
 }
 
-// The effective three-state kb (§5.5 as reworked by WO ytz4 K2):
+// The effective three-state kb (§5.5 as reworked by WO ytz4 K2).
+// [hl3] Consumers are now the AutoHide act flag, the pinch
+// arbitration and the probe instruments ONLY — the swallow gate
+// reads the local BWKb directly (see BWGatePass).
 // ACTIVE on ANY valid ACTIVE evidence — the local responder/frame
 // tracking or a fresh owner snapshot saying active. Otherwise a
 // fresh owner snapshot decides (its INACTIVE, or its own UNKNOWN).
@@ -748,6 +760,9 @@ static void BWOnStatePacket(uint64_t raw) {
                                 // pack + own hash + gen accepted) is the
                                 // act feed's session identity.
     BWStateRxAt = now;
+    // [hl3] this accept IS the push latching the local decision
+    // state (BWState/BWWakeMode/BWPinch*) the swallow gate reads —
+    // no freshness window is applied to it downstream.
     // A fresh state packet is the unlock condition of §5.4 for both the
     // mixed-touch lock and the ack-timeout latch.
     BWSuppressLocked = NO;
@@ -804,10 +819,21 @@ static const char *BWStateLetter(NSInteger s) {
 // Evaluated ONCE at a sequence's Began. The mode check is the caller's
 // (the probe evaluates as-if ENFORCE); every other condition lives
 // here. *reason receives the fail-open cause for the probe log.
+// [hl3] Decision basis = QA180 h1wake3 shape: latched push state
+// (no freshness veto) + LOCAL first-hand kb (no owner round-trip).
 static BOOL BWGatePass(UIEvent *event, NSString **reason) {
     if (reason) *reason = nil;
     if (!BWKnown) { if (reason) *reason = @"unknown"; return NO; }
-    if (!BWFresh()) { if (reason) *reason = @"stale"; return NO; }
+    // [hl3] LOCAL-PUSH decision (QA180 h1wake3 shape): BWState is
+    // the pane state LATCHED at the last accepted push (or query
+    // answer) — there is NO freshness veto here any more. The
+    // 2.5 s staleness arithmetic that used to kill this gate
+    // (reason=stale) is removed from the swallow decision; the
+    // packet channel still feeds diagnostics/AutoHide, and the
+    // query path (BWQueryIfStale at sequence start) remains the
+    // self-heal if a push was missed. The ack-timeout latch below
+    // is an EVENT latch (set on ack timeout, cleared by the next
+    // accepted packet in BWOnStatePacket), not age arithmetic.
     if (BWFailOpenLatch) { if (reason) *reason = @"stale"; return NO; }
     // known && hidden: any other state (incl. WAKING) is a normal
     // pass-through, not a fail-open.
@@ -830,12 +856,20 @@ static BOOL BWGatePass(UIEvent *event, NSString **reason) {
             (unsigned long)BWStateSeq]);
         return NO;
     }
-    // kb guard on the EFFECTIVE three-state (WO ytz4 K2): ACTIVE from
-    // any valid source blocks; UNKNOWN blocks as kbunknown — it is
-    // never read as inactive. Only a known-inactive passes.
-    NSInteger kbEff = BWKbEffective(NULL, NULL);
-    if (kbEff == BWKbActive)  { if (reason) *reason = @"kb"; return NO; }
-    if (kbEff == BWKbUnknown) { if (reason) *reason = @"kbunknown"; return NO; }
+    // [hl3] kb guard on the LOCAL first-hand state ONLY (QA180
+    // shape): BWKb is this app's own input-session truth, written
+    // by the same responder hooks that drive the kbstate reporter
+    // (BWKbLocalSet) — a live session in THIS process cannot exist
+    // without them having fired, so local ACTIVE is the only kb
+    // block, and local UNKNOWN honestly means "no session ever
+    // observed here", not a missing measurement. The round-trip
+    // through the owner (type-6 bits -> BWKbEffective) is REMOVED
+    // from the swallow decision: BWKbEffective survives for the
+    // AutoHide act flag, the pinch arbitration and the probe
+    // instruments, where the loop delay is harmless. (The old
+    // kbunknown block belonged to the round-trip design; with a
+    // first-hand source it only disarmed the gate.)
+    if (BWKb == BWKbActive)  { if (reason) *reason = @"kb"; return NO; }
     if (BWSuppressLocked) { if (reason) *reason = @"mixed"; return NO; }
     // transitioning: a wake transaction still in flight, or the state
     // flipped less than 0.25 s ago — never swallow on a moving state.
@@ -924,7 +958,7 @@ static void BWCloseSequence(void) {
         @"[do] bw probe seq=%lu ph B=%lu M=%lu E=%lu C=%lu dur=%.2f "
          "hosted=%d kbKnown=%d kbActive=%d kbSrc=%s kbAge=%ld "
          "state=%s stateSeq=%lu stateAgeMs=%ld stateFlips=%lu "
-         "wouldSwallow=%d wouldPinch=%d failopen=%@",
+         "wouldSwallow=%d wouldPinch=%d failopen=%@ dsrc=local-push",
         (unsigned long)BWProbeSeqNo,
         (unsigned long)BWPhB, (unsigned long)BWPhM,
         (unsigned long)BWPhE, (unsigned long)BWPhC,
@@ -1361,18 +1395,22 @@ static BOOL BWHandleTouchEvent(UIEvent *event) {
         NSString *reason = nil;
         BWSeqWouldSwallow = BWGatePass(event, &reason);
         BWSeqFailOpen = reason;
-        if (BWSeqWouldSwallow && BWKnown && BWFresh()
+        if (BWSeqWouldSwallow && BWKnown
             && BWWakeMode == BWModeOff) {
             // The packet itself disables wake: report the mode, not a
             // phantom pass (probe still runs for pinch).
             BWSeqWouldSwallow = NO;
             BWSeqFailOpen = @"mode";
         }
-        if (BWSeqWouldSwallow && BWEffectiveWakeMode() == BWModeEnforce) {
+        // [hl3] execution follows the LATCHED mode of the last
+        // accepted packet (the trial writes ENFORCE into this
+        // pane's packets host-side) — BWEffectiveWakeMode()'s
+        // stale->OFF collapse no longer applies to the decision.
+        if (BWSeqWouldSwallow && BWWakeMode == BWModeEnforce) {
             BWBeginSwallow(began);
             swallowEvent = YES;
         }
-        if (!BWFresh()) BWQueryIfStale(); // stale/unknown: ask (§5.2)
+        if (!BWFresh()) BWQueryIfStale(); // self-heal: ask (§5.2)
     }
 
     // Phase counts, live set, pinch distances (internal only).
