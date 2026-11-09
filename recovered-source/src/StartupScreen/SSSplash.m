@@ -160,7 +160,7 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
         OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"calendar: %@", exception]);
     }
 
-    [_startView setWeather:SSWeatherLoadCache()];
+    [_startView setWeather:SSWeatherLoadCache(43200)];   // 12h, as @0x5774
     [_startView reload];
 
     // Window assembly — compiler-outlined tail sub_5764. [VERIFIED flow]
@@ -191,8 +191,13 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
                 (unsigned long)_frameCount, _fps, _loop]);
     _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(tick)];
     [_displayLink addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
-    if (_style != 0) [self refreshWeather];
-    else [self decodeMore];
+    // dump 0x5e50-0x5e84 [VERIFIED]: at start, only style 0 decodes
+    // frames and only styles 3 and 8 ask for a weather refresh; every
+    // other style does nothing here. (Restored fix-round6 weather W8;
+    // previously EVERY style != 0 refreshed, poking the weather path
+    // from every splash.)
+    if (_style == 0) [self decodeMore];
+    else if (_style == 3 || _style == 8) [self refreshWeather];
     // No-frame watchdog: if nothing was shown within 10 s, give up. For the
     // scene styles shownFrames stays 0, but by then the countdown has usually
     // finished the splash and -dismissBecause: is finished-guarded.
@@ -332,17 +337,39 @@ extern void SSClearSplashAssociation(UIScreen *screen, SSSplash *splash);
 static void (^SSPendingWeatherCompletion)(NSDictionary *weather);   // consumed by sub_8aa4
 static int SSWeatherReadyToken;
 static BOOL SSWeatherReadyRegistered;
+static int SSWeatherGeneration;   // @0x3b19c: bumped per SpringBoard ask (sub_8b74/sub_8bf0 guard on it)
 
-- (void)refreshWeather {
+- (void)refreshWeather {   // 0x6434 [VERIFIED structure]
     __weak SSSplash *weakSelf = self;
-    void (^apply)(NSDictionary *) = ^(NSDictionary *weather) {
+    void (^apply)(NSDictionary *) = ^(NSDictionary *weather) {   // sub_67d0
         SSSplash *splash = weakSelf;
         if (!splash || !weather) return;
-        splash->_startView.weather = weather;
-        [splash->_startView reload];
+        if (splash->_finished) return;   // @0x680c [VERIFIED]: a finished
+                                         // splash keeps its current view
+        SSStartupView *view = splash->_startView;
+        view.weather = weather;
+        // @0x6858-0x688c [VERIFIED]: the weather is applied through a
+        // 0.35s CrossDissolve transition (options 0x500000), NOT by a
+        // bare reload. (Restored fix-round6 weather W4c.)
+        [UIView transitionWithView:view duration:0.35 options:0x500000
+                        animations:^{   // sub_68c4 [VERIFIED: body read
+                                        // from dump — reload, then
+                                        // layoutIfNeeded, on the view]
+                            [view reload];
+                            [view layoutIfNeeded];
+                        }
+                        completion:nil];
     };
     CLLocationManager *manager = [CLLocationManager new];
-    if (CLLocationManager.authorizationStatus == kCLAuthorizationStatusNotDetermined) {
+    // @0x64c8 [VERIFIED]: (status - 5) + 3 unsigned > 0 takes the direct
+    // branch — only status {3,4} (AuthorizedAlways / AuthorizedWhenInUse)
+    // go direct; the SpringBoard ask below covers {0,1,2} =
+    // NotDetermined, Restricted, Denied. (Restored fix-round6 weather
+    // W4a; previously NotDetermined alone asked, so Denied/Restricted
+    // fell into the direct branch with a usually-nil location.)
+    CLAuthorizationStatus status = [manager authorizationStatus];
+    if (status != kCLAuthorizationStatusAuthorizedAlways &&
+        status != kCLAuthorizationStatusAuthorizedWhenInUse) {
         if (!SSWeatherReadyRegistered) {
             SSWeatherReadyRegistered = YES;
             notify_register_dispatch("com.anlai.omnicar/startupscreen.weather.ready",
@@ -350,30 +377,43 @@ static BOOL SSWeatherReadyRegistered;
                                      ^(int token) {   // sub_8aa4 [VERIFIED]
                 void (^completion)(NSDictionary *) = SSPendingWeatherCompletion;
                 SSPendingWeatherCompletion = nil;
-                NSDictionary *cache = SSWeatherLoadCache();
+                NSDictionary *cache = SSWeatherLoadCache(43200);   // 12h, as @0x8adc
                 OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: SpringBoard answered (%@)",
                             cache ? @"cache loaded" : @"nothing usable in the cache"]);
                 if (completion) completion(cache);
             });
         }
+        int generation = ++SSWeatherGeneration;   // @0x6510-0x651c: bumped
+                                                  // on every ask, before
+                                                  // the pending store
         SSPendingWeatherCompletion = apply;
         OMCLogWrite(@"StartupScreen", @"weather: no location access here, asking SpringBoard");
         notify_post("com.anlai.omnicar/startupscreen.weather.request");
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{   // sub_8b74 [INFERRED delay]
-            if (SSPendingWeatherCompletion) {
-                OMCLogWrite(@"StartupScreen", @"weather: no answer yet, asking SpringBoard again");
-                notify_post("com.anlai.omnicar/startupscreen.weather.request");
-            }
-        });
+        // sub_8b74 [VERIFIED]: the original enumerates the static delay
+        // array @[@2, @5] (@0x35488) and arms one dispatch_after per
+        // entry; each retry block re-checks (generation still current
+        // && a completion still pending) before logging + re-posting,
+        // so a stale retry from an earlier ask can never post.
+        // (Restored fix-round6 weather W4b; previously ONE retry at an
+        // [INFERRED] 3s, no generation guard.)
+        for (NSNumber *delay in @[@2, @5]) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay.doubleValue * NSEC_PER_SEC)),
+                           dispatch_get_main_queue(), ^{
+                if (SSWeatherGeneration == generation && SSPendingWeatherCompletion) {
+                    OMCLogWrite(@"StartupScreen", @"weather: no answer yet, asking SpringBoard again");
+                    notify_post("com.anlai.omnicar/startupscreen.weather.request");
+                }
+            });
+        }
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10.0 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{   // [VERIFIED log text]
-            if (SSPendingWeatherCompletion) {
-                void (^completion)(NSDictionary *) = SSPendingWeatherCompletion;
-                SSPendingWeatherCompletion = nil;
-                OMCLogWrite(@"StartupScreen", @"weather: SpringBoard did not answer in 10s");
-                if (completion) completion(SSWeatherLoadCache());
-            }
+                       dispatch_get_main_queue(), ^{   // sub_8bf0 [VERIFIED]
+            if (SSWeatherGeneration != generation) return;
+            void (^completion)(NSDictionary *) = SSPendingWeatherCompletion;
+            if (!completion) return;
+            SSPendingWeatherCompletion = nil;
+            OMCLogWrite(@"StartupScreen", @"weather: SpringBoard did not answer in 10s");
+            completion(nil);   // nil, NOT the cache: the apply block
+                               // bails on nil and the view is unchanged
         });
         return;
     }
@@ -382,7 +422,10 @@ static BOOL SSWeatherReadyRegistered;
         SSWeatherFetch(fix.coordinate.latitude, fix.coordinate.longitude, apply);
     } else {
         OMCLogWrite(@"StartupScreen", @"weather: no last known location, using the cache");
-        apply(SSWeatherLoadCache());
+        // @0x6724 [VERIFIED]: the original invokes the completion with
+        // nil on this path — the apply block bails on nil, so the view
+        // keeps the cache that -init already loaded. (W4c mechanism.)
+        apply(nil);
     }
 }
 

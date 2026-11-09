@@ -34,7 +34,7 @@ static void ABHostProcessInit(void) {
         ![process isEqualToString:@"CarPlay"]) return;
     dispatch_async(dispatch_get_main_queue(), ^{
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"build %s (%s) loaded into %@ [fixround6]", "1.0.3", "fbebb21", process]);
+            @"build %s (%s) loaded into %@ [fixround7]", "1.0.3", "fbebb21", process]);
         NSString *key = [NSString stringWithFormat:@"%@%s@%@",
                          @"diagLoaded.", "AppBridge", process];
         NSDictionary *value = @{@"version": @"1.0.3",

@@ -2832,3 +2832,201 @@ vết, không tự nó là lỗi chức năng.
 ghép được đúng binary.
 (4) Núm vách ngăn: giữ chờ bằng chứng theo thứ tự đã
 chốt — tiếp tục KHÔNG đưa vào vòng 6 (như 20.5).
+
+## 21) VÒNG 7 — WEATHER TRỌN CỤM + BỘ LỌC HƯỚNG {3,4} (2026-11-09)
+
+### 21.1 Weather — sửa trọn cụm W1–W8 + gradient (đặc tả:
+work/fix-round5/audit-weather.md; biên bản sửa:
+work/fix-round6/fix-weather-sb.md + fix-weather-car.md)
+- W5 (đường trả lời phía SpringBoard, SSAnswerWeatherRequest,
+gốc sub_7d10): (a) cổng trạng thái — chỉ status {3,4} mới vào
+nhánh last-fix/one-shot, ngoài ra đi thẳng stored/IP kể cả
+khi có fix (gốc @0x7e1c sub #3, cmp #2, b.hs); ngưỡng
+last-fix 1800s (hằng -1800.0 @0x28df8). (b) sở hữu one-shot:
+biến tĩnh MẠNH SSWeatherOnceSlot (mẫu global @0x3b190), chạy
+trên chính manager tạo ở entry; done (sub_9f9c) dọn slot
+trước, nhãn @"fresh CoreLocation". (c) timeout 6.0s
+(0x165A0BC00 ns @0x7f5c): thân block = sub_a00c — loadWeak,
+slot != once của mình thì thôi, log "no fresh fix in 6s",
+gọi finish: bằng manager.location; finish: nuốt done nên
+mọi nhánh kết thúc đúng MỘT lần, cờ in-flight không kẹt.
+- W1: SSWeatherLoadCache(double) có maxAge; cả hai điểm đọc
+(init SSSplash @0x5774 + ready handler sub_8aa4) truyền
+43200 (12h); bỏ guard ngày-tương-lai bịa; newest-wins chỉ
+khi compare: == Descending (@0xbcd4).
+- W2: ứng viên cache #2 = NSTemporaryDirectory() +
+OmniCarStartupWeather.plist (sub_bd9c); SaveCache ghi
+chính fail thì ghi tiếp file temp (@0xbfa4), nhánh fallback
+không set quyền.
+- W3: parse trả NIL khi thiếu temperature_2m (dict chỉ tạo
+sau kiểm tra @0xb77c); daily thêm guard lớp @0xb86c;
+SSCoerceNumber NSNumber-only (sub_ba08), SSCoerceLoose viết
+lại độc lập đúng sub_a184 (chuỗi rỗng -> nil); fetch kiểm
+NSHTTPURLResponse trước khi đọc statusCode, parse chỉ khi
+200 (@0x8cf8).
+- W4 (SSSplash refreshWeather/apply): (a) status đọc bằng
+INSTANCE manager (@0x64c8); hỏi SpringBoard khi {0,1,2},
+direct khi {3,4} (cực của b.hi). (b) retry tĩnh @[@2, @5]
++ bộ đếm thế hệ @0x3b19c (tăng TRƯỚC khi store pending);
+bỏ cuộc 10s gọi completion(nil) — không áp cache. (c) apply
+có guard finished (@0x680c) + transitionWithView Cross-
+Dissolve 0.35s, options 0x500000, thân block = sub_68c4
+([view reload]; [view layoutIfNeeded]); nhánh no-fix ở
+direct gọi apply(nil) theo @0x6724.
+- W6: stored location chỉ dùng khi 0 >= t >= -86400
+(@0x9ccc-0x9ce8, hằng -86400.0 @0x28e00).
+- W7: IP fallback ephemeral + timeoutIntervalForRequest
+4.0 + timeoutIntervalForResource 4.0 + waitsForConnectivity
+NO (@0x9df4-0x9e10); payload phải là NSDictionary mới đọc
+tọa độ (@0xa2a4); log "IP location failed" ghi mỗi khi
+thiếu tọa độ (@0xa3bc).
+- W8: -[SSSplash start] chỉ gọi refreshWeather khi style
+== 3 hoặc 8 (@0x5e50-0x5e84); style 0 -> decodeMore.
+- Gradient style 3 (SSStartupView reload @0xd10c-0xd35c):
+helper SSCategoryGradientColors chép sub_d6f0 (÷255.0,
+alpha 1); cây chọn cặp màu đúng cấu trúc dump (6/7/8;
+5; 9 ngày/đêm; mặc định 4/trên-10/âm ngày (4A5B70, 8D9BAD)
+/đêm (10141F, 2A3243); thấp: 0/2 (2A7FD8, 9FD3FF), 1/3
+(02030A, 0B1230); 5 (5F6670, 9AA1AA); 9 ngày (5D6E86,
+B4C2D3)/đêm (141B2A, 38445A); 6/7/8 (1C2633, 33404F)) ->
+setColors: @0xd318 -> startPoint (0.5,0) -> endPoint
+(0.5,1) -> _sceneStyle = 3 -> buildWeatherWithPeriod:.
+Trước vòng này: 0/16 giá trị trong cây.
+- HAI GIẢI QUYẾT NGOÀI AUDIT (đọc lại từ slice gốc khi
+sửa): (1) quyền file nhánh chính của SaveCache — record
+NSNumber hằng @0x34e88 đọc được từ slice arm64 gốc:
+0644 — khớp giá trị bản ta đã dùng, hết trạng thái CHƯA
+RÕ. (2) parse gốc LUÔN gán mặc định khi coerce fail cho
+weather code/isDay (csel @0xb7e0/@0xb83c; hai record
+@0x34e58/@0x34e70): code -> @0, isDay -> @1 — đã sửa
+(coerce ?: @0 / ?: @1).
+
+### 21.2 Bộ lọc hướng {3,4} — TÁCH BẠCH khỏi vụ xoay YouTube
+ABHook_UIDeviceSetOrientation (ABInApp.m, gốc sub_5504):
+bộ lọc cũ giữ (orientation-3) <= 2 -> {3,4,5}; gốc
+@0x553c-0x5544 `sub x8,x20,#3; cmp x8,#2; csel x8,x20,xzr,
+lo` chỉ giữ {3,4}, value 5 (FaceUp) -> 0. Đã sửa đúng dạng
+GPT chốt: (orientation == 3 || orientation == 4) ?
+orientation : 0; comment viết lại. Lỗi ca biên độc lập —
+KHÔNG có bằng chứng hướng 5 xuất hiện trong phiên
+fixround6 (đường YouTube đi sentinel 0xFF), không gộp
+vào nguyên nhân xoay.
+
+### 21.3 Điểm nghiệm thu GPT cho Weather — trạng thái:
+CẤU TRÚC ĐẠT — CHỜ XE. Yêu cầu: quyền vị trí = 0 thì yêu
+cầu phải đi đúng nhánh dự phòng (stored/IP), không kẹt
+in-flight, yêu cầu tiếp theo vẫn hoạt động; mọi nhánh
+thành công/lỗi/timeout kết thúc giao dịch đúng một lần.
+Ở mức cấu trúc + cổng binary (21.5): status 0 không vào
+one-shot nữa (phân hoạch {3,4} truy vết trên candidate);
+done/timeout tranh nhau bằng slot-compare + finish: nuốt
+done; nhánh stored/IP và "no position at all" đều dọn cờ
++ post ready. Chưa gọi là đạt cho tới khi có phiên xe
+(kịch bản trong ACCEPTANCE_FIXROUND7).
+
+### 21.4 YOUTUBE — ĐÓNG ĐIỀU TRA TĨNH: cơ chế khớp gốc
+Strand zoom-timing (work/fix-round5/audit-zoomtiming.md)
++ log fixround6 (commit 9f20d83) chốt: (1) KHÔNG có
+seeding — setRequestedOrientation: có đúng MỘT điểm ghi
+trong binary host @0xf884 (trong appWithHash:); đường
+solo/zoom không bước nào ghi. (2) Hằng thời gian khớp:
+debounce sub_6750 = 0x0EE6B280 ns (0.25s), nudge
++0x02FAF080 ns (0.05s); bản ta dùng đúng hai hằng. (3)
+Đóng gói kênh notify là SỐ THUẦN qua notify_set_state
+(sub_67fc): state = (field & 0xFF) | (mask & 0xFFFF) << 8
+| FNV1a(bundleID) << 24; host dùng THẲNG changed khi
+changed != 0xFF (@0xf87c), chỉ suy từ mask ở sentinel
+0xFF. (4) Gốc cũng LẬT HƯỚNG TẠI CHỖ, không đổi frame,
+không ép solo, không cổng từ chối khi chưa solo: chuỗi
+yêu cầu hướng kết thúc ở nudgePane trên khung hiện tại.
+Log fixround6 khớp: khung YouTube {297,360} đứng yên qua
+ba chu kỳ fullscreen, chỉ hướng lật 1->4->1, đáp số mask
+24 -> 4 / mask 2 -> 1 đúng bảng gốc. Quyết định (GPT +
+Nguyen): không viết cơ chế chống xoay, không ép solo,
+không đổi 0.25s/0.05s, không can thiệp animation YouTube.
+VISUAL_ORIGINAL_COMPARISON = PENDING: chỉ footage DEB
+gốc — cùng phiên bản YouTube, cùng thao tác, cùng cấu
+hình màn hình — mới phân định vòng xoay 1–1,5s có tồn
+tại ở gốc hay không; có cùng vòng xoay thì chấp nhận là
+giới hạn kiến trúc host-app gốc.
+
+### 21.5 Cổng trên candidate vòng 7 (đo trên binary trích
+từ chính candidate; candidate 975.618 B, SHA-256
+f4f84555ede9c239165a4c4edccb158b4fbd36771a1e904dcfc31c4c5cde9e14)
+- Diff payload vs candidate vòng 6: CHỈ StartupScreen +
+AppBridge đổi nội dung; SplitScreen + Prefs chỉ đổi 1
+byte marker (+UUID/chữ ký kéo theo); 4 binary còn lại và
+mọi resource byte-giữ; control identical.
+- (w-sb) ĐẠT: hàm answer (func 0x9164) dựng 6.0s bằng
+mov/movk 0x165A0BC00 @0x9410-0x9418 -> dispatch_after;
+KHÔNG có hằng 10s trong hàm này (0x2540BE400 chỉ xuất
+hiện ở 4 hàm khác). Cổng status biên dịch thành hai phép
+kiểm khoảng (sub #5/cmn, b.ls và b.hs) — truy vết đủ:
+fix==nil: {3,4} -> one-shot, ngoài -> StoredOrIP;
+fix!=nil: {0,1,2} -> StoredOrIP, {3,4} -> kiểm tuổi với
+hằng -1800.0 @0x9308 (b.le -> one-shot khi age >= 1800s,
+ngược lại dùng thẳng + @"last CoreLocation"). Slot mạnh:
+str vào global @0x93d4-0x93d8. Block timeout @0xc790:
+objc_loadWeakRetained + so slot (b.ne -> thôi) + log
+"no fresh fix in 6s" + finish:(manager.location) —
+nguyên dạng sub_a00c. Strings: "no fresh fix in 6s" +
+"fresh CoreLocation" có mặt; "one shot" = 0. LoadCache:
+ĐÚNG 2 điểm gọi, cả hai `ldr d0, =43200.0` ngay trước
+`bl _SSWeatherLoadCache` (@0x5404/0x5408, @0x6998/0x699c).
+StoredOrIP (func 0xc330): nạp -86400.0 @0xc4a4; fmov
+d0, #4.0 -> setTimeoutIntervalForRequest: @0xc56c và
+setTimeoutIntervalForResource: @0xc57c.
+- (w-car) ĐẠT: 16/16 giá trị hex gradient có mặt trong
+reload (func 0xd64c) — 12 giá trị dạng cặp mov/movk +
+4 giá trị (2A7FD8, 9FD3FF, 02030A, 0B1230) trong hai
+bảng hằng @0x26cc0/0x26cd0 được chính reload tham chiếu
+bằng adr @0xdcb4/0xdcc0; apply @0x68c4-0x68f0:
+setWeather: trước, selref transitionWithView:...,
+ldr d0 = 0.35 (@0x68d4, hằng @0x26d38), mov w3,
+#0x500000, completion nil. Strings retry/bỏ cuộc có
+mặt ("no answer yet, asking SpringBoard again",
+"SpringBoard did not answer in 10s"). Thêm: cổng
+refreshWeather @0x6498 sub #5/cmn #3/b.hi — {3,4}
+direct, {0,1,2} hỏi (instance authorizationStatus
+@0x6490).
+- (f) ĐẠT: hook setOrientation = func 0x149e0 trong
+AppBridge: cổng ABForcedOrientation >= 1 nguyên
+(cmp #1; b.lt bỏ qua @0x14a10-0x14a18); bộ lọc
+@0x14a1c-0x14a24 `sub x8, x21, #3; cmp x8, #2;
+csel x8, x21, xzr, lo` — nguyên dạng gốc @0x553c;
+truy vết 3->3, 4->4, 5->0; kết quả ghi vào global
+@0x14a2c, log "app setOrientation %lld -> %lld".
+- (h) HỒI QUY host-bar ĐẠT: guard cmp w0, w22 @0xb0f8
++ b.ne -> epilogue 0xb258; entrance block 0xba88:
+selref setAlpha: @0xbaa4 + fmov d0, #1.0 @0xbaa8 TRƯỚC
+selref setTransform: @0xbacc.
+- (g1)/(g2) HỒI QUY hướng vòng 6 ĐẠT, địa chỉ không
+đổi: (g1) dãy suy 0x6ce8-0x6d20, quyết định cmp x8,#0
+@0x6d0c + csel x8, xzr, x9, ne @0x6d10; truy vết
+24->4 / 26->0 / 30->0. (g2) phép suy app
+0x14d84-0x14da8, tst x0, #2 @0x14da4 + csel x9, x8,
+xzr, eq @0x14da8.
+- (m) ĐẠT: marker [fixround7] đúng 1 chỗ ở mỗi
+AppBridge/SplitScreen/Prefs, [fixround6]/[fixround5]
+= 0 trong cả 8 binary. Selector parity (tập
+__objc_methname) vs gốc: AppBridge/SplitScreen/Prefs
+giống HỆT baseline vòng 6 (missing/extra theo tập);
+StartupScreen lệch baseline đúng 1 selector —
+'transitionWithView:duration:options:animations:
+completion:' chuyển từ missing -> có mặt (hệ quả trực
+tiếp của W4c; gốc có, vòng 6 thiếu) — hội tụ về gốc,
+không missing/extra mới nào khác.
+Vẫn là 'đã kiểm tra tĩnh' — không phải PASS hành vi.
+
+### 21.6 Còn mở sau vòng 7
+- MỞ MỚI: bản sao weather phía Prefs (OMCCommon.m) CHƯA
+rà — module riêng, ngoài phạm vi vòng này; cần một lượt
+audit riêng trước khi kết luận cụm weather đã khép ở
+mọi module.
+- Giữ nguyên trạng theo thứ tự đã chốt: núm vách ngăn
+publishKnobsNow (kết tội §20.5, chờ lệnh); đuôi
+!logoView playIntro phía XE (3 slot ivar chưa ánh xạ);
+cellClass giữ nhãn CHƯA XÁC MINH.
+- VISUAL_ORIGINAL_COMPARISON = PENDING (21.4).
+- Các nhóm nghiệm thu còn lại + ba bài kiểm để dành
+(hết hạn, cứu crash, tải nặng): không đổi.

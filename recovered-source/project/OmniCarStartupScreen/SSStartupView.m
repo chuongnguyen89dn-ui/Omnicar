@@ -74,6 +74,10 @@ typedef struct {
 - (void)applyUnit:(double)unit;
 @end
 
+// sub_d6f0 — gradient colour-pair builder for the style-3 category
+// re-selection in -reload (defined beside SSWeatherCategory below).
+static NSArray *SSCategoryGradientColors(uint32_t rgb1, uint32_t rgb2);
+
 // Font helper used by every label path (sub_f6ac) — rounded-design system
 // font, NO scaling inside: callers scale (applyUnit/title at the call site,
 // ss_label: internally). [VERIFIED from dump 0xf6ac — restored fix-round3 D6;
@@ -255,12 +259,48 @@ static UILabel *SSSceneLabel(NSString *text) {
     if (_sceneStyle == 3) {
         // dump 0xd078-0xd0f8: isDay/code out of weather, category =
         // sub_d4f0(code, isDay), stored in _sky (ivar table slot 0xd18);
-        // -ss_buildSky dispatches on it. (The dump re-stores a literal 3
-        // into _sceneStyle at 0xd348 just before the call — a no-op,
-        // _sceneStyle is already 3 here.)
+        // -ss_buildSky dispatches on it.
         NSDictionary *weather = self.weather;
-        _sky = SSWeatherCategory([weather[@"code"] integerValue],
-                                 [weather[@"isDay"] boolValue]);
+        BOOL isDay = [weather[@"isDay"] boolValue];
+        _sky = SSWeatherCategory([weather[@"code"] integerValue], isDay);
+        // dump 0xd10c-0xd35c [VERIFIED — restored fix-round6 weather
+        // W-item 3]: BEFORE the weather card is built, the original
+        // re-selects the main gradient's colours from the category
+        // (split by isDay only where the dump tests w23) and re-asserts
+        // the gradient geometry; this setColors: @0xd318 is the LAST
+        // write to the main gradient before buildWeatherWithPeriod:.
+        // The previous build had no re-selection at all — style 3 kept
+        // whatever ss_sceneColors produced. Branch shape follows the
+        // dump: (category - 6) unsigned < 3 first, then 5, then 9;
+        // the low side tests 0/2 and 1/3; everything else (category 4,
+        // >= 10, negatives) lands on the day/night default pair.
+        uint32_t rgb1, rgb2;
+        if (_sky > 4) {
+            if ((uint64_t)(_sky - 6) < 3) {              // 6, 7, 8 @0xd124
+                rgb1 = 0x1C2633; rgb2 = 0x33404F;
+            } else if (_sky == 5) {                      // @0xd2b0
+                rgb1 = 0x5F6670; rgb2 = 0x9AA1AA;
+            } else if (_sky == 9) {                      // @0xd174 / @0xd2dc
+                if (isDay) { rgb1 = 0x5D6E86; rgb2 = 0xB4C2D3; }
+                else       { rgb1 = 0x141B2A; rgb2 = 0x38445A; }
+            } else if (isDay) {                          // default day @0xd2c8
+                rgb1 = 0x4A5B70; rgb2 = 0x8D9BAD;
+            } else {                                     // default night @0xd2f0
+                rgb1 = 0x10141F; rgb2 = 0x2A3243;
+            }
+        } else if (_sky == 0 || _sky == 2) {             // @0xd29c
+            rgb1 = 0x2A7FD8; rgb2 = 0x9FD3FF;
+        } else if (_sky == 1 || _sky == 3) {             // @0xd198
+            rgb1 = 0x02030A; rgb2 = 0x0B1230;
+        } else if (isDay) {                              // 4 / negative, day
+            rgb1 = 0x4A5B70; rgb2 = 0x8D9BAD;
+        } else {                                         // 4 / negative, night
+            rgb1 = 0x10141F; rgb2 = 0x2A3243;
+        }
+        gradient.colors = SSCategoryGradientColors(rgb1, rgb2);   // @0xd300
+        gradient.startPoint = CGPointMake(0.5, 0.0);              // @0xd330
+        gradient.endPoint = CGPointMake(0.5, 1.0);                // @0xd340
+        _sceneStyle = 3;                                          // @0xd348
         [self buildWeatherWithPeriod:period];
     } else {
         [self buildGreetingWithDate:date period:period];
@@ -318,6 +358,24 @@ static NSString *SSGreetingLine(NSInteger period, NSInteger occasion) {
 // SSStartupViewScenesB.m — SSStartupView (ScenesB) category. Keeping both would duplicate the method.
 // The class-extension declaration is retained (internal callers use it).
 // ---------------------------------------------------------------------------
+
+// sub_d6f0 @0xd6f0 — [VERIFIED: body read from dump] builds the two-stop
+// gradient colour array for a pair of 0xRRGGBB literals: each becomes a
+// UIColor with components (rgb >> 16) / 255.0, ((rgb >> 8) & 0xFF) /
+// 255.0, (rgb & 0xFF) / 255.0, alpha 1.0, and the array holds the two
+// CGColors (arrayWithObjects:count:2; no locations, no other alpha).
+// Used only by the style-3 category re-selection in -reload (@0xd300).
+static NSArray *SSCategoryGradientColors(uint32_t rgb1, uint32_t rgb2) {
+    UIColor *first = [UIColor colorWithRed:(rgb1 >> 16) / 255.0
+                                     green:((rgb1 >> 8) & 0xFF) / 255.0
+                                      blue:(rgb1 & 0xFF) / 255.0
+                                     alpha:1.0];
+    UIColor *second = [UIColor colorWithRed:(rgb2 >> 16) / 255.0
+                                      green:((rgb2 >> 8) & 0xFF) / 255.0
+                                       blue:(rgb2 & 0xFF) / 255.0
+                                      alpha:1.0];
+    return @[ (id)first.CGColor, (id)second.CGColor ];
+}
 
 // sub_d4f0 — [VERIFIED] WMO weather code -> category index 0..9.
 // (Local copy for this TU — same body as the ScenesB/Builders copies;

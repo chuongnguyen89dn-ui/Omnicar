@@ -71,7 +71,7 @@ void      SSHandleCarScreen(UIScreen *screen, UIWindowScene *scene, NSString *re
 
 NSInteger SSPeriodForDate(NSDate *date);            // 0 morning 5-10, 1 day 11-16, 2 evening 17-20, 3 night
 NSDictionary *SSWeatherParse(NSDictionary *json);   // -> {temp, code, isDay, high, low, rain, date}
-NSDictionary *SSWeatherLoadCache(void);
+NSDictionary *SSWeatherLoadCache(double maxAgeSeconds);   // @0xbaf0; <=0 disables the age gate
 void          SSWeatherSaveCache(NSDictionary *weather);
 void          SSWeatherFetch(double lat, double lon, void (^completion)(NSDictionary *weather));
 void          SSApplySampleData(SSStartupView *view);   // exported; fills preview/sample content
@@ -82,6 +82,7 @@ void          SSApplySampleData(SSStartupView *view);   // exported; fills previ
 @interface SSLocationOnce : NSObject <CLLocationManagerDelegate>
 @property (nonatomic, strong) CLLocationManager *manager;
 @property (nonatomic, copy)   void (^done)(CLLocation *location);
+- (void)finish:(CLLocation *)location;   // consumes `done` exactly once
 @end
 
 // ---------------------------------------------------------------------------

@@ -574,10 +574,9 @@ static void SSPlayStopSoundtrack(BOOL play) { // sub_8f0c
 // Weather + location services
 // ===========================================================================
 
-static NSNumber *SSCoerceNumber(id value) { // sub_ba08 [INFERRED internals from call sites]
-    if ([value isKindOfClass:NSNumber.class]) return value;
-    if ([value isKindOfClass:NSString.class]) return @([(NSString *)value doubleValue]);
-    return nil;
+static NSNumber *SSCoerceNumber(id value) { // sub_ba08 [VERIFIED: NSNumber-only,
+    // csel value/nil on the class test @0xba38-0xba3c — no NSString branch]
+    return [value isKindOfClass:NSNumber.class] ? value : nil;
 }
 
 static NSNumber *SSFirstNumber(id value) { // sub_ba60: arrays contribute their first element
@@ -589,32 +588,56 @@ NSDictionary *SSWeatherParse(NSDictionary *json) { // SSWeatherParse @0xb6b0 [VE
     if (![json isKindOfClass:NSDictionary.class]) return nil;
     NSDictionary *current = json[@"current"];
     NSDictionary *daily = json[@"daily"];
+    if (![current isKindOfClass:NSDictionary.class]) return nil;   // @0xb744 -> nil
+    // The result dict is created only AFTER temperature_2m coerces (@0xb77c:
+    // cbz -> return nil) — a temp-less payload must not overwrite a good cache.
+    NSNumber *temp = SSCoerceNumber(current[@"temperature_2m"]);
+    if (!temp) return nil;
     NSMutableDictionary *weather = [NSMutableDictionary dictionary];
     NSNumber *n;
-    if ((n = SSCoerceNumber(current[@"temperature_2m"]))) weather[@"temp"] = n;
-    if ((n = SSCoerceNumber(current[@"weather_code"])))   weather[@"code"] = n;
-    if ((n = SSCoerceNumber(current[@"is_day"])))         weather[@"isDay"] = n;
-    if ((n = SSFirstNumber(daily[@"temperature_2m_max"])))          weather[@"high"] = n;
-    if ((n = SSFirstNumber(daily[@"temperature_2m_min"])))          weather[@"low"] = n;
-    if ((n = SSFirstNumber(daily[@"precipitation_probability_max"]))) weather[@"rain"] = n;
+    weather[@"temp"] = temp;
+    // code/isDay are ALWAYS set: on a failed coerce the original substitutes
+    // constant NSNumbers (@0xb7e0/@0xb83c csel). Byte-verified from the
+    // original slice (constant-number records @0x34e58/@0x34e70, int64 value
+    // at +16): the defaults are @0 (code) and @1 (isDay).
+    weather[@"code"]  = SSCoerceNumber(current[@"weather_code"]) ?: @0;
+    weather[@"isDay"] = SSCoerceNumber(current[@"is_day"]) ?: @1;
+    if ([daily isKindOfClass:NSDictionary.class]) {   // @0xb86c guard; else skip to date
+        if ((n = SSFirstNumber(daily[@"temperature_2m_max"])))          weather[@"high"] = n;
+        if ((n = SSFirstNumber(daily[@"temperature_2m_min"])))          weather[@"low"] = n;
+        if ((n = SSFirstNumber(daily[@"precipitation_probability_max"]))) weather[@"rain"] = n;
+    }
     weather[@"date"] = NSDate.date;
     return weather;
 }
 
-static NSArray<NSString *> *SSWeatherCachePaths(void) { // sub_bd9c [INFERRED composition]
-    return @[ SSWeatherPlistPath(),
-              @"/var/mobile/Library/OmniCar/StartupScreen/weather.plist" ];
+static NSString *SSWeatherTempCachePath(void) { // sub_bd9c [VERIFIED]
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"OmniCarStartupWeather.plist"];
 }
 
-NSDictionary *SSWeatherLoadCache(void) { // SSWeatherLoadCache @0xbaf0 [VERIFIED structure]
+static NSArray<NSString *> *SSWeatherCachePaths(void) { // SSWeatherLoadCache @0xbaf0
+    return @[ SSWeatherPlistPath(), SSWeatherTempCachePath() ];
+}
+
+NSDictionary *SSWeatherLoadCache(double maxAgeSeconds) { // SSWeatherLoadCache @0xbaf0 [VERIFIED]
     NSDictionary *best = nil;
+    NSDate *bestDate = nil;
     for (NSString *path in SSWeatherCachePaths()) {
         NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:path];
         NSDate *date = dict[@"date"];
         if (![date isKindOfClass:NSDate.class]) continue;
         if (!SSCoerceNumber(dict[@"temp"])) continue;
-        if (date.timeIntervalSinceNow > 0) continue;   // future-dated: extra guard [INFERRED exact form]
-        if (!best || [best[@"date"] compare:date] != NSOrderedDescending) best = dict;
+        // Age gate (@0xbc9c-0xbcb4): only when maxAgeSeconds > 0, and a
+        // candidate is rejected when its age reaches maxAgeSeconds. There is
+        // NO future-date guard in the original — a future date has negative
+        // age and passes.
+        if (maxAgeSeconds > 0 && -date.timeIntervalSinceNow >= maxAgeSeconds) continue;
+        // Newest wins, strictly: an equal date keeps the earlier candidate
+        // (@0xbcd4: replace only when compare: == NSOrderedDescending).
+        if (!best || [date compare:bestDate] == NSOrderedDescending) {
+            best = dict;
+            bestDate = date;
+        }
     }
     return best;
 }
@@ -625,8 +648,13 @@ void SSWeatherSaveCache(NSDictionary *weather) { // SSWeatherSaveCache @0xbde8 [
     [fm createDirectoryAtPath:SSStartupDir() withIntermediateDirectories:YES attributes:nil error:nil];
     NSURL *url = [NSURL fileURLWithPath:SSWeatherPlistPath()];
     if ([weather writeToURL:url error:nil]) {
+        // Permissions value byte-verified: constant NSNumber @0x34e88 == 420.
         [fm setAttributes:@{ NSFilePosixPermissions: @0644 }
              ofItemAtPath:SSWeatherPlistPath() error:nil];
+    } else {
+        // Primary write failed -> fall back to the temp-dir cache file
+        // (@0xbfa4: writeToURL:fileURLWithPath(sub_bd9c())).
+        [weather writeToURL:[NSURL fileURLWithPath:SSWeatherTempCachePath()] error:nil];
     }
 }
 
@@ -648,7 +676,11 @@ void SSWeatherFetch(double lat, double lon, void (^completion)(NSDictionary *)) 
     [[session dataTaskWithURL:url completionHandler:
       ^(NSData *data, NSURLResponse *response, NSError *error) {   // sub_8c94 [VERIFIED]
         NSDictionary *weather = nil;
-        NSInteger status = [(NSHTTPURLResponse *)response statusCode];
+        // The original checks the response class before reading the status
+        // (sub_8c94 @0x8cf8): a non-HTTP response counts as status 0 and is
+        // never parsed.
+        NSInteger status = [response isKindOfClass:NSHTTPURLResponse.class]
+            ? [(NSHTTPURLResponse *)response statusCode] : 0;
         if (data && !error && status == 200) {
             NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
             weather = SSWeatherParse(json);
@@ -666,6 +698,13 @@ void SSWeatherFetch(double lat, double lon, void (^completion)(NSDictionary *)) 
 
 static BOOL SSWeatherAnswerInFlight;   // reentrancy guard [VERIFIED log line]
 
+// The in-flight one-shot lives in a global STRONG slot (original @0x3b190,
+// stored at 0x7f6c): CLLocationManager does not retain its delegate, so the
+// slot is what keeps the SSLocationOnce alive until it finishes. The done
+// block (sub_9f9c) clears the slot first thing; the 6s timeout block
+// (sub_a00c) only fires while the slot still holds ITS one-shot.
+static SSLocationOnce *SSWeatherOnceSlot;
+
 static void SSNotifyWeatherReady(void) { // sub_a608
     notify_post("com.anlai.omnicar/startupscreen.weather.ready");
 }
@@ -678,53 +717,86 @@ static void SSFetchAndAnswer(double lat, double lon, NSString *source) { // sub_
     });
 }
 
-static NSNumber *SSCoerceLoose(id value) { // sub_a184: NSNumber/NSString -> NSNumber (location.plist, ipapi)
-    return SSCoerceNumber(value);
+static NSNumber *SSCoerceLoose(id value) { // sub_a184 [VERIFIED]: NSNumber passes
+    // through; a NON-EMPTY NSString converts via doubleValue; else nil.
+    // (Separate from sub_ba08/SSCoerceNumber, which is NSNumber-only.)
+    if ([value isKindOfClass:NSNumber.class]) return value;
+    if ([value isKindOfClass:NSString.class] && [(NSString *)value length])
+        return @([(NSString *)value doubleValue]);
+    return nil;
 }
 
 static void SSAnswerWithStoredOrIP(void);   // sub_9b7c, below
 
-static void SSAnswerWeatherRequest(void) { // sub_7d10 [VERIFIED flow]
+static void SSAnswerWeatherRequest(void) { // sub_7d10 [VERIFIED branch-for-branch]
     if (SSWeatherAnswerInFlight) {
         OMCLogWrite(@"StartupScreen", @"weather: request while another is being answered, ignored");
         return;
     }
     SSWeatherAnswerInFlight = YES;
     CLLocationManager *manager = [CLLocationManager new];
+    CLAuthorizationStatus status = CLLocationManager.authorizationStatus;
     CLLocation *fix = manager.location;
     OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: SpringBoard location status %d, last fix %@",
-                (int)CLLocationManager.authorizationStatus,
+                (int)status,
                 fix ? [NSString stringWithFormat:@"%.0fs old", -fix.timestamp.timeIntervalSinceNow]
                     : @"none"]);
-    if (fix && -fix.timestamp.timeIntervalSinceNow <= 300) {   // [INFERRED threshold operand]
+    // W5a: the authorized branch (last-fix shortcut AND one-shot) is entered
+    // ONLY for status in {3,4} — original: sub w25,w0,#3; cmp #2; b.hs ->
+    // stored/IP (@0x7e1c/@0x7e6c/@0x7ed0). Status 0/1/2 go straight to
+    // SSAnswerWithStoredOrIP() even when a fix exists.
+    if ((NSUInteger)(status - 3) > 1) {
+        SSAnswerWithStoredOrIP();
+        return;
+    }
+    // A last fix younger than 1800s is used directly (constant @0x28df8 =
+    // -1800.0; fcmp/b.le @0x7ea0-0x7ea4 sends age >= 1800s to the one-shot).
+    if (fix && -fix.timestamp.timeIntervalSinceNow < 1800) {
         SSFetchAndAnswer(fix.coordinate.latitude, fix.coordinate.longitude, @"last CoreLocation");
         return;
     }
     // One-shot fix at kilometre accuracy — weather does not need better.
+    // W5b: it runs on the SAME manager created at entry (@0x7ef4-0x7f10) and
+    // the SSLocationOnce is held by the global strong slot, not a local.
     SSLocationOnce *once = [SSLocationOnce new];
-    CLLocationManager *onceManager = [CLLocationManager new];
-    onceManager.desiredAccuracy = kCLLocationAccuracyKilometer;
-    onceManager.delegate = once;
-    once.manager = onceManager;
-    __weak SSLocationOnce *weakOnce = once;
-    once.done = ^(CLLocation *location) {   // sub_9f9c
+    manager.desiredAccuracy = kCLLocationAccuracyKilometer;
+    manager.delegate = once;
+    once.manager = manager;
+    once.done = ^(CLLocation *location) {   // sub_9f9c [VERIFIED]
+        SSWeatherOnceSlot = nil;   // the block clears the slot first (@0x9fbc)
         if (location) SSFetchAndAnswer(location.coordinate.latitude,
-                                       location.coordinate.longitude, @"one shot");
+                                       location.coordinate.longitude, @"fresh CoreLocation");
         else SSAnswerWithStoredOrIP();
     };
-    [onceManager startUpdatingLocation];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10.0 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{   // one-shot timeout [INFERRED delay]
-        if (weakOnce && weakOnce.done) SSAnswerWithStoredOrIP();
+    SSWeatherOnceSlot = once;
+    [manager startUpdatingLocation];
+    // W5c: 6s timeout (0x165A0BC00 ns @0x7f5c). Whichever of done/timeout runs
+    // first ends the transaction exactly once: finish: consumes `done`, and
+    // this block (sub_a00c) no-ops unless the slot still holds THIS one-shot.
+    __weak SSLocationOnce *weakOnce = once;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)6000000000),
+                   dispatch_get_main_queue(), ^{   // sub_a00c [VERIFIED]
+        SSLocationOnce *strongOnce = weakOnce;
+        if (!strongOnce || SSWeatherOnceSlot != strongOnce) return;
+        OMCLogWrite(@"StartupScreen", @"weather: no fresh fix in 6s, using the last one");
+        [strongOnce finish:strongOnce.manager.location];
     });
 }
 
-static void SSAnswerWithStoredOrIP(void) { // sub_9b7c [VERIFIED flow]
+static void SSAnswerWithStoredOrIP(void) { // sub_9b7c [VERIFIED branch-for-branch]
     NSDictionary *stored = [NSDictionary dictionaryWithContentsOfFile:SSLocationPlistPath()];
     NSDate *date = stored[@"date"];
     NSNumber *lat = SSCoerceLoose(stored[@"lat"]);
     NSNumber *lon = SSCoerceLoose(stored[@"lon"]);
-    if ([date isKindOfClass:NSDate.class] && lat && lon) {
+    BOOL usable = [date isKindOfClass:NSDate.class] && lat && lon;
+    if (usable) {
+        // W6: the stored position counts only inside a 24h window and never
+        // from the future (@0x9ccc-0x9ce8: timeIntervalSinceNow > 0 -> out;
+        // constant @0x28e00 = -86400.0, older than that -> out).
+        NSTimeInterval t = date.timeIntervalSinceNow;
+        if (t > 0 || t < -86400) usable = NO;
+    }
+    if (usable) {
         NSString *label = [NSString stringWithFormat:@"nav app's (%.0f min old)",
                            -date.timeIntervalSinceNow / 60.0];
         SSFetchAndAnswer(lat.doubleValue, lon.doubleValue, label);
@@ -733,22 +805,29 @@ static void SSAnswerWithStoredOrIP(void) { // sub_9b7c [VERIFIED flow]
     OMCLogWrite(@"StartupScreen", @"weather: no position from the nav app yet, trying the IP");
     // IP geolocation fallback via https://ipapi.co/json/ — the fetch is the
     // tail of sub_9b7c; its completion is sub_a22c -> sub_a0c8. [VERIFIED flow]
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:
-                             NSURLSessionConfiguration.ephemeralSessionConfiguration];
+    // W7: the original's ephemeral config sets 4.0s request/resource
+    // timeouts and waitsForConnectivity = NO (@0x9df4-0x9e10).
+    NSURLSessionConfiguration *ipConfig = NSURLSessionConfiguration.ephemeralSessionConfiguration;
+    ipConfig.timeoutIntervalForRequest = 4.0;
+    ipConfig.timeoutIntervalForResource = 4.0;
+    ipConfig.waitsForConnectivity = NO;
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:ipConfig];
     [[session dataTaskWithURL:[NSURL URLWithString:@"https://ipapi.co/json/"]
             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         NSDictionary *json = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
-        NSNumber *ipLat = SSCoerceLoose(json[@"latitude"]);
-        NSNumber *ipLon = SSCoerceLoose(json[@"longitude"]);
-        NSString *city = [json[@"city"] isKindOfClass:NSString.class] ? json[@"city"] : nil;
+        // sub_a22c reads the keys only when the payload is a dictionary.
+        BOOL isDict = [json isKindOfClass:NSDictionary.class];
+        NSNumber *ipLat = isDict ? SSCoerceLoose(json[@"latitude"]) : nil;
+        NSNumber *ipLon = isDict ? SSCoerceLoose(json[@"longitude"]) : nil;
+        NSString *city = isDict && [json[@"city"] isKindOfClass:NSString.class] ? json[@"city"] : nil;
+        if (!ipLat || !ipLon)   // sub_a22c @0xa3bc: logged whenever coords are missing
+            OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: IP location failed (%@)",
+                        error.localizedDescription ?: @"no coordinates in the answer"]);
         dispatch_async(dispatch_get_main_queue(), ^{   // sub_a0c8
             if (ipLat && ipLon) {
                 SSFetchAndAnswer(ipLat.doubleValue, ipLon.doubleValue,
                                  [NSString stringWithFormat:@"IP (%@)", city]);
             } else {
-                if (error || !json)
-                    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: IP location failed (%@)",
-                                error.localizedDescription ?: @"no coordinates in the answer"]);
                 OMCLogWrite(@"StartupScreen", @"weather: SpringBoard has no position at all, answering without weather");
                 SSWeatherAnswerInFlight = NO;
                 SSNotifyWeatherReady();
@@ -785,7 +864,7 @@ static void SSLocationStateChanged(uint64_t state) { // sub_7a60
     [self finish:locations.lastObject];
 }
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
-    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: location failed: %@", error]);
+    OMCLogWrite(@"StartupScreen", [NSString stringWithFormat:@"weather: location failed: %@", error.localizedDescription]);
     [self finish:manager.location];
 }
 - (void)finish:(CLLocation *)location { // -[SSLocationOnce finish:]
