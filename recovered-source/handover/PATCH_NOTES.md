@@ -6509,8 +6509,8 @@ tiêu chí.
 Mục này mở đầu ngay trong ngày để lịch sử không đứt quãng (lệnh hồ sơ
 19:00–19:05, xem 29.8): ghi các quyết định/lệnh/phán quyết/bản đồ đã chốt.
 Phần thi công (29.7) ĐÃ bổ sung trong cùng đợt push với commit nguồn
-ytz5: candidate local đã có SHA; CI FAT dispatch ngay sau push, kết
-quả bổ sung cùng khối công việc.
+ytz5: candidate local đã có SHA; CI + DEB tổng hợp hoãn theo phân
+công tích hợp GPT 19:15 (xem khối TÍCH HỢP ở 29.7).
 
 ### 29.0 Bảng mốc vòng ytz5 (nhãn verdict tường minh)
 
@@ -6527,7 +6527,7 @@ quả bổ sung cùng khối công việc.
 | Phán quyết GPT: W1(c) + pinch OFF (18:45) | ĐÃ CHỐT — GO thi công |
 | Thi công ytz5 (4 strand) | XONG — commit nguồn đi cùng đợt push này (29.7) |
 | Harness 4 ca cấu trúc + kiểm tĩnh | XONG — harness 24/24 PASS; kiểm tĩnh PASS mọi cổng trừ parity: mất đúng 1 method là THAY THẾ CÓ CHỦ ĐÍCH theo hợp đồng (29.7) — chờ GPT miễn trừ |
-| Build candidate + CI FAT | Candidate XONG — 1.036.636 B, SHA-256 `2d1cf435…` (29.7); CI FAT dispatch ngay sau push, kết quả bổ sung cùng khối |
+| Build candidate + CI FAT | Candidate local XONG — 1.036.636 B, SHA-256 `2d1cf435…` (29.7); CI + DEB tổng hợp HOÃN theo phân công tích hợp GPT 19:15 — chờ GPT bàn giao commit icon Home (chi tiết khối TÍCH HỢP ở 29.7; run CI đã dispatch trước lệnh đã completed success nhưng KHÔNG lấy làm bản bàn giao) |
 | Phiên xe nghiệm thu 6 bước | CHƯA |
 | Wake ENFORCE (Gate 3) | VẪN KHOÁ — chưa bật mặc định |
 
@@ -6919,8 +6919,9 @@ FINALPACKAGE=1 EXIT=0. Candidate local arm64:
 `com.anlai.omnicar_1.0.3-ytz5_iphoneos-arm64.deb`, 1.036.636 B,
 SHA-256 `2d1cf435ada8d622427e85ae47eb1e0e85c8edc4d4dbd9b9dab3a834de0a3754`;
 members debian-binary + control.tar.gz + data.tar.lzma; control
-Version 1.0.3. **CI FAT: dispatch ngay sau push này; run id + SHA
-bản FAT bổ sung vào mục này trong cùng khối công việc.**
+Version 1.0.3. **CI FAT — ĐÃ HỦY THEO PHÂN CÔNG MỚI (xem khối
+TÍCH HỢP ngay dưới): không lấy FAT làm bản bàn giao, không giao
+deb xe ở vòng này.**
 
 **PENDING-DEVICE (chưa mục nào được gọi là đã chứng minh trên
 xe):** phím hosted native hiện ở màn nào/gõ/đóng (nghiệm thu riêng
@@ -6928,6 +6929,50 @@ theo đặc tả); chuỗi kbstate khép trên xe; vòng đời AutoHide sau
 sửa (thoát lúc mờ → mở lại hiện đủ; giữ khi nhập, chạy lại sau
 đóng phím); picker nhìn xuyên + ô trống vẫn đặc; A/B icon với
 [iconstate] (trần đo model/dock — cell vẫn khoảng mù W5).
+
+**TÍCH HỢP (bổ sung theo phân công tích hợp GPT, Nguyen chuyển
+19:15 — ghi ngay trong khối công việc):**
+- Commit nền trước thi công: source HEAD `38735c5` (ytz4); commit
+  hồ sơ nền khi commit nguồn: `b4a04bc`. Commit nguồn YTZ5:
+  `e6b50a4` trên main (đi cùng đợt push đầu của mục 29.7 này).
+- DANH SÁCH FILE THAY ĐỔI ĐẦY ĐỦ (15): AppBridgeB/ABInApp.m,
+  AppBridgeB/ABHostGeometry.m, AppBridgeB/ABHostBMethods.m,
+  SplitScreenA/SCPCarSplit.m, SplitScreenA/SCPCarSplit.h,
+  SplitScreenA/SCPCarSplit+AutoHide.m,
+  SplitScreenA/SCPCarSplit+AutoHide.h,
+  SplitScreenA/SCPCarSplit+BridgeWake.m,
+  SplitScreenA/SCPCarSplit+BridgeWake.h, SplitScreenA/SCPHooks.m,
+  SplitScreenB/SCPCarSplit+Picker.m, SplitScreenC/SCPCarApps.m,
+  SplitScreenC/SCPHomeApply.m, SplitScreenC/SCPHomeApply.h (MỚI),
+  SplitScreenC/BWInputStore.h (MỚI).
+- **FILE HOME/LAUNCH DÙNG CHUNG ĐỘI NÀY ĐÃ CHẠM — ĐÁNH DẤU RIÊNG
+  cho phía GPT (nhánh feature/omnicar-home-launcher) đọc trước khi
+  sửa cùng khu vực:** SCPHomeApply.m/.h, SCPCarApps.m (chỉ chuỗi
+  log blind=1), SCPHooks.m (chỉ gắn nguồn tại điểm gọi close),
+  SCPCarSplit.m (chỉ tại các điểm close). **Điểm giao tiếp:**
+  hàm mới `SCPLogInjectedIconState(NSString *phase, NSString *src)`
+  khai tại SCPHomeApply.h, định nghĩa tại SCPHomeApply.m; các điểm
+  gọi: `before-close` (SCPCarSplit.m:1760, đầu closeGoingHome:,
+  trước cleanup), `after-close` (SCPCarSplit.m:1815, sau thân
+  đóng), `after-home` (trong SCPHomeApply sau apply, throttle 1 s
+  tại điểm gọi); ivar nguồn close `closeSource` + helper
+  `noteCloseSource:` (SCPCarSplit.h; thân SCPCarSplit.m:1743),
+  closeGoingHome: log `CarSplit: tat split (goHome=%d) src=%@` rồi
+  reset nguồn về unknown. Phạm vi phía đội này ở khu vực Home là
+  INSTRUMENT-ONLY (đo model/dock + src= + 3 trạng thái) — không sửa
+  cơ chế icon/launcher, tránh giẫm nhánh của GPT.
+- **CI — sự thật đầy đủ:** theo kế hoạch trước, coordinator đã
+  merge main `e6b50a4` vào ci-fat-test (`30caadb`) và dispatch
+  workflow 410962367 lúc ~19:12 — TRƯỚC khi phân công mới (19:15)
+  tới. Run dispatch `42615117251` đã **completed success** (không
+  kịp hủy); run do push tự kích hoạt `42615107515` đã **cancelled**
+  theo lệnh mới. Theo phân công 19:15: artifact FAT của run trên
+  **không được lấy làm bản bàn giao, không tải xuống phân phối,
+  không giao deb xe**; DEB tổng hợp chỉ build/ký SAU khi GPT bàn
+  giao commit icon Home. Trạng thái bàn giao của đội này dừng ở:
+  source-complete / static PASS (trừ miễn trừ parity đã ghi) /
+  harness PASS / local-build PASS — CI + DEB hoãn theo phân công,
+  chờ commit bàn giao của GPT.
 
 ### 29.8 Quy tắc hồ sơ mới (Nguyen, 19:00–19:05)
 
