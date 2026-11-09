@@ -7144,3 +7144,48 @@ wouldSwallow, tách đúng thế hệ binary như mọi phiên; (2) chốt lện
 ENFORCE hosted (Nguyen) + tham vấn GPT cho cả (a) và (b) trước khi thi
 công; (3) miễn trừ parity `bwHandleKbSyncNote:` — vẫn chờ GPT phán cuối;
 (4) weather/knob + VISUAL_ORIGINAL_COMPARISON giữ PENDING.
+
+### 29.11 Chẩn đoán pinch của Nguyen (20:43, 09/11) — "app chạy quá nhiều": hai cơ chế chặn để GPT tham vấn [CHƯA THI CÔNG]
+
+Nguồn: Nguyen phát biểu tại chat 20:43 ngày 09/11/2026, bổ sung cho mục
+29.10(b). Đây là **chẩn đoán của Nguyen về nguyên nhân pinch chưa thành
+công** — ghi nguyên văn ý của anh trước khi GPT tham vấn; phía Muse
+**chưa kết luận cơ chế**.
+
+**Chẩn đoán:** vấn đề khiến zoom 2 ngón chưa thành công là **app chạy
+quá nhiều** — hai ngón chạm lọt xuống app hosted, app vẫn xử lý cảm ứng
+của nó (cuộn / zoom / hành động riêng) trong lúc pinch, nên cử chỉ bị
+app tranh chấp thay vì chuyển fullscreen sạch. Nói cách khác, điểm nghẽn
+không nằm ở khâu *nhận diện* hai ngón (app hosted nhìn thấy đủ hai ngón
+thật trong scene của nó — xem 29.10(b)) mà ở khâu *ngăn app tiêu thụ*
+hai chạm đó.
+
+**Hai hướng khắc phục Nguyen nêu để GPT tham vấn:**
+
+(1) **NGĂN HOẠT ĐỘNG CẢM ỨNG BẰNG 2 NGÓN XUỐNG APP** — điểm chặn nằm
+trong tiến trình app. Đây chính là cơ chế đã thành công ở bản 21–35:
+recognizer tuỳ biến trong app hosted + `cancelsTouchesInView` — khi
+recognizer vào trạng thái Began ngay lúc ngón thứ hai chạm, UIKit huỷ
+các chạm đã giao cho view của app, app không còn xử lý chúng nữa, cử
+chỉ pinch thuộc về tweak trọn vẹn. Dữ kiện kiến trúc đã có trong hồ sơ
+và vẫn áp dụng: **chạm vào app hosted đi theo đường scene, KHÔNG qua
+`sendEvent:` của CarPlayApp** — nên chặn ở phía host không nhốt được
+app; điểm chặn bắt buộc phải nằm trong tiến trình của app hosted.
+
+(2) **LỚP PHỦ VÔ HÌNH** — một lớp trong suốt phủ lên ô để hứng chạm
+trước. Nhận xét cơ chế (**chưa kết luận**, ghi để GPT cân): lớp phủ đặt
+phía host **không** hứng được chạm của scene hosted (khác tiến trình /
+khác ngữ cảnh render — cùng lý do kiến trúc ở (1)); lớp phủ đặt **trong
+app** thì hứng được, nhưng nó hứng **mọi** chạm kể cả một ngón, nên phải
+tự chuyển tiếp các chạm không phải pinch xuống app — phức tạp hơn hẳn
+recognizer (rủi ro độ trễ, sai thứ tự sự kiện, nuốt nhầm chạm thường).
+
+**Trạng thái:** Muse đã soạn lại bản tham vấn đầy đủ gửi GPT trong
+chat (gồm verdict phiên ytz5hl1 theo 29.10 + đề xuất Gate 3 ENFORCE
+hosted + pinch kèm chẩn đoán này và hai cơ chế khắc phục + các câu hỏi).
+**Chờ GPT phán trước khi thi công:** (i) cơ chế chặn được chọn —
+recognizer + `cancelsTouchesInView` / overlay trong app / kết hợp;
+(ii) thứ tự xử lý giữa pinch và wake-swallow tại cùng điểm chạm (cú
+pinch đầu khi controls đang ẩn có bị tính là cú chạm gọi logo không);
+(iii) hành vi pinch khi controls đang ẩn và khi đang EXPANDED (zoom
+out = thu về split?). Các mục chờ khác giữ nguyên như cuối 29.10.

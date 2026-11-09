@@ -808,6 +808,17 @@ giao tiếp (kênh tín hiệu, thứ tự với wake hook, hành vi khi control
 **Chờ:** log phiên (Nguyen up một lần) → phân tích picker/kbstate/home-launch/iconstate;
 miễn trừ parity `bwHandleKbSyncNote:` vẫn chờ GPT phán cuối; weather/knob +
 VISUAL_ORIGINAL_COMPARISON giữ PENDING.
+**Cập nhật 20:43 (chẩn đoán pinch của Nguyen — PATCH §29.11):** nguyên nhân pinch chưa
+thành công theo Nguyen là **app chạy quá nhiều** — hai ngón lọt xuống app hosted, app xử
+lý cảm ứng riêng (cuộn/zoom) tranh chấp cử chỉ thay vì chuyển fullscreen sạch. Hai cơ
+chế khắc phục chờ GPT tham vấn trước khi thi công: (1) **ngăn cảm ứng 2 ngón xuống app**
+bằng recognizer trong app + `cancelsTouchesInView` (cơ chế đã thành công ở bản 21–35;
+điểm chặn phải nằm trong tiến trình app vì chạm hosted đi đường scene, không qua
+`sendEvent:` của CarPlayApp nên chặn ở host không nhốt được app); (2) **lớp phủ vô hình**
+hứng chạm trước (nhận xét cơ chế chưa kết luận: phủ phía host không hứng được chạm của
+scene hosted — khác tiến trình/render; phủ trong app hứng được cả chạm 1 ngón nên phải
+tự chuyển tiếp, phức tạp hơn recognizer). Kèm chờ phán: thứ tự pinch vs wake-swallow tại
+cùng điểm chạm + hành vi khi controls ẩn / đang EXPANDED.
 
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 
