@@ -35,7 +35,7 @@ extern void SCPMissingSelector(id obj, NSString *selectorName);         // 0x4f3
 // sub_e324: builds a DBApplicationInfo/launch-info object for a bundle id.
 extern id _Nullable SCPApplicationInfoForBundle(NSString *bundleId); // [phase2; backported to src in phase 3] 0xe324 — name unified to A's
 // sub_ffb4: YES when the app info declares CarPlay UI (carPlayDeclaration).
-extern BOOL SCPAppHasCarPlayUI(id appInfo);                             // 0xffb4 (A)
+extern BOOL SCPAppHasCarPlayUI(id _Nullable appInfo);                   // 0xffb4 (A) [ytz5hl integrate: nullability aligned with SCPShared.h:67 + nil-tolerant impl SCPShared.m:265 — duplicate-declaration conflict when both headers share a TU (SCPHomeLauncher.m)]
 
 // ---- cross-file family symbols ----------------------------------------------
 // Weak ref to the DBDashboardHomeViewController, stored by

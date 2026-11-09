@@ -7,6 +7,7 @@
 // hidden/shown app filtering of -[..IconModel isIconVisible:].
 
 #import "SCPHomeCommon.h"
+#import "SCPHomeLauncher.h" // [gpt-home] only own-icon visibility
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -139,6 +140,9 @@ void SCPHook_SetLabelHidden(id self, SEL _cmd, BOOL hidden) {
 BOOL SCPHook_IsIconVisible(id self, SEL _cmd, id icon) {
     BOOL result = NO;
     @try {
+        // [gpt-home] Own Home launcher is not a chosen AppBridge app.
+        // Preserve stock/native policy unchanged for every other bundle.
+        if (SCPHomeLauncherIsOwnIcon(icon)) return SCPHomeLauncherEnabled();
         if (SCPIconHiddenOnCar(icon)) return NO;
     } @catch (NSException *e) { SCPLogException("isIconVisible", e); }
     @try {

@@ -4,6 +4,7 @@
 
 #import "SCPShared.h"
 #import "SCPSmallClasses.h"
+#import "../SplitScreenC/SCPHomeLauncher.h" // [gpt-home] self is never hosted
 #import <objc/message.h>
 
 // Distributed-notification names (VERIFIED string xrefs).
@@ -152,6 +153,9 @@ id SCPApplicationInfoForBundle(NSString *bundleID) {
 // SCPCarApps.m carries that logic.
 BOOL SCPIsHostedApp(NSString *bundleID) {
     if (!bundleID.length) return NO;
+    // [gpt-home] A stale appBridgeApps preference may still contain
+    // the OWN OmniCar bundle. Never host its iPhone Settings scene.
+    if (SCPHomeLauncherIsBundle(bundleID)) return NO;
     if (!OMCFeatureEnabled(@"appBridge")) return NO;
     if (SCPIsInjectedPhoneApp(bundleID)) return YES;
     if (SCPAppHasCarPlayUI(SCPApplicationInfoForBundle(bundleID))) return NO;
