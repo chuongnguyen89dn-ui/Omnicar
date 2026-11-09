@@ -62,6 +62,11 @@ extern id OMCLogoMeshImage(int style);   // shared unit (OMCCommon.h:188)
 // a legacy stored 1 (written while absent meant native) to 0
 // exactly once — changing this default alone would not move a
 // machine that already carries the stored value.
+// [hl3] The hl2 law above is SUPERSEDED by Nguyen's direct order
+// 2026-11-09 22:14 (all hosted apps back to the stock CarPlay
+// keyboard, drawn panel not used): ABNativeKeyboardEnabled below
+// is a hard YES — the pref and the hl2 migration marker are inert
+// in this build, and the migration block is gone.
 // The HOST is the only side that reads this pref. A hosted app
 // NEVER reads CFPreferences for the gate (K5 contract; the QA179
 // lesson restated for BridgeWake above): the value reaches each
@@ -71,42 +76,27 @@ extern id OMCLogoMeshImage(int style);   // shared unit (OMCCommon.h:188)
 // when the gate flips.
 // ===========================================================================
 BOOL ABNativeKeyboardEnabled(void) {
-    OMCPrefsSync();
-    id v = OMCPref(@"appBridgeNativeKeyboard", nil);
-    // [hl2] One-time targeted drawn-restore migration, the
-    // bridgewake.pinchOffMigratedYtz5 idiom of
-    // SCPCarSplit+BridgeWake.m transplanted to the host's gate
-    // reader (the only host-side run point for this pref inside
-    // AppBridge): if the hl2 marker is absent, a stored
-    // appBridgeNativeKeyboard == 1 — a value every pre-hl2 build
-    // could leave behind while absent meant native — is rewritten
-    // to 0 (drawn) with the discriminator log line, and the marker
-    // is set. The marker is set on this first pass whether or not
-    // a rewrite was needed, so once it exists this block never
-    // runs again and a native = 1 stored AFTER the migration is
-    // honoured as an explicit user choice. The static guard keeps
-    // the check to once per process; the marker pref is the
-    // cross-process guard. No other pref is touched.
-    static BOOL abKbDrawnRestoredChecked;
-    if (!abKbDrawnRestoredChecked) {
-        abKbDrawnRestoredChecked = YES;
-        if (!OMCPref(@"appBridgeNativeKeyboardDrawnRestoredHl2", nil)) {
-            if (v && [v boolValue]) {
-                CFPreferencesSetAppValue(CFSTR("appBridgeNativeKeyboard"),
-                    (__bridge CFPropertyListRef)@(0),
-                    CFSTR("com.anlai.omnicar"));
-                OMCLogWrite(@"AppBridge",
-                    @"[ytz5-k5] hl2 migration: appBridgeNativeKeyboard 1 -> 0 (drawn restored), marker appBridgeNativeKeyboardDrawnRestoredHl2 set");
-                v = @0;
-            }
-            CFPreferencesSetAppValue(CFSTR("appBridgeNativeKeyboardDrawnRestoredHl2"),
-                (__bridge CFPropertyListRef)@(1),
-                CFSTR("com.anlai.omnicar"));
-            CFPreferencesAppSynchronize(CFSTR("com.anlai.omnicar"));
-        }
+    // [hl3] HARD LOCK — Nguyen's direct order 2026-11-09 22:14
+    // ("quay ve phim CarPlay toan bo, khong su dung phim tu ve")
+    // OVERRIDES the GPT drawn-default ruling and the hl2 K6 flip:
+    // the effective mode is ALWAYS native for hosted apps in this
+    // build. The pref is no longer read here at all, so neither a
+    // stored appBridgeNativeKeyboard value nor the hl2 migration
+    // marker (appBridgeNativeKeyboardDrawnRestoredHl2, possibly
+    // already written to the device by the hl2 build) can pull
+    // this build back to drawn; the hl2 migration block is removed
+    // together with the read. The drawn-panel code stays in the
+    // tree, unreachable behind this gate (Nguyen 18:01: keep the
+    // code, lock it by the gate). One log line per process states
+    // the lock and its source, so a session log can never be
+    // misread as a pref-driven mode.
+    static BOOL abKbHl3LockLogged;
+    if (!abKbHl3LockLogged) {
+        abKbHl3LockLogged = YES;
+        OMCLogWrite(@"AppBridge",
+            @"[ytz5-k5] hl3: native KHOA CUNG cho app hosted (lenh Nguyen 22:14, ghi de phan quyet drawn cua GPT); pref appBridgeNativeKeyboard + marker hl2 vo hieu");
     }
-    if (!v) return NO; // [hl2] absent = drawn (was: absent = native)
-    return [v boolValue];
+    return YES;
 }
 BOOL ABDrawnKeyboardEnabled(void) {
     return !ABNativeKeyboardEnabled();
