@@ -620,14 +620,21 @@ static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
 // Identity rule: nothing is posted until a state packet for this
 // bundle has been accepted (BWKnown — the acceptance that also
 // sets BWActSessionVerified), i.e. while the reporter holds a live
-// (hash, gen) identity. No typed content is ever logged or sent —
-// the payload above is the whole surface.
+// (hash, gen) identity. [hl2-l8] The reporter posts only while
+// that identity is still live: BWKbStatePost requires BWKnown AND
+// BWKbReporterLive. BWKbReporterLive is set on every accepted state
+// packet, cleared by BWResetAll, and cleared by the heartbeat when
+// state packets fall silent for > 5 s (assignment presumed gone —
+// the app may outlive its pane); the next accepted packet revives
+// it. No typed content is ever logged or sent — the payload above
+// is the whole surface.
 // ===========================================================================
 static NSString *const BWKbStateChannel = @"com.anlai.omnicar/bridgewake.v1.kbstate";
 static uint32_t BWKbSessionID = 0;    // minted once, first reporter use
 static uint64_t BWKbReportSeq = 0;    // monotone; first post carries 1
 static BOOL     BWKbReportedActive = NO; // last state actually posted
 static BOOL     BWKbHaveReported = NO;
+static BOOL     BWKbReporterLive = NO; // [hl2-l8] identity still live (see rule above)
 static NSTimer *BWKbHeartbeatTimer = nil;
 
 static uint32_t BWKbSession(void) {
@@ -646,7 +653,7 @@ static BOOL BWKbSessionActiveNow(void) {
 }
 
 static void BWKbStatePost(BOOL active) {
-    if (!BWKnown) return; // no live identity (hash+gen) yet
+    if (!BWKnown || !BWKbReporterLive) return; // no live identity (hash+gen) yet
     BWKbReportSeq++;
     NSDictionary *info = @{
         @"hash":    @(BWOwnHash28()),
@@ -689,13 +696,24 @@ static void BWKbStateResignedDeferred(void) {
 }
 
 // Heartbeat (1 s, started in BWInstallBridgeWake): while the
-// identity lives (BWKnown), re-post the CURRENT state with a fresh
-// seq. This also carries the first INACTIVE of an identity learned
-// while no responder stands, and corrects the record if the
-// tracked responder died without a resign reaching the hooks (the
-// weak ABCurrentResponder simply nils out).
+// identity lives (BWKnown + BWKbReporterLive), re-post the CURRENT
+// state with a fresh seq. This also carries the first INACTIVE of
+// an identity learned while no responder stands, and corrects the
+// record if the tracked responder died without a resign reaching
+// the hooks (the weak ABCurrentResponder simply nils out).
+// [hl2-l8] Silence death: the owner renews a live assignment's
+// state ~every 1 s, so > 5 s without an accepted packet means the
+// assignment is presumed gone even though this app still lives —
+// the reporter stops (temporarily; the next accepted packet
+// revives it in BWOnStatePacket) instead of posting a stale
+// (hash, gen) forever for the owner to reject as noassignment.
 static void BWKbHeartbeatTick(void) {
     if (!BWKnown) return;
+    if (BWKbReporterLive && BWStateRxAt > 0 && (BWNow() - BWStateRxAt) > 5.0) {
+        BWKbReporterLive = NO;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"[kbstate] reporter-stop: state im lang %.1fs (assignment presumed gone)", BWNow() - BWStateRxAt]);
+        return;
+    }
     BOOL active = BWKbSessionActiveNow();
     if (BWKbHaveReported && active == BWKbReportedActive) {
         BWKbStatePost(active); // renewal, new seq
@@ -761,6 +779,7 @@ static void BWOnStatePacket(uint64_t raw) {
                                 // pack + own hash + gen accepted) is the
                                 // act feed's session identity.
     BWStateRxAt = now;
+    BWKbReporterLive = YES; // [hl2-l8] accepted packet = live assignment: reporter (re)starts
     // [hl3] this accept IS the push latching the local decision
     // state (BWState/BWWakeMode/BWPinch*) the swallow gate reads —
     // no freshness window is applied to it downstream.
@@ -1533,9 +1552,10 @@ static void BWInstallBridgeWake(void) {
     [nc addObserverForName:UIKeyboardWillHideNotification object:nil
                      queue:mq usingBlock:^(NSNotification *n) { BWKbHideNote(n); }];
     // [ytz5-k5] kbstate reporter heartbeat (1 s): posts only while
-    // the identity lives (BWKnown) — see BWKbHeartbeatTick. The
-    // timer is never invalidated; BWResetAll closes the identity
-    // and the tick goes silent with it, ready for the next session.
+    // the identity lives (BWKnown + BWKbReporterLive) — see
+    // BWKbHeartbeatTick. The timer is never invalidated; BWResetAll
+    // closes the identity, and > 5 s of state silence stops the
+    // reporter, so the tick goes silent, ready for the next session.
     if (!BWKbHeartbeatTimer) {
         BWKbHeartbeatTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 repeats:YES
             block:^(NSTimer *t) { (void)t; BWKbHeartbeatTick(); }];
@@ -1581,6 +1601,7 @@ static void BWResetAll(void) {
     // load and the seq is monotone per source for the load's life.
     BWKbHaveReported = NO;
     BWKbReportedActive = NO;
+    BWKbReporterLive = NO; // [hl2-l8] identity teardown: reporter dies at once
     BWWakeMode = BWModeDryRun;
     BWPinchMode = BWModeDryRun;
     BWPinchAllowed = NO;

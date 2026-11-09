@@ -679,6 +679,38 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         [NSString stringWithFormat:@"CarSplit: popup chon %ld app cho o %d (%s, %d o cho)",
             (long)count, pane.slot, window != nil ? "cua so rieng" : "container",
             (int)otherPickers]);
+    // [picker-measure2] (hl3, MEASURE ONLY): post-presentation
+    // measurement replacing the missed pre-presentation capture of
+    // [picker-measure] (hl2 L5/L6: picker super=nil, trayWin hidden=1
+    // in 13/13 opens because that line ran BEFORE presentation).
+    // Placed at the very end of buildPickerSheetForPane:, after
+    // [host addSubview:sheet] + self.pickerSheet = sheet, so the
+    // sheet, picker, cover, scene host and tray window are read in
+    // their final presented state. Read-only: logs only, no view
+    // behaviour is changed.
+    {
+        BOOL measureHasContent = (pane.vc != nil || [self slotOccupied:pane.slot]);
+        UIWindow *measureWin = self.trayWindow;
+        NSString *measureWinBg = @"?";
+        if (measureWin.backgroundColor != nil) {
+            CGFloat wr = 0, wg = 0, wb = 0, wa = 0;
+            if ([measureWin.backgroundColor getRed:&wr green:&wg blue:&wb alpha:&wa])
+                measureWinBg = [NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f", wr, wg, wb, wa];
+        }
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[picker-measure2] phase=presented slot=%d hosted=%d hasContent=%d picker{%@ subs=%lu} sheet{%@} cover{%@} scene{%@} trayWin{hidden=%d alpha=%.2f frame=%@ level=%.0f bg=%@ root{%@}}",
+            pane.slot, SCPIsBridgedPhoneApp(pane.bundleID) ? 1 : 0, (int)measureHasContent,
+            SCPViewMeasureDesc(pane.picker), (unsigned long)pane.picker.subviews.count,
+            SCPViewMeasureDesc(self.pickerSheet),
+            SCPViewMeasureDesc(pane.cover),
+            SCPViewMeasureDesc(pane.host),
+            measureWin ? (int)measureWin.isHidden : -1,
+            measureWin ? measureWin.alpha : 0.0,
+            measureWin ? NSStringFromCGRect(measureWin.frame) : @"nil",
+            measureWin ? measureWin.windowLevel : -1.0,
+            measureWinBg,
+            SCPViewMeasureDesc(measureWin.rootViewController.view)]);
+    }
 }
 
 // CLOSED (was PARTIAL): the sheet's pane gets a 3 pt border on its picker
@@ -865,6 +897,16 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         [self openApp:bundle slot:pane.slot];
         if (pane.picker != nil)
             [self refreshPickerSheetSoon];
+        // [picker-measure2] (hl3, MEASURE ONLY): closing counterpart
+        // of the post-presentation line in buildPickerSheetForPane: —
+        // state right after openApp: + refreshPickerSheetSoon on the
+        // choose path, replacing the missed pre-presentation capture
+        // of [picker-measure] (hl2 L5/L6). Read-only: logs only.
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[picker-measure2] phase=close-choose slot=%d chosen=%@ paneBundle=%@ paneHasVC=%d picker{%@} sheet{%@} sceneSuper=%@",
+            pane.slot, bundle, pane.bundleID, pane.vc != nil ? 1 : 0,
+            SCPViewMeasureDesc(pane.picker), SCPViewMeasureDesc(self.pickerSheet),
+            pane.host.superview ? NSStringFromClass(pane.host.superview.class) : @"nil"]);
     } @catch (id exception) {
         OMCLogWrite(@"SplitScreen",
             [NSString stringWithFormat:@"CarSplit: loi chon app %@\n%@",
@@ -889,6 +931,17 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
             [self removePaneAt:pane.slot background:NO];
             [self afterPaneRemoved:nil];
         }
+        // [picker-measure2] (hl3, MEASURE ONLY): closing counterpart
+        // of the post-presentation line in buildPickerSheetForPane: —
+        // state at the end of the cancel path (after the
+        // relayout/closeFloat/removePane branch), replacing the
+        // missed pre-presentation capture of [picker-measure]
+        // (hl2 L5/L6). Read-only: logs only.
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[picker-measure2] phase=close-cancel slot=%d paneBundle=%@ paneHasVC=%d picker{%@} sheet{%@} sceneSuper=%@",
+            pane.slot, pane.bundleID, pane.vc != nil ? 1 : 0,
+            SCPViewMeasureDesc(pane.picker), SCPViewMeasureDesc(self.pickerSheet),
+            pane.host.superview ? NSStringFromClass(pane.host.superview.class) : @"nil"]);
     } @catch (id exception) {
         OMCLogWrite(@"SplitScreen",
             [NSString stringWithFormat:@"CarSplit: loi huy bang chon %@\n%@",
