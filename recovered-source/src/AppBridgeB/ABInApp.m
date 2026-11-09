@@ -961,8 +961,8 @@ static void BWStartSummaryTimer(void) {
 // this code never calls touchesCancelled on the app, never forges a
 // UIEvent, and never delays a one-finger touch
 // (delaysTouchesBegan=NO). The recognizer owns NO fullscreen engine:
-// on a crossed threshold it relays ONE command per gesture to the
-// host on the NSDistributed channel
+// the moment a validated pair forms it relays ONE toggle command
+// to the host on the NSDistributed channel
 // com.anlai.omnicar/bridgewake.v1.pinch and the host's existing
 // SCPFullscreenController remains the only FS owner.
 //
@@ -972,12 +972,25 @@ static void BWStartSummaryTimer(void) {
 // a pair that starts ineligible never converts mid-gesture, and a
 // swallowed wake chain (BWHandleTouchEvent) is a different chain
 // that this recognizer never retro-claims.
-// Thresholds are REUSED from the legacy CarPlayApp pinch
-// (SCPPinchController.m, SCPPinchRecognizer touchesMoved):
-//   out cross  ratio >= 1.10                          (line 256)
-//   in cross   ratio <= 0.90                          (line 257)
-//   mid-drift  drift <= 0.6 * distChange + 10.0       (line 258)
-//   degenerate pair dist0 <= 0.01 has no scale        (line ~243)
+// [hl3] ACTIVATION LAW — rebuilt to the mechanism of the PROVEN
+// builds 21-35 (Nguyen 2026-11-09 20:39; rework order 22:22):
+// the recognizer Begins the moment the second finger lands and
+// the toggle FIRES AT BEGAN. No distance-ratio threshold and no
+// midpoint-drift condition exists anywhere in the activation
+// path: hl2 shipped the legacy CarPlayApp ratio-cross + drift
+// conditions (PATCH 29.13 W6) as the FIRE gate inside
+// touchesMoved, and the hl2 car session showed the result —
+// pinch near-unrecognizable, out fired 1-2x, in 0x (PATCH
+// 29.15). Those conditions were the wrong design template: in
+// builds 21-35 they never gated the trigger. Direction is NOT
+// read from gesture geometry either: dir is the toggle of the
+// committed state latched at formation (SPLIT -> out/expand,
+// EXPANDED -> in/restore), and the owner re-validates dir
+// against the FS controller's real currentState before
+// applying (bwHandlePinchNote: badstate). Pair arbitration
+// (ABPinchPairDecision — known/fresh/allowed/kb/mode, incl. the
+// two GPT invariants: SPLIT+HIDDEN never recognises, and
+// EXPANDED+HIDDEN still can) is unchanged by this rework.
 // ===========================================================================
 static NSString *const BWPinchChannel = @"com.anlai.omnicar/bridgewake.v1.pinch";
 static uint64_t BWPinchReportSeq = 0;  // per-source monotone; first fire = 1
@@ -1037,7 +1050,8 @@ static NSInteger ABPinchPairDecision(NSString **reasonOut, BOOL *expandedOut) {
     if (reasonOut) *reasonOut = @"modeoff"; return ABPinchBlock;
 }
 
-// Relay ONE command for a crossed gesture. Payload discipline is the
+// Relay ONE toggle command for a formed pair, fired at Began.
+// Payload discipline is the
 // kbstate reporter's (BWKbStatePost): hash = BWOwnHash28(), gen =
 // BWGen at fire time, session = BWKbSession() (minted once per
 // load), seq = own per-source monotone. t is the exception: the
@@ -1068,7 +1082,7 @@ static void ABPinchRelayFire(NSInteger dir, double ratio, NSUInteger gid,
                       object:[NSBundle mainBundle].bundleIdentifier
                     userInfo:info];
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[pinch2] recognized dir=%ld ratio=%.3f state=%s committed=%@ "
+        @"[pinch2] recognized trigger=began dir=%ld ratio=%.3f state=%s committed=%@ "
          "seq=%llu gid=%lu gen=%lu stateSeq=%lu",
         (long)dir, ratio, BWStateLetter(BWState),
         expanded ? @"expanded" : @"split",
@@ -1170,13 +1184,6 @@ static void ABPinchRelayFire(NSInteger dir, double ratio, NSUInteger gid,
     NSInteger decision = ABPinchPairDecision(&reason, &expanded);
     _abExpanded = expanded;
     if (decision == ABPinchEnforcePair) {
-        if (d0 <= 0.01) { // degenerate pair: no scale is meaningful (SCP law)
-            _abConcluded = YES;
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[pinch2] blocked gid=%lu reason=degenerate stateSeq=%lu",
-                (unsigned long)_abGid, (unsigned long)_abStateSeq]);
-            return;
-        }
         _abEnforce = YES;
         // Began NOW, on the validated pair: UIKit cancels the
         // touches already delivered to the app's views.
@@ -1186,10 +1193,24 @@ static void ABPinchRelayFire(NSInteger dir, double ratio, NSUInteger gid,
             (unsigned long)_abGid, BWStateLetter(BWState),
             expanded ? @"expanded" : @"split",
             (unsigned long)_abStateSeq, d0]);
+        // [hl3] FIRE AT BEGAN (builds 21-35 law): the toggle is
+        // decided by the committed state latched at formation —
+        // SPLIT fires dir=1 (expand), EXPANDED fires dir=2
+        // (restore) — with NO distance movement consulted, so the
+        // scale of the pair (even fingers landing together) is
+        // irrelevant. The gesture's work is done; Ended makes
+        // UIKit reset the book, and a fresh two-finger formation
+        // may toggle again.
+        NSInteger dir = expanded ? 2 : 1;
+        _abFired = YES;
+        _abConcluded = YES;
+        ABPinchRelayFire(dir, 1.0, _abGid, expanded);
+        self.state = UIGestureRecognizerStateEnded;
     } else if (decision == ABPinchDryRunPair) {
         _abDryRun = YES;
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[pinch2] would-fire pair gid=%lu mode=dryrun state=%s committed=%@ stateSeq=%lu (no Began, no cancel, no relay)",
+            @"[pinch2] would-fire trigger=began dir=%ld gid=%lu mode=dryrun state=%s committed=%@ stateSeq=%lu (no Began, no cancel, no relay)",
+            (long)(expanded ? 2 : 1),
             (unsigned long)_abGid, BWStateLetter(BWState),
             expanded ? @"expanded" : @"split",
             (unsigned long)_abStateSeq]);
@@ -1202,87 +1223,13 @@ static void ABPinchRelayFire(NSInteger dir, double ratio, NSUInteger gid,
     }
 }
 
-- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    if (!_abPairFormed || _abConcluded || _abFired) return;
-    if (!_abEnforce && !_abDryRun) return;
-    if (_abD0 <= 0.01) return;
-    if (_abEnforce) {
-        // A live pair whose snapshot conditions rot mid-gesture is
-        // Cancelled, never fired on stale rights.
-        NSString *reason = nil;
-        BOOL expandedNow = NO;
-        NSInteger nowDecision = ABPinchPairDecision(&reason, &expandedNow);
-        if (nowDecision != ABPinchEnforcePair || expandedNow != _abExpanded) {
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[pinch2] cancelled gid=%lu reason=%@ ratio=%.3f",
-                (unsigned long)_abGid,
-                (nowDecision != ABPinchEnforcePair)
-                    ? (reason ?: @"lost") : @"committed-flip",
-                _abLastRatio]);
-            _abConcluded = YES;
-            self.state = UIGestureRecognizerStateCancelled;
-            return;
-        }
-    }
-    CGPoint mid = CGPointZero;
-    double d = [self abDistance:&mid];
-    if (d < 0) return;
-    double ratio = d / _abD0;
-    _abLastRatio = ratio;
-    double distChange = fabs(d - _abD0);
-    double drift = hypot((double)(mid.x - _abMid0.x),
-                         (double)(mid.y - _abMid0.y));
-    BOOL outCross = ratio >= 1.10; // SCPPinchController.m:256 (reused)
-    BOOL inCross  = ratio <= 0.90; // SCPPinchController.m:257 (reused)
-    if (!outCross && !inCross) {
-        if (_abEnforce && self.state == UIGestureRecognizerStateBegan)
-            self.state = UIGestureRecognizerStateChanged;
-        return;
-    }
-    // Direction is gated on the committed state latched at
-    // formation: out only from SPLIT, in only from EXPANDED.
-    NSInteger dir = 0; // 1 = out/expand, 2 = in/restore
-    if (outCross && !_abExpanded) dir = 1;
-    else if (inCross && _abExpanded) dir = 2;
-    if (dir == 0) {
-        _abConcluded = YES;
-        if (_abEnforce) {
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[pinch2] cancelled gid=%lu reason=wrong-dir ratio=%.3f committed=%@",
-                (unsigned long)_abGid, ratio,
-                _abExpanded ? @"expanded" : @"split"]);
-            self.state = UIGestureRecognizerStateCancelled;
-        } else {
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[pinch2] would-fire suppressed gid=%lu reason=wrong-dir ratio=%.3f committed=%@",
-                (unsigned long)_abGid, ratio,
-                _abExpanded ? @"expanded" : @"split"]);
-        }
-        return;
-    }
-    // Mid-drift dominance (SCPPinchController.m:258, reused verbatim):
-    // a pair whose midpoint travelled as much as its fingers spread
-    // is a pan, not a pinch — keep tracking, a later Moved may cross.
-    if (!(drift <= 0.6 * distChange + 10.0)) {
-        if (_abEnforce && self.state == UIGestureRecognizerStateBegan)
-            self.state = UIGestureRecognizerStateChanged;
-        return;
-    }
-    if (_abDryRun) {
-        _abConcluded = YES;
-        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[pinch2] would-fire dir=%ld ratio=%.3f drift=%.1f gid=%lu state=%s committed=%@ (dryrun: no Began, no cancel, no relay)",
-            (long)dir, ratio, drift, (unsigned long)_abGid,
-            BWStateLetter(BWState),
-            _abExpanded ? @"expanded" : @"split"]);
-        return;
-    }
-    // The one fire of this gesture, then Ended; -reset clears the book.
-    _abFired = YES;
-    _abConcluded = YES;
-    ABPinchRelayFire(dir, ratio, _abGid, _abExpanded);
-    self.state = UIGestureRecognizerStateEnded;
-}
+// [hl3] -touchesMoved is intentionally NOT overridden: firing
+// happens at pair formation in touchesBegan (see the activation
+// law at the head of this section). The hl2 threshold engine
+// that lived here — ratio-cross + mid-drift fire gate evaluated
+// from Moved, with direction read off which cross tripped — is
+// DELETED, not bypassed: no movement of the pair is consulted
+// anywhere in this recognizer any more.
 
 - (void)abTouchesFinished:(NSSet<UITouch *> *)touches cancelled:(BOOL)cancelled {
     for (UITouch *t in touches) [_abTouches removeObject:t];
