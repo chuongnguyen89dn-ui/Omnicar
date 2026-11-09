@@ -1188,10 +1188,92 @@ static id ABSceneOfPane(ABPane *pane) {
     [pane.box bringSubviewToFront:pane.handleHit];
 }
 
+// ===========================================================================
+// AUTOHIDE host apply — (design-autohide.md §2.3/§2.5/§5.2; NEW, not in
+// the original binary). ABHost never decides fade: the CarPlay owner
+// sends its session fade state down with the geometry it already owns —
+// key `fade` in every hostFrameInfo packet (for ABPane.handle/
+// handleHit) and key `kfade` beside `knobs` (for ABKnobView) — and this
+// host only APPLIES it, the way QA19 applied its own state. Painting
+// discipline (§2.5): layer.opacity ONLY (never hidden/alpha/
+// userInteractionEnabled, so a faded handle's hit target stays alive),
+// every painted view's original opacity saved per-view and restored
+// verbatim, no animation in either direction. Two independent truths
+// are kept apart (§2.2): nativeVisible (the frame flag's applied
+// result — read off handleHit.hidden, the product of the last
+// setFrame:) and faded (the owner's key). Paint applies only when
+// BOTH are true; a frame that takes the handle away restores the
+// pane's saves and records fade = NO (QA19's stop rule).
+// ===========================================================================
+
+// Per-view saved opacities (QA19's NSMapTable shape): weak view keys,
+// strong NSNumber values. A view that dies takes its entry with it,
+// so no opacity-0 view can leak into a later session through here.
+static NSMapTable<UIView *, NSNumber *> *AHHostSavedOpacities(void) {
+    static NSMapTable *saves;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        saves = [[NSMapTable alloc]
+            initWithKeyOptions:NSPointerFunctionsWeakMemory
+                  valueOptions:NSPointerFunctionsStrongMemory
+                      capacity:8];
+    });
+    return saves;
+}
+
+// Latest owner-requested fade per bundle (lifecycle bookkeeping; the
+// packet stream itself is the live truth — every frame/open packet
+// re-sends the key, §2.4 self-healing).
+static NSMutableDictionary<NSString *, NSNumber *> *AHHostFadeByPane(void) {
+    static NSMutableDictionary *fades;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ fades = [NSMutableDictionary dictionary]; });
+    return fades;
+}
+
+// APPLIED fade per bundle: YES exactly while that pane's handle views
+// are painted to opacity 0. This is what the BridgeWake snapshot
+// reports as `faded` — an applied fact, never a recomputation.
+static NSMutableDictionary<NSString *, NSNumber *> *AHHostAppliedFadeByPane(void) {
+    static NSMutableDictionary *applied;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ applied = [NSMutableDictionary dictionary]; });
+    return applied;
+}
+
+// The owner's knob fade is global (knob views belong to no pane).
+static BOOL AHHostKnobFadeState = NO;
+
+static BOOL AHHostPaneAppliedFade(NSString *bundleID) {
+    return [AHHostAppliedFadeByPane()[bundleID] boolValue];
+}
+
+static void AHHostPaintView(UIView *view) {
+    if (!view) return;
+    NSMapTable<UIView *, NSNumber *> *saves = AHHostSavedOpacities();
+    // A view already painted keeps its FIRST saved value — that is
+    // the true original opacity (§2.5 rule 2).
+    if (![saves objectForKey:view])
+        [saves setObject:@(view.layer.opacity) forKey:view];
+    view.layer.opacity = 0.0f;
+}
+
+static void AHHostRestoreView(UIView *view) {
+    if (!view) return;
+    NSMapTable<UIView *, NSNumber *> *saves = AHHostSavedOpacities();
+    NSNumber *saved = [saves objectForKey:view];
+    if (saved) {
+        view.layer.opacity = saved.floatValue;
+        [saves removeObjectForKey:view];
+    }
+}
+
 // -bwAppliedSnapshotForBundle: — BRIDGEWAKE (design-bridgewake.md §6;
 // not in the original binary). Read-only snapshot of the chrome state
-// AS APPLIED on this host: the pane's handleHit/bar visibility facts
-// and the live knob-view count. "Hidden" here is a pure view fact — a
+// AS APPLIED on this host: the pane's handleHit/bar visibility facts,
+// the live knob-view count, and — AUTOHIDE (design-autohide.md §5.2) —
+// the pane's APPLIED fade fact (`faded`: its handle views are painted
+// to opacity 0 right now). "Hidden" here is a pure view fact — a
 // bar or handle view that does not exist reports hidden=YES; nothing
 // is recomputed and no chrome state is inferred: the wake owner
 // (SCPCarSplit) turns these facts into an ack state. This accessor
@@ -1203,7 +1285,96 @@ static id ABSceneOfPane(ABPane *pane) {
         @"handleHidden": @(!pane.handleHit || pane.handleHit.hidden),
         @"barHidden":    @(!pane.bar || pane.bar.isHidden),
         @"knobCount":    @(self.knobViews.count),
+        @"faded":        @(AHHostPaneAppliedFade(bundleID)),
     };
+}
+
+// -applyFade:forPane: — AUTOHIDE (design-autohide.md §2.3/§5.2).
+// This is the separate-method option of §5.2(i): the body of
+// setFrame:forApp:live:handle:passInsets: is NOT extended; the
+// channel layer (ABChannels.m §6) calls this right after the
+// registrar has applied the packet — one main-queue hop, the §5
+// BridgeWake pattern — so pane.handleHit.hidden already holds the
+// nativeVisible truth (handle && !collapsed) of that very packet.
+// A packet without the `fade` key arrives here as NO and restores /
+// no-ops: behaviour identical to the pre-AutoHide host.
+- (void)applyFade:(BOOL)fade forPane:(ABPane *)pane {
+    if (!pane) return;
+    NSString *bundle = pane.bundleID;
+    BOOL wasApplied = AHHostPaneAppliedFade(bundle);
+    // nativeVisible as APPLIED: handleHit is the view setHandleVisible:
+    // drives; a missing handleHit means no living handle at all.
+    BOOL nativeVisible = pane.handleHit && !pane.handleHit.hidden;
+    if (!nativeVisible) {
+        // QA19's stop (§5.2): the frame took the handle away (or it
+        // was never built) — restore any saves and record fade = NO.
+        // The packet that revives the handle carries the key again.
+        AHHostRestoreView(pane.handle);
+        AHHostRestoreView(pane.handleHit);
+        AHHostFadeByPane()[bundle] = @NO;
+        AHHostAppliedFadeByPane()[bundle] = @NO;
+    } else if (fade) {
+        AHHostFadeByPane()[bundle] = @YES;
+        AHHostPaintView(pane.handle);
+        AHHostPaintView(pane.handleHit);
+        AHHostAppliedFadeByPane()[bundle] = @YES;
+    } else {
+        AHHostFadeByPane()[bundle] = @NO;
+        AHHostRestoreView(pane.handle);
+        AHHostRestoreView(pane.handleHit);
+        AHHostAppliedFadeByPane()[bundle] = @NO;
+    }
+    BOOL nowApplied = AHHostPaneAppliedFade(bundle);
+    if (nowApplied != wasApplied)
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[autohide] host fade %@ bundle=%@",
+            nowApplied ? @"applied" : @"restored", bundle]);
+}
+
+// -setKnobsFade: — AUTOHIDE (design-autohide.md §2.3/§5.2). Applies
+// the owner's global knob fade (key `kfade` beside `knobs` in the
+// appbridge.knobs payload) to every live knob view. The channel
+// layer calls it AFTER setKnobs: has reconciled (one main-queue
+// hop), so knobs BORN by that reconcile are painted in the same
+// pass — setKnobs: itself is untouched and, per the design's static
+// gate, still contains no layer.opacity write of its own.
+- (void)setKnobsFade:(BOOL)fade {
+    if (fade != AHHostKnobFadeState) {
+        AHHostKnobFadeState = fade;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[autohide] host knob fade %@", fade ? @"applied" : @"restored"]);
+    }
+    if (fade) {
+        for (UIView *knob in self.knobViews) AHHostPaintView(knob);
+    } else {
+        for (UIView *knob in self.knobViews) AHHostRestoreView(knob);
+        // Knobs reconciled away while faded can still be alive with
+        // a saved opacity; sweep the table for any ABKnobView left
+        // holding one (enumerating a copied key array — restores
+        // mutate the table).
+        NSArray *views = AHHostSavedOpacities().keyEnumerator.allObjects;
+        for (UIView *view in views)
+            if ([view isKindOfClass:[ABKnobView class]])
+                AHHostRestoreView(view);
+    }
+}
+
+// -ahRestorePaneForBundle: — AUTOHIDE teardown hygiene (§5.2(iv)).
+// Called by the channel layer's close/closeall observers WITHOUT a
+// hop, best-effort BEFORE teardownPane: destroys the pane's views:
+// restores that pane's saved handle opacities and clears its fade
+// records. If teardown wins the race the pane lookup simply misses —
+// the weak-keyed save table self-cleans and a later re-open builds
+// fresh handle views at full opacity, so nothing can leak.
+- (void)ahRestorePaneForBundle:(NSString *)bundleID {
+    if (!bundleID) return;
+    ABPane *pane = [self paneFor:bundleID];
+    if (pane) {
+        AHHostRestoreView(pane.handle);
+        AHHostRestoreView(pane.handleHit);
+    }
+    [AHHostFadeByPane() removeObjectForKey:bundleID];
+    [AHHostAppliedFadeByPane() removeObjectForKey:bundleID];
 }
 
 // -raiseKnobs @0x13918 — VERIFIED.

@@ -31,7 +31,17 @@ extern const char *ABNotifyBWAck;
 - (NSDictionary *)bwAppliedSnapshotForBundle:(NSString *)bundleID;
 @end
 
+// AutoHide applied-fade surface on ABHost — implemented in
+// ABHostBMethods.m (design-autohide.md §5.2); declared here because
+// ABHost.h predates the feature.
+@interface ABHost (AutoHideApply)
+- (void)applyFade:(BOOL)fade forPane:(ABPane *)pane;
+- (void)setKnobsFade:(BOOL)fade;
+- (void)ahRestorePaneForBundle:(NSString *)bundleID;
+@end
+
 static void BWRegisterHostConfirm(void);
+static void AHRegisterHostApply(void);
 
 static NSString *const kPrefix = @"com.anlai.omnicar/appbridge.";
 
@@ -61,7 +71,11 @@ static void ABHostProcessInit(void) {
         CFPreferencesAppSynchronize(CFSTR("com.anlai.omnicar"));
         // BridgeWake host confirmation (§5) lives only in SpringBoard,
         // the process that owns ABHost.
-        if ([process isEqualToString:@"SpringBoard"]) BWRegisterHostConfirm();
+        if ([process isEqualToString:@"SpringBoard"]) {
+            BWRegisterHostConfirm();
+            // AutoHide host apply (§6) — same process, same reason.
+            AHRegisterHostApply();
+        }
     });
 }
 
@@ -593,4 +607,77 @@ static void BWRegisterHostConfirm(void) {
     });
     BWObserveApplied(@"com.anlai.omnicar/appbridge.open");
     BWObserveApplied(@"com.anlai.omnicar/appbridge.frame");
+}
+
+// ===========================================================================
+// 6. AutoHide host apply — AUTOHIDE (design-autohide.md §2.3/§2.4/
+//    §5.2; NEW, not in the original binary). ABHost never originates
+//    a fade: the keys ride the packets the CarPlay owner already
+//    sends — `fade` in appbridge.open / appbridge.frame (the pane's
+//    handle/handleHit) and `kfade` beside `knobs` in appbridge.knobs
+//    (the knob views) — so this TU registers its OWN observers on
+//    those three channels. The LIVE handlers live in
+//    ABHostGeometry.m (ABOpenBlock / ABFrameBlock / ABKnobsBlock);
+//    exactly as in §5, each observer takes one extra main-queue hop
+//    so the registrar's handler — enqueued in the same delivery
+//    round — has APPLIED the packet before the key is handed to
+//    ABHost, which only applies it. A missing key reads NO (sender
+//    older than the feature): no fade, fail-open to visible, and
+//    every later packet re-sends the key, so the host cannot stick
+//    in a stale fade. ABHost does NOT consume the bridgewake act
+//    channel — activity is the owner's input, not the mirror's.
+//    The close/closeall observers run WITHOUT the hop: they restore
+//    a closing pane's saved opacities and clear its fade records on
+//    a best-effort basis before teardownPane: destroys the views
+//    (if teardown wins the race, the weak-keyed save table in
+//    ABHostBMethods.m self-cleans and a re-open builds fresh handle
+//    views at full opacity — no opacity-0 view can leak).
+// ===========================================================================
+
+static void AHObserveFadeChannel(NSString *name, BOOL knobsChannel) {
+    NSDistributedNotificationCenter *dc =
+        [NSClassFromString(@"NSDistributedNotificationCenter") defaultCenter];
+    [dc addObserverForName:name object:nil queue:[NSOperationQueue mainQueue]
+                usingBlock:^(NSNotification *note) {
+        NSDictionary *ui = note.userInfo;
+        if (knobsChannel) {
+            BOOL kfade = [ui[@"kfade"] boolValue];
+            // Hop: setKnobs: reconciles first; knob views BORN by
+            // that reconcile are then painted by the same pass.
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [[ABHost shared] setKnobsFade:kfade];
+            });
+            return;
+        }
+        NSString *bundle = ui[@"identifier"];
+        if (!bundle) return;
+        BOOL fade = [ui[@"fade"] boolValue];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            ABPane *pane = [[ABHost shared] paneFor:bundle];
+            if (pane) [[ABHost shared] applyFade:fade forPane:pane];
+        });
+    }];
+}
+
+static void AHRegisterHostApply(void) {
+    AHObserveFadeChannel(@"com.anlai.omnicar/appbridge.open", NO);
+    AHObserveFadeChannel(@"com.anlai.omnicar/appbridge.frame", NO);
+    AHObserveFadeChannel(@"com.anlai.omnicar/appbridge.knobs", YES);
+    NSDistributedNotificationCenter *dc =
+        [NSClassFromString(@"NSDistributedNotificationCenter") defaultCenter];
+    NSOperationQueue *mq = [NSOperationQueue mainQueue];
+    [dc addObserverForName:@"com.anlai.omnicar/appbridge.close"
+                    object:nil queue:mq
+                usingBlock:^(NSNotification *note) {
+        NSString *bundle = note.userInfo[@"identifier"];
+        if (bundle) [[ABHost shared] ahRestorePaneForBundle:bundle];
+    }];
+    [dc addObserverForName:@"com.anlai.omnicar/appbridge.closeall"
+                    object:nil queue:mq
+                usingBlock:^(NSNotification *note) {
+        NSString *except = note.userInfo[@"except"];
+        for (ABPane *pane in [ABHost shared].panes)
+            if (![pane.bundleID isEqualToString:except])
+                [[ABHost shared] ahRestorePaneForBundle:pane.bundleID];
+    }];
 }

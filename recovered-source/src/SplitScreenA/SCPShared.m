@@ -34,6 +34,7 @@ const char *SCPBridgeWakeState = "com.anlai.omnicar/bridgewake.v1.state";
 const char *SCPBridgeWakeQuery = "com.anlai.omnicar/bridgewake.v1.query";
 const char *SCPBridgeWakeWake  = "com.anlai.omnicar/bridgewake.v1.wake";
 const char *SCPBridgeWakeAck   = "com.anlai.omnicar/bridgewake.v1.ack";
+const char *SCPBridgeWakeAct   = "com.anlai.omnicar/bridgewake.v1.act";
 
 // Guarded dynamic message send used all over the module: the original calls
 // NSSelectorFromString + respondsToSelector:, and on failure calls

@@ -1885,3 +1885,113 @@ from this candidate; DEVICE_TEST for round 7 remains
 PENDING (GPT's mandatory point: at location status 0
 the request must take the fallback branch, never stick
 in-flight, and the next request must still work).
+
+WAKE1 (Bridge Wake QA180 port + pinch probe + knob
+polarity fix; PATCH_NOTES section 22): a NEW-feature
+round on the fixround7 baseline, not an original-
+recovery round. Gate 0 audit first: the rebuilt DEBs
+contain only the 8 RE components (QA19/QA20 are sources
+inside the unified QA20 package, so an RE install
+replaces them wholesale — no stacked hooks); original
+1.0.3 has NO global controls-hidden state (three
+independent 4s timers for bar/tray/ratio, the native
+handle hides only when vc == nil, the knob never
+idle-hides — the familiar idle fade came from the
+QA19/QA20 add-ons), so the wake state owner is a NEW
+aggregation (bwRecomputeForPane: from assigned, live
+hostHandle, barHidden, transient, popup; bar.isHidden
+alone never decides HIDDEN). The build-44 sendEvent
+dispute is adjudicated: the in-app gate WAS a
+-[UIApplication sendEvent:] hook in the app process,
+and the 'exactly 1 record' was the host-side count read
+through the lossy DF156 latest-wins mailbox — a lower
+bound that does not veto the dry-run probe. WAKE is
+implemented in three file-owned strands: the owner +
+arbitration in SCPCarSplit (new SCPCarSplit+BridgeWake.m,
+521 lines; the only notify_post site for the state
+channel; no new NSTimer), ABHost confirmation only
+(new bwAppliedSnapshotForBundle: accessor reading the
+APPLIED snapshot; wake-armed single wait cell per
+bundle; ack role=1 echoing gen/seq within 800 ms,
+exactly-once; the setBarVisible:/setHandleVisible:
+bodies byte-identical by SHA-256), and the ABInApp
+relay (lazy sendEvent hook under !ABHooksInstalled,
+orig called exactly once on the pass path; one probe
+point feeding separate wouldSwallow/wouldPinch
+counters; suppression machine IDLE->SWALLOWING->
+FINISHED->IDLE with the full fail-open gate; keyboard
+guard from the first-responder session, never from
+UIRemoteKeyboardWindow existence). Protocol
+bridgewake.v1: four Darwin channels with a unified
+uint64 layout (valid / hash28 / seq12 / gen12 / flag /
+pinchMode / wakeMode / state / type) and 8 scripted
+test vectors; PINCH_MODE and WAKE_MODE are independent
+and default to DRY_RUN (absent prefs), state staleness
+past 2.5 s degrades the effective mode to OFF.
+PINCH is BLOCKED at gate A1: the QA20 fullscreen dylib
+(125,808 B, MD5 944d6f37c9ce327298dd6edd1d1a3bd8,
+thin arm64) is hook-compatible with the rebuilt
+SCPCarSplit, but OMCToggleHost is a static function
+with exactly ONE internal call site (-[OMCZoomAction
+pressed:]), the action object exists only after the
+ratio menu has been opened once, the dylib's only
+channel (com.anlai.omnicar.zoom.chrome.v1) is a
+one-way chrome-state broadcast with no
+CFNotificationCenter import at all, its only exported
+symbol drives SpringBoard chrome only, and the
+expanded state is an associated object keyed by a
+dylib-internal static address with no getter — no
+lawful control entry and no state read-back exist, so
+per GPT's stop rule no behaviour integration was
+attempted (no guessed offsets/selectors, binary
+untouched, dylib NOT in the candidate). What ships is
+the pinch recognizer + DRY_RUN probe (observes pairs,
+never withholds them; cancelsTouchesInView and both
+delays are NO) and a disciplined empty
+SCPFullscreenControlling adapter whose currentState
+compiles to 'mov x0,#0; ret' on both slices, so pinch
+ENFORCE cannot arm this round. The gate reopens only
+if GPT's source side publishes a verified control
+entry plus state read-back in a NEW dylib (new MD5,
+A1 re-run from scratch). The divider-knob mirror
+polarity (publishKnobsNow, convicted in section 20.5)
+is FIXED in this round as its own separate patch:
+@(!scaled) -> @(scaled) at SCPCarSplit.m:2615-2620 in
+both trees — the compiled path now carries exactly
+one eor on the IsIdentity -> numberWithBool: route,
+matching the original on both slices (identity -> 0,
+scale 1.6 -> 1); device check rides along in the
+wake1 session. Integration caught a real API-level
+divergence between the two BridgeWakePack.h copies
+and normalised both modules to the SplitScreen codec
+(identical at 4 locations; final harness 38/38 in
+both modules, including ABHost's file-local V6
+constant). Local candidate: 994,274 B, SHA-256
+12d41e98160bbbb2371bb755562c0085b18c9700a78e2c12b012
+de86c826e38f, Version 1.0.3. Gate 1 on the extracted
+candidate passes: selector parity loses 0 of 8
+components vs fixround7, regressions g1/g2/h/f pass,
+exactly one eor in publishKnobsNow, sendEvent exists
+only in AppBridge, no QA19/QA20/fullscreen dylib in
+the package, the appbridge.apporient/.orientation/
+.keyboard channels untouched. FAT build: CI run
+42573985624 (workflow_dispatch, queried directly)
+SUCCESS; FAT 1,184,484 B, SHA-256
+279005f45cb84d340e050461a46b4768fc4226c6edf80709af606004a9c3c2f1;
+two-slice verification on the FAT passes (bridgewake
+strings 4/4 in both modules on both slices, one eor
+in publishKnobsNow on both slices, g1 csel form on
+both slices, adapter currentState stub on both
+slices). Git: main a907505 (wake1 source), ci-fat-test
+21e1b95 (merge). DEVICE_TEST for wake1 remains
+PENDING: Gates 2-6 await one combined car session
+(Gate 2 dry-run counts, the knob check, and the still-
+pending fixround7 Weather acceptance folded into the
+same session). Interpretation points left for GPT are
+listed in section 22.8 (ABHost main-queue hop vs the
+live handlers in ABHostGeometry.m, the strict
+targetVerified rule, the normalised pack header,
+externalChainSuppressed derived from the owner's
+WAKING transactions, assigned including self.active,
+immediate ack for wakes at VISIBLE, the two distinct
+default-empty pinch allowlist surfaces).

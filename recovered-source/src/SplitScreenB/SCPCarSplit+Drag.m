@@ -8,6 +8,7 @@
 #import "SCPCarSplit.h"
 #import "SCPCarPane.h"
 #import "SCPCommon.h" // [phase2; backported to src in phase 3] OMC* declarations used in this TU
+#import "SCPCarSplit+AutoHide.h" // [autohide] drag-end activity feed at endPaneDrag: (design-autohide §4.2, car1 §4.4)
 
 // Shared helpers (other modules / shared core):
 extern void SCPDispatchAfter(double delaySeconds, void (^block)(void)); // 0x12efc (A)
@@ -198,6 +199,7 @@ void SCPStyleGhostIcon(UIImageView *imageView) {
     if (target >= 0 && target != pane.slot)
         [self swapSlot:pane.slot with:(int)target];
     [self endResize];
+    [self ahNoteActivity:AHSourceDragEnd]; // [autohide] §4.2: the pane-drag funnel feeds the drag-end re-arm itself — endResize's own feed is resizing-guarded and another path may already have consumed it (additive line; original body untouched)
     // The binary also calls cancelPaneDrag on the invalid-target path;
     // after clearPaneDragMarks that call is a no-op (its dragGhost guard).
 }

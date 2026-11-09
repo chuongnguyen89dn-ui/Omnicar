@@ -16,6 +16,8 @@
 #import "SCPSmallClasses.h"   // SCPNoopLayoutAssertion (final closure: addElement hook)
 #import "SCPCarSplit+BridgeWake.h" // [wake1] bridgewake owner install (design §7.1)
 #import "SCPPinchController.h" // [pinch1] integration seam: syncArming at root layout (design-pinch §7)
+#import "SCPFullscreenController.h" // [fs1] controller install (__init_1) + fsDidLayout reconcile at the root-layout seam (design-fullscreen-fs1 §4.1/§4.8)
+#import "SCPCarSplit+AutoHide.h" // [autohide] ahInstall beside bwInstallOwner (design-autohide §5.1)
 #import <objc/message.h>
 #import <objc/runtime.h>      // class_copyIvarList / object_getIvar (final closure)
 #import <notify.h>
@@ -325,6 +327,12 @@ static void Hook_RootVC_viewDidLayoutSubviews(id self, SEL _cmd) {
     // after every root layout (container window membership settles here).
     @try { [[SCPPinchController shared] syncArming]; }
     @catch (NSException *ex) { SCPExceptionLog("pinch syncArming", ex); }
+    // [fs1] fullscreen reconcile (design-fullscreen-fs1 §4.8): while
+    // EXPANDED, re-confirm the container frame + FS chrome after
+    // every root layout and yield (shortened restore) on any
+    // external override; a no-op in every other state.
+    @try { [[SCPFullscreenController shared] fsDidLayout]; }
+    @catch (NSException *ex) { SCPExceptionLog("fs fsDidLayout", ex); }
 }
 
 // sub_6988 VERIFIED: orig, then two delayed main-queue blocks:
@@ -787,4 +795,17 @@ static void SCPInitDashboardHooks(void) {
     // already gated to CarPlayApp — register the Darwin query/wake/ack
     // receivers, the prefs-changed mode source and the initial modes.
     [[SCPCarSplit shared] bwInstallOwner];
+
+    // [autohide] idle-fade controller (design-autohide §3.1/§5.1):
+    // installed beside the wake owner — loads bridgewake.autoHide and
+    // arms its single session idle timer. CarPlayApp only, like the
+    // owner above.
+    [[SCPCarSplit shared] ahInstall];
+
+    // [fs1] fullscreen controller (design-fullscreen-fs1 §4.1): the
+    // sole owner of the expanded state, its snapshot and the FS
+    // chrome map. Installed here, beside the wake owner — this
+    // constructor only ever runs in CarPlayApp, so the controller
+    // never exists as an actor in SpringBoard.
+    [[SCPFullscreenController shared] fsInstallIfNeeded];
 }

@@ -25,6 +25,8 @@
 #import <notify.h> // remediation: publishBusy uses notify_register_check/set_state/post (IMP 0x15834)
 #import "SCPCarSplit+BridgeWake.h" // [wake1] bridgewake recompute/teardown call points (design §1.3)
 #import "SCPPinchController.h" // [pinch1] integration glue: attach/detach (design-pinch §7, 2 lines max)
+#import "SCPFullscreenController.h" // [fs1] glue: shortened restore when the session ends (design-fullscreen-fs1 §4.6)
+#import "SCPCarSplit+AutoHide.h" // [autohide] fade payload keys + activity feeds + teardown (design-autohide §5.1)
 
 static id SCPGuarded(id obj, NSString *selName) {
     SEL sel = NSSelectorFromString(selName);
@@ -128,6 +130,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
     if (![self ensureContainer]) return NO;
     self.active = YES;
+    [self ahSessionStarted]; // [autohide] session-start counterpart of ahSessionTeardown in dashboardInvalidated: the first 4.0 s clock runs from activation, not from the first touch (impl-autohide-car1 §4.2)
     self.focusedSlot = 0;
     [self publishBusy];
     [self.pending removeAllObjects];
@@ -246,7 +249,9 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         OMCLogWrite(@"SplitScreen", @"CarSplit: DashBoard invalidate -> bo split");
         self.active = NO;
         [self bwSessionTeardown]; // [wake1] the "setActive:NO" point: all slots -> INACTIVE (design §1.3 point 3)
+        [self ahSessionTeardown]; // [autohide] stop the fade timer, restore every painted view (design-autohide §3.1)
         [[SCPPinchController shared] detach]; // [pinch1] glue: session teardown ends pinch tracking (design-pinch §7)
+        [[SCPFullscreenController shared] fsSessionDidEnd]; // [fs1] glue: shortened restore at the same "setActive:NO" point — drop the expanded flag, restore clips/chrome, publish NO; NO relayout on a dead session (design §4.6)
         [self.pending removeAllObjects];
         [self publishBusy];
         for (SCPCarPane *pane in [self allPanes]) {
@@ -1962,6 +1967,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     CGRect frame = [self appAreaInParent:parent];
     frame = [parent convertRect:frame toView:nil];
     self.soloHostedBundle = bundleID;
+    [self ahSetSuspended:YES]; // [autohide] §4.1: a hosted solo session suspends the fade machine — ahSetSuspended: restores any live fade BEFORE the solo takes over (additive line; original body untouched)
     self.soloHostedFrame = frame;
     self.trayHidesBridge = NO;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: %@ toan man %@", bundleID, NSStringFromCGRect(frame)]);
@@ -1981,6 +1987,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     NSString *bundle = self.soloHostedBundle;
     if (!bundle) return;
     self.soloHostedBundle = nil;
+    [self ahSetSuspended:NO]; // [autohide] §4.1: back to SPLIT — resume with a fresh 4.0 s clock (additive line; original body untouched)
     self.trayHidesBridge = NO;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: dong app toan man %@", bundle]);
     [self hostClose:bundle terminate:NO];
@@ -2049,6 +2056,12 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     if (!pane) return info;
 
     [info addEntriesFromDictionary:[self hostBarInfoForPane:pane]];
+    // [autohide] additive key (design-autohide §2.4): the owner's fade
+    // flag rides the same packet as `handle`, so ABHost applies both in
+    // the same beat and every frame push self-heals the mirror. All
+    // original keys keep their names/formulas (superset rule, §5.4).
+    // The fade is NEVER encoded through `handle` itself (§2.2).
+    info[@"fade"] = @([self ahFaded]);
     info[@"r"] = @(pane.view.layer.cornerRadius);
     info[@"corners"] = @(pane.view.layer.maskedCorners);
     info[@"hx"] = @([self handleShiftForPane:pane]);
@@ -2518,6 +2531,7 @@ static void SCPStyleSoloIconView(UIImageView *view) {
     } else {
         [self setBarVisible:pane.bar.isHidden forPane:pane];
     }
+    [self ahNoteActivity:AHSourceHostHandle]; // [autohide] F2 feed (design-autohide §3.2; wiring per impl-autohide-car1 §4.4): a tap on the (possibly invisible) hosted handle is activity
 }
 
 // -bridgeOutsideTouched (0x257e8) VERIFIED: a single tail call.
@@ -2636,7 +2650,12 @@ static void SCPStyleSoloIconView(UIImageView *view) {
     static BOOL postedNonEmpty;
     if (knobs.count == 0 && !postedNonEmpty) return;
     postedNonEmpty = (knobs.count != 0);
-    [self hostPost:SCPNoteBridgeKnobs info:@{@"knobs": knobs}];
+    // [autohide] `kfade` rides beside `knobs` (design-autohide §2.4):
+    // the knob channel is the only one already carrying knob data, and
+    // the payload is a dict, so the sibling key cannot break the
+    // existing parser (it reads only @"knobs").
+    [self hostPost:SCPNoteBridgeKnobs info:@{@"knobs": knobs,
+                                             @"kfade": @([self ahFaded])}];
 }
 
 #pragma mark - Home button / dock / launcher (lifecycle side)
@@ -2973,6 +2992,7 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
     self.homeButton.center = [host convertPoint:center fromView:parent];
     [self raiseLauncher];
     if ([self atHomeScreen]) [self installIconLongPress];
+    [self ahApplyCurrentStateToView:self.homeButton]; // [autohide] a (re)built logo takes the current fade state (design-autohide §5.1)
 }
 
 // -removeHomeButton (0x434a8) VERIFIED (remediation,
@@ -2989,6 +3009,7 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
 // -homeButtonTapped (0x43514) VERIFIED (remediation,
 // rem_stub_homeButtonTapped.txt): @try wrapper over the unsafe body.
 - (void)homeButtonTapped {
+    [self ahNoteActivity:AHSourceHome]; // [autohide] F3 feed (design-autohide §3.2): a tap on the invisible logo is activity
     @try {
         [self homeButtonTappedUnsafe];
     } @catch (NSException *ex) {

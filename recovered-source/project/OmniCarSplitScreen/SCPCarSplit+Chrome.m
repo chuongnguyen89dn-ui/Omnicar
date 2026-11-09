@@ -18,6 +18,7 @@
 #import "SCPCarPane.h"
 #import "SCPCTouchWatch.h"
 #import "SCPCarSplit+BridgeWake.h" // [wake1] bwRecomputeForPane: call points (design §1.3)
+#import "SCPCarSplit+AutoHide.h" // [autohide] fade re-apply at layoutBarForPane: (design-autohide §5.1)
 
 // Shared helpers implemented elsewhere:
 extern UIImage *SCPSymbolImage(NSString *name, double pointSize);       // 0x2b474 (RatioMenu)
@@ -294,6 +295,7 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
     [pane.view bringSubviewToFront:pane.handle];
     [pane.view bringSubviewToFront:pane.bar];
     [self bwRecomputeForPane:pane]; // [wake1] handle.hidden was (re)assigned above (design §1.3 point 2)
+    [self ahApplyCurrentStateToView:pane.handle]; // [autohide] a (re)laid-out handle takes the current fade state — QA20's paint-at-layout pattern (design-autohide §2.1/§5.1)
 }
 
 // Show/hide a pane's bar (@0x241fc; GPT brief cites @0x23e60).

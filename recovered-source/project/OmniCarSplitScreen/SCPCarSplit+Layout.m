@@ -18,6 +18,8 @@
 
 #import "SCPCarSplit.h"
 #import "SCPCommon.h"
+#import "SCPFullscreenController.h" // [fs1] the single area-consultation point lives at the return of appAreaInParent: (design-fullscreen-fs1 §4.3)
+#import "SCPCarSplit+AutoHide.h" // [autohide] fade re-apply at rebuildDividers (design-autohide §5.1)
 
 // _SCPMissingSelector is a named C symbol of this dylib (@0x4f330).
 // Second argument is an NSString object, matching SCPShared.h/.m —
@@ -509,7 +511,15 @@ NS_ASSUME_NONNULL_END
                 insets.top, insets.left, insets.bottom, insets.right,
                 NSStringFromCGRect(area)]);
     }
-    return area;
+    // [fs1] THE single area-coordination point (design-fullscreen-fs1
+    // §4.3): the original body above is unchanged, statement for
+    // statement. The controller returns its snapshot targetArea only
+    // while the machine is settled EXPANDED for this very parent;
+    // in every other case it hands `area` back untouched, so the
+    // value returned here equals the original bit for bit whenever
+    // fullscreen is not in effect.
+    return [[SCPFullscreenController shared]
+            fsAreaForParent:parent nativeArea:area split:self];
 }
 
 // MARK: - Dividers
@@ -523,6 +533,13 @@ NS_ASSUME_NONNULL_END
     self.dividers = [NSMutableArray array];
     for (NSInteger i = 0; i < self.paneCount - 1; i++)
         [self.dividers addObject:[self newDividerAt:i]];
+    // [autohide] freshly rebuilt dividers + their knobs take the
+    // current fade state (design-autohide §5.1; divider and knob are
+    // painted separately — the QA19/QA20 lesson, §1.3).
+    for (SCPCarDividerView *divider in self.dividers) {
+        [self ahApplyCurrentStateToView:divider];
+        [self ahApplyCurrentStateToView:divider.knob];
+    }
 }
 
 - (SCPCarDividerView *)newDividerAt:(NSInteger)index {
