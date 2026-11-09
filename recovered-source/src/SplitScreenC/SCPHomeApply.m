@@ -16,6 +16,7 @@
 
 #import "SCPHomeCommon.h"
 #import "SCPHomeApply.h"
+#import "SCPHomeLauncher.h" // [gpt-home] own icon at YTZ5 close probes
 #import "../SplitScreenB/SCPHomeWallView.h" // B's class: applySettings:source:,
                                             // stopVideo, updatePlayback
 
@@ -340,6 +341,9 @@ static NSString *SCPHomeIconStateDockStatus(NSSet<NSString *> *wanted,
 }
 
 void SCPLogInjectedIconState(NSString *phase, NSString *src) {
+    // [gpt-home] Reuse YTZ5 before/after-close measurement instants.
+    // Own OmniCar is NOT in appBridgeApps, so measure it independently.
+    SCPHomeLauncherAuditModel([NSString stringWithFormat:@"ytz5-%@-%@", phase ?: @"?", src ?: @"?"]);
     NSString *safePhase = phase.length ? phase : @"?";
     NSString *safeSrc = src.length ? src : @"?";
     // Deterministic per-bundle line order across runs.
