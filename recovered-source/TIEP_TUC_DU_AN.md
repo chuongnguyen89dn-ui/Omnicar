@@ -838,6 +838,18 @@ trong log, điều tra picker đã có kết quả tầng log. Chờ: thi công 
 tiếp; miễn trừ `bwHandleKbSyncNote:` vẫn chờ GPT; weather/knob + VISUAL PENDING.
 
 **Cập nhật vòng hl2 (sau lệnh Nguyen 21:11 — PATCH §29.13):** năm mảng theo phán quyết GPT đã thi công xong trong MỘT bản gộp: K6 phím tự vẽ về làm mặc định cho app hosted (kèm migration một lần cho pref cũ =1; native giữ opt-in; kbstate không đụng); P6 picker gắn đúng một dòng đo `[picker-measure]` (audit source không kết án được lớp phủ — shield bị bác, cover chưa chứng minh); F6 nhãn snap `to` sửa thành `trayOverlay` (cờ dính, không thuộc predicate); W6 pinch bằng recognizer thật trong app hosted + kênh relay scoped mới, owner validate rồi gọi FS controller sẵn có, legacy giữ khoá bằng tách pref; G6 Gate 3 mở ở phạm vi THỬ đúng một bundle (YouTube) qua packet theo pane, toàn cục vẫn DRY_RUN, hai kill-switch pref. Hai sửa thẳng hàng của coordinator khi tích hợp: kb UNKNOWN phải chặn pinch (ruling §1) và đồng hồ trường `t` của relay pinch (app uptime vs owner epoch — lệch là mọi relay bị reject stale). Phát hiện cấu trúc: merge tích hợp ytz5hl chưa từng về main — đã merge `711f89a` (0 xung đột), từ nay main là cây tích hợp đầy đủ. Nhánh dock-retirement của GPT (`39a42f2`) được ghép SAU 5 mảng theo đúng thứ tự Nguyen dặn: cherry-pick sạch `76538c2`, parity miễn trừ rỗng (loại bỏ bằng cổng, không xoá code). Sự cố đã ghi nguyên trạng ở §29.13: output exec nền bịa kết luận CI (đã bác, chỉ tin foreground); run CI đầu bị GitHub huỷ khi kẹt queued đúng 15 phút; re-dispatch `42637337416` SUCCESS 9/9; rollback /usr giữa phiên làm mất clang/llvm (phép kiểm lát FAT làm bằng parser Python + capstone, positive control ytz5hl1). Sản phẩm: `com.anlai.omnicar_1.0.3-rebuilt-hl2-fat_iphoneos-arm64.deb`, 1.252.660 B, SHA-256 `9250ea0108ebd59b07b49ebf7d9cb07c4c6debbf4ef6932ed935ac740fd403b2`, knob đúng 1 eor ở cả hai lát. Trạng thái: source-complete / static PASS / local-build PASS / CI FAT PASS — chờ đúng MỘT phiên xe gộp (kịch bản ở cuối §29.13).
+**Cập nhật ~22:19 (phiên xe hl2 — BÁO CÁO TẠI XE của Nguyen, LOG CHƯA UP — PATCH §29.15):**
+ba verdict mức màn hình trên bản hl2 (`9250ea01`): (1) **Picker THẤT BẠI tiếp có phân định
+mới** — mở menu vẫn ẩn nội dung ở app KHÔNG hỗ trợ CarPlay (hosted), app native thì bình
+thường; dòng `[picker-measure]` chờ log kết án lớp phủ. (2) **Gate 3 trial YouTube THẤT
+BẠI** — chạm gọi logo vẫn dính app, video YouTube bị phát, cú chạm không bị nuốt dù ô
+YouTube thuộc phạm vi thử ENFORCE; chờ log phân định (mode của ô / điều kiện phía app /
+fail-open nào đã mở). (3) **Pinch RẤT KHÓ nhận** — rất nhiều lần mới zoom RA được 1 lần
+(tổng 1–2 lần chiều bung), zoom VỀ không được lần nào; nguyên nhân chưa rõ, chờ log
+`[pinch2]` phân định (ngưỡng quá khắt khe với đường chạm CarCast / đường chụm vào lúc
+EXPANDED bị chặn oan / tín hiệu bị owner loại hoặc FS từ chối thu). Hệ quả quy trình:
+**hl3 GIỮ dispatch CI** — chờ log phiên hl2 để gộp fix pinch + Gate-3 theo bằng chứng vào
+CÙNG bản hl3, vẫn một deb giao xe.
 
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 
