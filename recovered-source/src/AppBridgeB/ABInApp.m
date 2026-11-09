@@ -25,6 +25,7 @@
 #import "ABYTLease.h"
 #import <objc/runtime.h>
 #import <substrate.h>
+#import <UIKit/UIGestureRecognizerSubclass.h> // [hl2-w6] ABPinchGestureRecognizer sets state
 #import <mach/mach_time.h> // WO fix-w W1: act decision log stamps
 
 // [integration phase 1; backported to src in phase 3] forward
@@ -134,6 +135,13 @@ static NSInteger BWPinchMode = BWModeDryRun;
 static BOOL     BWPinchAllowed = NO; // arbitrated flag of the last packet
 static NSTimeInterval BWStateRxAt = 0;      // systemUptime of last accept
 static NSTimeInterval BWStateChangedAt = 0; // systemUptime of last change
+// [hl2-g6] seq=45 truy ca instruments (G6 iii): seq carried by the
+// latest accepted STATE packet (owner per-emission seq, BridgeWakePack
+// bits 34-23) and a counter of BWState value changes this app process
+// has observed since load (incremented in BWOnStatePacket whenever
+// the accepted snapshot's state differs from the standing BWState).
+static uint32_t BWStateSeq = 0;        // seq of latest accepted state packet
+static NSUInteger BWStateFlipCount = 0; // observed BWState value changes
 static int      BWStateRxToken = 0;
 static int      BWAckRxToken   = 0;
 static int      BWQueryToken   = 0;
@@ -153,6 +161,12 @@ static NSTimeInterval BWLastQueryAt = 0;
 static BOOL     BWActSessionVerified = NO;
 static NSUInteger BWActSetFail  = 0; // notify_set_state failures (act)
 static NSUInteger BWActPostFail = 0; // notify_post failures (act)
+// [hl2-w6] in-app pinch recognizer lifecycle (defined in the pinch
+// section below, after the probe machinery): attach is attempted on
+// an accepted state packet and at a hosted sequence start; detach
+// happens in BWResetAll when the assignment dies.
+static void ABPinchTryAttach(void);
+static void ABPinchDetach(void);
 
 // ---- keyboard guard state (§5.5; three-state signal reworked by
 // WO ytz4 K2) ----
@@ -211,6 +225,12 @@ static BOOL     BWSeqKbActiveAtStart = NO;
 static NSInteger BWSeqKbSrcAtStart = 0; // BWKbSrc* (kb state section)
 static long     BWSeqKbAgeAtStart = -1; // ms; -1 = no kb information
 static BOOL     BWSeqHosted = NO;
+// [hl2-g6] probe instruments latched at sequence start (G6 iii): the
+// state snapshot the gate decision actually used — its packet seq,
+// its age at the decision instant, and the observed flip count then.
+static uint32_t BWSeqStateSeqAtStart = 0;
+static long     BWSeqStateAgeAtStart = -1; // ms; -1 = no snapshot
+static NSUInteger BWSeqStateFlipsAtStart = 0;
 // Two-touch distance tracking for wouldPinch — INTERNAL ONLY: distances
 // are computed from touch locations but never written to any log.
 static double   BWPairD0 = -1, BWPairDMin = -1, BWPairDMax = -1;
@@ -498,17 +518,31 @@ static NSInteger BWKbEffective(NSInteger *srcOut, long *ageMsOut) {
 // ABHostGeometry.m), and ABOrientationBlock — the existing
 // frame-info handler — caches the value here via
 // ABDrawnKbNoteFrameInfo.
-// Default law: suppression and panel publish happen ONLY on an
-// explicit drawnKeyboard=1. An absent field, an absent payload, or
-// no payload yet — even with a live assignment — all mean NATIVE.
+// Default law (HL2-K6, GPT ruling 2026-11-09 §5 + log review §4 —
+// supersedes the K5 default above): DRAWN is the cached default.
+// Before the bridge has said anything the app behaves as drawn; it
+// goes native ONLY on an explicit drawnKeyboard=0 in a payload. An
+// absent field, a non-NSNumber field, or no payload yet never flips
+// the cache to native — the cached value simply stands.
 // ===========================================================================
-static BOOL ABDrawnKb = NO; // cached drawnKeyboard; NO = native
+static BOOL ABDrawnKb = YES; // [hl2-k6] cached drawnKeyboard; YES = drawn (default), NO = native (explicit 0 only)
+static BOOL ABDrawnKbGateSeen = NO; // [hl2-k6] an explicit drawnKeyboard value has been received
 
 static BOOL ABDrawnKeyboardActive(void) { return ABDrawnKb; }
 
 static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
     id v = info[@"drawnKeyboard"];
-    BOOL drawn = [v isKindOfClass:NSNumber.class] ? [v boolValue] : NO;
+    // [hl2-k6] only an explicit NSNumber speaks: absent / mistyped
+    // fields keep the cached mode (which starts at DRAWN).
+    if (![v isKindOfClass:NSNumber.class]) return;
+    BOOL drawn = [v boolValue];
+    if (!ABDrawnKbGateSeen) {
+        // [hl2-k6] marker eye 1 of 3: the app received the gate.
+        ABDrawnKbGateSeen = YES;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[ytz5-k5] gate nhan drawnKeyboard=%d (explicit, cached=%d)",
+            drawn ? 1 : 0, ABDrawnKb ? 1 : 0]);
+    }
     if (drawn == ABDrawnKb) return;
     BOOL wasDrawn = ABDrawnKb;
     ABDrawnKb = drawn;
@@ -522,6 +556,14 @@ static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
         ABRestoreBlankInputView(ABCurrentResponder);
         OMCLogWrite(@"AppBridge",
             @"[ytz5-k5] cong lat native: phuc hoi inputView theo marker");
+    }
+    if (!wasDrawn && drawn) {
+        // [hl2-k6] marker: the gate flipped native -> drawn. Nothing
+        // is forced (known K5 limit, kept): suppression applies from
+        // the next becomeFirstResponder and the panel from the next
+        // publish; a live native session is left exactly as it is.
+        OMCLogWrite(@"AppBridge",
+            @"[ytz5-k5] cong lat drawn: ap dung tu responder/publish ke tiep");
     }
     // Flip native -> drawn: nothing is forced. Suppression applies
     // from the next becomeFirstResponder and the panel from the
@@ -675,6 +717,11 @@ static void BWOnStatePacket(uint64_t raw) {
     NSInteger st = BWNormState(p.state);
     NSTimeInterval now = BWNow();
     if (!BWKnown || st != BWState) BWStateChangedAt = now;
+    // [hl2-g6] flip counter (G6 iii): count every observed BWState
+    // value change, including the first accepted snapshot when it
+    // differs from the standing Unknown.
+    if (st != BWState) BWStateFlipCount++;
+    BWStateSeq = p.seq;
     BWState = st;
     BWGen = p.gen;
     BWWakeMode = BWNormMode(p.wakeMode);
@@ -689,6 +736,9 @@ static void BWOnStatePacket(uint64_t raw) {
     // mixed-touch lock and the ack-timeout latch.
     BWSuppressLocked = NO;
     BWFailOpenLatch = NO;
+    // [hl2-w6] an accepted packet is the assignment living: give the
+    // pinch recognizer its chance to land on the hosted window.
+    ABPinchTryAttach();
 }
 
 static void BWOnAckPacket(uint64_t raw) {
@@ -746,6 +796,24 @@ static BOOL BWGatePass(UIEvent *event, NSString **reason) {
     // known && hidden: any other state (incl. WAKING) is a normal
     // pass-through, not a fail-open.
     if (BWState != BWStateHidden) return NO;
+    // [hl2-g6] EXPANDED arbitration (G6 ii; ruling §2 invariant 3):
+    // HIDDEN + pinchAllowed=1 + pinchMode=ENFORCE yields the chain
+    // to pinch-in — the gate must NOT swallow finger 1 of the
+    // pinch-in that exits fullscreen. Why this triple can only be
+    // EXPANDED: the owner's bwPinchAllowedForPane: grants
+    // pinchAllowed in SPLIT only while the pane is VISIBLE, but in
+    // EXPANDED regardless of BWState (SCPCarSplit+BridgeWake.m);
+    // so a HIDDEN snapshot carrying pinchAllowed=1 cannot be a
+    // SPLIT pane — SPLIT+HIDDEN always arrives with allowed=0 and
+    // still swallows above this line's siblings. ENFORCE is
+    // required so a DRY_RUN/OFF pinch never disarms the wake gate.
+    if (BWPinchAllowed && BWPinchMode == BWModeEnforce) {
+        if (reason) *reason = @"pinchin";
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[gate3] bw gate yield pinch-in: state=H pinchAllowed=1 pinchMode=enforce stateSeq=%lu",
+            (unsigned long)BWStateSeq]);
+        return NO;
+    }
     // kb guard on the EFFECTIVE three-state (WO ytz4 K2): ACTIVE from
     // any valid source blocks; UNKNOWN blocks as kbunknown — it is
     // never read as inactive. Only a known-inactive passes.
@@ -763,12 +831,19 @@ static BOOL BWGatePass(UIEvent *event, NSString **reason) {
     // window is classified "phone" (iPhone-screen touch — Gate 2 must
     // confirm this classification before ENFORCE may rely on it).
     UIWindow *key = ABKeyWindow();
+    // [hl2-g6] key-window hole (G6 i, GPT log review §5): the old
+    // test `key && t.window != key` let EVERY touch through when
+    // ABKeyWindow() was nil — there was no confirmed hosted key
+    // window to belong to, yet the gate passed. Now a nil key
+    // window fails open (no swallow), exactly like a touch on any
+    // other window than the confirmed hosted key window.
+    if (!key) { if (reason) *reason = @"nokeywindow"; return NO; }
     NSUInteger beganCount = 0;
     for (UITouch *t in event.allTouches) {
         if (t.phase != UITouchPhaseBegan) continue;
         beganCount++;
         if (!t.window) { if (reason) *reason = @"notarget"; return NO; }
-        if (key && t.window != key) { if (reason) *reason = @"phone"; return NO; }
+        if (t.window != key) { if (reason) *reason = @"phone"; return NO; }
     }
     if (beganCount == 0) return NO;
     if (beganCount > 1) { if (reason) *reason = @"mixed"; return NO; }
@@ -832,7 +907,8 @@ static void BWCloseSequence(void) {
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[do] bw probe seq=%lu ph B=%lu M=%lu E=%lu C=%lu dur=%.2f "
          "hosted=%d kbKnown=%d kbActive=%d kbSrc=%s kbAge=%ld "
-         "state=%s wouldSwallow=%d wouldPinch=%d failopen=%@",
+         "state=%s stateSeq=%lu stateAgeMs=%ld stateFlips=%lu "
+         "wouldSwallow=%d wouldPinch=%d failopen=%@",
         (unsigned long)BWProbeSeqNo,
         (unsigned long)BWPhB, (unsigned long)BWPhM,
         (unsigned long)BWPhE, (unsigned long)BWPhC,
@@ -841,6 +917,8 @@ static void BWCloseSequence(void) {
         BWSeqKbKnownAtStart ? 1 : 0, BWSeqKbActiveAtStart ? 1 : 0,
         kbSrc, BWSeqKbAgeAtStart,
         BWStateLetter(BWSeqStateAtStart),
+        (unsigned long)BWSeqStateSeqAtStart, BWSeqStateAgeAtStart,
+        (unsigned long)BWSeqStateFlipsAtStart,
         BWSeqWouldSwallow ? 1 : 0, wouldPinch ? 1 : 0,
         BWSeqFailOpen ? BWSeqFailOpen : @"-"]);
 }
@@ -858,6 +936,403 @@ static void BWStartSummaryTimer(void) {
         BWStartSummaryTimer();
     });
 }
+// ===========================================================================
+// [hl2-w6] W6 — in-app pinch recognizer + relay (GPT ruling §1/§3).
+// A REAL UIGestureRecognizer inside the hosted app process, on the
+// hosted scene's real UIWindow — NOT a sendEvent: invention and NOT
+// an overlay. When it Begins, UIKit itself cancels the touches it
+// already delivered to the app's views (cancelsTouchesInView=YES);
+// this code never calls touchesCancelled on the app, never forges a
+// UIEvent, and never delays a one-finger touch
+// (delaysTouchesBegan=NO). The recognizer owns NO fullscreen engine:
+// on a crossed threshold it relays ONE command per gesture to the
+// host on the NSDistributed channel
+// com.anlai.omnicar/bridgewake.v1.pinch and the host's existing
+// SCPFullscreenController remains the only FS owner.
+//
+// Pair discipline (§2: one owner per chain, decided at formation):
+// every condition is read ONCE from the newest accepted state
+// snapshot when the second finger lands and latched for the pair —
+// a pair that starts ineligible never converts mid-gesture, and a
+// swallowed wake chain (BWHandleTouchEvent) is a different chain
+// that this recognizer never retro-claims.
+// Thresholds are REUSED from the legacy CarPlayApp pinch
+// (SCPPinchController.m, SCPPinchRecognizer touchesMoved):
+//   out cross  ratio >= 1.10                          (line 256)
+//   in cross   ratio <= 0.90                          (line 257)
+//   mid-drift  drift <= 0.6 * distChange + 10.0       (line 258)
+//   degenerate pair dist0 <= 0.01 has no scale        (line ~243)
+// ===========================================================================
+static NSString *const BWPinchChannel = @"com.anlai.omnicar/bridgewake.v1.pinch";
+static uint64_t BWPinchReportSeq = 0;  // per-source monotone; first fire = 1
+                                       // (same discipline as BWKbReportSeq)
+static NSUInteger BWPinchGidCounter = 0; // gesture id source; ++ per formed pair
+
+enum { ABPinchBlock = 0, ABPinchDryRunPair = 1, ABPinchEnforcePair = 2 };
+
+// Pair-formation arbitration over the newest snapshot. *expandedOut
+// receives the committed-state derivation: EXPANDED holds exactly
+// when the snapshot is HIDDEN + pinchAllowed=1 (the owner grants
+// pinchAllowed in SPLIT only while VISIBLE, in EXPANDED at any
+// BWState — ruling §2), so HIDDEN+allowed is EXPANDED and every
+// other allowed case in this gate is treated as SPLIT. Known limit:
+// EXPANDED+VISIBLE is indistinguishable from SPLIT+VISIBLE in this
+// packet (no expanded bit exists in BridgeWakePack.h), so a
+// pinch-in there is gated as the wrong direction app-side and the
+// host FS gate remains the backstop for a stray expand relay.
+static NSInteger ABPinchPairDecision(NSString **reasonOut, BOOL *expandedOut) {
+    if (reasonOut) *reasonOut = nil;
+    if (expandedOut) *expandedOut = NO;
+    if (!BWKnown) { if (reasonOut) *reasonOut = @"unknown"; return ABPinchBlock; }
+    if (!BWFresh()) { if (reasonOut) *reasonOut = @"stale"; return ABPinchBlock; }
+    // gen verified: BWKnown/BWGen are only ever set by BWOnStatePacket
+    // after the hash check and BWGenAccept have both passed.
+    if (BWState != BWStateVisible && BWState != BWStateHidden) {
+        if (reasonOut) *reasonOut = @"state"; return ABPinchBlock;
+    }
+    if (!BWPinchAllowed) {
+        // Invariant 1 (ruling §2): SPLIT+HIDDEN pinch NEVER recognises
+        // — in SPLIT the owner allows pinch only while VISIBLE, so
+        // HIDDEN with allowed=0 is precisely that case, and it blocks
+        // even when the wake gate fail-opens for other reasons.
+        if (reasonOut) *reasonOut = (BWState == BWStateHidden)
+            ? @"split-hidden" : @"notallowed";
+        return ABPinchBlock;
+    }
+    // kb: ACTIVE and UNKNOWN both block the pinch claim — ruling §1
+    // lists "keyboard ACTIVE/UNKNOWN" among the conditions that fail
+    // open FOR THE APP (the pair is left to the app untouched). Only
+    // a known INACTIVE keyboard leaves the pane free for pinch.
+    // (Coordinator alignment fix at integration: the first cut let
+    // UNKNOWN through, which reads the ruling's "fail-open" backwards.)
+    NSInteger kbEffPinch = BWKbEffective(NULL, NULL);
+    if (kbEffPinch == BWKbActive) {
+        if (reasonOut) *reasonOut = @"kbactive"; return ABPinchBlock;
+    }
+    if (kbEffPinch != BWKbInactive) {
+        if (reasonOut) *reasonOut = @"kbunknown"; return ABPinchBlock;
+    }
+    if (expandedOut) *expandedOut = (BWState == BWStateHidden);
+    if (BWPinchMode == BWModeOff) {
+        if (reasonOut) *reasonOut = @"modeoff"; return ABPinchBlock;
+    }
+    if (BWPinchMode == BWModeDryRun) return ABPinchDryRunPair;
+    if (BWPinchMode == BWModeEnforce) return ABPinchEnforcePair;
+    if (reasonOut) *reasonOut = @"modeoff"; return ABPinchBlock;
+}
+
+// Relay ONE command for a crossed gesture. Payload discipline is the
+// kbstate reporter's (BWKbStatePost): hash = BWOwnHash28(), gen =
+// BWGen at fire time, session = BWKbSession() (minted once per
+// load), seq = own per-source monotone. t is the exception: the
+// kbstate reporter stamps BWNow() (systemUptime) and its owner
+// never cross-compares clocks (freshness is anchored at receipt),
+// but the pinch owner DOES check a TTL against its own BWNow() =
+// timeIntervalSince1970 (SplitScreenA/SCPCarSplit+BridgeWake.m), so
+// this channel stamps wall-clock epoch seconds. (Coordinator
+// alignment fix at integration — the first cut stamped uptime and
+// every relay would have been rejected as stale.) dir: 1 = out /
+// expand, 2 = in / restore. Nothing is posted without a live
+// identity (BWKnown), exactly like the kbstate reporter.
+static void ABPinchRelayFire(NSInteger dir, double ratio, NSUInteger gid,
+                             BOOL expanded) {
+    if (!BWKnown) return;
+    BWPinchReportSeq++;
+    NSDictionary *info = @{
+        @"hash":    @(BWOwnHash28()),
+        @"gen":     @(BWGen),
+        @"session": @(BWKbSession()),
+        @"seq":     @(BWPinchReportSeq),
+        @"gid":     @(gid),
+        @"dir":     @(dir),
+        @"t":       @([[NSDate date] timeIntervalSince1970]),
+    };
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotificationName:BWPinchChannel
+                      object:[NSBundle mainBundle].bundleIdentifier
+                    userInfo:info];
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[pinch2] recognized dir=%ld ratio=%.3f state=%s committed=%@ "
+         "seq=%llu gid=%lu gen=%lu stateSeq=%lu",
+        (long)dir, ratio, BWStateLetter(BWState),
+        expanded ? @"expanded" : @"split",
+        (unsigned long long)BWPinchReportSeq, (unsigned long)gid,
+        (unsigned long)BWGen, (unsigned long)BWStateSeq]);
+}
+
+@interface ABPinchGestureRecognizer : UIGestureRecognizer
+@property (nonatomic, strong) NSMutableSet<UITouch *> *abTouches;
+@property (nonatomic) BOOL abPairFormed;
+@property (nonatomic) BOOL abConcluded; // fired / cancelled / dead pair
+@property (nonatomic) BOOL abFired;
+@property (nonatomic) BOOL abEnforce;   // pair latched ENFORCE at formation
+@property (nonatomic) BOOL abDryRun;    // pair latched DRY_RUN at formation
+@property (nonatomic) BOOL abExpanded;  // committed EXPANDED latched at formation
+@property (nonatomic) NSUInteger abGid;
+@property (nonatomic) uint32_t abStateSeq; // state packet seq latched at formation
+@property (nonatomic) double abD0;         // distance when finger 2 landed
+@property (nonatomic) CGPoint abMid0;      // midpoint at that same moment
+@property (nonatomic) double abLastRatio;
+@end
+
+@implementation ABPinchGestureRecognizer
+
+- (instancetype)init {
+    self = [super initWithTarget:nil action:nil];
+    if (self) {
+        // Ruling §1, non-negotiable: a real recognizer whose Began
+        // makes UIKit cancel the app's touches; one-finger touches
+        // are never held back (delaysTouchesBegan=NO).
+        self.cancelsTouchesInView = YES;
+        self.delaysTouchesBegan = NO;
+        self.delaysTouchesEnded = NO;
+        _abTouches = [NSMutableSet set];
+        _abLastRatio = 1.0;
+    }
+    return self;
+}
+
+- (void)abClearPair {
+    _abPairFormed = NO;
+    _abConcluded = NO;
+    _abFired = NO;
+    _abEnforce = NO;
+    _abDryRun = NO;
+    _abExpanded = NO;
+    _abGid = 0;
+    _abStateSeq = 0;
+    _abD0 = 0;
+    _abMid0 = CGPointZero;
+    _abLastRatio = 1.0;
+}
+
+- (double)abDistance:(CGPoint *)midOut {
+    NSArray *ts = _abTouches.allObjects;
+    if (ts.count != 2) return -1;
+    CGPoint a = [ts[0] locationInView:self.view];
+    CGPoint b = [ts[1] locationInView:self.view];
+    if (midOut) *midOut = CGPointMake((a.x + b.x) / 2.0, (a.y + b.y) / 2.0);
+    return hypot((double)(a.x - b.x), (double)(a.y - b.y));
+}
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    for (UITouch *t in touches) {
+        // Exactly-two-touches law, same window: this recognizer's
+        // view IS the hosted window; a touch addressed anywhere
+        // else is never counted into a pair.
+        if (t.window && self.view && t.window != self.view) continue;
+        [_abTouches addObject:t];
+    }
+    if (_abPairFormed || _abConcluded) {
+        // A further finger while a pair lives or is concluded kills
+        // the pair (SCP third-touch law): a live ENFORCE pair is
+        // Cancelled, a Possible pair is simply dead.
+        if (_abEnforce && (self.state == UIGestureRecognizerStateBegan ||
+                           self.state == UIGestureRecognizerStateChanged)) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[pinch2] cancelled gid=%lu reason=third-touch",
+                (unsigned long)_abGid]);
+            _abConcluded = YES;
+            self.state = UIGestureRecognizerStateCancelled;
+        } else if (_abPairFormed) {
+            _abConcluded = YES;
+        }
+        return;
+    }
+    if (_abTouches.count != 2) return;
+    // Pair formation: latch the whole decision from the newest
+    // snapshot — state, mode, committed derivation, packet seq.
+    _abPairFormed = YES;
+    _abGid = ++BWPinchGidCounter;
+    _abStateSeq = BWStateSeq;
+    CGPoint mid = CGPointZero;
+    double d0 = [self abDistance:&mid];
+    _abD0 = d0;
+    _abMid0 = mid;
+    NSString *reason = nil;
+    BOOL expanded = NO;
+    NSInteger decision = ABPinchPairDecision(&reason, &expanded);
+    _abExpanded = expanded;
+    if (decision == ABPinchEnforcePair) {
+        if (d0 <= 0.01) { // degenerate pair: no scale is meaningful (SCP law)
+            _abConcluded = YES;
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[pinch2] blocked gid=%lu reason=degenerate stateSeq=%lu",
+                (unsigned long)_abGid, (unsigned long)_abStateSeq]);
+            return;
+        }
+        _abEnforce = YES;
+        // Began NOW, on the validated pair: UIKit cancels the
+        // touches already delivered to the app's views.
+        self.state = UIGestureRecognizerStateBegan;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[pinch2] began gid=%lu state=%s committed=%@ stateSeq=%lu d0=%.1f",
+            (unsigned long)_abGid, BWStateLetter(BWState),
+            expanded ? @"expanded" : @"split",
+            (unsigned long)_abStateSeq, d0]);
+    } else if (decision == ABPinchDryRunPair) {
+        _abDryRun = YES;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[pinch2] would-fire pair gid=%lu mode=dryrun state=%s committed=%@ stateSeq=%lu (no Began, no cancel, no relay)",
+            (unsigned long)_abGid, BWStateLetter(BWState),
+            expanded ? @"expanded" : @"split",
+            (unsigned long)_abStateSeq]);
+    } else {
+        _abConcluded = YES; // blocked pair never Begins, never converts
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[pinch2] blocked gid=%lu reason=%@ state=%s stateSeq=%lu",
+            (unsigned long)_abGid, reason ?: @"-",
+            BWStateLetter(BWState), (unsigned long)_abStateSeq]);
+    }
+}
+
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    if (!_abPairFormed || _abConcluded || _abFired) return;
+    if (!_abEnforce && !_abDryRun) return;
+    if (_abD0 <= 0.01) return;
+    if (_abEnforce) {
+        // A live pair whose snapshot conditions rot mid-gesture is
+        // Cancelled, never fired on stale rights.
+        NSString *reason = nil;
+        BOOL expandedNow = NO;
+        NSInteger nowDecision = ABPinchPairDecision(&reason, &expandedNow);
+        if (nowDecision != ABPinchEnforcePair || expandedNow != _abExpanded) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[pinch2] cancelled gid=%lu reason=%@ ratio=%.3f",
+                (unsigned long)_abGid,
+                (nowDecision != ABPinchEnforcePair)
+                    ? (reason ?: @"lost") : @"committed-flip",
+                _abLastRatio]);
+            _abConcluded = YES;
+            self.state = UIGestureRecognizerStateCancelled;
+            return;
+        }
+    }
+    CGPoint mid = CGPointZero;
+    double d = [self abDistance:&mid];
+    if (d < 0) return;
+    double ratio = d / _abD0;
+    _abLastRatio = ratio;
+    double distChange = fabs(d - _abD0);
+    double drift = hypot((double)(mid.x - _abMid0.x),
+                         (double)(mid.y - _abMid0.y));
+    BOOL outCross = ratio >= 1.10; // SCPPinchController.m:256 (reused)
+    BOOL inCross  = ratio <= 0.90; // SCPPinchController.m:257 (reused)
+    if (!outCross && !inCross) {
+        if (_abEnforce && self.state == UIGestureRecognizerStateBegan)
+            self.state = UIGestureRecognizerStateChanged;
+        return;
+    }
+    // Direction is gated on the committed state latched at
+    // formation: out only from SPLIT, in only from EXPANDED.
+    NSInteger dir = 0; // 1 = out/expand, 2 = in/restore
+    if (outCross && !_abExpanded) dir = 1;
+    else if (inCross && _abExpanded) dir = 2;
+    if (dir == 0) {
+        _abConcluded = YES;
+        if (_abEnforce) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[pinch2] cancelled gid=%lu reason=wrong-dir ratio=%.3f committed=%@",
+                (unsigned long)_abGid, ratio,
+                _abExpanded ? @"expanded" : @"split"]);
+            self.state = UIGestureRecognizerStateCancelled;
+        } else {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[pinch2] would-fire suppressed gid=%lu reason=wrong-dir ratio=%.3f committed=%@",
+                (unsigned long)_abGid, ratio,
+                _abExpanded ? @"expanded" : @"split"]);
+        }
+        return;
+    }
+    // Mid-drift dominance (SCPPinchController.m:258, reused verbatim):
+    // a pair whose midpoint travelled as much as its fingers spread
+    // is a pan, not a pinch — keep tracking, a later Moved may cross.
+    if (!(drift <= 0.6 * distChange + 10.0)) {
+        if (_abEnforce && self.state == UIGestureRecognizerStateBegan)
+            self.state = UIGestureRecognizerStateChanged;
+        return;
+    }
+    if (_abDryRun) {
+        _abConcluded = YES;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[pinch2] would-fire dir=%ld ratio=%.3f drift=%.1f gid=%lu state=%s committed=%@ (dryrun: no Began, no cancel, no relay)",
+            (long)dir, ratio, drift, (unsigned long)_abGid,
+            BWStateLetter(BWState),
+            _abExpanded ? @"expanded" : @"split"]);
+        return;
+    }
+    // The one fire of this gesture, then Ended; -reset clears the book.
+    _abFired = YES;
+    _abConcluded = YES;
+    ABPinchRelayFire(dir, ratio, _abGid, _abExpanded);
+    self.state = UIGestureRecognizerStateEnded;
+}
+
+- (void)abTouchesFinished:(NSSet<UITouch *> *)touches cancelled:(BOOL)cancelled {
+    for (UITouch *t in touches) [_abTouches removeObject:t];
+    if (_abTouches.count > 0) return;
+    if (self.state == UIGestureRecognizerStateBegan ||
+        self.state == UIGestureRecognizerStateChanged) {
+        // Pair dissolved before any fire: no relay was sent.
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[pinch2] pair-end gid=%lu fired=0 cancelled=%d ratio=%.3f",
+            (unsigned long)_abGid, cancelled ? 1 : 0, _abLastRatio]);
+        self.state = UIGestureRecognizerStateFailed;
+    }
+    if (self.state == UIGestureRecognizerStatePossible) {
+        // DRY_RUN / blocked pairs never left Possible, so UIKit
+        // will not call -reset for them: clear the book here.
+        [self abClearPair];
+    }
+    // Began -> Ended/Cancelled/Failed transitions make UIKit call
+    // -reset, which clears the book there.
+}
+
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self abTouchesFinished:touches cancelled:NO];
+}
+
+- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    [self abTouchesFinished:touches cancelled:YES];
+}
+
+- (void)reset {
+    [super reset];
+    [_abTouches removeAllObjects];
+    [self abClearPair];
+}
+
+@end
+
+// Attach/detach: the recognizer lives on the real UIWindow of the
+// hosted scene — ABKeyWindow(), the very window BWGatePass verifies
+// touches against — and only while the hosted assignment lives (an
+// accepted state packet for this bundle: BWKnown). ABPinchTryAttach
+// is attempted on every accepted state packet and at every hosted
+// sequence start, so a window that appears after the packet still
+// gets the recognizer; BWResetAll detaches it with the assignment.
+static ABPinchGestureRecognizer *ABPinchRec = nil;
+
+static void ABPinchTryAttach(void) {
+    if (!BWKnown) return; // no live assignment, nothing to attach to
+    UIWindow *w = ABKeyWindow();
+    if (!w) return;
+    if (!ABPinchRec) ABPinchRec = [[ABPinchGestureRecognizer alloc] init];
+    if (ABPinchRec.view == w) return;
+    if (ABPinchRec.view) [ABPinchRec.view removeGestureRecognizer:ABPinchRec];
+    [w addGestureRecognizer:ABPinchRec];
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[pinch2] attached window=%p bundle=%@",
+        (void *)w, [NSBundle mainBundle].bundleIdentifier]);
+}
+
+static void ABPinchDetach(void) {
+    if (ABPinchRec && ABPinchRec.view) {
+        [ABPinchRec.view removeGestureRecognizer:ABPinchRec];
+        OMCLogWrite(@"AppBridge", @"[pinch2] detached");
+    }
+}
+
 // ---- the one touch-path entry: probe + engine (§5.3/§5.4) ----
 // Returns YES when this event belongs to a swallowed chain and must
 // NOT reach the original implementation.
@@ -885,6 +1360,14 @@ static BOOL BWHandleTouchEvent(UIEvent *event) {
         BWSeqTouches = [NSMutableSet set];
         BWPairD0 = BWPairDMin = BWPairDMax = -1;
         BWSeqStateAtStart = BWState;
+        // [hl2-g6] latch the decision snapshot's provenance (G6 iii,
+        // seq=45 truy ca): which state packet seq the gate is about
+        // to use, how old that snapshot is right now, and how many
+        // BWState flips this process has observed so far.
+        BWSeqStateSeqAtStart = BWStateSeq;
+        BWSeqStateAgeAtStart = BWKnown
+            ? (long)((BWNow() - BWStateRxAt) * 1000.0) : -1L;
+        BWSeqStateFlipsAtStart = BWStateFlipCount;
         {
             // kb instrument latch (WO ytz4 K2): decompose the
             // effective tri-state at this exact instant; the close
@@ -908,6 +1391,10 @@ static BOOL BWHandleTouchEvent(UIEvent *event) {
         // gate decides below. State freshness is NOT the criterion —
         // it remains the suppression gate's alone (BWGatePass).
         BWActOnSequenceStart(began);
+        // [hl2-w6] a hosted sequence is flowing, so the hosted
+        // window exists: retry the pinch recognizer attach in case
+        // the window appeared after the last state packet.
+        ABPinchTryAttach();
         NSString *reason = nil;
         BWSeqWouldSwallow = BWGatePass(event, &reason);
         BWSeqFailOpen = reason;
@@ -1070,6 +1557,13 @@ static void BWResetAll(void) {
     BWWakeMode = BWModeDryRun;
     BWPinchMode = BWModeDryRun;
     BWPinchAllowed = NO;
+    // [hl2-g6] the seq=45 instruments die with the session too: the
+    // next hosted session's probe lines start from a clean snapshot
+    // provenance (seq 0 / no flips observed).
+    BWStateSeq = 0;
+    BWStateFlipCount = 0;
+    // [hl2-w6] the in-app pinch recognizer leaves with the assignment.
+    ABPinchDetach();
 }
 
 // ===========================================================================
@@ -1901,9 +2395,10 @@ static void ABRestoreBlankInputView(id responder) {
 
 static void ABSuppressSystemKeyboard(id responder) {
     if (ABForcedOrientation < 1) return;
-    // [ytz5-k5] native gate: unless the bridge has explicitly said
-    // drawnKeyboard=1, the system keyboard is left fully alone —
-    // no blank inputView, no marker (contract item 2).
+    // [ytz5-k5] native gate, as amended by HL2-K6: the cache is
+    // DRAWN by default and only an explicit drawnKeyboard=0 makes
+    // it native; while native the system keyboard is left fully
+    // alone — no blank inputView, no marker (contract item 2).
     if (!ABDrawnKeyboardActive()) return;
     if (![responder respondsToSelector:@selector(setInputView:)]) return;
     if ([responder inputView] != nil) return;
@@ -1917,6 +2412,12 @@ static void ABSuppressSystemKeyboard(id responder) {
 static void ABResponderBecame(id responder) {
     if (ABForcedOrientation < 1) return;
     ABCurrentResponder = responder;
+    // [hl2-k6] marker eye 2 of 3: a responder became first responder
+    // under the gate currently cached (drawn by default, native only
+    // on explicit drawnKeyboard=0).
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[ytz5-k5] responder became drawn=%d class=%@",
+        ABDrawnKeyboardActive() ? 1 : 0, NSStringFromClass([responder class])]);
     ABKeyboardPublish(YES, responder);
     BWKbLocalSet(BWKbActive); // BridgeWake kb guard: primary evidence
                               // (§5.5) — the local ACTIVE source of the
@@ -1973,12 +2474,13 @@ static BOOL ABHook_TVResign(UITextView *self, SEL _cmd) {
 //   state = shown | keyboardType<<1 | returnKeyType<<8 | FNV1a(bundleID)<<24
 // ===========================================================================
 static void ABKeyboardPublish(BOOL shown, id traits) {
-    // [ytz5-k5] native gate (contract item 2): while the bridge has
-    // not explicitly enabled the drawn keyboard, NO panel request
-    // is published in either direction — the Darwin keyboard
-    // channel stays silent for this app and the host panel can
-    // never be summoned. Gating at the publisher's head covers both
-    // call points (Became YES / Resigned NO) at once; the host
+    // [ytz5-k5] native gate (contract item 2), as amended by
+    // HL2-K6: while the cached gate is native (only after an
+    // explicit drawnKeyboard=0 — the default is drawn), NO panel
+    // request is published in either direction — the Darwin
+    // keyboard channel stays silent for this app and the host panel
+    // can never be summoned. Gating at the publisher's head covers
+    // both call points (Became YES / Resigned NO) at once; the host
     // dispatch double-checks the pref on its side regardless.
     if (!ABDrawnKeyboardActive()) return;
     if (!ABKeyboardToken)
@@ -1994,6 +2496,10 @@ static void ABKeyboardPublish(BOOL shown, id traits) {
     state |= (uint64_t)ABBundleHash([NSBundle mainBundle].bundleIdentifier) << 24;
     notify_set_state(ABKeyboardToken, state);
     notify_post(ABNotifyKeyboard);
+    // [hl2-k6] marker eye 3 of 3: the panel publish actually went
+    // out on the Darwin keyboard channel (drawn gate active).
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[ytz5-k5] publish shown=%d drawn=1", shown ? 1 : 0]);
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"ban phim xe: %@ (%@)",
                                shown ? @"hien" : @"an",
                                traits ? NSStringFromClass([traits class]) : @"-"]);

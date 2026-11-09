@@ -51,6 +51,9 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
             else fps = (OMCCarWireless() == 1) ? 30 : 0;
         }
     }
+    // [hl2] the gate value is read once so the payload field and
+    // the acceptance log line below can never disagree.
+    BOOL drawnKb = ABDrawnKeyboardEnabled();
     NSDictionary *info = @{
         @"orientation": @(orientation),
         @"device": @(MAX(orientation, 0)),
@@ -58,16 +61,22 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
         // [ytz5-k5] RELAY POINT (the frame-info payload this host
         // posts to the app process): the native-keyboard gate,
         // carried to the app because the app must never read the
-        // pref itself. 1 = drawn panel enabled (pref = 0),
-        // 0 = native (pref absent or = 1). Stamped on EVERY post —
-        // launch, layout re-posts, release — so the app's cache
-        // (ABOrientationBlock, ABInApp.m) always converges to the
-        // host's current reading, including after a mid-session
-        // flip re-post from the prefschanged handler below.
-        @"drawnKeyboard": @(ABDrawnKeyboardEnabled() ? 1 : 0),
+        // pref itself. 1 = drawn panel enabled (pref = 0, or pref
+        // ABSENT since the hl2 default flip), 0 = native (pref = 1
+        // only). Stamped on EVERY post — launch, layout re-posts,
+        // release — so the app's cache (ABOrientationBlock,
+        // ABInApp.m) always converges to the host's current
+        // reading, including after a mid-session flip re-post from
+        // the prefschanged handler below.
+        @"drawnKeyboard": @(drawnKb ? 1 : 0),
     };
     [[NSDistributedNotificationCenter defaultCenter]
         postNotificationName:ABChanOrientation object:bundleID userInfo:info];
+    // [hl2] acceptance eye (GPT ruling §5 chain): the effective
+    // pref/mode and the payload value actually sent, in one line.
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[ytz5-k5] payload %@ drawnKeyboard=%d mode=%@",
+        bundleID, drawnKb ? 1 : 0, drawnKb ? @"drawn" : @"native"]);
 }
 
 // C helper sub_BED4 — post ABChanState (object nil).
@@ -318,6 +327,11 @@ void ABKeyboardDispatch(int token) {
             // input-session truth in native mode (contract item 4).
             if (ABDrawnKeyboardEnabled()) ABKbSyncNoteEvent(bundleID, NO);
         } else if (ABDrawnKeyboardEnabled()) {
+            // [hl2] acceptance eye (GPT ruling §5 chain): a show
+            // request honoured in drawn mode — the positive
+            // counterpart of the native-blocked line below.
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[ytz5-k5] dispatch show panel drawn (%@)", bundleID]);
             [[ABKeyboard shared] showForApp:bundleID
                                keyboardType:(UIKeyboardType)((state >> 1) & 0x7F)
                                  returnType:(UIReturnKeyType)((state >> 8) & 0xFF)];
