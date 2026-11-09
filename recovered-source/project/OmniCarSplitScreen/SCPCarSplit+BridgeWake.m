@@ -52,18 +52,25 @@ static uint16_t       bwStateSeq;             // owner state seq (§3.2)
 static NSInteger      bwWakeMode  = BWModeDryRun;   // §4: absent = DRY_RUN
 static NSInteger      bwPinchMode = BWModeOff;      // [ytz5] absent = OFF
 // [hl2-split G6] Gate 3 scoped trial + in-app pinch packet mode,
-// re-read at every bwReloadModesAndRepublish: the trial rewrites the
+// re-read at every bwReloadModesAndRepublish: the trial rewrote the
 // wakeMode of ONE bundle's state packets to ENFORCE (the global
-// bwWakeMode above stays the default for every other pane), and the
+// bwWakeMode above stayed the default for every other pane), and the
 // packet pinchMode of hosted panes comes from bridgewake.pinchInApp
 // (absent = ENFORCE) instead of the legacy bwPinchMode — the legacy
 // CarPlayApp recognizer keeps reading bwPinchMode through the
 // arbiter, so exactly one pinch shooter is live per mode source.
-static NSString      *bwGate3TrialBundle;           // nil = trial off
+// [hl4] Scope expansion (PATCH 29.24): the hl3 car session proved
+// the trial (12/12 correct swallows, 0 false — 29.23), so the
+// per-bundle trial is RETIRED: with the kill-switch ON, EVERY hosted
+// pane's state packet carries wakeMode ENFORCE. The pref
+// bridgewake.gate3TrialBundle no longer has any role and is not
+// read; bwGate3TrialEnabled survives as the global kill-switch
+// (bridgewake.gate3Trial: absent = ON, 0 = OFF -> every pane falls
+// back to the global bwWakeMode layer).
 static BOOL           bwGate3TrialEnabled = YES;    // kill-switch pref
 static NSInteger      bwPinchInAppMode = BWModeEnforce;
 static uint64_t       bwGate3TrialSigBySlot[10];    // last logged shape
-static unsigned       bwGate3TrialEmitCount;        // trial packets sent
+static unsigned       bwGate3TrialEmitCount;        // ENFORCE packets sent
 // (an ENFORCE default shipped briefly on 2026-11-09 under Nguyen's
 // "noi pinch luon" order; GPT's post-fs1 audit WO superseded it —
 // ENFORCE is reachable only via an explicit pref until the fullscreen
@@ -209,13 +216,19 @@ static uint64_t BWEmitSig(NSInteger state, BOOL pinch, NSInteger wm,
 // parses. Used by BOTH bwEmitStateForPane: and the emission-
 // signature computation in bwRecomputeForPane:, so a trial/mode
 // change alone re-emits exactly like a state change.
+// [hl4] The trial scope is gone (PATCH 29.24): the wakeMode of
+// EVERY hosted pane is ENFORCE while the kill-switch
+// (bwGate3TrialEnabled) is on, and the global bwWakeMode otherwise.
+// No bundle is compared against anything here any more; the third
+// out-param now reports whether this packet carries the expanded
+// ENFORCE (kept so bwEmitStateForPane: can log scope evidence).
 static void BWEmitModesForBundle(NSString *bundle, NSInteger *wmOut,
                                  NSInteger *pmOut, BOOL *trialOut) {
-    BOOL trial = bwGate3TrialEnabled && bwGate3TrialBundle.length > 0 &&
-                 [bundle isEqualToString:bwGate3TrialBundle];
-    if (wmOut) *wmOut = trial ? BWModeEnforce : bwWakeMode;
+    (void)bundle; // [hl4] no per-bundle scope remains
+    BOOL enforce = bwGate3TrialEnabled;
+    if (wmOut) *wmOut = enforce ? BWModeEnforce : bwWakeMode;
     if (pmOut) *pmOut = bwPinchInAppMode;
-    if (trialOut) *trialOut = trial;
+    if (trialOut) *trialOut = enforce;
 }
 
 static BOOL BWSlotValid(SCPCarPane *pane) {
@@ -360,28 +373,34 @@ static void BWEmitDrain(void) {
     if (!bundle.length) return;
     NSInteger state = bwStateBySlot[slot];
     BOOL pinch = [self bwPinchAllowedForPane:pane];
-    // [hl2-split G6] per-pane modes (trial wakeMode override +
-    // pinchInApp packet pinchMode) — see BWEmitModesForBundle.
+    // [hl2-split G6] per-pane modes (wakeMode override + pinchInApp
+    // packet pinchMode) — see BWEmitModesForBundle. [hl4] the
+    // override is no longer a per-bundle trial: it is the expanded
+    // all-hosted ENFORCE while the kill-switch is on.
     NSInteger emitWM, emitPM;
-    BOOL trial = NO;
-    BWEmitModesForBundle(bundle, &emitWM, &emitPM, &trial);
+    BOOL enforce = NO;
+    BWEmitModesForBundle(bundle, &emitWM, &emitPM, &enforce);
     BWEmitStatePacket(bundle, bwGenBySlot[slot], state, pinch,
                       emitWM, emitPM);
     uint64_t sig = BWEmitSig(state, pinch, emitWM, emitPM,
                              bwGenBySlot[slot]);
     bwEmitSigBySlot[slot] = sig;
-    if (trial) {
-        // [gate3] trial emission evidence: counted on EVERY trial
-        // packet, logged only when the packet shape changed
-        // (assignment / state / mode transition) — the 1.0 s renewal
-        // rotation re-sends identical shapes and must not spam.
+    if (enforce) {
+        // [gate3] ENFORCE emission evidence: counted on EVERY
+        // expanded-scope packet, logged only when the packet shape
+        // changed (assignment / state / mode transition) — the 1.0 s
+        // renewal rotation re-sends identical shapes and must not
+        // spam. [hl4] scope=all-hosted + kill-switch state are part
+        // of the line so a session log proves the expansion was live.
         bwGate3TrialEmitCount++;
         if (sig != bwGate3TrialSigBySlot[slot]) {
             bwGate3TrialSigBySlot[slot] = sig;
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                @"[gate3] trial packet bundle=%@ slot=%ld wm=ENFORCE "
+                @"[gate3] enforce packet bundle=%@ slot=%ld "
+                @"scope=all-hosted killswitch=%d wm=ENFORCE "
                 @"(global %ld) state=%@ gen=%u count=%u",
-                bundle, (long)slot, (long)bwWakeMode,
+                bundle, (long)slot, (int)bwGate3TrialEnabled,
+                (long)bwWakeMode,
                 BWStateName(state), bwGenBySlot[slot],
                 bwGate3TrialEmitCount]);
         }
@@ -875,8 +894,9 @@ static void BWEmitDrain(void) {
     // Emit when the packet SHAPE changed (state, arbitration, modes,
     // gen) — not only when the state enum moved (§1.3 point 6).
     // [hl2-split G6] the signature is computed with the same per-pane
-    // modes bwEmitStateForPane: packs (trial wakeMode / pinchInApp),
-    // so a trial-scope or pinchInApp change re-emits on its own.
+    // modes bwEmitStateForPane: packs (expanded ENFORCE / pinchInApp
+    // — [hl4] no per-bundle trial scope remains), so a kill-switch
+    // or pinchInApp change re-emits on its own.
     BOOL pinch = [self bwPinchAllowedForPane:pane];
     NSInteger emitWM, emitPM;
     BWEmitModesForBundle(bwBundleBySlot[slot] ?: bundle,
@@ -988,19 +1008,15 @@ static void BWEmitDrain(void) {
             (unsigned long)bwPinchAllowlist.count] : @"all",
         (int)bwAutoHideEnabled]);
     // [hl2-split G6] Gate 3 trial scope + in-app pinch packet mode.
-    // bridgewake.gate3TrialBundle: absent (or malformed) = the
-    // default trial bundle com.google.ios.youtube; an empty string
-    // turns the trial OFF; any other string names the trial bundle.
-    // bridgewake.gate3Trial (kill-switch): absent = ON, 0 = OFF.
+    // [hl4] The per-bundle trial scope is RETIRED (PATCH 29.24):
+    // bridgewake.gate3TrialBundle is no longer read and has no role.
+    // What remains is the global kill-switch and the pinch mode:
+    // bridgewake.gate3Trial (kill-switch): absent = ON, 0 = OFF;
+    // ON = every hosted pane's packet wakeMode is ENFORCE, OFF =
+    // every pane falls back to the global bwWakeMode layer above.
     // bridgewake.pinchInApp: absent = ENFORCE, 1 = DRY_RUN, 0 = OFF
     // (any other value = ENFORCE); it sets ONLY the packet pinchMode
     // of hosted panes — the legacy bwPinchMode above is untouched.
-    id tb = OMCPref(@"bridgewake.gate3TrialBundle", nil);
-    if ([tb isKindOfClass:[NSString class]])
-        bwGate3TrialBundle = [(NSString *)tb length]
-            ? [(NSString *)tb copy] : nil;
-    else
-        bwGate3TrialBundle = @"com.google.ios.youtube";
     id tk = OMCPref(@"bridgewake.gate3Trial", nil);
     bwGate3TrialEnabled = tk ? [tk boolValue] : YES;
     id pa = OMCPref(@"bridgewake.pinchInApp", nil);
@@ -1008,8 +1024,8 @@ static void BWEmitDrain(void) {
         : [pa integerValue] == 0 ? BWModeOff
         : [pa integerValue] == 1 ? BWModeDryRun : BWModeEnforce;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[gate3] trial bundle=%@ enabled=%d packetPinch=%ld",
-        bwGate3TrialBundle ?: @"off", (int)bwGate3TrialEnabled,
+        @"[gate3] scope=all-hosted killswitch=%d packetPinch=%ld",
+        (int)bwGate3TrialEnabled,
         (long)bwPinchInAppMode]);
     // Mode changes re-run aggregation for every hosted pane (§1.3
     // point 6); the emit signature carries the modes, so any change
