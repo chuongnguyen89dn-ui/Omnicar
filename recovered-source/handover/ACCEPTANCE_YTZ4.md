@@ -308,11 +308,80 @@ giác, ghi mốc thời gian, không kết luận.
   phán chỉ audit đọc. ahForgetView: chờ GPT phán.
 - VISUAL_ORIGINAL_COMPARISON: vẫn PENDING.
 
+## Kết quả phiên xe ytz4 (2026-11-09; log upload `8db6471`, PATCH_NOTES §28)
+
+Phạm vi verdict: binary ytz4 từ 17:23:48 (PID 35998)
+tới hết log 17:44:31 — hai file log chứa hai thế hệ
+binary, phần trước mốc là binary cũ (§28.0).
+
+- **Bước 1 (fullscreen fade): DEVICE PASS.** Fade chạy
+  trong EXPANDED: E3 136,6 s fade+reveal khép; E2
+  74,0 s 3 fade; suspend tại expand 0/3 (ytz3: 13/13).
+- **Bước 2 (ca guard ngược): DEVICE PASS.** Chuỗi
+  khép trọn 17:28:14→17:28:20.989: picker mở → expand
+  bị từ chối với snapshot `picker=1` → đóng hẳn →
+  expand confirmed. Guard đủ hai chiều; mục fullscreen
+  đóng nghiệm thu ở các ca đã chạy.
+- **Bước 3 (chuỗi wouldSwallow): PASS ở mức would,
+  chuỗi trọn NO DATA.** KB transport DEVICE PASS —
+  giặt nguồn đã đóng: kbSrc=owner 42/48 probe,
+  kbAge max 3131 ms, 18/18 post mở/đóng khớp owner
+  ≤3 ms. wouldSwallow=1 ×8, 100% đúng tổ hợp
+  known=1/active=0/owner/state=H. Nhưng chuỗi trọn
+  thiếu đúng 3 mắt do thứ tự phiên: probe quyết định
+  (17:32:24.119) xảy ra TRƯỚC khi phím mở
+  (17:32:24.190); cửa sổ overlap HIDDEN + kb ACTIVE
+  (17:32:28–34) có 0 probe; gõ chữ 0 dòng; sau đóng
+  phím 0 probe cùng assignment. NO DATA hành vi
+  phiên, không phải FAIL — Gate 3 chờ 3 mắt này +
+  phán quyết GPT, kịch bản phiên sau phải ép chúng.
+- **Bước 4 (hiệu chuẩn pinch): NO DATA.** Hiệu chuẩn
+  đánh dấu KHÔNG được thực hiện (0 episode chạm
+  ≥2 s); [touchset] active=2 101 ca, duplicate
+  101/101 — mẫu thứ ba liên tiếp toàn trùng. Kiến
+  trúc ghép cặp vẫn chưa quyết được.
+- **Bước 5 (hồi quy): PASS.** Native feed fired 86,
+  chuỗi fade→fired→reveal 14/14, act 54/54. YTZ ack
+  51/51, mask 24 lọt 0 (DEVICE PASS); OFF control
+  NO DATA (phiên này không tắt pref); revoke-snap 7 /
+  nextlayout 3, cặp 3/7 (4 vắng khớp giới hạn
+  instrument đã khai). W2 xuất hiện lần đầu:
+  stateage max 8092 ms, 12/54 ca >2500 ms.
+- **Phát sinh trong phiên (ngoài kịch bản):** (i) bàn
+  phím bị bó ở ảnh 3 — KẾT ÁN che khuất z-order (giữa
+  hai ảnh chỉ 1 hide 17:32:34.308, 0 show mới; khung
+  đóng băng tại show). (ii) Icon YouTube: trong-split
+  CHƯA PHÂN ĐỊNH ở tầng cell dashboard (lớp sơn mờ
+  minh oan ở source; [homelib] remove = 0); sau-thoát
+  tương quan đường thoát đã khớp log — ĐÃ MỜ ⇒
+  goHome=NO 5/5, goHome=1 ⇒ đang HIỆN 2/2, thư viện
+  không bị kết án (decision cuối vẫn inject); bước
+  dashboard làm rớt cell chưa chứng minh.
+  (iii) Weather/knob NO DATA lần thứ ba (req# = 0;
+  payload knob = 0).
+- **Chuyển sang vòng sau:** Gate 3 ép 3 mắt (mục 1 ở
+  §28.12); icon — instrument phía cell/apply cho app
+  injected hoặc chấp nhận tương quan đường thoát;
+  pinch — hiệu chuẩn vẫn phải làm mới quyết kiến
+  trúc; `ahFadedState` rò phiên (khiếm khuyết riêng,
+  chờ duyệt sửa); weather/knob (instrument hay bỏ
+  tiêu chí — chờ GPT). Cộng hai thay đổi theo lệnh
+  trực tiếp của Nguyen chờ gộp deb sau (§28.11): tấm
+  nền bảng chọn app ở ô đích thành trong suốt khi ô
+  có app (customisation vượt gốc — gốc cũng trắng);
+  cộng 1 dòng log rect phím (carAppArea + panel
+  frame) tại lúc show.
+
 ## Trạng thái
 
 - ytz4: SOURCE HOÀN THIỆN + STATIC PASS (candidate +
-  FAT hai lát). Mọi verdict xe: PENDING cho tới khi
-  Nguyen chạy phiên 5 bước trên và log được phân tích.
+  FAT hai lát). **Phiên xe ĐÃ chạy (2026-11-09) và
+  phân tích xong** — verdict từng mục ở mục "Kết quả
+  phiên xe ytz4" trên đây và PATCH_NOTES §28. DEVICE
+  PASS: FS + guard ngược, fade-EXPANDED, kb
+  transport, wouldSwallow mức would, feed native,
+  YTZ. Gate 3 vẫn ĐÓNG (còn 3 mắt NO DATA); ENFORCE
+  pinch vẫn khoá.
 - QA20 vẫn là bản dùng hằng ngày của Nguyen. ytz1
   CÁCH LY — không cài. Rollback: ytz3 FAT / ytz2 FAT /
   fs1 FAT / fixround7 FAT / gói hợp nhất QA20.

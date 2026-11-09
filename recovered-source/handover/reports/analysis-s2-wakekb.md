@@ -1,0 +1,24 @@
+# S2 WAKE+KB ytz4
+
+Phạm vi: 2 file log; cửa sổ ytz4 = PID≥35998 từ 17:23:48 (4 probe `kb=-` 16:54–17:01 là binary cũ). Đối chiếu: ABInApp.m BWGatePass:595–606; BridgeWake.m:320–336,478.
+
+## 1. Probe kb: PASS
+`bw probe` 52 = cũ 4 + mới 48 (mới toàn ở `.old`). Mới: kbKnown 1×36/0×12; kbActive 1×1/0×47; kbSrc owner×42, none×5, local×1. kbAge (n=43): max **3131**, p50≈476, p90≈988; >1000 ×3; **>3500 (ngưỡng tươi) ×0**; −1 ×5. Tổ hợp (known,active,src,state,w,fail): (1,0,owner,V,0,-)×22; (1,0,owner,H,1,-)×8; (0,0,owner,V,0,-)×5; (1,0,owner,V,0,stale)×3; (0,0,none,V,0,-)×3; ×1 ×7: (1,0,owner,H,0,stale),(1,0,owner,U,0,-),(0,0,owner,H,0,stale),(0,0,owner,V,0,stale),(0,0,none,H,0,kbunknown),(0,0,none,U,0,unknown),(1,1,local,V,0,-). So ytz3 `kb=-` 38/38: kb biết 36/48, owner 42/48.
+
+## 2. wouldSwallow/fail: PASS nửa / kb NO DATA
+wouldSwallow=1: **8** (ytz3: 0), 100% known=1,active=0,src=owner,state=H,failopen=-:
+`2026-11-09 17:24:05.546 [YouTube:35999] AppBridge: [do] bw probe seq=1 ph B=1 M=8 E=1 C=0 dur=0.14 hosted=1 kbKnown=1 kbActive=0 kbSrc=owner kbAge=987 state=H wouldSwallow=1 wouldPinch=0 failopen=-`
+`2026-11-09 17:32:24.119 [YouTube:35999] AppBridge: [do] bw probe seq=29 ph B=1 M=0 E=1 C=0 dur=0.05 hosted=1 kbKnown=1 kbActive=0 kbSrc=owner kbAge=663 state=H wouldSwallow=1 wouldPinch=0 failopen=-`
+wouldSwallow=0: 44 = failopen=- ×34 (V×33,U×1; thoát ở mắt state, reason=nil — :600), stale ×6 (H×2,V×4), kbunknown ×3 (cũ ×2 + FB seq=1 17:35:25 known=0/none/H), unknown ×1, **kb ×0**. **Không probe nào state=H + kbActive=1**; kbActive=1 duy nhất ở state=V/src=local (`17:29:14.143 seq=21 kbAge=1218 state=V wouldSwallow=0 failopen=-`) — cổng ra ở mắt state trước mắt kb. Mắt "kb ACTIVE chặn tại H" = **NO DATA**.
+
+## 3. Chuỗi suppression 17:32–17:33 (kb session 3): NO DATA — không khép, ngược kịch bản
+17:32:24.072 Began hosted → act-posted stateage=664 → act-accepted kb=0 seq=29 → HIDDEN->VISIBLE + reveal .077; probe seq=29 .119 wouldSwallow=1 (kb chưa mở tại Began). 17:32:24.144 `[YouTube] ban phim xe: hien (YTSearchBarView)`; .190 `[SpringBoard] ban phim xe: hien cho com.google.ios.youtube (kieu 0, phim enter 6)` + host post active=1 session=3 → owner change .192 known=1 active=1. **Phím mở SAU chạm gọi 71–118 ms.** 17:32:28.079 fade lại khi phím còn mở → overlap HIDDEN+kb ACTIVE tới 34.232 nhưng **0 probe/0 act-posted trong cửa sổ phím mở .190–34.326** → mắt probe-lúc-phím-mở NO DATA. Gõ chữ: **NO DATA** (0 dòng keystroke cả phiên). Đóng: reveal .232 do fired GOFA; post active=0 session=3 .326 + change active=0; sau đó **0 probe cùng gen=3** → mắt trở-lại-wouldSwallow=1 NO DATA. Teardown 17:33:38.369: post active=0 session=0 + `MILESTONE teardown bundle=com.google.ios.youtube`; restart 17:33:50 gen=5, probe seq=30 state=U.
+
+## 4. [kb-sync] ba phía: PASS, lệch phụ snapshot trùng
+Host post **46**; owner change **36** + drop **1**; owner emit **1058** (YT 834: k1/a0 620, k0 181, a1 33; Ame 143; FB 81); app không có dòng "kb packet" riêng — bằng chứng nhận là probe kbSrc=owner ×42/48. 9 phiên kb (session 1–9): **18/18 post active-toggle khớp change ≤3 ms**. Lệch 9 post không phản hồi owner, 100% active=0 session=0: 6 ở `.old` = snapshot trùng bản ghi (không đổi → không log change, :320); 3 ở `.log` tại teardown (17:41:11.018, 17:43:04.009, 17:44:20.354). Drop duy nhất: 17:37:30.004 `[kb-sync] drop not-assigned bundle=com.facebook.Facebook active=0 session=0` (đáp post 17:37:29.950). UNKNOWN-reset khi đổi gán: **CÓ ×2**, không dòng log reset riêng (reset câm :478) — qua emit: gen=2/3 known=0 ×150 (17:26:46→17:29:12; probe seq13–19 known=0/owner trong cửa sổ) và gen=15 known=0 ×31 (17:37:48→17:38:18); đều hết khi host snapshot tới.
+
+## 5. Hồi quy feed/act/stateage: PASS
+`[probe-feed]` 355 = fired **86** (ytz3: 41) + drop 269. Fired 100% native: GOFA 44, Maps 21, VLC 10, MobileSMS 7, mobilecal 4. Drop: inactive 147, hosted 79, popup 22, systemregion 14, notassigned 5, unconverted 2, display 0. Fade 32 (deferred 46: surface-open 44, kbhold 2) → reveal 28: **fired native đóng 14/14** (cùng ms), act 13, unsuspend 1; **mồ côi 4/32 — fade cuối mỗi PID, teardown/hết log, 0 sự kiện hợp lệ bị bỏ qua**. Act: posted **54** = accepted **54** (kb=1 ×2) → **54/54**; app drop 1 (nosession, FB 17:37:26, ngoài fade). EXPANDED ×3, suspend kèm **0** (ytz3: 13/13) — gỡ HB hiệu lực; 3 suspend còn lại là solo. stateage act-posted (n=54): max **8092**, **>2500 ×12** [2585…8092] — **ca phân định W2 đã xuất hiện** (ytz2/ytz3: 0).
+
+## Verdict
+Có bằng chứng: kb trọn 3 phía (1,4); wouldSwallow=1 ×8 (2); feed+act không hồi quy, fired 14/14, W2 ×12 (5). NO DATA (không phải FAIL): ca H+kbActive ×0; chuỗi 3 thiếu 3 mắt (probe lúc phím mở, gõ chữ, probe sau đóng cùng assignment). Gate-3 **PENDING**.

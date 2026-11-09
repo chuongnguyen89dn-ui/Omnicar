@@ -224,6 +224,39 @@ Từ log + ảnh phiên fixround3, GPT ra **Consolidated Repair Order (A–I)**,
   +3, AB +9, 0 mất). **Phiên xe CHƯA chạy** — kịch bản ở ACCEPTANCE_YTZ4 (fullscreen fade /
   ca guard ngược / chuỗi suppression mức wouldSwallow / hiệu chuẩn pinch / hồi quy). Gate 3
   vẫn ĐÓNG: sửa tín hiệu kb xong vẫn phải đo nuốt trọn chuỗi theo đúng lời GPT.
+- **Phiên xe ytz4** (log upload `8db6471`; verdict đầy đủ PATCH_NOTES §28;
+  analysis-ytz4-final + 4 strand ở handover/reports/): **CẢNH BÁO hai thế hệ binary trong
+  cùng hai file log** — tag ytz4 chỉ xuất hiện từ CarPlay PID 35998 lúc 17:23:48, phần
+  trước là binary cũ chữ ký ytz3; mọi verdict lấy phạm vi 17:23:48 → 17:44:31. **DEVICE
+  PASS:** FS + ca guard NGƯỢC trọn (chuỗi 7 giây 17:28:14 → 17:28:20.989, snapshot
+  `picker=1`; ON 9/OFF 10, expand/restore confirmed 3/3, refusal 13 state-based) — mục
+  fullscreen đóng nghiệm thu; fade khi EXPANDED (E3 136,6 s fade+reveal khép; suspend
+  tại expand 0/3 so với 13/13 ở ytz3); KB transport — giặt nguồn ĐÃ ĐÓNG (kbSrc=owner
+  42/48 probe, kbAge max 3131 ms, 18/18 post mở/đóng khớp owner ≤3 ms) và wouldSwallow=1
+  ×8 đúng tổ hợp known=1/active=0/owner/state=H; feed native hồi quy (fired 86, chuỗi
+  14/14, act 54/54) + W2 xuất hiện lần đầu (stateage max 8092 ms, 12/54 ca >2500 ms);
+  YTZ (ack 51/51, mask 24 lọt 0). **NO DATA:** chuỗi suppression trọn — thiếu đúng 3 mắt
+  do thứ tự phiên (probe quyết định 17:32:24.119 xảy ra TRƯỚC khi phím mở
+  17:32:24.190; cửa sổ overlap HIDDEN+kb ACTIVE 17:32:28–34 có 0 probe; gõ 0 dòng; sau
+  đóng phím 0 probe cùng assignment) → Gate 3 chờ kịch bản phiên sau ép 3 mắt, không
+  phải FAIL; OFF control YTZ (không tắt pref); pinch — hiệu chuẩn đánh dấu KHÔNG được
+  thực hiện (0 episode ≥2 s), touchset 101/101 duplicate; weather/knob lần thứ ba
+  (req# = 0, payload knob = 0); nguyên nhân chuyển PID (crash grep sạch). **Icon
+  YouTube hai tầng:** trong-split CHƯA PHÂN ĐỊNH ở tầng cell dashboard (sơn mờ minh oan
+  ở source theo probe-fade-icon; `[homelib]` youtube chỉ có inject 17:42:37, remove = 0;
+  đường apply mù với app injected); sau-thoát — tương quan đường thoát KHỚP log trên 11
+  sự kiện: ĐÃ MỜ ⇒ goHome=NO 5/5 (sự kiện mất icon 17:44:20.347 `goHome=0`), goHome=1 ⇒
+  đang HIỆN 2/2, chiều ngược không tuyệt đối (4/6 HIỆN vẫn NO); cơ chế hạng 1 của
+  probe-exit-fade (đường NO thiếu `SCPSendDashboardEvent(1)` ở `SCPCarSplit.m:1771` +
+  không khôi phục sơn khi thoát) khớp log, nhưng bước dashboard làm rớt cell chưa chứng
+  minh và event-1 là nguyên nhân hay dấu hiệu còn mở; thư viện KHÔNG bị kết án (0 chuyển
+  1→0, decision cuối vẫn inject 17:43:41.217); phụ: `ahFadedState` rò phiên — khiếm
+  khuyết riêng bán kính chrome, chờ duyệt sửa. **Phím tự vẽ ảnh 2→3: KẾT ÁN che khuất
+  z-order** (giữa hai ảnh chỉ 1 hide 17:32:34.308, 0 show mới; khung đóng băng tại show
+  theo probe-kb-frame). **Hai thay đổi theo lệnh trực tiếp của Nguyen chờ gộp deb sau**
+  (§28.11): tấm nền bảng chọn app ở ô đích thành trong suốt khi ô có app (probe-picker-
+  cover: `Picker.m:171–176`; gốc cũng trắng — customisation vượt gốc); cộng 1 dòng log
+  rect phím tại show (carAppArea + panel frame — hiện không dòng nào ghi).
 
 ## 5. Các kết tội lớn — nguyên nhân và cách đóng
 
@@ -366,7 +399,7 @@ phiên YouTube — hai việc không gộp nguyên nhân.
 - **Để dành chưa diễn tập:** bài kiểm hết hạn (epoch 1809104400), cứu crash có chủ đích, kiểm tải.
 
 
-## 7. Đang giữ và đang mở (toàn bộ, tính đến vòng ytz4)
+## 7. Đang giữ và đang mở (toàn bộ, tính đến phiên xe ytz4)
 
 **Đang giữ theo thứ tự đã chốt (không tự động vào bản):**
 - Núm vách ngăn: ĐÃ SỬA ở wake1 (mục 5.4; `@(!scaled)` → `@(scaled)`, cổng object + FAT hai slice
@@ -409,7 +442,12 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   ba ở ytz4** (PATCH_NOTES §27.3; hosted-solo giữ nguyên theo lệnh GPT; pinch-in giữ độc lập
   fade). Chờ phiên ytz4 chấm lại trên xe (ACCEPTANCE_YTZ4 bước 1: vào EXPANDED để yên ≥10 s,
   controls phải tự mờ; bước 2 là ca guard NGƯỢC bắt buộc của GPT — popup đang mở → expand bị
-  từ chối kèm snapshot picker=1).
+  từ chối kèm snapshot picker=1). **Phiên ytz4 ĐÃ chấm: cả hai DEVICE PASS** (PATCH_NOTES
+  §28.1–28.2): ca guard ngược khép trọn 17:28:14 → 17:28:20.989 (snapshot `picker=1`,
+  đóng hẳn thì expand confirmed) — mục fullscreen đóng nghiệm thu ở các ca đã chạy; fade
+  EXPANDED chạy thật (E3 136,6 s fade+reveal khép; suspend tại expand 0/3 so với 13/13 ở
+  ytz3). Cụm này ĐÓNG, trừ phát hiện phụ `ahFadedState` rò phiên ở §28.9 (bán kính chrome,
+  chờ duyệt sửa).
 - **Wake Gate 2–6: Gate 2 đã chạy ở phiên ytz2** — phía hosted đạt, phía native fail kết án;
   dữ kiện [probe] cho thấy CarPlayApp THẤY Began trên ô native (140 ca gán ô) nhưng nhãn scene
   không dùng được (117/140 foreign qua _UISystemGestureWindow) → **GPT đã phán W4: đặt feed
@@ -428,6 +466,14 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   `BWKbEffective` + ngưỡng tươi 3,5 s + instrument kbKnown/kbActive/kbSrc/kbAge. **Gate 3 vẫn
   ĐÓNG** — nay chờ đúng một thứ: bằng chứng chuỗi suppression trọn (nuốt → chạm kế → nhập
   liệu → teardown) đo ở phiên ytz4 mức wouldSwallow (ACCEPTANCE_YTZ4 bước 3).
+  **Phiên ytz4 (PATCH_NOTES §28.3–28.5): tầng transport ĐÃ ĐÓNG** — kbSrc=owner 42/48
+  probe, kbAge max 3131 ms, 18/18 post mở/đóng khớp owner ≤3 ms; wouldSwallow=1 ×8 đúng
+  tổ hợp; W2 xuất hiện lần đầu (stateage max 8092 ms, 12/54 ca >2500 ms; 8 ca dương đều
+  trên state tươi). **Nhưng chuỗi trọn vẫn NO DATA, thiếu đúng 3 mắt do thứ tự phiên**
+  (§28.4): probe quyết định xảy ra TRƯỚC khi phím mở; cửa sổ overlap HIDDEN+kb ACTIVE có
+  0 probe; không có gõ chữ; sau đóng phím 0 probe cùng assignment. Gate 3 nay chờ kịch
+  bản phiên sau ÉP 3 mắt đó (chạm trong lúc phím mở → gõ → đóng phím chạm lại) rồi GPT
+  phán — mọi điều kiện tiên quyết khác đều đã có số đạt.
 - **Điểm diễn giải vòng ytz2 đã ghi vào hồ sơ (PATCH_NOTES §24.5), không tự hoà giải:** điểm
   promote HIDDEN→VISIBLE dùng vị từ phiên dạng rút gọn (tương đương nhờ guard bao quanh); ca
   pane-bị-xoá-khi-expanded còn ranh giới phụ thuộc recompute đã chạy hay chưa (rơi về hàng SPLIT
@@ -469,7 +515,9 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   hai-ngón-thật nào để hiệu chuẩn. **GPT đã phán (§27.1(vi)): hiệu chuẩn có chủ đích** —
   kịch bản đánh dấu (1 ngón yên / 1 ngón kéo / 2 ngón yên cùng ô / tách / chụm, mỗi động tác
   cách ~5 s) ở ACCEPTANCE_YTZ4 bước 4; chưa park, chưa đổi kiến trúc. Chưa recognizer trong
-  app, ENFORCE vẫn đóng.
+  app, ENFORCE vẫn đóng. **Phiên ytz4 (PATCH_NOTES §28.7): hiệu chuẩn đánh dấu KHÔNG được
+  thực hiện** (0 episode chạm ≥2 s) — touchset vẫn 101/101 duplicate, mẫu thứ ba liên
+  tiếp toàn trùng; kiến trúc vẫn chưa quyết được, chờ một phiên có hiệu chuẩn thật.
 - **Ba đề xuất chờ GPT sau vòng ytz3 (PATCH_NOTES §25.5):** (i) accessor gen chỉ-đọc trong
   `SCPCarSplit+BridgeWake.h` để feed native tương quan gen thật của owner (hiện dùng epoch của
   probe); (ii) vòng instrument/sửa tại đường Home thật — `SCPHooks.m` (hook
@@ -478,15 +526,22 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   phía picker/split + đầu dò `live-grid-read`, KHÔNG coi mất icon là tự khỏi theo sửa wake.
   **Cập nhật vòng ytz4: GPT ĐÃ DUYỆT mở phạm vi này** — instrument `[homelib]` đã vào ytz4
   trên đúng ba file đó (PATCH_NOTES §27.4; sự thật process: họ Home chạy trong CarPlayApp);
-  phần SỬA cơ chế vẫn chờ dữ kiện `[homelib]` của phiên ytz4;
+  phần SỬA cơ chế vẫn chờ dữ kiện `[homelib]` của phiên ytz4; **dữ kiện phiên ytz4 ĐÃ CÓ
+  (PATCH_NOTES §28.9): thư viện KHÔNG bị kết án** — youtube 0 chuyển 1→0, remove = 0,
+  decision cuối vẫn inject; mất icon sau-thoát tương quan với ĐƯỜNG THOÁT (ĐÃ MỜ ⇒
+  goHome=NO 5/5 trên 11 sự kiện log; cơ chế hạng 1 probe-exit-fade khớp log) và tầng
+  trong-split chưa phân định ở tầng cell dashboard — đường apply cũng mù với app
+  injected (`SCPHomeApply.m:319–325`) nên bước tiếp cần instrument phía cell/apply cho
+  app injected, hoặc GPT chấp nhận mức tương quan đường-thoát hiện có;
   (iii) chở generation qua notify state của kênh `weather.request` (hiện là notify trần không
   mang id; instrument ytz3 tương quan req#↔ans# theo thứ tự + timestamp — mẫu
   notify_register_dispatch/notify_get_state có sẵn ở kênh location cùng file).
 - **Sáu điểm của §26.10 — GPT ĐÃ PHÁN SAU PHIÊN YTZ3 (PATCH_NOTES §27.1), trạng thái hiện
   hành:** (i) tín hiệu kb → Gate 3: bác cả hai phương án cũ (gồm kết án giặt nguồn), lệnh tín
-  hiệu ba trạng thái có xác thực — **đã làm ở ytz4**, Gate 3 chờ bằng chứng chuỗi suppression
-  của phiên ytz4; (ii) AutoHide EXPANDED: gỡ **BA** ràng buộc (không phải hai) — **đã gỡ ở
-  ytz4**, chờ xe chấm lại; (iii) revoke YTZ: chấp nhận đối chứng OFF, **KHÔNG** layout cưỡng
+  hiệu ba trạng thái có xác thực — **đã làm ở ytz4**; **phiên ytz4: transport DEVICE PASS
+  (§28.3) nhưng chuỗi suppression còn thiếu 3 mắt NO DATA (§28.4)** — Gate 3 chờ kịch bản
+  phiên sau ép 3 mắt đó; (ii) AutoHide EXPANDED: gỡ **BA** ràng buộc (không phải hai) — **đã gỡ ở
+  ytz4**, **phiên ytz4 DEVICE PASS (§28.2) — ĐÓNG**; (iii) revoke YTZ: chấp nhận đối chứng OFF, **KHÔNG** layout cưỡng
   bức, chỉ cộng snapshot — **đã làm ở ytz4** (`[ytz-revoke-snap]`/`[ytz-nextlayout]`); R2 vẫn
   giữ nguyên trạng thái đã chỉ đích danh ở source, snapshot nay đo được cả cỡ nên phiên sau
   đối chiếu được; (iv) đường Home thật: **đã duyệt + đã instrument ở ytz4** (`[homelib]`,
@@ -502,9 +557,11 @@ phiên YouTube — hai việc không gộp nguyên nhân.
 - **Núm divider — verdict PENDING diện NO DATA:** log phiên ytz2 có 0 dòng payload
   publishKnobsNow/scaled= (mọi dòng "knob" là cặp fade AutoHide). Chờ GPT phán: khôi phục
   instrument payload hay chốt bằng quan sát xe (kịch bản ACCEPTANCE_YTZ3 bước 5 chấm quan sát).
+  **Phiên ytz4 vẫn payload = 0 (lần thứ ba liên tiếp; 69 dòng "knob" toàn sổ fade)** —
+  gộp vào quyết định chung với weather (instrument hay bỏ tiêu chí), PATCH_NOTES §28.10.
 - Các nhóm nghiệm thu §9 ngoài các phiên đã chạy; ba bài kiểm để dành ở mục 6.
 
-## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~17:25)
+## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~17:57)
 
 - **Bản test mới nhất:** `com.anlai.omnicar_1.0.3-rebuilt-ytz4-fat_iphoneos-arm64.deb` — 1.229.512 byte,
   SHA-256 `53caff295b29c277a3db31c102f7817284345e573d0be3169ce4a6fccfe8a3a2`; candidate local
@@ -522,25 +579,32 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   §25.1; vòng sửa sau log (ytz3) đã build + CI xong. **Phiên xe ytz3 ĐÃ chạy và phân tích xong**
   (log upload `9be396b`, ba biên bản analysis-b1/b2/b3): verdict đầy đủ ở PATCH_NOTES §26.
   **GPT đã phán sáu điểm §26.10** (PATCH_NOTES §27.1) và **vòng ytz4 đã build + CI + kiểm độc
-  lập xong** (§27.2–27.6) — phiên xe ytz4 CHƯA chạy; kịch bản ở ACCEPTANCE_YTZ4.
+  lập xong** (§27.2–27.6). **Phiên xe ytz4 ĐÃ chạy và phân tích xong** (log upload
+  `8db6471`; 4 strand + bản đối hoà ở handover/reports/): verdict đầy đủ ở PATCH_NOTES §28
+  — lưu ý cảnh báo hai thế hệ binary trong cùng hai file log (§28.0).
 - **Đã đóng trên xe:** thanh "..." hosted (fixround5); **YT-Zoom** (phiên ytz2 + đối chứng OFF
-  hợp lệ ở phiên ytz3); **wake hosted** đường activity/reveal (phiên ytz2); **wake native** qua
-  feed CarPlayApp (phiên ytz3); **FS controller + guard** (phiên ytz3 — ca bắt buộc của GPT trọn
-  2 lần). **Đã đóng ở tầng giao thức:** hai cổng hướng (log fixround6). **Đóng điều tra tĩnh:**
+  hợp lệ ở phiên ytz3; phiên ytz4 ack 51/51 giữ PASS); **wake hosted** đường activity/reveal (phiên ytz2); **wake native** qua
+  feed CarPlayApp (phiên ytz3; phiên ytz4 hồi quy PASS); **FS controller + guard** (phiên ytz3 — ca bắt buộc của GPT trọn
+  2 lần; **phiên ytz4: ca guard NGƯỢC đạt — mục fullscreen ĐÓNG**); **fade khi EXPANDED**
+  (phiên ytz4, sau gỡ ba ràng buộc); **kb transport ba trạng thái** (phiên ytz4 — giặt nguồn
+  đã đóng, wouldSwallow=1 ×8). **Đã đóng ở tầng giao thức:** hai cổng hướng (log fixround6). **Đóng điều tra tĩnh:**
   fullscreen YouTube (mục 5.3). **Static PASS:** wake Gate 0/1 (PATCH_NOTES §22); FS1 controller
   + AutoHide Gate 1 (PATCH_NOTES §23); vòng khắc phục WO (PATCH_NOTES §24); vòng sửa sau log —
   4 strand + kiểm độc lập + tích hợp + hai lát FAT (PATCH_NOTES §25); phán quyết phiên ytz3
   (PATCH_NOTES §26); vòng theo phán quyết GPT sau phiên ytz3 — kb xác thực + gỡ ba ràng buộc
   AutoHide + instrument Home + snapshot revoke, kiểm độc lập khẳng định (a)–(d) (PATCH_NOTES
-  §27). **Chờ xe (không chờ GPT):** phiên ytz4 theo ACCEPTANCE_YTZ4 — fullscreen fade khi
-  EXPANDED; ca guard NGƯỢC bắt buộc; chuỗi suppression mức wouldSwallow (Gate 3 chờ đúng bằng
-  chứng này); hiệu chuẩn pinch có chủ đích; dòng `[homelib]` đầu tiên; cặp snapshot revoke
-  nếu tắt công tắc giữa phiên. **Chờ GPT phán (không chờ xe):** hai lệch phụ §27.5 — consumer
-  `appbridge.keyboard` chết ở ABChannels.m:358 (dọn/giữ); biên reset UNKNOWN cùng-bundle
-  cùng-slot (đóng ở owner hay chấp nhận giảm nhẹ). **Vẫn mở:** ENFORCE wake/pinch đóng theo
-  GPT; cơ chế mất icon chưa có dữ kiện (instrument đường Home thật đã sẵn ở ytz4, chờ log
-  phiên); weather thiếu dữ kiện (0 request thật ở phiên ytz3); nguyên nhân đổi PID giữa phiên
-  không xác định được từ log (0 chữ ký crash); VISUAL_ORIGINAL_COMPARISON = PENDING.
+  §27); phán quyết phiên ytz4 (PATCH_NOTES §28). **Chờ GPT phán:** năm mục §28.12 — (1) Gate 3:
+  kịch bản phiên sau ép đúng 3 mắt còn thiếu của chuỗi suppression; (2) icon: instrument
+  phía cell/apply cho app injected hay chấp nhận tương quan đường-thoát hiện có; (3) pinch:
+  hiệu chuẩn chưa làm nên kiến trúc chưa quyết được; (4) sửa `ahFadedState` rò phiên;
+  (5) weather/knob NO DATA ba phiên — instrument hay bỏ tiêu chí. Cộng hai lệch phụ §27.5 —
+  consumer `appbridge.keyboard` chết ở ABChannels.m:358 (dọn/giữ); biên reset UNKNOWN
+  cùng-bundle cùng-slot (đóng ở owner hay chấp nhận giảm nhẹ). **Chờ gộp deb sau (lệnh
+  Nguyen, §28.11):** tấm nền bảng chọn app ở ô đích trong suốt khi ô có app; 1 dòng log
+  rect phím tại show. **Vẫn mở:** ENFORCE wake/pinch đóng theo GPT; bước dashboard làm rớt
+  cell icon chưa chứng minh (event-1 là nguyên nhân hay dấu hiệu còn mở); weather thiếu dữ
+  kiện (0 request thật ở cả phiên ytz4); nguyên nhân đổi PID giữa phiên không xác định được
+  từ log (0 chữ ký crash, hai strand độc lập); VISUAL_ORIGINAL_COMPARISON = PENDING.
 
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 

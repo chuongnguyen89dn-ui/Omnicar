@@ -2765,3 +2765,152 @@ calibration sequence, the first [homelib] lines from
 the real Home path, and the revoke-snapshot pair if
 the YouTube switch is toggled mid-session. Wake
 ENFORCE (Gate 3) and pinch ENFORCE remain locked.
+
+YTZ4 SESSION (2026-11-09; device session on the
+ytz4 FAT above, logs uploaded in commit 8db6471;
+verdicts in PATCH_NOTES section 28, from four
+parallel log-analysis strands plus a reconciliation
+pass, with two in-session source probes). FRAME
+WARNING first, because it conditions every number
+below: the two log files contain TWO BINARY
+GENERATIONS. The ytz4-only tags ([homelib],
+[kb-sync], [ytz-revoke-snap]) first appear at
+CarPlay PID 35998 at 17:23:48; the earlier PIDs
+carry the old binary's behavioural signatures
+(suspend-on-expand, HIDDEN-to-VISIBLE promotion).
+All session verdicts are scoped to 17:23:48 ->
+17:44:31; merging the generations inverts the
+fade-in-expanded conclusion (the longest expanded
+span in the whole file, 820.2 s with zero fades at
+PID 35411, is the OLD binary — the ytz3 picture
+intact, not an ytz4 regression). PID rotation cause
+remains NO DATA (two strands independently found
+zero crash signatures). FULLSCREEN IS CLOSED at
+the cases run: diag toggles ON 9 / OFF 10, expand
+confirmed 3, restore confirmed 3, refusals 13 all
+state-based; and the MANDATORY REVERSE GUARD CASE
+GPT required since ytz3 PASSED as one closed
+seven-second chain — picker opened 17:28:14.216,
+expand refused 17:28:15.785 with picker=1 in the
+snapshot, picker closed 17:28:19.955, expand
+confirmed 17:28:20.989. FADE IN EXPANDED PASSED:
+with all three locks removed, the longest expanded
+interval (136.6 s) shows a fade at 17:26:51.589
+closed by a reveal at 17:27:08.550, a second
+interval (74.0 s) shows three fades, and suspends
+at expand are 0/3 against ytz3's 13/13. THE KB
+LAUNDERING QUESTION IS CLOSED at transport level:
+the app now receives the owner's authenticated
+record (kbSrc=owner in 42/48 in-scope probes,
+kbAge max 3131 ms against the 3500 ms freshness
+window, 18/18 host open/close posts matched by an
+owner change within 3 ms), and wouldSwallow=1
+appears for the first time in the project — 8
+occurrences, every one in the exact combination
+known=1 / active=0 / source=owner / state=H. THE
+FULL SUPPRESSION CHAIN IS NONETHELESS NO DATA,
+missing exactly three eyes, and the shortfall is
+session behaviour, not mechanism failure: the one
+deciding probe (17:32:24.119, wouldSwallow=1) fired
+71-118 ms BEFORE the keyboard opened
+(17:32:24.190) — that touch is the one that opened
+search; a genuine overlap window then existed
+(refade 17:32:28.079 while the keyboard stayed
+open to 17:32:34.326) but contains zero probes,
+because no touch landed during the ~6 s the
+keyboard was up; typing produced zero log lines;
+and after the keyboard closed, zero probes ran on
+the same assignment. Gate 3 therefore still waits
+on a scripted session that forces those three eyes
+(touch while keyboard open + controls hidden, type,
+close keyboard and touch again on the same
+assignment); every other prerequisite (transport,
+positive would, native feed, freshness) now has
+passing numbers. NATIVE WAKE FEED REGRESSION-FREE
+(fired 86, fade-to-fired-to-reveal chains 14/14
+closed, hosted act 54/54), and the W2 freshness
+discriminator appeared for the first time:
+stateage max 8092 ms with 12/54 act posts above
+2500 ms — all eight positive wouldSwallow
+decisions nonetheless rested on fresh state.
+
+PINCH IS NO DATA AGAIN, and this time the record
+must say plainly that the scripted calibration
+was NOT performed (zero marked touch episodes of
+2 s or longer): the touchset shows 101 active=2
+snapshots, 101/101 of them duplicate
+representations of a single contact — a third
+consecutive all-duplicate sample — so the pairing
+architecture remains undecidable. YTZ PASSED
+again (ack applied 51/51 w=1 m=0, orientation
+mask 24 blocked 5/5, leaked 0); the OFF control
+is NO DATA this session (no pref revoke; all 8
+revocations are teardowns — ytz3's valid OFF
+control stands), and the revoke snapshot pair
+landed partially (7 snapshots, 3 next-layout
+follow-ups; the 4 unpaired snapshots match the
+instrument's declared republication keying limit,
+not a data loss). THE KEYBOARD-IN-A-BOX PHOTO IS
+CONVICTED as z-order occlusion: between the
+normal photo and the boxed photo there is exactly
+one hide event (17:32:34.308) and no new show, and
+the panel frame is computed once at show time and
+frozen — the boxed photo is the same frame with a
+pane frame covering most of it. THE YOUTUBE DOCK
+ICON SPLITS INTO TWO LAYERS WITH DIFFERENT
+ANSWERS. In-split, the source probe EXONERATES
+the fade paint by construction (the paint set is
+closed — handles, divider, knob, homeButton — and
+the launcher host is explicitly excluded; the
+icon is a dashboard SBIconView cell in a sibling
+branch that opacity cannot reach), and the log
+shows no removal anywhere: the library decision
+journal records only an inject for YouTube in the
+window and zero remove lines all session, while
+the apply path is itself blind to injected apps
+(SCPHomeApply.m:319-325) — layer one stays
+UNRESOLVED at the dashboard cell-display layer.
+Post-exit, Nguyen's own A/B (exit while visible:
+icon stays; exit while faded: icon gone; the
+original ~17:48 pair sits outside the log) is
+corroborated by all 11 exit events inside the
+log: faded exits went goHome=NO 5/5 — including
+the losing event itself, 17:44:20.347 goHome=0 —
+and both goHome=1 exits belong to the visible
+class (2/2), with the converse not absolute (4/6
+visible exits also took the NO path). The rank-1
+source mechanism matches the log exactly: the NO
+path sends no SCPSendDashboardEvent(1) (sent only
+on closeGoingHome:YES, SCPCarSplit.m:1771) and
+performs no paint restoration on exit; which
+dashboard step then drops the cell, and whether
+event 1 is cause or merely the path's marker,
+remain unproven. The library is NOT convicted at
+either layer (zero 1->0 transitions; the final
+decision of the session is still inject,
+17:43:41.217). A separate named defect fell out
+of the same probe: ahFadedState leaks across
+sessions (never reset at session start; exiting
+while faded leaves it stuck until the next reveal
+or teardown) — chrome-radius only, awaiting a fix
+decision. WEATHER (request count 0) and the KNOB
+(payload count 0) are NO DATA for the third
+consecutive session. TWO CHANGES WERE ORDERED
+DIRECTLY BY NGUYEN MID-SESSION and are queued for
+the next single combined deb, recorded in
+PATCH_NOTES 28.11: the app-picker placeholder
+over the target pane becomes transparent when the
+pane holds an app (Picker.m:171-176; the original
+is equally opaque — binary-verified — so this is
+a beyond-original customisation on his order), and
+one rect log line at keyboard show time
+(carAppArea plus panel frame — no line currently
+records either). Open for GPT, in the
+reconciliation's order: Gate 3's three missing
+eyes; icon cell/apply instrumentation for injected
+apps versus accepting the exit-path correlation;
+the still-unperformed pinch calibration; the
+ahFadedState fix; and instrument-or-drop for
+weather and knob. Gate 3 and pinch ENFORCE remain
+locked; the ytz4 FAT remains the standing test
+build and QA20 the daily build.
