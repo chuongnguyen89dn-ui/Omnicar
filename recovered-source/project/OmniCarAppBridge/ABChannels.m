@@ -18,6 +18,21 @@
 #import "ABHost.h"
 #import "OMCCore.h"
 
+// BridgeWake v1 Darwin names used by §5 below — definitions live in
+// ABChannelNames.m (design-bridgewake.md §3.1). Declared locally
+// because this TU does not import AppBridgeB.h.
+extern const char *ABNotifyBWWake;
+extern const char *ABNotifyBWAck;
+
+// BridgeWake applied-snapshot accessor on ABHost — implemented in
+// ABHostBMethods.m (design-bridgewake.md §6); declared here because
+// ABHost.h predates the wake port.
+@interface ABHost (BridgeWakeConfirm)
+- (NSDictionary *)bwAppliedSnapshotForBundle:(NSString *)bundleID;
+@end
+
+static void BWRegisterHostConfirm(void);
+
 static NSString *const kPrefix = @"com.anlai.omnicar/appbridge.";
 
 // ===========================================================================
@@ -44,6 +59,9 @@ static void ABHostProcessInit(void) {
                                  (__bridge CFPropertyListRef)value,
                                  CFSTR("com.anlai.omnicar"));
         CFPreferencesAppSynchronize(CFSTR("com.anlai.omnicar"));
+        // BridgeWake host confirmation (§5) lives only in SpringBoard,
+        // the process that owns ABHost.
+        if ([process isEqualToString:@"SpringBoard"]) BWRegisterHostConfirm();
     });
 }
 
@@ -434,3 +452,145 @@ static void ABSpringBoardInit(void) {
 //        +attemptRotationToDeviceOrientation
 //    and logs "%@: dua len xe, cai hook" with the bundle id.
 // ===========================================================================
+
+// ===========================================================================
+// 5. BridgeWake host confirmation — BRIDGEWAKE (design-bridgewake.md §6;
+//    NEW, not in the original binary). ABHost never decides chrome state
+//    and keeps no idle counter: when a wake arrives for a bundle this
+//    host serves, it arms ONE pending slot {hash, gen, seq} for that
+//    bundle (a newer wake overwrites the older slot). When the next
+//    open/frame for that bundle has been applied it answers
+//    ack(role=1), echoing the wake's gen/seq, with the applied state
+//    read off the pane; if no frame lands within 800 ms it answers
+//    ack(role=1, UNKNOWN) once and disarms. Every pending-slot access
+//    is serialised on the main queue (the wake dispatch, the applied
+//    hops and the expiry all target it). The 800 ms deadline is a
+//    one-shot dispatch_after per armed slot — a transaction deadline,
+//    not an idle timer.
+// ===========================================================================
+
+// Packing per design §3.2 (bit-identical to BridgeWakePack.h; kept
+// file-local because this strand owns only this file). Modes are 0 in
+// an ack: only `state` carries meaning there (§3.2 field discipline).
+static uint64_t BWPackFields(uint32_t hash28, uint32_t seq, uint32_t gen,
+                             uint32_t flag, uint32_t state, uint32_t type) {
+    return (1ULL << 63)
+         | ((uint64_t)(hash28 & 0xFFFFFFFu) << 35)
+         | ((uint64_t)(seq & 0xFFFu) << 23)
+         | ((uint64_t)(gen & 0xFFFu) << 11)
+         | ((uint64_t)(flag & 1u) << 10)
+         | ((uint64_t)(state & 7u) << 3)
+         |  (uint64_t)(type & 7u);
+}
+
+enum {
+    BWTypeWake     = 3,
+    BWTypeAck      = 4,
+    BWStateUnknown = 1,
+    BWStateVisible = 2,
+};
+
+static NSMutableDictionary<NSString *, NSDictionary *> *BWPendingSlots(void) {
+    static NSMutableDictionary *slots;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ slots = [NSMutableDictionary dictionary]; });
+    return slots;
+}
+
+static double BWNowSeconds(void) {
+    return (double)dispatch_time(DISPATCH_TIME_NOW, 0) / 1000000000.0;
+}
+
+static void BWEmitHostAck(uint32_t hash28, uint32_t gen, uint32_t seq,
+                          uint32_t state) {
+    static int ackToken;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ notify_register_check(ABNotifyBWAck, &ackToken); });
+    notify_set_state(ackToken, BWPackFields(hash28, seq, gen, 1, state,
+                                            BWTypeAck));
+    notify_post(ABNotifyBWAck);
+}
+
+// Answers the armed slot for `bundle` exactly once (main queue only):
+// with the applied state when the confirming frame arrived in time,
+// otherwise UNKNOWN. The slot is disarmed BEFORE the ack is posted, so
+// a racing expiry or frame can never ack the same wake twice.
+static void BWAnswerSlot(NSString *bundle, BOOL appliedInTime) {
+    NSDictionary *slot = BWPendingSlots()[bundle];
+    if (!slot) return;
+    [BWPendingSlots() removeObjectForKey:bundle];
+    uint32_t hash28 = (uint32_t)[slot[@"hash"] unsignedIntValue];
+    uint32_t gen    = (uint32_t)[slot[@"gen"] unsignedIntValue];
+    uint32_t seq    = (uint32_t)[slot[@"seq"] unsignedIntValue];
+    uint32_t state  = BWStateUnknown;
+    if (appliedInTime) {
+        NSDictionary *snap = [[ABHost shared] bwAppliedSnapshotForBundle:bundle];
+        // §6: VISIBLE only when the bar was applied shown; ABHost never
+        // concludes HIDDEN from its own snapshot.
+        if (snap && ![snap[@"barHidden"] boolValue]) state = BWStateVisible;
+    }
+    BWEmitHostAck(hash28, gen, seq, state);
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[bridgewake] host ack role=1 bundle=%@ gen=%u seq=%u state=%u",
+        bundle, gen, seq, state]);
+}
+
+// A frame/open for `bundle` has just been applied by the registrar's
+// own handler (see the hop in BWObserveApplied). Confirms the armed
+// slot if the frame landed within the 800 ms window; a late frame
+// answers UNKNOWN instead — never a stale VISIBLE.
+static void BWFrameApplied(NSString *bundle) {
+    NSDictionary *slot = BWPendingSlots()[bundle];
+    if (!slot) return;
+    BOOL inTime = (BWNowSeconds() - [slot[@"at"] doubleValue]) <= 0.8;
+    BWAnswerSlot(bundle, inTime);
+}
+
+static void BWObserveApplied(NSString *name) {
+    NSDistributedNotificationCenter *dc =
+        [NSClassFromString(@"NSDistributedNotificationCenter") defaultCenter];
+    [dc addObserverForName:name object:nil queue:[NSOperationQueue mainQueue]
+                usingBlock:^(NSNotification *note) {
+        NSString *bundle = note.userInfo[@"identifier"];
+        if (!bundle || !BWPendingSlots()[bundle]) return;
+        // One extra main-queue hop: the registrar's own handler for
+        // this notification was enqueued in the same delivery round,
+        // so the hop lands the snapshot read strictly after the frame
+        // has actually been applied — the end of the handler, §6.
+        dispatch_async(dispatch_get_main_queue(), ^{ BWFrameApplied(bundle); });
+    }];
+}
+
+static void BWRegisterHostConfirm(void) {
+    static int wakeToken;
+    notify_register_dispatch(ABNotifyBWWake, &wakeToken,
+                             dispatch_get_main_queue(), ^(int token) {
+        uint64_t packet = 0;
+        notify_get_state(token, &packet);
+        if (!(packet >> 63)) return;                 // v bit (§3.2)
+        if ((packet & 7u) != BWTypeWake) return;     // this channel = wake only
+        uint32_t hash28 = (uint32_t)((packet >> 35) & 0xFFFFFFFu);
+        uint32_t seq    = (uint32_t)((packet >> 23) & 0xFFFu);
+        uint32_t gen    = (uint32_t)((packet >> 11) & 0xFFFu);
+        NSString *bundle = nil;
+        for (ABPane *pane in [ABHost shared].panes)
+            if ((ABBundleIDHash(pane.bundleID) >> 4) == hash28) {
+                bundle = pane.bundleID;
+                break;
+            }
+        if (!bundle) return;   // wake is not for a pane this host serves
+        BWPendingSlots()[bundle] = @{@"hash": @(hash28), @"gen": @(gen),
+                                     @"seq": @(seq), @"at": @(BWNowSeconds())};
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[bridgewake] host arm bundle=%@ gen=%u seq=%u", bundle, gen, seq]);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 800000000LL),
+                       dispatch_get_main_queue(), ^{
+            NSDictionary *slot = BWPendingSlots()[bundle];
+            if (slot && (uint32_t)[slot[@"gen"] unsignedIntValue] == gen &&
+                        (uint32_t)[slot[@"seq"] unsignedIntValue] == seq)
+                BWAnswerSlot(bundle, NO);   // 800 ms, no applied frame
+        });
+    });
+    BWObserveApplied(@"com.anlai.omnicar/appbridge.open");
+    BWObserveApplied(@"com.anlai.omnicar/appbridge.frame");
+}

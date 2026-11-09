@@ -23,6 +23,8 @@
 #import <objc/message.h>
 #import <objc/runtime.h> // remediation: installLongPressIn:depth: uses associated objects (IMP 0x44344)
 #import <notify.h> // remediation: publishBusy uses notify_register_check/set_state/post (IMP 0x15834)
+#import "SCPCarSplit+BridgeWake.h" // [wake1] bridgewake recompute/teardown call points (design §1.3)
+#import "SCPPinchController.h" // [pinch1] integration glue: attach/detach (design-pinch §7, 2 lines max)
 
 static id SCPGuarded(id obj, NSString *selName) {
     SEL sel = NSSelectorFromString(selName);
@@ -243,6 +245,8 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     if (self.active) {
         OMCLogWrite(@"SplitScreen", @"CarSplit: DashBoard invalidate -> bo split");
         self.active = NO;
+        [self bwSessionTeardown]; // [wake1] the "setActive:NO" point: all slots -> INACTIVE (design §1.3 point 3)
+        [[SCPPinchController shared] detach]; // [pinch1] glue: session teardown ends pinch tracking (design-pinch §7)
         [self.pending removeAllObjects];
         [self publishBusy];
         for (SCPCarPane *pane in [self allPanes]) {
@@ -333,6 +337,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"CarSplit: container trong %@ frame=%@",
         NSStringFromClass(parent.class), NSStringFromCGRect(view.frame)]);
+    [[SCPPinchController shared] attachIfNeeded]; // [pinch1] glue: a FRESH container exists only here (design-pinch §7)
     return YES;
 }
 
@@ -1817,12 +1822,16 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     if (!bundleID.length) return;
     [self hostPost:SCPNoteBridgeClose info:@{@"identifier": bundleID,
                                              @"terminate": @(terminate)}];
+    SCPCarPane *bwPane = [self paneForBundle:bundleID]; // [wake1]
+    if (bwPane) [self bwRecomputeForPane:bwPane];
 }
 
 // -hostCloseAll VERIFIED: the solo app (if any) is excepted.
 - (void)hostCloseAll {
     [self hostPost:SCPNoteBridgeCloseAll
               info:@{@"except": self.soloHostedBundle ?: @""}];
+    for (SCPCarPane *bwPane in [self hostedPanes]) // [wake1]
+        [self bwRecomputeForPane:bwPane];
 }
 
 // -hostApp:inPane: VERIFIED (call sequence): put a hosted app into a pane —
@@ -1882,6 +1891,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         NSDictionary *info = [self hostFrameInfo:frame pane:pane live:NO
                                           handle:pane.hostHandle];
         [self hostPost:SCPNoteBridgeOpen info:info];
+        [self bwRecomputeForPane:pane]; // [wake1] hostHandle/hostBar just cached (design §1.3 point 3)
     });
     // +8 s loader timeout (block invoke @0x3eb24, census item C7): if
     // the pane still hosts this bundle, drop the loader.
@@ -1974,6 +1984,8 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     self.trayHidesBridge = NO;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: dong app toan man %@", bundle]);
     [self hostClose:bundle terminate:NO];
+    SCPCarPane *bwPane = [self paneForBundle:bundle]; // [wake1]
+    if (bwPane) [self bwRecomputeForPane:bwPane];
 }
 
 // -sendHostFrameForPane:live: VERIFIED (call sequence): recompute the
@@ -1994,6 +2006,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     NSDictionary *info = [self hostFrameInfo:frame pane:pane live:live handle:handle];
     [self hostPost:SCPNoteBridgeFrame info:info];
     [self publishKnobsSoon];
+    [self bwRecomputeForPane:pane]; // [wake1] hostHandle refreshed from the frame (design §1.3 point 4)
 }
 
 // -hostFrameInfo:pane:live:handle: VERIFIED (IMP 0x3d39c — line-read
@@ -2597,7 +2610,7 @@ static void SCPStyleSoloIconView(UIImageView *view) {
 // -publishKnobsNow (0x3ed84) VERIFIED (remediation,
 // rem_stub_publishKnobsNow.txt — replaces an INFERRED empty post):
 // publish the window-space centers of all visible divider knobs (with an
-// unscaled flag and the divider index) on appbridge.knobs, but only while
+// scaled/active flag and the divider index) on appbridge.knobs, but only while
 // active with at least one hosted pane and no tray. Empty posts are
 // suppressed except one final empty update when the set becomes empty.
 - (void)publishKnobsNow {
@@ -2612,8 +2625,12 @@ static void SCPStyleSoloIconView(UIImageView *view) {
             if (divider.alpha < 0.5) continue;
             if (!knob.window) continue;
             CGPoint center = [divider convertPoint:knob.center toView:nil];
+            // Element 3 = !CGAffineTransformIsIdentity(transform), as the
+            // original computes it: eor w2, w27, #1 on the IsIdentity
+            // result (arm64 @0x3eff8, arm64e @0x413ac) feeding
+            // numberWithBool: directly — publish `scaled`, no 2nd negation.
             BOOL scaled = !CGAffineTransformIsIdentity(knob.transform);
-            [knobs addObject:@[ @(center.x), @(center.y), @(!scaled), @(divider.index) ]];
+            [knobs addObject:@[ @(center.x), @(center.y), @(scaled), @(divider.index) ]];
         }
     }
     static BOOL postedNonEmpty;

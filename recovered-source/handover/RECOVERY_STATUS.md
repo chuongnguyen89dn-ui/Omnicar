@@ -1826,3 +1826,62 @@ functional defect. The cellClass item keeps its
 UNVERIFIED label (crash UUID not yet matched to the
 correct binary). The divider knob stays out of round 6,
 awaiting evidence in the order already settled.
+
+ROUND 7 (Weather full cluster + setOrientation filter
+{3,4}): the SpringBoard weather-answer path no longer
+dies on the first request — the status gate admits only
+{3,4} to the last-fix/one-shot branch (all other statuses
+go straight to stored/IP, even with a fix present), the
+one-shot is held by a strong static slot, and the 6s
+timeout (sub_a00c form: loadWeak + slot compare +
+finish:) ends the transaction exactly once, so the
+in-flight flag can no longer stick. Cache reads take
+maxAge 43200 at both sites; temp-dir cache path + write
+fallback restored; parse returns nil on missing
+temperature; stored-location window 86400s; IP fallback
+timeouts 4.0/4.0; CarPlay-side refresh asks SpringBoard
+for statuses {0,1,2}, retries @[@2, @5] with a generation
+counter, gives up with completion(nil); apply gained
+the finished-guard + 0.35s CrossDissolve transition;
+refresh fires only for styles 3/8; the style-3 category
+gradient table (16 values) is restored in full (was 0).
+Two audit-external resolutions from the original slice:
+SaveCache main-file permissions are 0644 (@0x34e88,
+matches ours), and parse always assigns defaults on
+coerce failure (code -> @0, isDay -> @1). Separately,
+the app-side setOrientation hook filter now keeps only
+{3,4} (original sub_5504 csel-lo form; value 5/FaceUp
+-> 0) — an independent edge case, NOT part of the
+YouTube rotation question. YouTube static investigation
+is CLOSED: the mechanism matches the original (sole
+setRequestedOrientation: writer @0xf884; debounce
+0x0EE6B280 = 0.25s; nudge 0x02FAF080 = 0.05s; notify
+state packing sub_67fc numeric; changed used directly
+@0xf87c when != 0xFF; the original also flips
+orientation in place without touching the frame);
+VISUAL_ORIGINAL_COMPARISON = PENDING (only original-DEB
+footage of the same script can adjudicate the visual
+spin). Local candidate: 975,618 B, SHA-256
+f4f84555ede9c239165a4c4edccb158b4fbd36771a1e904dc
+fc31c4c5cde9e14, Version 1.0.3. Gates on the candidate
+pass: (w-sb) answer function + timeout block + 43200
+call sites + StoredOrIP constants; (w-car) gradient
+16/16 + transition constants; (f) filter in the
+original's csel-lo form, trace 3->3 / 4->4 / 5->0;
+(h) round-5 host-bar regression intact; (g1)/(g2)
+round-6 orientation gates intact at unchanged
+addresses; (m) markers [fixround7] in all three
+binaries, selector parity identical to the round-6
+baseline except StartupScreen gaining
+transitionWithView:... (convergence via W4c). Payload
+diff vs round 6: only StartupScreen + AppBridge change
+content; SplitScreen + Prefs change the marker byte
+only. NEW OPEN ITEM: the Prefs-side weather copy
+(OMCCommon.m) has not been audited — separate module,
+outside this round. The divider knob, car-side
+playIntro !logoView tail and cellClass (UNVERIFIED)
+remain as before. The FAT build and acceptance follow
+from this candidate; DEVICE_TEST for round 7 remains
+PENDING (GPT's mandatory point: at location status 0
+the request must take the fallback branch, never stick
+in-flight, and the next request must still work).

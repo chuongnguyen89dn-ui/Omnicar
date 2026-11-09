@@ -38,3 +38,13 @@ NSString *const ABChanBarDismiss  = @"com.anlai.omnicar/appbridge.bardismiss";
 
 const char *ABNotifyKeyboard  = "com.anlai.omnicar/appbridge.keyboard";
 const char *ABNotifyAppOrient = "com.anlai.omnicar/appbridge.apporient";
+
+// BridgeWake v1 Darwin channels (design-bridgewake.md §3.1) — a NEW
+// namespace added by the wake port; these names do not exist in the
+// original binary. Packed-uint64 payloads, layout in §3.2 of the
+// design. The four strings must match SCPShared.m (OmniCarSplitScreen)
+// byte-for-byte; integration diffs them.
+const char *ABNotifyBWState = "com.anlai.omnicar/bridgewake.v1.state";
+const char *ABNotifyBWQuery = "com.anlai.omnicar/bridgewake.v1.query";
+const char *ABNotifyBWWake  = "com.anlai.omnicar/bridgewake.v1.wake";
+const char *ABNotifyBWAck   = "com.anlai.omnicar/bridgewake.v1.ack";

@@ -17,6 +17,7 @@
 #import "SCPCButton.h" // [phase2; backported to src in phase 3] SCPCButton interface used in this TU
 #import "SCPCarPane.h"
 #import "SCPCTouchWatch.h"
+#import "SCPCarSplit+BridgeWake.h" // [wake1] bwRecomputeForPane: call points (design §1.3)
 
 // Shared helpers implemented elsewhere:
 extern UIImage *SCPSymbolImage(NSString *name, double pointSize);       // 0x2b474 (RatioMenu)
@@ -292,6 +293,7 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
                : OMCTr(@"Toàn màn", @"Full screen"));
     [pane.view bringSubviewToFront:pane.handle];
     [pane.view bringSubviewToFront:pane.bar];
+    [self bwRecomputeForPane:pane]; // [wake1] handle.hidden was (re)assigned above (design §1.3 point 2)
 }
 
 // Show/hide a pane's bar (@0x241fc; GPT brief cites @0x23e60).
@@ -331,6 +333,7 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
                 [weakSelf setBarVisible:NO forPane:weakPane];
             }];
         if (wasHidden) [self pushHostFramesLive:NO];
+        [self bwRecomputeForPane:pane]; // [wake1] show decision point (design §1.3 point 1)
         return;
     }
     if (pane.bar.isHidden) return;
@@ -350,9 +353,12 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
             bar.alpha = 1;                                                // @0x24ce4
             bar.transform = saved;                                        // @0x24d04
             SCPCarSplit *s = weakSelf;
-            if (s != nil && weakPane != nil)
+            if (s != nil && weakPane != nil) {
                 [s pushHostFramesLive:NO];                                // @0x24d2c
+                [s bwRecomputeForPane:weakPane]; // [wake1] bar.hidden landed YES (design §1.3 point 1)
+            }
         }];
+    [self bwRecomputeForPane:pane]; // [wake1] hide decision point: fade in flight -> transient (design §1.3 point 1)
 }
 
 - (BOOL)anyBarVisible {                                                  // (getter used by popupOpen)

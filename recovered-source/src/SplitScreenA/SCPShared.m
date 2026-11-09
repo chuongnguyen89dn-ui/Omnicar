@@ -26,6 +26,15 @@ NSString * const SCPNoteBridgeBarAction  = @"com.anlai.omnicar/appbridge.baracti
 NSString * const SCPNoteBridgeBarDismiss = @"com.anlai.omnicar/appbridge.bardismiss";
 NSString * const SCPNoteBridgeKnobTouch  = @"com.anlai.omnicar/appbridge.knobtouch";
 
+// bridgewake.v1 Darwin channels (design §3.1 — wake port, NEW; not part
+// of the original binary). Plain C names for the notify_* API. The
+// AppBridge module defines byte-identical strings in ABChannelNames.m;
+// integration checks string equality across the two files.
+const char *SCPBridgeWakeState = "com.anlai.omnicar/bridgewake.v1.state";
+const char *SCPBridgeWakeQuery = "com.anlai.omnicar/bridgewake.v1.query";
+const char *SCPBridgeWakeWake  = "com.anlai.omnicar/bridgewake.v1.wake";
+const char *SCPBridgeWakeAck   = "com.anlai.omnicar/bridgewake.v1.ack";
+
 // Guarded dynamic message send used all over the module: the original calls
 // NSSelectorFromString + respondsToSelector:, and on failure calls
 // SCPMissingSelector(obj, selName) and yields nil. Written once here; the
