@@ -1807,3 +1807,22 @@ separate order; plus the car-side playIntro !logoView
 tail and remaining acceptance items. The FAT build and
 acceptance follow from this candidate; DEVICE_TEST for
 round 6 remains PENDING.
+
+ROUND 6 addendum (GPT, via Nguyen — wording discipline,
+no scope change): the mask-gate fix in this round is a
+PROVEN DEVIATION corrected against the original; it is
+NOT claimed to close the whole first-beat 180-degree
+rotation phenomenon on zoom — only a device acceptance
+run decides that. For future apporient-channel
+investigations: Darwin notify carries no dictionary,
+but numeric state can travel via notify_set_state /
+notify_get_state, which AppBridge already uses — audit
+the numeric packing/unpacking rather than assuming a
+different payload path is needed; the hypothesis
+'observer registered after applicationDidFinishLaunching
+missed the request' is UNPROVEN, and the absence of a
+request ID is a traceability limit, not by itself a
+functional defect. The cellClass item keeps its
+UNVERIFIED label (crash UUID not yet matched to the
+correct binary). The divider knob stays out of round 6,
+awaiting evidence in the order already settled.
