@@ -262,6 +262,53 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     if (button && !button.hidden) button.hidden = YES;
 }
 
+#pragma mark - Entry-gate state (§4.4 step 1, [fix-g] activity predicates)
+
+/// [fix-g] Is the shared overlay ("tray") window presenting anything
+/// the earlier gate branches did not already name? GPT's audit: the
+/// old existence test on the tray window/overlay flags confused a
+/// RETAINED window with an OPEN popup — trayWindowForParent: keeps
+/// the window alive after first use (it is nil'd only at teardown,
+/// SCPCarSplit.m dashboardInvalidated, or on a screen change,
+/// Picker.m:888) and even un-hides it on reuse (Picker.m:884), while
+/// trayOverlay is a sticky hosting-mode flag of the layout panel
+/// (set once at Panel.m:188, never reset; it feeds the appArea
+/// suppression at SCPCarSplit.m:2120, NOT an open/closed signal).
+/// The module's own activity vocabulary is the content set of
+/// hideTrayWindowIfIdle (Picker.m:977-980): tray / ratioMenu /
+/// pickerSheet / dragGhost / background toast (tag 0x5c9b). The
+/// first three are already refused above as "picker"/"popup"
+/// (panelOpen, Chrome.m:388); what remains for this branch is a
+/// drag ghost in flight and the background toast. Closing
+/// transitions need no term here: every close path clears its state
+/// pointer FIRST (Picker.m:653 pickerSheet, Picker.m:995 tray,
+/// RatioMenu.m:469 ratioMenu) and animates the detached view out —
+/// the module treats the pointer as the state everywhere.
+- (BOOL)fsTraySurfaceBusy:(SCPCarSplit *)split {
+    if (split.dragGhost != nil) return YES;
+    UIWindow *window = split.trayWindow;
+    if (window != nil && [window viewWithTag:0x5c9b] != nil) return YES;
+    return NO;
+}
+
+/// [fix-g] One-line state snapshot appended to EVERY refusal this
+/// controller logs, so a later log read can tell a true block from a
+/// stale-state one: tray window existence/hidden, trayOverlay value,
+/// tray/picker/ratio/drag-ghost existence, toast, resize + float
+/// transitions, and this machine's phase.
+- (NSString *)fsRefusalSnapshot:(SCPCarSplit *)split {
+    UIWindow *tw = split.trayWindow;
+    return [NSString stringWithFormat:
+        @"snap{tw=%d twh=%@ to=%d tray=%d picker=%d ratio=%d dg=%d "
+        @"toast=%d rz=%d fc=%d phase=%ld}",
+        tw != nil, tw ? (tw.hidden ? @"1" : @"0") : @"-",
+        (int)split.trayOverlay, split.tray != nil,
+        split.pickerSheet != nil, split.ratioMenu != nil,
+        split.dragGhost != nil,
+        (tw != nil && [tw viewWithTag:0x5c9b] != nil),
+        (int)split.resizing, (int)split.floatClosing, (long)_phase];
+}
+
 #pragma mark - Expand (§4.4)
 
 - (void)fsRequestExpandWithCompletion:(void (^)(BOOL))completion
@@ -275,14 +322,16 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     // §4.2: a second command during a transition is refused outright.
     if (_phase == SCPFSPhaseExpanding || _phase == SCPFSPhaseRestoring) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[fs1] fs busy txn=%llu expand refused provenance=%@",
-            (unsigned long long)_currentTxn, prov]);
+            @"[fs1] fs busy txn=%llu expand refused provenance=%@ %@",
+            (unsigned long long)_currentTxn, prov,
+            [self fsRefusalSnapshot:[SCPCarSplit shared]]]);
         if (completion) completion(NO);
         return;
     }
     if (_phase != SCPFSPhaseSplit) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[fs1] fs expand refused state=EXPANDED provenance=%@", prov]);
+            @"[fs1] fs expand refused state=EXPANDED provenance=%@ %@",
+            prov, [self fsRefusalSnapshot:[SCPCarSplit shared]]]);
         if (completion) completion(NO);
         return;
     }
@@ -299,11 +348,11 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     else if (split.soloHostedBundle) refuse = @"solo";
     else if (split.pickerSheet) refuse = @"picker";
     else if ([split popupOpen]) refuse = @"popup";
-    else if (split.trayWindow || split.trayOverlay) refuse = @"tray";
+    else if ([self fsTraySurfaceBusy:split]) refuse = @"tray";
     if (refuse) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[fs1] fs expand refused reason=%@ provenance=%@",
-            refuse, prov]);
+            @"[fs1] fs expand refused reason=%@ provenance=%@ %@",
+            refuse, prov, [self fsRefusalSnapshot:split]]);
         if (completion) completion(NO);
         return;
     }
@@ -315,9 +364,9 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     if (!FSAreaValid(original) || !FSAreaValid(target)) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
             @"[fs1] fs expand refused reason=invalid-rect original=%@ "
-            @"target=%@ provenance=%@",
+            @"target=%@ provenance=%@ %@",
             NSStringFromCGRect(original), NSStringFromCGRect(target),
-            prov]);
+            prov, [self fsRefusalSnapshot:split]]);
         if (completion) completion(NO);
         return;
     }
@@ -406,8 +455,9 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
                      provenance:(NSString *)prov {
     if (_phase == SCPFSPhaseRestoring) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[fs1] fs busy txn=%llu restore refused provenance=%@",
-            (unsigned long long)_currentTxn, prov]);
+            @"[fs1] fs busy txn=%llu restore refused provenance=%@ %@",
+            (unsigned long long)_currentTxn, prov,
+            [self fsRefusalSnapshot:[SCPCarSplit shared]]]);
         if (completion) completion(NO);
         return;
     }
@@ -420,7 +470,8 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     }
     if (_phase != SCPFSPhaseExpanded) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[fs1] fs restore refused state=SPLIT provenance=%@", prov]);
+            @"[fs1] fs restore refused state=SPLIT provenance=%@ %@",
+            prov, [self fsRefusalSnapshot:[SCPCarSplit shared]]]);
         if (completion) completion(NO);
         return;
     }

@@ -32,6 +32,19 @@ NS_ASSUME_NONNULL_BEGIN
 
 extern NSSet<NSString *> *SCPChosenPhoneApps(void); // SCPAppIcons.m (0x9a60)
 
+// [applib] instrument (WO GPT item 4a, log-only): OmniCar's own app
+// bundle id — CFBundleIdentifier of the app target (src/App/Info.plist).
+// The builders below log every build/rebuild and every drop with this
+// bundle's presence flagged, so a session log can show when the app's
+// own icon leaves a list (picker lists here; the live home grid via
+// SCPCarHomeBundles). No behaviour change.
+static NSString * const SCPAppLibSelfBundle = @"com.anlai.omnicar.app";
+static BOOL SCPAppLibInfosContainSelf(NSArray<NSDictionary *> *infos) {
+    for (NSDictionary *info in infos)
+        if ([info[@"id"] isEqualToString:SCPAppLibSelfBundle]) return YES;
+    return NO;
+}
+
 // 0x4672c — VERIFIED: [UIApplication sharedApplication] sharedApplicationLibrary
 // via the string-selector pattern.
 static id _Nullable SCPSharedApplicationLibrary(void) {
@@ -107,6 +120,11 @@ NSArray<NSString *> *SCPCarHomeBundles(void) {
         for (UIWindow *window in [(UIWindowScene *)scene windows])
             SCPWalkerWalkView(window, found, 0);
     }
+    // [applib] direct probe of the live stock home grid at read time.
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[applib] build reason=live-grid-read count=%lu omni=%d",
+        (unsigned long)found.count,
+        [found containsObject:SCPAppLibSelfBundle] ? 1 : 0]);
     return [found array];
 }
 
@@ -254,8 +272,21 @@ NSSet<NSString *> *SCPBridgedChosenApps(void) {
             NSString *bid = SCPHomeSafeGet(proxy, @"applicationIdentifier");
             if (bid && [wanted containsObject:bid]) [result addObject:bid];
         }
+        // [applib] chosen in prefs but not installed -> dropped here.
+        NSMutableSet<NSString *> *dropped = [wanted mutableCopy];
+        [dropped minusSet:result];
+        if (dropped.count) {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[applib] drop reason=chosen-not-installed bundles=%@",
+                [[dropped allObjects] componentsJoinedByString:@","]]);
+        }
     }
     SCPBridgedCache = result;
+    // [applib] cache rebuild event (cache hits return above, unlogged).
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[applib] build reason=bridged-rebuild count=%lu omni=%d",
+        (unsigned long)result.count,
+        [result containsObject:SCPAppLibSelfBundle] ? 1 : 0]);
     return result;
 }
 
@@ -278,6 +309,9 @@ static NSArray<NSDictionary *> *SCPSortAppInfos(NSMutableArray<NSDictionary *> *
 NSArray<NSDictionary *> *SCPCarPlayAppInfos(void) {
     NSMutableArray<NSDictionary *> *out = [NSMutableArray array];
     NSMutableSet<NSString *> *seen = [NSMutableSet set];
+    NSMutableArray<NSString *> *applibDrops = [NSMutableArray array]; // [applib]
+    NSUInteger applibFromGrid = 0;                                    // [applib]
+    BOOL applibOmniFromGrid = NO;                                     // [applib]
     id library = SCPSharedApplicationLibrary();
     SEL allSel = NSSelectorFromString(@"allInstalledApplications");
     NSArray *infos = nil;
@@ -286,7 +320,11 @@ NSArray<NSDictionary *> *SCPCarPlayAppInfos(void) {
     } else SCPMissingSelector(library, @"allInstalledApplications");
     for (id info in infos ?: @[]) {
         NSString *bid = SCPHomeSafeGet(info, @"bundleIdentifier");
+        if (bid.length && [seen containsObject:bid]) // [applib] drop tally (pure pre-check; flow unchanged)
+            [applibDrops addObject:[bid stringByAppendingString:@"(duplicate)"]];
         if (!bid.length || [seen containsObject:bid]) continue;
+        if (bid.length && !SCPAppHasCarPlayUI(info)) // [applib] drop tally (predicate is a pure read, SCPShared.m)
+            [applibDrops addObject:[bid stringByAppendingString:@"(no-carplay-ui)"]];
         if (!SCPAppHasCarPlayUI(info)) continue; // sub_ffb4 (A)
         [seen addObject:bid];
         NSString *name = SCPHomeSafeGet(info, @"displayName");
@@ -298,7 +336,20 @@ NSArray<NSDictionary *> *SCPCarPlayAppInfos(void) {
         if ([seen containsObject:bid]) continue;
         [seen addObject:bid];
         [out addObject:@{@"id": bid, @"name": bid}];
+        applibFromGrid++; // [applib]
+        if ([bid isEqualToString:SCPAppLibSelfBundle]) applibOmniFromGrid = YES; // [applib]
     }
+    // [applib] build summary + drops for this picker-native list build.
+    if (applibDrops.count) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[applib] drop source=library-walk items=%@",
+            [applibDrops componentsJoinedByString:@","]]);
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[applib] build reason=picker-native count=%lu omni=%d fromGrid=%lu omniFromGrid=%d",
+        (unsigned long)out.count,
+        SCPAppLibInfosContainSelf(out) ? 1 : 0,
+        (unsigned long)applibFromGrid, applibOmniFromGrid ? 1 : 0]);
     return SCPSortAppInfos(out);
 }
 
@@ -306,6 +357,8 @@ NSArray<NSDictionary *> *SCPCarPlayAppInfos(void) {
 // call-sequence level: chosen phone apps for the picker (feature-gated).
 NSArray<NSDictionary *> *SCPChosenPhoneAppInfos(void) {
     NSMutableArray<NSDictionary *> *out = [NSMutableArray array];
+    if (!OMCFeatureEnabled(@"appBridge")) // [applib] feature-off build event (existing early return below untouched)
+        OMCLogWrite(@"SplitScreen", @"[applib] build reason=picker-chosen count=0 omni=0 note=feature-off");
     if (!OMCFeatureEnabled(@"appBridge")) return out;
     NSSet<NSString *> *chosen = SCPBridgedChosenApps();
     Class wsClass = objc_getClass("LSApplicationWorkspace");
@@ -326,6 +379,10 @@ NSArray<NSDictionary *> *SCPChosenPhoneAppInfos(void) {
         if (!name.length) name = SCPHomeSafeGet(proxy, @"displayName");
         [out addObject:@{@"id": bid, @"name": name ?: bid}];
     }
+    // [applib] build summary for this picker-chosen list build.
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[applib] build reason=picker-chosen count=%lu omni=%d",
+        (unsigned long)out.count, SCPAppLibInfosContainSelf(out) ? 1 : 0]);
     return SCPSortAppInfos(out);
 }
 

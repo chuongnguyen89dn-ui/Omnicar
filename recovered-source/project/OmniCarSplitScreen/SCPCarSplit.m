@@ -44,6 +44,40 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     return SCPGuarded(root, @"currentBaseViewController");
 }
 
+// [scenevis] instrument (WO GPT item 4a, LOG-ONLY — reads state, changes
+// nothing): one line per scene presentation event naming the pane's
+// bundle/slot, whether a scene object exists (attachment), whether the
+// VC's view actually sits in the pane host (inHost), and the view's
+// hidden/alpha/window state — the discriminator for "scene frame OK but
+// pane renders white". Lifecycle events pass force=YES and are never
+// dropped; the verify path passes force=NO and is throttled to one line
+// per (event, bundle) per second.
+static NSMutableDictionary<NSString *, NSDate *> *SCPSceneVisLastLog;
+static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
+                           UIViewController *vc, BOOL force) {
+    if (!vc) vc = pane.vc;
+    NSString *bundle = pane.bundleID;
+    if (!force) {
+        if (!SCPSceneVisLastLog) SCPSceneVisLastLog = [NSMutableDictionary dictionary];
+        NSString *key = [NSString stringWithFormat:@"%@|%@", event, bundle ?: @""];
+        NSDate *now = [NSDate date];
+        NSDate *last = SCPSceneVisLastLog[key];
+        if (last && [now timeIntervalSinceDate:last] < 1.0) return;
+        SCPSceneVisLastLog[key] = now;
+    }
+    UIView *view = (vc && vc.isViewLoaded) ? vc.view : nil;
+    id scene = vc ? SCPSceneOfVC(vc) : nil;
+    NSString *sceneID = scene ? SCPSceneIdentifierOfVC(scene) : nil;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[scenevis] %@ bundle=%@ slot=%d scene=%@ attached=%d inHost=%d hidden=%d alpha=%.2f window=%d",
+        event, bundle ?: @"?", pane ? (int)pane.slot : -1,
+        sceneID ?: (scene ? @"?" : @"nil"), scene != nil,
+        (view && pane && view.superview == pane.host) ? 1 : 0,
+        view ? (view.hidden ? 1 : 0) : -1,
+        view ? view.alpha : -1.0,
+        (view && view.window) ? 1 : 0]);
+}
+
 @implementation SCPCarSplit
 
 // +shared (0xfdf4) VERIFIED: dispatch_once singleton; the once-block
@@ -247,6 +281,8 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     self.shieldPosted = NO;
     if (self.active) {
         OMCLogWrite(@"SplitScreen", @"CarSplit: DashBoard invalidate -> bo split");
+        for (SCPCarPane *pane in [self allPanes]) // [scenevis] snapshot before teardown
+            SCPSceneVisLog(@"invalidate", pane, pane.vc, YES);
         self.active = NO;
         [self bwSessionTeardown]; // [wake1] the "setActive:NO" point: all slots -> INACTIVE (design §1.3 point 3)
         [self ahSessionTeardown]; // [autohide] stop the fade timer, restore every painted view (design-autohide §3.1)
@@ -1134,6 +1170,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     vc.additionalSafeAreaInsets = UIEdgeInsetsZero; // VERIFIED (_UIEdgeInsetsZero from GOT)
     pane.vc = vc;
     pane.bundleID = bundle;
+    SCPSceneVisLog(@"attach", pane, vc, YES); // [scenevis]
     pane.sceneSize = CGSizeZero;   // VERIFIED: zeroed at adopt; filled by verifySceneOfPane:
     self.focusedSlot = (int)slot;
     [self removeLoaderFromPane:pane animated:YES];
@@ -1162,6 +1199,11 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 // through exactly once.
 - (void)detachVC:(UIViewController *)vc background:(BOOL)background {
     @try {
+        // [scenevis] state BEFORE the detach mutates anything.
+        SCPCarPane *visPane = nil;
+        for (SCPCarPane *p in [self allPanes])
+            if (p.vc == vc) { visPane = p; break; }
+        SCPSceneVisLog(background ? @"detach-bg" : @"detach", visPane, vc, YES);
         if (background) {
             self.allowBackground += 1;
             SEL sel = NSSelectorFromString(@"backgroundSceneWithCompletion:");
@@ -1221,6 +1263,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         BOOL match = ownScene && (ownScene == scene ||
                                   (destroyedID && [destroyedID isEqualToString:ownID]));
         if (match) {
+            SCPSceneVisLog(@"scene-destroyed", pane, vc, YES); // [scenevis]
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                 @"CarSplit: scene cua %@ bi huy (app thoat/crash) -> dong ngan %d",
                 pane.bundleID, (int)pane.slot]);
@@ -1297,6 +1340,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         @"CarSplit: scene %@ that = %@ (can %@)%@",
         pane.bundleID, NSStringFromCGSize(actual),
         NSStringFromCGSize(expected), suffix]);
+    SCPSceneVisLog(@"verify", pane, pane.vc, NO); // [scenevis] throttled: view state beside the scene-frame verdict above
     if (retry == 0 || matched) return;
     UIViewController *vc = pane.vc;
     self.allowBackground = self.allowBackground + 1;
@@ -1491,6 +1535,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 - (void)removePaneAt:(NSInteger)slot background:(BOOL)background {
     if (slot < 0 || slot >= self.paneCount) return;
     SCPCarPane *pane = self.slots[slot];
+    SCPSceneVisLog(@"pane-remove", pane, pane.vc, YES); // [scenevis]
     if (SCPVCIsHosted(pane.vc))
         [self hostClose:pane.bundleID terminate:NO];
     [pane.barTimer invalidate];
@@ -1687,6 +1732,8 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 - (void)closeGoingHome:(BOOL)goHome {
     if (!self.active) return;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: tat split (goHome=%d)", goHome]);
+    for (SCPCarPane *pane in [self allPanes]) // [scenevis] snapshot at the exit-home point, before any detach
+        SCPSceneVisLog(@"going-home", pane, pane.vc, YES);
     [self hostCloseAll];
     for (SCPCarPane *pane in [self allPanes]) {
         [pane.barTimer invalidate];
@@ -1867,6 +1914,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [pane.host addSubview:hosted.view];
     pane.vc = hosted;
     pane.bundleID = bundleID;
+    SCPSceneVisLog(@"host-attach", pane, hosted, YES); // [scenevis] hosted: scene=nil expected (scene lives SpringBoard-side)
     pane.sceneSize = CGSizeZero;
     pane.hostFrame = CGRectNull;
     pane.hostHandle = NO;
@@ -1939,6 +1987,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     }
     SCPCarPane *pane = [self paneForBundle:bundleID];
     if (!self.active || !pane || !SCPVCIsHosted(pane.vc)) return;
+    SCPSceneVisLog([NSString stringWithFormat:@"host-state-%@", state], pane, pane.vc, NO); // [scenevis] throttled
     if ([state isEqualToString:@"ready"]) {
         [self removeLoaderFromPane:pane animated:YES];
         return;
@@ -2611,6 +2660,12 @@ static void SCPStyleSoloIconView(UIImageView *view) {
         if (info[@"id"]) [ids addObject:info[@"id"]];
     }
     [SCPPrefs setCarPlayApps:ids];
+    // [applib] publish event for the Settings-side list; self bundle =
+    // com.anlai.omnicar.app (app target Info.plist CFBundleIdentifier).
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[applib] build reason=publish-for-settings count=%lu omni=%d",
+        (unsigned long)ids.count,
+        [ids containsObject:@"com.anlai.omnicar.app"] ? 1 : 0]);
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"CarSplit: %lu app CarPlay cho Settings, %lu app iPhone da chon (App Bridge)",
         (unsigned long)ids.count, (unsigned long)SCPChosenPhoneAppInfos().count]);

@@ -139,6 +139,31 @@ Từ log + ảnh phiên fixround3, GPT ra **Consolidated Repair Order (A–I)**,
   hash, khoá pinch ENFORCE ở mức cấu trúc) và kiểm hai lát trên FAT đạt (kênh bridgewake 5/5, núm
   1 eor × 2 lát, parity vs FAT wake1 mất 0 ở cả 4 lát). **Đang chờ MỘT phiên xe gộp:** staging
   controller FS + 6 điểm đo AutoHide + Gate 2 wake + kiểm núm + nghiệm thu Weather của fixround7.
+- **ytz1 — BẢN CÁCH LY, không giao** (vòng "nối pinch luôn" theo lệnh Nguyen 14:37: pinch mặc định
+  ENFORCE, gỡ staging, YTZ mặc định BẬT; candidate 1.013.910 B, SHA `119d6108…`; source `0c5da2e`;
+  FAT 1.210.344 B, SHA `4caa2568…`, CI 42581690791): fs1 lên xe cho hai phát hiện (nhóm TEST không
+  hiện vì trang Prefs dựng bằng code không nạp plist; AutoHide mờ được nhưng gọi lại bằng chạm nội
+  dung không được), rồi GPT kiểm toán source và kết án 3 lỗi — act bị cổng tươi state 2,5 s tự khoá
+  đường gọi lại; pinch-in KHÔNG THỂ xảy ra (controller truyền `forBundle:nil`, arbiter đòi khớp
+  bundle); isSplit của YT-Zoom suy từ số hosted pane nên sai ở split hỗn hợp. GPT không duyệt
+  ENFORCE mặc định và ra WO khắc phục tổng hợp. Ghi đúng sự thật: lệnh dừng CI của ytz1 tới sau khi
+  run đã dispatch nên FAT vẫn ra lò — nằm cách ly, bị ytz2 thay thế (PATCH_NOTES §24.1).
+- **ytz2** (`a763030`; FAT 1.221.708 B, SHA `bb59ab56…`, CI 42583754018): vòng KHẮC PHỤC theo WO GPT
+  trên nền fs1/ytz1 — 5 strand theo chủ file: phía app tách act khỏi độ tươi state (danh tính phiên
+  đã xác thực + trói scene, suppression không đổi); phía owner thêm state renewal 1,0 s + log reason
+  từng điểm loại act + arbiter EXPANDED **theo phiên** ở cả 3 điểm dùng (bắt thêm điểm promote) +
+  pinch mặc định về DRY_RUN theo P4; nhóm **Chẩn đoán** dựng bằng code trong Prefs (công tắc
+  `fullscreenDiagExpand` = đường kiểm thử controller độc lập + đường thoát không phụ thuộc
+  recognizer; công tắc `youtubeVirtualize`; segment pinchMode 0/1/2); isSplit lấy từ trạng thái
+  trình bày thật qua trường `split`/`splitver` trong hostFrameInfo; probe `sendEvent:` thụ động
+  phía CarPlayApp để phân định đường chạm hosted. Hai lượt kiểm độc lập + kiểm độc lập YZ (4 hash
+  cấm MATCH) đều đạt ở mức tĩnh; hiệu chỉnh quy ước đếm hook: call-site thật toàn module = 31
+  (baseline 30, delta đúng +1 = probe) — con số "32" các vòng trước là đếm dòng grep gồm comment.
+  Gate 1 PASS trên candidate và kiểm hai lát trên FAT đạt (3 khoá chẩn đoán nằm trong CODE của
+  binary Prefs — đúng cổng fs1 đã fail; `fullscreenTestExpand` vắng toàn gói; núm 1 eor × 2 lát).
+  **Đang chờ MỘT phiên xe theo đúng thứ tự 5 bước của WO** (kịch bản trong ACCEPTANCE_YTZ2):
+  AutoHide/Wake DRY_RUN (W5) → controller trực tiếp qua [fs-diag], Pinch OFF → Pinch DRY_RUN rồi
+  ENFORCE → YTZ OFF đối chứng rồi ON → Weather + núm + hồi quy.
 
 ## 5. Các kết tội lớn — nguyên nhân và cách đóng
 
@@ -281,7 +306,7 @@ phiên YouTube — hai việc không gộp nguyên nhân.
 - **Để dành chưa diễn tập:** bài kiểm hết hạn (epoch 1809104400), cứu crash có chủ đích, kiểm tải.
 
 
-## 7. Đang giữ và đang mở (toàn bộ, tính đến sau fs1)
+## 7. Đang giữ và đang mở (toàn bộ, tính đến sau ytz2)
 
 **Đang giữ theo thứ tự đã chốt (không tự động vào bản):**
 - Núm vách ngăn: ĐÃ SỬA ở wake1 (mục 5.4; `@(!scaled)` → `@(scaled)`, cổng object + FAT hai slice
@@ -297,17 +322,30 @@ phiên YouTube — hai việc không gộp nguyên nhân.
   GPT nữa — fullscreen được **tự dựng** thành SCPFullscreenController trong cây rebuilt (vòng fs1,
   PATCH_NOTES §23). Kết luận A1 về dylib QA20 giữ nguyên giá trị (vẫn không có entry hợp lệ; dylib
   chỉ ở archive, không vào gói nào). Pinch không còn BLOCKED: recognizer + adapter chuyển tiếp đã
-  nối vào controller thật, nhưng **ENFORCE vẫn khóa** cho tới khi đủ 3 điều kiện nghiệm thu trên xe
-  (controller đạt staging qua công tắc test + ≥ 3 pinch-in khôi phục từ EXPANDED do công tắc tạo +
-  1 lần ngắt CarPlay giữa EXPANDED sạch — ACCEPTANCE_FS1). Báo cáo nền: `reports/a1-fullscreen-entry.md`,
-  PATCH_NOTES §22.3 (lịch sử) và §23 (cách đóng mới).
-- **FS controller staging + AutoHide: chờ MỘT phiên xe gộp** (kịch bản trong ACCEPTANCE_FS1):
-  staging Gate 3 rút gọn qua công tắc `fullscreenTestExpand` + 6 điểm đo AutoHide. Cả hai đang ở
-  mức static PASS, chưa có bằng chứng xe.
-- **Wake Gate 2–6: chờ cùng phiên xe gộp đó** (kịch bản trong ACCEPTANCE_WAKE1, nay là Phần C
-  của ACCEPTANCE_FS1): dry-run đếm wouldSwallow/wouldPinch + phân loại phone, phân bố ba kết cục
-  ack, kiểm núm, và nghiệm thu Weather của fixround7 gộp cùng phiên. ENFORCE của wake chỉ được
-  bàn sau khi Gate 2 đạt.
+  nối vào controller thật. Cập nhật sau fs1/ytz1/ytz2: vòng ytz1 từng nối pinch ENFORCE làm mặc
+  định, nhưng GPT kiểm toán phát hiện pinch-in **chết hẳn** (arbiter đòi khớp bundle trong khi
+  controller luôn truyền nil) — đã sửa arbiter theo **phiên fullscreen** ở cả 3 điểm dùng tại vòng
+  ytz2 (PATCH_NOTES §24). Theo phán quyết P4 của GPT, mặc định trong bản ytz2 quay về **DRY_RUN**;
+  ENFORCE mở qua segment Chẩn đoán trong cùng bản SAU khi controller qua nghiệm thu độc lập
+  (bước 2–3 của ACCEPTANCE_YTZ2: controller đạt qua [fs-diag] + pinch-in thoát được trên cả hai
+  loại ô + 1 lần ngắt CarPlay giữa EXPANDED sạch). Báo cáo nền: `reports/a1-fullscreen-entry.md`,
+  PATCH_NOTES §22.3 (lịch sử), §23 (cách đóng mới) và §24 (sửa arbiter).
+- **FS controller staging + AutoHide: phiên fs1 đã chạy dở và kết án hai lỗi** — công tắc test
+  `fullscreenTestExpand` không bao giờ hiện (trang Prefs dựng bằng code, không nạp plist chứa
+  specifier) và đường gọi lại controls sau khi mờ chết ở phía chạm nội dung. Cả hai đã sửa ở vòng
+  ytz2 (nhóm Chẩn đoán dựng bằng code + đường [fs-diag]; act tách khỏi cổng tươi state + trói
+  scene + state renewal — PATCH_NOTES §24). Nay chờ **MỘT phiên xe theo thứ tự 5 bước của WO**
+  (kịch bản trong ACCEPTANCE_YTZ2): bước 1 chấm lại AutoHide/Wake theo W5, bước 2 nghiệm thu
+  controller độc lập qua công tắc chẩn đoán. Cả hai vẫn ở mức static PASS, chưa có bằng chứng xe.
+- **Wake Gate 2–6: Gate 2 nay là bước 1 của phiên ytz2** (ACCEPTANCE_YTZ2): dry-run đếm
+  wouldSwallow/wouldPinch + phân loại phone, phân bố ba kết cục ack, cộng dữ kiện [probe] của
+  probe W4 để GPT quyết có dời feed activity về CarPlayApp hay không. ENFORCE của wake chỉ được
+  bàn sau khi Gate 2 đạt; nghiệm thu Weather của fixround7 nằm ở bước 5 cùng phiên.
+- **Điểm diễn giải vòng ytz2 đã ghi vào hồ sơ (PATCH_NOTES §24.5), không tự hoà giải:** điểm
+  promote HIDDEN→VISIBLE dùng vị từ phiên dạng rút gọn (tương đương nhờ guard bao quanh); ca
+  pane-bị-xoá-khi-expanded còn ranh giới phụ thuộc recompute đã chạy hay chưa (rơi về hàng SPLIT
+  thường — hành vi cũ, ngoài bảng WO); mô tả điểm BWFresh :633 phía app đã sửa lại đúng cơ chế
+  (hiệu chỉnh wouldSwallow khi wakeMode=Off).
 - **ahForgetView: cho removeHomeButton** (vòng fs1 để ngỏ, PATCH_NOTES §23.7 mục 2): header của
   TU AutoHide không có method gỡ bản lưu opacity theo view; đánh giá rủi ro thực tế gần như
   không có (bản lưu chết theo view + registry yếu + nút luôn tạo lại qua refreshHomeButton đã có
@@ -332,24 +370,30 @@ phiên YouTube — hai việc không gộp nguyên nhân.
 - Các vụ tử vong oan `CarPlayTemplateUIHost` (shortcut-buttons.ips): chỉ xét lại nếu còn tái diễn.
 - Các nhóm nghiệm thu §9 ngoài các phiên đã chạy; ba bài kiểm để dành ở mục 6.
 
-## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~14:35)
+## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~15:30)
 
-- **Bản test mới nhất:** `com.anlai.omnicar_1.0.3-rebuilt-fs1-fat_iphoneos-arm64.deb` — 1.200.648 byte,
-  SHA-256 `41bb5b8bf21f87926449070c881ae453daf2d311ab2c91295e531494ce4b8a82`; candidate local
-  1.006.126 B `0a9f76b3…`; CI run dispatch **42578683063** success (workflow 410962367).
-  **Bản dùng hằng ngày của Nguyen vẫn là gói hợp nhất QA20** — wake1/fs1 là bản nghiệm thu, chưa
-  thay QA20 cho tới khi fullscreen được nghiệm thu trên xe.
-  Các bản trước: wake1 `279005f4…`, fixround7 `f2cc8ffe…`, fixround6 `0ce8a4f7…`,
+- **Bản test mới nhất:** `com.anlai.omnicar_1.0.3-rebuilt-ytz2-fat_iphoneos-arm64.deb` — 1.221.708 byte,
+  SHA-256 `bb59ab5653540f21d915631213621c0158fc2850038f6d0959b3eca95087dc20`; candidate local
+  1.021.310 B `4737cfa9…`; CI run dispatch **42583754018** success (workflow 410962367).
+  **Bản dùng hằng ngày của Nguyen vẫn là gói hợp nhất QA20** — ytz2 là bản nghiệm thu duy nhất
+  hiện hành, chưa thay QA20 cho tới khi các track được nghiệm thu trên xe.
+  **Bản cách ly — không cài:** ytz1 FAT 1.210.344 B `4caa2568…` (CI 42581690791; chứa cả 3 lỗi
+  GPT kết án; lệnh dừng CI tới sau khi run đã dispatch nên FAT vẫn ra lò rồi bị cách ly).
+  Các bản trước: fs1 `41bb5b8b…`, wake1 `279005f4…`, fixround7 `f2cc8ffe…`, fixround6 `0ce8a4f7…`,
   fixround5 `03010edc…`, fixround4 `6ab47eab…`, fixround3 `77230019…`, prefsround `44019c7c…`,
-  gatefix `1132c3a8…`, arityfix `d61dc7ba…`. **Baseline rollback:** fixround7 FAT + gói hợp nhất QA20.
-- **Git:** main — ship fs1 source `5427920`; ci-fat-test `c392db4`.
-  Log xe mới nhất trên repo: commit `9f20d83` (phiên fixround6, 878 dòng). Phiên gộp fs1 chưa diễn ra.
+  gatefix `1132c3a8…`, arityfix `d61dc7ba…`. **Baseline rollback:** fs1 FAT + fixround7 FAT +
+  gói hợp nhất QA20.
+- **Git:** main — ytz2 source `a763030`; ci-fat-test `5c5698f`.
+  Phiên xe fs1 đã chạy dở chiều nay: hai phát hiện (công tắc test không hiện; gọi lại controls
+  chết) đã được kết án và sửa ở ytz2; log đầy đủ của phiên fs1 chưa được up — các mục còn lại
+  (Weather, núm, Gate 2) chuyển sang phiên ytz2 5 bước.
 - **Đã đóng trên xe:** thanh "..." hosted (fixround5). **Đã đóng ở tầng giao thức:** hai cổng hướng
   (log fixround6). **Đóng điều tra tĩnh:** fullscreen YouTube (mục 5.3). **Static PASS:** wake
-  Gate 0/1 (PATCH_NOTES §22); FS1 controller + AutoHide Gate 1 trên candidate và hai lát FAT
-  (PATCH_NOTES §23). **Không còn BLOCKED:** pinch — phán quyết A1 đã bị thay thế bởi controller tự
-  dựng (mục 7), ENFORCE khóa chờ nghiệm thu controller. **Chờ xe:** phiên gộp fs1 (staging FS +
-  AutoHide + Gate 2 dry-run + kiểm núm) và Weather (fixround7).
+  Gate 0/1 (PATCH_NOTES §22); FS1 controller + AutoHide Gate 1 (PATCH_NOTES §23); vòng khắc phục
+  WO — 5 strand + 2 kiểm độc lập + tích hợp + hai lát FAT (PATCH_NOTES §24). **Không còn BLOCKED:**
+  pinch — arbiter đã sửa theo phiên, ENFORCE ở chế độ chờ nghiệm thu controller độc lập theo P4
+  (mục 7). **Chờ xe:** phiên ytz2 theo thứ tự 5 bước của WO (ACCEPTANCE_YTZ2) — W5 gọi lại,
+  controller qua [fs-diag], pinch DRY_RUN→ENFORCE, YTZ OFF/ON, Weather + núm + hồi quy.
 
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 
