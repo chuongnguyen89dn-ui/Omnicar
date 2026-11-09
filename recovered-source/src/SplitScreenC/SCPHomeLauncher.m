@@ -17,6 +17,7 @@
 #import <objc/runtime.h>
 #import <QuartzCore/QuartzCore.h>
 #import <substrate.h>
+#include <string.h> // method_getTypeEncoding ABI guard
 
 static NSString *const OwnID = @"com.anlai.omnicar.app";
 static NSString *const OwnTag = @"OmniCarHomeLauncher";
@@ -353,6 +354,12 @@ static void SCPHomeTapReplacement(id homeVC, SEL action, id manager, id iconView
     NSString *bundle = nil;
     @try { bundle = SCPHomeTapBundle(iconView, 0); }
     @catch (NSException *e) {}
+    // [gpt-home] Actual native callback observed; model/icon presence
+    // alone is not a tap proof. Leave all other icon launchers untouched.
+    HLog(@"home-callback", [NSString stringWithFormat:
+        @"observedBundle=%@ viewClass=%@ own=%d",
+        bundle ?: @"unresolved", iconView ? NSStringFromClass([iconView class]) : @"nil",
+        SCPHomeLauncherIsBundle(bundle)]);
     if (SCPHomeLauncherIsBundle(bundle) &&
         SCPHomeLauncherConsumeLaunch(bundle, @"iconManager:launchIconForIconView:")) {
         HLog(@"tap-gate", @"status=consumed-own-icon");
