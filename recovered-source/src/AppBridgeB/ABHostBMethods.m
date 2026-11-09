@@ -1188,6 +1188,24 @@ static id ABSceneOfPane(ABPane *pane) {
     [pane.box bringSubviewToFront:pane.handleHit];
 }
 
+// -bwAppliedSnapshotForBundle: — BRIDGEWAKE (design-bridgewake.md §6;
+// not in the original binary). Read-only snapshot of the chrome state
+// AS APPLIED on this host: the pane's handleHit/bar visibility facts
+// and the live knob-view count. "Hidden" here is a pure view fact — a
+// bar or handle view that does not exist reports hidden=YES; nothing
+// is recomputed and no chrome state is inferred: the wake owner
+// (SCPCarSplit) turns these facts into an ack state. This accessor
+// never mutates anything. Returns nil when the bundle is not hosted.
+- (NSDictionary *)bwAppliedSnapshotForBundle:(NSString *)bundleID {
+    ABPane *pane = [self paneFor:bundleID];
+    if (!pane) return nil;
+    return @{
+        @"handleHidden": @(!pane.handleHit || pane.handleHit.hidden),
+        @"barHidden":    @(!pane.bar || pane.bar.isHidden),
+        @"knobCount":    @(self.knobViews.count),
+    };
+}
+
 // -raiseKnobs @0x13918 — VERIFIED.
 - (void)raiseKnobs {
     for (UIView *knob in self.knobViews)

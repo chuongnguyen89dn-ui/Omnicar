@@ -14,6 +14,8 @@
 #import "SCPShared.h"
 #import "SCPCarSplit.h"
 #import "SCPSmallClasses.h"   // SCPNoopLayoutAssertion (final closure: addElement hook)
+#import "SCPCarSplit+BridgeWake.h" // [wake1] bridgewake owner install (design §7.1)
+#import "SCPPinchController.h" // [pinch1] integration seam: syncArming at root layout (design-pinch §7)
 #import <objc/message.h>
 #import <objc/runtime.h>      // class_copyIvarList / object_getIvar (final closure)
 #import <notify.h>
@@ -319,6 +321,10 @@ static void Hook_RootVC_viewDidLayoutSubviews(id self, SEL _cmd) {
     ((void (*)(id, SEL))orig_RootVC_viewDidLayoutSubviews)(self, _cmd);
     @try { [[SCPCarSplit shared] rootDidLayout]; }
     @catch (NSException *ex) { SCPExceptionLog("RootVC viewDidLayoutSubviews", ex); }
+    // [pinch1] integration seam (design-pinch §7): re-derive pinch arming
+    // after every root layout (container window membership settles here).
+    @try { [[SCPPinchController shared] syncArming]; }
+    @catch (NSException *ex) { SCPExceptionLog("pinch syncArming", ex); }
 }
 
 // sub_6988 VERIFIED: orig, then two delayed main-queue blocks:
@@ -776,4 +782,9 @@ static void SCPInitDashboardHooks(void) {
                     usingBlock:^(NSNotification *n) { SCPBridgeKnobTouchBlock(n); }];
     [center addObserverForName:SCPNoteNativeCommand object:nil queue:mainQueue
                     usingBlock:^(NSNotification *n) { SCPNativeCommandBlock(n); }];
+
+    // [wake1] bridgewake owner (design §7.1): this constructor is
+    // already gated to CarPlayApp — register the Darwin query/wake/ack
+    // receivers, the prefs-changed mode source and the initial modes.
+    [[SCPCarSplit shared] bwInstallOwner];
 }
