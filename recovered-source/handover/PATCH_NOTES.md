@@ -2811,3 +2811,24 @@ vòng 2 mà chưa từng được sửa. Vòng 6 KHÔNG gồm sửa này —
 chờ lệnh riêng của Nguyen. Các mục mở cũ giữ nguyên: đuôi
 !logoView playIntro phía XE (3 slot 0xcb0/0xcc0/0xcc8);
 nhóm nghiệm thu còn lại; ba bài kiểm để dành.
+
+### 20.6 Bổ sung ghi (GPT chốt qua Nguyen, 2026-11-09 — không đổi phạm vi sửa)
+(1) KỶ LUẬT DIỄN ĐẠT: sửa cổng mask ở 20.2 là sửa SAI
+LỆCH ĐÃ CHỨNG MINH so với gốc — KHÔNG khẳng định nó khép
+toàn bộ hiện tượng xoay 180° nhịp đầu khi phóng to; chỉ
+nghiệm thu trên xe mới quyết định hiện tượng đó hết hay
+chưa. Câu này cũng phải có trong ACCEPTANCE_FIXROUND6.
+(2) Hai tinh chỉnh cho các điều tra kênh apporient SAU
+này: (a) Darwin notify không mang dictionary, nhưng có
+thể truyền trạng thái số qua notify_set_state /
+notify_get_state — AppBridge đang dùng kiểu này; khi
+điều tra kênh này phải kiểm cách đóng gói/giải mã số
+trong trạng thái notify, không mặc định cần một đường
+payload khác. (b) Giả thuyết 'observer đăng ký sau
+applicationDidFinishLaunching nên lỡ yêu cầu' là CHƯA
+CHỨNG MINH; và việc thiếu request ID là hạn chế truy
+vết, không tự nó là lỗi chức năng.
+(3) cellClass: giữ nhãn CHƯA XÁC MINH — UUID crash chưa
+ghép được đúng binary.
+(4) Núm vách ngăn: giữ chờ bằng chứng theo thứ tự đã
+chốt — tiếp tục KHÔNG đưa vào vòng 6 (như 20.5).
