@@ -188,7 +188,25 @@ static UILabel *SSSceneLabel(NSString *text) {
     [self clearContent];
     NSDate *date = self.date ?: NSDate.date;
     NSInteger period = SSPeriodForDate(date);
-    _sceneStyle = self.style;   // refined by occasion/tempo branches in the original
+    // Effective style (dump 0xcac8-0xcb3c) — restored fix-round4 strand 2
+    // (audit-S LP-1/LP-6): the original derives the style that actually
+    // drives content BEFORE building anything, and ss_sceneColors /
+    // ss_buildScene / the content dispatch below all key off the derived
+    // value in _sceneStyle, never the raw setting:
+    //   style 11 -> occasion in [1,6) ? 11 : 2    (0xcb04-0xcb2c)
+    //   style 3  -> weather present ? 3 : 2       (0xcadc-0xcb00)
+    //   clamp: eff != 11 and (eff < 0 or eff >= 10) -> 2
+    //          (0xcb30-0xcb3c: cmp #0xa / ccmp #0xb, #2, ne / csel hi —
+    //          the forced-flags arm maps style 10 to 2 as well)
+    NSInteger effectiveStyle = self.style;
+    if (effectiveStyle == 11) {
+        effectiveStyle = (self.occasion >= 1 && self.occasion < 6) ? 11 : 2;
+    } else if (effectiveStyle == 3) {
+        effectiveStyle = self.weather ? 3 : 2;
+    }
+    if (effectiveStyle != 11 && (effectiveStyle < 0 || effectiveStyle >= 10))
+        effectiveStyle = 2;
+    _sceneStyle = effectiveStyle;
 
     CAGradientLayer *gradient = (CAGradientLayer *)self.layer;
     gradient.type = kCAGradientLayerAxial;
@@ -228,8 +246,25 @@ static UILabel *SSSceneLabel(NSString *text) {
     }
     [self addSubview:logo];
 
-    if (self.weather) [self buildWeatherWithPeriod:period];
-    else [self buildGreetingWithDate:date period:period];
+    // Content dispatch (dump 0xd068: cmp effective, #3 / b.ne greeting).
+    // The weather block exists ONLY when the effective style is 3; the
+    // mere presence of weather data never builds it. [Restored fix-round4
+    // strand 2 — the previous `if (self.weather)` test (audit-S LP-1)
+    // built the weather stack at EVERY style, including the user-selected
+    // Greeting style 2, stacking it over the greeting content.]
+    if (_sceneStyle == 3) {
+        // dump 0xd078-0xd0f8: isDay/code out of weather, category =
+        // sub_d4f0(code, isDay), stored in _sky (ivar table slot 0xd18);
+        // -ss_buildSky dispatches on it. (The dump re-stores a literal 3
+        // into _sceneStyle at 0xd348 just before the call — a no-op,
+        // _sceneStyle is already 3 here.)
+        NSDictionary *weather = self.weather;
+        _sky = SSWeatherCategory([weather[@"code"] integerValue],
+                                 [weather[@"isDay"] boolValue]);
+        [self buildWeatherWithPeriod:period];
+    } else {
+        [self buildGreetingWithDate:date period:period];
+    }
 
     // Common tail of the original (dump 0xd360-0xd4a8 — the greeting path
     // branches into it at 0xd144, the weather path falls through): _stack
@@ -284,8 +319,40 @@ static NSString *SSGreetingLine(NSInteger period, NSInteger occasion) {
 // The class-extension declaration is retained (internal callers use it).
 // ---------------------------------------------------------------------------
 
-// Weather-condition symbol for an Open-Meteo WMO code (helper at 0xd4f0).
-// [INFERRED table; "cloud.fill" is VERIFIED present]
+// sub_d4f0 — [VERIFIED] WMO weather code -> category index 0..9.
+// (Local copy for this TU — same body as the ScenesB/Builders copies;
+// -reload needs it to fill _sky on the effective-style-3 path.
+// Codes 61..86 pass mask 0x0339FC7F (bit code-61) then the int64 jump table
+// @0x295f0 (26 entries, idx = code-61):
+//   61-67 -> 7, 68-70 -> 0, 71-77 -> 9, 78-79 -> 0, 80-82 -> 7,
+//   83-84 -> 0, 85-86 -> 9.  (Table values are authoritative even where the
+//   result exceeds the 0..8 range used elsewhere.)
+static NSInteger SSWeatherCategory(NSInteger code, BOOL isDay) {
+    if (code == 0) return isDay ? 0 : 1;
+    if (code == 1 || code == 2) return isDay ? 2 : 3;
+    if (code == 3) return 4;
+    if (code == 45 || code == 48) return 5;
+    if (code >= 51 && code <= 57) return 6;
+    if (code >= 95) return 8;
+    if (code >= 61 && code <= 86) {
+        static const int64_t table[26] = {
+            7, 7, 7, 7, 7, 7, 7,   // 61-67
+            0, 0, 0,               // 68-70
+            9, 9, 9, 9, 9, 9, 9,   // 71-77
+            0, 0,                  // 78-79
+            7, 7, 7,               // 80-82
+            0, 0,                  // 83-84
+            9, 9                   // 85-86
+        };
+        if ((0x0339FC7Full >> (code - 61)) & 1) return table[code - 61];
+    }
+    return 4;
+}
+
+// Weather-condition symbol for an Open-Meteo WMO code.
+// [INFERRED table; "cloud.fill" is VERIFIED present. NOTE: this table is
+// not sub_d4f0 — that helper is SSWeatherCategory above; the symbol/text
+// pairing used by the builders is SSWeatherSymbolAndText (sub_eb68).]
 static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {
     if (code == 0) return isDay ? @"sun.max.fill" : @"moon.fill";
     if (code == 1 || code == 2) return isDay ? @"cloud.sun.fill" : @"cloud.moon.fill";
@@ -396,7 +463,17 @@ static NSString *SSWeatherSymbolName(NSInteger code, BOOL isDay) {
         if (_cardInsets.count > 2) ((NSLayoutConstraint *)_cardInsets[2]).constant = 3.5 * unit;
         if (_cardInsets.count > 3) ((NSLayoutConstraint *)_cardInsets[3]).constant = 3.5 * unit;
     }
-    _stack.spacing = 3 * unit;   // common tail at 0xf638 (ivar-table 0xcc0)
+    // Common tail at 0xf638 (ivar-table 0xcc0): in the dump it is reached
+    // ONLY from a taken branch above — the greeting branch jumps in at
+    // 0xf370, the weather branch falls through; with neither label
+    // population present the original skips it (0xf37c -> 0xf64c). The
+    // branch tests themselves are the dump's: ivar @0xcd8 (_timeLabel) at
+    // 0xf2c4, then ivar @0xcec (_tempLabel) at 0xf37c — applyUnit reads
+    // no _sceneStyle; the metric branch follows the effective style
+    // indirectly, because the dispatch in -reload (fix-round4 S1)
+    // guarantees exactly the label population that style builds.
+    // [Tail guard restored fix-round4 strand 2 (audit-S LP-3).]
+    if (_timeLabel || _tempLabel) _stack.spacing = 3 * unit;
 }
 
 // ---------------------------------------------------------------------------

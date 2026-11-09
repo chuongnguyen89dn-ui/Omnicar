@@ -360,8 +360,13 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 
 - (SCPCarPane *)paneForBundle:(NSString *)bundleID {
     if (!bundleID) return nil;
-    for (SCPCarPane *pane in [self allPanes])
+    for (SCPCarPane *pane in [self allPanes]) {
+        // Dump @0x108ac-0x108bc: the pane's vc is read FIRST and a nil
+        // vc skips the pane entirely — a pane carrying only a bundle
+        // id (loader/picker stage, no VC yet) must not match.
+        if (!pane.vc) continue;
         if ([pane.bundleID isEqualToString:bundleID]) return pane;
+    }
     return nil;
 }
 
@@ -631,14 +636,37 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 // app, steal the already-created scene VC straight out of the dashboard's
 // workspace map: [dashboard workspaceOwner] valueForKey:
 // "_entityIdentifierToViewControllerMap" -> allValues; adopt the VC whose
-// real bundle matches. Retries every 2.0 s while attempt < 2 (log:
+// real bundle matches. Retries every 2.0 s while attempt <= 2 (raw
+// dump @0x17618: cmp attempt, #2; b.gt -> terminal; log seconds are
+// attempt << 1, i.e. 0s/2s/4s; terminal therefore fires at
+// attempt > 2 — see PATCH_NOTES section 18 note on the spec text).
 // "CarSplit: %@ chua toi sau %ds, doi them"); on success logs
-// "CarSplit: DashBoard khong trinh bay %@ -> lay VC co san".
+// "CarSplit: DashBoard khong trinh bay %@ -> lay VC co san". When the
+// attempts run out, the terminal branch (@0x17750) logs the VC list
+// the dashboard is holding, toasts, and calls launchFailed:slot:.
 - (void)recoverPending:(NSString *)bundleID attempt:(NSInteger)attempt {
     if (!self.active) return;
     if ([self pendingSlotForBundle:bundleID] < 0) return;
     id owner = SCPGuarded(SCPDashboardObject(), @"workspaceOwner");
-    NSDictionary *map = SCPGuarded(owner, @"_entityIdentifierToViewControllerMap");
+    // Dump @0x17414-0x17428: the VC map is read by KVC —
+    // [owner valueForKey:@"_entityIdentifierToViewControllerMap"] — and
+    // class-checked as NSDictionary before allValues. SCPGuarded would
+    // send a no-arg selector literally named after the ivar, which does
+    // not exist, so the lookup always missed (device log: "THIEU
+    // METHOD: DBDashboardWorkspaceOwner khong co
+    // _entityIdentifierToViewControllerMap -> bo qua"). The
+    // workspaceOwner getter above stays as-is; only the map read is KVC.
+    NSDictionary *map = nil;
+    @try {
+        id rawMap = [owner valueForKey:@"_entityIdentifierToViewControllerMap"];
+        if ([rawMap isKindOfClass:[NSDictionary class]]) map = rawMap;
+    } @catch (NSException *exception) {
+        map = nil;
+    }
+    if (!map) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: recoverPending khong doc duoc _entityIdentifierToViewControllerMap (KVC) -> bo qua"]);
+    }
     for (id vc in [map allValues]) {
         if (![self wantsViewController:vc]) continue;
         id appInfo = SCPGuarded(vc, @"applicationInfo");
@@ -650,11 +678,41 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
             return;
         }
     }
-    if (attempt < 2) {
+    if (attempt <= 2) {
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"CarSplit: %@ chua toi sau %ds, doi them", bundleID, (int)(attempt + 1) * 2]);
+            @"CarSplit: %@ chua toi sau %ds, doi them", bundleID, (int)(attempt << 1)]);
         __weak SCPCarSplit *weakSelf = self;
         SCPDispatchAfter(2.0, ^{ [weakSelf recoverPending:bundleID attempt:attempt + 1]; });
+    } else {
+        // Terminal branch (dump @0x17750-0x17ac8): attempts exhausted.
+        // The pending entry was re-validated at function entry
+        // (pendingSlotForBundle: >= 0 within its 12 s window), so this
+        // failure still belongs to the CURRENT launch — a newer launch
+        // of the same bundle would have refreshed the entry and this
+        // call chain would not be the one expiring. Log every VC the
+        // dashboard currently holds ("Class(bundle fullScreen=N)"),
+        // toast, then hand over to launchFailed:slot: with a FRESH
+        // pendingSlotForBundle: read (@0x17ab0-0x17ac8).
+        NSMutableArray *held = [NSMutableArray array];
+        for (id heldVC in [map allValues]) {
+            id heldInfo = SCPGuarded(heldVC, @"applicationInfo");
+            NSString *heldBundle = nil;
+            BOOL fullScreen = NO;
+            if (heldInfo) {
+                id heldProxy = SCPGuarded(heldVC, @"proxyApplicationInfo");
+                heldBundle = SCPRealBundleForInfos(heldInfo, heldProxy);
+                fullScreen = SCPInfoBool(heldInfo, @"presentsFullScreen");
+            }
+            [held addObject:[NSString stringWithFormat:@"%@(%@ fullScreen=%d)",
+                NSStringFromClass([heldVC class]), heldBundle ?: @"?", (int)fullScreen]];
+        }
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: khong tim thay VC cua %@ sau khi mo; DashBoard dang giu: %@",
+            bundleID, [held componentsJoinedByString:@", "]]);
+        [self toast:[NSString stringWithFormat:
+            OMCTr(@"Không mở được %@ trong ô", @"Couldn't open %@ in the pane"),
+            [self displayNameFor:bundleID]]];
+        [self launchFailed:bundleID slot:[self pendingSlotForBundle:bundleID]];
     }
 }
 
@@ -1014,11 +1072,16 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     if (pane.vc == vc) { [self relayoutAnimated:YES]; return; }
 
     // Same app already lives in another pane: evict that copy first.
+    // The evicted pane is remembered in vacatedPane (the dump's x22,
+    // assigned @0x19730): the picker at the tail is shown for THAT pane,
+    // never for the destination.
+    SCPCarPane *vacatedPane = nil;
     for (SCPCarPane *other in [self allPanes]) {
         if (other == pane || !other.vc) continue;
         if ([other.bundleID isEqualToString:bundle]) {
             [self detachVC:other.vc background:NO];
             other.vc = nil; other.bundleID = nil; other.sceneSize = CGSizeZero;
+            vacatedPane = other;
         }
     }
     // Pane occupied: close a hosted occupant through the bridge, detach a
@@ -1065,10 +1128,16 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     [self rememberRecent];
     [self raise];
     // Dump tail @0x19b48-0x19b7c: rememberPair -> rememberRecent -> raise
-    // -> showPickerForSlot: (pane's slot, only when the pane is non-nil)
-    // -> relayoutAnimated:. There is NO verifySceneOfPane: call in the
+    // -> showPickerForSlot: -> relayoutAnimated:. The picker is for the
+    // VACATED pane only: the destination is x20 (skipped in the eviction
+    // loop @0x19674-0x19678), x22 is set to the evicted other pane
+    // @0x19730, tested @0x19b5c, and its slot is passed to
+    // showPickerForSlot: @0x19b60-0x19b70. (A previous comment here
+    // claimed the picker took the destination pane's slot — that
+    // misread covered the just-adopted app with a picker; GPT log
+    // audit 2026-11-09.) There is NO verifySceneOfPane: call in the
     // original adopt: tail (the retry:2 call here was an addition).
-    if (pane) [self showPickerForSlot:(int)pane.slot];
+    if (vacatedPane) [self showPickerForSlot:(int)vacatedPane.slot];
     [self relayoutAnimated:YES];
 }
 
@@ -1361,10 +1430,41 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: bo cuc %d o", (int)target]);
 }
 
+// -swapSlot:with: (0x1d494) VERIFIED from the full dump (1,316 B): a
+// full transaction, not a bare exchange. Guards (@0x1d4d0-0x1d4f4):
+// a == b, either index negative ((a|b) sign bit), either >= paneCount
+// — slot 9 (the float pane) is never an element of `slots`, so the
+// paneCount guard is what keeps it out of the exchange; the binary
+// has NO slot-9 special case. Then: slots exchange; focusedSlot
+// follows the swap (@0x1d528-0x1d55c); fractions exchange only when
+// !mainStack && fractions.count == paneCount (@0x1d560-0x1d5b4);
+// pending entries remapped over a SNAPSHOT of pending.allKeys with
+// the NSDate object preserved (@0x1d5c0-0x1d7b0); reindexPanes; log
+// "doi cho o"; rememberPair + rememberRecent; relayoutAnimated:YES.
 - (void)swapSlot:(NSInteger)a with:(NSInteger)b {
+    NSInteger count = self.paneCount;
     if (a == b) return;
+    if (a < 0 || b < 0) return;
+    if (a >= count || b >= count) return;
     [self.slots exchangeObjectAtIndex:a withObjectAtIndex:b];
+    if (self.focusedSlot == a) self.focusedSlot = (int)b;
+    else if (self.focusedSlot == b) self.focusedSlot = (int)a;
+    if (!self.mainStack && (NSInteger)self.fractions.count == count)
+        [self.fractions exchangeObjectAtIndex:a withObjectAtIndex:b];
+    for (NSString *key in [self.pending.allKeys copy]) {
+        NSArray *entry = self.pending[key];
+        if (![entry isKindOfClass:[NSArray class]] || entry.count < 2) continue;
+        NSInteger slot = [entry[0] intValue];
+        if (slot == a)
+            self.pending[key] = @[ @(b), entry[1] ];
+        else if (slot == b)
+            self.pending[key] = @[ @(a), entry[1] ];
+    }
     [self reindexPanes];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: doi cho o %d va %d", (int)a, (int)b]);
+    [self rememberPair];
+    [self rememberRecent];
+    [self relayoutAnimated:YES];
 }
 
 // -removePaneAt:background: (0x149a8) VERIFIED (remediation,
@@ -1659,22 +1759,32 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     });
 }
 
-// -launchPhoneAppIfNeeded: VERIFIED (call sequence): dashboard icon tap on
-// a hosted (phone) app — into the split when active, otherwise solo
-// fullscreen through the bridge. Returns YES when consumed.
-- (BOOL)launchPhoneAppIfNeeded:(id)launchInfo {
-    id appInfo = SCPGuarded(launchInfo, @"applicationInfo");
-    id proxyInfo = SCPGuarded(launchInfo, @"proxyApplicationInfo");
-    NSString *bundle = SCPRealBundleForInfos(appInfo, proxyInfo);
-    if (!SCPIsHostedApp(bundle)) return NO;
-    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: cham icon %@ tren man chinh", bundle]);
+// -launchPhoneAppIfNeeded: (0x403d0) VERIFIED from the full dump: the
+// argument IS the bundle-id NSString — @0x403f8-0x403fc passes it
+// straight into the hosted predicate (sub_101bc = SCPIsHostedApp).
+// The binary never reads applicationInfo/proxyApplicationInfo off
+// this parameter; that reading lives in the dashboard launch hook
+// (@0x61d0), which hands the STRING over. Dashboard icon tap on a
+// hosted (phone) app — into the split when active, otherwise solo
+// fullscreen through the bridge. Returns YES when consumed (the
+// return value is the predicate result, x20 in the dump).
+// Three branches (@0x40444-0x404ac):
+//   active            -> openApp:bundle slot:-1 (@0x40458 mov w3,#-1)
+//   inactive, bundle == soloHostedBundle
+//                     -> consumed silently (@0x4048c tbnz jumps PAST
+//                        endHostedSolo: the live solo session stays)
+//   inactive, other   -> endHostedSolo FIRST (@0x40494), then
+//                        showSoloCoverForBundle:, then hostSolo:.
+- (BOOL)launchPhoneAppIfNeeded:(NSString *)bundleID {
+    if (![bundleID isKindOfClass:[NSString class]] || !bundleID.length) return NO;
+    if (!SCPIsHostedApp(bundleID)) return NO;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: cham icon %@ tren man chinh", bundleID]);
     if (self.active) {
-        [self openApp:bundle slot:[self autoSlot]];
-    } else if ([self.soloHostedBundle isEqualToString:bundle]) {
+        [self openApp:bundleID slot:-1];
+    } else if (![self.soloHostedBundle isEqualToString:bundleID]) {
         [self endHostedSolo];
-    } else {
-        [self showSoloCoverForBundle:bundle];
-        [self hostSolo:bundle];
+        [self showSoloCoverForBundle:bundleID];
+        [self hostSolo:bundleID];
     }
     return YES;
 }
@@ -1772,15 +1882,34 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
     });
 }
 
-// -hostedApp:state: VERIFIED (call sequence): the bridge's state answers.
-// "ready" clears the loader (and ends a solo session for that app);
-// "failed" toasts "Couldn't show %@ on the car"; other states log
-// "AppBridge: %@ %@ -> dong o %d" when the pane is dropped.
+// -hostedApp:state: (0x3f35c) VERIFIED from the full dump: the bridge's
+// state answers. SOLO route first — bundle equal to soloHostedBundle
+// (nil-safe: @0x3f3a8 cbz skips the whole route when no solo session):
+//   state == "ready" -> hideSoloCover ONLY and RETURN (@0x3f3f0 tbnz
+//     jumps straight to hideSoloCover @0x3f438, then the epilogue —
+//     the solo session is KEPT, endHostedSolo is NOT called);
+//   any other state  -> log "app toan man", endHostedSolo,
+//     hideSoloCover, RETURN (@0x3f3f4-0x3f440).
+// SPLIT route (@0x3f444): pane membership is confirmed against the
+// CURRENT pane table (paneForBundle: — bundle + live vc) and the
+// hosted-VC check (sub_14fa4 = SCPVCIsHosted) before the callback may
+// touch the pane, so a stale answer for a bundle that has since been
+// swapped out cannot clear or close the pane now hosting another app:
+//   "ready" -> removeLoaderFromPane:animated:YES, return;
+//   else    -> log "-> dong o", toast only when "failed", then BOTH
+//     non-ready paths converge on closeSlot:pane.slot background:NO
+//     (@0x3f5a0-0x3f5b4).
 - (void)hostedApp:(NSString *)bundleID state:(NSString *)state {
-    if ([self.soloHostedBundle isEqualToString:bundleID] && [state isEqualToString:@"ready"]) {
+    NSString *solo = self.soloHostedBundle;
+    if (solo && [solo isEqualToString:bundleID]) {
+        if ([state isEqualToString:@"ready"]) {
+            [self hideSoloCover];
+            return;
+        }
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: app toan man %@ %@", bundleID, state]);
         [self endHostedSolo];
         [self hideSoloCover];
+        return;
     }
     SCPCarPane *pane = [self paneForBundle:bundleID];
     if (!self.active || !pane || !SCPVCIsHosted(pane.vc)) return;
@@ -1793,6 +1922,7 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         [self toast:[NSString stringWithFormat:OMCTr(@"Không mở được %@ trên xe", @"Couldn't show %@ on the car"),
                      [self displayNameFor:bundleID]]];
     }
+    [self closeSlot:pane.slot background:NO];
 }
 
 // -hostSolo: (IMP 0x3f9c0) VERIFIED (fix-round2 spot fold-in, dump
@@ -2293,11 +2423,27 @@ static void SCPStyleSoloIconView(UIImageView *view) {
         [cover removeFromSuperview];
     }];
 }
+// -setFullscreenBridgeHidden:bundle: (0x3c33c) VERIFIED from the full
+// dump: this is the SOLO bridge path, not a pane path — the bundle:
+// argument is never read; the solo session's own bundle rules.
+// No solo session -> return (@0x3c388 cbz). State unchanged
+// (hidden == trayHidesBridge) -> return (@0x3c394 cmp/b.eq).
+// Otherwise: update trayHidesBridge, log, and post appbridge.frame
+// with CGRectZero when hiding (@0x3c3ac) or soloHostedFrame when
+// showing (@0x3c3cc), identifier = solo bundle, live=NO, handle=NO
+// (7-key dictionary, hostPost @0x3c528).
 - (void)setFullscreenBridgeHidden:(BOOL)hidden bundle:(NSString *)bundleID {
-    // VERIFIED: posts an appbridge.frame update for the bundle (the name
-    // appears in this method's string xrefs).
-    SCPCarPane *pane = [self paneForBundle:bundleID];
-    if (pane) [self sendHostFrameForPane:pane live:NO];
+    NSString *solo = self.soloHostedBundle;
+    if (!solo) return;
+    if (hidden == self.trayHidesBridge) return;
+    self.trayHidesBridge = hidden;
+    CGRect frame = hidden ? CGRectZero : self.soloHostedFrame;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"AppBridge: %@ app toan man %@ (bang bo cuc)", hidden ? @"an" : @"hien lai", solo]);
+    [self hostPost:SCPNoteBridgeFrame info:@{@"identifier": solo,
+                                             @"x": @(frame.origin.x), @"y": @(frame.origin.y),
+                                             @"w": @(frame.size.width), @"h": @(frame.size.height),
+                                             @"live": @NO, @"handle": @NO}];
 }
 
 // Bridge input callbacks (posted by AppBridge). All four line-read in

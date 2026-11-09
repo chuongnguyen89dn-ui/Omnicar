@@ -21,6 +21,7 @@
 // Shared helpers implemented elsewhere:
 extern UIImage *SCPSymbolImage(NSString *name, double pointSize);       // 0x2b474 (RatioMenu)
 extern void SCPStyleRatioMenu(UIView *view, double radius);             // 0x29b10 (RatioMenu)
+extern void SCPPrepareRatioMenu(UIView *view);                          // 0x24a34 (RatioMenu)
 
 // MARK: - Shared visual helpers
 
@@ -76,6 +77,52 @@ static void SCPSetBarButtonContent(UIButton *button, NSString *iconName, NSStrin
     ((UIImageView *)[button viewWithTag:0x1c86]).image =
         SCPSymbolImage(iconName, 22.0);
     button.accessibilityLabel = label;
+}
+
+// sub_24794 -> SCPApplyAccent @0x293a0: the handle accent toggled by
+// setBarVisible:forPane: (gradient "omcAccent" layer + glow shadow on;
+// layer removed + shadow off). TU-local copy of Picker.m's static of the
+// same name (the module has one @0x293a0 in the binary; dedupe at
+// integration, as with Picker's copy).
+static void SCPApplyAccent(UIView *view, BOOL on) {
+    CALayer *found = nil;
+    for (CALayer *sub in view.layer.sublayers)
+        if ([sub.name isEqualToString:@"omcAccent"]) { found = sub; break; }
+    if (!on) {
+        [found removeFromSuperlayer];
+        view.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
+                                                 green:0.39215686274509803
+                                                  blue:0.7843137254901961
+                                                 alpha:1.0].CGColor;
+        view.layer.shadowOpacity = 0;
+        return;
+    }
+    CAGradientLayer *grad = (CAGradientLayer *)found;
+    if (grad == nil) {
+        grad = [CAGradientLayer layer];
+        grad.name = @"omcAccent";
+        grad.colors = @[
+            (id)[UIColor colorWithRed:0.6078431372549019 green:0.5294117647058824
+                                 blue:0.9725490196078431 alpha:1.0].CGColor,
+            (id)[UIColor colorWithRed:0.36470588235294116 green:0.7058823529411765
+                                 blue:0.9647058823529412 alpha:1.0].CGColor];
+        grad.startPoint = CGPointZero;
+        grad.endPoint = CGPointMake(1, 1);
+        [view.layer insertSublayer:grad atIndex:0];
+    }
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    grad.frame = view.bounds;
+    grad.cornerRadius = view.layer.cornerRadius;
+    grad.cornerCurve = kCACornerCurveContinuous;
+    [CATransaction commit];
+    view.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
+                                             green:0.47058823529411764
+                                                  blue:1.0
+                                                 alpha:1.0].CGColor;
+    view.layer.shadowOpacity = 0.45f;
+    view.layer.shadowRadius = 9;
+    view.layer.shadowOffset = CGSizeMake(0, 4);
 }
 
 // @0x23710 — bar button factory: a 48x40 button carrying a 40x40 styled
@@ -205,24 +252,66 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
     return (CGRectGetMinY(pane.view.frame) > 1.0) ? 38.0 : 0.0;
 }
 
-- (void)layoutBarForPane:(SCPCarPane *)pane {                             // 0x23b9c (approx.)
+- (void)layoutBarForPane:(SCPCarPane *)pane {                             // 0x23b9c
     CGSize size = pane.view.bounds.size;
-    pane.handle.center = CGPointMake(size.width * 0.5,
-                                     12.0 + [self handleShiftForPane:pane]);
+    // C3-3: handleShiftForPane: is added to the handle's X; Y stays 12
+    // (@0x23c1c–0x23c2c). The earlier draft added the shift to Y.
+    pane.handle.center = CGPointMake(size.width * 0.5 + [self handleShiftForPane:pane],
+                                     12.0);
     pane.handle.hidden = (pane.vc == nil);
-    pane.bar.center = CGPointMake(size.width * 0.5, 24.0);
-    pane.popButton.alpha = [self canPopOutPane:pane] ? 1.0 : 0.35;
-    // soloButton reflects the zoom state of this pane (zoomedSlot == slot).
+    // Bar scale (@0x23c90–0x23cc0): shrink to (paneW − 10)/barW only when
+    // the bar does not fit (barW > paneW − 10) AND paneW − 10 > 40;
+    // otherwise scale 1. Centre Y = 24 + scale × barH/2 (@0x23d48).
+    double barW = pane.bar.bounds.size.width;
+    double avail = size.width - 10.0;
+    double scale = (barW > avail && avail > 40.0) ? avail / barW : 1.0;
+    pane.bar.transform = CGAffineTransformMakeScale(scale, scale);
+    pane.bar.center = CGPointMake(size.width * 0.5,
+        24.0 + scale * pane.bar.bounds.size.height * 0.5);
+    // Pop button (@0x23d74–0x23e9c): on the FLOAT pane the button docks
+    // back, so its content swaps to hm_split / "Chia màn" and its enabled
+    // state is (vc != nil && paneCount < 3) instead of canPopOutPane:.
+    // Other panes keep hm_float / "Cửa sổ nổi" + canPopOutPane:.
+    BOOL isFloat = (pane == self.floatPane);
+    BOOL popEnabled = isFloat ? (pane.vc != nil && self.paneCount < 3)
+                              : [self canPopOutPane:pane];
+    SCPSetBarButtonContent(pane.popButton,
+        isFloat ? @"hm_split" : @"hm_float",
+        isFloat ? OMCTr(@"Chia màn", @"Split")
+                : OMCTr(@"Cửa sổ nổi", @"Float"));
+    pane.popButton.alpha = popEnabled ? 1.0 : 0.35;
+    // Solo button (@0x23eac–0x23f78): content swap through the @0x24104
+    // factory — a zoomed pane reads hm_split / "Chia màn", any other pane
+    // hm_full / "Toàn màn". (The earlier draft's soloButton.selected was
+    // INFERRED; the binary has no setSelected: here.)
     BOOL zoomed = self.zoomedSlot != nil &&
                   self.zoomedSlot.intValue == pane.slot;
-    pane.soloButton.selected = zoomed;                                    // INFERRED setter
+    SCPSetBarButtonContent(pane.soloButton,
+        zoomed ? @"hm_split" : @"hm_full",
+        zoomed ? OMCTr(@"Chia màn", @"Split")
+               : OMCTr(@"Toàn màn", @"Full screen"));
     [pane.view bringSubviewToFront:pane.handle];
     [pane.view bringSubviewToFront:pane.bar];
 }
 
-// Show/hide a pane's bar. Showing hides every other pane's bar and arms a
-// 4 s auto-hide timer; the bar slides by a -10 pt vertical offset.
-- (void)setBarVisible:(BOOL)visible forPane:(SCPCarPane *)pane {          // 0x23e60 (approx.)
+// Show/hide a pane's bar (@0x241fc; GPT brief cites @0x23e60).
+// Showing: hide every other pane's bar, layout, unhide, accent the
+// handle (sub_24794); the entrance spring (SCPPrepareRatioMenu) and the
+// host-frame push run ONLY on a hidden->shown transition; a 4 s timer
+// auto-hides either way. Hiding: early-out when the bar is already
+// hidden; otherwise accent off and a 0.18 s fade/shrink (block
+// @0x24c44) whose completion (block @0x24cbc) runs FOUR commands in
+// order — hidden=YES (@0x24cd8), alpha=1 (@0x24ce4), restore the saved
+// transform (@0x24d04), then pushHostFramesLive:NO (@0x24d2c), the push
+// gated on both weak captures (pane @+0x28, self @+0x30) being alive.
+// (Acceptance pass 2026-11-09, GPT Deep Function Wiring Audit §7 N6:
+// the strand-3 completion had only hidden+transform behind an
+// alpha==0 guard borrowed from the AB side's hideBarForPane: shape;
+// this function's own blocks, read from the original arm64 slice,
+// have no such guard and do carry the alpha restore + push.)
+// (The earlier draft hid instantly, animated a -10 pt slide both ways,
+// laid out on the hide path too, and pushed host frames unconditionally.)
+- (void)setBarVisible:(BOOL)visible forPane:(SCPCarPane *)pane {          // 0x241fc
     [pane.barTimer invalidate];
     pane.barTimer = nil;
     if (visible) {
@@ -230,21 +319,40 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
         for (SCPCarPane *other in self.allPanes)
             if (other != pane)
                 [self setBarVisible:NO forPane:other];
-    }
-    [self layoutBarForPane:pane];
-    pane.bar.hidden = !visible;
-    if (visible) {
+        [self layoutBarForPane:pane];
+        BOOL wasHidden = pane.bar.isHidden;
+        pane.bar.hidden = NO;
+        SCPApplyAccent(pane.handle, YES);                                 // sub_24794
+        if (wasHidden) SCPPrepareRatioMenu(pane.bar);
         __weak SCPCarSplit *weakSelf = self;
+        __weak SCPCarPane *weakPane = pane;
         pane.barTimer = [NSTimer scheduledTimerWithTimeInterval:4.0
             repeats:NO block:^(NSTimer *timer) {
-                [weakSelf setBarVisible:NO forPane:pane];
+                [weakSelf setBarVisible:NO forPane:weakPane];
             }];
+        if (wasHidden) [self pushHostFramesLive:NO];
+        return;
     }
-    [self pushHostFramesLive:NO];
-    CGAffineTransform target = visible ? CGAffineTransformIdentity
-        : CGAffineTransformMakeTranslation(0, -10);
-    [UIView animateWithDuration:0.18 delay:0 options:0
-        animations:^{ pane.bar.transform = target; } completion:nil];
+    if (pane.bar.isHidden) return;
+    SCPApplyAccent(pane.handle, NO);                                      // sub_24794
+    UIView *bar = pane.bar;
+    CGAffineTransform saved = bar.transform;
+    __weak SCPCarSplit *weakSelf = self;
+    __weak SCPCarPane *weakPane = pane;
+    [UIView animateWithDuration:0.18 delay:0
+        options:0x10000        // raw; CurveEaseIn (@0x245ec)
+        animations:^{
+            bar.alpha = 0;
+            bar.transform = CGAffineTransformScale(saved, 0.94, 0.94);
+        } completion:^(BOOL finished) {
+            // Block @0x24cbc: four commands, this order, no alpha guard.
+            bar.hidden = YES;                                             // @0x24cd8
+            bar.alpha = 1;                                                // @0x24ce4
+            bar.transform = saved;                                        // @0x24d04
+            SCPCarSplit *s = weakSelf;
+            if (s != nil && weakPane != nil)
+                [s pushHostFramesLive:NO];                                // @0x24d2c
+        }];
 }
 
 - (BOOL)anyBarVisible {                                                  // (getter used by popupOpen)
@@ -279,6 +387,13 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
 }
 
 - (void)closePopups {                                                    // 0x267e4 (approx.)
+    // [do] fix-round4 E-2 instrumentation (NOT original behaviour): log
+    // the caller (return address tells the shield-outside caller apart
+    // from bridgeOutsideTouched within a run) and the popup state at
+    // entry — fires even for calls that turn out to be no-ops.
+    OMCLogWrite(@"SplitScreen",
+        [NSString stringWithFormat:@"CarSplit: [do] closePopups <= %p (popup %d)",
+            __builtin_return_address(0), (int)[self popupOpen]]);
     if ([self popupOpen]) {
         self.popupsClosedAt = [[NSDate date] timeIntervalSince1970]; // [phase2; backported to src in phase 3] fix] popupsClosedAt is Td/double (objc.json + both headers); src assigned the NSDate* itself
         OMCLogWrite(@"SplitScreen",
@@ -317,7 +432,14 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
         shield.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.02];
         __weak SCPCarSplit *weakSelf = self;
         shield.exempt = ^BOOL(CGPoint point) {
-            return [weakSelf shieldExemptPoint:point];
+            BOOL ok = [weakSelf shieldExemptPoint:point];
+            // [do] fix-round4 E-2 instrumentation (NOT original
+            // behaviour): the verdict and the exempt rects behind it.
+            OMCLogWrite(@"SplitScreen",
+                [NSString stringWithFormat:@"CarSplit: [do] shield exempt %@ -> %d rects %@",
+                    NSStringFromCGPoint(point), (int)ok,
+                    [weakSelf shieldExemptRects]]);
+            return ok;
         };
         shield.outside = ^(CGPoint point) {
             [weakSelf closePopups];
@@ -326,6 +448,12 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
         self.popupShield = shield;
     }
     [host bringSubviewToFront:shield];
+    // [do] fix-round4 E-2 instrumentation (NOT original behaviour):
+    // which host carries the shield, and where the shield sits in it.
+    OMCLogWrite(@"SplitScreen",
+        [NSString stringWithFormat:@"CarSplit: [do] shield host %@ superview %@",
+            NSStringFromClass(host.class),
+            NSStringFromClass(shield.superview.class)]);
     [self refreshShieldHoles];
 }
 

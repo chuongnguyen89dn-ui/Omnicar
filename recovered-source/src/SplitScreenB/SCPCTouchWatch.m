@@ -4,6 +4,7 @@
 //            disasm/SCPCTouchWatch__setHoles_.txt          (@0xf4d4)
 
 #import "SCPCTouchWatch.h"
+#import "SCPCommon.h" // [do] fix-round4 E-2: OMCLogWrite for the hit-test log below
 #import <QuartzCore/QuartzCore.h>
 
 @implementation SCPCTouchWatch
@@ -26,7 +27,15 @@
         return nil;
     }
     CGPoint windowPoint = [self convertPoint:point toView:nil];
-    if (self.exempt != nil && self.exempt(windowPoint)) {
+    BOOL exempt = (self.exempt != nil && self.exempt(windowPoint));
+    // [do] fix-round4 E-2 instrumentation (NOT original behaviour): the
+    // shield's hit-test decision for this touch — point, exemption
+    // verdict, and whether the outside report fires.
+    OMCLogWrite(@"SplitScreen",
+        [NSString stringWithFormat:@"CarSplit: [do] shield hitTest %@ exempt %d -> %@",
+            NSStringFromCGPoint(windowPoint), (int)exempt,
+            exempt ? @"bo qua" : @"cham ngoai"]);
+    if (exempt) {
         return nil;
     }
     self.outside(windowPoint);

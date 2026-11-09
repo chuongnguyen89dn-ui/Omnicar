@@ -394,6 +394,13 @@ static int    sStackDragKind; // 0x8816c
         UIView *knob = divider.knob;
         if (knob == nil || knob.isHidden) return;
         if (!CGRectContainsPoint(CGRectInset(knob.frame, -26, -26), point)) return;
+        // [do] fix-round4 E-2 instrumentation (NOT original behaviour):
+        // timestamp the knob-tap toggle so it can be lined up against a
+        // closePopups that lands milliseconds later.
+        OMCLogWrite(@"SplitScreen",
+            [NSString stringWithFormat:@"CarSplit: [do] dividerTap vach %ld tai %@ -> %@ menu ti le",
+                (long)divider.index, NSStringFromCGPoint(point),
+                self.ratioMenu != nil ? @"dong" : @"mo"]);
         if (self.ratioMenu != nil) [self hideRatioMenu];
         else [self showRatioMenuForDivider:divider];
     } @catch (id exception) {

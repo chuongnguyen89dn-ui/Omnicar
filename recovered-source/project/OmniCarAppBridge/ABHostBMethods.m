@@ -827,14 +827,18 @@ static id ABSceneOfPane(ABPane *pane) {
             @"x": @(p.x), @"y": @(p.y)}];
 }
 
-// -handleTapped: (0x15434): same pane lookup; posts ABChanHandleTap with
-// {identifier} and logs "cham thanh ••• cua %@" (UTF-16 string, verbatim
-// sense: "tapped the ••• bar of %@").
+// -handleTapped: (0x15434): same pane lookup; logs "cham thanh ••• cua
+// %@" (UTF-16 string, verbatim sense: "tapped the ••• bar of %@") and
+// posts ABChanHandleTap with {identifier}.
+// RESTORED (fix-round4 C2-2): the rebuild kept the post but dropped
+// the log; the dump (m_ABHost_handleTapped.txt) shows stringWithFormat:
+// -> OMCLogWrite @0x15428 BEFORE postNotificationName: @0x154b4.
 - (void)handleTapped:(UITapGestureRecognizer *)gesture {
     ABPane *found = nil;
     for (ABPane *pane in self.panes)
         if (pane.handleHit == gesture.view) { found = pane; break; }
     if (!found) return;
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"cham thanh ••• cua %@", found.bundleID]);
     [[NSDistributedNotificationCenter defaultCenter]
         postNotificationName:ABChanHandleTap object:nil
                     userInfo:@{@"identifier": found.bundleID}];

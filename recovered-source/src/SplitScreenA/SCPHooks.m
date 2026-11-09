@@ -200,9 +200,21 @@ static void Hook_invalidate(id self, SEL _cmd) {
 
 // sub_61d0 VERIFIED: phone-app launches from the dashboard are consumed by
 // AppBridge (launchPhoneAppIfNeeded:), native launches pass through.
+// The hook reads bundleIdentifier off the app-info object (@0x6210-
+// 0x6238, same guarded pattern as the launchInfo hooks above) and
+// passes the STRING (@0x6280) — launchPhoneAppIfNeeded: takes the
+// bundle id itself, never the info object.
 static void Hook_launchAppWithInfo(id self, SEL _cmd, id info, id url) {
     BOOL handled = NO;
-    @try { handled = [[SCPCarSplit shared] launchPhoneAppIfNeeded:info]; }
+    @try {
+        NSString *bundle = nil;
+        SEL bundleSel = NSSelectorFromString(@"bundleIdentifier");
+        if ([info respondsToSelector:bundleSel])
+            bundle = ((id (*)(id, SEL))objc_msgSend)(info, bundleSel);
+        else
+            SCPMissingSelector(info, NSStringFromSelector(bundleSel));
+        handled = [[SCPCarSplit shared] launchPhoneAppIfNeeded:bundle];
+    }
     @catch (NSException *ex) { SCPExceptionLog("_launchAppWithInfo", ex); }
     if (!handled)
         ((void (*)(id, SEL, id, id))orig_DBDashboard_launchAppWithInfo)(self, _cmd, info, url);
@@ -461,13 +473,19 @@ static void SCPBridgeStateBlock(NSNotification *note) {
 }
 // blocks 0x76a0 / 0x77c8 / 0x78b4 / 0x7a4c / 0x7b00: the remaining bridge
 // input channels forward their userInfo into SCPCarSplit handlers
-// (bridge* for 0x76a0-0x7a4c; remoteKnobTouch: for 0x7b00 — see K2 note
+// (bridge* for 0x76a0-0x78b4, bridgeOutsideTouched for 0x7a4c;
+// remoteKnobTouch: for 0x7b00 — see K2 note
 // on SCPBridgeKnobTouchBlock; identification VERIFIED by registration
 // order in __init_1; interiors at call-sequence fidelity).
 static void SCPBridgeHandleTapBlock(NSNotification *note) {
     // VERIFIED (integration, disasm/rem3_bridgeTapBlock_76a0.txt): the
     // binary's block @0x76a0 passes userInfo[@"identifier"] — the
     // method takes the bundle string, not the dictionary.
+    // [do] fix-round4 C2-1 instrumentation (NOT original behaviour):
+    // the bridge tap's entry point — proves the handletap post reached
+    // CarPlay; bridgeHandleTapped: resolves the pane one call later.
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"CarSplit: [do] bridge handletap %@", note.userInfo[@"identifier"]]);
     [[SCPCarSplit shared] bridgeHandleTapped:note.userInfo[@"identifier"]];
 }
 static void SCPBridgeHandleDragBlock(NSNotification *note) {
@@ -478,7 +496,14 @@ static void SCPBridgeBarActionBlock(NSNotification *note) {
                                forBundle:note.userInfo[@"identifier"]];
 }
 static void SCPBridgeBarDismissBlock(NSNotification *note) {
-    [[SCPCarSplit shared] bridgeBarAction:@"dismiss" forBundle:note.userInfo[@"identifier"]];
+    // CORRECTED (fix-round4 C3-4, dump block @0x7a4c): the original
+    // block ignores userInfo entirely — the AB side posts it EMPTY —
+    // and calls bridgeOutsideTouched directly (a tail call into
+    // closePopups). The earlier reconstruction routed
+    // bridgeBarAction:@"dismiss" forBundle:userInfo[@"identifier"]:
+    // bridgeBarAction: has no "dismiss" branch and the identifier is
+    // always nil, so the hosted outside-tap close path was a no-op.
+    [[SCPCarSplit shared] bridgeOutsideTouched];
 }
 static void SCPBridgeKnobTouchBlock(NSNotification *note) {
     // CORRECTED (fix-round3 K2, dump block_appbridge_knobtouch_0x7b00.txt):
@@ -690,7 +715,7 @@ __attribute__((constructor))
 static void SCPInitDashboardHooks(void) {
     if (!SCPHostIsCarPlayApp()) return;
     if (!OMCCrashGuard(@"splitScreen")) return;
-    OMCLogWrite(@"SplitScreen", @"loaded into CarPlay [fixround3]");
+    OMCLogWrite(@"SplitScreen", @"loaded into CarPlay [fixround4]");
 
     Class dashboard = OMCCarClass("DBDashboard");
     MSHookMessageEx(dashboard, @selector(sceneFrameForAppInfo:proxyAppInfo:),
