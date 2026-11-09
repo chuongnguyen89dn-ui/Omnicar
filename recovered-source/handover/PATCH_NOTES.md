@@ -3030,3 +3030,467 @@ cellClass giữ nhãn CHƯA XÁC MINH.
 - VISUAL_ORIGINAL_COMPARISON = PENDING (21.4).
 - Các nhóm nghiệm thu còn lại + ba bài kiểm để dành
 (hết hạn, cứu crash, tải nặng): không đổi.
+
+## 22) VÒNG WAKE1 — BRIDGE WAKE (QA180 PORT) + PINCH PROBE + NÚM (2026-11-09)
+
+### 22.1 Phạm vi và mức báo cáo của vòng
+- Vòng TÍNH NĂNG MỚI trên nền fixround7, không phải vòng
+khôi phục gốc: phần B Wake theo WO "OMNICAR BRIDGE WAKE
+QA180 PORT" (GPT) + phần A Pinch Fullscreen theo WO tích
+hợp Pinch + Wake; gộp patch riêng sửa cực publishKnobsNow
+(WO §VII). Baseline khóa: fixround7 FAT `f2cc8ffe…`.
+- Mức báo cáo (đúng kỷ luật GPT — chỉ các mức cho phép):
+Wake = SOURCE HOÀN THIỆN + STATIC PASS (Gate 0/1, mục
+22.2/22.6/22.7), Gate 2–6 PENDING chờ xe. Pinch =
+**BLOCKED tại cổng A1** (22.3) — trong bản chỉ có
+recognizer + probe DRY_RUN + adapter rỗng. Núm = ĐÃ SỬA
+(22.4), cổng object + hai slice đạt, chờ kiểm trên xe.
+Không mục nào được gọi là hoàn thiện.
+
+### 22.2 Gate 0 audit + thiết kế (báo cáo:
+work/wake-round/audit-runtime.md, design-bridgewake.md,
+design-pinch.md; hồ sơ cố định ở commit 9424aea)
+- Kiểm kê: DEB r6/r7 chỉ có đúng 8 thành phần RE, không
+dylib QA19/QA20 bên trong; QA19/QA20 là SOURCE trong gói
+hợp nhất QA20 nên cài DEB RE là thay toàn bộ — không thể
+hook chồng trong phiên RE (log r5/r6: grep qa19/qa20/
+YouTubeHandle/NativeSoloTimer = 0). Ảnh Sileo của Nguyen
+xác nhận trên máy chỉ một mục OmniCar.
+- PHÁT HIỆN NỀN: gốc 1.0.3 KHÔNG có trạng thái "toàn bộ
+controls ẩn" — Chrome có 3 timer 4 s độc lập (bar/tray/
+ratio), handle native chỉ ẩn khi vc == nil, núm không tự
+ẩn theo idle ở đâu cả. Hành vi mờ idle quen thuộc là của
+add-on QA19/QA20. Hệ quả: chủ trạng thái của WO là thành
+phần TỔNG HỢP MỚI; dữ kiện hiển thị liên-process duy
+nhất có sẵn là hostBarInfo['bar']; điểm tương đương
+layoutControls duy nhất là setBarVisible:forPane:
+(Chrome.m:313) nhưng chỉ phạm vi bar/theo pane; ABHost
+không tự sinh trạng thái — "xác nhận phía SpringBoard"
+chỉ đọc được từ giá trị đã áp (handleHit.hidden,
+bar.isHidden, số knobViews).
+- Tranh chấp sendEvent ĐÃ PHÂN ĐỊNH (audit §6): cổng
+trong-app của bản 44 ĐÚNG là hook -[UIApplication
+sendEvent:] trong process app (relay 0.9.0 khôi phục
+nguyên văn từ 0.7.0, filter 13 bundle); con số "đúng 1
+bản ghi lúc teardown" là số bản ghi host ĐỌC ĐƯỢC qua
+mailbox DF156 latest-wins trong phiên 2026-11-08
+08:00–08:02 (bản ghi chạm GOFA count=22) — kênh tự thừa
+nhận mất bản ghi, consumer cũng đọc 0 verdict, nên con
+số 1 là CẬN DƯỚI, không phủ quyết probe dry-run. QA180
+đo trên ngăn xếp DuoFace, WO nhắm ngăn xếp RE — probe
+log nội bộ trong process app là dụng cụ quyết định (B2).
+- Ba câu hỏi mở chốt trong design §0: (Q2) vai chrome
+của SCPCarSplit chỉ sống ở CarPlayApp — cả hai ctor
+__init_0/__init_1 đều gate SCPHostIsCarPlayApp(),
+SCPSpringBoardHooks.m là đơn vị Home riêng. (Q3) đối số
+handle của hostFrameInfo = !CGRectIsEmpty(frame) tại cả
+hai điểm gọi (SCPCarSplit.m:1882 khối +0,05 s gán
+pane.hostHandle; :1994 sendHostFrameForPane: tính tại
+chỗ) — nghĩa "ô có khung host hợp lệ", không mang nghĩa
+idle. (Q4) hostPost: = NSDistributedNotificationCenter
+payload NSDictionary cho toàn họ appbridge.*; bridgewake
+đi Darwin đóng gói số riêng, không mượn kênh distributed.
+- Thiết kế wake: owner = SCPCarSplit (CarPlayApp);
+HIDDEN theo pane do hàm tổng hợp MỚI bwRecomputeForPane:
+tính từ assigned ∧ live(hostHandle) ∧ barHidden ∧
+!transient ∧ !popup → INACTIVE/UNKNOWN/VISIBLE/HIDDEN/
+WAKING; bar.isHidden một mình KHÔNG bao giờ đủ; 7 nhóm
+điểm gọi recompute; bwGenBySlot[10] chống thông điệp cũ
+sau reconnect; KHÔNG tự chế fade idle cho handle/knob
+(ngoài WO). IPC: 4 kênh Darwin
+com.anlai.omnicar/bridgewake.v1.{state,query,wake,ack};
+layout uint64 thống nhất (bit63 valid, 62–35 hash28
+FNV-1a32>>4, 34–23 seq12, 22–11 gen12, bit10 flag,
+9–8 pinchMode, 7–6 wakeMode, 5–3 state, 2–0 type);
+phân tích collision hai lớp (hash 28-bit + ô đơn
+latest-wins → phát loạt cách 30 ms, hạn tươi state
+2,5 s, phát lại toàn bộ khi có query); 8 test vector
+tính bằng script. Hai mode PINCH_MODE/WAKE_MODE độc
+lập, mang trong mọi gói state, chỉ owner đọc prefs
+(bridgewake.wakeMode/.pinchMode, vắng = DRY_RUN); app
+không đọc plist; state quá 2,5 s → mode hiệu dụng OFF.
+- Thiết kế pinch: recognizer custom (subclass
+UIGestureRecognizer) gắn SCPCarSplitView trong
+ensureContainer, cancelsTouchesInView/delaysTouchesBegan/
+delaysTouchesEnded = NO — quan sát rồi mới bắn, KHÔNG
+giữ cặp kiểu Cách A; ngưỡng out ≥ 1,10 / in ≤ 0,90,
+midDrift ≤ 0,6×distChange + 10, tối đa 1 lệnh/gesture;
+ánh xạ điểm→pane bằng slots-walk (alpha-gated, float
+thắng), cặp chỉ hợp lệ khi hai ngón cùng pane; allowlist
+theo (bundleID, loại scene qua SCPVCIsHosted); adapter
+protocol SCPFullscreenControlling tách khỏi kết quả A1;
+khoá cứng A6: chưa có đường thoát EXPANDED đã chứng minh
+thì pinch-out ENFORCE bị cấm bật.
+
+### 22.3 Strand A1 — FULLSCREEN_ENTRY = BLOCKED
+(báo cáo: work/wake-round/a1-fullscreen-entry.md)
+- Nhận dạng: dylib trích từ DEB QA20 — 125.808 B, MD5
+944d6f37c9ce327298dd6edd1d1a3bd8, SHA-256
+d532e70ed0e348327de50d4fea3f82fac1db82fb96b87a052d419b00c3271b55;
+THIN arm64 (không slice arm64e); filter CarPlayApp +
+SpringBoard; build debug từ OmniCarDoubleTapFullscreen.xm
++ OmniCarChrome.xm. Census 4 class (OMCZoomState,
+OMCZoomAction, OMCSwapAction, OMCChromeReceiver); 6 hook
+trên SCPCarSplit + 2 hook layoutSubviews cửa sổ trạng
+thái; cả 6 selector có trong census gốc + header rebuilt
+với chữ ký khớp → TƯƠNG THÍCH HOOK ĐẠT. Rào cản ở entry.
+- Năm đường vào đều gãy: (1) OMCToggleHost là hàm static
+@0x4524, đúng MỘT điểm gọi trong toàn binary:
+-[OMCZoomAction pressed:] @0x44a8; hook dividerDoubleTapped:
+chỉ chặn/cho qua IMP gốc, không gọi toggle — fullscreen
+QA20 kích từ nút zoom của menu hai nút. (2) Action giữ
+bằng associated object trên nút nội bộ do
+OMCInstallTwoActionMenu tạo (@0x9094 setAssociatedObject,
+@0x90b4 addTarget) — chỉ tồn tại sau khi menu tỉ lệ mở
+≥ 1 lần; không phải entry ổn định, không gọi được khi
+menu chưa hiện. (3) Kênh duy nhất
+com.anlai.omnicar.zoom.chrome.v1 (NSDistributed) là kênh
+PHÁT trạng thái chrome một chiều CarPlayApp → SpringBoard;
+observer duy nhất OMCChromeReceiver received: @0x9d74 chỉ
+áp ẩn/hiện chrome thanh trạng thái; dylib KHÔNG import
+CFNotificationCenter — không kênh lệnh nào. (4) Symbol
+exported duy nhất _OMCChromeSetHidden @0xa798 chỉ khiển
+chrome SpringBoard — gọi riêng gây lệch đồng bộ. (5) Đọc
+expanded từ ngoài: KHÔNG có đường — state là associated
+object trên split với khóa là địa chỉ tĩnh nội bộ của
+dylib (ô 0x14ab8 qua OMCState @0x5df8); không getter
+exported, không class method, không kênh truy vấn; kênh
+chrome còn phát quanh thao tác swap (OMCSwapUsingNativeCallback
+@0x5394/@0x54fc) nên không đồng nhất với expanded. State
+thuần bộ nhớ (không NSUserDefaults/CFPreferences/ghi
+file); expand chụp originalArea + layoutParent +
+previousClipsToBounds, restore đi relayoutAnimated:
+pushScenes: + rootDidLayout — cả hai chiều nằm trọn trong
+toggle; reconnect = instance mới expanded = NO theo
+thiết kế.
+- Hệ quả theo điều kiện dừng của GPT: DỪNG tích hợp hành
+vi pinch nhắm đích này; không offset tuyệt đối, không
+selector đoán, không sửa binary QA20; dylib QA20 KHÔNG
+vào candidate wake1. Mở lại cổng chỉ khi phía nguồn GPT
+công bố entry điều khiển có kiểm chứng + đường đọc trạng
+thái và phát hành dylib MỚI (MD5 mới — A1 kiểm lại từ
+đầu). Nhắc lại cấm của WO tích hợp: KHÔNG gửi "full" qua
+appbridge.baraction — bridgeBarAction:forBundle: nhánh
+"full" gọi runSoloForPane: (solo), sai nghĩa fullscreen-
+ẩn-dock.
+
+### 22.4 Núm — sửa cực publishKnobsNow (patch riêng, WO §VII)
+(biên bản: work/wake-round/fix-knob-polarity.md)
+- Cơ sở: audit §4 dump lại độc lập cả hai slice gốc —
+payload gốc = !IsIdentity: arm64 eor w2,w27,#0x1 @0x3eff8
+→ stub numberWithBool: @0x3effc; arm64e @0x413ac →
+@0x413b0 (w27 = kết quả IsIdentity).
+- Sửa (SCPCarSplit.m:2615–2620, cả project/ và
+src/SplitScreenA/, cmp identical): @(!scaled) →
+@(scaled) + comment khớp dump hai slice + sửa chữ
+"unscaled flag" → "scaled/active flag" ở comment đầu
+hàm; grep @(!scaled) toàn cây = 0. Không đụng kích
+thước/gesture/hitbox/frame/z-order.
+- Cổng object: bản cũ có HAI eor trên đường giá trị
+(IsIdentity @0x18784 → eor @0x18790 ra scaled → ldrb
+@0x18810 → eor lần 2 @0x18814 → payload = IsIdentity);
+bản mới đúng MỘT eor @0x1878c (chính định nghĩa scaled)
+rồi ldrb @0x18808 → and #0x1 @0x18814 → numberWithBool:
+(dylib đã link xác nhận cùng dãy, selref @0x1c810).
+Bảng test tĩnh: identity → gốc 0 / cũ 1 ✗ / mới 0 ✓;
+scale 1.6 → gốc 1 / cũ 0 ✗ / mới 1 ✓. Object mới nhỏ
+hơn đúng 8 B (mất 2 lệnh). Trên candidate: đúng 1 eor
+@0x15d44 (22.6); trên FAT: 1 eor ở cả hai slice (22.7).
+Trạng thái: ĐÃ SỬA — phần kiểm trên xe gộp vào phiên
+wake1 (gương về đúng kích thước, chạm gần vách tới app).
+
+### 22.5 Bốn strand cài đặt (mỗi strand một chủ file)
+CARPLAY — owner + phân xử (impl-carplay.md):
+- MỚI BridgeWakePack.h (layout §3.2 + BWPackFields/
+BWUnpack/BWBundleHash + luật chuẩn hoá mode 3→OFF,
+state 5–7→UNKNOWN + bảng V1–V8 nguyên văn cuối file);
+harness C trên header thật: 19/19 PASS.
+- MỚI SCPCarSplit+BridgeWake.h/.m (521 dòng, log
+[wake1]): statics + bwGenBySlot[10] :28–105 (dòng 30);
+BWEmitStatePacket :111 — cặp notify_set_state/
+notify_post DUY NHẤT cho kênh state; BWForceOffBroadcast
+:130; hàng đợi phát cách 30 ms :137–167;
+bwEmitStateForPane: :169; bwPopupForPane: :194;
+bwPinchAllowedForPane: :202; bwSetExpandedActive:
+forBundle: :217 + bwExpandedActive :227 (điểm nối tương
+lai, giữ NO vì A1 BLOCKED); bwRecomputeForPane:
+:231–309; bwSessionTeardown :311;
+bwReloadModesAndRepublish :337; bwHandleQueryPacket:
+:364, bwHandleWakePacket: :372, bwHandleAckPacket:
+:442; bwInstallOwner :481.
+- Điểm gọi: SCPShared.m:33–36 (4 hằng kênh); Chrome.m
+thêm lời gọi :296 (cuối layoutBarForPane:), :336 (cuối
+nhánh hiện setBarVisible:), :358 (completion fade),
+:361 (ngay sau animate nhánh ẩn) + import :20 — thân
+setBarVisible:forPane: không sửa câu lệnh gốc nào;
+SCPCarSplit.m :247 (bwSessionTeardown sau active = NO),
+:1823 hostClose:, :1831 hostCloseAll, :1891 khối +0,05 s
+hostApp:, :1985 endHostedSolo, :2006
+sendHostFrameForPane: + import :26; SCPHooks.m:784 cuối
+SCPInitDashboardHooks (chỉ __init_1) + import :17;
+Makefile:13 thêm TU.
+- Cổng tĩnh §7.1: notify_post kênh state đúng 1 chỗ;
+NSTimer mới = 0 (chỉ 2 hạn SCPDispatchAfter được phép:
+0,03 s phát + 1,0 s WAKING); handler wake gọi
+setBarVisible đúng 1 lần (:409), grep toggleZoom/
+soloBundle/runSolo/orientation/keyboard/apporient = 0;
+hai cây cmp identical 6/6 file chung (Chrome.m +
+Makefile chỉ có ở cây project).
+
+ABHOST — xác nhận chrome (impl-abhost.md):
+- ABChannelNames.m:47–50 thêm thuần 4 hằng kênh;
+ABHostBMethods.m:1199 accessor MỚI
+bwAppliedSnapshotForBundle: trả {handleHidden,
+barHidden, knobCount} đọc thẳng từ trạng thái ĐÃ ÁP
+(pane.handleHit.hidden, pane.bar.isHidden,
+knobViews.count); bundle không host → nil; view chưa
+tồn tại → hidden=YES (sự thật-view: để ack ra UNKNOWN,
+không VISIBLE giả). ABChannels.m: mục §5 mới :461–596 +
+khai báo :20–34 + 1 dòng đăng ký trong
+ABHostProcessInit khi SpringBoard (:64):
+BWRegisterHostConfirm :564 (nghe wake v=1/type=3, hash28
+khớp ABPane đang sống qua ABBundleIDHash>>4 → vũ trang
+ô chờ DUY NHẤT/bundle {hash, gen, seq, at}, wake mới ghi
+đè); BWObserveApplied :550 (observer riêng trên
+appbridge.open/.frame); BWAnswerSlot :518 +
+BWFrameApplied :542 (frame ≤ 800 ms → ack role=1 echo
+đúng gen/seq, state VISIBLE chỉ khi barHidden == NO,
+ngược lại UNKNOWN; quá hạn → ack UNKNOWN; ô bị xoá
+TRƯỚC khi phát → exactly-once; expiry kiểm gen+seq);
+BWEmitHostAck :504 — đường phát Darwin duy nhất thêm
+phía host (register_check → set_state → post, đúng
+idiom cây). Không bộ đếm idle, không NSTimer.
+- Cổng §7.2: thân setBarVisible:pop:dim:single:forApp:
++ setHandleVisible: + setFrame: + setKnobs: khớp SHA-256
+trước/sau (3044b10d… / 409cfb14… / 8606f40a… /
+b98a9f26…); diff cả 3 file THÊM THUẦN, 0 dòng sửa/xoá;
+vector production V6 = 0xE9DA706814803C14 PASS, giải mã
+V4 PASS; build sạch, ABChannels.m 0 cảnh báo.
+
+ABINAPP — relay + probe + suppression (impl-abapp.md):
+- ABInApp.m 585 → 1.132 dòng, đúng 8 điểm chạm; mirror
+hai cây cmp = 0. Cài lười trong ABOrientationBlock cùng
+điều kiện !ABHooksInstalled: hook -[UIApplication
+sendEvent:] + đăng ký state/ack + observer kb + phát
+query. orig_SendEvent đúng 1 điểm gọi (:554); đường
+nuốt gọi 0 lần; sendEvent: chỉ tồn tại ở ABInApp.m
+trong toàn cây.
+- State client: hạn tươi 2,5 s (quá hạn → OFF +
+fail-open), query lại tối đa 1 lần/2 s, lọc gen
+modulo-4096, state 5–7 → UNKNOWN, mode 3 → OFF; gói
+tươi mở cả mixed-lock lẫn ack-latch. MỘT điểm probe hai
+bộ đếm: wouldSwallow = cổng §5.4 tại Began "như thể
+ENFORCE"; wouldPinch = đúng 2 touch + khoảng cách đổi
+> 10% + cờ pinchAllowed (không log tọa độ); format
+[do] bw probe nguyên văn thiết kế; trần 200 dãy/launch
++ tổng kết 30 s. Suppression: máy IDLE→SWALLOWING→
+FINISHED→IDLE, cổng enabled ∧ sessionValid ∧
+targetVerified ∧ known ∧ hidden ∧ !keyboardActive ∧
+!keyboardUnknown ∧ !transitioning ∧ !mixedTouches;
+nuốt trọn dãy tới Ended/Cancelled, không chuyển
+pass-through giữa chừng; một wake/dãy kèm transaction;
+ack timeout 1,5 s → fail-open latch tới state tươi;
+mixed → hấp thụ + khoá tới state tươi. Keyboard guard:
+chính = ABCurrentResponder qua Became (+1 dòng)/
+Resigned (+1 dòng); phụ = WillShow/Hide/DidChangeFrame
+chỉ tính khi 0 < origin.y < chiều cao màn hình; vắng
+thông báo KHÔNG hạ ACTIVE (blank inputView); 0 dòng suy
+từ tồn tại UIRemoteKeyboardWindow. BWResetAll nối qua
+ABChanClose/ABChanCloseAll trong ABInstallInAppObservers.
+- Thân ABPublishAppOrientation/ABKeyboardPublish và bộ
+lọc hướng {3,4} KHÔNG đổi một dòng. Codec của strand
+này kiểm bằng harness độc lập 17/17 PASS (bản header
+riêng của module — đã chuẩn hoá ở tích hợp, 22.6).
+Mode chỉ từ gói state, không đọc plist.
+
+PINCH — controller + probe + adapter rỗng (impl-pinch.md):
+- 2 cặp file MỚI × 2 cây (cmp identical 4/4), không
+đụng file chung, không sửa Makefile:
+SCPPinchController.h/.m (28.080 B) + SCPFullscreenAdapter.h/.m.
+Recognizer subclass tại SCPPinchController.m:102; cấu
+hình bắt buộc :113–115 (cancels/delays = NO); sổ cặp
+scpFormPair :147 (dist0/mid0 tại thời điểm ngón 2
+xuống); ngưỡng out/in + drift kiểm CÙNG một Moved;
+ánh xạ scpPaneForStartPoint: :513 (slots-walk
+alpha-gated, float thắng, hit cuối); cặp hợp lệ chỉ khi
+hai ngón cùng pane, ngón trên divider/chrome → chết;
+điểm phát lệnh DUY NHẤT scpRecognizerDidCross: :578 qua
+5 cổng đúng thứ tự (mode từ arbiter — không plist;
+trạng thái từ adapter; phân xử; chuỗi sạch; allowlist
+(bundle, SCPVCIsHosted) mặc định RỖNG); log [pinch1]
+đủ trường §6.1, đếm complete/truncated tách
+SPLIT/EXPANDED; vòng đời attachIfNeeded :407 / detach
+:423 / syncArming :434 / resetTracking :451 nhận lệnh
+từ ngoài.
+- Adapter (SCPFullscreenAdapter.m:31–47): currentState
+luôn Unknown; requestExpand :37 / requestRestore :43
+log từ chối + completion(NO); stateDidChange không
+phát; comment tại điểm binding ghi A1=BLOCKED
+2026-11-09. Đây là trạng thái CUỐI của vòng (không phải
+tạm chờ): cổng 2 không bao giờ qua → PINCH ENFORCE
+không thể arm; DRY_RUN chạy bình thường.
+- Lệch ghi trong biên bản: L1 protocol arbiter thêm
+pinchMode (mode phải đến từ owner — nối ở tích hợp);
+L2 chết chrome/divider kiểm thêm touch.view (chỉ giết
+cặp); L3 hostIsExpanded của arbiter chưa được controller
+gọi (cổng 2 đọc adapter đúng chữ thiết kế); L4 reset đi
+qua pha chờ-mọi-touch-kết-thúc trước IDLE. Compile
+trực tiếp clang-18 flags tương đương module: 0 lỗi /
+0 cảnh báo cả -Wall -Wextra ở hai cây; link thử lld ra
+Mach-O arm64 đủ 3 class.
+
+### 22.6 Tích hợp wake1 (biên bản:
+work/wake-round/integration-wake1.md)
+- Keo pinch: Makefile FILES +2 TU (dòng 13); SCPHooks.m
++1 import (:18) và 1 lời gọi syncArming sau seam
+rootDidLayout trong Hook_RootVC_viewDidLayoutSubviews;
+SCPCarSplit.m +1 import (:27) + đúng 2 dòng keo:
+attachIfNeeded cuối ensureContainer (nhánh dựng
+container MỚI — điểm duy nhất container tươi xác định
+được) và detach trong dashboardInvalidated ngay sau
+bwSessionTeardown. Arbiter: category (BridgeWake) khai
+<SCPPinchArbiter> ở SCPCarSplit+BridgeWake.h:8; phía .m:
+pinchMode ← bwPinchMode của owner; hostIsExpanded ←
+bwExpandedFlag (luôn NO); pinchDispositionForPane:
+touchesSuppressed: ánh xạ thuần từ state bw theo slot
+(EXPANDED → Allowed; HIDDEN → BlockedHidden; VISIBLE →
+BlockedUnknown nếu popup/resizing, ngược lại Allowed;
+còn lại BlockedUnknown; allowlist KHÔNG hỏi ở đây —
+cổng 5 là của controller); gán arbiter ở cuối
+bwInstallOwner.
+- Chuẩn hoá giao thức: hai bản BridgeWakePack.h LỆCH
+THẬT ở mức API (SplitScreen: BWPackFields + BWUnpack
+trả struct; AppBridge: BWPack + BWUnpack(raw,&out)) →
+lấy bản SplitScreen làm chuẩn, identical cả 4 vị trí
+(md5 055f1005465c9f5dfbfdb84f7a0cb57b), adapt ABInApp.m
+6 điểm (:206, :219, :257–260, :279–283). Harness trên
+header cuối: 38/38 PASS ở cả hai module, gồm hằng V6
+file-local của ABHost (0xE9DA706814803C14) bit-identical
+với header chuẩn trên miền kiểm thử. Chuỗi 4 kênh
+byte-equal ở 3 nơi (SCPShared.m:33–36,
+ABChannelNames.m:47–50, statics ABInApp.m:104–107);
+FNV-1a khớp cả 3 hàm băm (ABBundleHash/ABBundleIDHash/
+BWBundleHashCString).
+- Candidate local: com.anlai.omnicar_1.0.3-wake1_
+iphoneos-arm64.deb — 994.274 B, SHA-256
+12d41e98160bbbb2371bb755562c0085b18c9700a78e2c12b012de86c826e38f;
+control Package com.anlai.omnicar, Version 1.0.3,
+iphoneos-arm64; member qua dm.pl (debian-binary +
+control.tar.gz + data.tar.lzma) như mọi candidate
+r3–r7; arm64-only như mọi candidate local.
+- Gate 1 (đo trên binary trích từ CHÍNH candidate;
+baseline fixround7 FAT): selector parity __objc_methname
+mất 0/8 thành phần (AppBridge 705→716, SplitScreen
+1093→1317, còn lại chỉ +selref Foundation); danh sách
+file ≡ baseline, đúng 6 dylib chuẩn, 0 file QA19/QA20/
+DoubleTap/YouTubeHandle/NativeSolo; g1 PASS (AppBridge
+@0x7878 and #0x2 → @0x789c cmp #0 → @0x78a0 csel ne;
+changed @0x78ac cmp #0xff → csel eq); g2 PASS (@0x15f58
+tst #0x2 → @0x15f5c csel eq); h PASS (C-A: setBarVisible
+@0xbc7c → @0xbc88 cmp w0,w22 → @0xbc8c b.ne; C-B: block
+@0xc618 fmov d0,#1.0 @0xc638 → setAlpha: @0xc63c TRƯỚC
+setTransform: @0xc664); f PASS (hook @0x15bb8 sub #3 →
+@0x15bbc cmp #2 → @0x15bc0 csel lo); publishKnobsNow
+(hàm 0x159e0–0x15f20) đúng 1 eor @0x15d44, w27 = kết quả
+IsIdentity @0x15cf0; khoá pinch ENFORCE PASS (adapter
+currentState @0x2f9e4 = mov x0,#0; ret; điểm bắn đọc
+currentState @0x2f31c + hỏi pinchDispositionForPane:
+@0x2f3a4 TRƯỚC mọi request); sendEvent: chỉ ở AppBridge
+(1; 7 binary còn lại 0); kênh cũ nguyên vẹn
+(apporient/.orientation/.keyboard) + bridgewake.v1.*
+đủ 4 chuỗi ở SplitScreen + AppBridge; selector mới đều
+có IMP hoặc là selector framework chuẩn; mirror hai cây
+identical mọi file đã sửa. Modes trong candidate: không
+pref đặt sẵn → cả hai DRY_RUN, không thể tự ENFORCE.
+Vẫn là "đã kiểm tra tĩnh" — không phải PASS hành vi.
+
+### 22.7 Ship wake1 + xác minh hai slice trên FAT
+- Git: main a907505 (source wake1), ci-fat-test 21e1b95
+(merge); CI workflow build-fat-macos.yml (410962367),
+run dispatch 42573985624 — SUCCESS (truy vấn trực tiếp).
+- FAT: com.anlai.omnicar_1.0.3-rebuilt-wake1-fat_
+iphoneos-arm64.deb — 1.184.484 B, SHA-256
+279005f45cb84d340e050461a46b4768fc4226c6edf80709af606004a9c3c2f1;
+member debian-binary + control.tar.gz + data.tar.lzma;
+control Version 1.0.3.
+- Xác minh trên FAT (cả hai slice arm64 + arm64e):
+chuỗi bridgewake.v1.* đủ 4/4 ở SplitScreen + AppBridge
+× 2 slice; publishKnobsNow đúng 1 eor × 2 slice; g1
+dạng csel × 2 slice; adapter currentState =
+mov x0,#0; ret × 2 slice. UUID từng slice trong
+ACCEPTANCE_WAKE1.
+
+### 22.8 Điểm diễn giải — CHỜ GPT PHÁN (không tự kết luận)
+1. ABHost hop: thiết kế §6 trỏ handler frame/open ở
+ABChannels.m:203/:244, nhưng hai handler đó trong cây
+là bản tham chiếu trong #if 0; handler SỐNG nằm ở
+ABHostGeometry.m (ngoài phạm vi strand + cổng cấm sửa
+thân hàm áp frame). Giải pháp: observer riêng trên cùng
+hai thông báo + MỘT hop main-queue trước khi đọc
+snapshot — bảo đảm đọc sau khi frame áp thật, không
+đụng handler hiện hữu. Câu hỏi Gate 2: hop có kịp ngân
+sách ack 800 ms và hạn WAKING 1,0 s không (đếm
+"wake confirm timeout" trong log [wake1]).
+2. targetVerified phía ABInApp cài CHẶT (impl-abapp
+điểm 2): mọi Began phải có window != nil (thiếu →
+notarget) và == ABKeyWindow() hiện hành (khác → phone,
+wouldSwallow=0). Chiều fail-open; Gate 2 trả lời bằng
+dữ kiện xe: chạm hosted thật có rơi vào window
+không-key không — nếu có, luật phải nới trước khi bàn
+ENFORCE.
+3. Header pack lệch API đã chuẩn hoá về bản SplitScreen
+(22.6): bề mặt API phía AppBridge đổi sau khi strand
+ABInApp đã đạt 17/17 trên bản của nó; tương đương được
+chứng minh lại bằng harness cuối 38/38 ở cả hai module.
+4. externalChainSuppressed suy từ WAKING phía owner:
+không tồn tại tín hiệu liên-process "chuỗi đang bị
+nuốt" nhìn thấy từ CarPlayApp; sự thật tương đương là
+giao dịch wake đang mở trên slot (bwWakePendingBySlot —
+khi đó pane ở WAKING và chuỗi phía app đang bị giữ).
+Helper BWPublishChainSuppressed() duy trì
+controller.externalChainSuppressed = (có bất kỳ slot
+nào đang WAKING), gọi tại đúng 5 điểm mở/đóng giao
+dịch (bwInstallOwner, mở WAKING trong
+bwHandleWakePacket, đóng bởi ack trong bwHandleAckPacket,
+đóng bởi hạn 1,0 s, bwSessionTeardown). Trong
+pinchDispositionForPane:, tham số touchesSuppressed
+không cần đáp án riêng từ owner — state WAKING đã lưu
+ánh xạ sẵn sang BlockedUnknown. Không bịa kênh mới.
+5. assigned(p) gồm thêm self.active (impl-carplay
+quyết định 1): thiết kế §1.2 chỉ viết thuộc hostedPanes
++ bundleID != nil; không tính active thì recompute
+trong phần còn lại của dashboardInvalidated lật pane về
+VISIBLE/HIDDEN sau teardown — INACTIVE phải ổn định.
+6. Wake khi state == VISIBLE ack ngay (impl-carplay
+quyết định 6): vẫn gọi đường hiện bar (gia hạn timer
+4 s) + ack role=0 ngay, KHÔNG mở giao dịch WAKING —
+setBarVisible:YES khi bar đã hiện không đẩy frame nên
+ABHost không có gì để confirm trong 800 ms; mở giao
+dịch chỉ tổ nhận confirm UNKNOWN oan. Wake ở
+UNKNOWN/WAKING/INACTIVE bị bỏ + đếm (app fail-open
+theo hạn ack 1,5 s của nó).
+7. Hai bề mặt allowlist pinch khác nhau, cả hai mặc
+định rỗng: (a) cờ pinchAllowed trong gói state ← pref
+bridgewake.pinchAllowlist của owner (mảng chuỗi; vắng
+= rỗng) — nuôi probe phía app; (b) cổng 5 của
+controller ← danh sách (bundle, scene) riêng trong
+SCPPinchController, giữ rỗng cho tới sau Gate 2/3.
+Thêm nữa: trạng thái owner để ở file statics khoá theo
+slot (bwGenBySlot/bwState) thay vì ivar trong
+SCPCarSplit.h/SCPCarPane.h — giới hạn phạm vi file của
+strand CarPlay; hành vi khớp thiết kế, dời khai báo là
+việc cơ học nếu GPT yêu cầu.
+
+### 22.9 Còn mở sau wake1
+- Gate 2–6 của WO tích hợp: PENDING — chờ MỘT phiên xe
+gộp (kịch bản trong ACCEPTANCE_WAKE1): dry-run đếm
+wouldSwallow/wouldPinch + phân loại phone/iPhone; phân
+bố ba kết cục ack; recognizer CarPlay thấy đủ cặp
+complete ở SPLIT không; kiểm núm trên xe; nghiệm thu
+Weather fixround7 gộp cùng phiên (vẫn PENDING từ §21).
+- Pinch: BLOCKED tại A1 — điều kiện mở lại ở 22.3.
+ENFORCE của wake chỉ được bàn sau khi Gate 2 đạt.
+- VISUAL_ORIGINAL_COMPARISON = PENDING (§21.4), không đổi.
+- Giữ nguyên từ các vòng trước: bản sao Weather phía
+Prefs (OMCCommon.m) chưa rà (§21.6); đuôi !logoView
+playIntro phía xe; cellClass giữ nhãn UNVERIFIED.

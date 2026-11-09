@@ -118,6 +118,13 @@ Từ log + ảnh phiên fixround3, GPT ra **Consolidated Repair Order (A–I)**,
 - **fixround7** (`cee2d21`; FAT 1.159.010 B, SHA `f2cc8ffe…`, CI 42564680212): Weather trọn cụm
   W1–W8 + gradient style 3, gộp sửa bộ lọc hướng {3,4}. Toàn bộ cổng trên candidate đạt, gồm hồi quy
   thanh hosted (h) và hai cổng hướng (g1/g2). **Đang chờ phiên xe nghiệm thu Weather** (mục 6).
+- **wake1** (`a907505`; FAT 1.184.484 B, SHA `279005f4…`, CI 42573985624): vòng TÍNH NĂNG trên nền
+  fixround7 — Bridge Wake (chủ trạng thái tổng hợp mới ở SCPCarSplit + xác nhận ABHost + relay/probe/
+  suppression trong ABInApp, giao thức bridgewake.v1, hai mode độc lập mặc định DRY_RUN) + pinch
+  recognizer/probe DRY_RUN với adapter rỗng + sửa cực publishKnobsNow. Gate 0/1 PASS tĩnh (parity
+  mất 0/8, harness giao thức 38/38, núm đúng 1 eor ở cả hai slice). **Pinch BLOCKED tại cổng A1**
+  (dylib fullscreen QA20 không có entry điều khiển hợp lệ — PATCH_NOTES §22.3). **Đang chờ MỘT phiên
+  xe gộp:** Gate 2 dry-run + kiểm núm + nghiệm thu Weather của fixround7.
 
 ## 5. Các kết tội lớn — nguyên nhân và cách đóng
 
@@ -260,16 +267,25 @@ phiên YouTube — hai việc không gộp nguyên nhân.
 - **Để dành chưa diễn tập:** bài kiểm hết hạn (epoch 1809104400), cứu crash có chủ đích, kiểm tải.
 
 
-## 7. Đang giữ và đang mở (toàn bộ, tính đến sau fixround7)
+## 7. Đang giữ và đang mở (toàn bộ, tính đến sau wake1)
 
 **Đang giữ theo thứ tự đã chốt (không tự động vào bản):**
-- Núm vách ngăn: bản sửa một phép phủ định đã sẵn (mục 5.4) — chờ thả theo thứ tự bằng chứng của GPT.
+- Núm vách ngăn: ĐÃ SỬA ở wake1 (mục 5.4; `@(!scaled)` → `@(scaled)`, cổng object + FAT hai slice
+  đạt) — chỉ còn chờ kiểm chứng trên xe trong phiên gộp wake1.
 - Đuôi `!logoView` của playIntro phía xe: ba slot ivar 0xcb0/0xcc0/0xcc8 chưa ánh xạ đủ tin cậy;
   nhánh không tới được sau reload bình thường; số dump đầy đủ ở `work/fix-round4/fix-playintro.md`.
 - **cellClass** (OMCFeatureStatusCell ở specifier Prefs): giữ nhãn **UNVERIFIED** — UUID của crash
   chưa ghép được đúng binary; không sửa dựa trên suy đoán (GPT đồng thuận).
 
 **Đang mở:**
+- **Pinch Fullscreen: BLOCKED tại cổng A1** (vòng wake1) — dylib fullscreen QA20 không có entry điều
+  khiển hợp lệ từ ngoài (OMCToggleHost static, đúng một điểm gọi nội bộ; kênh chrome một chiều;
+  không đường đọc expanded). Trong bản wake1 chỉ có recognizer + probe DRY_RUN + adapter rỗng khóa
+  ENFORCE. Mở lại khi GPT phát hành dylib mới có entry + đường đọc trạng thái đã kiểm chứng (MD5
+  mới, kiểm lại A1 từ đầu). Báo cáo: `reports/a1-fullscreen-entry.md`, PATCH_NOTES §22.3.
+- **Wake Gate 2–6: chờ MỘT phiên xe gộp** (kịch bản trong ACCEPTANCE_WAKE1): dry-run đếm
+  wouldSwallow/wouldPinch + phân loại phone, phân bố ba kết cục ack, kiểm núm, và nghiệm thu
+  Weather của fixround7 gộp cùng phiên. ENFORCE của wake chỉ được bàn sau khi Gate 2 đạt.
 - Bản sao Weather phía Prefs (`OMCCommon.m`) — module riêng, chưa rà theo cụm W (phát hiện ở vòng 7).
 - SSSplash init: gốc đặt `contentView.userInteractionEnabled = YES` (@0x57d0); cây ghi NO kèm nhãn
   INFERRED — vi mục chờ xử lý.
@@ -287,17 +303,20 @@ phiên YouTube — hai việc không gộp nguyên nhân.
 - Các vụ tử vong oan `CarPlayTemplateUIHost` (shortcut-buttons.ips): chỉ xét lại nếu còn tái diễn.
 - Các nhóm nghiệm thu §9 ngoài các phiên đã chạy; ba bài kiểm để dành ở mục 6.
 
-## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~12:05)
+## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~13:45)
 
-- **Bản đứng:** `com.anlai.omnicar_1.0.3-rebuilt-fixround7-fat_iphoneos-arm64.deb` — 1.159.010 byte,
-  SHA-256 `f2cc8ffe59e15993eb8d8704f712638a8cce6874d3201786c46e8c83daa38133`; candidate local
-  975.618 B `f4f84555…`; CI run dispatch **42564680212** success (workflow 410962367).
-  Các bản trước: fixround6 `0ce8a4f7…`, fixround5 `03010edc…`, fixround4 `6ab47eab…`,
-  fixround3 `77230019…`, prefsround `44019c7c…`, gatefix `1132c3a8…`, arityfix `d61dc7ba…`.
-- **Git:** main — ship fixround7 `cee2d21` → acceptance `cf16b36`; ci-fat-test `ce6f2db`.
-  Log xe mới nhất trên repo: commit `9f20d83` (phiên fixround6, 878 dòng). Phiên fixround7 chưa diễn ra.
+- **Bản đứng:** `com.anlai.omnicar_1.0.3-rebuilt-wake1-fat_iphoneos-arm64.deb` — 1.184.484 byte,
+  SHA-256 `279005f45cb84d340e050461a46b4768fc4226c6edf80709af606004a9c3c2f1`; candidate local
+  994.274 B `12d41e98…`; CI run dispatch **42573985624** success (workflow 410962367).
+  Các bản trước: fixround7 `f2cc8ffe…`, fixround6 `0ce8a4f7…`, fixround5 `03010edc…`,
+  fixround4 `6ab47eab…`, fixround3 `77230019…`, prefsround `44019c7c…`, gatefix `1132c3a8…`,
+  arityfix `d61dc7ba…`. **Baseline rollback:** fixround7 FAT + gói hợp nhất QA20.
+- **Git:** main — ship wake1 source `a907505`; ci-fat-test `21e1b95`.
+  Log xe mới nhất trên repo: commit `9f20d83` (phiên fixround6, 878 dòng). Phiên wake1 chưa diễn ra.
 - **Đã đóng trên xe:** thanh "..." hosted (fixround5). **Đã đóng ở tầng giao thức:** hai cổng hướng
-  (log fixround6). **Đóng điều tra tĩnh:** fullscreen YouTube (mục 5.3). **Chờ xe:** Weather (fixround7).
+  (log fixround6). **Đóng điều tra tĩnh:** fullscreen YouTube (mục 5.3). **Static PASS:** wake
+  Gate 0/1 (PATCH_NOTES §22). **BLOCKED:** pinch tại cổng A1. **Chờ xe:** phiên gộp wake1
+  (Gate 2 dry-run + kiểm núm) và Weather (fixround7).
 
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 
