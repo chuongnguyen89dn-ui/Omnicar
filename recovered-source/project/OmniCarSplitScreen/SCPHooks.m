@@ -715,7 +715,7 @@ __attribute__((constructor))
 static void SCPInitDashboardHooks(void) {
     if (!SCPHostIsCarPlayApp()) return;
     if (!OMCCrashGuard(@"splitScreen")) return;
-    OMCLogWrite(@"SplitScreen", @"loaded into CarPlay [fixround4]");
+    OMCLogWrite(@"SplitScreen", @"loaded into CarPlay [fixround5]");
 
     Class dashboard = OMCCarClass("DBDashboard");
     MSHookMessageEx(dashboard, @selector(sceneFrameForAppInfo:proxyAppInfo:),

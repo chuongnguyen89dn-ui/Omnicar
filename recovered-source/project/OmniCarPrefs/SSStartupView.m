@@ -636,51 +636,72 @@ NSArray *SSSampleHudItems(NSString *carName) {
     OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
         @"[W1] SSStartupView playIntro enter sceneStyle=%ld logoEffect=%ld",
         (long)_sceneStyle, (long)self.logoEffect]);
+    // [fix-round5] Restored to the PREFS binary's own playIntro @0x493a4
+    // (disasm src/Prefs/disasm/SSStartupView.asm; constants read raw from
+    // the original arm64 slice). u = MAX(_unit, 1) is computed up front
+    // (fcsel @0x493d8-0x493e0) and used by both the glow radius (7*u) and
+    // the scene translation (6*u). The !logoView tail (t0/playing/engine
+    // start gated on _sceneStyle >= 0, then the _stack ?: _posterView
+    // spring) runs ONLY when there is no logo view, exactly as in the
+    // binary; ivar targets resolved via the binary's offset table +
+    // objc.json (_stack @16, _logoView @24, _posterView @32,
+    // _sceneStyle @168, _t0 @256, _playing @264).
     [self layoutIfNeeded];
+    CGFloat u = MAX(_unit, 1.0);
     if (_logoView) {
         _logoView.layer.removeAllAnimations;
         _logoView.layer.shadowOpacity = 0;
         _logoView.alpha = 0;
         if (self.logoEffect == 1) {
             _logoView.transform = CGAffineTransformMakeScale(0.5, 0.5);
-            [UIView animateWithDuration:0.9 delay:0
+            [UIView animateWithDuration:1.1 delay:0.1
                  usingSpringWithDamping:0.7 initialSpringVelocity:0
                                 options:0 animations:^{
-                _logoView.transform = CGAffineTransformIdentity;
                 _logoView.alpha = 1;
+                _logoView.transform = CGAffineTransformIdentity;
             } completion:nil];
         } else if (self.logoEffect == 2) {
             // Glow: pulsing shadowOpacity via CABasicAnimation (key "ssGlow").
             _logoView.transform = CGAffineTransformIdentity;
             _logoView.layer.shadowColor = [UIColor whiteColor].CGColor;
-            _logoView.layer.shadowRadius = 7;
+            _logoView.layer.shadowOffset = CGSizeZero;
+            _logoView.layer.shadowRadius = 7 * u;
+            _logoView.layer.shadowOpacity = 0.6f;
             CABasicAnimation *glow = [CABasicAnimation animationWithKeyPath:@"shadowOpacity"];
-            glow.fromValue = @0.15; glow.toValue = @0.6;
-            glow.duration = 1.6; glow.autoreverses = YES;
+            glow.fromValue = @0.0; glow.toValue = @0.95;
+            glow.duration = 1.2; glow.autoreverses = YES;
             glow.repeatCount = HUGE_VALF;
             glow.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
             [_logoView.layer addAnimation:glow forKey:@"ssGlow"];
-            [UIView animateWithDuration:0.6 animations:^{ _logoView.alpha = 1; }];
+            [UIView animateWithDuration:0.9 animations:^{ _logoView.alpha = 1; }];
         } else {
-            _logoView.transform = CGAffineTransformMakeScale(0.9, 0.9);
-            [UIView animateWithDuration:0.6 delay:0 options:0 animations:^{
-                _logoView.transform = CGAffineTransformIdentity;
+            _logoView.transform = CGAffineTransformMakeScale(0.96, 0.96);
+            [UIView animateWithDuration:1.2 delay:0.05 options:0 animations:^{
                 _logoView.alpha = 1;
+                _logoView.transform = CGAffineTransformIdentity;
+            } completion:nil];
+        }
+    } else {
+        _t0 = CACurrentMediaTime();
+        _playing = YES;
+        if (_sceneStyle >= 0) {
+            [self ss_applyTime:0];
+            [self ss_startLink];
+        }
+        UIView *sceneView = _stack ?: _posterView;
+        if (sceneView) {
+            sceneView.layer.removeAllAnimations;
+            sceneView.alpha = 0;
+            sceneView.transform = CGAffineTransformScale(
+                CGAffineTransformMakeTranslation(0, 6 * u), 0.92, 0.92);
+            [UIView animateWithDuration:0.9 delay:0.05
+                 usingSpringWithDamping:0.86 initialSpringVelocity:0
+                                    options:0 animations:^{
+                sceneView.alpha = 1;
+                sceneView.transform = CGAffineTransformIdentity;
             } completion:nil];
         }
     }
-    if (_stack) {
-        _stack.alpha = 0;
-        _stack.transform = CGAffineTransformScale(CGAffineTransformMakeTranslation(0, 6 * _unit), 1, 1);
-        [UIView animateWithDuration:0.8 delay:0
-             usingSpringWithDamping:0.85 initialSpringVelocity:0 options:0 animations:^{
-            _stack.alpha = 1;
-            _stack.transform = CGAffineTransformIdentity;
-        } completion:nil];
-    }
-    _t0 = [self ss_now];
-    [self ss_applyTime:0];
-    [self ss_startLink];
     // [W1] Bracket exit.
     OMCLogWriteSync(@"Prefs", @"[W1] SSStartupView playIntro exit");
 }

@@ -1061,8 +1061,19 @@ static id ABSceneOfPane(ABPane *pane) {
     [pane.box bringSubviewToFront:pane.handleHit];
 }
 
-// -setBarVisible:pop:dim:single:forApp: @0x11868 — VERIFIED (entrance
-// block @0x125C0 restores the saved transform under a spring).
+// -setBarVisible:pop:dim:single:forApp: @0x11868. The transition guard
+// is an EQUALITY test in the original (@0x11ab8-0x11ac8: cmp visible,
+// isHidden; b.ne -> return tail; cbz visible -> hideBarForPane:; else
+// the show branch): the function only acts when bar.isHidden == visible
+// — a hidden bar receiving a show command, or a shown bar receiving a
+// hide command; both already-correct combinations return untouched.
+// The entrance block sub_125C0 @0x125d4 restores alpha (setAlpha:1.0)
+// BEFORE the saved transform under the spring; that restore is load-
+// bearing because the bar is born alpha 0 (buildBarForPane: @0x10ebc)
+// and the hide completion (@0x12844) deliberately never restores it.
+// [fix-round4 audit-chain2 C-A/C-B: an earlier transcription inverted
+// the guard to (isHidden != visible) and dropped the setAlpha: from the
+// entrance block; together they made the host-side bar unshowable.]
 - (void)setBarVisible:(BOOL)visible pop:(NSInteger)pop dim:(BOOL)dim
                single:(BOOL)single forApp:(NSString *)bundleID {
     ABPane *pane = [self paneFor:bundleID];
@@ -1080,7 +1091,7 @@ static id ABSceneOfPane(ABPane *pane) {
                                  : OMCTr(@"Toàn màn", @"Full screen"));
     [self layoutBarForPane:pane];
     ABApplyAccent(pane.handle, visible);
-    if (bar.isHidden != visible) {
+    if (bar.isHidden == visible) {
         if (!visible) {
             [self hideBarForPane:pane];
         } else {
@@ -1093,7 +1104,7 @@ static id ABSceneOfPane(ABPane *pane) {
                  usingSpringWithDamping:0.86      // double @0x2B278
                   initialSpringVelocity:0.4       // double @0x2B280
                                   options:2       // raw; AllowUserInteraction INFERRED
-                               animations:^{ bar.transform = orig; }
+                               animations:^{ bar.alpha = 1; bar.transform = orig; }
                                completion:nil];
         }
     }

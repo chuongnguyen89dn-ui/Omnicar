@@ -2505,3 +2505,213 @@ bx = binary-structure trên object của build này, so = source):
 Mọi cổng vẫn là "đã kiểm tra tĩnh" — không phải PASS hành vi.
 DEVICE_TEST vòng 4 vẫn PENDING; nghiệm thu trên bản FAT cuối tại
 handover/ACCEPTANCE_FIXROUND4.md.
+
+## Fix round 5 (2026-11-09) — §19: trạm cuối thanh phía host (C-A/C-B) + playIntro
+
+Nguồn kết tội: log phiên fixround4 trên xe
+(work/device-log-20261109-fixround4/OmniCar.log, 2.310 dòng) +
+audit-chain2-zorder.md + audit-S2-greeting-geometry.md.
+
+### 19.1 Chuỗi 2 — thanh "..." phía hosted: gãy ở ABHost setBarVisible phía SpringBoard
+
+Runtime minh oan hai ứng viên cũ: 'cham thanh •••' 73 lần phía
+SpringBoard, '[do] bridge handletap' 73 lần phía CarPlay — khớp 1-1
+từng bundle (Nuvio 28 / Facebook 15 / TikTok 30, trễ ~3 ms); trạng
+thái thanh phía CarPlay mở thật (2 dòng 'dong popup' ghi 'thanh co':
+09:38:53.667, 09:43:41.026). Z-order SẠCH (scene chèn index 0 đúng
+một lần; layoutBarForPane nâng bar + handleHit ở mọi lần áp) và
+TOGGLE là hành vi gốc (bridgeHandleTapped: @0x3f65c truyền nguyên
+isHidden làm visible) — hai mục ĐÃ KHỚP, không sửa.
+
+Gãy ở hàm áp trạng thái thanh phía host — gốc
+`-[ABHost setBarVisible:pop:dim:single:forApp:]` @0x11868; bản ta
+ABHostBMethods.m (project/OmniCarAppBridge + src/AppBridgeB, mirror
+identical sau sửa):
+- **C-A — cực điều kiện chuyển trạng thái bị ĐẢO (CHẮC, dump):**
+  gốc chỉ hành động khi isHidden == visible (0x11abc isHidden →
+  0x11ac0 cmp w23,w0 → 0x11ac4 b.ne về đuôi return; cbz w23 →
+  hideBarForPane:). Bản ta chép `if (bar.isHidden != visible)`:
+  thanh sinh ra hidden=YES (buildBarForPane: @0x10eb4 — khớp) nên
+  lệnh HIỆN (1 != 1 = false) không bao giờ tới nhánh hiện; lệnh ẨN
+  cũng không. Đã sửa về equality; giữ nguyên pop/dim/single,
+  accent, layout và thân hai nhánh. Comment đầu hàm viết lại kèm
+  offset bằng chứng (comment 'VERIFIED' cũ là nhãn giả — không có
+  offset của guard).
+- **C-B — block entrance thiếu khôi phục alpha (CHẮC, dump):**
+  chu trình alpha gốc: sinh ra 0 (@0x10ebc); block entrance
+  sub_125C0 @0x125d4 `fmov d0,#1.0 → setAlpha:` TRƯỚC setTransform:;
+  completion nhánh ẩn sub_12844 cố ý KHÔNG khôi phục alpha. Bản ta
+  chỉ có `bar.transform = orig` trong block — alpha kẹt 0 vĩnh viễn
+  dù sửa riêng C-A. Đã thêm `bar.alpha = 1;` làm lệnh đầu của block
+  animations nhánh hiện; không thêm vào completion nhánh ẩn.
+- Họ lỗi: hai hàm TRÙNG TÊN setBarVisible ở hai module (CarPlay
+  `setBarVisible:forPane:` — đã derive lại vòng 3 + nghiệm thu N6;
+  host `setBarVisible:pop:dim:single:forApp:` — chưa ai trace thân
+  cho tới audit này). Bài học D6 lặp lại: cổng call-site/hằng số
+  không thay được trace THÂN hàm/block; cổng vòng 4 kiểm chuỗi
+  handle/post/state nhưng không derive lại cực điều kiện này.
+
+### 19.2 playIntro (StartupScreen) — phục hồi đủ 3 nhánh logoEffect
+
+Audit-S2 §4 kết tội biến thể gộp INFERRED (parked từ D3): scale đầu
+0.8 / spring damping 0.7 cho mọi trường hợp + quầng ghi chết (bán
+kính 32, opacity 0.8, trắng, giữ thường trực) ghi đè 7·s đúng
+chuẩn của layoutSubviews. Phục hồi theo dump @0xf768
+(fix-playintro.md): nguồn chọn là property logoEffect (SSSplash.m
+gán từ pref startupScreenLogoEffect, mặc định @0), mọi hằng đọc
+trực tiếp từ __TEXT/__const của gốc:
+- ==1: scale đầu 0.5; spring duration 1.1, delay 0.1, damping 0.7,
+  velocity 0, options 0; block: alpha 1 + transform identity.
+- ==2: identity; bóng trắng / offset zero / radius 7·max(_unit,1) /
+  model opacity 0.6f đặt TRƯỚC animation; CABasicAnimation
+  shadowOpacity from NSNumber 0.0 tới 0.95, duration 1.2,
+  autoreverses, repeatCount HUGE_VALF, EaseInEaseOut, key ssGlow;
+  fade alpha về 1 trong 0.9 s.
+- còn lại: scale đầu 0.96; animate 1.2 / delay 0.05 / options 0;
+  block: alpha 1 + identity.
+ĐÍNH CHÍNH hằng của audit-S2 §4: 0.86 damping + 0.92 scale thuộc
+SPRING CỦA NHÁNH SCENE (đuôi !logoView @0xfccc–0xfcdc), không thuộc
+nhánh logoEffect==1 (bộ hằng riêng 0x28ec8/0x28ed0/0x28e10). Sửa
+đồng bộ project/OmniCarStartupScreen + src/StartupScreen (mirror
+identical).
+
+### 19.3 Cổng vòng 5 trên candidate local (đo trên binary trích từ chính candidate)
+
+Candidate: com.anlai.omnicar_1.0.3-rebuilt-fixround5_iphoneos-
+arm64.deb, 974.536 B, SHA-256
+bf1a1438c4030a2d84a8bcf6dab4c9a2f272e3bc3140093c80a5672d14ca35e0,
+control Version 1.0.3. Build: kiểm toolchain trước (đủ, không cần
+fix-toolchain.sh), make clean từng module ×8 rồi root make package.
+- (a) host-bar — ĐẠT (binary-structure): trong dylib AppBridge của
+  candidate: `-[ABHost setBarVisible:pop:dim:single:forApp:]`
+  imp 0xae58 — 0xb0e0 selref isHidden → 0xb0ec `cmp w0, w22`
+  → 0xb0f0 `b.ne 0xb24c` (epilogue/ret); fall-through 0xb0f4
+  `tbz w22` → 0xb12c → hideBarForPane:, còn lại setHidden:0 (nhánh
+  hiện). Block entrance @0xba7c (adr từ nhánh hiện trong hàm):
+  ldr thanh [x0,#0x20] → selref setAlpha: → 0xba9c
+  `fmov d0,#1.00000000` → msgSend → dựng lại transform → selref
+  setTransform: → msgSend. Alpha TRƯỚC transform kèm fmov 1.0 —
+  đúng thứ tự gốc.
+- (b) playIntro — ĐẠT (binary-structure): playIntro [0xe268,0xe868)
+  trong dylib StartupScreen của candidate: selref logoEffect →
+  0xe32c `cmp x0,#0x2` b.eq (nhánh 2) → 0xe334 `cmp x0,#0x1` b.ne
+  → fallthrough 0xe6a8; tập hằng hàm {0.05, 0.1, 0.5, 0.6f, 0.7,
+  0.9, 0.95, 1.1, 1.2, 7.0} đủ bộ; 32.0 và 0.8 vắng ở mọi dạng nạp
+  (fmov/literal/movk); setShadowRadius: đúng 1 lời gọi thật —
+  0xe4c4 `fmov d0,#7.0` → 0xe4c8 `fmul d0, d8, d0` → msgSend
+  (dòng 'setShadowRadius:' thứ hai ở 0xe4ec là chú thích lệch
+  thanh ghi của objdump — lời gọi thật ở đó nạp float literal
+  0x269d0 = 0.6f, tức setShadowOpacity: model); setRepeatCount:
+  nạp `mov w8,#0x7f800000 → fmov s0` @0xe5cc.
+- (c) marker — ĐẠT (binary-string): [fixround5] có trong dylib
+  SplitScreen ('loaded into CarPlay'), binary Prefs ('[GPT-F]
+  specifiers build') và dylib AppBridge ('build %s (%s) loaded
+  into %@'); literal fbebb21 giữ nguyên.
+- (d) hồi quy — ĐẠT (binary-string/bytes): chuỗi 'cham thanh' còn
+  trong dylib AppBridge (dạng UTF-16LE, 1 điểm); hằng double 150.0
+  (picker) còn trong dylib SplitScreen (1 điểm).
+Mọi cổng vẫn là 'đã kiểm tra tĩnh' — không phải PASS hành vi.
+
+### 19.4 Đối chiếu chéo với GPT (độc lập)
+
+GPT bàn giao findings riêng sau phiên xe fixround4
+(user/files/OmniCar_Fixround4_Log_and_Hosted_Bar_Findings.txt):
+kết luận độc lập KHỚP C-A/C-B — cùng chỉ ra nhánh compare phải
+skip khi hidden != visible và block show phải có setAlpha:1 +
+transform (mục H của GPT ghi kiểm binary: 'nhánh compare phải
+skip khi hidden!=visible; block show phải có setAlpha:1 và
+transform' — trùng đúng cổng (a) ở 19.3) — và KHỚP toàn bộ hằng
+playIntro (bảng §G của GPT, đọc từ raw bytes gốc: 0x28ec8=1.1,
+0x28ed0=0.1, 0x28e10=0.7, 0x29424 float 0.6, NSNumber 0.0/0.95,
+0x28eb0=1.2, 0x28e70=0.9, 0x28eb8=0.96, 0x28ec0=0.05; gồm đính
+chính damping nhánh logo spring là 0.7 và 0.86 thuộc nhánh
+scene). Patch thanh của GPT (OmniCar_Fixround4_Hosted_Bar.patch —
+sửa hai lỗi B+C trên cả project/OmniCarAppBridge + src/AppBridgeB,
+đầu vào 16f3125) đã đối chiếu: nội dung trùng với sửa C-A/C-B đã
+có trong cây — không áp thêm, không xung đột.
+
+### 19.5 Còn mở sau vòng 5
+
+- **playIntro phía PREFS (CHƯA CÓ TRONG CANDIDATE NÀY):** bản xem
+  trước trong Cài đặt (gốc @0x493a4) cũng có nhánh spring
+  1.1/0.1/0.7 (hằng gốc 0x65ba0/0x65748/0x65700 — GPT §G) nhưng
+  bản preview của ta đang mang giá trị khác. Một fixer riêng đang
+  sửa (work/fix-round4/fix-playintro-prefs.md). Candidate ở 19.3
+  được build TRƯỚC khi sửa Prefs đáp xuống → CHƯA gồm mục này;
+  chờ quyết định build lại rồi mới dispatch CI/đóng bản FAT
+  fixround5 chính thức. Không giao bản thiếu.
+- Đuôi !logoView của playIntro gốc (@0xf8c4–0xfcf8): ba slot ivar
+  0xcb0 / 0xcc0 / 0xcc8 chưa ánh xạ được sang tên ivar với độ
+  chắc đủ để sửa an toàn (bản ta vẫn là biến thể cũ: _t0/_playing
+  + ss_applyTime:/ss_startLink không guard + không hoạt ảnh
+  scene). Nhánh không tới được sau reload (reload tạo _logoView
+  vô điều kiện) — để vòng branch-fidelity riêng, cùng hai reset
+  của clearContent (_unit/_sceneStyle) ghi ở D3.
+- Chuỗi 2 đóng khi test xe fixround5 đạt mục thanh hosted; nếu
+  thanh vẫn không hiện sau vòng 5, điểm đo tiếp theo là thêm log
+  [do] trong ABFrameBlock (chưa thêm trước).
+### 19.6 Lượt build gộp cuối vòng 5 — playIntro Prefs vào candidate (ĐÃ SỬA)
+
+Fixer Prefs (work/fix-round4/fix-playintro-prefs.md) khôi phục
+playIntro phía Cài đặt theo dump gốc @0x493a4: e1 spring
+1.1/0.1/0.7 + scale đầu 0.5; e2 shadow trắng offset zero /
+radius 7·max(_unit,1) / model opacity 0.6f + glow 0.0→0.95
+trong 1.2 s (autoreverses, HUGE_VALF, key ssGlow) + fade
+0.9 s; else scale 0.96 / 1.2 s / delay 0.05. ĐUÔI !logoView
+phía PREFS sửa được trọn vì bảng ivar của binary Prefs ánh
+xạ chắc (_unit 8 / _stack 16 / _logoView 24 / _posterView
+32 / _sceneStyle 168 / _t0 256 / _playing 264 / _link 272):
+_t0 = CACurrentMediaTime() gọi thẳng, _playing = YES,
+ss_applyTime:/ss_startLink chỉ khi _sceneStyle >= 0, đích
+_stack ?: _posterView, translation 6·u, scale 0.92, spring
+0.9/0.05/0.86. Mirror project/OmniCarPrefs ↔
+src/Prefs/OMCPrefs identical.
+
+Candidate ship vòng 5 (build lại sạch từng module ×8 sau
+khi fix Prefs đáp, root make package FINALPACKAGE=1):
+com.anlai.omnicar_1.0.3-rebuilt-fixround5_iphoneos-arm64.deb,
+974.214 B, SHA-256
+146e26572fbd040de4bc0e5dee1429a00cbe166d0152ab3a9cde5d22d0a51437,
+control Version 1.0.3 — THAY candidate lượt 1 ở 19.3
+(bf1a1438…, giữ làm đối chứng cổng). Đối chiếu từng binary:
+7/8 byte-identical với lượt 1; chỉ binary Prefs thay đổi —
+đúng phạm vi sửa.
+
+Cổng trên candidate ship (đo trên binary trích từ chính
+candidate; selector nhận diện qua selref literal →
+__objc_methname, khớp 5/5 slot đối chứng của 19.3):
+- (a) host-bar — ĐẠT (binary-structure): như 19.3, đo lại
+  trên file mới (imp 0xae58; selref isHidden → cmp w0,w22
+  @0xb0ec → b.ne về epilogue 0xb24c; tbz w22 → nhánh ẩn
+  0xb12c; nhánh hiện setHidden: w2=0; block entrance 0xba7c:
+  fmov d0,#1.0 @0xba9c → setAlpha: → setTransform:).
+- (b) playIntro xe — ĐẠT (binary-structure): như 19.3
+  (logoEffect; cmp #2 b.eq @0xe32c; cmp #1 b.ne @0xe334;
+  đủ tập hằng; vắng 32.0/0.8; setShadowRadius: +
+  setRepeatCount:; fmov 7.0).
+- (b2) playIntro PREFS — ĐẠT (binary-structure): imp
+  0x52c14, cửa sổ [0x52c14, 0x53518): logoEffect được gọi;
+  ba nhánh ở dạng cmp của bản release — cmp #1 @0x52d60
+  b.ne → 0x52e74, tại đó gọi lại logoEffect rồi cmp #2
+  b.ne → 0x531b4, else là fallthrough (dạng subs #1/#2 là
+  mã hoá ở object debug của fixer; bản đóng gói dùng cmp
+  như phía xe ở cổng (b) — cùng cấu trúc ba nhánh); tập
+  hằng hàm {1.1, 0.1, 0.7, 0.6f, 0.95, 1.2, 0.9, 0.05,
+  0.96, 0.92} đủ (kèm 0.86 damping nhánh scene, 6.0 hệ số
+  translation, 7.0 hệ số radius — đúng dump Prefs); VẮNG
+  {32.0, 0.8f, 1.6, 0.15} ở mọi dạng nạp.
+- (c) marker — ĐẠT (binary-string): như 19.3.
+- (d) hồi quy — ĐẠT (binary-string/bytes): như 19.3.
+Tổng 29/29 phép kiểm tĩnh ĐẠT trên candidate ship. Vẫn là
+'đã kiểm tra tĩnh' — không phải PASS hành vi.
+
+Còn mở sau vòng 5 (cập nhật, thay danh sách ở 19.5):
+(1) đuôi !logoView của playIntro phía XE (@0xf8c4–0xfcf8)
+— ba slot ivar 0xcb0/0xcc0/0xcc8 chưa ánh xạ chắc, để vòng
+branch-fidelity riêng cùng hai reset clearContent ghi ở
+D3 (phía Prefs đã sửa trọn ở mục này); (2) phần tử tròn ở
+mép phải màn hình trong ảnh phiên fixround4 — chưa định
+danh được từ log, chưa đủ căn cứ sửa máy trạng thái bong
+bóng (khớp kết luận GPT); (3) Chuỗi 2 đóng khi test xe
+fixround5 đạt mục thanh hosted; nếu thanh vẫn không hiện,
+điểm đo tiếp theo là thêm log [do] trong ABFrameBlock.
