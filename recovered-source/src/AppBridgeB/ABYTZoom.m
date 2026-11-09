@@ -135,7 +135,9 @@ static NSString *YZSceneIDForPane(ABPane *pane) {
 // frame/open observers (YZRegisterHostLease). The flag itself is
 // consumed inside setBarVisible:pop:dim:single:forApp: — a body
 // this feature must not touch — so the raw packet key is tracked
-// here instead (same delivery, same value).
+// here instead (same delivery, same value). Since WO Y1 this map
+// feeds ONLY the pre-field fallback in YZComputeIsSplit below —
+// the bar's zoom flag is no longer the isSplit source.
 static NSMutableDictionary<NSString *, NSNumber *> *YZLastSingleByBundle(void) {
     static NSMutableDictionary *singles;
     static dispatch_once_t once;
@@ -143,11 +145,57 @@ static NSMutableDictionary<NSString *, NSNumber *> *YZLastSingleByBundle(void) {
     return singles;
 }
 
-// isSplit (design §4.2): more than one pane hosted AND the pane's
-// most recent frame/open packet did not carry single = YES. The
-// field only steers the app's 0.12 s re-read step (design §5.5);
-// an error here cannot break the core mechanism.
+// ---------------------------------------------------------------------------
+// Session split state (GPT WO Y1). SCPCarSplit — the presentation
+// owner — computes the authoritative split verdict from its own
+// state (active split session, >= 2 layout panes, no zoomed slot)
+// and rides it in every hostFrameInfo packet as `split` (BOOL)
+// with `splitver` (field version, 1). This TU's frame/open
+// observers (YZRegisterHostLease) record the newest value PER
+// SESSION here, with its receive time; YZComputeIsSplit reads
+// this store. The value is event state, not a lease: it persists
+// across quiet stretches (a static presentation posts no new
+// packets and has not changed), and the first open packet of any
+// hosted pane lands before that pane's launch completes, so the
+// store is populated before the first publish that reads it.
+// ---------------------------------------------------------------------------
+static BOOL YZSessionSplitKnown = NO;
+static BOOL YZSessionSplitValue = NO;
+static NSTimeInterval YZSessionSplitAt = 0;   // receive time of the newest value
+static NSInteger YZSessionSplitVer = 0;       // splitver of the newest packet
+
+static void YZNoteSessionSplit(NSNumber *split, NSNumber *ver) {
+    if (!split) return;   // packet predates the field: nothing learned
+    YZSessionSplitKnown = YES;
+    YZSessionSplitValue = [split boolValue];
+    YZSessionSplitAt = [NSDate date].timeIntervalSince1970;
+    YZSessionSplitVer = ver ? [ver integerValue] : 0;
+}
+
+// isSplit (design §4.2, source replaced by WO Y1): the session
+// store above when a `split` field has been received. The ORIGINAL
+// derivation — ABHost's hosted-pane count plus the bar's `single`
+// key — is WRONG for a mixed split (one native pane + one hosted
+// YouTube pane: ABHost hosts exactly one pane while the car IS
+// split, so the count said "not split" and the app's 0.12 s
+// re-read never armed) and survives ONLY as the fallback for
+// senders older than the field; every fallback use is logged
+// (throttled like yzLogAppOrientBlockedForPane:) so the car log
+// can convict which source produced the value. The field only
+// steers the app's 0.12 s re-read step (design §5.5); an error
+// here cannot break the core mechanism.
+static NSTimeInterval YZLastFallbackLogAt = 0;
+
 static BOOL YZComputeIsSplit(ABHost *host, NSString *bundleID) {
+    if (YZSessionSplitKnown) return YZSessionSplitValue;
+    // FALLBACK (sender older than the `split` field): the pane
+    // count lives ONLY on this path now, behind the log.
+    NSTimeInterval now = [NSDate date].timeIntervalSince1970;
+    if (now - YZLastFallbackLogAt >= 5.0) {
+        YZLastFallbackLogAt = now;
+        OMCLogWrite(@"AppBridge",
+            @"[ytz] isSplit-fallback: chua nhan truong split tu CarPlay, dung dem pane + single");
+    }
     if (host.panes.count <= 1) return NO;
     return ![YZLastSingleByBundle()[bundleID] boolValue];
 }
@@ -396,6 +444,18 @@ static void YZHandleAck(NSNotification *note) {
         return;
     }
     if ([phase isEqualToString:ABYTLeasePhaseExpired]) {
+        // Y4 instrument (WO Y4): the app has declared the lease
+        // LAPSED (no heartbeat inside its 3.0 s TTL window). The
+        // generic ack line above does not distinguish this event,
+        // so log the declaration explicitly — bundle, the record's
+        // generation and the heal count this declaration is about
+        // to consume — BEFORE the guards below, so a lapse the host
+        // cannot heal (record inactive, pane gone, pref off) is
+        // still on the record. OMCLogWrite stamps the time.
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[ytz] lease-lapse: app khai het han bundle=%@ gen=%lu heal=%lu",
+            bundle, (unsigned long)(rec ? rec.generation : 0),
+            (unsigned long)(rec ? rec.expiryHeals : 0)]);
         if (!rec || !rec.active || !pane || !YZPrefEnabled()) return;
         if (rec.expiryHeals >= 3) return;   // heartbeat only, from here
         rec.expiryHeals += 1;
@@ -448,6 +508,13 @@ void YZRegisterHostLease(void) {
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         (void)YZOwnerID();   // materialize the session owner up front
+        // Y4 instrument (WO Y4): an owner change is, from the
+        // app's side, exactly this moment — a new host process
+        // minting a new session UUID. Log the boundary explicitly
+        // so the car log shows when the owner turned over and to
+        // what; OMCLogWrite stamps wall-clock time on every line.
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[ytz] owner phien host: %@", YZOwnerID()]);
         NSDistributedNotificationCenter *dc =
             [NSClassFromString(@"NSDistributedNotificationCenter")
                 defaultCenter];
@@ -458,15 +525,20 @@ void YZRegisterHostLease(void) {
                     usingBlock:^(NSNotification *note) {
             YZHandleAck(note);
         }];
-        // `single` tracking for isSplit: observe the two packets
-        // that carry the key (no hop — recording the raw key does
-        // not depend on the registrar's application order).
+        // Packet tracking for isSplit: observe the two packets
+        // that carry the keys (no hop — recording raw keys does
+        // not depend on the registrar's application order). The
+        // `split`/`splitver` keys feed the WO Y1 session store
+        // (the authoritative source); `single` is still recorded
+        // but now feeds only the logged fallback.
         for (NSString *name in @[ABChanOpen, ABChanFrame]) {
             [dc addObserverForName:name object:nil queue:mq
                         usingBlock:^(NSNotification *note) {
                 NSString *bundle = note.userInfo[@"identifier"];
                 NSNumber *single = note.userInfo[@"single"];
                 if (bundle && single) YZLastSingleByBundle()[bundle] = single;
+                YZNoteSessionSplit(note.userInfo[@"split"],
+                                   note.userInfo[@"splitver"]);
             }];
         }
         CFNotificationCenterAddObserver(

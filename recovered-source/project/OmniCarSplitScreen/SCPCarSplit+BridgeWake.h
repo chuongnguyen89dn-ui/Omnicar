@@ -73,12 +73,14 @@ extern const char *SCPBridgeWakeAct;   // app -> owner (AutoHide activity, desig
 // different strand — nothing here calls any pinch code (§2.3).
 - (BOOL)bwPinchAllowedForPane:(SCPCarPane *)pane;
 
-// EXPANDED input (design §2.1): supplied by the fullscreen layer.
-// A1 verdict (work/wake-round/a1-fullscreen-entry.md): the QA20
-// fullscreen entry is BLOCKED, so in this round NO producer exists and
-// the value stays NO (SPLIT) — this setter is the future hook point
-// only. While active, the owner never emits HIDDEN for the bundle and
-// pinchAllowed is 1 (design §2.2, first row).
+// EXPANDED input (design §2.1): supplied by the fullscreen layer —
+// since fs1 the producer is SCPFullscreenController, reporting at its
+// settle points with forBundle:nil. EXPANDED is a SESSION state
+// (WO P1): fullscreen covers the whole split, so the bundle argument
+// is retained for logging only and arbitration never compares
+// against it. While active, no pane of the session aggregates to
+// HIDDEN and pinch-in is allowed on any live pane of the session
+// (design §2.2, first row).
 - (void)bwSetExpandedActive:(BOOL)active forBundle:(nullable NSString *)bundleID;
 - (BOOL)bwExpandedActive;
 

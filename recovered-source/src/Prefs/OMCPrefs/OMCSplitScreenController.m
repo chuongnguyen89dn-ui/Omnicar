@@ -140,7 +140,9 @@ static NSString *SSAppName(NSString *bundleID) {
 
 #pragma mark - Table shape
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tv { return 6; }
+// [fs-diag] section 6 (Diagnostics) appended under GPT's WO (fix-p);
+// sections 0–5 keep their original shape and numbering.
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tv { return 7; }
 
 - (NSInteger)tableView:(UITableView *)tv numberOfRowsInSection:(NSInteger)section {
     switch (section) {
@@ -149,6 +151,7 @@ static NSString *SSAppName(NSString *bundleID) {
         case 2: return 1;
         case 3: return self.editing != 0 ? 7 : 3;
         case 4: return 1;
+        case 6: return 3;
         case 5: {
             NSInteger rows = 2;
             if (self.showGestures) rows += 1;
@@ -164,6 +167,7 @@ static NSString *SSAppName(NSString *bundleID) {
     if (section == 2) return L(@"SPLITSCREEN_LAYOUT_GROUP");
     if (section == 3) return L(@"SPLITSCREEN_FAV_GROUP");
     if (section == 4) return L(@"SPLITSCREEN_PANEL_GROUP");
+    if (section == 6) return L(@"SPLITSCREEN_DIAG_GROUP");
     return nil;
 }
 
@@ -171,6 +175,7 @@ static NSString *SSAppName(NSString *bundleID) {
     if (section == 2) return L(@"SPLITSCREEN_PINNED_FOOTER");
     if (section == 3) return L(@"SPLITSCREEN_FAV_FOOTER");
     if (section == 5) return L(@"SPLITSCREEN_CREDITS_FOOTER");
+    if (section == 6) return L(@"SPLITSCREEN_DIAG_FOOTER");
     return nil;
 }
 
@@ -207,7 +212,7 @@ static NSString *SSAppName(NSString *bundleID) {
 - (double)tableView:(UITableView *)tv heightForRowAtIndexPath:(NSIndexPath *)ip {
     double width = tv.bounds.size.width - 30;
     if (ip.section == 0) return MAX(round((tv.bounds.size.width - 40) * 0.36), 118);
-    if (ip.section == 1 || ip.section == 2) return 60;
+    if (ip.section == 1 || ip.section == 2 || ip.section == 6) return 60;
     if (ip.section == 3) {
         NSInteger fav, part;
         [self favRow:ip.row fav:&fav part:&part];
@@ -354,6 +359,50 @@ static NSString *SSAppName(NSString *bundleID) {
             [copy addTarget:self action:@selector(copyURL:) forControlEvents:UIControlEventTouchUpInside];
             copy.frame = CGRectMake(0, 0, 64, 30);   // [INFERRED frame]
             [self setAccessory:copy onCell:cell];
+        }
+    } else if (ip.section == 6) {
+        // [fs-diag] Diagnostics group (GPT WO fix-p), code-built like
+        // every row on this page — FeatureSplitScreen.plist is NOT
+        // loaded by this controller. All three controls persist via
+        // the OMCCardPage idiom (switchForKey:/segmentForKey: ->
+        // storeValue:forKey: = domain write + synchronize +
+        // notify_post com.anlai.omnicar/prefschanged).
+        if (ip.row == 0) {
+            // (a) fullscreenDiagExpand, default OFF: the fullscreen
+            // controller's diagnostic trigger + escape path.
+            cell = [self cellWithId:@"diagfs"];
+            cell.textLabel.text = L(@"SPLITSCREEN_DIAG_FS");
+            cell.detailTextLabel.text = L(@"SPLITSCREEN_DIAG_FS_SUB");
+            cell.imageView.image = OMCIcon(@"arrow.up.left.and.arrow.down.right",
+                                           OMCColorFromHex(@"#FF9F43"));
+            UISwitch *sw = [self switchForKey:@"fullscreenDiagExpand" def:NO];
+            [self setAccessory:sw onCell:cell];
+        } else if (ip.row == 1) {
+            // (b) youtubeVirtualize: display default mirrors the
+            // host-side reader (ABYTZoom YZPrefEnabled): absent = ON,
+            // so the switch doubles as the on-device Y2 A/B control.
+            cell = [self cellWithId:@"diagyt"];
+            cell.textLabel.text = L(@"SPLITSCREEN_DIAG_YT");
+            cell.detailTextLabel.text = L(@"SPLITSCREEN_DIAG_YT_SUB");
+            cell.imageView.image = OMCIcon(@"play.rectangle.fill",
+                                           OMCColorFromHex(@"#FF5A5A"));
+            UISwitch *sw = [self switchForKey:@"youtubeVirtualize" def:YES];
+            [self setAccessory:sw onCell:cell];
+        } else {
+            // (c) bridgewake.pinchMode: 0 = OFF, 1 = DRY_RUN (shown
+            // by default — GPT WO P4 posture), 2 = ENFORCE; the
+            // segment stores its index verbatim, exactly the integer
+            // the wake owner reads.
+            cell = [self cellWithId:@"diagpinch"];
+            cell.textLabel.text = L(@"SPLITSCREEN_DIAG_PINCH");
+            cell.imageView.image = OMCIcon(@"arrow.up.and.down.and.arrow.left.and.right",
+                                           OMCColorFromHex(@"#B18CFF"));
+            UISegmentedControl *seg = [self segmentForKey:@"bridgewake.pinchMode"
+                                                   titles:@[L(@"SPLITSCREEN_DIAG_MODE_OFF"),
+                                                            L(@"SPLITSCREEN_DIAG_MODE_DRY"),
+                                                            L(@"SPLITSCREEN_DIAG_MODE_ENFORCE")]
+                                                      def:1];
+            [self setAccessory:seg onCell:cell];
         }
     }
     if (cell && ip.section >= 2) {

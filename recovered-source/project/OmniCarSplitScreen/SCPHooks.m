@@ -18,6 +18,7 @@
 #import "SCPPinchController.h" // [pinch1] integration seam: syncArming at root layout (design-pinch §7)
 #import "SCPFullscreenController.h" // [fs1] controller install (__init_1) + fsDidLayout reconcile at the root-layout seam (design-fullscreen-fs1 §4.1/§4.8)
 #import "SCPCarSplit+AutoHide.h" // [autohide] ahInstall beside bwInstallOwner (design-autohide §5.1)
+#import "SCPTouchProbe.h" // [fix-w] WO W4 passive sendEvent probe install (measure-only)
 #import <objc/message.h>
 #import <objc/runtime.h>      // class_copyIvarList / object_getIvar (final closure)
 #import <notify.h>
@@ -808,4 +809,10 @@ static void SCPInitDashboardHooks(void) {
     // constructor only ever runs in CarPlayApp, so the controller
     // never exists as an actor in SpringBoard.
     [[SCPFullscreenController shared] fsInstallIfNeeded];
+
+    // [fix-w] WO W4 passive touch probe: ONE sendEvent: observation
+    // hook in CarPlayApp. Measure-only — it feeds nothing, reveals
+    // nothing, swallows nothing; it exists to show whether Began on a
+    // hosted pane is visible from this process at all.
+    SCPTouchProbeInstall();
 }

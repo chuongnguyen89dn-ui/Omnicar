@@ -32,7 +32,11 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)shared;
 
 /// Idempotent install (CarPlayApp glue only). Without install the
-/// controller stays inert and fsCommittedState is Unknown.
+/// controller stays inert and fsCommittedState is Unknown. Install
+/// also registers the [fs-diag] diagnostic listener: pref
+/// fullscreenDiagExpand (read-only to this controller — it never
+/// writes the pref) drives expand/restore with provenance "diag",
+/// doubling as the recognizer-independent escape path (GPT WO fix-p).
 - (void)fsInstallIfNeeded;
 
 /// Settled state for outside readers (§4.1): EXPANDING still reports
@@ -45,7 +49,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// RESTORING is refused ("fs busy") — never queued, never concurrent.
 /// completion YES is delivered only after the layout change has been
 /// read back and confirmed (§4.4/§4.5); provenance ("pinch" /
-/// "teardown") is log-only (§4.2).
+/// "diag" / "teardown") is log-only (§4.2).
 - (void)fsRequestExpandWithCompletion:(nullable void (^)(BOOL applied))completion
                            provenance:(NSString *)provenance;
 - (void)fsRequestRestoreWithCompletion:(nullable void (^)(BOOL applied))completion
