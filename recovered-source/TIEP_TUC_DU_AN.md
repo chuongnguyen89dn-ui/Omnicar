@@ -729,20 +729,22 @@ CHỜ PHÁN), không chôn verdict trong câu văn.
   gộp vào quyết định chung với weather (instrument hay bỏ tiêu chí), PATCH_NOTES §28.10.
 - Các nhóm nghiệm thu §9 ngoài các phiên đã chạy; ba bài kiểm để dành ở mục 6.
 
-## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~19:05)
+## 8. Ảnh chụp trạng thái hiện tại (2026-11-09, ~20:12)
 
-- **Bản test đứng hiện hành:** `com.anlai.omnicar_1.0.3-rebuilt-ytz4-fat_iphoneos-arm64.deb` — 1.229.512 byte,
-  SHA-256 `53caff295b29c277a3db31c102f7817284345e573d0be3169ce4a6fccfe8a3a2`; candidate local
-  1.031.204 B `27ecedd4…`; CI run dispatch **42599165348** success (workflow 410962367).
+- **Bản test đứng hiện hành:** `com.anlai.omnicar_1.0.3-rebuilt-ytz5hl1-fat_iphoneos-arm64.deb` — 1.245.714 byte,
+  SHA-256 `e28883b97c68ce0d0d0341499a6c33a0d2b1d9b2f32ef0f2d308595178cad594`; CI run dispatch
+  **42622552103** success (workflow 410962367) — bản tích hợp YTZ5 + icon Home (PATCH §29.9),
+  CHƯA nghiệm thu xe.
   **Bản dùng hằng ngày của Nguyen vẫn là gói hợp nhất QA20** — ytz4 là bản nghiệm thu hiện hành.
   **Bản cách ly — không cài:** ytz1 FAT 1.210.344 B `4caa2568…` (CI 42581690791).
-  Các bản trước: ytz3 `c1872b93…`, ytz2 `bb59ab56…`, fs1 `41bb5b8b…`, wake1 `279005f4…`,
+  Các bản trước: ytz4 `53caff29…`, ytz3 `c1872b93…`, ytz2 `bb59ab56…`, fs1 `41bb5b8b…`, wake1 `279005f4…`,
   fixround7 `f2cc8ffe…`, fixround6 `0ce8a4f7…`, fixround5 `03010edc…`, fixround4 `6ab47eab…`,
   fixround3 `77230019…`, prefsround `44019c7c…`, gatefix `1132c3a8…`, arityfix `d61dc7ba…`.
   **Baseline rollback:** ytz3 FAT + ytz2 FAT + fs1 FAT + fixround7 FAT + gói hợp nhất QA20.
-- **Git:** main — source ytz4 `237098c`; hồ sơ §28 tại `38735c5`; commit hồ sơ bổ sung đợt này
-  ghi toàn bộ diễn biến từ trưa 09/11 tới 19:05 (kiểm kê độ phủ kèm báo cáo); ci-fat-test `aff33ed`.
-- **Vòng ytz5 [THI CÔNG + BUILD XONG — PATCH §29.7]:** 4 strand song song theo hợp đồng
+- **Git:** main — source ytz5 `e6b50a4` + hồ sơ §29 tại `3e25499`/`cbdaeab`; nhánh
+  `feature/omnicar-home-launcher` tip GPT `050eddb0`; nhánh `integrate/ytz5-home-launcher`
+  tip `8a2c7aa`; ci-fat-test `b8deff2`; hồ sơ tích hợp §29.9 đi cùng commit này.
+- **Vòng ytz5 + tích hợp Home launcher [ĐÃ XONG — PATCH §29.7 + §29.9]:** 4 strand song song theo hợp đồng
   giao thức kbstate (kênh object NSDistributed `com.anlai.omnicar/bridgewake.v1.kbstate` +
   lõi C99 `BWInputStore.h` dùng chung owner/harness; định dạng gói 64-bit không đổi): cổng
   bỏ phím vẽ + reporter phiên nhập liệu phía AppBridge; bản ghi kb owner + cổng fade đọc
@@ -752,12 +754,12 @@ CHỜ PHÁN), không chôn verdict trong câu văn.
   1.036.636 B, SHA-256 `2d1cf435…`. **Harness 24/24 PASS; kiểm tĩnh PASS mọi cổng trừ
   parity** (mất đúng 1 method `bwHandleKbSyncNote:` — consumer kbsync cũ bị thay có chủ
   đích theo hợp đồng W2, coordinator đã miễn trừ tại §29.7, chờ GPT phán cuối). Commit
-  nguồn YTZ5: `e6b50a4`. **CI + DEB tổng hợp HOÃN theo phân công tích hợp GPT (19:15):**
-  DEB chỉ build/ký sau khi GPT bàn giao commit icon Home (nhánh
-  feature/omnicar-home-launcher); run CI đã dispatch trước lệnh (42615117251) completed
-  success nhưng không lấy làm bản bàn giao, không giao deb xe — chi tiết khối TÍCH HỢP
-  tại §29.7, gồm danh sách file đầy đủ + các file Home/launch dùng chung đã đánh dấu
-  riêng cho phía GPT.
+  nguồn YTZ5: `e6b50a4`. **TÍCH HỢP + DEB tổng hợp ĐÃ XONG (§29.9):** GPT bàn giao tip
+  `050eddb0` (19:53); merge vào nhánh integrate `c74c878` (0 xung đột) + staging hai cây
+  `74635d1` + fix nullability tích hợp `8a2c7aa`; kiểm tĩnh độc lập SHIP; CI run
+  42622552103 success; DEB tổng hợp duy nhất ytz5hl1 FAT 1.245.714 B `e28883b9…`. (Run
+  CI dispatch trước lệnh 19:15 — 42615117251 — vẫn không tính là bản bàn giao như đã ghi
+  ở §29.7.)
 - **Đã đóng trên xe:** thanh "..." hosted (fixround5); **YT-Zoom** (phiên ytz2 + đối chứng OFF
   hợp lệ ở phiên ytz3; ytz4 ack 51/51 giữ PASS); **wake hosted** đường activity/reveal (phiên
   ytz2); **wake native** qua feed CarPlayApp (phiên ytz3; ytz4 hồi quy PASS); **FS controller +
@@ -774,8 +776,8 @@ CHỜ PHÁN), không chôn verdict trong câu văn.
   không chặn gói UI, không xoá tiêu chí; consumer `appbridge.keyboard` chết — giữ nguyên;
   biên reset UNKNOWN cùng-bundle cùng-slot — đóng bằng cơ chế gen của W2.
 - **Chờ theo thứ tự:** (1) ~~thi công ytz5 + harness + kiểm tĩnh~~ XONG (xem trên);
-  (2) GPT bàn giao commit icon Home (nhánh feature/omnicar-home-launcher) → mới build/ký
-  **MỘT deb gộp duy nhất** kèm diff/SHA/commit; (3) MỘT phiên xe nghiệm
+  (2) ~~GPT bàn giao icon Home → ghép → build MỘT deb gộp~~ XONG (§29.9);
+  (3) MỘT phiên xe nghiệm
   thu 6 bước theo work order (vòng đời AutoHide → picker → phím hosted hiện/gõ/đóng + AutoHide
   giữ khi nhập → đường đánh thức sau đóng phím → A/B icon với instrument → hồi quy nhanh;
   nếu tiện: splash + núm cho hai mục PENDING); (4) Gate 3 vẫn **ĐÓNG** — Wake ENFORCE chưa

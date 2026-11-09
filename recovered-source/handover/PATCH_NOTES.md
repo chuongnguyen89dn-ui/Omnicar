@@ -6504,7 +6504,7 @@ tiêu chí.
   dùng hằng ngày; ytz1 vẫn CÁCH LY;
   VISUAL_ORIGINAL_COMPARISON = PENDING.
 
-## 29) VÒNG YTZ5 — SAU PHIÊN YTZ4: LỆNH NGUYEN, WORK ORDER GPT, BẢN ĐỒ PHA 1, PHÁN QUYẾT W1(c) (2026-11-09) — THI CÔNG + BUILD XONG (29.7); DEB TỔNG HỢP CHỜ GPT BÀN GIAO ICON HOME (PHÂN CÔNG 19:15)
+## 29) VÒNG YTZ5 — SAU PHIÊN YTZ4: LỆNH NGUYEN, WORK ORDER GPT, BẢN ĐỒ PHA 1, PHÁN QUYẾT W1(c) (2026-11-09) — THI CÔNG + BUILD XONG (29.7); ĐÃ GHÉP HOME LAUNCHER CỦA GPT + DEB TỔNG HỢP FAT XONG (29.9)
 
 Mục này mở đầu ngay trong ngày để lịch sử không đứt quãng (lệnh hồ sơ
 19:00–19:05, xem 29.8): ghi các quyết định/lệnh/phán quyết/bản đồ đã chốt.
@@ -6527,7 +6527,7 @@ công tích hợp GPT 19:15 (xem khối TÍCH HỢP ở 29.7).
 | Phán quyết GPT: W1(c) + pinch OFF (18:45) | ĐÃ CHỐT — GO thi công |
 | Thi công ytz5 (4 strand) | XONG — commit nguồn đi cùng đợt push này (29.7) |
 | Harness 4 ca cấu trúc + kiểm tĩnh | XONG — harness 24/24 PASS; kiểm tĩnh PASS mọi cổng trừ parity: mất đúng 1 method là THAY THẾ CÓ CHỦ ĐÍCH theo hợp đồng (29.7) — chờ GPT miễn trừ |
-| Build candidate + CI FAT | Candidate local XONG — 1.036.636 B, SHA-256 `2d1cf435…` (29.7); CI + DEB tổng hợp HOÃN theo phân công tích hợp GPT 19:15 — chờ GPT bàn giao commit icon Home (chi tiết khối TÍCH HỢP ở 29.7; run CI đã dispatch trước lệnh đã completed success nhưng KHÔNG lấy làm bản bàn giao) |
+| Build candidate + CI FAT + ghép Home launcher | ĐÃ XONG (29.9) — ghép tip GPT `050eddb0` (merge `c74c878`, 0 xung đột) + staging project `74635d1` + fix nullability tích hợp `8a2c7aa`; CI run dispatch **42622552103** SUCCESS; DEB tổng hợp duy nhất (ytz5hl1) FAT 1.245.714 B, SHA-256 `e28883b9…`. Candidate local ytz5 riêng: 1.036.636 B `2d1cf435…` (29.7) |
 | Phiên xe nghiệm thu 6 bước | CHƯA |
 | Wake ENFORCE (Gate 3) | VẪN KHOÁ — chưa bật mặc định |
 
@@ -6992,3 +6992,94 @@ nguyên văn tinh thần lời anh: TỪ NAY LƯU LỊCH SỬ MỖI KHI CÓ THAY
 ĐỔI VỀ DỰ ÁN, NGAY TRONG KHỐI CÔNG VIỆC ĐÓ — mọi cuộc làm việc
 liên quan chỉnh sửa/quyết định đều commit lịch sử ngay trong khối
 đó, không dồn cuối vòng; chỉ trao đổi thông thường mới miễn.
+
+### 29.9 Tích hợp YTZ5 + Home launcher của GPT [ĐÃ XONG — CI FAT PASS; CHỜ PHIÊN XE]
+
+Bàn giao (Nguyen chuyển tiếp 19:53): nhánh `feature/omnicar-home-launcher`
+tip `050eddb0` (5 commit nguồn GPT trên đúng nền `3e25499`; tài liệu bàn
+giao `gpt-project-history/HOME_LAUNCHER_HANDOVER.md`). GPT làm phần icon
+OmniCar trên lưới Home CarPlay theo phân công 19:15; Muse ghép + build
++ ký MỘT deb tổng hợp, ghi hồ sơ. Biên bản đầy đủ:
+`handover/reports/integration-ytz5hl.md` + kiểm tĩnh độc lập
+`handover/reports/verify-ytz5hl.md` (cùng commit hồ sơ này).
+
+**Ghép (nhánh `integrate/ytz5-home-launcher` từ main `cbdaeab`):**
+- Merge `c74c878`: **0 xung đột, 0 hunk phải xử lý tay** (hai phía dựa
+  trên cùng snapshot nguồn YTZ5 ở `3e25499`). Kiểm tay hậu ghép tại các
+  điểm nóng: src SCPHooks.m giữ cả `noteCloseSource` (B5, ×5) lẫn
+  SCPHomeLauncher (×11); src SCPHomeApply.m là bản I5 nguyên vẹn tới
+  EOF và có lời gọi audit của GPT `SCPHomeLauncherAuditModel(...)`
+  tại entry `SCPLogInjectedIconState` (dòng 346).
+- Hai nguồn commit: YTZ5 `e6b50a4` (Muse) + Home launcher tip
+  `050eddb0` (GPT). Tip nhánh integrate: `8a2c7aa`.
+
+**Khoảng trống hai cây (§4 của bàn giao — GPT cảnh báo, coordinator
+ĐO LẠI và xác nhận ĐÚNG, còn rộng hơn cảnh báo):** tại thời điểm ghép,
+toàn bộ vòng YTZ5 **chưa từng được stage vào cây project của push9**
+(mọi discriminator = 0; `SCPHomeApply.m` project = bản cũ 332 dòng so
+với src 539; thiếu cả `BWInputStore.h` + `SCPHomeApply.h`) — CI build
+từ project nên nếu dispatch ngay sẽ ra bản thiếu YTZ5. Đã sửa bằng
+commit staging `74635d1`: stage 20 file hợp nhất (YTZ5 ∪ GPT) src →
+project ở cả push9 lẫn `omnicar-re`, làm phẳng import theo hợp đồng
+cũ (giữ dòng ghi chú `[phase3 sync]`); file project do GPT tự stage
+khớp byte-đối-byte với đầu ra staging; hai cây src byte-identical;
+Makefile SplitScreen cộng `SCPHomeLauncher.m` (38 file/38 duy nhất,
+không trùng symbol).
+
+**Sự cố tích hợp (ghi nguyên trạng):** build cục bộ SplitScreen fail
+duy nhất ở `SCPHomeLauncher.m` vì xung đột chú thích nullability giữa
+hai header: `SCPHomeCommon.h:38` khai `SCPAppHasCarPlayUI` là
+_Nonnull ngầm, `SCPShared.h:67` là `_Nullable`; ngược cực ở cặp
+`SCPIsInjectedPhoneApp` (`SCPHomeCommon.h:45` _Nullable /
+`SCPShared.h:79` _Nonnull ngầm). Module của GPT là TU đầu tiên include
+cả hai header nên lộ xung đột tiềm ẩn từ trước. Fix `8a2c7aa`: thống
+nhất `_Nullable` cho cả hai hàm (khớp thân hàm thật — nil-tolerant),
+chỉ đổi chú thích, 2 dòng × 3 cây; sau fix build sạch. Không sự cố CI
+nào khác; run push-triggered 42622551174 bị coordinator cancel có chủ
+đích để giữ một run dispatch chuẩn duy nhất.
+
+**Kiểm tĩnh độc lập (agent chỉ-đọc, cây project): SHIP cho FAT.**
+(a) Khẳng định GPT PASS 7/7 (kiểm ABI type-encoding trước install;
+original gọi đúng 1 lần cho app khác/unknown; đăng ký library không
+trùng + promotion cũng refresh; lọc own-bundle chỉ trong bộ nhớ;
+`SCPIsHostedApp` NO sớm; mở qua `showLayoutPanelForApp:` +
+`ahNoteActivity:AHSourceHome`, không openURL/prefs/event-1 mới; nút
+dock không đổi; GPT không chạm SCPCarSplit/AutoHide/BridgeWake/
+Picker/YTZ). (b) Nguyên vẹn YTZ5: parity method so với `e6b50a4`
+= 0 mất/0 cộng ngoài GPT (488 method phân biệt hai phía; method miễn
+trừ `bwHandleKbSyncNote:` đã vắng ngay tại `e6b50a4` — miễn trừ của
+bước ytz4→ytz5 tại 29.7, vòng ghép này không mất thêm gì); mọi
+discriminator có mặt; knob đúng 1 đảo cực (source); ENFORCE khoá
+mặc định; pinch vắng pref = OFF. (c) `git diff --check` sạch.
+
+**Build + CI:** toolchain verify qua `fix-toolchain.sh` (VM lại
+rollback /usr trong khoảng 19:54 — khôi phục foreground, smoke test
+đạt). Build cục bộ: SplitScreen + AppBridge sạch; dylib SplitScreen
+cục bộ có 14 symbol SCPHomeLauncher (positive control SCPCarSplit
+642 hit nm); aggregate ra candidate cục bộ 1.041.356 B (chỉ kiểm
+biên dịch, không phải bản giao). CI: merge integrate vào ci-fat-test
+= `b8deff2` (sạch); dispatch workflow 410962367 → **run 42622552103
+completed success** (xác minh foreground qua jobs API: build FAT +
+verify slices + upload đều success).
+
+**DEB tổng hợp duy nhất (ytz5hl1):**
+`com.anlai.omnicar_1.0.3-rebuilt-ytz5hl1-fat_iphoneos-arm64.deb` —
+**1.245.714 B, SHA-256
+`e28883b97c68ce0d0d0341499a6c33a0d2b1d9b2f32ef0f2d308595178cad594`**;
+members debian-binary + control.tar.gz + data.tar.lzma. Kiểm binary
+hai lát (arm64 = arm64e trên mọi probe): SCPHomeLauncher có mặt cả
+hai lát (10 chuỗi + symbol export); `bwHandleKbStateNote:` ×1,
+`bwHandleKbSyncNote:` = 0 (miễn trừ hiện hình đúng), `ahCloseCleanup`
+×1, kênh `bridgewake.v1.kbstate` ×1 ở cả SplitScreen lẫn AppBridge;
+AppBridge mỗi lát có `appBridgeNativeKeyboard`/`drawnKeyboard` ×1.
+
+**Trạng thái:** source-complete / static PASS / local-build PASS /
+CI FAT PASS. **PENDING-DEVICE nguyên vẹn** — phiên xe gộp theo kịch
+bản 6 bước của GPT + phép thử Home launcher (icon hiện đúng 1 lần →
+chạm mở panel Bố cục/Yêu thích/Gần đây, KHÔNG mở Cài đặt iPhone →
+nút dock vẫn chạy → split + thoát Home lúc logo hiện → lặp lúc đã
+mờ → đổi app rồi quay lại → ngắt/kết nối lại → khởi động lại tiến
+trình), giữ riêng các mục: phím hosted native trên xe, chuỗi kbstate
+trên xe, vòng đời AutoHide sau sửa, picker nhìn xuyên + ô trống vẫn
+đặc, A/B icon tầng model/dock. Bảng mốc 29.0: dòng build/CI đã cập
+nhật ĐÃ XONG; dòng phiên xe giữ CHƯA.
