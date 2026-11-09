@@ -28,6 +28,7 @@
 #import "SCPFullscreenController.h" // [fs1] glue: shortened restore when the session ends (design-fullscreen-fs1 §4.6)
 #import "SCPCarSplit+AutoHide.h" // [autohide] fade payload keys + activity feeds + teardown (design-autohide §5.1)
 #import "SCPHomeApply.h" // [ytz5] SCPLogInjectedIconState (M5 icon instrument points in closeGoingHome:)
+#import "SCPHomeLauncher.h" // [gpt-home] native Home entry is authoritative
 
 static id SCPGuarded(id obj, NSString *selName) {
     SEL sel = NSSelectorFromString(selName);
@@ -3005,6 +3006,22 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
     if (!parent) {
         if (self.homeButton) SCPFDockGateLog(self, @"removed", @"tabParent nil", root, parent);
         [self removeHomeButton];
+        return;
+    }
+    // [gpt-home-grid-only] The real OmniCar Home tile now launches the
+    // SAME SCPCarSplit layout panel. Retire ONLY our extra UIButton in
+    // the Dock; keep the native Apple Dock and all split/host controllers.
+    // In particular, removeHomeButton restores the launcher-induced Dock
+    // transform, and the icon long-press installer previously piggybacked
+    // on this method: keep that operation even without a custom button.
+    if (SCPHomeLauncherEnabled()) {
+        if (self.homeButton) {
+            SCPFDockGateLog(self, @"removed", @"native Home grid only", root, parent);
+            [self removeHomeButton];
+            OMCLogWrite(@"SplitScreen",
+                @"[home-launch] custom Dock button detached; native Home tile retained");
+        }
+        if ([self atHomeScreen]) [self installIconLongPress];
         return;
     }
     CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();

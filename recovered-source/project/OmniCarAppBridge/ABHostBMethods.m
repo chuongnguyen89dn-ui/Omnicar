@@ -5,6 +5,7 @@
 #import "ABHost.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
+#import <CoreFoundation/CoreFoundation.h> // [hl2] drawn-restore migration writes via CFPreferences (BridgeWake ytz5 idiom)
 
 extern id OMCPref(NSString *key, id defaultValue);
 extern void OMCPrefsSync(void);
@@ -51,8 +52,16 @@ extern id OMCLogoMeshImage(int style);   // shared unit (OMCCommon.h:188)
 //   YZPrefEnabled pattern of ABYTZoom.m (sync, then a fresh
 //   uncached read; the zoom pref in -zoom below is this file's own
 //   precedent for the same idiom).
-//     pref ABSENT or = 1 -> NATIVE (system keyboard; drawn panel off)
-//     pref = 0           -> DRAWN  (drawn panel; the fallback path)
+//     pref = 1           -> NATIVE (system keyboard; drawn panel off)
+//     pref ABSENT or = 0 -> DRAWN  (drawn panel; the default path)
+// [hl2] Default law flipped per GPT YTZ5HL1 Gate-3 ruling §5 and
+// LOG_REVIEW §4: the native keyboard never rendered on the car
+// display (device fail), so DRAWN is the recovered build's default
+// and NATIVE survives only as the explicit opt-in pref = 1. The
+// one-time migration inside ABNativeKeyboardEnabled below restores
+// a legacy stored 1 (written while absent meant native) to 0
+// exactly once — changing this default alone would not move a
+// machine that already carries the stored value.
 // The HOST is the only side that reads this pref. A hosted app
 // NEVER reads CFPreferences for the gate (K5 contract; the QA179
 // lesson restated for BridgeWake above): the value reaches each
@@ -64,7 +73,39 @@ extern id OMCLogoMeshImage(int style);   // shared unit (OMCCommon.h:188)
 BOOL ABNativeKeyboardEnabled(void) {
     OMCPrefsSync();
     id v = OMCPref(@"appBridgeNativeKeyboard", nil);
-    if (!v) return YES; // absent = native
+    // [hl2] One-time targeted drawn-restore migration, the
+    // bridgewake.pinchOffMigratedYtz5 idiom of
+    // SCPCarSplit+BridgeWake.m transplanted to the host's gate
+    // reader (the only host-side run point for this pref inside
+    // AppBridge): if the hl2 marker is absent, a stored
+    // appBridgeNativeKeyboard == 1 — a value every pre-hl2 build
+    // could leave behind while absent meant native — is rewritten
+    // to 0 (drawn) with the discriminator log line, and the marker
+    // is set. The marker is set on this first pass whether or not
+    // a rewrite was needed, so once it exists this block never
+    // runs again and a native = 1 stored AFTER the migration is
+    // honoured as an explicit user choice. The static guard keeps
+    // the check to once per process; the marker pref is the
+    // cross-process guard. No other pref is touched.
+    static BOOL abKbDrawnRestoredChecked;
+    if (!abKbDrawnRestoredChecked) {
+        abKbDrawnRestoredChecked = YES;
+        if (!OMCPref(@"appBridgeNativeKeyboardDrawnRestoredHl2", nil)) {
+            if (v && [v boolValue]) {
+                CFPreferencesSetAppValue(CFSTR("appBridgeNativeKeyboard"),
+                    (__bridge CFPropertyListRef)@(0),
+                    CFSTR("com.anlai.omnicar"));
+                OMCLogWrite(@"AppBridge",
+                    @"[ytz5-k5] hl2 migration: appBridgeNativeKeyboard 1 -> 0 (drawn restored), marker appBridgeNativeKeyboardDrawnRestoredHl2 set");
+                v = @0;
+            }
+            CFPreferencesSetAppValue(CFSTR("appBridgeNativeKeyboardDrawnRestoredHl2"),
+                (__bridge CFPropertyListRef)@(1),
+                CFSTR("com.anlai.omnicar"));
+            CFPreferencesAppSynchronize(CFSTR("com.anlai.omnicar"));
+        }
+    }
+    if (!v) return NO; // [hl2] absent = drawn (was: absent = native)
     return [v boolValue];
 }
 BOOL ABDrawnKeyboardEnabled(void) {

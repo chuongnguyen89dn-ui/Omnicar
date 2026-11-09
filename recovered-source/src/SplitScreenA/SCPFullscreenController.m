@@ -296,10 +296,19 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
 /// stale-state one: tray window existence/hidden, trayOverlay value,
 /// tray/picker/ratio/drag-ghost existence, toast, resize + float
 /// transitions, and this machine's phase.
+/// [hl2-split F6] The trayOverlay field is labelled with its FULL
+/// name on purpose: trayOverlay is a sticky hosting-mode flag (set
+/// once at Panel.m to (window != nil), never reset) and is NOT an
+/// input of any guard predicate in this controller — the expand
+/// gate reads active / zoomedSlot / soloHostedBundle / pickerSheet /
+/// popupOpen / fsTraySurfaceBusy only. The old two-letter label
+/// "to" read as if it were a live guard input (in the ytz5hl1 log
+/// all five refusals showed to=1 while picker/ratio/dg/toast/tray
+/// were all 0; the actual refusal inputs were phase and `inactive`).
 - (NSString *)fsRefusalSnapshot:(SCPCarSplit *)split {
     UIWindow *tw = split.trayWindow;
     return [NSString stringWithFormat:
-        @"snap{tw=%d twh=%@ to=%d tray=%d picker=%d ratio=%d dg=%d "
+        @"snap{tw=%d twh=%@ trayOverlay=%d tray=%d picker=%d ratio=%d dg=%d "
         @"toast=%d rz=%d fc=%d phase=%ld}",
         tw != nil, tw ? (tw.hidden ? @"1" : @"0") : @"-",
         (int)split.trayOverlay, split.tray != nil,

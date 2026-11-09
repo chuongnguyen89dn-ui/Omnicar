@@ -28,6 +28,7 @@
 - (void)bwRenewMaintain;
 - (void)bwKbEmitForPane:(SCPCarPane *)pane;
 - (void)bwHandleKbStateNote:(NSNotification *)note;
+- (void)bwHandlePinchNote:(NSNotification *)note;
 - (void)bwApplyAssignmentForSlot:(NSInteger)slot bundle:(NSString *)bundle;
 - (void)bwCheckKbHoldRelease;
 @end
@@ -50,6 +51,19 @@ static __weak SCPCarPane *bwPaneBySlot[10];   // last pane object per slot
 static uint16_t       bwStateSeq;             // owner state seq (§3.2)
 static NSInteger      bwWakeMode  = BWModeDryRun;   // §4: absent = DRY_RUN
 static NSInteger      bwPinchMode = BWModeOff;      // [ytz5] absent = OFF
+// [hl2-split G6] Gate 3 scoped trial + in-app pinch packet mode,
+// re-read at every bwReloadModesAndRepublish: the trial rewrites the
+// wakeMode of ONE bundle's state packets to ENFORCE (the global
+// bwWakeMode above stays the default for every other pane), and the
+// packet pinchMode of hosted panes comes from bridgewake.pinchInApp
+// (absent = ENFORCE) instead of the legacy bwPinchMode — the legacy
+// CarPlayApp recognizer keeps reading bwPinchMode through the
+// arbiter, so exactly one pinch shooter is live per mode source.
+static NSString      *bwGate3TrialBundle;           // nil = trial off
+static BOOL           bwGate3TrialEnabled = YES;    // kill-switch pref
+static NSInteger      bwPinchInAppMode = BWModeEnforce;
+static uint64_t       bwGate3TrialSigBySlot[10];    // last logged shape
+static unsigned       bwGate3TrialEmitCount;        // trial packets sent
 // (an ENFORCE default shipped briefly on 2026-11-09 under Nguyen's
 // "noi pinch luon" order; GPT's post-fs1 audit WO superseded it —
 // ENFORCE is reachable only via an explicit pref until the fullscreen
@@ -114,6 +128,27 @@ static void BWEnsureInputStore(void) {
 static NSString * const BWKbStateNoteName =
     @"com.anlai.omnicar/bridgewake.v1.kbstate";
 
+// [hl2-split W6] The in-app pinch relay channel (NSDistributed,
+// hosted app -> owner): {hash, gen, session, seq, gid, dir, t} —
+// dir 1 = pinch-out (expand), 2 = pinch-in (restore); t is the
+// sender's send stamp in seconds (same device clock as the owner).
+// Defined locally like the kbstate name; the string must match the
+// app side's poster byte for byte.
+static NSString * const BWPinchNoteName =
+    @"com.anlai.omnicar/bridgewake.v1.pinch";
+
+// [hl2-split W6] Per-slot pinch-relay ordering book: the last
+// ACCEPTED (gen, session) key, its highest seq, and the (gid, seq)
+// of the last accepted gesture command (dedup: one FS command per
+// gesture). Reset implicitly whenever (gen, session) changes — a
+// new assignment generation or a new app session starts a fresh
+// baseline, mirroring BWInputSlotReport's session discipline.
+static uint32_t bwPinchGenBySlot[10];
+static uint32_t bwPinchSessionBySlot[10];
+static uint64_t bwPinchLastSeqBySlot[10];
+static uint64_t bwPinchLastGidBySlot[10];
+static BOOL     bwPinchHasBySlot[10];
+
 // [kbstate] reject reason names (log-stable).
 static const char *BWKbReasonName(int reason) {
     switch (reason) {
@@ -160,6 +195,25 @@ static uint64_t BWEmitSig(NSInteger state, BOOL pinch, NSInteger wm,
     return (uint64_t)(state & 0x7) | ((uint64_t)(pinch ? 1 : 0) << 3) |
            ((uint64_t)(wm & 0x3) << 4) | ((uint64_t)(pm & 0x3) << 6) |
            ((uint64_t)gen << 8);
+}
+
+// [hl2-split G6] Per-pane packet modes. State packets are addressed
+// per pane by bundle hash28 (BWPackFields in BWEmitStatePacket), so
+// a per-pane override needs no format change: for the Gate 3 trial
+// bundle (trial enabled) the packet's wakeMode is ENFORCE while
+// every other pane keeps the global bwWakeMode; the packet
+// pinchMode of a hosted pane is bwPinchInAppMode (pref
+// bridgewake.pinchInApp) — the app side reads bits 9-8 it already
+// parses. Used by BOTH bwEmitStateForPane: and the emission-
+// signature computation in bwRecomputeForPane:, so a trial/mode
+// change alone re-emits exactly like a state change.
+static void BWEmitModesForBundle(NSString *bundle, NSInteger *wmOut,
+                                 NSInteger *pmOut, BOOL *trialOut) {
+    BOOL trial = bwGate3TrialEnabled && bwGate3TrialBundle.length > 0 &&
+                 [bundle isEqualToString:bwGate3TrialBundle];
+    if (wmOut) *wmOut = trial ? BWModeEnforce : bwWakeMode;
+    if (pmOut) *pmOut = bwPinchInAppMode;
+    if (trialOut) *trialOut = trial;
 }
 
 static BOOL BWSlotValid(SCPCarPane *pane) {
@@ -304,10 +358,32 @@ static void BWEmitDrain(void) {
     if (!bundle.length) return;
     NSInteger state = bwStateBySlot[slot];
     BOOL pinch = [self bwPinchAllowedForPane:pane];
+    // [hl2-split G6] per-pane modes (trial wakeMode override +
+    // pinchInApp packet pinchMode) — see BWEmitModesForBundle.
+    NSInteger emitWM, emitPM;
+    BOOL trial = NO;
+    BWEmitModesForBundle(bundle, &emitWM, &emitPM, &trial);
     BWEmitStatePacket(bundle, bwGenBySlot[slot], state, pinch,
-                      bwWakeMode, bwPinchMode);
-    bwEmitSigBySlot[slot] = BWEmitSig(state, pinch, bwWakeMode, bwPinchMode,
-                                      bwGenBySlot[slot]);
+                      emitWM, emitPM);
+    uint64_t sig = BWEmitSig(state, pinch, emitWM, emitPM,
+                             bwGenBySlot[slot]);
+    bwEmitSigBySlot[slot] = sig;
+    if (trial) {
+        // [gate3] trial emission evidence: counted on EVERY trial
+        // packet, logged only when the packet shape changed
+        // (assignment / state / mode transition) — the 1.0 s renewal
+        // rotation re-sends identical shapes and must not spam.
+        bwGate3TrialEmitCount++;
+        if (sig != bwGate3TrialSigBySlot[slot]) {
+            bwGate3TrialSigBySlot[slot] = sig;
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[gate3] trial packet bundle=%@ slot=%ld wm=ENFORCE "
+                @"(global %ld) state=%@ gen=%u count=%u",
+                bundle, (long)slot, (long)bwWakeMode,
+                BWStateName(state), bwGenBySlot[slot],
+                bwGate3TrialEmitCount]);
+        }
+    }
 }
 
 // Re-emit the state of every hosted pane (query answers §3.3(iii),
@@ -443,6 +519,108 @@ static void BWEmitDrain(void) {
         pane = [self paneForBundle:bwBundleBySlot[slot]];
     if (pane && pane.slot == slot) [self bwKbEmitForPane:pane];
     [self bwCheckKbHoldRelease];
+}
+
+// [hl2-split W6] Inbound in-app pinch relay (NSDistributed channel
+// BWPinchNoteName, posted by the hosted app's own pinch recognizer —
+// GPT YTZ5HL1 ruling §1/§3: the recognizer lives IN the app, the
+// owner alone calls the fullscreen surface): {hash, gen, session,
+// seq, gid, dir, t}; dir 1 = pinch-out, 2 = pinch-in. Validation
+// mirrors the kbstate discipline above: the hash must name a LIVE
+// assignment (bwBundleBySlot), gen must equal the slot's current
+// assignment generation, the session must match the session the
+// BWInputStore knows for this assignment when it knows one (from
+// kbstate reports — LIMIT: a hosted app that has not reported any
+// kbstate yet has no owner-side session on record, so the check is
+// then vacuous and the note's own session becomes the ordering key
+// under gen + seq + TTL), seq must strictly advance per
+// (hash, gen, session), a repeated (gid, seq) is a duplicate, and
+// the send stamp must be within 1000 ms of the owner's clock (both
+// processes share the device clock). An accepted command fires ONLY
+// through SCPFullscreenAdapter (via the pinch controller's shared
+// adapter instance — the same surface the legacy recognizer used),
+// and only against the matching COMMITTED state: dir=out requires
+// SPLIT, dir=in requires EXPANDED; pending/refused/unknown states
+// reject as badstate and fire nothing.
+- (void)bwHandlePinchNote:(NSNotification *)note {
+    NSDictionary *info = note.userInfo;
+    if (![info isKindOfClass:[NSDictionary class]]) return;
+    uint32_t hash    = [info[@"hash"] unsignedIntValue];
+    uint32_t gen     = [info[@"gen"] unsignedIntValue];
+    uint32_t session = [info[@"session"] unsignedIntValue];
+    uint64_t seq     = [info[@"seq"] unsignedLongLongValue];
+    uint64_t gid     = [info[@"gid"] unsignedLongLongValue];
+    NSInteger dir    = [info[@"dir"] integerValue];
+    NSTimeInterval now = BWNow();
+    NSInteger slot = (hash != 0) ? BWSlotForHash28(hash) : -1;
+    void (^reject)(const char *) = ^(const char *reason) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[pinch2] owner reject reason=%s slot=%ld hash=%07x gen=%u "
+            @"session=%u seq=%llu gid=%llu dir=%ld",
+            reason, (long)slot, hash, gen, session,
+            (unsigned long long)seq, (unsigned long long)gid, (long)dir]);
+    };
+    if (slot < 0 || !bwBundleBySlot[slot]) { reject("badhash"); return; }
+    NSString *bundle = bwBundleBySlot[slot];
+    if (gen != bwGenBySlot[slot]) { reject("badgen"); return; }
+    id tval = info[@"t"];
+    NSTimeInterval t = [tval respondsToSelector:@selector(doubleValue)]
+        ? [tval doubleValue] : 0;
+    if (t <= 0 || fabs(now - t) > 1.0) { reject("stale"); return; }
+    BWEnsureInputStore();
+    uint32_t knownSession = bwInputStore.slots[slot].session;
+    BOOL sessionFromStore = knownSession != 0 &&
+        bwInputStore.slots[slot].hasReport &&
+        (now - bwInputStore.slots[slot].lastReport) <= BW_KB_FRESH_WINDOW;
+    if (sessionFromStore && session != knownSession) {
+        reject("badsession"); return;
+    }
+    BOOL sameKey = bwPinchHasBySlot[slot] &&
+        bwPinchGenBySlot[slot] == gen &&
+        bwPinchSessionBySlot[slot] == session;
+    if (sameKey) {
+        if (gid == bwPinchLastGidBySlot[slot] &&
+            seq == bwPinchLastSeqBySlot[slot]) { reject("dup"); return; }
+        if (seq <= bwPinchLastSeqBySlot[slot]) {
+            reject("staleseq"); return;
+        }
+    }
+    SCPCarPane *pane = [self paneForBundle:bundle];
+    SCPFullscreenState committed =
+        [SCPPinchController shared].adapter.currentState;
+    BOOL dirOK = (dir == 1 && committed == SCPFullscreenStateSplit) ||
+                 (dir == 2 && committed == SCPFullscreenStateExpanded);
+    if (!pane || pane.slot != slot ||
+        ![[self hostedPanes] containsObject:pane] || !dirOK) {
+        reject("badstate"); return;
+    }
+    bwPinchHasBySlot[slot] = YES;
+    bwPinchGenBySlot[slot] = gen;
+    bwPinchSessionBySlot[slot] = session;
+    bwPinchLastSeqBySlot[slot] = seq;
+    bwPinchLastGidBySlot[slot] = gid;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[pinch2] owner accept slot=%ld bundle=%@ dir=%@ gid=%llu "
+        @"seq=%llu gen=%u session=%u sessrc=%@ state=%@",
+        (long)slot, bundle, dir == 1 ? @"out" : @"in",
+        (unsigned long long)gid, (unsigned long long)seq, gen, session,
+        sessionFromStore ? @"store" : @"note",
+        committed == SCPFullscreenStateSplit ? @"SPLIT" : @"EXPANDED"]);
+    id<SCPFullscreenControlling> adapter =
+        [SCPPinchController shared].adapter;
+    if (dir == 1) {
+        [adapter requestExpandWithCompletion:^(BOOL applied) {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[pinch2] owner expand applied=%d gid=%llu",
+                (int)applied, (unsigned long long)gid]);
+        }];
+    } else {
+        [adapter requestRestoreWithCompletion:^(BOOL applied) {
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[pinch2] owner restore applied=%d gid=%llu",
+                (int)applied, (unsigned long long)gid]);
+        }];
+    }
 }
 
 #pragma mark - State renewal (WO W2)
@@ -663,9 +841,15 @@ static void BWEmitDrain(void) {
     }
     // Emit when the packet SHAPE changed (state, arbitration, modes,
     // gen) — not only when the state enum moved (§1.3 point 6).
+    // [hl2-split G6] the signature is computed with the same per-pane
+    // modes bwEmitStateForPane: packs (trial wakeMode / pinchInApp),
+    // so a trial-scope or pinchInApp change re-emits on its own.
     BOOL pinch = [self bwPinchAllowedForPane:pane];
-    uint64_t sig = BWEmitSig(bwStateBySlot[slot], pinch, bwWakeMode,
-                             bwPinchMode, bwGenBySlot[slot]);
+    NSInteger emitWM, emitPM;
+    BWEmitModesForBundle(bwBundleBySlot[slot] ?: bundle,
+                         &emitWM, &emitPM, NULL);
+    uint64_t sig = BWEmitSig(bwStateBySlot[slot], pinch, emitWM,
+                             emitPM, bwGenBySlot[slot]);
     if (sig != bwEmitSigBySlot[slot]) [self bwQueueEmitForPane:pane];
     // WO W2: assignment/session changes are the renewal timer's
     // lifecycle inputs (first hosted pane starts it, losing the
@@ -770,6 +954,30 @@ static void BWEmitDrain(void) {
         bwPinchAllowlist ? [NSString stringWithFormat:@"%lu",
             (unsigned long)bwPinchAllowlist.count] : @"all",
         (int)bwAutoHideEnabled]);
+    // [hl2-split G6] Gate 3 trial scope + in-app pinch packet mode.
+    // bridgewake.gate3TrialBundle: absent (or malformed) = the
+    // default trial bundle com.google.ios.youtube; an empty string
+    // turns the trial OFF; any other string names the trial bundle.
+    // bridgewake.gate3Trial (kill-switch): absent = ON, 0 = OFF.
+    // bridgewake.pinchInApp: absent = ENFORCE, 1 = DRY_RUN, 0 = OFF
+    // (any other value = ENFORCE); it sets ONLY the packet pinchMode
+    // of hosted panes — the legacy bwPinchMode above is untouched.
+    id tb = OMCPref(@"bridgewake.gate3TrialBundle", nil);
+    if ([tb isKindOfClass:[NSString class]])
+        bwGate3TrialBundle = [(NSString *)tb length]
+            ? [(NSString *)tb copy] : nil;
+    else
+        bwGate3TrialBundle = @"com.google.ios.youtube";
+    id tk = OMCPref(@"bridgewake.gate3Trial", nil);
+    bwGate3TrialEnabled = tk ? [tk boolValue] : YES;
+    id pa = OMCPref(@"bridgewake.pinchInApp", nil);
+    bwPinchInAppMode = !pa ? BWModeEnforce
+        : [pa integerValue] == 0 ? BWModeOff
+        : [pa integerValue] == 1 ? BWModeDryRun : BWModeEnforce;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[gate3] trial bundle=%@ enabled=%d packetPinch=%ld",
+        bwGate3TrialBundle ?: @"off", (int)bwGate3TrialEnabled,
+        (long)bwPinchInAppMode]);
     // Mode changes re-run aggregation for every hosted pane (§1.3
     // point 6); the emit signature carries the modes, so any change
     // re-emits even when the state enum itself does not move.
@@ -1032,6 +1240,16 @@ static void BWEmitDrain(void) {
                          queue:[NSOperationQueue mainQueue]
                     usingBlock:^(NSNotification *n) {
                         [owner bwHandleKbStateNote:n];
+                    }];
+        // [hl2-split W6] In-app pinch relay (same registration point
+        // as kbstate): the hosted app's recognizer reports a proven
+        // pair on BWPinchNoteName; the owner validates it like a
+        // kbstate report and alone calls SCPFullscreenAdapter.
+        [[NSDistributedNotificationCenter defaultCenter]
+            addObserverForName:BWPinchNoteName object:nil
+                         queue:[NSOperationQueue mainQueue]
+                    usingBlock:^(NSNotification *n) {
+                        [owner bwHandlePinchNote:n];
                     }];
         [self bwReloadModesAndRepublish];
         // [pinch1] arbitration glue: the owner IS the pinch arbiter

@@ -88,6 +88,24 @@ static void SCPApplyAccent(UIView *view, BOOL on) {
     view.layer.shadowOffset = CGSizeMake(0, 4);
 }
 
+// [hl2-split P6] Compact live-state summary of one view for the
+// single [picker-measure] line in showPickerForSlot: (alpha, hidden,
+// superview class, frame, background colour as r,g,b,a — "?" when the
+// colour cannot be read as RGB, e.g. a pattern/dynamic colour).
+static NSString *SCPViewMeasureDesc(UIView *view) {
+    if (view == nil) return @"nil";
+    CGFloat r = 0, g = 0, b = 0, a = 0;
+    NSString *bg = @"?";
+    if (view.backgroundColor != nil &&
+        [view.backgroundColor getRed:&r green:&g blue:&b alpha:&a])
+        bg = [NSString stringWithFormat:@"%.3f,%.3f,%.3f,%.3f", r, g, b, a];
+    return [NSString stringWithFormat:
+        @"alpha=%.2f hidden=%d super=%@ frame=%@ bg=%@",
+        view.alpha, (int)view.isHidden,
+        view.superview ? NSStringFromClass(view.superview.class) : @"nil",
+        NSStringFromCGRect(view.frame), bg];
+}
+
 // Bridged-phone-app predicate @0x101bc (name INFERRED; also called from
 // module A methods — dedupe at integration, A owns most call sites).
 static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
@@ -177,6 +195,30 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                              green:0.9411764705882353
                               blue:0.984313725490196
                              alpha:1.0];   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
+    // [hl2-split P6] THE single picker measurement line (2026-11-09):
+    // the ytz5hl1 car log proved hasContent=1 on both real opens while
+    // the pane still showed white, and the source audit could NOT
+    // convict one element — pane.cover is the only structurally
+    // opaque full-pane view (addCoverToPane: rgb 0.933/0.941/0.984
+    // alpha 1, inserted above pane.host), but its add paths (Divider
+    // beginResize; RatioMenu/Panel only when the tray window is nil)
+    // do not prove it was present at picker-open, and the popup
+    // shield is white at alpha 0.02 (SCPCTouchWatch, Chrome.m
+    // updatePopupShield) so it cannot be opaque white. This line
+    // records every candidate's live state at the capture point:
+    // cover / the fresh picker / the standing sheet / both shields /
+    // the tray window (frame + level).
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[picker-measure] slot=%d hasContent=%d cover{%@} picker{%@} "
+        @"sheet{%@} shield{%@} pshield{%@} trayWin{frame=%@ level=%.0f hidden=%d}",
+        slot, (int)hasContent,
+        SCPViewMeasureDesc(pane.cover), SCPViewMeasureDesc(picker),
+        SCPViewMeasureDesc(self.pickerSheet),
+        SCPViewMeasureDesc(self.popupShield),
+        SCPViewMeasureDesc(self.pickerShield),
+        self.trayWindow ? NSStringFromCGRect(self.trayWindow.frame) : @"nil",
+        self.trayWindow ? self.trayWindow.windowLevel : -1.0,
+        self.trayWindow ? (int)self.trayWindow.isHidden : -1]);
     picker.autoresizingMask = 0x12;
     // Dump @0x3163c-0x31690: border colour is the lavender accent
     // colorWithRed:0.6078431372549019 green:0.5294117647058824

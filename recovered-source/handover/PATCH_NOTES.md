@@ -6504,7 +6504,7 @@ tiêu chí.
   dùng hằng ngày; ytz1 vẫn CÁCH LY;
   VISUAL_ORIGINAL_COMPARISON = PENDING.
 
-## 29) VÒNG YTZ5 — SAU PHIÊN YTZ4: LỆNH NGUYEN, WORK ORDER GPT, BẢN ĐỒ PHA 1, PHÁN QUYẾT W1(c) (2026-11-09) — THI CÔNG + BUILD XONG (29.7); DEB TỔNG HỢP CHỜ GPT BÀN GIAO ICON HOME (PHÂN CÔNG 19:15)
+## 29) VÒNG YTZ5 — SAU PHIÊN YTZ4: LỆNH NGUYEN, WORK ORDER GPT, BẢN ĐỒ PHA 1, PHÁN QUYẾT W1(c) (2026-11-09) — THI CÔNG + BUILD XONG (29.7); ĐÃ GHÉP HOME LAUNCHER CỦA GPT + DEB TỔNG HỢP FAT XONG (29.9)
 
 Mục này mở đầu ngay trong ngày để lịch sử không đứt quãng (lệnh hồ sơ
 19:00–19:05, xem 29.8): ghi các quyết định/lệnh/phán quyết/bản đồ đã chốt.
@@ -6527,9 +6527,10 @@ công tích hợp GPT 19:15 (xem khối TÍCH HỢP ở 29.7).
 | Phán quyết GPT: W1(c) + pinch OFF (18:45) | ĐÃ CHỐT — GO thi công |
 | Thi công ytz5 (4 strand) | XONG — commit nguồn đi cùng đợt push này (29.7) |
 | Harness 4 ca cấu trúc + kiểm tĩnh | XONG — harness 24/24 PASS; kiểm tĩnh PASS mọi cổng trừ parity: mất đúng 1 method là THAY THẾ CÓ CHỦ ĐÍCH theo hợp đồng (29.7) — chờ GPT miễn trừ |
-| Build candidate + CI FAT | Candidate local XONG — 1.036.636 B, SHA-256 `2d1cf435…` (29.7); CI + DEB tổng hợp HOÃN theo phân công tích hợp GPT 19:15 — chờ GPT bàn giao commit icon Home (chi tiết khối TÍCH HỢP ở 29.7; run CI đã dispatch trước lệnh đã completed success nhưng KHÔNG lấy làm bản bàn giao) |
-| Phiên xe nghiệm thu 6 bước | CHƯA |
-| Wake ENFORCE (Gate 3) | VẪN KHOÁ — chưa bật mặc định |
+| Build candidate + CI FAT + ghép Home launcher | ĐÃ XONG (29.9) — ghép tip GPT `050eddb0` (merge `c74c878`, 0 xung đột) + staging project `74635d1` + fix nullability tích hợp `8a2c7aa`; CI run dispatch **42622552103** SUCCESS; DEB tổng hợp duy nhất (ytz5hl1) FAT 1.245.714 B, SHA-256 `e28883b9…`. Candidate local ytz5 riêng: 1.036.636 B `2d1cf435…` (29.7) |
+| Phiên xe nghiệm thu 6 bước | ĐÃ ĐỐI CHIẾU LOG (29.12): bước 1 icon Home ĐẠT tầng log (11 chạm routed; model NO-DATA); bước 2 vòng đời AutoHide ĐẠT; bước 3 picker **THẤT BẠI** — nhánh (b), lớp phủ khác placeholder (nghi phạm pane.cover/shield); bước 4 phím gốc hosted **THẤT BẠI** — nhánh (i), phím hệ thống không dựng trên màn xe, bridge vô tội; bước 5 reveal ĐẠT + Gate 3 có 4 ca would=1 sạch; bước 6 A/B icon ĐẠT một phần (model NO-DATA) |
+| Wake ENFORCE (Gate 3) | VẪN KHOÁ — Nguyen nâng thành vấn đề 20:37; Muse đề xuất bật cho app hosted ở bản sau (29.10a) — chờ Nguyen chốt lệnh + GPT tham vấn (ngược phán quyết hiện hành) |
+| Pinch recognizer trong app hosted | MỚI LẬP LẠI 20:39 (29.10b) — ĐÍNH CHÍNH: pinch đã thành công ở bản 21–35; số touchset "trùng" là artefact vị trí đo; kế hoạch recognizer ABInApp → host → FS controller, chờ GPT phán điểm giao tiếp |
 
 ### 29.1 Diễn biến trong phiên ytz4 sau khi kịch bản được giao (17:20–17:48)
 
@@ -6992,3 +6993,305 @@ nguyên văn tinh thần lời anh: TỪ NAY LƯU LỊCH SỬ MỖI KHI CÓ THAY
 ĐỔI VỀ DỰ ÁN, NGAY TRONG KHỐI CÔNG VIỆC ĐÓ — mọi cuộc làm việc
 liên quan chỉnh sửa/quyết định đều commit lịch sử ngay trong khối
 đó, không dồn cuối vòng; chỉ trao đổi thông thường mới miễn.
+
+### 29.9 Tích hợp YTZ5 + Home launcher của GPT [ĐÃ XONG — CI FAT PASS; CHỜ PHIÊN XE]
+
+Bàn giao (Nguyen chuyển tiếp 19:53): nhánh `feature/omnicar-home-launcher`
+tip `050eddb0` (5 commit nguồn GPT trên đúng nền `3e25499`; tài liệu bàn
+giao `gpt-project-history/HOME_LAUNCHER_HANDOVER.md`). GPT làm phần icon
+OmniCar trên lưới Home CarPlay theo phân công 19:15; Muse ghép + build
++ ký MỘT deb tổng hợp, ghi hồ sơ. Biên bản đầy đủ:
+`handover/reports/integration-ytz5hl.md` + kiểm tĩnh độc lập
+`handover/reports/verify-ytz5hl.md` (cùng commit hồ sơ này).
+
+**Ghép (nhánh `integrate/ytz5-home-launcher` từ main `cbdaeab`):**
+- Merge `c74c878`: **0 xung đột, 0 hunk phải xử lý tay** (hai phía dựa
+  trên cùng snapshot nguồn YTZ5 ở `3e25499`). Kiểm tay hậu ghép tại các
+  điểm nóng: src SCPHooks.m giữ cả `noteCloseSource` (B5, ×5) lẫn
+  SCPHomeLauncher (×11); src SCPHomeApply.m là bản I5 nguyên vẹn tới
+  EOF và có lời gọi audit của GPT `SCPHomeLauncherAuditModel(...)`
+  tại entry `SCPLogInjectedIconState` (dòng 346).
+- Hai nguồn commit: YTZ5 `e6b50a4` (Muse) + Home launcher tip
+  `050eddb0` (GPT). Tip nhánh integrate: `8a2c7aa`.
+
+**Khoảng trống hai cây (§4 của bàn giao — GPT cảnh báo, coordinator
+ĐO LẠI và xác nhận ĐÚNG, còn rộng hơn cảnh báo):** tại thời điểm ghép,
+toàn bộ vòng YTZ5 **chưa từng được stage vào cây project của push9**
+(mọi discriminator = 0; `SCPHomeApply.m` project = bản cũ 332 dòng so
+với src 539; thiếu cả `BWInputStore.h` + `SCPHomeApply.h`) — CI build
+từ project nên nếu dispatch ngay sẽ ra bản thiếu YTZ5. Đã sửa bằng
+commit staging `74635d1`: stage 20 file hợp nhất (YTZ5 ∪ GPT) src →
+project ở cả push9 lẫn `omnicar-re`, làm phẳng import theo hợp đồng
+cũ (giữ dòng ghi chú `[phase3 sync]`); file project do GPT tự stage
+khớp byte-đối-byte với đầu ra staging; hai cây src byte-identical;
+Makefile SplitScreen cộng `SCPHomeLauncher.m` (38 file/38 duy nhất,
+không trùng symbol).
+
+**Sự cố tích hợp (ghi nguyên trạng):** build cục bộ SplitScreen fail
+duy nhất ở `SCPHomeLauncher.m` vì xung đột chú thích nullability giữa
+hai header: `SCPHomeCommon.h:38` khai `SCPAppHasCarPlayUI` là
+_Nonnull ngầm, `SCPShared.h:67` là `_Nullable`; ngược cực ở cặp
+`SCPIsInjectedPhoneApp` (`SCPHomeCommon.h:45` _Nullable /
+`SCPShared.h:79` _Nonnull ngầm). Module của GPT là TU đầu tiên include
+cả hai header nên lộ xung đột tiềm ẩn từ trước. Fix `8a2c7aa`: thống
+nhất `_Nullable` cho cả hai hàm (khớp thân hàm thật — nil-tolerant),
+chỉ đổi chú thích, 2 dòng × 3 cây; sau fix build sạch. Không sự cố CI
+nào khác; run push-triggered 42622551174 bị coordinator cancel có chủ
+đích để giữ một run dispatch chuẩn duy nhất.
+
+**Kiểm tĩnh độc lập (agent chỉ-đọc, cây project): SHIP cho FAT.**
+(a) Khẳng định GPT PASS 7/7 (kiểm ABI type-encoding trước install;
+original gọi đúng 1 lần cho app khác/unknown; đăng ký library không
+trùng + promotion cũng refresh; lọc own-bundle chỉ trong bộ nhớ;
+`SCPIsHostedApp` NO sớm; mở qua `showLayoutPanelForApp:` +
+`ahNoteActivity:AHSourceHome`, không openURL/prefs/event-1 mới; nút
+dock không đổi; GPT không chạm SCPCarSplit/AutoHide/BridgeWake/
+Picker/YTZ). (b) Nguyên vẹn YTZ5: parity method so với `e6b50a4`
+= 0 mất/0 cộng ngoài GPT (488 method phân biệt hai phía; method miễn
+trừ `bwHandleKbSyncNote:` đã vắng ngay tại `e6b50a4` — miễn trừ của
+bước ytz4→ytz5 tại 29.7, vòng ghép này không mất thêm gì); mọi
+discriminator có mặt; knob đúng 1 đảo cực (source); ENFORCE khoá
+mặc định; pinch vắng pref = OFF. (c) `git diff --check` sạch.
+
+**Build + CI:** toolchain verify qua `fix-toolchain.sh` (VM lại
+rollback /usr trong khoảng 19:54 — khôi phục foreground, smoke test
+đạt). Build cục bộ: SplitScreen + AppBridge sạch; dylib SplitScreen
+cục bộ có 14 symbol SCPHomeLauncher (positive control SCPCarSplit
+642 hit nm); aggregate ra candidate cục bộ 1.041.356 B (chỉ kiểm
+biên dịch, không phải bản giao). CI: merge integrate vào ci-fat-test
+= `b8deff2` (sạch); dispatch workflow 410962367 → **run 42622552103
+completed success** (xác minh foreground qua jobs API: build FAT +
+verify slices + upload đều success).
+
+**DEB tổng hợp duy nhất (ytz5hl1):**
+`com.anlai.omnicar_1.0.3-rebuilt-ytz5hl1-fat_iphoneos-arm64.deb` —
+**1.245.714 B, SHA-256
+`e28883b97c68ce0d0d0341499a6c33a0d2b1d9b2f32ef0f2d308595178cad594`**;
+members debian-binary + control.tar.gz + data.tar.lzma. Kiểm binary
+hai lát (arm64 = arm64e trên mọi probe): SCPHomeLauncher có mặt cả
+hai lát (10 chuỗi + symbol export); `bwHandleKbStateNote:` ×1,
+`bwHandleKbSyncNote:` = 0 (miễn trừ hiện hình đúng), `ahCloseCleanup`
+×1, kênh `bridgewake.v1.kbstate` ×1 ở cả SplitScreen lẫn AppBridge;
+AppBridge mỗi lát có `appBridgeNativeKeyboard`/`drawnKeyboard` ×1.
+
+**Trạng thái:** source-complete / static PASS / local-build PASS /
+CI FAT PASS. **PENDING-DEVICE nguyên vẹn** — phiên xe gộp theo kịch
+bản 6 bước của GPT + phép thử Home launcher (icon hiện đúng 1 lần →
+chạm mở panel Bố cục/Yêu thích/Gần đây, KHÔNG mở Cài đặt iPhone →
+nút dock vẫn chạy → split + thoát Home lúc logo hiện → lặp lúc đã
+mờ → đổi app rồi quay lại → ngắt/kết nối lại → khởi động lại tiến
+trình), giữ riêng các mục: phím hosted native trên xe, chuỗi kbstate
+trên xe, vòng đời AutoHide sau sửa, picker nhìn xuyên + ô trống vẫn
+đặc, A/B icon tầng model/dock. Bảng mốc 29.0: dòng build/CI đã cập
+nhật ĐÃ XONG; dòng phiên xe giữ CHƯA.
+
+### 29.10 Phiên xe ytz5hl1 — BÁO CÁO TẠI XE của Nguyen (20:34, 09/11) [CHỜ LOG ĐỐI CHIẾU] + hai vấn đề/lệnh mới (20:37–20:41)
+
+Nguồn: Nguyen báo tại chat 20:34–20:41 ngày 09/11/2026, phiên xe của bản
+tổng hợp `com.anlai.omnicar_1.0.3-rebuilt-ytz5hl1-fat` (SHA-256
+`e28883b9…`, xem 29.9). **LOG PHIÊN CHƯA ĐƯỢC UP** — mọi verdict dưới đây
+là **báo cáo tại xe của Nguyen (mức màn hình)**, chờ log đối chiếu trước
+khi kết án cơ chế. Ghi theo quy tắc 29.8 (verdict từng mốc tường minh).
+
+| # | Mục nghiệm thu | Verdict |
+|---|---|---|
+| 1 | Icon Home: hiện đúng 1 → chạm mở panel Bố cục/Yêu thích/Gần đây, không mở Cài đặt iPhone; nút dock còn chạy | **TẠM ỔN** (màn hình; tầng cell/tap chờ log `[home-launch]`) |
+| 2 | Vòng đời AutoHide: thoát split lúc đang mờ → mở lại hiện đủ logo/handle/divider, ẩn lại sau 4 s | **TẠM ỔN** (màn hình) |
+| 3 | Picker nhìn xuyên (ô có app trong suốt; ô trống vẫn đặc) | **THẤT BẠI** (màn hình) — chờ log: đọc `[picker] hasContent=` tại mỗi lần mở để phân định (a) phép bắt occupancy cho kết quả sai, hay (b) lớp phủ nằm ở phần tử khác ngoài placeholder |
+| 4 | Bàn phím gốc (native) cho app hosted | **THẤT BẠI** — phím **không hề hiện** trên màn xe. Đây đúng là tầng xe của bản đồ khả thi 3 tầng đã khai trước build (M2, 29.5): nguồn chỉ chứng được phím hệ thống không bị suppress; phím dựng ở màn nào là việc chỉ xe trả lời được. Chờ log phân định: app có báo kbstate ACTIVE không; giá trị cổng `drawnKeyboard` thiết bị nhận được là gì; phím có dựng ở màn khác không |
+| 5 | Đường đánh thức sau khi đóng phím | Nửa reveal **ĐẠT**: chạm hiện lại logo được. Nuốt vẫn ở chế độ **Đo** (ENFORCE chưa bật — xem (a) dưới đây) |
+| 6 | A/B icon với instrument mới | **TẠM ỔN** (màn hình; tầng model/dock chờ log `[iconstate]`) |
+| 7 | Bước "hồi quy + đuôi phiên" trong kịch bản giao | **LỖI TRÌNH BÀY CỦA CLAUDE**: kịch bản viết chưa rõ nghĩa, Nguyen hỏi lại "bước 7 là gì". Mục này là phụ, không chặn nghiệm thu; kịch bản sau phải viết bằng tên trên màn hình và phân rõ việc bắt buộc / việc nếu tiện |
+
+**Hai điểm Nguyen nâng thành vấn đề (20:37–20:41):**
+
+(a) **Gọi lại 1 chạm vẫn click app — Gate 3 chưa từng được mở trên xe ở
+dự án này.** Dữ kiện: cơ chế nuốt đã có đầy đủ trong mã; ở phiên ytz4 phép
+quyết định `wouldSwallow` đo đúng 8/8 tổ hợp (báo cáo phiên ytz4, §28 /
+ACCEPTANCE_YTZ4); mẫu tham chiếu QA180 `h1wake3` của DuoFace đã đạt nuốt
+thật trên **cùng chiếc xe này** (12 lần swallowed=1, 06/11/2026). Nhưng ở
+dự án OmniCar, Wake ENFORCE **chưa một lần được bật chạy thật** — qua mọi
+vòng nó bị giữ ở chế độ Đo vì chuỗi bằng chứng Gate 3 của GPT chưa khép
+(lần thiếu nguồn kb sạch, lần cửa sổ đo trống). **Đề xuất của Muse (đã
+trình Nguyen 20:37):** bản sau bật ENFORCE cho **app hosted** — cổng
+fail-open (mọi điểm không chắc chắn thì cú chạm đi qua như hiện nay; chỉ
+giữ cú chạm khi mọi điều kiện chắc chắn); app **native nằm ngoài phạm vi
+kiến trúc** (không có thành phần nào trong tiến trình native để giữ cú
+chạm). Việc bật này **NGƯỢC phán quyết Gate 3 hiện hành của GPT** → chờ
+(i) Nguyen chốt lệnh cuối và (ii) GPT tham vấn. **Chưa thi công.**
+
+(b) **PINCH — ĐÍNH CHÍNH DỮ KIỆN QUAN TRỌNG (Nguyen bắt đúng 20:39; Muse
+nhận lỗi).** Pinch **ĐÃ thành công trên xe ở các bản 21–35** (nền QA20)
+bằng **recognizer tuỳ biến nằm trong app hosted** — nhận diện bắt đầu ngay
+khi ngón thứ hai chạm + `cancelsTouchesInView`. Số liệu touchset của dự
+án tái tạo này (phiên ytz3: 62/62; ytz4: 101/101 ca "hai chạm" đều là bản
+trùng của một ngón) là **artefact của vị trí đo phía CarPlayApp** — một cú
+chạm bị hệ thống ghi ở hai cửa sổ — **không phải** bằng chứng màn xe
+không gửi hai tiếp xúc đồng thời; app hosted nhìn thấy đủ hai ngón thật
+trong scene của nó, đã chứng minh bằng xe thật ở bản 21–35. Hệ quả:
+**quyết định PARK pinch (phán quyết W3, 29.6) và cả thiết kế phép hiệu
+chuẩn "hai ngón giữ 3 giây" đều dựa trên số đo sai vị trí này** — ghi
+nhận tại đây để GPT phán lại trên dữ kiện đúng. **Kế hoạch sửa (chưa thi
+công):** recognizer trong ABInApp cho ô hosted → phát tín hiệu về host →
+host gọi FS controller hiện có. Cần GPT phán trước các điểm giao tiếp:
+kênh tín hiệu dùng chung; thứ tự ưu tiên với hook của đường đánh thức tại
+cùng điểm chạm; hành vi khi controls đang ẩn / đang EXPANDED. (Đính chính
+này đồng thời đã ghi vào bộ nhớ ngày 09/11 của Muse.)
+
+**Trạng thái chờ sau mục này:** (1) log phiên ytz5hl1 — Nguyen up một lần
+→ phân tích `[picker]` / `[kbstate]` / `[home-launch]` / `[iconstate]` /
+wouldSwallow, tách đúng thế hệ binary như mọi phiên; (2) chốt lệnh bật
+ENFORCE hosted (Nguyen) + tham vấn GPT cho cả (a) và (b) trước khi thi
+công; (3) miễn trừ parity `bwHandleKbSyncNote:` — vẫn chờ GPT phán cuối;
+(4) weather/knob + VISUAL_ORIGINAL_COMPARISON giữ PENDING.
+
+### 29.11 Chẩn đoán pinch của Nguyen (20:43, 09/11) — "app chạy quá nhiều": hai cơ chế chặn để GPT tham vấn [CHƯA THI CÔNG]
+
+Nguồn: Nguyen phát biểu tại chat 20:43 ngày 09/11/2026, bổ sung cho mục
+29.10(b). Đây là **chẩn đoán của Nguyen về nguyên nhân pinch chưa thành
+công** — ghi nguyên văn ý của anh trước khi GPT tham vấn; phía Muse
+**chưa kết luận cơ chế**.
+
+**Chẩn đoán:** vấn đề khiến zoom 2 ngón chưa thành công là **app chạy
+quá nhiều** — hai ngón chạm lọt xuống app hosted, app vẫn xử lý cảm ứng
+của nó (cuộn / zoom / hành động riêng) trong lúc pinch, nên cử chỉ bị
+app tranh chấp thay vì chuyển fullscreen sạch. Nói cách khác, điểm nghẽn
+không nằm ở khâu *nhận diện* hai ngón (app hosted nhìn thấy đủ hai ngón
+thật trong scene của nó — xem 29.10(b)) mà ở khâu *ngăn app tiêu thụ*
+hai chạm đó.
+
+**Hai hướng khắc phục Nguyen nêu để GPT tham vấn:**
+
+(1) **NGĂN HOẠT ĐỘNG CẢM ỨNG BẰNG 2 NGÓN XUỐNG APP** — điểm chặn nằm
+trong tiến trình app. Đây chính là cơ chế đã thành công ở bản 21–35:
+recognizer tuỳ biến trong app hosted + `cancelsTouchesInView` — khi
+recognizer vào trạng thái Began ngay lúc ngón thứ hai chạm, UIKit huỷ
+các chạm đã giao cho view của app, app không còn xử lý chúng nữa, cử
+chỉ pinch thuộc về tweak trọn vẹn. Dữ kiện kiến trúc đã có trong hồ sơ
+và vẫn áp dụng: **chạm vào app hosted đi theo đường scene, KHÔNG qua
+`sendEvent:` của CarPlayApp** — nên chặn ở phía host không nhốt được
+app; điểm chặn bắt buộc phải nằm trong tiến trình của app hosted.
+
+(2) **LỚP PHỦ VÔ HÌNH** — một lớp trong suốt phủ lên ô để hứng chạm
+trước. Nhận xét cơ chế (**chưa kết luận**, ghi để GPT cân): lớp phủ đặt
+phía host **không** hứng được chạm của scene hosted (khác tiến trình /
+khác ngữ cảnh render — cùng lý do kiến trúc ở (1)); lớp phủ đặt **trong
+app** thì hứng được, nhưng nó hứng **mọi** chạm kể cả một ngón, nên phải
+tự chuyển tiếp các chạm không phải pinch xuống app — phức tạp hơn hẳn
+recognizer (rủi ro độ trễ, sai thứ tự sự kiện, nuốt nhầm chạm thường).
+
+**Trạng thái:** Muse đã soạn lại bản tham vấn đầy đủ gửi GPT trong
+chat (gồm verdict phiên ytz5hl1 theo 29.10 + đề xuất Gate 3 ENFORCE
+hosted + pinch kèm chẩn đoán này và hai cơ chế khắc phục + các câu hỏi).
+**Chờ GPT phán trước khi thi công:** (i) cơ chế chặn được chọn —
+recognizer + `cancelsTouchesInView` / overlay trong app / kết hợp;
+(ii) thứ tự xử lý giữa pinch và wake-swallow tại cùng điểm chạm (cú
+pinch đầu khi controls đang ẩn có bị tính là cú chạm gọi logo không);
+(iii) hành vi pinch khi controls đang ẩn và khi đang EXPANDED (zoom
+out = thu về split?). Các mục chờ khác giữ nguyên như cuối 29.10.
+
+### 29.12 Phân tích log phiên ytz5hl1 [ĐÃ ĐỐI CHIẾU LOG — verdict log thay verdict miệng của 29.10]
+
+Nguồn: `OmniCar.log` (965.241 B, SHA-256 `e7e62a0b…`) + `OmniCar.log.old`
+(2.102.266 B), Nguyen up ở commit `5e745bc`. Năm strand song song + bản
+đối hoà `analysis-ytz5hl1-final.md` và 5 biên bản strand đã chép vào
+`handover/reports/`. Mọi đếm bằng grep trên file gốc, kết luận ghim dòng
+có timestamp.
+
+**Khung phiên:** file .old chứa cả phiên ytz4 (dòng 1–2477, 17:40:49–
+17:49:22, CP 36057) lẫn đầu phiên ytz5hl1; thế hệ mới bắt đầu
+`20:18:10.158` (SB 36658, CP 36683); hai file nối liên tục tại 20:36:45
+(seq kb-sync 1976→1977); đổi PID đồng loạt SB+CP lúc 20:39:51–57 (dạng
+respring, không crash/exception/SIG quanh đó — nguyên nhân NO-DATA);
+pha 2 CP 36712 tới 20:52:18. Lỗi toàn cục = 0. Chuỗi build giống hệt hai
+thế hệ — chỉ phân biệt bằng PID + timestamp + tag riêng ([home-launch]
+121, [kbstate] 1.430, [ytz5-k5] 7; đoạn ytz4 đều 0).
+
+**Bảng verdict (log):** bước 1 icon Home **ĐẠT ở tầng log** (library/
+declaration/tap-gate đủ 2 lần dựng; 11 lần chạm THẬT routed-existing-
+panel 20:18:56→20:32:27, openURL = 0; tầng model NO-DATA — xem dưới);
+bước 2 vòng đời AutoHide **ĐẠT** (3/3 thoát lúc mờ → mở lại hiện đủ,
+restored ≤44 ms, fade lại đúng idle 4.00; không lần mở lại nào bắt đầu ở
+trạng thái mờ — lỗi rò ahFadedState của ytz4 không tái diễn); bước 3
+picker **THẤT BẠI — cơ chế nhánh (b)**; bước 4 phím gốc hosted **THẤT
+BẠI — phân định nhánh (i)**; bước 5 reveal **ĐẠT**, Gate 3 có tiến triển
+bằng chứng lớn (dưới); bước 6 A/B icon **ĐẠT một phần / model NO-DATA**
+(thoát lúc mờ ⇒ goHome=NO 3/3 khớp ytz4, nhưng lúc hiện cũng NO 4/4 —
+`src=` là biến trội phiên này; cell giữ 5/7 ca after-close; remove = 0).
+
+**Bước 3 — cơ chế:** toàn phiên đúng 2 lần mở picker thật (nút "Đổi
+app", ô 0 YouTube hosted): 20:25:25.561 và 20:25:36.896, cả hai
+`[picker] hasContent=1`; `hasContent=0` xuất hiện 0 lần → nhánh (a) của
+29.10 bị log bác (phép bắt occupancy ĐÚNG; placeholder `pane.picker`
+cùng hunk với dòng log nên vô tội ở tầng log). Lớp phủ là phần tử KHÁC,
+nghi phạm xếp hạng: (b1) `pane.cover` — phủ toàn pane, đúng hằng màu
+đặc rgb(0.9333, 0.9412, 0.9843), nhưng add/remove không phát dòng log
+nào (NO-DATA sự hiện diện); (b2) shield của popup — xác nhận dựng đúng
+tại 2 mốc mở (20:25:25.951 / 20:25:37.092), màu/alpha không được ghi.
+Kết án đích danh cần đúng 1 dòng đo bổ sung: alpha + superview của
+`pane.cover` và `pane.picker` ngay sau điểm bắt hasContent trong
+`showPickerForSlot:`.
+
+**Bước 4 — cơ chế:** cổng trên thiết bị = native, xác nhận phía host
+bằng dòng thật `[ytz5-k5] cong ban phim doi: native (prefschanged)` ×7,
+không lần nào drawn (token `drawnKeyboard` vắng mặt trong log). Hai cửa
+sổ ACTIVE duy nhất: 20:25:46→20:26:31 và 20:35:46→20:36:14, tổng 75 báo
+cáo state=1, accept 100% trong cửa sổ. **Chuỗi kbstate KHÉP trọn vòng:**
+accept 1.425 / reject 5 (noassignment ×3, badgen ×2 — đều là sự kiện
+vòng đời); seq liền mạch 2 session; accept→emit 0–1 ms; emit
+`source=app-input-session` active=1 ×148; có ca stale→UNKNOWN thật sau
+badgen (freshness neo vào nguồn, đúng luật W2). AutoHide giữ đúng:
+`fade deferred (kb)` ×11, fade thật trong lúc ACTIVE = 0. Nhánh (ii)
+(cổng lệch/vẫn suppress) bị log bác: không dòng suppression, host không
+chặn panel lúc nhập liệu. **Kết luận nhánh (i): phím hệ thống không
+dựng trên màn xe cho scene hosted — kết án tầng xe, cầu bridge vô tội;**
+ở chế độ native, app hosted trên bộ máy này không có bàn phím dùng
+được. (Giới hạn: tầng trình bày phím câm log tuyệt đối, `UIKeyboard` =
+0 mọi process; kết án dựa trên chuỗi bridge khép kín + verdict màn
+hình của Nguyen.)
+
+**Gate 3 — trạng thái bằng chứng sau phiên:** điều kiện nuốt đầy đủ
+(HIDDEN + known + kb INACTIVE từ nguồn xác thực) có 9 ca; **would=1
+SẠCH ở 4 ca** (seq 1/8/17/20, kbAge 9–625 ms, failopen=`-`) — phiên đầu
+tiên có ca dương tính sạch trên nguồn kb đã sửa; 4 ca would=0 do stale
+(fail-open đúng thiết kế); **1 ca bất thường seq=45** (20:37:23.977, H +
+fresh mà would=0, đúng nhịp host đang reveal — nghi race snapshot với
+state-flip, chưa chứng minh). Mắt xích "chạm lúc HIDDEN + kb ACTIVE"
+vẫn không có ca nào, VÀ tổ hợp đó không đồng tồn tại: cả 3 cửa sổ kb
+ACTIVE đều có owner = VISIBLE vì chính thiết kế kb-hold của ytz5 giữ
+controls hiện khi phím mở — tiêu chuẩn như viết hiện tại tự mâu thuẫn
+với thiết kế đã chốt, cần GPT phán lại tiêu chuẩn. Mắt xích "chạm sau
+đóng phím cùng assignment" ĐÃ CÓ (seq 42–47 sau cửa sổ B, gen=20; ca H
+trong đó là seq=45 bất thường). Bằng chứng gõ phím vẫn NO-DATA (hệ quả
+bước 4).
+
+**Hồi quy/phụ:** native feed lệch đúng 1 act (posted 47 / accepted 46;
+seq=19 posted 20:27:50.617 gen=8 không accepted ở cả hai file) +
+stateage tối đa 42.546 ms ở kênh state wake (kênh kbstate mới thì
+sạch). FS1: expand confirmed 2/9 thao tác; **5 lần refused có snap toàn
+0** (`picker=0 ratio=0 dg=0 toast=0 tray=0`), cờ sống chung duy nhất
+`to=1` — guard từ chối khi các con trỏ nội dung được mô tả là nó canh
+đều tắt, cần truy `to` là đầu vào nào của predicate. YTZ sạch: mismatch
+0, revoke 6 lần frame giữ nguyên (không layout cưỡng bức), mask 24
+không rò. Weather/knob NO-DATA phiên thứ 4 (chỉ 2 chu trình ans#1
+warming lúc startup). Pinch: OFF nhất quán (pinch=0 ×9, wouldPinch=0
+×34); **bằng chứng hai ngón phía trong app ĐÃ CÓ** — probe seq=49
+(20:38:23.821) `ph B=2 M=17 E=2` do chính YouTube ghi, củng cố đính
+chính 29.11; dòng migration riêng NO-DATA (grep `migration` = 0).
+Tầng model icon mù toàn phiên ở cả hai phía đo (58/58 mẫu BLIND,
+lists=3 icons=0; ABSENT/PRESENT đều 0) — theo chuẩn bằng chứng đã sửa
+ở vòng trước, đây là NO-DATA (giới hạn W5), không phải bằng chứng mất
+icon.
+
+**Đối chiếu phán quyết GPT `5ae47da`** (gpt-project-history/
+YTZ5HL1_GATE3_PINCH_RULING_20261109.md — GPT phán trên báo cáo miệng,
+log chưa tải): log nay xác nhận độc lập hướng (5) phím — drawn là đường
+duy nhất có phím dùng được cho hosted, native chết ở tầng xe; điều
+kiện tiền đề (4) của Gate 3: hai mắt (a) assignment/gen tươi + HIDDEN
+hiệu lực và (b) kb known INACTIVE từ nguồn phiên app ĐÃ CÓ trong log ở
+4 ca would=1 sạch; mắt (c) (bằng chứng orig_SendEvent bị bỏ qua) chỉ
+đo được khi ENFORCE chạy thật; điều tra picker ở (6) đã có kết quả
+tầng log như trên (nhánh b + dòng đo còn thiếu đã chỉ đích danh).
+Trạng thái chờ giữ nguyên: quyết định thi công theo phán quyết thuộc
+vòng tiếp theo; miễn trừ `bwHandleKbSyncNote:` vẫn chờ GPT phán cuối;
+weather/knob + VISUAL_ORIGINAL_COMPARISON giữ PENDING.
