@@ -6528,8 +6528,9 @@ công tích hợp GPT 19:15 (xem khối TÍCH HỢP ở 29.7).
 | Thi công ytz5 (4 strand) | XONG — commit nguồn đi cùng đợt push này (29.7) |
 | Harness 4 ca cấu trúc + kiểm tĩnh | XONG — harness 24/24 PASS; kiểm tĩnh PASS mọi cổng trừ parity: mất đúng 1 method là THAY THẾ CÓ CHỦ ĐÍCH theo hợp đồng (29.7) — chờ GPT miễn trừ |
 | Build candidate + CI FAT + ghép Home launcher | ĐÃ XONG (29.9) — ghép tip GPT `050eddb0` (merge `c74c878`, 0 xung đột) + staging project `74635d1` + fix nullability tích hợp `8a2c7aa`; CI run dispatch **42622552103** SUCCESS; DEB tổng hợp duy nhất (ytz5hl1) FAT 1.245.714 B, SHA-256 `e28883b9…`. Candidate local ytz5 riêng: 1.036.636 B `2d1cf435…` (29.7) |
-| Phiên xe nghiệm thu 6 bước | CHƯA |
-| Wake ENFORCE (Gate 3) | VẪN KHOÁ — chưa bật mặc định |
+| Phiên xe nghiệm thu 6 bước | ĐÃ CHẠY 20:34 (báo cáo tại xe, LOG CHƯA UP — 29.10): bước 1/2/6 TẠM ỔN; bước 3 picker **THẤT BẠI**; bước 4 phím gốc hosted **THẤT BẠI** (không hiện phím); bước 5 reveal ĐẠT; bước 7 lỗi trình bày kịch bản của Muse |
+| Wake ENFORCE (Gate 3) | VẪN KHOÁ — Nguyen nâng thành vấn đề 20:37; Muse đề xuất bật cho app hosted ở bản sau (29.10a) — chờ Nguyen chốt lệnh + GPT tham vấn (ngược phán quyết hiện hành) |
+| Pinch recognizer trong app hosted | MỚI LẬP LẠI 20:39 (29.10b) — ĐÍNH CHÍNH: pinch đã thành công ở bản 21–35; số touchset "trùng" là artefact vị trí đo; kế hoạch recognizer ABInApp → host → FS controller, chờ GPT phán điểm giao tiếp |
 
 ### 29.1 Diễn biến trong phiên ytz4 sau khi kịch bản được giao (17:20–17:48)
 
@@ -7083,3 +7084,63 @@ trình), giữ riêng các mục: phím hosted native trên xe, chuỗi kbstate
 trên xe, vòng đời AutoHide sau sửa, picker nhìn xuyên + ô trống vẫn
 đặc, A/B icon tầng model/dock. Bảng mốc 29.0: dòng build/CI đã cập
 nhật ĐÃ XONG; dòng phiên xe giữ CHƯA.
+
+### 29.10 Phiên xe ytz5hl1 — BÁO CÁO TẠI XE của Nguyen (20:34, 09/11) [CHỜ LOG ĐỐI CHIẾU] + hai vấn đề/lệnh mới (20:37–20:41)
+
+Nguồn: Nguyen báo tại chat 20:34–20:41 ngày 09/11/2026, phiên xe của bản
+tổng hợp `com.anlai.omnicar_1.0.3-rebuilt-ytz5hl1-fat` (SHA-256
+`e28883b9…`, xem 29.9). **LOG PHIÊN CHƯA ĐƯỢC UP** — mọi verdict dưới đây
+là **báo cáo tại xe của Nguyen (mức màn hình)**, chờ log đối chiếu trước
+khi kết án cơ chế. Ghi theo quy tắc 29.8 (verdict từng mốc tường minh).
+
+| # | Mục nghiệm thu | Verdict |
+|---|---|---|
+| 1 | Icon Home: hiện đúng 1 → chạm mở panel Bố cục/Yêu thích/Gần đây, không mở Cài đặt iPhone; nút dock còn chạy | **TẠM ỔN** (màn hình; tầng cell/tap chờ log `[home-launch]`) |
+| 2 | Vòng đời AutoHide: thoát split lúc đang mờ → mở lại hiện đủ logo/handle/divider, ẩn lại sau 4 s | **TẠM ỔN** (màn hình) |
+| 3 | Picker nhìn xuyên (ô có app trong suốt; ô trống vẫn đặc) | **THẤT BẠI** (màn hình) — chờ log: đọc `[picker] hasContent=` tại mỗi lần mở để phân định (a) phép bắt occupancy cho kết quả sai, hay (b) lớp phủ nằm ở phần tử khác ngoài placeholder |
+| 4 | Bàn phím gốc (native) cho app hosted | **THẤT BẠI** — phím **không hề hiện** trên màn xe. Đây đúng là tầng xe của bản đồ khả thi 3 tầng đã khai trước build (M2, 29.5): nguồn chỉ chứng được phím hệ thống không bị suppress; phím dựng ở màn nào là việc chỉ xe trả lời được. Chờ log phân định: app có báo kbstate ACTIVE không; giá trị cổng `drawnKeyboard` thiết bị nhận được là gì; phím có dựng ở màn khác không |
+| 5 | Đường đánh thức sau khi đóng phím | Nửa reveal **ĐẠT**: chạm hiện lại logo được. Nuốt vẫn ở chế độ **Đo** (ENFORCE chưa bật — xem (a) dưới đây) |
+| 6 | A/B icon với instrument mới | **TẠM ỔN** (màn hình; tầng model/dock chờ log `[iconstate]`) |
+| 7 | Bước "hồi quy + đuôi phiên" trong kịch bản giao | **LỖI TRÌNH BÀY CỦA CLAUDE**: kịch bản viết chưa rõ nghĩa, Nguyen hỏi lại "bước 7 là gì". Mục này là phụ, không chặn nghiệm thu; kịch bản sau phải viết bằng tên trên màn hình và phân rõ việc bắt buộc / việc nếu tiện |
+
+**Hai điểm Nguyen nâng thành vấn đề (20:37–20:41):**
+
+(a) **Gọi lại 1 chạm vẫn click app — Gate 3 chưa từng được mở trên xe ở
+dự án này.** Dữ kiện: cơ chế nuốt đã có đầy đủ trong mã; ở phiên ytz4 phép
+quyết định `wouldSwallow` đo đúng 8/8 tổ hợp (báo cáo phiên ytz4, §28 /
+ACCEPTANCE_YTZ4); mẫu tham chiếu QA180 `h1wake3` của DuoFace đã đạt nuốt
+thật trên **cùng chiếc xe này** (12 lần swallowed=1, 06/11/2026). Nhưng ở
+dự án OmniCar, Wake ENFORCE **chưa một lần được bật chạy thật** — qua mọi
+vòng nó bị giữ ở chế độ Đo vì chuỗi bằng chứng Gate 3 của GPT chưa khép
+(lần thiếu nguồn kb sạch, lần cửa sổ đo trống). **Đề xuất của Muse (đã
+trình Nguyen 20:37):** bản sau bật ENFORCE cho **app hosted** — cổng
+fail-open (mọi điểm không chắc chắn thì cú chạm đi qua như hiện nay; chỉ
+giữ cú chạm khi mọi điều kiện chắc chắn); app **native nằm ngoài phạm vi
+kiến trúc** (không có thành phần nào trong tiến trình native để giữ cú
+chạm). Việc bật này **NGƯỢC phán quyết Gate 3 hiện hành của GPT** → chờ
+(i) Nguyen chốt lệnh cuối và (ii) GPT tham vấn. **Chưa thi công.**
+
+(b) **PINCH — ĐÍNH CHÍNH DỮ KIỆN QUAN TRỌNG (Nguyen bắt đúng 20:39; Muse
+nhận lỗi).** Pinch **ĐÃ thành công trên xe ở các bản 21–35** (nền QA20)
+bằng **recognizer tuỳ biến nằm trong app hosted** — nhận diện bắt đầu ngay
+khi ngón thứ hai chạm + `cancelsTouchesInView`. Số liệu touchset của dự
+án tái tạo này (phiên ytz3: 62/62; ytz4: 101/101 ca "hai chạm" đều là bản
+trùng của một ngón) là **artefact của vị trí đo phía CarPlayApp** — một cú
+chạm bị hệ thống ghi ở hai cửa sổ — **không phải** bằng chứng màn xe
+không gửi hai tiếp xúc đồng thời; app hosted nhìn thấy đủ hai ngón thật
+trong scene của nó, đã chứng minh bằng xe thật ở bản 21–35. Hệ quả:
+**quyết định PARK pinch (phán quyết W3, 29.6) và cả thiết kế phép hiệu
+chuẩn "hai ngón giữ 3 giây" đều dựa trên số đo sai vị trí này** — ghi
+nhận tại đây để GPT phán lại trên dữ kiện đúng. **Kế hoạch sửa (chưa thi
+công):** recognizer trong ABInApp cho ô hosted → phát tín hiệu về host →
+host gọi FS controller hiện có. Cần GPT phán trước các điểm giao tiếp:
+kênh tín hiệu dùng chung; thứ tự ưu tiên với hook của đường đánh thức tại
+cùng điểm chạm; hành vi khi controls đang ẩn / đang EXPANDED. (Đính chính
+này đồng thời đã ghi vào bộ nhớ ngày 09/11 của Muse.)
+
+**Trạng thái chờ sau mục này:** (1) log phiên ytz5hl1 — Nguyen up một lần
+→ phân tích `[picker]` / `[kbstate]` / `[home-launch]` / `[iconstate]` /
+wouldSwallow, tách đúng thế hệ binary như mọi phiên; (2) chốt lệnh bật
+ENFORCE hosted (Nguyen) + tham vấn GPT cho cả (a) và (b) trước khi thi
+công; (3) miễn trừ parity `bwHandleKbSyncNote:` — vẫn chờ GPT phán cuối;
+(4) weather/knob + VISUAL_ORIGINAL_COMPARISON giữ PENDING.

@@ -787,6 +787,28 @@ CHỜ PHÁN), không chôn verdict trong câu văn.
   của app hosted hiện ở màn nào — PENDING-DEVICE, nghiệm thu riêng; nguyên nhân đổi PID giữa
   phiên (0 chữ ký crash — NO DATA); VISUAL_ORIGINAL_COMPARISON = PENDING.
 
+**Cập nhật 20:34–20:41 (phiên xe ytz5hl1 — BÁO CÁO TẠI XE của Nguyen, LOG CHƯA UP):**
+bước 1 icon Home **TẠM ỔN**; bước 2 vòng đời AutoHide **TẠM ỔN**; bước 3 picker nhìn
+xuyên **THẤT BẠI** (chờ log `[picker] hasContent=` phân định nhánh); bước 4 phím gốc
+hosted **THẤT BẠI** — phím không hề hiện trên màn xe (đúng tầng xe của khả thi 3 tầng
+đã khai trước build; chờ log `[kbstate]` phân định); bước 5 reveal **ĐẠT**, nuốt vẫn
+chế độ Đo; bước 6 A/B icon **TẠM ỔN**; bước 7 kịch bản viết chưa rõ nghĩa — lỗi trình
+bày của Muse, mục phụ không chặn. Chi tiết đầy đủ: PATCH_NOTES **29.10**.
+**Hai vấn đề/lệnh mới của Nguyen:** (a) gọi lại 1 chạm vẫn click app — Gate 3 chưa từng
+được BẬT trên xe ở dự án này dù cơ chế có và wouldSwallow đo đúng 8/8 ở ytz4, mẫu QA180
+của DuoFace đã đạt trên cùng xe; Muse đề xuất bật ENFORCE cho app hosted ở bản sau
+(fail-open; native ngoài phạm vi kiến trúc) — **ngược phán quyết Gate 3 hiện hành, chờ
+Nguyen chốt lệnh + GPT tham vấn**, chưa thi công. (b) PINCH — **ĐÍNH CHÍNH (Nguyen bắt
+đúng, Muse nhận lỗi):** pinch ĐÃ thành công trên xe ở bản 21–35 (nền QA20) bằng
+recognizer tuỳ biến TRONG app hosted; số touchset 101/101 "trùng" là **artefact vị trí
+đo phía CarPlayApp** (1 chạm ghi ở 2 cửa sổ), không phải giới hạn màn xe; quyết định
+PARK pinch + phép hiệu chuẩn đều dựa trên số đo sai vị trí này. Kế hoạch: recognizer
+trong ABInApp (ô hosted) → tín hiệu về host → FS controller hiện có; chờ GPT phán điểm
+giao tiếp (kênh tín hiệu, thứ tự với wake hook, hành vi khi controls ẩn/EXPANDED).
+**Chờ:** log phiên (Nguyen up một lần) → phân tích picker/kbstate/home-launch/iconstate;
+miễn trừ parity `bwHandleKbSyncNote:` vẫn chờ GPT phán cuối; weather/knob +
+VISUAL_ORIGINAL_COMPARISON giữ PENDING.
+
 ## 9. Kỷ luật quy trình đã đúc kết từ dự án này
 
 1. **Cực của nhánh quyết định là bệnh tái phát** (C-A, publishKnobsNow, hai cổng hướng — bốn lần đảo
