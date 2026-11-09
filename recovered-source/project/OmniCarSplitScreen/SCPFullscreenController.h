@@ -31,9 +31,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (instancetype)shared;
 
-/// Idempotent install (CarPlayApp glue only): arms the [fs1-test]
-/// prefs observer. Without install the controller stays inert and
-/// fsCommittedState is Unknown.
+/// Idempotent install (CarPlayApp glue only). Without install the
+/// controller stays inert and fsCommittedState is Unknown.
 - (void)fsInstallIfNeeded;
 
 /// Settled state for outside readers (§4.1): EXPANDING still reports
@@ -41,11 +40,11 @@ NS_ASSUME_NONNULL_BEGIN
 /// flips the reported value. Unknown when not installed.
 - (SCPFullscreenState)fsCommittedState;
 
-/// Control API (adapter + [fs1-test] switch funnel through these).
+/// Control API (the adapter funnels through these).
 /// One transaction at a time: a request arriving while EXPANDING or
 /// RESTORING is refused ("fs busy") — never queued, never concurrent.
 /// completion YES is delivered only after the layout change has been
-/// read back and confirmed (§4.4/§4.5); provenance ("pinch" / "test" /
+/// read back and confirmed (§4.4/§4.5); provenance ("pinch" /
 /// "teardown") is log-only (§4.2).
 - (void)fsRequestExpandWithCompletion:(nullable void (^)(BOOL applied))completion
                            provenance:(NSString *)provenance;

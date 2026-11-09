@@ -25,6 +25,23 @@ extern id OMCLogoMeshImage(int style);   // shared unit (OMCCommon.h:188)
 // ---------------------------------------------------------------------------
 #import "ABChromeViews.h"
 
+// YT-ZOOM (design-ytzoom.md): the ABHost (YTZoom) category — lease
+// gate / effective-orientation helper / issuer / grant / revoke —
+// is implemented in ABYTZoom.m; this file carries only the six
+// touch points. The category is declared locally (and in
+// ABYTZoom.m) because ABHost.h predates the feature — the
+// BridgeWake / AutoHide precedent in ABChannels.m. The lease wire
+// contract itself lives in ABYTLease.h.
+#import "ABYTLease.h"
+@interface ABHost (YTZoom)
+- (BOOL)yzLeaseActiveForBundle:(NSString *)bundleID;
+- (NSInteger)yzEffectiveOrientation:(ABPane *)pane;
+- (void)yzLeaseNoteLayoutForPane:(ABPane *)pane;
+- (void)yzLeaseGrantForPane:(ABPane *)pane;
+- (void)yzLeaseRevokeForPane:(ABPane *)pane reason:(NSString *)reason;
+- (void)yzLogAppOrientBlockedForPane:(ABPane *)pane hash:(uint64_t)hash;
+@end
+
 // Guarded private-selector sends, in the binary's own idiom: every private
 // send in setupLiveAppViewForPane:/teardownPane: is wrapped in
 // respondsToSelector: + objc_msgSend, with _ABMissingSelector on the miss
@@ -569,6 +586,19 @@ static ABBarButton *ABMakeBarButton(NSString *name, NSString *title, UIColor *ti
                                    (unsigned long long)hash]);
         return;
     }
+    // YT-ZOOM consumption gate (design-ytzoom.md §3.2.1/§6.2):
+    // while a virtualization lease lives for this pane, the
+    // declaration is consumed HERE — requestedOrientation is NOT
+    // written and the pane is NOT nudged. This is the host-side of
+    // the two independent gates (the app side mutes its own
+    // publish); because this method is the sole writer of
+    // requestedOrientation, no path can record a landscape value
+    // for a leased pane. The derivation below is untouched and
+    // resumes verbatim the moment the lease ends.
+    if ([self yzLeaseActiveForBundle:found.bundleID]) {
+        [self yzLogAppOrientBlockedForPane:found hash:hash];
+        return;
+    }
     NSInteger derived = 0;
     if (mask != 0 && !(mask & 2)) {
         derived = (mask & 8) ? 3 : (NSInteger)((mask >> 1) & 2);
@@ -702,7 +732,10 @@ static id ABSceneOfPane(ABPane *pane) {
 
     id scene = ABSceneOfPane(pane);
     if (scene) {
-        NSInteger orient = [self effectiveOrientation:pane];
+        // YT-ZOOM (design-ytzoom.md §3.2.2): read through the lease
+        // helper — 1 while the pane's lease lives (so no transpose
+        // below), the untouched value otherwise.
+        NSInteger orient = [self yzEffectiveOrientation:pane];
         CGSize logical = CGSizeMake(round(boxSize.width / z), round(boxSize.height / z));
         if (orient >= 3 && orient <= 5)
             logical = CGSizeMake(logical.height, logical.width);
@@ -713,6 +746,11 @@ static id ABSceneOfPane(ABPane *pane) {
         }
     }
     pane.sceneBox = boxSize;
+    // YT-ZOOM issuer hook (design-ytzoom.md §4.3): the size just
+    // committed above is the lease's single source of truth — the
+    // hook republishes the lease with it when one lives for this
+    // pane, and no-ops otherwise.
+    [self yzLeaseNoteLayoutForPane:pane];
 }
 
 // -nudgePane: (0xF9??, disasm/m_ABHost_nudgePane.txt). Forces the hosted app
@@ -726,7 +764,9 @@ static id ABSceneOfPane(ABPane *pane) {
     if (!scene) return;
     double z = [self zoom];
     CGSize boxSize = pane.box.bounds.size;
-    NSInteger orient = [self effectiveOrientation:pane];
+    // YT-ZOOM (design-ytzoom.md §3.2.2): same lease helper as
+    // layoutPane: — the second and last consumption point.
+    NSInteger orient = [self yzEffectiveOrientation:pane];
     double lw = round(boxSize.width / z), lh = round(boxSize.height / z);
     CGSize nudged = (orient >= 3 && orient <= 5)
         ? CGSizeMake(lh, MAX(1.0, lw - 1.0))   // INFERRED axis mapping: the
@@ -1525,6 +1565,13 @@ static void AHHostRestoreView(UIView *view) {
     @try {
         [pane.sceneMonitor invalidate];
         pane.sceneMonitor = nil;
+        // YT-ZOOM (design-ytzoom.md §4.4): revoke the lease BEFORE
+        // the orientation -1 post below — the app must see the
+        // lease die first. Every close path funnels through this
+        // method (closeApp:/closeAllExcept: via closeApp:,
+        // carDisconnected, scene destruction), so this one call
+        // covers them all. No-op unless a lease lives for the pane.
+        [self yzLeaseRevokeForPane:pane reason:@"teardown"];
         ABPostOrientationToApp(pane.bundleID, -1);
         id vc = pane.appViewController;
         ABSendVI(vc, @"_setCurrentMode:", 0);
@@ -1672,6 +1719,13 @@ static void AHHostRestoreView(UIView *view) {
                 if (![host.panes containsObject:p]) return;
                 ABPostOrientationToApp(p.bundleID, p.orientation);   // INFERRED position
                 [host layoutPane:p];
+                // YT-ZOOM (design-ytzoom.md §4.4): launch-complete
+                // is the grant point — the pane exists and the
+                // layoutPane: above has committed its first size.
+                // The grant re-checks pref + bundle itself, repairs
+                // any r6 orientation residue, and only then
+                // publishes the lease.
+                [host yzLeaseGrantForPane:p];
                 // [fix-round2] MILESTONE logging only (no flow change).
                 OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
                     @"MILESTONE revealPane bundle=%@ pane=%p readySource=launch-callback",

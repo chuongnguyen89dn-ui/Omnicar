@@ -14,14 +14,13 @@
 // and restored exactly — no external chrome symbol is referenced.
 //
 // All entry points funnel to the main queue. All log lines carry the
-// [fs1] prefix; the staging test-switch branch logs [fs1-test].
+// [fs1] prefix. Commands arrive only through the adapter (pinch).
 
 #import "SCPFullscreenController.h"
 #import "SCPCarSplit.h"
 #import "SCPCarSplit+BridgeWake.h" // bwSetExpandedActive:forBundle: (§4.10)
-#import "SCPShared.h"               // SCPNotePrefsChanged, SCPDispatchAfter
-#import "SCPCommon.h"               // OMCLogWrite, OMCPref
-#import <notify.h>
+#import "SCPShared.h"               // SCPDispatchAfter
+#import "SCPCommon.h"               // OMCLogWrite
 
 #pragma mark - File statics (thresholds copied from the reference source)
 
@@ -82,8 +81,6 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     // Chrome (§4.7): status-bar window -> its ORIGINAL hidden flag,
     // recorded on first sight only, restored exactly, then cleared.
     NSMapTable<UIWindow *, NSNumber *> *_chromeOriginals;
-    int _prefsToken;        // [fs1-test]
-    NSNumber *_testSwitchLast; // [fs1-test] last seen value (edge detect)
 }
 @end
 
@@ -107,52 +104,15 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     return self;
 }
 
-#pragma mark - Install + [fs1-test] staging switch
+#pragma mark - Install
 
 - (void)fsInstallIfNeeded {
     if (_installed) return;
     _installed = YES;
-    // [fs1-test] Observe the same prefs-changed Darwin name the wake
-    // owner uses (design §8). The test switch is the ONLY reader of
-    // the fullscreenTestExpand key; the whole branch is one removal
-    // point, marked [fs1-test] everywhere it appears.
-    __weak typeof(self) weakSelf = self;
-    notify_register_dispatch(SCPNotePrefsChanged.UTF8String, &_prefsToken,
-        dispatch_get_main_queue(), ^(int token) {
-            (void)token;
-            [weakSelf fsTestPrefsChanged];
-        });
-    _testSwitchLast = @([self fsTestSwitchOn]); // baseline: no action
-    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[fs1] fs controller installed (CarPlayApp) [fs1-test] switch=%@",
-        _testSwitchLast.boolValue ? @"YES" : @"NO"]);
-}
-
-// [fs1-test]
-- (BOOL)fsTestSwitchOn {
-    id value = OMCPref(@"fullscreenTestExpand", nil);
-    return [value respondsToSelector:@selector(boolValue)]
-               ? [value boolValue] : NO; // absent = NO (design §8)
-}
-
-// [fs1-test]
-- (void)fsTestPrefsChanged {
-    BOOL on = [self fsTestSwitchOn];
-    if (_testSwitchLast && _testSwitchLast.boolValue == on) return;
-    _testSwitchLast = @(on);
-    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[fs1-test] fullscreenTestExpand -> %@", on ? @"YES" : @"NO"]);
-    if (on) {
-        [self fsRequestExpandWithCompletion:^(BOOL applied) {
-            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                @"[fs1-test] expand result applied=%d", applied]);
-        } provenance:@"test"];
-    } else {
-        [self fsRequestRestoreWithCompletion:^(BOOL applied) {
-            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                @"[fs1-test] restore result applied=%d", applied]);
-        } provenance:@"test"];
-    }
+    // No staging trigger remains (2026-11-09: the prefs test switch
+    // and its prefs observer were removed with the staging itself).
+    // The only command source is the adapter — pinch.
+    OMCLogWrite(@"SplitScreen", @"[fs1] fs controller installed (CarPlayApp)");
 }
 
 #pragma mark - Settled state + area consultation

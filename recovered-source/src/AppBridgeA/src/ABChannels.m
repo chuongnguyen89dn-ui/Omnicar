@@ -43,6 +43,10 @@ extern const char *ABNotifyBWAck;
 static void BWRegisterHostConfirm(void);
 static void AHRegisterHostApply(void);
 
+// YT-ZOOM host lease registration (§7 below) — implemented in
+// ABYTZoom.m (design-ytzoom.md §9), hence not static.
+void YZRegisterHostLease(void);
+
 static NSString *const kPrefix = @"com.anlai.omnicar/appbridge.";
 
 // ===========================================================================
@@ -75,6 +79,9 @@ static void ABHostProcessInit(void) {
             BWRegisterHostConfirm();
             // AutoHide host apply (§6) — same process, same reason.
             AHRegisterHostApply();
+            // YT-ZOOM host lease (§7) — same process, same reason:
+            // ABHost is the lease issuer.
+            YZRegisterHostLease();
         }
     });
 }
@@ -681,3 +688,27 @@ static void AHRegisterHostApply(void) {
                 [[ABHost shared] ahRestorePaneForBundle:pane.bundleID];
     }];
 }
+
+// ===========================================================================
+// 7. YT-ZOOM host lease — YTZOOM (design-ytzoom.md §3/§4/§8; NEW,
+//    not in the original binary). ABHost is the lease ISSUER for
+//    the orientation virtualization of the hosted YouTube app: it
+//    grants a 3.0 s lease (NSDistributed appbridge.ytlease, object
+//    = bundleID) carrying the pane's committed logical size at
+//    orientation 1, renews it on a 1.0 s heartbeat, and revokes it
+//    at teardown / pref OFF. While a lease lives, appWithHash:
+//    consumes orientation declarations for the pane and the two
+//    layout consumption points read orientation 1 — landscape
+//    never exists for the leased pane, and the r6 protocol is
+//    untouched everywhere else. Unlike §5/§6, the machinery does
+//    NOT live in this TU: YZRegisterHostLease() is implemented in
+//    ABYTZoom.m (the lease machine shares its TU with the in-app
+//    role) and registers there the ack-channel observer
+//    (appbridge.ytleaseack), the frame/open observers that track
+//    the `single` key for the lease's isSplit field, and the
+//    Darwin prefschanged observer that grants/revokes when the
+//    YTZ host pref (the ABYTZoom.m kill-switch) flips mid-session.
+//    This TU
+//    only wires the call, in the SpringBoard branch above, beside
+//    the §5/§6 registrations.
+// ===========================================================================

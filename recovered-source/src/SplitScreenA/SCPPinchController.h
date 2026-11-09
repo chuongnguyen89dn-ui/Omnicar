@@ -102,7 +102,8 @@ typedef NS_ENUM(NSInteger, SCPPinchDeadKind) {
 @property (nonatomic, weak, nullable) id<SCPPinchArbiter> arbiter;
 
 /// Fullscreen control surface (design-pinch §4). Defaults to a fresh
-/// SCPFullscreenAdapter (empty body — A1 = BLOCKED this round).
+/// SCPFullscreenAdapter, which since fs1 forwards to
+/// SCPFullscreenController (the A1 empty body is gone).
 @property (nonatomic, strong) id<SCPFullscreenControlling> adapter;
 
 /// Published by the wake side while it holds a touch chain under
@@ -139,9 +140,11 @@ typedef NS_ENUM(NSInteger, SCPPinchDeadKind) {
 - (void)resetTracking;
 
 // --- Allowlist (design-pinch §3.3 gate 5, §A4) -------------------------
-// Keyed by (bundleID, hosted-scene). EMPTY by default: everything is
-// OFF until an app+scene pair has been device-tested. YouTube, hosted
-// Maps/Waze, WebView and unverified apps must stay off this list.
+// Keyed by (bundleID, hosted-scene). EMPTY by default — and since
+// 2026-11-09 (staging removed, pinch wired live) an empty list means
+// NO restriction: every pair passes gate 5. The list only bites once
+// entries exist; then membership decides. (Staging-era reading —
+// empty = everything OFF — is superseded.)
 
 - (void)allowBundle:(NSString *)bundleID hosted:(BOOL)hosted;
 - (BOOL)isAllowlistedBundle:(NSString *)bundleID hosted:(BOOL)hosted;
