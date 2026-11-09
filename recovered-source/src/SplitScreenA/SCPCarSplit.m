@@ -355,7 +355,12 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
 }
 
 - (BOOL)validSlot:(NSInteger)slot {
-    return slot == 9 || (slot >= 0 && slot < self.paneCount);
+    // @0x107cc: validity IS pane existence — slot 9 is valid only
+    // when a float pane actually exists (paneAtSlot: returns
+    // self.floatPane, possibly nil). The earlier draft hard-coded
+    // YES for slot 9, which broke the autoSlot fallback in callers
+    // like showPickerForSlot: (GPT wiring audit N11).
+    return [self paneAtSlot:slot] != nil;
 }
 
 - (SCPCarPane *)paneForBundle:(NSString *)bundleID {
@@ -1548,8 +1553,14 @@ static UIViewController *SCPCurrentBaseViewController(SCPCarSplit *self) {
         return;
     }
     [self relayoutAnimated:YES];
-    id base = SCPDashboardRootViewController();
-    id owner = SCPGuarded(base, @"workspaceOwner");
+    // @0x1dc3c: workspaceOwner is asked on the DASHBOARD object
+    // (helper @0xe5b4 = SCPDashboardObject, UIApplication's
+    // _currentDashboard), NOT on the root view controller — the
+    // earlier draft's receiver never answers workspaceOwner, so
+    // activeID stayed nil and the re-seed below never ran
+    // (GPT wiring audit N8).
+    id dashboard = SCPDashboardObject();
+    id owner = SCPGuarded(dashboard, @"workspaceOwner");
     NSString *activeID = SCPGuarded(owner, @"activeBaseApplicationBundleID");
     SCPCarPane *pane = nil;
     for (SCPCarPane *p in self.slots)
@@ -3013,7 +3024,22 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
     }
     return subs.lastObject == view;
 }
-- (void)raiseLauncher { [self raiseView:self.launcherHost]; }
+// -raiseLauncher (0x42900) VERIFIED (GPT wiring audit N12): raises
+// the home BUTTON, never its host. When the button's superview is the
+// tab parent it goes through raiseView: (stacked-container aware);
+// in any other host (e.g. the dock cluster) only a plain
+// bringSubviewToFront: runs, and only when the button is not already
+// the last subview. The earlier draft raised launcherHost wholesale.
+- (void)raiseLauncher {
+    UIView *button = self.homeButton;
+    UIView *parent = button.superview;
+    if (!parent) return;
+    if (parent == self.tabParent) {
+        [self raiseView:button];
+    } else if (parent.subviews.lastObject != button) {
+        [parent bringSubviewToFront:button];
+    }
+}
 // -dockClusterInParent: (0x405fc) VERIFIED (remediation,
 // rem_stub_dockClusterInParent:.txt — the return type is CGRect, not
 // UIView *: the old declaration was wrong-ABI). The dock view's bounds

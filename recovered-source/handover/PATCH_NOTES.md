@@ -2339,3 +2339,169 @@ Order (KIỂM LOGIC TRƯỚC GỬI THIẾT BỊ / MỘT PHIÊN NGHIỆM THU).
 DEVICE_TEST vòng 4 = PENDING. Bản FAT giao qua CI (macOS) được ghi
 nhận tại handover/ACCEPTANCE_FIXROUND4.md với SHA-256/UUID trích từ
 chính file đó.
+
+## §18 bổ sung — nhóm N7–N14 (wiring audit cập nhật, 2026-11-09)
+
+Đặc tả: OmniCar_Deep_Function_Wiring_Audit-2.txt mục 11–18; biên
+bản sửa: work/fix-round4/fix-strand6.md. Patch đính kèm của audit
+chỉ đọc làm đặc tả — tích hợp TAY từng hunk trên cây đã có nhánh
+1–5, không git apply, không hoàn nguyên sửa mới nào.
+
+- N7 appAreaInParent: (Layout) — ĐÃ SỬA: bỏ round-trip của content
+  qua screen coordinate space và cú convertRect: gửi root
+  CONTROLLER; khôi phục R = [parent convertRect:content.bounds
+  fromView:content] (receiver = parent); content = probe
+  "contentView" (fallback SCPMissingSelector) ?: host.view —
+  fallback @0x11ebc trước đây còn thiếu. Khối dock giữ riêng:
+  round-trip qua MỘT screen space ở cả hai đầu (parent.window.screen,
+  nil thì dockView.window.screen). Nhánh dock không trả lời "view"
+  nay gọi SCPMissingSelector(dock, @"view") như gốc @0x11fac.
+- N8 afterPaneRemoved: — ĐÃ SỬA: receiver hỏi workspaceOwner là
+  SCPDashboardObject() (helper gốc @0xe5b4 = _currentDashboard)
+  thay vì root view controller; giữ timeout gỡ pending 2.0 s vô
+  điều kiện của gốc (điểm đã loại mục 20 — không thêm
+  launch-generation guard).
+- N9 layoutBarForPane: — ĐÃ CÓ (nghiệm thu, không sửa): bản nhánh 3
+  (C3-1/C3-3) khớp công thức gốc @0x23b9c từng phép — tâm handle
+  (W/2 + shift, 12), scale = avail/barW khi barW > avail = W−10,
+  tâm thanh 24 + barH·scale/2; nút Pop ô float DIM bằng alpha
+  1.0/0.35 theo (vc != nil && paneCount < 3), gốc không có
+  setEnabled: nào trong hàm. Kiểm chéo N6(m): snapshot transform ở
+  nhánh ẩn đọc TRỰC TIẾP từ bar sau khi layout đã áp scale nên
+  scale được giữ qua hide — ĐẠT.
+- N10 addCoverToPane: — ĐÃ SỬA: thêm guard pane.vc != nil;
+  cover.userInteractionEnabled YES → NO (@0x2a3d0); icon 44 → 52×52
+  + SCPStyleGhostIcon + icon.tag = 77 (@0x2a450); bỏ
+  bringSubviewToFront: cho pane.bar (gốc chỉ có một lần, cho
+  handle); cover.alpha = 0 rồi animate 0.12 s lên 1. Consumer
+  markDismissSlot: đã có sẵn viewWithTag:77 — hợp đồng khớp.
+- N11 validSlot: — ĐÃ SỬA: thân hàm là return [self paneAtSlot:slot]
+  != nil; (gốc @0x107cc). Bỏ công thức slot == 9 || 0 <= slot <
+  paneCount vốn công nhận ô nổi chưa tồn tại. paneAtSlot: giữ
+  nguyên, không tự tạo float pane.
+- N12 raiseLauncher — ĐÃ SỬA: bỏ raiseView: trên launcherHost;
+  khôi phục theo gốc @0x42900: button = homeButton; parent =
+  button.superview (nil → dừng); parent == tabParent →
+  raiseView:button; khác → chỉ khi button chưa là subviews.lastObject
+  mới bringSubviewToFront:button.
+- N13 remoteKnobTouch: — ĐÃ SỬA: toàn bộ thân hàm bọc @try/@catch;
+  catch khôi phục đủ tail gốc @0x2f550–0x2f5c8: log "CarSplit: loi
+  cham tron tu SpringBoard %@", sRemoteDragging = NO,
+  markDismissSlot:-1, endResize, relayoutAnimated:YES. Block
+  observer ở SCPHooks chỉ log — giữ nguyên theo đặc tả.
+- N14 SCPMissingSelector — ĐÃ SỬA: prototype đổi (id, const char *)
+  → (id, NSString *); cả ba literal của helper sang @"..."
+  (@"_currentDashboard", @"rootViewController", @"contentView");
+  giữ extern tại chỗ trong Layout.m (không import SCPShared.h vì
+  xung đột hai helper static cùng tên trong TU). 4/4 call site nạp
+  x1 từ cfstring object — hết nguy cơ crash ở chính nhánh ghi log
+  thiếu selector.
+
+## CI bị thay thế (ghi rõ)
+
+Hai run CI 42549096386 và 42549107670 đã dispatch trên cây main
+84cd742 / ci-fat-test a848c14 — cây CHƯA có nhóm N7–N14. Artifact
+của hai run đó BỊ THAY THẾ, không được dùng làm bản giao. Candidate
+local 14e79761… của lượt tích hợp trước cũng bị thay thế bởi
+candidate mới dưới đây.
+
+## Candidate + cổng (lượt nối lại — chạy lại toàn bộ, không chép cũ)
+
+Build sạch từng module (make clean + FINALPACKAGE=1): 8/8 exit 0,
+0 error. Candidate local mới:
+com.anlai.omnicar_1.0.3-rebuilt-fixround4_iphoneos-arm64.deb,
+974.398 B, SHA-256
+fffbf0216f45437cd4ceaa2323fce2056dc97272d225445ac8584747f36c935b;
+member control.tar.gz + data.tar.lzma; control Version 1.0.3.
+Mirror tái kiểm: 15/15 cặp file vòng 4 identical (gồm 5 file nhánh
+6: Layout, SCPCarSplit.m, Picker, Divider, Chrome); ngoại lệ duy
+nhất giữ nguyên theo sổ: src/SplitScreenB/SCPCarSplit.h (header
+lịch sử tiền-gộp).
+
+Cổng trên candidate mới (bs = binary-string trên DEB đã trích,
+bx = binary-structure trên object của build này, so = source):
+
+- A — ĐẠT (bx): launchPhoneAppIfNeeded: 0 selref applicationInfo/
+  proxyApplicationInfo; gọi thẳng _SCPIsHostedApp trên tham số;
+  guard isKindOfClass:/length. Hook (A3): _Hook_launchAppWithInfo
+  có CF"bundleIdentifier" trước send launchPhoneAppIfNeeded:.
+- B — ĐẠT (bx): mov x3, #-0x1 ngay trước send openApp:slot: ở nhánh
+  active; endHostedSolo/hostSolo:/showSoloCoverForBundle: mỗi đúng
+  1 điểm nạp selref.
+- C — ĐẠT (bx): hostedApp:state: đủ endHostedSolo/hideSoloCover/
+  removeLoaderFromPane:animated:/toast:, closeSlot:background: ở
+  vị trí đuôi sau toast:.
+- D — ĐẠT (bx): adopt:slot: đúng 1 điểm nạp showPickerForSlot:, sau
+  cả 2 điểm detachVC:background: của vòng dọn duplicate.
+- E — ĐẠT (bx+bs): valueForKey: + CF"_entityIdentifierToViewControllerMap"
+  + isKindOfClass:/allValues; terminal có VC-list "%@(%@ fullScreen=%d)",
+  toast và launchFailed:slot: ở đuôi; cmp x21, #0x2; b.gt → terminal
+  và lsl w8, w21, #1 (micro-fix E2 theo dump) có trong object.
+- F — ĐẠT (bx): swapSlot:with: đủ paneCount guard,
+  exchangeObjectAtIndex:withObjectAtIndex:, focusedSlot/
+  setFocusedSlot:, mainStack + fractions/count, pending allKeys +
+  snapshot copy, setObject:forKeyedSubscript:, reindexPanes,
+  rememberPair, rememberRecent, relayoutAnimated:.
+- G — ĐẠT (bs+so): double 150.0 có trong dylib đã trích và Picker
+  TU; parenting sideColumn + tọa độ trên source theo offset dump.
+- H — ĐẠT (bx+bs): setFullscreenBridgeHidden: đủ soloHostedBundle/
+  trayHidesBridge/setTrayHidesBridge:/soloHostedFrame, post
+  dictionaryWithObjects:forKeys:count: (identifier/x/y/w/h/live/
+  handle) qua hostPost:info:, 0 lần paneForBundle:/
+  sendHostFrameForPane:; dylib tham chiếu _CGRectZero.
+- I — ĐẠT (bx): paneForBundle: selref vc đứng trước bundleID/
+  isEqualToString: ở mọi bước enumeration.
+- N1 — ĐẠT (bs+bx): dylib SplitScreen không còn chuỗi "dismiss"
+  độc lập (0); SCPHooks TU không còn CF"dismiss"; selref
+  bridgeOutsideTouched có mặt; bridgeBarAction:forBundle: chỉ còn
+  caller baraction thật.
+- N2 — ĐẠT (bx+so): refreshPickerSheet đúng 1 điểm enumeration,
+  guard cbz/cbnz theo mẫu gốc; source found = sheetPane (Picker.m:287).
+- N3 — ĐẠT (bs+so): layoutKnobOf: có bounds/convertPoint:fromView:/
+  setCenter:; receiver divider chốt ở source + dump gốc (caveat
+  register-trace của nhánh 4 giữ nguyên).
+- N4 — ĐẠT (bx): clearPaneDragMarks thứ tự view → layer →
+  setBorderWidth: → cover → setAlpha:.
+- N5 — ĐẠT (bx): hideTrayWindowIfIdle đủ chuỗi tray → ratioMenu →
+  pickerSheet → dragGhost → viewWithTag: (mov w2, #0x5c9b) →
+  setHidden:.
+- N6(m) — ĐẠT (bx): completion block .200 của setBarVisible: gửi
+  đúng setHidden: → setAlpha: → setTransform: →
+  pushHostFramesLive:, không fcmp nào trong block.
+- N7 — ĐẠT (bx+so): appAreaInParent: có CF"contentView" + fallback
+  SCPMissingSelector tại chỗ, convertRect:fromView:, CF"view" cho
+  fallback root.view; cặp coordinateSpace chỉ còn ở khối dock.
+- N8 — ĐẠT (bx+so): afterPaneRemoved: dùng SCPDashboardObject()
+  (source, kèm chú thích helper @0xe5b4), CF"workspaceOwner" +
+  CF"activeBaseApplicationBundleID" trong object; helper root VC
+  không xuất hiện trong thân hàm này.
+- N10 — ĐẠT (bx): addCoverToPane: (0x0–0x3ec của Picker TU): guard
+  vc trước dựng cover; setUserInteractionEnabled: nạp w2 = #0x0;
+  _SCPStyleGhostIcon được gọi; immediate 52.0 (0x404a000000000000);
+  setTag: nạp w2 = #0x4d (77); bringSubviewToFront: đúng 1 điểm,
+  sau selref handle; setAlpha: → animateWithDuration:animations:,
+  double 0.12 có trong TU.
+- N11 — ĐẠT (bx): validSlot: đúng 1 lời gọi paneAtSlot: rồi
+  cmp/cset ne trên kết quả.
+- N12 — ĐẠT (bx): raiseLauncher chuỗi homeButton → superview →
+  tabParent → subviews/lastObject → bringSubviewToFront: +
+  raiseView: (mỗi đúng 1 điểm nạp); không còn selref launcherHost.
+- N13 — ĐẠT (bx+bs): remoteKnobTouch: có _objc_begin_catch; vùng
+  catch chứa CF"CarSplit: loi cham tron tu SpringBoard %@" →
+  markDismissSlot: → endResize → relayoutAnimated: đúng thứ tự;
+  chuỗi log có trong dylib đã trích (1).
+- N14 — ĐẠT (bx): Layout TU đúng 4 call site _SCPMissingSelector,
+  cả 4 nạp x1 từ l__unnamed_cfstring_ và resolve ra
+  rootViewController / contentView / view / _currentDashboard —
+  4/4 là NSString object, 0 C literal.
+- Splash — ĐẠT (bs+so): reload có cmp #0x3/#0xb (style), store
+  _sceneStyle + _sky, SSWeatherCategory là bản sao static per-TU
+  (bảng tra của nó có trong object; hàm được inline ở bản
+  FINALPACKAGE); buildWeatherWithPeriod: chạm _iconView, 0 lần
+  _logoView.
+- Marker — ĐẠT (bs): mỗi binary SplitScreen / Prefs / AppBridge
+  trong candidate chứa đúng 1 chuỗi [fixround4] ở dòng log load.
+
+Mọi cổng vẫn là "đã kiểm tra tĩnh" — không phải PASS hành vi.
+DEVICE_TEST vòng 4 vẫn PENDING; nghiệm thu trên bản FAT cuối tại
+handover/ACCEPTANCE_FIXROUND4.md.

@@ -1653,3 +1653,30 @@ the _wetMask declaration permutation, the weak-evidence accent
 helper sub_24794, and the §17G leftovers (ss_drawCanvas dispatch
 observation, Prefs label-factory placement, Prefs ss_label
 maxWidth clamp).
+
+
+**Round-4 supplement — wiring group N7–N14 (2026-11-09).** A
+second GPT wiring audit (Deep Function Wiring Audit-2, items
+11–18) added eight groups on top of the round-4 tree; strand 6
+integrated them by hand (no blind patch apply): N7 appAreaInParent:
+coordinate space + root.view fallback — FIXED; N8 afterPaneRemoved:
+workspaceOwner now asked of the dashboard object
+(_currentDashboard), not the root VC — FIXED; N9 layoutBarForPane:
+— VERIFIED ALREADY PRESENT (round-3 restoration matches the
+original formula, incl. the alpha-dim Pop button); N10
+addCoverToPane: — FIXED (vc guard, non-interactive cover, 52×52
+ghost icon with tag 77, single handle raise, 0.12 s fade-in); N11
+validSlot: — FIXED (pure paneAtSlot: existence, no slot-9
+short-circuit); N12 raiseLauncher — FIXED (raises the Home button,
+not its host); N13 remoteKnobTouch: — FIXED (full @try/@catch with
+the original recovery tail); N14 SCPMissingSelector — FIXED
+(NSString * contract, 4/4 call sites pass CFString objects).
+The two earlier CI runs for this round (42549096386, 42549107670)
+were dispatched on the pre-N7–N14 tree and are SUPERSEDED — their
+artifacts were not used. A fresh local candidate (974,398 B,
+SHA-256 fffbf0216f45437cd4ceaa2323fce2056dc97272d225445ac8584747f36c935b)
+passed the full re-run gate battery (A–I, N1–N6, N7, N8, N10–N14,
+splash, markers; evidence types recorded in PATCH_NOTES §18
+supplement). The shipped FAT and its acceptance manifest
+(ACCEPTANCE_FIXROUND4.md) supersede this paragraph's candidate.
+DEVICE_TEST remains PENDING on the same combined session script.

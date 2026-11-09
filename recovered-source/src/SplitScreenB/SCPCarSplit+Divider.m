@@ -449,78 +449,92 @@ static BOOL    sRemoteDragging;     // 0x88180
 static double  sRemoteLastTapTime;  // 0x88188
 
 - (void)remoteKnobTouch:(NSDictionary *)payload {                       // 0x2edfc
-    NSInteger idx = [payload[@"index"] intValue];
-    NSInteger phase = [payload[@"phase"] intValue];
+    // N13 (GPT wiring audit): the WHOLE body runs inside @try/@catch.
+    // The original's catch tail (@0x2f550-0x2f5c8) logs, clears
+    // sRemoteDragging, clears the dismiss mark, ends the resize and
+    // relayouts — the SCPHooks observer block only logs, which left a
+    // mid-drag exception able to wedge the resize/cover state.
+    @try {
+        NSInteger idx = [payload[@"index"] intValue];
+        NSInteger phase = [payload[@"phase"] intValue];
 
-    SCPCarDividerView *divider = nil;
-    for (SCPCarDividerView *d in self.dividers)
-        if (d.index == idx) divider = d;
+        SCPCarDividerView *divider = nil;
+        for (SCPCarDividerView *d in self.dividers)
+            if (d.index == idx) divider = d;
 
-    if (divider == nil) {
-        if (phase == 0)
+        if (divider == nil) {
+            if (phase == 0)
+                OMCLogWrite(@"SplitScreen",
+                    [NSString stringWithFormat:@"CarSplit: cham tron SpringBoard vach %d bo qua (vach %@, active %d)",
+                        (int)idx, @"khong", (int)self.active]);
+            return;
+        }
+        BOOL ok = self.active && self.container != nil && divider.window != nil;
+        if (!ok) {
+            if (phase == 0)
+                OMCLogWrite(@"SplitScreen",
+                    [NSString stringWithFormat:@"CarSplit: cham tron SpringBoard vach %d bo qua (vach %@, active %d)",
+                        (int)idx, @"co", (int)self.active]);
+            return;
+        }
+
+        double wx = [payload[@"x"] doubleValue];
+        double wy = [payload[@"y"] doubleValue];
+        CGPoint inContainer = [self.container convertPoint:CGPointMake(wx, wy)
+                                                  fromView:nil];
+        CGPoint inDivider = [divider convertPoint:CGPointMake(wx, wy)
+                                             fromView:nil];
+        CGPoint delta = CGPointMake(inContainer.x - sRemoteLastPoint.x,
+                                    inContainer.y - sRemoteLastPoint.y);
+
+        if (phase == 0) {
+            sRemoteLastPoint = inContainer;
+            sRemoteDragging = NO;
             OMCLogWrite(@"SplitScreen",
-                [NSString stringWithFormat:@"CarSplit: cham tron SpringBoard vach %d bo qua (vach %@, active %d)",
-                    (int)idx, @"khong", (int)self.active]);
-        return;
-    }
-    BOOL ok = self.active && self.container != nil && divider.window != nil;
-    if (!ok) {
-        if (phase == 0)
-            OMCLogWrite(@"SplitScreen",
-                [NSString stringWithFormat:@"CarSplit: cham tron SpringBoard vach %d bo qua (vach %@, active %d)",
-                    (int)idx, @"co", (int)self.active]);
-        return;
-    }
+                [NSString stringWithFormat:@"CarSplit: cham tron SpringBoard vach %d tai %@",
+                    (int)idx, NSStringFromCGPoint(inDivider)]);
+            UIView *knob = divider.knob;
+            if (knob != nil && !knob.isHidden)
+                SCPSetKnobActive(knob, YES);
+            return;
+        }
 
-    double wx = [payload[@"x"] doubleValue];
-    double wy = [payload[@"y"] doubleValue];
-    CGPoint inContainer = [self.container convertPoint:CGPointMake(wx, wy)
-                                              fromView:nil];
-    CGPoint inDivider = [divider convertPoint:CGPointMake(wx, wy)
-                                     fromView:nil];
-    CGPoint delta = CGPointMake(inContainer.x - sRemoteLastPoint.x,
-                                inContainer.y - sRemoteLastPoint.y);
+        if (phase == 1) {
+            if (sRemoteDragging) {
+                [self dividerPan:divider state:2 location:inDivider translation:delta];
+            } else if (hypot(delta.x, delta.y) >= 8.0) {
+                sRemoteDragging = YES;
+                [self dividerPan:divider state:1 location:inDivider translation:delta];
+            }
+            return;
+        }
 
-    if (phase == 0) {
-        sRemoteLastPoint = inContainer;
-        sRemoteDragging = NO;
-        OMCLogWrite(@"SplitScreen",
-            [NSString stringWithFormat:@"CarSplit: cham tron SpringBoard vach %d tai %@",
-                (int)idx, NSStringFromCGPoint(inDivider)]);
-        UIView *knob = divider.knob;
-        if (knob != nil && !knob.isHidden)
-            SCPSetKnobActive(knob, YES);
-        return;
-    }
-
-    if (phase == 1) {
+        // phase >= 2: up / cancel.
         if (sRemoteDragging) {
-            [self dividerPan:divider state:2 location:inDivider translation:delta];
-        } else if (hypot(delta.x, delta.y) >= 8.0) {
-            sRemoteDragging = YES;
-            [self dividerPan:divider state:1 location:inDivider translation:delta];
+            sRemoteDragging = NO;
+            NSInteger state = (phase == 2) ? 3 : 4;
+            [self dividerPan:divider state:state location:inDivider translation:delta];
+            return;
         }
-        return;
-    }
-
-    // phase >= 2: up / cancel.
-    if (sRemoteDragging) {
+        UIView *knob = divider.knob;
+        if (knob != nil) SCPSetKnobActive(knob, NO);
+        if (phase == 2) {
+            [self dividerTapOn:divider at:inDivider];
+            double now = CACurrentMediaTime();
+            if (now - sRemoteLastTapTime < 0.35) {
+                sRemoteLastTapTime = 0;
+                [self dividerDoubleTapOn:divider];
+            } else {
+                sRemoteLastTapTime = now;
+            }
+        }
+    } @catch (NSException *ex) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"CarSplit: loi cham tron tu SpringBoard %@", ex]);
         sRemoteDragging = NO;
-        NSInteger state = (phase == 2) ? 3 : 4;
-        [self dividerPan:divider state:state location:inDivider translation:delta];
-        return;
-    }
-    UIView *knob = divider.knob;
-    if (knob != nil) SCPSetKnobActive(knob, NO);
-    if (phase == 2) {
-        [self dividerTapOn:divider at:inDivider];
-        double now = CACurrentMediaTime();
-        if (now - sRemoteLastTapTime < 0.35) {
-            sRemoteLastTapTime = 0;
-            [self dividerDoubleTapOn:divider];
-        } else {
-            sRemoteLastTapTime = now;
-        }
+        [self markDismissSlot:-1];
+        [self endResize];
+        [self relayoutAnimated:YES];
     }
 }
 

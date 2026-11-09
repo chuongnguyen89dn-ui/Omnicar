@@ -101,22 +101,31 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 
 @implementation SCPCarSplit (Picker)
 
-// MARK: - Covers (block touches on a pane while it is being resized)
+// MARK: - Visual covers during resize (non-interactive, matching the original)
 
 - (void)addCoverToPane:(SCPCarPane *)pane {                               // 0x2a2e8 VERIFIED
     // CLOSURE NOTE: the earlier draft annotated this method "@0x24a34+";
     // 0x24a34 is SCPPrepareRatioMenu (see RatioMenu) — the annotation was
     // wrong and has been removed.
-    if (pane.cover != nil) return;
+    // N10 (GPT wiring audit): the cover contract is — no cover for a
+    // pane without a VC; cover NON-interactive (@0x2a3d0); ghost icon
+    // 52x52 styled by sub_21158 and TAGGED 77 (@0x2a450), the tag
+    // markDismissSlot: looks up via [pane.cover viewWithTag:77];
+    // cover starts at alpha 0 and fades in over 0.12 s (block
+    // @0x2a65c). Only the handle is raised above the cover; the
+    // original has no bar bring-to-front here.
+    if (pane.cover != nil || pane.vc == nil) return;
     UIView *cover = [[UIView alloc] initWithFrame:pane.view.bounds];
     cover.autoresizingMask = 0x12;
     cover.backgroundColor = [UIColor colorWithRed:0.9333333333333333
                                             green:0.9411764705882353
                                              blue:0.9843137254901961
                                             alpha:1.0];
-    cover.userInteractionEnabled = YES;
-    UIImageView *icon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
+    cover.userInteractionEnabled = NO;
+    UIImageView *icon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 52, 52)];
     icon.image = SCPAppIconForBundle(pane.bundleID);
+    SCPStyleGhostIcon(icon);
+    icon.tag = 77;
     icon.center = CGPointMake(CGRectGetMidX(cover.bounds),
                               CGRectGetMidY(cover.bounds));
     icon.autoresizingMask = 0x2d;   // VERIFIED (CLOSURE-2): parent @0x2a488 sets
@@ -127,8 +136,8 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     [pane.view insertSubview:cover aboveSubview:pane.host];
     if (pane.handle != nil)
         [pane.view bringSubviewToFront:pane.handle];
-    if (pane.bar != nil)
-        [pane.view bringSubviewToFront:pane.bar];
+    cover.alpha = 0;
+    [UIView animateWithDuration:0.12 animations:^{ cover.alpha = 1; }];
 }
 
 - (void)removeCoverFromPane:(SCPCarPane *)pane {                          // 0x2a668 VERIFIED
