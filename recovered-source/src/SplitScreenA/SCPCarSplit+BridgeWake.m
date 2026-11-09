@@ -130,8 +130,10 @@ static NSString * const BWKbStateNoteName =
 
 // [hl2-split W6] The in-app pinch relay channel (NSDistributed,
 // hosted app -> owner): {hash, gen, session, seq, gid, dir, t} —
-// dir 1 = pinch-out (expand), 2 = pinch-in (restore); t is the
-// sender's send stamp in seconds (same device clock as the owner).
+// dir 0 = toggle (hl4: the app asserts no direction; the owner
+// flips by its real FS state), 1 = pinch-out (expand),
+// 2 = pinch-in (restore); t is the sender's send stamp in
+// seconds (same device clock as the owner).
 // Defined locally like the kbstate name; the string must match the
 // app side's poster byte for byte.
 static NSString * const BWPinchNoteName =
@@ -525,7 +527,8 @@ static void BWEmitDrain(void) {
 // BWPinchNoteName, posted by the hosted app's own pinch recognizer —
 // GPT YTZ5HL1 ruling §1/§3: the recognizer lives IN the app, the
 // owner alone calls the fullscreen surface): {hash, gen, session,
-// seq, gid, dir, t}; dir 1 = pinch-out, 2 = pinch-in. Validation
+// seq, gid, dir, t}; dir 0 = toggle (hl4), 1 = pinch-out,
+// 2 = pinch-in. Validation
 // mirrors the kbstate discipline above: the hash must name a LIVE
 // assignment (bwBundleBySlot), gen must equal the slot's current
 // assignment generation, the session must match the session the
@@ -542,6 +545,16 @@ static void BWEmitDrain(void) {
 // and only against the matching COMMITTED state: dir=out requires
 // SPLIT, dir=in requires EXPANDED; pending/refused/unknown states
 // reject as badstate and fire nothing.
+// [hl4] dir=0 = bare TOGGLE — the only dir current app builds
+// send (PATCH 29.22): the app asserts no direction at all, the
+// effective direction is derived here from the adapter's real
+// currentState (SPLIT -> out, EXPANDED -> in), and the result is
+// logged as toggle-applied from=<state>. For dir=0 the badstate
+// reject can only mean currentState was neither (Unknown —
+// unreadable): a direction mismatch is impossible by
+// construction, because no direction was asserted. Legacy
+// dir 1/2 notes keep the exact-match rule above; no current
+// build posts them any more.
 - (void)bwHandlePinchNote:(NSNotification *)note {
     NSDictionary *info = note.userInfo;
     if (![info isKindOfClass:[NSDictionary class]]) return;
@@ -588,8 +601,22 @@ static void BWEmitDrain(void) {
     SCPCarPane *pane = [self paneForBundle:bundle];
     SCPFullscreenState committed =
         [SCPPinchController shared].adapter.currentState;
-    BOOL dirOK = (dir == 1 && committed == SCPFullscreenStateSplit) ||
-                 (dir == 2 && committed == SCPFullscreenStateExpanded);
+    // [hl4] dir=0 is a bare TOGGLE (the only dir current app
+    // builds send): the app asserts no direction, so no
+    // direction mismatch can exist — the effective direction is
+    // derived HERE from the real committed state (SPLIT -> out,
+    // EXPANDED -> in). For dir=0 the badstate reject below can
+    // therefore only mean currentState was neither state
+    // (Unknown — unreadable), never a wrong direction. Legacy
+    // dir 1/2 keeps the exact-match rule.
+    BOOL isToggle = (dir == 0);
+    NSInteger effDir = dir;
+    if (isToggle) {
+        effDir = (committed == SCPFullscreenStateSplit) ? 1 :
+                 (committed == SCPFullscreenStateExpanded) ? 2 : 0;
+    }
+    BOOL dirOK = (effDir == 1 && committed == SCPFullscreenStateSplit) ||
+                 (effDir == 2 && committed == SCPFullscreenStateExpanded);
     if (!pane || pane.slot != slot ||
         ![[self hostedPanes] containsObject:pane] || !dirOK) {
         reject("badstate"); return;
@@ -602,22 +629,28 @@ static void BWEmitDrain(void) {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[pinch2] owner accept slot=%ld bundle=%@ dir=%@ gid=%llu "
         @"seq=%llu gen=%u session=%u sessrc=%@ state=%@",
-        (long)slot, bundle, dir == 1 ? @"out" : @"in",
+        (long)slot, bundle,
+        isToggle ? (effDir == 1 ? @"toggle->out" : @"toggle->in")
+                 : (dir == 1 ? @"out" : @"in"),
         (unsigned long long)gid, (unsigned long long)seq, gen, session,
         sessionFromStore ? @"store" : @"note",
         committed == SCPFullscreenStateSplit ? @"SPLIT" : @"EXPANDED"]);
     id<SCPFullscreenControlling> adapter =
         [SCPPinchController shared].adapter;
-    if (dir == 1) {
+    if (effDir == 1) {
         [adapter requestExpandWithCompletion:^(BOOL applied) {
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                @"[pinch2] owner expand applied=%d gid=%llu",
+                isToggle
+                    ? @"[pinch2] owner toggle-applied from=SPLIT action=expand applied=%d gid=%llu"
+                    : @"[pinch2] owner expand applied=%d gid=%llu",
                 (int)applied, (unsigned long long)gid]);
         }];
     } else {
         [adapter requestRestoreWithCompletion:^(BOOL applied) {
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                @"[pinch2] owner restore applied=%d gid=%llu",
+                isToggle
+                    ? @"[pinch2] owner toggle-applied from=EXPANDED action=restore applied=%d gid=%llu"
+                    : @"[pinch2] owner restore applied=%d gid=%llu",
                 (int)applied, (unsigned long long)gid]);
         }];
     }
