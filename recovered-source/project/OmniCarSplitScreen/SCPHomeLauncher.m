@@ -133,8 +133,17 @@ BOOL SCPHomeLauncherEnsureInLibrary(id library) {
         }
         id info = ((id (*)(id, SEL, id))objc_msgSend)(library, lookup, OwnID);
         if (info) {
+            // An already-present FBS record can have no CarPlay declaration.
+            // Promotion is itself a Home-model mutation and must request
+            // the same refresh as a newly added proxy on reconnect/reentry.
+            BOOL hadDeclaration =
+                (SCPHomeSafeKVCGet(info, @"_carPlayDeclaration") != nil);
             SCPHomeLauncherInjectInfo(info);
-            return NO;  // present in library != icon/model/cell/tap
+            BOOL hasDeclaration =
+                (SCPHomeSafeKVCGet(info, @"_carPlayDeclaration") != nil);
+            BOOL changed = (!hadDeclaration && hasDeclaration);
+            if (changed) HLog(@"library", @"status=existing-record-promoted");
+            return changed;  // library/model refresh needed; NOT device proof
         }
         id proxy = InstalledOwnProxy();
         if (!proxy) return NO;
