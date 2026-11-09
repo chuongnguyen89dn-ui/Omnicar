@@ -2914,3 +2914,100 @@ ahFadedState fix; and instrument-or-drop for
 weather and knob. Gate 3 and pinch ENFORCE remain
 locked; the ytz4 FAT remains the standing test
 build and QA20 the daily build.
+
+SAU PHIÊN YTZ4 — LỆNH NGUYEN, WORK ORDER GPT,
+BẢN ĐỒ VÀ PHÁN QUYẾT W1(c) (2026-11-09; pointer
+appendix — full record in TIEP_TUC_DU_AN.md
+sections 4/7/8 and PATCH_NOTES section 29; the
+ytz5 round is UNDER CONSTRUCTION, no build yet).
+DURING the ytz4 session Nguyen measured the
+picker cover himself (open picker whites out
+the target pane; closing with X restores the
+app intact — cover, not teardown) and ordered
+at 17:30 that the target pane's content stay
+visible through the picker; the source probe
+found the opaque pane.picker placeholder
+(Picker.m:171-176) and confirmed the ORIGINAL
+is equally opaque (binary-verified), so this
+is a beyond-original customisation on his
+order. He also produced the icon case's
+deciding datum himself: the A/B at 17:48 —
+exit to Home while the logo is VISIBLE keeps
+the YouTube icon, exit while FADED loses it
+(raw data in PATCH_NOTES 29.1; log verdict in
+28.9). At 18:01 he ordered the drawn keyboard
+REMOVED IN EVERY APP — all apps back to the
+stock CarPlay/system keyboard — with the
+drawn-keyboard code and data KEPT in the tree
+for later; this superseded the same-evening
+pane-follow design discussion (17:58-18:00,
+including the findings that native apps
+cannot take the drawn keyboard and that the
+panel height is 78 percent of window height
+capped at 280). Muse's L1-L7 defect draft
+went to GPT IN CHAT (18:02). GPT answered
+with a consolidated work order (18:10) and a
+tightened construction spec (18:13): change
+map before any edit; AutoHide fixed by
+lifecycle cleanup, not BOOL resets; the
+keyboard's product decision separated from
+feasibility (expected screen + source basis
+reported BEFORE build; never called "back to
+the stock keyboard" until measured); the SAME
+keyboard truth feeding AutoHide; icon
+measure-only plus the proven lifecycle fix,
+with the unconditional
+SCPSendDashboardEvent(1) on the goHome=NO
+path STOPPED; and two corrections to Muse —
+do not prescribe the new kb wiring before
+establishing that it can observe the real
+hosted keyboard, and "no remove line" does
+not prove the whole library innocent (a blind
+reader's count=0 is not evidence either).
+Phase 1 delivered the change map (18:21,
+CHANGE_MAP_YTZ5.md + map-m1..m5 in
+handover/reports) and reported the central
+sticking point BEFORE building (W1: killing
+the panel kills the panel-lifecycle funnel,
+the only source feeding the owner's kb
+records; built as specced, step 3 of GPT's
+acceptance script would be structurally
+unreachable), plus W3 (pinch defaults to
+DRY_RUN in source, not OFF) and W5 (icon
+measurement ceiling is model/dock; cells are
+unreadable). GPT RULED at 18:45: W1 option
+(c) approved — transport the app-side INPUT
+SESSION state to the owner (per-assignment
+record: bundle/hash + generation + source
+session + sequence + UNKNOWN/INACTIVE/ACTIVE;
+ACTIVE only after confirmed focus; no fake
+INACTIVE on intra-app focus transfer;
+freshness anchored to SOURCE reports, owner
+renewal must not fake it); the gate value
+reaches apps THROUGH THE BRIDGE, never by
+direct CFPreferences reads in an App Store
+app; act flag stripped of kb decision rights;
+UNKNOWN of a hosted assignment HOLDS controls
+in this acceptance package; solo sets its
+suspend AFTER cleanup per destination mode;
+pinch default OFF with legacy DRY_RUN values
+neutralised; icon logged as PRESENT-MODEL /
+ABSENT-MODEL / BLIND (never PRESENT-CELL);
+the #if 0 keyboard consumer stays untouched;
+four structural cases must be evidenced
+before build. Construction is running under
+the kbstate contract (new NSDistributed
+object channel com.anlai.omnicar/
+bridgewake.v1.kbstate; shared C99
+BWInputStore.h for owner + harness; the
+64-bit packet format is unchanged). No
+candidate, no CI, no SHA yet; the ytz4 FAT
+remains the standing test build, QA20 the
+daily build, Gate 3 locked, pinch PARKED
+OFF, weather/knob PENDING. Nguyen also set a
+standing records rule at 19:00-19:05 (in
+TIEP_TUC section 7): project history is
+committed IMMEDIATELY inside the work block
+that changes or decides anything — this
+appendix and PATCH_NOTES section 29 were
+written under that order.
