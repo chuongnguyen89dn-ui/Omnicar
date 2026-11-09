@@ -1758,3 +1758,52 @@ photos — no log evidence identifies it, so the speed-bubble
 state machine is NOT touched (GPT's conclusion agrees).
 The FAT build and acceptance follow from this candidate;
 DEVICE_TEST for round 5 remains PENDING.
+
+ROUND 6 (orientation bit-2 gate, both sides): GPT's
+re-read of the original DEB (both slices) caught the
+decisive csel at appWithHash — arm64 0xf864, arm64e
+0x100b8: `csel x8, xzr, x9, ne` after cmp on mask&2, i.e.
+bit 2 PRESENT derives 0, absent keeps the computed
+priority value. The zoom-rotate audit had the priority
+algebra right but this csel's polarity backwards, so its
+'equivalent' verdict at the host gate is RETRACTED; the
+two-channel frame/orientation architecture stands. The
+same inverted gate existed in BOTH derivations and both
+are fixed: host appWithHash (ABHostBMethods.m) now gates
+on `mask != 0 && !(mask & 2)`; the app-side
+ABOrientationDerivedFromMask (ABInApp.m) final line is
+now `if (mask & 2) v = 0;` (original sub_5734
+@0x57c0-0x57c4). Trace table (changed=255): mask 24 ->
+4 (was 0, the fixround5 YouTube symptom), 26 -> 0 (was
+4), 30 -> 0 (was 4). The in-app geometry hook was
+audited (audit-inapphook) and the suspicion is LOWERED:
+registration matches the original, the installer ran in
+all 5 hosted apps, and the missing 'app xin huong' line
+is the original's own log inside a branch gated on
+ABForcedOrientation >= 1 + interfaceOrientations, fired
+only when an app itself calls
+requestGeometryUpdateWithPreferences: — no app did this
+session (requests went the VC/sentinel-255 path; 44
+'bao SpringBoard' lines show the publish channel alive).
+The hook is NOT modified. Local candidate:
+974,666 B, SHA-256 934e76df768be646ec272279c1bdd9524
+7549f71d176a9f6d8b797896944ce15, Version 1.0.3. Gates
+on the candidate's own binaries pass: (g1) host
+derivation in csel form at 0x6ce8-0x6d20, decisive
+cmp/csel at 0x6d0c/0x6d10; (g2) app derivation at
+0x14d84-0x14da8, final tst #2 + csel eq-form at
+0x14da8 (zero on the bit-present side); (h) round-5
+host-bar regression intact (equality guard @0xb0f8,
+entrance block 0xba88 setAlpha: 1.0 before
+setTransform:), [fixround6] markers in all three
+binaries. STILL OPEN and deliberately NOT in this
+round: the divider-knob mirror polarity in
+publishKnobsNow (original @0x3eff8 posts
+!CGAffineTransformIsIdentity; ours posts the inverse —
+mirror stuck active, hit footprint ~105.6x105.6 pt,
+118 'cham tron vach' lines in the fixround5 log) —
+convicted in audit-roundlogo but awaiting Nguyen's
+separate order; plus the car-side playIntro !logoView
+tail and remaining acceptance items. The FAT build and
+acceptance follow from this candidate; DEVICE_TEST for
+round 6 remains PENDING.

@@ -405,14 +405,16 @@ static void ABHook_UIWindowSetRotatable(UIWindow *self, SEL _cmd, NSInteger orie
 // -[UIWindowScene requestGeometryUpdateWithPreferences:errorHandler:]
 // (sub_5734, iOS 16+): while hosted, derives ABAppOrientation from the
 // requested preferences' interfaceOrientations mask and schedules a report.
-// Derivation (csel chain, verified): if the mask has the portrait bit (2),
-// prefer LandscapeLeft (bit 16 -> 4), then LandscapeRight (bit 8 -> 3),
-// then PortraitUpsideDown (bit 4 -> value 2 via (mask>>1)&2); if the
-// portrait bit is absent the derived value is 0.
+// Derivation (csel chain, verified against sub_5734): first compute the
+// priority value — LandscapeLeft (bit 16 -> 4) over LandscapeRight
+// (bit 8 -> 3) over PortraitUpsideDown (bit 4 -> value 2 via (mask>>1)&2);
+// then the final csel @0x57c0-0x57c4 (tst w0, #2; csel x9, xzr, x8, ne)
+// forces the result to 0 when the portrait bit (2) IS present, and keeps
+// the priority value when it is absent.
 static NSInteger ABOrientationDerivedFromMask(NSUInteger mask) {
     NSInteger v = (mask & 8) ? 3 : (NSInteger)((mask >> 1) & 2);
     if (mask & 16) v = 4;
-    if (!(mask & 2)) v = 0;
+    if (mask & 2) v = 0;
     return v;
 }
 

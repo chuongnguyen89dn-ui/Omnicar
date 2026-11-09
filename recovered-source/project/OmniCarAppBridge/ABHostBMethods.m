@@ -542,8 +542,17 @@ static ABBarButton *ABMakeBarButton(NSString *name, NSString *title, UIColor *ti
 // disasm/fin_imp_appWithHash.txt): finds the pane by FNV hash (logs
 // "apporient: khong co o cho hash %llu" on a miss), resolves the
 // requested orientation — 0xFF means "derive from the mask" using the
-// shared priority (portrait bit gates; LandscapeLeft > LandscapeRight >
-// PortraitUpsideDown) — stores it as requestedOrientation, logs
+// shared priority (LandscapeLeft > LandscapeRight >
+// PortraitUpsideDown), but the derived value is used ONLY when the
+// portrait bit (2) is ABSENT: @0xF83C..0xF86C computes
+// x9 = (mask&16) ? 4 : (mask&8) ? 3 : ((mask>>1)&2), then the csel
+// @0xF864 picks xzr when (mask&2) != 0, and the csel @0xF86C zeroes
+// the result when mask == 0 — so mask 24 -> 4, mask 26 -> 0,
+// mask 30 -> 0 (0 = keep the pane's current orientation via
+// -effectiveOrientation:). CORRECTION (fix round 5): the earlier
+// reconstruction had this gate's polarity inverted (derived value
+// used only when bit 2 was SET); see work/fix-round5/fix-orientgate.md.
+// Otherwise the IMP stores it as requestedOrientation, logs
 // "%@ doi yeu cau xoay (ma %d, mask %lu) -> scene huong %lld", and
 // nudges. Module A's truncated body (raw store, no derivation, no
 // nudgePane:) was removed in its favour. One correction applied here:
@@ -561,7 +570,7 @@ static ABBarButton *ABMakeBarButton(NSString *name, NSString *title, UIColor *ti
         return;
     }
     NSInteger derived = 0;
-    if (mask != 0 && (mask & 2)) {
+    if (mask != 0 && !(mask & 2)) {
         derived = (mask & 8) ? 3 : (NSInteger)((mask >> 1) & 2);
         if (mask & 16) derived = 4;
     }
