@@ -6,6 +6,7 @@
 //
 // No fake Home view, no new split engine, no global entitlement spoof,
 // no on-disk preference or native app-list mutation, no iPhone app launch.
+// [hl12dock] Native Dock membership is a separate in-memory state path.
 // Runtime private-ABI behaviour remains PENDING-DEVICE until car test.
 #import "SCPHomeLauncher.h"
 #import "SCPHomeCommon.h"
@@ -21,6 +22,7 @@
 
 static NSString *const OwnID = @"com.anlai.omnicar.app";
 static NSString *const OwnTag = @"OmniCarHomeLauncher";
+static BOOL SCPHomeDockPanelOpen(id split); // [hl12dock] forward declaration
 
 NSString *SCPHomeLauncherBundleIdentifier(void) { return OwnID; }
 BOOL SCPHomeLauncherIsBundle(NSString *bid) {
@@ -243,6 +245,7 @@ void SCPHomeLauncherReconcile(NSString *reason) {
         return;
     }
     if (!SCPHomeLauncherEnabled()) {
+        SCPHomeLauncherDockSetVisible(NO, @"feature-disabled");
         HLog(@"reconcile", [NSString stringWithFormat:
             @"reason=%@ status=feature-disabled", reason]);
         return;
@@ -262,9 +265,198 @@ void SCPHomeLauncherReconcile(NSString *reason) {
                 ((void (*)(id, SEL))objc_msgSend)(vc, refresh);
         }
         SCPHomeLauncherAuditModel(reason);
+        if ([reason isEqualToString:@"home-appear"] ||
+            [reason isEqualToString:@"prefs-changed"]) {
+            SCPCarSplit *split = [SCPCarSplit shared];
+            SCPHomeLauncherDockSetVisible(
+                split.active || SCPHomeDockPanelOpen(split), reason);
+        }
     } @catch (NSException *e) {
         HLog(@"reconcile", [NSString stringWithFormat:
             @"reason=%@ exception=%@", reason, e.name]);
+    }
+}
+
+// [hl12dock] Dock membership is independent of the Home icon model.
+// Preserve the real DashBoard icon provider and native app-history model;
+// never invent a workspace scene or mutate the native app list.
+static BOOL SCPDockABI(id target, NSString *name, char returnKind,
+                       char argumentKind, unsigned int argumentCount) {
+    if (!target) return NO;
+    SEL sel = NSSelectorFromString(name);
+    Method method = class_getInstanceMethod(object_getClass(target), sel);
+    if (!method || method_getNumberOfArguments(method) != argumentCount) return NO;
+    char result[16] = {0};
+    method_getReturnType(method, result, sizeof(result));
+    if (returnKind && result[0] != returnKind) return NO;
+    if (argumentCount == 3) {
+        char arg[16] = {0};
+        method_getArgumentType(method, 2, arg, sizeof(arg));
+        if (arg[0] != argumentKind) return NO;
+    }
+    return YES;
+}
+static BOOL SCPHomeDockPanelOpen(id split) {
+    SEL sel = NSSelectorFromString(@"panelOpen");
+    return SCPDockABI(split, @"panelOpen", 'B', 0, 2) ?
+        ((BOOL (*)(id, SEL))objc_msgSend)(split, sel) :
+        (SCPDockABI(split, @"panelOpen", 'c', 0, 2) ?
+            ((BOOL (*)(id, SEL))objc_msgSend)(split, sel) : NO);
+}
+static NSString *SCPDockBundle(id dock) {
+    id value = SCPHomeSafeGet(dock, @"activeBundleIdentifier");
+    return [value isKindOfClass:[NSString class]] ? value : nil;
+}
+static NSUInteger SCPDockOwnItems(id dock, NSUInteger *total) {
+    id items = SCPHomeSafeGet(dock, @"orderedAppItems");
+    if (![items isKindOfClass:[NSArray class]]) {
+        if (total) *total = NSNotFound;
+        return NSNotFound; // BLIND, not ABSENT
+    }
+    if (total) *total = [items count];
+    NSUInteger found = 0;
+    for (id item in items)
+        if (SCPHomeLauncherIsBundle(SCPHomeSafeGet(item, @"bundleIdentifier")))
+            found++;
+    return found;
+}
+static BOOL SCPDockSetActive(id dock, id bundle) {
+    NSString *name = @"setActiveBundleIdentifier:";
+    if (!SCPDockABI(dock, name, 'v', '@', 3)) return NO;
+    ((void (*)(id, SEL, id))objc_msgSend)(dock, NSSelectorFromString(name), bundle);
+    return YES;
+}
+static BOOL SCPDockRefresh(id dock) {
+    NSString *name = @"_refreshAppDock";
+    if (!SCPDockABI(dock, name, 'v', 0, 2)) return NO;
+    ((void (*)(id, SEL))objc_msgSend)(dock, NSSelectorFromString(name));
+    return YES;
+}
+static BOOL SCPDockCanShowOwn(id dock, id history, NSString **why) {
+    NSString *categorySelector = @"appDockCategoryForBundleIdentifier:";
+    if (!SCPDockABI(history, categorySelector, 'Q', '@', 3) &&
+        !SCPDockABI(history, categorySelector, 'q', '@', 3)) {
+        if (why) *why = @"dock-category-abi-blind";
+        return NO;
+    }
+    unsigned long long cat = ((unsigned long long (*)(id, SEL, id))objc_msgSend)(
+        history, NSSelectorFromString(categorySelector), OwnID);
+    if (cat != 0) {
+        // An incorrect nav classification would evict Maps from its slot.
+        if (why) *why = @"dock-category-not-other";
+        return NO;
+    }
+    NSString *validSelector = @"isBundleIdentifierValidForDock:";
+    if (SCPDockABI(history, validSelector, 'B', '@', 3) ||
+        SCPDockABI(history, validSelector, 'c', '@', 3)) {
+        BOOL valid = ((BOOL (*)(id, SEL, id))objc_msgSend)(
+            history, NSSelectorFromString(validSelector), OwnID);
+        if (!valid) { if (why) *why = @"dock-policy-rejected"; return NO; }
+    }
+    id provider = SCPHomeSafeGet(dock, @"iconProvider");
+    NSString *iconSelector = @"iconForIdentifier:";
+    if (!SCPDockABI(provider, iconSelector, '@', '@', 3)) {
+        if (why) *why = @"icon-provider-blind";
+        return NO;
+    }
+    id icon = ((id (*)(id, SEL, id))objc_msgSend)(
+        provider, NSSelectorFromString(iconSelector), OwnID);
+    if (!icon) { if (why) *why = @"icon-provider-no-own-icon"; return NO; }
+    NSString *visibleSelector = @"isIconVisible:";
+    if (SCPDockABI(provider, visibleSelector, 'B', '@', 3) ||
+        SCPDockABI(provider, visibleSelector, 'c', '@', 3)) {
+        BOOL visible = ((BOOL (*)(id, SEL, id))objc_msgSend)(
+            provider, NSSelectorFromString(visibleSelector), icon);
+        if (!visible) { if (why) *why = @"icon-provider-not-visible"; return NO; }
+    }
+    return YES;
+}
+void SCPHomeLauncherDockSetVisible(BOOL presented, NSString *reason) {
+    if (![NSThread isMainThread]) {
+        NSString *r = [reason copy];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            SCPHomeLauncherDockSetVisible(presented, r);
+        });
+        return;
+    }
+    static BOOL lastClaimed = NO;
+    NSString *why = reason ?: @"unknown";
+    if (presented && !SCPHomeLauncherEnabled()) {
+        HLog(@"dock", [NSString stringWithFormat:
+            @"reason=%@ status=feature-disabled", why]);
+        return;
+    }
+    if (!presented && !lastClaimed) return;
+    @try {
+        id root = SCPDashboardRootViewController();
+        id dock = SCPHomeSafeGet(root, @"appDockViewController");
+        id history = SCPHomeSafeGet(dock, @"appHistory");
+        if (!dock || !history) {
+            if (!presented) lastClaimed = NO;
+            HLog(@"dock", [NSString stringWithFormat:
+                @"reason=%@ requested=%d status=BLIND no-dock=%d no-history=%d",
+                why, (int)presented, dock == nil, history == nil]);
+            return;
+        }
+        NSString *before = SCPDockBundle(dock);
+        if (!presented) {
+            // Clear ONLY our own active claim. Never clobber a native
+            // bundle that became active while OmniCar was backgrounded.
+            BOOL wrote = NO;
+            if (SCPHomeLauncherIsBundle(before))
+                wrote = SCPDockSetActive(dock, nil);
+            BOOL refreshed = SCPDockRefresh(dock);
+            lastClaimed = NO;
+            HLog(@"dock", [NSString stringWithFormat:
+                @"reason=%@ status=released owned-before=%d wrote=%d refresh=%d after=%@",
+                why, SCPHomeLauncherIsBundle(before), wrote, refreshed,
+                SCPDockBundle(dock) ?: @"nil"]);
+            return;
+        }
+        NSString *gate = nil;
+        if (!SCPDockCanShowOwn(dock, history, &gate)) {
+            HLog(@"dock", [NSString stringWithFormat:
+                @"reason=%@ requested=1 status=BLIND gate=%@ active-before=%@",
+                why, gate ?: @"unknown", before ?: @"nil"]);
+            return;
+        }
+        id entries = SCPHomeSafeGet(history, @"appHistory");
+        BOOL historyUpdated = NO;
+        if ([entries isKindOfClass:[NSMutableDictionary class]]) {
+            ((NSMutableDictionary *)entries)[OwnID] =
+                @([[NSDate date] timeIntervalSince1970]);
+            historyUpdated = YES;
+        }
+        // The real workspace-visible callback is intentionally NOT
+        // spoofed: it emits unrelated activation notifications. History
+        // here is in-memory only; DashBoard still owns the app scene.
+        BOOL refreshed = SCPDockRefresh(dock);
+        BOOL wrote = SCPDockSetActive(dock, OwnID);
+        NSString *after = SCPDockBundle(dock);
+        lastClaimed = wrote && SCPHomeLauncherIsBundle(after);
+        HLog(@"dock", [NSString stringWithFormat:
+            @"reason=%@ status=%@ history=%d refresh=%d wrote=%d active-before=%@ active-after=%@",
+            why, lastClaimed ? @"active-model" : @"not-confirmed",
+            historyUpdated, refreshed, wrote, before ?: @"nil",
+            after ?: @"nil"]);
+        // _refreshAppDock schedules list generation on the main queue.
+        // Model readback is NOT proof that pixels appeared on the vehicle.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSUInteger count = NSNotFound;
+            NSUInteger own = SCPDockOwnItems(dock, &count);
+            id other = SCPHomeSafeGet(SCPHomeSafeGet(dock, @"otherAppButton"), @"bundleIdentifier");
+            id nav = SCPHomeSafeGet(SCPHomeSafeGet(dock, @"navigationAppButton"), @"bundleIdentifier");
+            HLog(@"dock-readback", [NSString stringWithFormat:
+                @"reason=%@ active-own=%d ownItems=%@ count=%@ other=%@ nav=%@",
+                why, SCPHomeLauncherIsBundle(SCPDockBundle(dock)),
+                own == NSNotFound ? @"BLIND" : [NSString stringWithFormat:@"%lu", (unsigned long)own],
+                count == NSNotFound ? @"BLIND" : [NSString stringWithFormat:@"%lu", (unsigned long)count],
+                other ?: @"nil", nav ?: @"nil"]);
+        });
+    } @catch (NSException *exception) {
+        HLog(@"dock", [NSString stringWithFormat:
+            @"reason=%@ requested=%d status=exception name=%@",
+            why, (int)presented, exception.name]);
     }
 }
 
@@ -378,7 +570,141 @@ static void SCPHomeTapReplacement(id homeVC, SEL action, id manager, id iconView
     if (SCPHomeTapOriginal) SCPHomeTapOriginal(homeVC, action, manager, iconView);
 }
 
+// [hl12dock] A native Dock icon must reenter the existing OmniCar panel;
+// otherwise Dashboard would launch the iPhone settings app for OwnID.
+typedef void (*SCPDockOriginalTapType)(id, SEL, id);
+static SCPDockOriginalTapType SCPDockOriginalTap;
+static void SCPDockTapReplacement(id dock, SEL action, id button) {
+    NSString *bundle = nil;
+    @try { bundle = SCPHomeTapBundle(button, 0); }
+    @catch (NSException *exception) {}
+    if (SCPHomeLauncherIsBundle(bundle) &&
+        SCPHomeLauncherConsumeLaunch(bundle, @"appDock:_dockButtonPressed:")) {
+        HLog(@"dock-tap", @"status=consumed-own-icon");
+        return;
+    }
+    if (SCPDockOriginalTap) SCPDockOriginalTap(dock, action, button);
+}
+typedef void (*SCPClosePopupsOriginalType)(id, SEL);
+static SCPClosePopupsOriginalType SCPClosePopupsOriginal;
+static void SCPHomeClosePopupsReplacement(id split, SEL action) {
+    if (SCPClosePopupsOriginal) SCPClosePopupsOriginal(split, action);
+    if (![(SCPCarSplit *)split active] && !SCPHomeDockPanelOpen(split))
+        SCPHomeLauncherDockSetVisible(NO, @"popups-closed");
+}
+typedef unsigned long long (*SCPDockHistoryCategoryOriginalType)(id, SEL, id);
+static SCPDockHistoryCategoryOriginalType SCPDockHistoryCategoryOriginal;
+static unsigned long long SCPDockHistoryCategoryReplacement(id history, SEL action, id bundle) {
+    if (SCPHomeLauncherIsBundle(bundle)) return 0; // Own launcher occupies OTHER, not Maps.
+    return SCPDockHistoryCategoryOriginal ?
+        SCPDockHistoryCategoryOriginal(history, action, bundle) : 0;
+}
+static void SCPHomeDockInstallCategoryHook(void) {
+    Class historyClass = OMCCarClass("DBAppHistory");
+    SEL sel = NSSelectorFromString(@"appDockCategoryForBundleIdentifier:");
+    Method method = historyClass ? class_getInstanceMethod(historyClass, sel) : NULL;
+    const char *abi = method ? method_getTypeEncoding(method) : NULL;
+    // NSUInteger/NSInteger is 64-bit on the target, never cast to BOOL.
+    if (abi && (!strcmp(abi, "Q24@0:8@16") ||
+                !strcmp(abi, "q24@0:8@16"))) {
+        SCPDockHistoryCategoryOriginal =
+            (SCPDockHistoryCategoryOriginalType)method_getImplementation(method);
+        MSHookMessageEx(historyClass, sel,
+                        (IMP)SCPDockHistoryCategoryReplacement,
+                        (IMP *)&SCPDockHistoryCategoryOriginal);
+        HLog(@"dock-category", [NSString stringWithFormat:
+            @"status=%@ ownCategory=other abi=%s",
+            SCPDockHistoryCategoryOriginal ? @"installed" : @"not-confirmed", abi]);
+    } else {
+        HLog(@"dock-category", [NSString stringWithFormat:
+            @"status=abi-unavailable observed=%s", abi ?: "none"]);
+    }
+}
+typedef void (*SCPDockShowLayoutOriginalType)(id, SEL, id);
+static SCPDockShowLayoutOriginalType SCPDockShowLayoutOriginal;
+static void SCPDockShowLayoutReplacement(id split, SEL action, id bundle) {
+    if (SCPDockShowLayoutOriginal)
+        SCPDockShowLayoutOriginal(split, action, bundle);
+    if ([(SCPCarSplit *)split active] || SCPHomeDockPanelOpen(split))
+        SCPHomeLauncherDockSetVisible(YES, @"layout-panel-presented");
+}
+typedef void (*SCPDockCollapseTrayOriginalType)(id, SEL);
+static SCPDockCollapseTrayOriginalType SCPDockCollapseTrayOriginal;
+static void SCPDockCollapseTrayReplacement(id split, SEL action) {
+    if (SCPDockCollapseTrayOriginal)
+        SCPDockCollapseTrayOriginal(split, action);
+    // Collapse can animate; recheck after the caller has finished replacing
+    // the tray so opening a new panel never transiently releases the dock.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (![(SCPCarSplit *)split active] && !SCPHomeDockPanelOpen(split))
+            SCPHomeLauncherDockSetVisible(NO, @"layout-panel-dismissed");
+    });
+}
+static void SCPHomeDockInstallSplitHooks(void) {
+    Class splitClass = objc_getClass("SCPCarSplit");
+    SEL showSel = NSSelectorFromString(@"showLayoutPanelForApp:");
+    Method showMethod = splitClass ? class_getInstanceMethod(splitClass, showSel) : NULL;
+    const char *showABI = showMethod ? method_getTypeEncoding(showMethod) : NULL;
+    if (showABI && strcmp(showABI, "v24@0:8@16") == 0) {
+        MSHookMessageEx(splitClass, showSel, (IMP)SCPDockShowLayoutReplacement,
+                        (IMP *)&SCPDockShowLayoutOriginal);
+        HLog(@"dock-lifecycle", [NSString stringWithFormat:
+            @"show=%@", SCPDockShowLayoutOriginal ? @"installed" : @"not-confirmed"]);
+    } else {
+        HLog(@"dock-lifecycle", [NSString stringWithFormat:
+            @"show=abi-unavailable observed=%s", showABI ?: "none"]);
+    }
+    SEL collapseSel = NSSelectorFromString(@"collapseAppTray");
+    Method collapseMethod = splitClass ? class_getInstanceMethod(splitClass, collapseSel) : NULL;
+    const char *collapseABI = collapseMethod ? method_getTypeEncoding(collapseMethod) : NULL;
+    if (collapseABI && strcmp(collapseABI, "v16@0:8") == 0) {
+        MSHookMessageEx(splitClass, collapseSel, (IMP)SCPDockCollapseTrayReplacement,
+                        (IMP *)&SCPDockCollapseTrayOriginal);
+        HLog(@"dock-lifecycle", [NSString stringWithFormat:
+            @"collapse=%@", SCPDockCollapseTrayOriginal ? @"installed" : @"not-confirmed"]);
+    } else {
+        HLog(@"dock-lifecycle", [NSString stringWithFormat:
+            @"collapse=abi-unavailable observed=%s", collapseABI ?: "none"]);
+    }
+}
+
+static void SCPHomeDockInstallHooks(void) {
+    static BOOL installed = NO;
+    if (installed) return;
+    installed = YES;
+    SCPHomeDockInstallCategoryHook();
+    SCPHomeDockInstallSplitHooks();
+    Class dockClass = OMCCarClass("DBAppDockViewController");
+    SEL tap = NSSelectorFromString(@"_dockButtonPressed:");
+    const char *tapType = NULL;
+    Method tapMethod = dockClass ? class_getInstanceMethod(dockClass, tap) : NULL;
+    if (tapMethod) tapType = method_getTypeEncoding(tapMethod);
+    if (tapType && strcmp(tapType, "v24@0:8@16") == 0) {
+        MSHookMessageEx(dockClass, tap, (IMP)SCPDockTapReplacement,
+                        (IMP *)&SCPDockOriginalTap);
+        HLog(@"dock-tap", [NSString stringWithFormat:
+            @"status=%@ abi=%s", SCPDockOriginalTap ? @"installed" : @"not-confirmed", tapType]);
+    } else {
+        HLog(@"dock-tap", [NSString stringWithFormat:
+            @"status=abi-unavailable observed=%s", tapType ?: "none"]);
+    }
+    Class splitClass = objc_getClass("SCPCarSplit");
+    SEL closeSel = @selector(closePopups);
+    Method closeMethod = splitClass ? class_getInstanceMethod(splitClass, closeSel) : NULL;
+    const char *closeType = closeMethod ? method_getTypeEncoding(closeMethod) : NULL;
+    if (closeType && strcmp(closeType, "v16@0:8") == 0) {
+        MSHookMessageEx(splitClass, closeSel, (IMP)SCPHomeClosePopupsReplacement,
+                        (IMP *)&SCPClosePopupsOriginal);
+        HLog(@"dock-lifecycle", [NSString stringWithFormat:
+            @"status=%@", SCPClosePopupsOriginal ? @"installed" : @"not-confirmed"]);
+    } else {
+        HLog(@"dock-lifecycle", [NSString stringWithFormat:
+            @"status=abi-unavailable observed=%s", closeType ?: "none"]);
+    }
+}
+
 void SCPHomeLauncherInstallTapHook(void) {
+    SCPHomeDockInstallHooks();
     if (SCPHomeTapOriginal) return;
     Class homeVC = OMCCarClass("DBDashboardHomeViewController");
     SEL action = sel_registerName("iconManager:launchIconForIconView:");

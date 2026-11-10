@@ -187,6 +187,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
               self.container.transform = CGAffineTransformIdentity;
           } completion:nil];
     if (reopenBundle) [self openApp:reopenBundle slot:0];
+    SCPHomeLauncherDockSetVisible(YES, @"split-activated"); // [hl12dock]
     return YES;
 }
 
@@ -271,6 +272,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
 // (0x22958 w2=#-1), NOT 0 — both restored; the previous body dropped
 // the three clears and used dragTarget = 0.
 - (void)dashboardInvalidated {
+    SCPHomeLauncherDockSetVisible(NO, @"dashboard-invalidated"); // [hl12dock]
     [self removeAppTab];
     [self removeHomeButton];
     self.autoLaunchDone = NO;
@@ -1790,6 +1792,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         pane.picker = nil;
     }
     self.active = NO;
+    SCPHomeLauncherDockSetVisible(NO, @"split-closed"); // [hl12dock]
     [self.pending removeAllObjects];
     [self publishBusy];
     [self removePickerSheet];
