@@ -806,6 +806,12 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 - (void)removePickerSheet {
     UIView *sheet = self.pickerSheet;
     UIView *shield = self.pickerShield;
+    // [picker-measure2] (hl4-D1, MEASURE ONLY): the sheet's pane,
+    // captured before the teardown nils the sheet ivars (this
+    // method deliberately does NOT clear pickerSheetPane, but the
+    // completion below reads the pane's post-close state, so pin
+    // the object here).
+    SCPCarPane *measurePane = self.pickerSheetPane;
     BOOL overlay = self.pickerSheetOverlay;
     self.pickerSheet = nil;
     self.pickerShield = nil;
@@ -834,6 +840,32 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                 if (window != nil && s != nil && s.tray == nil &&
                     s.ratioMenu == nil && s.pickerSheet == nil)
                     window.hidden = YES;
+                // [picker-measure2] (hl4-D1, MEASURE ONLY, GPT
+                // ruling 533ac9a): post-close record — every sheet
+                // close (choose AND cancel both end in this 0.22 s
+                // animation's completion) states whether the sheet
+                // is really gone, whether the target pane still
+                // holds its scene, and whether the pane's content
+                // is back on screen. The path (choose vs cancel)
+                // is the close-choose / close-cancel line logged
+                // for the same slot ~0.22 s earlier. Logs only;
+                // no view state is touched.
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"[picker-measure2] phase=close-done slot=%d finished=%d "
+                     "sheetGone=%d sheet{%@} shieldGone=%d shield{%@} "
+                     "paneBundle=%@ paneHasVC=%d host{%@} hostSuper=%@ "
+                     "contentBack=%d",
+                    measurePane ? measurePane.slot : -1, finished ? 1 : 0,
+                    sheet.superview == nil ? 1 : 0, SCPViewMeasureDesc(sheet),
+                    shield.superview == nil ? 1 : 0, SCPViewMeasureDesc(shield),
+                    measurePane.bundleID, measurePane.vc != nil ? 1 : 0,
+                    SCPViewMeasureDesc(measurePane.host),
+                    measurePane.host.superview
+                        ? NSStringFromClass(measurePane.host.superview.class)
+                        : @"nil",
+                    (measurePane.host && !measurePane.host.hidden &&
+                     measurePane.host.alpha > 0 &&
+                     measurePane.host.superview != nil) ? 1 : 0]);
             }];
         if (!overlay && self.active)
             [self pushHostFramesLive:NO];
