@@ -109,8 +109,8 @@ def analyze(all_records, target_pid=None):
     count_by_eye = collections.Counter(get(r, "eye", "unknown") for r in rows)
 
     formed = count(owner, "pinch", "formed")
-    requested = sum(get(r, "eye") == "pinch" and
-                    get(r, "ev") == "fs-gate" for r in owner)
+    gates = count(owner, "pinch", "fs-gate")
+    requested = count(owner, "pinch", "fs-request")
     outcomes = [r for r in owner if get(r, "eye") == "pinch"
                 and get(r, "ev") == "fs-result"]
     applied = sum(get(r, "applied") == "1" for r in outcomes)
@@ -178,7 +178,8 @@ def analyze(all_records, target_pid=None):
                and get(r, "ev") == "frame-settled"]
     rx_ids = {get(r, "seq") for r in received}
     missing_rx_ids = sorted({get(r, "seq") for r in sent
-                             if get(r, "seq") not in rx_ids})
+                             if get(r, "seq") is not None
+                             and get(r, "seq") not in rx_ids})
     stale = sum(get(r, "sameOwner") == "0" for r in settled)
     if not sent:
         geometry = "NO_HOSTED_FRAME_CHANGES_OBSERVED"
@@ -200,7 +201,8 @@ def analyze(all_records, target_pid=None):
         "processes": dict(sorted(count_by_process.items())),
         "eyes": dict(sorted(count_by_eye.items())),
         "pinch": {"verdict": pinch, "pairs": formed,
-                  "fs_gate": requested, "fs_callback": len(outcomes),
+                  "fs_gate": gates, "requests": requested,
+                  "fs_callback": len(outcomes),
                   "applied": applied, "drops": len(pair_rejects),
                   "gate_examples": sample(owner, "pinch", "fs-gate")},
         "native_wake": {"verdict": native_wake,
