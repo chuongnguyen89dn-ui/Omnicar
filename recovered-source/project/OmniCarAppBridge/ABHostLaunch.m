@@ -340,6 +340,13 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
     ABPane *pane = [self paneOfBarButton:sender];
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"thanh nut %@: %@", pane.bundleID, action]);
+    // [hl18-picker] SpringBoard's bar shield can swallow the very next
+    // touch over a CarPlay picker. Remove it before posting replace.
+    if ([action isEqualToString:@"replace"]) {
+        [self outsideTouched];
+        OMCLogWrite(@"AppBridge",
+            @"[hl18-picker] ev=replace shield-cleared before-post");
+    }
     NSDistributedNotificationCenter *center =
         [NSClassFromString(@"NSDistributedNotificationCenter") defaultCenter];
     NSDictionary *info = @{@"identifier": pane.bundleID ?: @"",
