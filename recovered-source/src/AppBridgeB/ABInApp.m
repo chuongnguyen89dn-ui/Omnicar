@@ -553,8 +553,55 @@ static BOOL ABDrawnKbGateSeen = NO; // [hl2-k6] an explicit drawnKeyboard value 
 
 static BOOL ABDrawnKeyboardActive(void) { return ABDrawnKb; }
 
+// [hl8diag] Focus + geometry ONLY. Never log text, candidate words
+// or key values from the user's app.
+static BOOL ABHL8Trace(void) {
+    return [OMCPref(@"hl8.unifiedDiag", @YES) boolValue];
+}
+static void ABHL8Focus(NSString *event, id responder) {
+    if (!ABHL8Trace()) return;
+    UIView *v = [responder isKindOfClass:UIView.class] ? (UIView *)responder : nil;
+    UIWindow *w = v.window;
+    NSUInteger found = 0;
+    NSMutableString *windows = [NSMutableString string];
+    for (UIWindow *x in [UIApplication sharedApplication].windows) {
+        NSString *kind = NSStringFromClass(x.class);
+        if ([kind containsString:@"Keyboard"] ||
+            [kind containsString:@"InputSet"] ||
+            [kind containsString:@"TextEffects"]) {
+            found++;
+            if (windows.length < 260)
+                [windows appendFormat:@"%@:%@:%d;",
+                    kind, NSStringFromCGRect(x.frame), (int)x.hidden];
+        }
+    }
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl8diag] eye=kb-app ev=%@ bundle=%@ responder=%@ "
+         "orientation=%ld fake=%ld drawn=%d focusFrame=%@ "
+         "window=%@ windowFrame=%@ windowScene=%@ "
+         "phoneScreen=%@ keyboardWindows=%lu sample=%@",
+        event, [NSBundle mainBundle].bundleIdentifier ?: @"unknown",
+        responder ? NSStringFromClass([responder class]) : @"nil",
+        (long)ABForcedOrientation, (long)ABDeviceFake,
+        (int)ABDrawnKeyboardActive(),
+        v ? NSStringFromCGRect(v.frame) : @"nil",
+        w ? NSStringFromClass(w.class) : @"nil",
+        w ? NSStringFromCGRect(w.frame) : @"nil",
+        w.windowScene ? NSStringFromClass(w.windowScene.class) : @"nil",
+        NSStringFromCGRect([UIScreen mainScreen].bounds),
+        (unsigned long)found, windows]);
+}
+
 static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
     id v = info[@"drawnKeyboard"];
+    if (ABHL8Trace())
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl8diag] eye=kb-app ev=mode-recv bundle=%@ "
+             "requested=%@ cached=%d orientation=%@ focus=%d",
+            [NSBundle mainBundle].bundleIdentifier ?: @"unknown",
+            v ?: @"missing", (int)ABDrawnKeyboardActive(),
+            info[@"orientation"] ?: @"missing",
+            (int)(ABCurrentResponder != nil)]);
     // [hl2-k6] only an explicit NSNumber speaks: absent / mistyped
     // fields keep the cached mode (which starts at DRAWN).
     if (![v isKindOfClass:NSNumber.class]) return;
@@ -983,6 +1030,13 @@ static void BWOnAckPacket(uint64_t raw) {
 // first-responder session (ABResponderBecame/Resigned) may do that.
 static void BWKbFrameNote(NSNotification *note) {
     NSValue *v = note.userInfo[UIKeyboardFrameEndUserInfoKey];
+    if (ABHL8Trace())
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl8diag] eye=kb-app ev=keyboard-frame-notify "
+             "name=%@ frame=%@ focus=%d",
+            note.name, [v isKindOfClass:NSValue.class]
+                ? NSStringFromCGRect(v.CGRectValue) : @"missing",
+            (int)(ABCurrentResponder != nil)]);
     if (![v isKindOfClass:NSValue.class]) return;
     CGRect f = v.CGRectValue;
     CGFloat h = [UIScreen mainScreen].bounds.size.height;
@@ -2590,6 +2644,7 @@ static void ABSuppressSystemKeyboard(id responder) {
 static void ABResponderBecame(id responder) {
     if (ABForcedOrientation < 1) return;
     ABCurrentResponder = responder;
+    ABHL8Focus(@"focus-became", responder);
     // [hl3] marker eye 2 of 3: a responder became first responder
     // under the gate currently cached (native, hard-locked).
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
@@ -2607,6 +2662,7 @@ static void ABResponderBecame(id responder) {
 
 // sub_6D50 — after a successful resignFirstResponder.
 static void ABResponderResigned(id responder) {
+    ABHL8Focus(@"focus-resigned", responder);
     ABRestoreBlankInputView(responder);
     if (ABCurrentResponder == responder) {
         ABCurrentResponder = nil;
@@ -2659,7 +2715,21 @@ static void ABKeyboardPublish(BOOL shown, id traits) {
     // never be summoned. Gating at the publisher's head covers
     // both call points (Became YES / Resigned NO) at once; the
     // host dispatch double-checks the gate on its side regardless.
-    if (!ABDrawnKeyboardActive()) return;
+    if (!ABDrawnKeyboardActive()) {
+        if (ABHL8Trace())
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[hl8diag] eye=kb-app ev=publish-blocked "
+                 "bundle=%@ show=%d reason=native-locked focused=%d",
+                [NSBundle mainBundle].bundleIdentifier ?: @"unknown",
+                (int)shown, (int)(ABCurrentResponder != nil)]);
+        return;
+    }
+    if (ABHL8Trace())
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl8diag] eye=kb-app ev=publish-allowed bundle=%@ "
+             "show=%d channel=darwin-keyboard",
+            [NSBundle mainBundle].bundleIdentifier ?: @"unknown",
+            (int)shown]);
     if (!ABKeyboardToken)
         notify_register_check(ABNotifyKeyboard, &ABKeyboardToken);
     uint64_t state = 0;
