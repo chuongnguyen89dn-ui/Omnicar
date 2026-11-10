@@ -88,6 +88,9 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     // Chrome (§4.7): status-bar window -> its ORIGINAL hidden flag,
     // recorded on first sight only, restored exactly, then cleared.
     NSMapTable<UIWindow *, NSNumber *> *_chromeOriginals;
+    // HL9: one identity-scoped snapshot for each recall button hidden by FS.
+    // Weak keys avoid retaining a retired button across a layout rebuild.
+    NSMapTable<UIButton *, NSNumber *> *_homeHiddenOriginals;
 }
 @end
 
@@ -107,6 +110,7 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     if (self) {
         _phase = SCPFSPhaseSplit;
         _chromeOriginals = [NSMapTable weakToStrongObjectsMapTable];
+        _homeHiddenOriginals = [NSMapTable weakToStrongObjectsMapTable];
     }
     return self;
 }
@@ -235,6 +239,25 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     return found;
 }
 
+// Restore the exact pre-fullscreen hidden flag on each still-live button.
+// The AutoHide opacity/interaction axis is deliberately NOT touched.
+- (void)fsRestoreHomeButtonHidden {
+    NSUInteger restored = 0;
+    for (UIButton *button in [[_homeHiddenOriginals keyEnumerator] allObjects]) {
+        NSNumber *original = [_homeHiddenOriginals objectForKey:button];
+        if (!original) continue;
+        button.hidden = original.boolValue;
+        restored++;
+    }
+    [_homeHiddenOriginals removeAllObjects];
+    if (restored)
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl9logo] ev=fs-hidden-restore count=%lu currentHidden=%d",
+            (unsigned long)restored,
+            [SCPCarSplit shared].homeButton
+                ? (int)[SCPCarSplit shared].homeButton.hidden : -1]);
+}
+
 - (void)fsChromeSetHidden:(BOOL)hidden {
     if (hidden) {
         if (![self fsChromeSweepAndHide])
@@ -249,17 +272,25 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
         if (original) window.hidden = original.boolValue;
     }
     [_chromeOriginals removeAllObjects];
+    [self fsRestoreHomeButtonHidden];
 }
 
 /// The rebuilt's own Home/launcher button is FS chrome while EXPANDED
 /// (§4.7 item 2): forced hidden here and re-asserted by every
-/// reconcile, because refreshHomeButton runs inside rootDidLayout and
-/// may raise it again. On restore FS does NOT force it back — it is
-/// released to the idle-fade axis verdict (law R4, §5); removeHomeButton
-/// is never used (it would disturb dock shift bookkeeping).
+/// reconcile, because refreshHomeButton may build a different button
+/// while fullscreen. Restore EXACTLY the prior hidden flag for each
+/// live button at rollback, confirmed/unconfirmed restore or teardown.
+/// This does not override the independent AutoHide fade/interaction.
 - (void)fsAssertHomeButtonHidden {
     UIButton *button = [SCPCarSplit shared].homeButton;
-    if (button && !button.hidden) button.hidden = YES;
+    if (!button) return;
+    if (![_homeHiddenOriginals objectForKey:button]) {
+        [_homeHiddenOriginals setObject:@(button.hidden) forKey:button];
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl9logo] ev=fs-hidden-save button=%p original=%d",
+            (void *)button, (int)button.hidden]);
+    }
+    if (!button.hidden) button.hidden = YES;
 }
 
 #pragma mark - Entry-gate state (§4.4 step 1, [fix-g] activity predicates)

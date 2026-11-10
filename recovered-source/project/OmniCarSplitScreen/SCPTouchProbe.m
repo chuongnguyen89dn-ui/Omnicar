@@ -963,6 +963,59 @@ static void SCPNativeWakeReset(void) {
     sNativeWakeLastBundle = nil;
 }
 
+// [hl9logo] A native CarPlay scene can receive touch delivery through
+// _UISystemGestureWindow before the dashboard's UIButton target dispatch.
+// Own ONLY a real single-finger Began inside the split recall button's
+// 44pt hit region, with the button genuinely visible and the split active.
+// Never borrow this route for a faded tap (wake only), a hosted pane,
+// a popup/resize or an unrelated native POI. A captured touch chain
+// is swallowed by the existing captured-set path on subsequent phases.
+static BOOL SCPNativeLogoBegan(SCPCarSplit *split,
+                               UIWindow *carWindow, NSArray<UITouch *> *all) {
+    if (all.count != 1 || [split ahFaded]) return NO;
+    UITouch *touch = all.firstObject;
+    if (touch.phase != UITouchPhaseBegan) return NO;
+    UIButton *button = split.homeButton;
+    if (!button || !button.window || button.hidden ||
+        !button.userInteractionEnabled || button.alpha <= 0.01 ||
+        button.layer.opacity <= 0.01 ||
+        button.window.screen != carWindow.screen) return NO;
+
+    CGPoint pt = CGPointZero;
+    UIScreen *screen = nil;
+    if (!SCPProbeTouchScreenPoint(touch, &pt, &screen) ||
+        screen != carWindow.screen ||
+        SCPProbeIsHomeCorner(pt, screen) ||
+        [NSStringFromClass(touch.window.class)
+            isEqualToString:@"DBStatusBarWindow"]) return NO;
+
+    SCPCarPane *pane = nil;
+    SCPProbePaneAtScreenPoint(pt, screen, &pane);
+    if (!pane || !pane.bundleID.length || SCPVCIsHosted(pane.vc))
+        return NO;
+
+    CGFloat extraX = MAX(0.0, (44.0 - button.bounds.size.width) * 0.5);
+    CGFloat extraY = MAX(0.0, (44.0 - button.bounds.size.height) * 0.5);
+    CGRect hitLocal = CGRectInset(button.bounds, -extraX, -extraY);
+    CGRect hitWindow = [button convertRect:hitLocal toView:nil];
+    CGRect hitScreen = [button.window.coordinateSpace
+        convertRect:hitWindow toCoordinateSpace:screen.coordinateSpace];
+    if (CGRectIsNull(hitScreen) ||
+        !CGRectContainsPoint(hitScreen, pt)) return NO;
+
+    // Take ownership before invoking the EXISTING controller, which
+    // may open a panel and mutate the view hierarchy synchronously.
+    [SCPNativeWakeCaptured() addObject:
+        [NSValue valueWithPointer:(const void *)touch]];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[hl9logo] ev=native-logo-owned bundle=%@ pane=%ld "
+         "point=%@ hit=%@ button=%p faded=0",
+        pane.bundleID, (long)pane.slot, NSStringFromCGPoint(pt),
+        NSStringFromCGRect(hitScreen), (void *)button]);
+    [split homeButtonTapped]; // existing layout-panel controller, once
+    return YES;
+}
+
 static BOOL SCPNativeWakePreflight(UIEvent *event) {
     if (!event || event.type != UIEventTypeTouches) return NO;
     SCPCarSplit *split = [SCPCarSplit shared];
@@ -1012,6 +1065,10 @@ static BOOL SCPNativeWakePreflight(UIEvent *event) {
                 (unsigned long)all.count]);
         return NO;
     }
+    // Native Logo is a separate, target-qualified action. The legacy
+    // faded native wake branch below still owns the first fade tap.
+    if (SCPNativeLogoBegan(split, carWindow, all))
+        return YES;
     CGPoint representative = CGPointZero;
     BOOL haveRepresentative = NO;
     NSString *bundle = nil;
