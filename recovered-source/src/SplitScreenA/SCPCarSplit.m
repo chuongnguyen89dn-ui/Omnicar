@@ -2178,6 +2178,28 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     // key keeps its name/formula.
     info[@"split"] = @(self.active && self.paneCount >= 2 && self.zoomedSlot == nil);
     info[@"splitver"] = @1;
+    // [hl8diag] Correlate the EXISTING frame packet across CarPlay
+    // and SpringBoard without changing its geometry or channel.
+    if ([OMCPref(@"hl8.unifiedDiag", @YES) boolValue]) {
+        static uint64_t hl8FrameSequence;
+        static NSMutableDictionary *hl8LastFrame;
+        if (!hl8LastFrame) hl8LastFrame = [NSMutableDictionary dictionary];
+        info[@"hl8seq"] = @(++hl8FrameSequence);
+        NSString *bundle = pane.bundleID ?: @"";
+        NSValue *old = hl8LastFrame[bundle];
+        if (!old || !CGRectEqualToRect([old CGRectValue], frame)) {
+            hl8LastFrame[bundle] = [NSValue valueWithCGRect:frame];
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl8diag] eye=layout ev=frame-send seq=%llu "
+                 "bundle=%@ slot=%ld frame=%@ sceneExpected=%@ "
+                 "split=%d faded=%d",
+                (unsigned long long)hl8FrameSequence, bundle,
+                (long)pane.slot, NSStringFromCGRect(frame),
+                NSStringFromCGSize(pane.sceneSize),
+                (int)(self.active && self.paneCount >= 2 && !self.zoomedSlot),
+                (int)[self ahFaded]]);
+        }
+    }
     info[@"r"] = @(pane.view.layer.cornerRadius);
     info[@"corners"] = @(pane.view.layer.maskedCorners);
     info[@"hx"] = @([self handleShiftForPane:pane]);
@@ -3261,6 +3283,21 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
 // -homeButtonTapped (0x43514) VERIFIED (remediation,
 // rem_stub_homeButtonTapped.txt): @try wrapper over the unsafe body.
 - (void)homeButtonTapped {
+    // [hl8diag] A real UIButton callback proves the logo WON the hit.
+    if ([OMCPref(@"hl8.unifiedDiag", @YES) boolValue]) {
+        UIButton *b = self.homeButton;
+        CGRect r = b.window ? [b convertRect:b.bounds toView:nil] : CGRectNull;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl8diag] eye=logo ev=callback active=%d faded=%d "
+             "button=%p rectWin=%@ super=%@ window=%@ hidden=%d "
+             "ui=%d alpha=%.2f opacity=%.2f",
+            (int)self.active, (int)[self ahFaded], (void *)b,
+            NSStringFromCGRect(r),
+            b.superview ? NSStringFromClass(b.superview.class) : @"nil",
+            b.window ? NSStringFromClass(b.window.class) : @"nil",
+            b ? (int)b.hidden : -1, b ? (int)b.userInteractionEnabled : -1,
+            b ? (double)b.alpha : -1.0, b ? (double)b.layer.opacity : -1.0]);
+    }
     [self ahNoteActivity:AHSourceHome]; // [autohide] F3 feed (design-autohide §3.2): a tap on the invisible logo is activity
     @try {
         [self homeButtonTappedUnsafe];
@@ -3281,6 +3318,13 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"CarSplit: bam nut Split Screen tren dock (%@)",
         self.active ? @"dang chia -> doi bo cuc" : (app ?: @"man chinh")]);
+    if ([OMCPref(@"hl8.unifiedDiag", @YES) boolValue])
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl8diag] eye=logo ev=action action=%@ active=%d app=%@ "
+             "tray=%d picker=%d",
+            self.tray ? @"collapse-app-tray" : @"show-layout-panel",
+            (int)self.active, app ?: @"none",
+            (int)(self.tray != nil), (int)(self.pickerSheet != nil)]);
     if (self.tray) [self collapseAppTray];
     else [self showLayoutPanelForApp:app];
 }
