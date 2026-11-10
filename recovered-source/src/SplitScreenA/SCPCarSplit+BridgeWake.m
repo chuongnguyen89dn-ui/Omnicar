@@ -49,6 +49,10 @@ static uint64_t       bwEmitSigBySlot[10];    // last emitted packet shape
 static __weak SCPCarPane *bwPaneBySlot[10];   // last pane object per slot
 
 static uint16_t       bwStateSeq;             // owner state seq (§3.2)
+static uint16_t       bwStateOnlySeq;         // [hl4-C2] STATE-only
+                                              //   emission counter
+                                              //   (bwStateSeq is
+                                              //   shared with kb-sync)
 static NSInteger      bwWakeMode  = BWModeDryRun;   // §4: absent = DRY_RUN
 static NSInteger      bwPinchMode = BWModeOff;      // [ytz5] absent = OFF
 // [hl2-split G6] Gate 3 scoped trial + in-app pinch packet mode,
@@ -271,15 +275,24 @@ static void BWEmitStatePacket(NSString *bundle, uint32_t gen, NSInteger state,
     if (!bwStateSendToken)
         notify_register_check(SCPBridgeWakeState, &bwStateSendToken);
     bwStateSeq = (uint16_t)((bwStateSeq + 1) & 0xFFF);
+    // [hl4-C2] STATE-only counter (GPT ruling 533ac9a): bwStateSeq
+    // above is SHARED with kb-sync packets (BWEmitKbPacket), while
+    // the app latches its stateSeq from STATE packets only — so a
+    // jump in the app's observed seq is an artefact of the shared
+    // counter, NOT evidence of a lost STATE packet (the hl3 seq
+    // "gaps" were exactly this). bwStateOnlySeq increments ONLY
+    // here and is logged as sseq= for cross-checking; the packet
+    // format and the sync mechanism are unchanged.
+    bwStateOnlySeq = (uint16_t)((bwStateOnlySeq + 1) & 0xFFF);
     uint64_t packet = BWPackFields(BWBundleHash28(bundle), bwStateSeq, gen,
                                    pinchAllowed, (unsigned)pm, (unsigned)wm,
                                    (unsigned)state, BWTypeState);
     notify_set_state(bwStateSendToken, packet);
     notify_post(SCPBridgeWakeState);
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[wake1] bw emit %@ state=%@ gen=%u seq=%u wm=%ld pm=%ld pinch=%d",
-        bundle, BWStateName(state), gen, bwStateSeq, (long)wm, (long)pm,
-        (int)pinchAllowed]);
+        @"[wake1] bw emit %@ state=%@ gen=%u seq=%u sseq=%u wm=%ld pm=%ld pinch=%d",
+        bundle, BWStateName(state), gen, bwStateSeq, bwStateOnlySeq,
+        (long)wm, (long)pm, (int)pinchAllowed]);
 }
 
 // [ytz4-hb] Kb-sync packet poster (GPT ytz4 ruling, item 1): type 6
@@ -431,6 +444,20 @@ static void BWEmitDrain(void) {
     bwBundleBySlot[slot] = [bundle copy];
     bwAssignAtBySlot[slot] = BWNow();
     bwWakePendingBySlot[slot] = NO;
+    // [hl4-L1] The wake dedupe ring is scoped to ONE assignment
+    // generation and must die with it: the app's transaction seq
+    // counter restarts from 0 in every new process incarnation,
+    // while this ring previously survived re-assignments forever —
+    // a re-hosted app's first wakes (seq 1..N, current gen, valid)
+    // hit the PREVIOUS incarnation's recorded seqs in
+    // BWSeqHandled and were silently dropped: no handling, no ack
+    // at either ack site, so the app waited out its 1.5 s ack
+    // deadline and failed open (29.23 L1: first incarnation acked
+    // 5/5 in 4-18 ms; both re-host incarnations timed out 7/7).
+    // Dedupe (§3.3 "one wake, one handling") guards duplicate
+    // posts of the same wake WITHIN one generation, nothing more.
+    bwHandledIdx[slot] = 0;
+    bwHandledCount[slot] = 0;
     if (bundle.length)
         BWInputSlotAssign(&bwInputStore, (int)slot,
                           BWBundleHash28(bundle), bwGenBySlot[slot]);
@@ -1066,7 +1093,18 @@ static void BWEmitDrain(void) {
             pkt.gen, bwGenBySlot[slot], bwDroppedWakeCount]);
         return;
     }
-    if (BWSeqHandled(slot, pkt.seq)) return; // §3.3: one wake, one handling
+    if (BWSeqHandled(slot, pkt.seq)) {
+        // §3.3: one wake, one handling. [hl4-L1] this drop used to
+        // be silent — log it distinctly, because a hit here on a
+        // CURRENT-gen wake is exactly the re-host collision the
+        // dedupe-ring reset in bwApplyAssignmentForSlot: prevents;
+        // seeing this line for a fresh incarnation means the ring
+        // outlived its generation again.
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[wake1] bw wake dropped dup seq=%u gen=%u bundle=%@",
+            pkt.seq, pkt.gen, bwBundleBySlot[slot]]);
+        return;
+    }
     NSString *bundle = bwBundleBySlot[slot];
     // §3.3 double-check: the hash's candidate bundle must still be the
     // bundle actually assigned AND hosted right now.

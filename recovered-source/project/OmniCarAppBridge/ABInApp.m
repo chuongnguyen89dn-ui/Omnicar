@@ -623,11 +623,13 @@ static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
 // (hash, gen) identity. [hl2-l8] The reporter posts only while
 // that identity is still live: BWKbStatePost requires BWKnown AND
 // BWKbReporterLive. BWKbReporterLive is set on every accepted state
-// packet, cleared by BWResetAll, and cleared by the heartbeat when
-// state packets fall silent for > 5 s (assignment presumed gone —
-// the app may outlive its pane); the next accepted packet revives
-// it. No typed content is ever logged or sent — the payload above
-// is the whole surface.
+// packet and cleared by BWResetAll. [hl4-D2] The heartbeat no
+// longer clears it on silence alone: > 5 s of silence opens a
+// bounded query verification (max 3 BWSendQuery), and only an
+// unanswered verification stops the reporter
+// (reason=query-unanswered) — see BWKbHeartbeatTick. The next
+// accepted packet revives it in all cases. No typed content is
+// ever logged or sent — the payload above is the whole surface.
 // ===========================================================================
 static NSString *const BWKbStateChannel = @"com.anlai.omnicar/bridgewake.v1.kbstate";
 static uint32_t BWKbSessionID = 0;    // minted once, first reporter use
@@ -635,6 +637,16 @@ static uint64_t BWKbReportSeq = 0;    // monotone; first post carries 1
 static BOOL     BWKbReportedActive = NO; // last state actually posted
 static BOOL     BWKbHaveReported = NO;
 static BOOL     BWKbReporterLive = NO; // [hl2-l8] identity still live (see rule above)
+// [hl4-D2] Silence-verification episode (GPT ruling 533ac9a): the
+// reporter no longer declares its own death from silence alone.
+// Abnormal silence opens an episode: a suspicion is logged and up
+// to BWKbVerifyMaxQueries queries (BWSendQuery) are sent, spaced
+// ~2 s; any accepted STATE packet closes the episode (assignment
+// alive — see BWOnStatePacket); exhausting the queries with no
+// answer stops the reporter with reason=query-unanswered.
+static int      BWKbSilenceQueries = 0;   // queries sent this episode
+static NSTimeInterval BWKbVerifyLastQueryAt = 0;
+static const int BWKbVerifyMaxQueries = 3;
 static NSTimer *BWKbHeartbeatTimer = nil;
 
 static uint32_t BWKbSession(void) {
@@ -701,17 +713,55 @@ static void BWKbStateResignedDeferred(void) {
 // an identity learned while no responder stands, and corrects the
 // record if the tracked responder died without a resign reaching
 // the hooks (the weak ABCurrentResponder simply nils out).
-// [hl2-l8] Silence death: the owner renews a live assignment's
-// state ~every 1 s, so > 5 s without an accepted packet means the
-// assignment is presumed gone even though this app still lives —
-// the reporter stops (temporarily; the next accepted packet
-// revives it in BWOnStatePacket) instead of posting a stale
-// (hash, gen) forever for the owner to reject as noassignment.
+// [hl2-l8] Silence death (SUPERSEDED by hl4-D2 below): the owner
+// renews a live assignment's state ~every 1 s, so > 5 s without an
+// accepted packet used to stop the reporter on presumption alone.
+// In hl3 that presumption fired prematurely in 16/19 kb episodes —
+// the pushes had stopped for other reasons while the assignment
+// still lived.
+// [hl4-D2] Verified death (GPT ruling 533ac9a): the reporter stops
+// ONLY on a real teardown (BWResetAll) or after silence has been
+// VERIFIED dead by query — abnormal silence (> 5 s, as before)
+// logs a suspicion and sends up to 3 queries (BWSendQuery, ~2 s
+// apart); the owner answers a live assignment's query with a
+// fresh state packet, and any accepted STATE packet closes the
+// episode in BWOnStatePacket (BWKbSilenceQueries reset). No
+// answer after the last query -> stop, reason=query-unanswered:
+// a genuinely dead assignment still stops (no return of the
+// post-forever reject storm), but a live one is never presumed
+// dead again. While an episode is open the reporter posts no
+// renewals — its identity is exactly what is in question.
 static void BWKbHeartbeatTick(void) {
     if (!BWKnown) return;
     if (BWKbReporterLive && BWStateRxAt > 0 && (BWNow() - BWStateRxAt) > 5.0) {
-        BWKbReporterLive = NO;
-        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"[kbstate] reporter-stop: state im lang %.1fs (assignment presumed gone)", BWNow() - BWStateRxAt]);
+        NSTimeInterval now = BWNow();
+        if (BWKbSilenceQueries == 0) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[kbstate] reporter-suspect: state im lang %.1fs -- xac thuc bang query (toi da %d)",
+                now - BWStateRxAt, BWKbVerifyMaxQueries]);
+        }
+        if (BWKbSilenceQueries < BWKbVerifyMaxQueries) {
+            if (now - BWKbVerifyLastQueryAt >= 2.0) {
+                BWSendQuery();
+                BWKbSilenceQueries++;
+                BWKbVerifyLastQueryAt = now;
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"[kbstate] reporter-verify query %d/%d (im lang %.1fs)",
+                    BWKbSilenceQueries, BWKbVerifyMaxQueries,
+                    now - BWStateRxAt]);
+            }
+            return; // episode open: no renewals, no presumption
+        }
+        // One full query spacing after the last query, still silent:
+        // the assignment is verified dead.
+        if (now - BWKbVerifyLastQueryAt >= 2.0) {
+            BWKbReporterLive = NO;
+            BWKbSilenceQueries = 0;
+            BWKbVerifyLastQueryAt = 0;
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[kbstate] reporter-stop reason=query-unanswered (%d query khong tra loi, im lang %.1fs)",
+                BWKbVerifyMaxQueries, now - BWStateRxAt]);
+        }
         return;
     }
     BOOL active = BWKbSessionActiveNow();
@@ -780,6 +830,17 @@ static void BWOnStatePacket(uint64_t raw) {
                                 // act feed's session identity.
     BWStateRxAt = now;
     BWKbReporterLive = YES; // [hl2-l8] accepted packet = live assignment: reporter (re)starts
+    // [hl4-D2] an accepted STATE packet is the answer the silence
+    // verification was waiting for: the assignment lives — close
+    // any open episode and clear the silence clock (BWStateRxAt
+    // above already restarted it).
+    if (BWKbSilenceQueries > 0) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[kbstate] reporter-verify answered sau %d query — assignment con song",
+            BWKbSilenceQueries]);
+        BWKbSilenceQueries = 0;
+        BWKbVerifyLastQueryAt = 0;
+    }
     // [hl3] this accept IS the push latching the local decision
     // state (BWState/BWWakeMode/BWPinch*) the swallow gate reads —
     // no freshness window is applied to it downstream.
@@ -894,7 +955,16 @@ static BOOL BWGatePass(UIEvent *event, NSString **reason) {
     // transitioning: a wake transaction still in flight, or the state
     // flipped less than 0.25 s ago — never swallow on a moving state.
     if (BWEngine != BWEngIdle) return NO;
-    if (BWNow() - BWStateChangedAt < 0.25) return NO;
+    // [hl4-C1] The 250 ms transition gate STAYS (GPT ruling
+    // 533ac9a) but now names itself: in hl3 a sequence starting
+    // 123 ms after the last state flip failed open WITHOUT a
+    // reason and was read as a generic fail-open, when in fact
+    // this gate was working exactly as designed (never swallow
+    // on a moving state).
+    if (BWNow() - BWStateChangedAt < 0.25) {
+        if (reason) *reason = @"transition-250ms";
+        return NO;
+    }
     // targetVerified + mixedTouches over the Began touches (§5.1): a
     // sequence belongs to the hosted session only if it starts on the
     // verified hosted window; a nil window is "notarget", a different
@@ -1224,6 +1294,24 @@ static ABPinchGestureRecognizer *ABPinchRec = nil;
 
 static void ABPinchTryAttach(void) {
     if (!BWKnown) return; // no live assignment, nothing to attach to
+    // [hl4-B] Pinch OFF gate, at the attach point (GPT ruling
+    // 533ac9a): the latched packet pinchMode is CONFIG, read here
+    // and only here — with pinchMode OFF the recognizer must not
+    // exist on the window, or it would still cancel two-finger
+    // touches and post toggles the owner never asked for. This is
+    // not a pair-arbitration gate (nothing is decided per-touch);
+    // it is the same class of check as the BWKnown gate above.
+    // Mid-session flips land here too: BWOnStatePacket latches the
+    // new BWPinchMode and calls ABPinchTryAttach on EVERY accepted
+    // packet, so a flip to OFF detaches within one packet, and a
+    // flip back re-attaches below.
+    if (BWPinchMode == BWModeOff) {
+        if (ABPinchRec && ABPinchRec.view) {
+            ABPinchDetach();
+            OMCLogWrite(@"AppBridge", @"[pinch2] detached reason=pinchmode-off");
+        }
+        return;
+    }
     UIWindow *w = ABKeyWindow();
     if (!w) return;
     if (!ABPinchRec) ABPinchRec = [[ABPinchGestureRecognizer alloc] init];
@@ -1469,6 +1557,8 @@ static void BWResetAll(void) {
     BWKbHaveReported = NO;
     BWKbReportedActive = NO;
     BWKbReporterLive = NO; // [hl2-l8] identity teardown: reporter dies at once
+    BWKbSilenceQueries = 0;     // [hl4-D2] real teardown also
+    BWKbVerifyLastQueryAt = 0;  //   closes any verification episode
     BWWakeMode = BWModeDryRun;
     BWPinchMode = BWModeDryRun;
     BWPinchAllowed = NO;
