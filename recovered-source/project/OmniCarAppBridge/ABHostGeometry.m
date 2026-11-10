@@ -34,6 +34,36 @@ extern id OMCPref(NSString *key, id defaultValue);
 extern BOOL ABNativeKeyboardEnabled(void);
 extern BOOL ABDrawnKeyboardEnabled(void);
 
+// [hl8diag] Window observations are PROCESS-SCOPED; no local window
+// match means BLIND about a remote CarPlayTemplateUIHost keyboard.
+static BOOL ABHL8Trace(void) {
+    return [OMCPref(@"hl8.unifiedDiag", @YES) boolValue];
+}
+static void ABHL8KeyboardWindows(NSString *source) {
+    if (!ABHL8Trace()) return;
+    NSUInteger count = 0;
+    NSMutableString *sample = [NSMutableString string];
+    for (UIWindow *w in [UIApplication sharedApplication].windows) {
+        NSString *cls = NSStringFromClass(w.class);
+        if ([cls containsString:@"Keyboard"] ||
+            [cls containsString:@"InputSet"] ||
+            [cls containsString:@"TextEffects"]) {
+            count++;
+            if (sample.length < 360)
+                [sample appendFormat:@"%@:%@:%d;",
+                    cls, NSStringFromCGRect(w.frame), (int)w.hidden];
+        }
+    }
+    UIWindow *carWindow = [ABHost shared].carWindow;
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl8diag] eye=kb-spring ev=window-scan source=%@ "
+         "windows=%lu sample=%@ carWindow=%@ bounds=%@ "
+         "scope=SpringBoard noMatchMeans=BLIND",
+        source ?: @"-", (unsigned long)count, sample,
+        carWindow ? NSStringFromClass(carWindow.class) : @"nil",
+        carWindow ? NSStringFromCGRect(carWindow.bounds) : @"nil"]);
+}
+
 // ===========================================================================
 // C helper sub_E6B8 — post ABChanOrientation to one app.
 // fps rule (verified): orientation < 1 -> fps 0. Otherwise the pref
@@ -79,6 +109,12 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[ytz5-k5] payload %@ drawnKeyboard=%d mode=%@",
         bundleID, drawnKb ? 1 : 0, drawnKb ? @"drawn" : @"native-locked-hl3"]);
+    if (ABHL8Trace())
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl8diag] eye=kb-relay ev=mode-push bundle=%@ "
+             "orientation=%ld drawn=%d nativeLock=%d",
+            bundleID, (long)orientation, (int)drawnKb,
+            (int)ABNativeKeyboardEnabled()]);
 }
 
 // C helper sub_BED4 — post ABChanState (object nil).
@@ -294,6 +330,28 @@ void ABSpringBoardReady(id self, SEL _cmd, id application) {
     [[NSNotificationCenter defaultCenter]
         addObserverForName:@"CarPlayIsConnectedDidChange" object:nil queue:queue
                 usingBlock:^(NSNotification *n) { ABCarPlayChanged(n); }];
+    if (ABHL8Trace()) {
+        NSNotificationCenter *local = [NSNotificationCenter defaultCenter];
+        for (NSString *name in @[UIKeyboardWillShowNotification,
+                                  UIKeyboardDidShowNotification,
+                                  UIKeyboardDidChangeFrameNotification,
+                                  UIKeyboardWillHideNotification]) {
+            [local addObserverForName:name object:nil queue:queue
+                         usingBlock:^(NSNotification *note) {
+                CGRect f = [note.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"[hl8diag] eye=kb-spring ev=notification name=%@ "
+                     "frame=%@ screen=%@",
+                    note.name, NSStringFromCGRect(f),
+                    NSStringFromCGRect([UIScreen mainScreen].bounds)]);
+                ABHL8KeyboardWindows(note.name);
+            }];
+        }
+        OMCLogWrite(@"AppBridge",
+            @"[hl8diag] eye=spring ev=installed schema=1 "
+             "domains=kb-mode,kb-window,layout-recv,layout-applied");
+        ABHL8KeyboardWindows(@"install");
+    }
     } // ABRegistrarRegistered once-guard
 }
 
@@ -315,6 +373,13 @@ void ABKeyboardDispatch(int token) {
         uint64_t state = 0;
         notify_get_state(token, &state);
         NSString *bundleID = [[ABHost shared] bundleForHash:(state >> 24)];
+        if (ABHL8Trace())
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[hl8diag] eye=kb-spring ev=darwin-dispatch bundle=%@ "
+                 "show=%d nativeLock=%d drawn=%d carWindow=%d",
+                bundleID ?: @"unknown", (int)((state & 1) != 0),
+                (int)ABNativeKeyboardEnabled(), (int)ABDrawnKeyboardEnabled(),
+                (int)([ABHost shared].carWindow != nil)]);
         if (!bundleID) {
             OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"ban phim: khong co o cho hash %llu",
                                        (unsigned long long)(state >> 24)]);
@@ -406,10 +471,67 @@ static void ABFrameBlock(NSNotification *note) {
     NSString *app = u[@"identifier"];
     CGRect frame = CGRectMake([u[@"x"] doubleValue], [u[@"y"] doubleValue],
                               [u[@"w"] doubleValue], [u[@"h"] doubleValue]);
+    // Diagnostics are sampled on each *changed* incoming frame.
+    static NSMutableDictionary *hl8PreviousFrame;
+    if (!hl8PreviousFrame)
+        hl8PreviousFrame = [NSMutableDictionary dictionary];
+    NSString *hl8Bundle = app ?: @"";
+    NSNumber *hl8Seq = u[@"hl8seq"];
+    NSValue *hl8Prev = hl8PreviousFrame[hl8Bundle];
+    BOOL hl8Changed = !hl8Prev ||
+        !CGRectEqualToRect([hl8Prev CGRectValue], frame);
+    BOOL hl8ShouldLog = ABHL8Trace() && hl8Changed;
+    if (hl8Changed)
+        hl8PreviousFrame[hl8Bundle] = [NSValue valueWithCGRect:frame];
+    if (hl8ShouldLog)
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl8diag] eye=layout ev=frame-recv seq=%llu bundle=%@ "
+             "requested=%@ live=%d split=%d faded=%d hasPane=%d",
+            (unsigned long long)[hl8Seq unsignedLongLongValue],
+            hl8Bundle, NSStringFromCGRect(frame),
+            (int)[u[@"live"] boolValue], (int)[u[@"split"] boolValue],
+            (int)[u[@"fade"] boolValue], (int)([host paneFor:app] != nil)]);
     UIEdgeInsets insets = UIEdgeInsetsMake([u[@"pt"] doubleValue], [u[@"pl"] doubleValue],
                                            [u[@"pb"] doubleValue], [u[@"pr"] doubleValue]);
     [host setFrame:frame forApp:app live:[u[@"live"] boolValue]
             handle:[u[@"handle"] boolValue] passInsets:insets];
+    if (hl8ShouldLog) {
+        ABPane *p = [host paneFor:app];
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl8diag] eye=layout ev=frame-applied seq=%llu "
+             "bundle=%@ pane=%@ box=%@ sceneBox=%@ view=%@",
+            (unsigned long long)[hl8Seq unsignedLongLongValue], hl8Bundle,
+            p ? NSStringFromCGRect(p.frame) : @"nil",
+            p.box ? NSStringFromCGRect(p.box.frame) : @"nil",
+            p ? NSStringFromCGSize(p.sceneBox) : @"nil",
+            p.appViewController
+                ? NSStringFromCGRect(((UIViewController *)p.appViewController).view.frame)
+                : @"nil"]);
+        NSString *joinedBundle = [hl8Bundle copy];
+        unsigned long long joinedSeq = [hl8Seq unsignedLongLongValue];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 350000000LL),
+                       dispatch_get_main_queue(), ^{
+            @try {
+                ABPane *settled = [[ABHost shared] paneFor:joinedBundle];
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"[hl8diag] eye=layout ev=frame-settled seq=%llu "
+                     "bundle=%@ sameOwner=%d expected=%@ pane=%@ "
+                     "box=%@ sceneBox=%@ view=%@",
+                    joinedSeq, joinedBundle, (int)(settled && settled == p),
+                    NSStringFromCGRect(frame),
+                    settled ? NSStringFromCGRect(settled.frame) : @"nil",
+                    settled.box ? NSStringFromCGRect(settled.box.frame) : @"nil",
+                    settled ? NSStringFromCGSize(settled.sceneBox) : @"nil",
+                    settled.appViewController
+                        ? NSStringFromCGRect(((UIViewController *)settled.appViewController).view.frame)
+                        : @"nil"]);
+                ABHL8KeyboardWindows(@"frame-settled");
+            } @catch (NSException *ex) {
+                OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                    @"[hl8diag] eye=layout ev=settle-exception %@", ex.name]);
+            }
+        });
+    }
     [host setBarVisible:[u[@"bar"] boolValue] pop:[u[@"pop"] intValue]
                     dim:[u[@"popDim"] boolValue] single:[u[@"single"] boolValue] forApp:app];
     CGRect hole = CGRectMake([u[@"ox"] doubleValue], [u[@"oy"] doubleValue],

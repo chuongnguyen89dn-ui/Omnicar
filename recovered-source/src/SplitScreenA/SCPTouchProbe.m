@@ -8,10 +8,11 @@
 //   Exactly ONE additional MSHookMessageEx in this module, on
 //   -[UIApplication sendEvent:], installed only inside CarPlayApp
 //   (the caller, SCPInitDashboardHooks, is host-gated). The
-//   replacement calls the original FIRST, with the event untouched,
-//   and only then observes — inside @try/@catch — so a defect in this
-//   file can never delay, alter or drop a touch. No hitTest target is
-//   changed, no recognizer is installed, nothing is cancelled.
+//   replacement calls original for all events EXCEPT the accepted
+//   first wake chain on a faded native pane. That accepted chain is
+//   consumed before UIKit dispatch, and fully logged. All normal
+//   deliveries still invoke original exactly once, event untouched.
+//   No hitTest target is changed and no recognizer is installed.
 //
 // EVOLUTION ([fix-np] WO GPT items 2+3): the probe now also
 //   (A) FEEDS ACTIVITY for NATIVE panes only, through the existing
@@ -71,6 +72,18 @@ static void (*orig_UIApplication_sendEvent)(id, SEL, UIEvent *);
 
 // Monotonic clock, seconds — same mach_absolute_time idiom as
 // SCPPerfTelemetry.m (OMCMonotonicSeconds), kept local to this TU.
+// [hl8diag] ONE log stream, keyed by existing OMCLogWrite timestamp/PID.
+// No new log file, IPC endpoint, capture of typed text, or input mutation.
+// Default ON for one diagnostic DEB; pref hl8.unifiedDiag=NO disables it.
+static BOOL SCPHL8TraceEnabled(void) {
+    static int enabled = -1;
+    if (enabled < 0) {
+        id pref = OMCPref(@"hl8.unifiedDiag", nil);
+        enabled = pref ? ([pref boolValue] ? 1 : 0) : 1;
+    }
+    return enabled == 1;
+}
+
 static double SCPProbeNow(void) {
     static mach_timebase_info_data_t sTimebase;
     static dispatch_once_t once;
@@ -546,7 +559,11 @@ static CGPoint sHostPinchStartMidpoint;
 static BOOL sHostPinchPairOpen;
 static BOOL sHostPinchPairFired;
 static BOOL sHostPinchPairKilled;
+static BOOL sHostPinchTerminalLogged;
 static NSTimeInterval sHostPinchLastMirrorLog;
+static uint64_t sHL8PairCounter;
+static uint64_t sHL8CurrentPair;
+static NSTimeInterval sHL8LastPairRejectAt;
 
 static void SCPHostPinchReset(void) {
     [SCPHostPinchContacts() removeAllObjects];
@@ -555,6 +572,8 @@ static void SCPHostPinchReset(void) {
     sHostPinchPairOpen = NO;
     sHostPinchPairFired = NO;
     sHostPinchPairKilled = NO;
+    sHostPinchTerminalLogged = NO;
+    sHL8CurrentPair = 0;
     sHostPinchStartDistance = 0.0;
     sHostPinchStartMidpoint = CGPointZero;
 }
@@ -605,84 +624,35 @@ static BOOL SCPHostPinchPopupBusy(SCPCarSplit *split) {
            split.resizing || [split popupOpen];
 }
 
-static void SCPHostPinchObserve(UIEvent *event) {
-    if (event.type != UIEventTypeTouches) return;
-    SCPCarSplit *split = [SCPCarSplit shared];
-    UIWindow *carWindow = split.container.window;
-    const void *containerRef = (__bridge const void *)split.container;
-    const void *windowRef = (__bridge const void *)carWindow;
-    if (sHostPinchContainer != containerRef || sHostPinchWindow != windowRef) {
-        SCPHostPinchReset();
-        sHostPinchContainer = containerRef;
-        sHostPinchWindow = windowRef;
-    }
-    if (!split.active || !carWindow || ![split bwCarHostPinchEnabled]) {
-        if (SCPHostPinchContacts().count) SCPHostPinchReset();
-        return;
-    }
-
-    NSMutableDictionary *contacts = SCPHostPinchContacts();
-    for (UITouch *touch in event.allTouches) {
-        NSValue *key = [NSValue valueWithPointer:(const void *)touch];
-        switch (touch.phase) {
-        case UITouchPhaseBegan: {
-            if (contacts[key] || SCPHostPinchPopupBusy(split)) break;
-            CGPoint pt; UIScreen *screen = nil;
-            if (!SCPProbeTouchScreenPoint(touch, &pt, &screen) ||
-                screen != carWindow.screen ||
-                SCPProbeIsHomeCorner(pt, screen) ||
-                (touch.window &&
-                 [NSStringFromClass(touch.window.class)
-                    isEqualToString:@"DBStatusBarWindow"])) break;
-            SCPCarPane *pane = nil;
-            SCPProbePaneAtScreenPoint(pt, screen, &pane);
-            if (!pane || !pane.bundleID.length) break;
-            contacts[key] = [@{ @"start": [NSValue valueWithCGPoint:pt],
-                                @"current": [NSValue valueWithCGPoint:pt],
-                                @"at": @(event.timestamp),
-                                @"slot": @(pane.slot),
-                                @"bundle": pane.bundleID } mutableCopy];
-            break;
-        }
-        case UITouchPhaseMoved:
-        case UITouchPhaseStationary: {
-            NSMutableDictionary *rec = contacts[key];
-            if (!rec) break;
-            CGPoint pt; UIScreen *screen = nil;
-            if (SCPProbeTouchScreenPoint(touch, &pt, &screen) &&
-                screen == carWindow.screen)
-                rec[@"current"] = [NSValue valueWithCGPoint:pt];
-            break;
-        }
-        case UITouchPhaseEnded:
-        case UITouchPhaseCancelled:
-            [contacts removeObjectForKey:key];
-            break;
-        default:
-            break;
-        }
-    }
-
-    if (contacts.count == 0) {
-        SCPHostPinchReset();  // never carry touches into another gesture
-        return;
-    }
+// [gpt-hl7] Evaluate a pair on Moved, Stationary AND Ended.
+// Uses the existing fullscreen adapter. No inferred/synthetic motion.
+static void SCPHostPinchEvaluate(SCPCarSplit *split,
+                                 NSMutableDictionary *contacts,
+                                 NSTimeInterval eventTime,
+                                 BOOL terminalEvent) {
     NSArray<NSValue *> *unique = SCPHostPinchDistinctKeys();
     if (unique.count < contacts.count &&
-        event.timestamp - sHostPinchLastMirrorLog > 3.0) {
-        sHostPinchLastMirrorLog = event.timestamp;
+        eventTime - sHostPinchLastMirrorLog > 3.0) {
+        sHostPinchLastMirrorLog = eventTime;
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
             @"[car-pinch] mirrored contacts=%lu distinct=%lu (no synthetic pair)",
             (unsigned long)contacts.count, (unsigned long)unique.count]);
     }
-    if (unique.count > 2) {
-        sHostPinchPairKilled = YES; // a third physical contact is not pinch
-    }
+    if (unique.count > 2 && !sHostPinchPairKilled && SCPHL8TraceEnabled())
+        OMCLogWrite(@"SplitScreen",
+            @"[hl8diag] eye=pinch ev=drop reason=three-independent-contacts");
+    if (unique.count > 2)
+        sHostPinchPairKilled = YES;
+    if (SCPHostPinchPopupBusy(split) && !sHostPinchPairKilled &&
+        unique.count >= 2 && SCPHL8TraceEnabled())
+        OMCLogWrite(@"SplitScreen",
+            @"[hl8diag] eye=pinch ev=drop reason=popup-or-divider");
     if (SCPHostPinchPopupBusy(split)) sHostPinchPairKilled = YES;
     if (sHostPinchPairKilled) return;
 
     if (!sHostPinchPairOpen) {
-        if (unique.count != 2) return;
+        // Never form a new pair from already-ended contacts.
+        if (terminalEvent || unique.count != 2) return;
         NSDictionary *a = contacts[unique[0]], *b = contacts[unique[1]];
         // A fullscreen OmniCar gesture is allowed ACROSS its two panes.
         // Both original assignments must still be live, not necessarily
@@ -705,10 +675,94 @@ static void SCPHostPinchObserve(UIEvent *event) {
         sHostPinchStartMidpoint = CGPointMake((p1.x + p2.x) * 0.5,
                                               (p1.y + p2.y) * 0.5);
         sHostPinchPairOpen = YES;
+        sHL8CurrentPair = ++sHL8PairCounter;
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
             @"[car-pinch] pair panes=%@/%@ bundles=%@/%@ d0=%.1f contacts=%lu distinct=%lu",
             a[@"slot"], b[@"slot"], a[@"bundle"], b[@"bundle"], d,
             (unsigned long)contacts.count, (unsigned long)unique.count]);
+        if (SCPHL8TraceEnabled())
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl8diag] eye=pinch ev=formed pair=%llu event=%.3f "
+                 "startA=%@ startB=%@ slotA=%@ slotB=%@ active=%d",
+                (unsigned long long)sHL8CurrentPair, eventTime,
+                NSStringFromCGPoint([a[@"start"] CGPointValue]),
+                NSStringFromCGPoint([b[@"start"] CGPointValue]),
+                a[@"slot"], b[@"slot"], (int)split.active]);
+
+        // [gpt-hl7-pair-toggle] HL7 car: 17/17 real physical two-finger
+        // pairs; 16/17 chains had no Moved callback. HL4's proven
+        // in-app recognizer toggled at pair formation. Reuse its
+        // pair-at-Began law on the CarPlay host's SAME fullscreen
+        // adapter. This toggles the entire OmniCar split, not a
+        // YouTube video. One transaction maximum for each pair.
+        //
+        // Pref bridgewake.carHostPinchPairToggle=NO falls back to the
+        // movement/terminal detector without changing the FS engine.
+        id pairPref = OMCPref(@"bridgewake.carHostPinchPairToggle", nil);
+        BOOL pairToggle = pairPref ? [pairPref boolValue] : YES;
+        if (pairToggle) {
+            id<SCPFullscreenControlling> adapter =
+                [SCPPinchController shared].adapter;
+            SCPFullscreenState state = adapter.currentState;
+            if (SCPHL8TraceEnabled())
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"[hl8diag] eye=pinch ev=fs-gate pair=%llu adapter=%@ "
+                     "state=%ld active=%d popup=%d frame=%@",
+                    (unsigned long long)sHL8CurrentPair,
+                    adapter ? NSStringFromClass([(id)adapter class]) : @"nil",
+                    (long)state, (int)split.active,
+                    (int)SCPHostPinchPopupBusy(split),
+                    NSStringFromCGRect(split.container.frame)]);
+            if (state != SCPFullscreenStateSplit &&
+                state != SCPFullscreenStateExpanded) {
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"[car-pinch] pair-began-reject state=%ld",
+                    (long)state]);
+                sHostPinchPairFired = YES;
+                return;
+            }
+            BOOL expand = (state == SCPFullscreenStateSplit);
+            uint64_t hl8RequestID = sHL8CurrentPair;
+            sHostPinchPairFired = YES;
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[car-pinch] request dir=%@ state=%ld source=pair-began d0=%.1f",
+                expand ? @"expand" : @"restore", (long)state, (double)d]);
+            if (SCPHL8TraceEnabled())
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"[hl8diag] eye=pinch ev=fs-request pair=%llu "
+                     "dir=%@ adapter=%@ state=%ld",
+                    (unsigned long long)hl8RequestID,
+                    expand ? @"expand" : @"restore",
+                    adapter ? NSStringFromClass([(id)adapter class]) : @"nil",
+                    (long)state]);
+            if (expand) {
+                [adapter requestExpandWithCompletion:^(BOOL applied) {
+                    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                        @"[car-pinch] expand applied=%d newState=%ld source=pair-began",
+                        (int)applied, (long)adapter.currentState]);
+                    if (SCPHL8TraceEnabled())
+                        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                            @"[hl8diag] eye=pinch ev=fs-result pair=%llu dir=expand "
+                             "applied=%d state=%ld container=%@",
+                            (unsigned long long)hl8RequestID, (int)applied,
+                            (long)adapter.currentState,
+                            NSStringFromCGRect([SCPCarSplit shared].container.frame)]);
+                }];
+            } else {
+                [adapter requestRestoreWithCompletion:^(BOOL applied) {
+                    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                        @"[car-pinch] restore applied=%d newState=%ld source=pair-began",
+                        (int)applied, (long)adapter.currentState]);
+                    if (SCPHL8TraceEnabled())
+                        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                            @"[hl8diag] eye=pinch ev=fs-result pair=%llu dir=restore "
+                             "applied=%d state=%ld container=%@",
+                            (unsigned long long)hl8RequestID, (int)applied,
+                            (long)adapter.currentState,
+                            NSStringFromCGRect([SCPCarSplit shared].container.frame)]);
+                }];
+            }
+        }
         return;
     }
     if (sHostPinchPairFired || !contacts[sHostPinchKey1] ||
@@ -721,6 +775,21 @@ static void SCPHostPinchObserve(UIEvent *event) {
     CGPoint mid = CGPointMake((p1.x + p2.x) * 0.5,
                               (p1.y + p2.y) * 0.5);
     CGFloat drift = SCPHostPinchDistance(mid, sHostPinchStartMidpoint);
+    // HL7 17 real pairs, 16 with zero Moved callbacks. The terminal
+    // position must be evaluated before the UITouch record is removed.
+    // When even the terminal position is stationary, never make up
+    // an expansion or restoration.
+    if (terminalEvent && !sHostPinchTerminalLogged) {
+        sHostPinchTerminalLogged = YES;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[car-pinch] terminal d0=%.1f d1=%.1f ratio=%.3f drift=%.1f "
+             "move=%ld/%ld p1=%@ p2=%@",
+            (double)sHostPinchStartDistance, (double)d,
+            (double)(d / MAX(sHostPinchStartDistance, 0.01)),
+            (double)drift, (long)[a[@"moves"] integerValue],
+            (long)[b[@"moves"] integerValue],
+            NSStringFromCGPoint(p1), NSStringFromCGPoint(p2)]);
+    }
     if (delta < 12.0 || drift > 0.6 * delta + 10.0) return;
     CGFloat ratio = d / sHostPinchStartDistance;
     BOOL outward = ratio >= 1.10;
@@ -766,17 +835,360 @@ static void SCPHostPinchObserve(UIEvent *event) {
     }
 }
 
-// The replacement: original FIRST, event untouched. The existing
-// passive feed remains passive; host pinch observes genuine multi-touch
-// AFTER original delivery. Single-finger events are never changed.
+static void SCPHostPinchObserve(UIEvent *event) {
+    if (event.type != UIEventTypeTouches) return;
+    SCPCarSplit *split = [SCPCarSplit shared];
+    UIWindow *carWindow = split.container.window;
+    const void *containerRef = (__bridge const void *)split.container;
+    const void *windowRef = (__bridge const void *)carWindow;
+    if (sHostPinchContainer != containerRef || sHostPinchWindow != windowRef) {
+        SCPHostPinchReset();
+        sHostPinchContainer = containerRef;
+        sHostPinchWindow = windowRef;
+    }
+    if (!split.active || !carWindow || ![split bwCarHostPinchEnabled]) {
+        if (SCPHostPinchContacts().count) SCPHostPinchReset();
+        return;
+    }
+
+    NSMutableDictionary *contacts = SCPHostPinchContacts();
+    NSMutableArray<NSValue *> *endedKeys = [NSMutableArray array];
+    for (UITouch *touch in event.allTouches) {
+        NSValue *key = [NSValue valueWithPointer:(const void *)touch];
+        switch (touch.phase) {
+        case UITouchPhaseBegan: {
+            if (contacts[key] || SCPHostPinchPopupBusy(split)) break;
+            CGPoint pt; UIScreen *screen = nil;
+            if (!SCPProbeTouchScreenPoint(touch, &pt, &screen) ||
+                screen != carWindow.screen ||
+                SCPProbeIsHomeCorner(pt, screen) ||
+                (touch.window &&
+                 [NSStringFromClass(touch.window.class)
+                    isEqualToString:@"DBStatusBarWindow"])) break;
+            SCPCarPane *pane = nil;
+            SCPProbePaneAtScreenPoint(pt, screen, &pane);
+            if (!pane || !pane.bundleID.length) break;
+            contacts[key] = [@{ @"start": [NSValue valueWithCGPoint:pt],
+                                @"current": [NSValue valueWithCGPoint:pt],
+                                @"at": @(event.timestamp),
+                                @"slot": @(pane.slot),
+                                @"bundle": pane.bundleID } mutableCopy];
+            break;
+        }
+        case UITouchPhaseMoved:
+        case UITouchPhaseStationary:
+        case UITouchPhaseEnded:
+        case UITouchPhaseCancelled: {
+            NSMutableDictionary *rec = contacts[key];
+            if (rec) {
+                CGPoint pt; UIScreen *screen = nil;
+                if (SCPProbeTouchScreenPoint(touch, &pt, &screen) &&
+                    screen == carWindow.screen)
+                    rec[@"current"] = [NSValue valueWithCGPoint:pt];
+                if (touch.phase == UITouchPhaseMoved)
+                    rec[@"moves"] = @([rec[@"moves"] integerValue] + 1);
+            }
+            if (touch.phase == UITouchPhaseCancelled)
+                sHostPinchPairKilled = YES;
+            if (touch.phase == UITouchPhaseEnded ||
+                touch.phase == UITouchPhaseCancelled)
+                [endedKeys addObject:key];
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    if (contacts.count == 0) {
+        SCPHostPinchReset();  // never carry touches into another gesture
+        return;
+    }
+    SCPHostPinchEvaluate(split, contacts, event.timestamp,
+                         endedKeys.count != 0);
+    if (endedKeys.count && sHostPinchPairOpen &&
+        SCPHL8TraceEnabled() && sHL8CurrentPair) {
+        NSDictionary *a = contacts[sHostPinchKey1];
+        NSDictionary *b = contacts[sHostPinchKey2];
+        if (a && b) {
+            CGPoint p1 = [a[@"current"] CGPointValue];
+            CGPoint p2 = [b[@"current"] CGPointValue];
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl8diag] eye=pinch ev=terminal pair=%llu d0=%.1f "
+                 "dEnd=%.1f moves=%ld/%ld fired=%d killed=%d",
+                (unsigned long long)sHL8CurrentPair,
+                (double)sHostPinchStartDistance,
+                (double)SCPHostPinchDistance(p1, p2),
+                (long)[a[@"moves"] integerValue],
+                (long)[b[@"moves"] integerValue],
+                (int)sHostPinchPairFired, (int)sHostPinchPairKilled]);
+        }
+    }
+    for (NSValue *key in endedKeys)
+        [contacts removeObjectForKey:key];
+    if (contacts.count == 0) SCPHostPinchReset();
+}
+
+// ============================================================================
+// [gpt-hl7-native-wake] Native CarPlay wake FIRST-touch ownership.
+//
+// HL7 car log 12:25:48/55: [probe-feed] fired on native Maps and the
+// user's first tap still operated the app. The old observer ran only
+// AFTER orig_UIApplication_sendEvent. While AutoHide is faded, intercept
+// ONLY a fresh single physical Began in a live native pane, reveal
+// controls before forwarding, and consume that UITouch chain. Hosted
+// panes keep their existing app-side Gate3 wake/swallow path.
+//
+// This path does not add an overlay, alter UITouch/UIEvent, consume
+// unrelated touches, or suppress an already-visible native pane.
+// It may not intercept independent delivery in CarPlayTemplateUIHost;
+// the next device log/visual test must prove the behaviour separately.
+// ============================================================================
+static NSMutableSet<NSValue *> *SCPNativeWakeCaptured(void) {
+    static NSMutableSet<NSValue *> *captured;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ captured = [NSMutableSet set]; });
+    return captured;
+}
+static const void *sNativeWakeContainer;
+static const void *sNativeWakeWindow;
+static NSTimeInterval sNativeWakeLastDownAt;
+static CGPoint sNativeWakeLastDownPt;
+static NSString *sNativeWakeLastBundle;
+
+static void SCPNativeWakeReset(void) {
+    [SCPNativeWakeCaptured() removeAllObjects];
+    sNativeWakeLastDownAt = -1.0;
+    sNativeWakeLastDownPt = CGPointZero;
+    sNativeWakeLastBundle = nil;
+}
+
+static BOOL SCPNativeWakePreflight(UIEvent *event) {
+    if (!event || event.type != UIEventTypeTouches) return NO;
+    SCPCarSplit *split = [SCPCarSplit shared];
+    UIWindow *carWindow = split.container.window;
+    const void *containerRef = (__bridge const void *)split.container;
+    const void *windowRef = (__bridge const void *)carWindow;
+    if (sNativeWakeContainer != containerRef ||
+        sNativeWakeWindow != windowRef) {
+        SCPNativeWakeReset();
+        sNativeWakeContainer = containerRef;
+        sNativeWakeWindow = windowRef;
+    }
+    if (!split.active || !carWindow) {
+        if (SCPNativeWakeCaptured().count) SCPNativeWakeReset();
+        return NO;
+    }
+    NSArray<UITouch *> *all = event.allTouches.allObjects;
+    if (all.count == 0) return NO;
+    NSMutableSet<NSValue *> *captured = SCPNativeWakeCaptured();
+    NSUInteger owned = 0;
+    for (UITouch *t in all)
+        if ([captured containsObject:[NSValue valueWithPointer:(const void *)t]])
+            owned++;
+    if (owned != 0) {
+        BOOL onlyOwned = owned == all.count;
+        for (UITouch *t in all) {
+            if (t.phase == UITouchPhaseEnded || t.phase == UITouchPhaseCancelled)
+                [captured removeObject:[NSValue valueWithPointer:(const void *)t]];
+        }
+        if (!onlyOwned) {
+            // An unrelated finger/gesture is now in the same UIEvent;
+            // never withhold its input just to hide a consumed finger.
+            OMCLogWrite(@"SplitScreen",
+                @"[native-wake] mixed event fail-open (unrelated touch present)");
+            return NO;
+        }
+        return YES;
+    }
+
+    NSString *hl8Popup = SCPProbePopupSub(split);
+    if (all.count > 2 || hl8Popup) {
+        if (SCPHL8TraceEnabled())
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl8diag] eye=native-wake ev=gate decision=forward "
+                 "reason=%@ contacts=%lu",
+                hl8Popup ?: @"three-contacts",
+                (unsigned long)all.count]);
+        return NO;
+    }
+    CGPoint representative = CGPointZero;
+    BOOL haveRepresentative = NO;
+    NSString *bundle = nil;
+    for (UITouch *touch in all) {
+        if (touch.phase != UITouchPhaseBegan) return NO;
+        CGPoint pt; UIScreen *screen = nil;
+        if (!SCPProbeTouchScreenPoint(touch, &pt, &screen) ||
+            screen != carWindow.screen ||
+            SCPProbeIsHomeCorner(pt, screen) ||
+            [NSStringFromClass(touch.window.class)
+                isEqualToString:@"DBStatusBarWindow"]) return NO;
+        SCPCarPane *pane = nil;
+        SCPProbePaneAtScreenPoint(pt, screen, &pane);
+        if (!pane || !pane.bundleID.length || SCPVCIsHosted(pane.vc)) {
+            if (SCPHL8TraceEnabled())
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"[hl8diag] eye=native-wake ev=gate decision=forward "
+                     "reason=%@ pane=%ld bundle=%@ faded=%d",
+                    !pane || !pane.bundleID.length ? @"no-live-pane"
+                        : @"hosted-pane-owned-by-app",
+                    (long)(pane ? pane.slot : -1),
+                    pane.bundleID ?: @"none", (int)[split ahFaded]]);
+            return NO; // supported/native pane ONLY
+        }
+        if (haveRepresentative &&
+            (SCPHostPinchDistance(pt, representative) > 12.0 ||
+             ![bundle isEqualToString:pane.bundleID]))
+            return NO; // two real fingers must pass, not be swallowed
+        representative = pt;
+        haveRepresentative = YES;
+        bundle = pane.bundleID;
+    }
+    if (!haveRepresentative) return NO;
+
+    BOOL faded = [split ahFaded];
+    BOOL mirrored = !faded &&
+        event.timestamp >= sNativeWakeLastDownAt &&
+        event.timestamp - sNativeWakeLastDownAt <= 0.080 &&
+        SCPHostPinchDistance(representative, sNativeWakeLastDownPt) <= 12.0 &&
+        [bundle isEqualToString:sNativeWakeLastBundle];
+    if (!faded && !mirrored) {
+        if (SCPHL8TraceEnabled())
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl8diag] eye=native-wake ev=gate decision=forward "
+                 "reason=controls-visible bundle=%@ position=%@",
+                bundle, NSStringFromCGPoint(representative)]);
+        return NO;
+    }
+    for (UITouch *touch in all)
+        [captured addObject:[NSValue valueWithPointer:(const void *)touch]];
+    if (faded) {
+        sNativeWakeLastDownAt = event.timestamp;
+        sNativeWakeLastDownPt = representative;
+        sNativeWakeLastBundle = [bundle copy];
+        // On CarPlayApp's main sendEvent path. Restore the faded
+        // controls before the original UIKit dispatch could deliver
+        // this one-tap chain to the native/template scene.
+        [split ahNoteActivity:AHSourceContainer];
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[native-wake] swallow=%@ bundle=%@ pt=%@ contacts=%lu nowFaded=%d",
+        mirrored ? @"mirror" : @"first", bundle,
+        NSStringFromCGPoint(representative), (unsigned long)all.count,
+        (int)[split ahFaded]]);
+    if (SCPHL8TraceEnabled())
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl8diag] eye=native-wake ev=gate decision=consume "
+             "reason=%@ bundle=%@ contacts=%lu",
+            mirrored ? @"mirror-of-first" : @"first-tap-while-faded",
+            bundle, (unsigned long)all.count]);
+    return YES;
+}
+
+
+static uint64_t sHL8TouchSeq;
+static uint64_t SCPHL8DescribeBegan(UIEvent *event) {
+    if (!SCPHL8TraceEnabled() || event.type != UIEventTypeTouches)
+        return 0;
+    SCPCarSplit *split = [SCPCarSplit shared];
+    if (!split.active || !split.container.window) return 0;
+    uint64_t seq = 0;
+    for (UITouch *touch in event.allTouches) {
+        if (touch.phase != UITouchPhaseBegan) continue;
+        if (!seq) seq = ++sHL8TouchSeq;
+        CGPoint pt = CGPointZero;
+        UIScreen *screen = nil;
+        BOOL valid = SCPProbeTouchScreenPoint(touch, &pt, &screen);
+        SCPCarPane *pane = nil;
+        if (valid) SCPProbePaneAtScreenPoint(pt, screen, &pane);
+        UIButton *btn = split.homeButton;
+        CGRect logoRect = CGRectNull;
+        if (btn && btn.window && valid && screen == btn.window.screen)
+            logoRect = [btn convertRect:CGRectInset(btn.bounds, -5, -5)
+                       toCoordinateSpace:screen.coordinateSpace];
+        BOOL inLogo = !CGRectIsNull(logoRect) &&
+                      CGRectContainsPoint(logoRect, pt);
+        NSString *kind = !pane ? @"outside" :
+            SCPVCIsHosted(pane.vc) ? @"hosted" : @"native";
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl8diag] eye=touch ev=begin id=%llu t=%.3f win=%@ "
+             "pos=%@ valid=%d pane=%ld bundle=%@ kind=%@ active=%d "
+             "faded=%d inLogo=%d logoRect=%@ logoAlpha=%.2f "
+             "logoOpacity=%.2f logoHidden=%d logoUI=%d",
+            (unsigned long long)seq, event.timestamp,
+            touch.window ? NSStringFromClass(touch.window.class) : @"nil",
+            NSStringFromCGPoint(pt), (int)valid,
+            (long)(pane ? pane.slot : -1), pane.bundleID ?: @"-",
+            kind, (int)split.active, (int)[split ahFaded],
+            (int)inLogo, NSStringFromCGRect(logoRect),
+            btn ? (double)btn.alpha : -1.0,
+            btn ? (double)btn.layer.opacity : -1.0,
+            btn ? (int)btn.hidden : -1,
+            btn ? (int)btn.userInteractionEnabled : -1]);
+    }
+    return seq;
+}
+
+// CarPlayApp-local visibility only. Absence here is BLIND for other
+// process-owned keyboard windows, never evidence of system absence.
+static void SCPHL8KeyboardViewScan(NSString *source) {
+    if (!SCPHL8TraceEnabled()) return;
+    NSUInteger matches = 0;
+    NSMutableString *views = [NSMutableString string];
+    for (UIWindow *w in [UIApplication sharedApplication].windows) {
+        NSString *cls = NSStringFromClass(w.class);
+        if ([cls containsString:@"Keyboard"] ||
+            [cls containsString:@"TextEffects"] ||
+            [cls containsString:@"InputSet"]) {
+            matches++;
+            if (views.length < 300)
+                [views appendFormat:@"%@:%@:%d;", cls,
+                     NSStringFromCGRect(w.frame), (int)w.hidden];
+        }
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[hl8diag] eye=kb-car ev=window-scan source=%@ scope=CarPlayApp "
+         "keyboardWindows=%lu sample=%@ noMatchMeans=BLIND",
+        source, (unsigned long)matches, views]);
+}
+static void SCPHL8KeyboardNotification(NSNotification *note) {
+    if (!SCPHL8TraceEnabled()) return;
+    CGRect frame = [note.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[hl8diag] eye=kb-car ev=notification name=%@ frame=%@ "
+         "screen=%@ splitActive=%d",
+        note.name, NSStringFromCGRect(frame),
+        NSStringFromCGRect([UIScreen mainScreen].bounds),
+        (int)[SCPCarSplit shared].active]);
+    SCPHL8KeyboardViewScan(note.name);
+}
+
+// First-tap native wake is the ONLY intercept; all other touches use orig.
 static void Hook_UIApplication_sendEvent(id self, SEL _cmd, UIEvent *event) {
-    orig_UIApplication_sendEvent(self, _cmd, event);
+    uint64_t hl8TouchID = 0;
+    BOOL consumed = NO;
     @try {
-        SCPProbeObserveEvent(event);
-        SCPHostPinchObserve(event);
+        hl8TouchID = SCPHL8DescribeBegan(event);
+        consumed = SCPNativeWakePreflight(event);
     } @catch (id e) {
-        // Never let probe/pinch bookkeeping affect event delivery.
-        OMCLogWrite(@"SplitScreen", @"[car-pinch] observer exception; input unchanged");
+        OMCLogWrite(@"SplitScreen",
+            @"[native-wake] preflight exception; fail-open to UIKit");
+        consumed = NO;
+    }
+    if (!consumed) orig_UIApplication_sendEvent(self, _cmd, event);
+    if (hl8TouchID && SCPHL8TraceEnabled())
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl8diag] eye=touch ev=dispatch id=%llu path=%@ "
+             "fadedAfter=%d",
+            (unsigned long long)hl8TouchID,
+            consumed ? @"swallowed-before-orig" : @"forwarded-to-orig",
+            (int)[[SCPCarSplit shared] ahFaded]]);
+    @try {
+        SCPProbeObserveEvent(event); // original telemetry, unchanged
+        if (!consumed) SCPHostPinchObserve(event);
+    } @catch (id e) {
+        OMCLogWrite(@"SplitScreen",
+            @"[car-pinch] observer exception; no event mutation");
     }
 }
 
@@ -787,7 +1199,24 @@ void SCPTouchProbeInstall(void) {
     MSHookMessageEx(objc_getClass("UIApplication"), @selector(sendEvent:),
                     (IMP)Hook_UIApplication_sendEvent,
                     (IMP *)&orig_UIApplication_sendEvent);
+    if (SCPHL8TraceEnabled()) {
+        NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+        for (NSString *name in @[UIKeyboardWillShowNotification,
+                                  UIKeyboardDidShowNotification,
+                                  UIKeyboardDidChangeFrameNotification,
+                                  UIKeyboardWillHideNotification]) {
+            [nc addObserverForName:name object:nil
+                            queue:[NSOperationQueue mainQueue]
+                       usingBlock:^(NSNotification *note) {
+                           SCPHL8KeyboardNotification(note);
+                       }];
+        }
+        OMCLogWrite(@"SplitScreen",
+            @"[hl8diag] eye=car ev=installed schema=1 "
+             "domains=touch,pinch,native-wake,logo,kb-car,layout");
+        SCPHL8KeyboardViewScan(@"install");
+    }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[probe] sendEvent installed pid=%d (passive probe + host full-split pinch)",
+        @"[probe] sendEvent installed pid=%d (passive probe + host pinch + native wake gate)",
         getpid()]);
 }

@@ -156,6 +156,50 @@
         [self pushSceneSizes];
     }
     [self pushHostFramesLive:!pushScenes];
+    // [hl8diag] Compare actual pane rectangles and scene-size requests
+    // on every distinct resize. This is a read-only witness; keyboard
+    // surfaces might belong to another process (absence is BLIND).
+    if ([OMCPref(@"hl8.unifiedDiag", @YES) boolValue]) {
+        static NSString *hl8LastGeometry;
+        NSMutableString *rows = [NSMutableString string];
+        for (SCPCarPane *p in self.slots) {
+            if (!p.bundleID.length && !p.vc) continue;
+            [rows appendFormat:@"slot=%ld:%@:%@:%@;",
+                (long)p.slot, p.bundleID ?: @"native-or-empty",
+                NSStringFromCGRect(p.view.frame),
+                NSStringFromCGSize(p.sceneSize)];
+        }
+        UIView *parent = self.container.superview;
+        CGRect area = parent ? [self appAreaInParent:parent] : CGRectNull;
+        NSString *snapshot = [NSString stringWithFormat:
+            @"container=%@ area=%@ panes=%@",
+            NSStringFromCGRect(self.container.frame),
+            NSStringFromCGRect(area), rows];
+        if (![snapshot isEqualToString:hl8LastGeometry]) {
+            hl8LastGeometry = [snapshot copy];
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl8diag] eye=layout ev=car-relayout animated=%d "
+                 "pushScenes=%d active=%d zoom=%@ %@",
+                (int)animated, (int)pushScenes, (int)self.active,
+                self.zoomedSlot ?: @"none", snapshot]);
+            NSUInteger count = 0;
+            NSMutableString *windows = [NSMutableString string];
+            for (UIWindow *w in [UIApplication sharedApplication].windows) {
+                NSString *name = NSStringFromClass(w.class);
+                if ([name containsString:@"Keyboard"] ||
+                    [name containsString:@"InputSet"]) {
+                    count++;
+                    if (windows.length < 320)
+                        [windows appendFormat:@"%@:%@:%d;",
+                            name, NSStringFromCGRect(w.frame), (int)w.hidden];
+                }
+            }
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl8diag] eye=kb-car ev=layout-scan keyboardWindows=%lu "
+                 "sample=%@ scope=CarPlayApp noMatchMeans=BLIND",
+                (unsigned long)count, windows]);
+        }
+    }
 }
 
 // ===== Further A-owned methods decoded by agent B (same handoff status) =====
