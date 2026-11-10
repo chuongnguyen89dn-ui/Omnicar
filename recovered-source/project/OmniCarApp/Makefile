@@ -11,6 +11,8 @@ include $(THEOS)/makefiles/common.mk
 APPLICATION_NAME = OmniCar
 OmniCar_FILES = main.m OMCAppDelegate.m
 OmniCar_FRAMEWORKS = UIKit
+# [hl15-settings] Load the existing Prefs controllers inside the OmniCar app.
+OmniCar_PRIVATE_FRAMEWORKS = Preferences
 OmniCar_CFLAGS = -fobjc-arc
 OmniCar_LDFLAGS = -fuse-ld=lld
 

@@ -5,55 +5,87 @@
 // There is no storyboard/nib and no scene delegate: the whole UI is built
 // programmatically below, exactly as the binary does it.
 #import "OMCAppDelegate.h"
+#import <Preferences/PSListController.h>
+#import <Preferences/PSRootController.h>
 
 @implementation OMCAppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-
-    UIViewController *rootViewController = [UIViewController new];
-    rootViewController.view.backgroundColor = [UIColor colorWithRed:0.05 green:0.07 blue:0.15 alpha:1.0];
-
-    // Binary: [[[NSLocale preferredLanguages] firstObject] hasPrefix:@"vi"]
-    BOOL vietnamese = [[[NSLocale preferredLanguages] firstObject] hasPrefix:@"vi"];
-
-    UILabel *label = [[UILabel alloc] initWithFrame:CGRectInset(rootViewController.view.bounds, 24.0, 0.0)];
-    label.numberOfLines = 0;
-    label.textColor = [UIColor whiteColor];
-    label.font = [UIFont systemFontOfSize:15.0];
-    label.textAlignment = NSTextAlignmentCenter; // 1
-    label.text = [NSString stringWithFormat:@"OmniCar\n\n%@\n\n%@\n\nomnicar://splitscreen/open?left=com.apple.Maps&right=com.spotify.client\n\nomnicar://splitscreen/fav?n=1\n\nomnicar://splitscreen/close\n\n%@",
-        vietnamese ? @"App này nhận lệnh từ Shortcuts / Siri." : @"This app receives commands from Shortcuts / Siri.",
-        vietnamese ? @"Tạo Shortcut với hành động \"Mở URL\":" : @"Create a Shortcut with the \"Open URL\" action:",
-        vietnamese ? @"Cài đặt chi tiết: Cài đặt > OmniCar" : @"Settings: Settings > OmniCar"];
-    label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight; // 0x12
-    [rootViewController.view addSubview:label];
-
-    UIButton *settingsButton = [UIButton buttonWithType:UIButtonTypeSystem]; // 1
-    [settingsButton setTitle:(vietnamese ? @"Mở Cài đặt OmniCar" : @"Open OmniCar Settings")
-                    forState:UIControlStateNormal];
-    settingsButton.frame = CGRectMake(0.0,
-                                      rootViewController.view.bounds.size.height - 90.0,
-                                      rootViewController.view.bounds.size.width,
-                                      44.0);
-    settingsButton.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin; // 0xA
-    [settingsButton addTarget:self action:@selector(openSettings) forControlEvents:UIControlEventTouchUpInside]; // 0x40
-    [rootViewController.view addSubview:settingsButton];
-
-    self.window.rootViewController = rootViewController;
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)options {
+    // [hl15-settings] iPhone OmniCar icon opens the actual preference pages.
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    [self openSettings];
     [self.window makeKeyAndVisible];
     return YES;
 }
 
-// Button action: deep-link into the OmniCar page of the Settings app.
-// Binary: openURL:[NSURL URLWithString:@"prefs:root=OmniCar"] options:@{}
-// (the ___NSDictionary0__ shared empty dictionary) completionHandler:nil.
-- (void)openSettings
-{
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"prefs:root=OmniCar"]
-                                       options:@{}
-                             completionHandler:nil];
+// Load the SAME installed preference bundle: all Root/Feature plists,
+// page classes, localisations and existing com.anlai.omnicar keys survive.
+- (UIViewController *)omcEmbeddedSettingsController {
+    NSArray<NSString *> *paths = @[
+        @"/var/jb/Library/PreferenceBundles/OmniCarPrefs.bundle",
+        @"/Library/PreferenceBundles/OmniCarPrefs.bundle"
+    ];
+    for (NSString *path in paths) {
+        NSBundle *bundle = [NSBundle bundleWithPath:path];
+        if (!bundle || ![bundle load]) continue;
+        Class cls = NSClassFromString(@"OMCRootListController");
+        if (!cls || ![cls isSubclassOfClass:PSListController.class]) continue;
+        @try {
+            PSListController *page = [[cls alloc] init];
+            page.bundle = bundle;
+            PSRootController *nav =
+                [[PSRootController alloc] initWithTitle:@"OmniCar"
+                                            identifier:@"com.anlai.omnicar"];
+            if (!page || !nav) continue;
+            [nav pushController:page];
+            if (nav.viewControllers.count == 0) continue;
+            nav.navigationBar.prefersLargeTitles = NO;
+            NSLog(@"[hl15-settings] loaded %@ pages=%lu", path,
+                  (unsigned long)nav.viewControllers.count);
+            return nav;
+        } @catch (NSException *e) {
+            NSLog(@"[hl15-settings] load exception=%@", e.reason);
+        }
+    }
+    return nil;
+}
+
+- (UIViewController *)omcUnavailableController {
+    BOOL vi = [[[NSLocale preferredLanguages] firstObject] hasPrefix:@"vi"];
+    UIViewController *vc = [UIViewController new];
+    vc.view.backgroundColor = [UIColor systemBackgroundColor];
+    UILabel *message = [UILabel new];
+    message.numberOfLines = 0;
+    message.textAlignment = NSTextAlignmentCenter;
+    message.textColor = [UIColor labelColor];
+    message.font = [UIFont systemFontOfSize:16 weight:UIFontWeightMedium];
+    message.text = vi
+        ? @"Không tải được cài đặt OmniCar. Vui lòng cài lại DEB đầy đủ rồi thử lại."
+        : @"OmniCar settings could not be loaded. Reinstall the full DEB and retry.";
+    UIButton *retry = [UIButton buttonWithType:UIButtonTypeSystem];
+    [retry setTitle:(vi ? @"Thử lại" : @"Retry") forState:UIControlStateNormal];
+    [retry addTarget:self action:@selector(openSettings)
+        forControlEvents:UIControlEventTouchUpInside];
+    message.translatesAutoresizingMaskIntoConstraints = NO;
+    retry.translatesAutoresizingMaskIntoConstraints = NO;
+    [vc.view addSubview:message];
+    [vc.view addSubview:retry];
+    UILayoutGuide *safe = vc.view.safeAreaLayoutGuide;
+    [NSLayoutConstraint activateConstraints:@[
+        [message.leadingAnchor constraintEqualToAnchor:safe.leadingAnchor constant:24],
+        [message.trailingAnchor constraintEqualToAnchor:safe.trailingAnchor constant:-24],
+        [message.centerYAnchor constraintEqualToAnchor:safe.centerYAnchor constant:-35],
+        [retry.topAnchor constraintEqualToAnchor:message.bottomAnchor constant:20],
+        [retry.centerXAnchor constraintEqualToAnchor:safe.centerXAnchor]
+    ]];
+    NSLog(@"[hl15-settings] bundle missing or unavailable");
+    return vc;
+}
+
+// Keep the user in OmniCar: never open prefs:root in Settings.app.
+- (void)openSettings {
+    UIViewController *page = [self omcEmbeddedSettingsController];
+    self.window.rootViewController = page ?: [self omcUnavailableController];
 }
 
 // URL entry point (scheme "omnicar", declared in Info.plist CFBundleURLTypes).

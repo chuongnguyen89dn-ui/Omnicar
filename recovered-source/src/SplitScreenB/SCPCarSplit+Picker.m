@@ -293,6 +293,19 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         self.trayWindow ? NSStringFromCGRect(self.trayWindow.frame) : @"nil",
         self.trayWindow ? self.trayWindow.windowLevel : -1.0,
         self.trayWindow ? (int)self.trayWindow.isHidden : -1]);
+    // [hl15-picker] Keep logical picker/sheet state, but remove the
+    // full-pane transparent placeholder ABOVE the live remote scene.
+    // Even a clear sibling can occlude an IOSurface in CarPlay compositing.
+    // The separate same-window app grid sheet still receives touches.
+    if (pane.vc != nil) {
+        picker.hidden = YES;
+        picker.userInteractionEnabled = NO;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl15-picker] live-placeholder-retired slot=%d bundle=%@ "
+             "hostHidden=%d hostAlpha=%.2f",
+            slot, pane.bundleID ?: @"none",
+            pane.host.hidden, pane.host.alpha]);
+    }
     picker.autoresizingMask = 0x12;
     // Dump @0x3163c-0x31690: border colour is the lavender accent
     // colorWithRed:0.6078431372549019 green:0.5294117647058824
