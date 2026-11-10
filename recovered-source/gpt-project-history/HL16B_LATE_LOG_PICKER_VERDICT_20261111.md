@@ -1,0 +1,30 @@
+# HL16b — kiểm log xe mới 22:37–22:41 10/11, picker YouTube/Maps và checkpoint source HL17 (11/11/2026)
+
+## Bằng chứng độc lập và phạm vi
+- Repo nguồn duy nhất: `chuongnguyen89dn-ui/Omnicar`; cây thi công `recovered-source/`.
+- Upload mới nhất `main` lúc kiểm: commit `bf00ba03b7f84656ef5be1782c5ac0f4cf8ba2a2`. Đã đọc trực tiếp blob `logs/OmniCar.log` SHA `1b96588fcbf622a9e63421e0cf17ec72f2fb62c2`, 6.846 dòng / ~1,86MB, từ 19:40:46 đến 22:42:10 ngày 10/11.
+- Chỉ chấm mốc HL16b trong PID **CarPlay 44549, SpringBoard 44518, YouTube 44555**, không trộn thế hệ trước (CarPlay 43980), không kết luận hành vi từ BLIND/no-icon-models.
+- Ảnh Nguyen: picker Maps méo; Nguyen báo picker hosted YouTube mở không kịp chọn; cài đặt trong app vẫn giống cũ. Ảnh là chứng cứ thiết bị. CarPlay log không có tiến trình app OmniCar / logger settings, nên **không thể kết luận** app iPhone settings đang chạy hoặc lý do Settings.app còn hiện mục từ log này.
+
+## A. Lỗi hosted picker tự đóng: kết án event route chứ không phải không mở
+- `22:39:10.031` SpringBoard PID 44518 `AppBridge: thanh nut com.google.ios.youtube: replace`; `22:39:10.036` CarPlay nhận `AppBridge: thanh nut replace cua com.google.ios.youtube`; `22:39:10.038` `[hl16-picker] ev=owner-switch requested=0`; `22:39:10.282` `CarSplit: popup chon 19 app cho o 0`; `22:39:11.720` SpringBoard `AppBridge: cham ngoai thanh nut (lop chan) -> an thanh nut`; `22:39:11.730` CarPlay `closePopups <= 0x100e79004 (popup 1)` / `dong popup ... chon app co`; `22:39:11.959` `phase=close-done slot=0` vẫn có YouTube VC/host.
+- Lặp: `22:39:13.205` picker presented slot0; `22:39:13.486` SpringBoard báo ngoài thanh nút; `22:39:13.496` CarPlay `closePopups`, khoảng **0.291s** sau presented; `22:39:13.736` close-done host vẫn sống. **Xác nhận picker ĐƯỢC tạo, nhưng đóng bởi luồng dismiss thanh hosted**, không phải missing library/không có app.
+- Source xác nhận nối: `recovered-source/project/OmniCarSplitScreen/SCPHooks.m:580–588` `SCPBridgeBarDismissBlock` nhận notify không có identifier, gọi `bridgeOutsideTouched`; `SCPCarSplit.m:2713–2714` `bridgeOutsideTouched -> closePopups`; `SCPCarSplit+Chrome.m:397–417` `closePopups -> removePickerSheet`. Vì notify dismiss **không có slot** nên không thể tin nó là yêu cầu đóng picker của ô vừa chọn.
+- **Source fix trên nhánh mới** `feature/hl17-compact-picker-20261110`, commit `7f9b3b8fcba12ae7972e8523119145a1c3cfc0a8`: `bridgeOutsideTouched` chỉ `closePopups` khi không có pickerSheet đang gắn; nếu picker đang hiện, log `[hl17-picker] ev=bar-dismiss action=ignore-picker-open`. Đường đóng bảng chọn qua X/`pickerCancel`, app-tap/`pickerAppTapped`, shield ngoài của chính CarPlay giữ nguyên. **Chưa có build/runtime proof**.
+
+## B. Maps picker layout méo: kết án cấu trúc compact
+- `22:39:19.016` CarPlay `[hl16-picker] ev=owner-switch requested=1 old=0 new=1 bundle=com.google.Maps`. `22:39:19.126` `[hl16-picker] ev=sheet-geometry owner=1 area={{442,0},{198,360}} sheet={{455,23},{172,314}} cols=1 sideW=90.0 inPane=1`; `22:39:19.153` menu 19 apps presented slot1.
+- **Lỗi nguồn cụ thể:** Trong `SCPCarSplit+Picker.m`, mặc dù sheet có giới hạn trong slot 1 (172pt) và không phủ sang YouTube, phần thân vẫn dành 90pt cột cho map-mini, text, cancel, ép grid 1 cột còn phần nhỏ; dùng bố cục kiểu 542pt cũ (mini-map + tiêu đề + subtitle) trong khung hẹp. Đây là nguyên nhân trực tiếp của layout chồng trong ảnh; không phải cần vặn opacity/windowLevel.
+- **Source fix trên cùng nhánh HL17 commit `7f9b3b8`**: với pane <280pt, `compactPicker` loại sidebar/miniature map, dùng header 2 dòng + nút X trên cùng, lưới icon chiếm bề ngang pane với tối đa 2 cột (198pt -> grid cols 2), paginated; header 44pt, scroll grid và dots riêng. Pane lớn vẫn giữ bố cục cũ; sheet vẫn cùng UIWindow và được giới hạn trong pane. Marker `[hl17-picker] layout=compact|regular`. **Chưa build/test xe**.
+
+## C. Các sự kiện Maps/keyboard/Dock để tránh bỏ sót
+- Maps slot1 **đã có đường mở picker**, 22:39:19 `owner-switch` và `phase=presented`, không gọi là "Maps không nhận tap". Những chạm trước đó tại Maps `22:39:17.306/310` `ev=other-pane-touch owner=0 hitSlot=1 action=forward`; cần đối chiếu UI để biết tap nào là nút đổi app.
+- HL16 keyboard trong YouTube PID 44555 có `[hl16-kb] ev=viewport-fit logical={{0,0},{495,450}} physical={{0,0},{396,360}} zoom=0.800 keyplane=396.0 ref={396,360}`. Mã physical-fitting **đã thực thi**, nhưng không có ảnh nghiệm thu O/P/L mới: DEVICE keyboard **UNKNOWN**.
+- `22:37:04.769` `[home-launch] phase=dock-readback active-own=1 ownItems=1` là trạng thái trong model, không chứng minh icon lưới/dock đã hiện. `BLIND no-icon-models` ở 22:40:51 không chứng minh icon vắng mặt. Không chỉnh Home/Dock từ log picker.
+- Settings: HL16b đã biên dịch Prefs controller/resources vào app và bỏ PreferenceLoader plist theo kiểm DEB trước; giao diện **giống bản cũ** là có chủ ý vì tái sử dụng `OMCRootListController`; nếu Nguyen muốn giao diện mới thì đó là yêu cầu khác. Log CarPlay không đo tiến trình app iPhone, chưa kết luận menu Settings cũ còn đăng ký do package hay cache.
+
+## Trạng thái/bàn giao
+- HL16b `1.0.3-hl16bappinfo` là binary ở ảnh phiên xe; màn picker DEVICE FAIL. Không gọi PASS.
+- HL17 code mới ở nhánh `feature/hl17-compact-picker-20261110`, commit `7f9b3b8fcba12ae7972e8523119145a1c3cfc0a8`; sửa `recovered-source/src/SplitScreenB/SCPCarSplit+Picker.m` và `project/OmniCarSplitScreen/SCPCarSplit+Picker.m` byte đồng nhất + `project/OmniCarSplitScreen/SCPCarSplit.m` (file shared module A; ghi rõ hunk `bridgeOutsideTouched`). Nền `fe1c1d694ad951c01b5964b535b79f658824c3c0`; no merge main, no CI new yet, no artifact/DEB, no Sileo.
+- Cổng tiếp theo: (1) static verify compile scoping/geometry, (2) single CI build nếu được giao, (3) test chính artifact: hosted picker tồn tại sau bar-dismis, app-tap chọn được; Maps 198pt có menu compact 2-col, vẫn gõ/zoom/ẩn dock được; không icon Home/Dock regression.
+- Connector calls: GitHub fetch branch/log dir/source/readme, fetch_blob SHA `1b96588...`, create_branch, create_tree/create_commit/update_ref CAS; không có lệnh shell giả.
