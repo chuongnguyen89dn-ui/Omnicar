@@ -34,6 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (BOOL)english;
 + (NSInteger)tipCount;
 + (void)setTipCount:(NSInteger)count;
++ (BOOL)pickerSheetClearFaceOff; // [hl5-picker] rollback gate: YES restores the picker's original opaque sheet face
 
 @end
 

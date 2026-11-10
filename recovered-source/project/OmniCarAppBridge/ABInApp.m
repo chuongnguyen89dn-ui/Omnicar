@@ -752,14 +752,22 @@ static void BWKbHeartbeatTick(void) {
             }
             return; // episode open: no renewals, no presumption
         }
-        // One full query spacing after the last query, still silent:
-        // the assignment is verified dead.
+        // One full query spacing after the last query, still silent.
+        // [hl5-reporter] GPT verdict HL4->HL5, ruling 2: silence plus
+        // unanswered queries is NOT proof of death — hl4's false stop
+        // had a live assignment whose state packets were lost in the
+        // shared state word. This stop is therefore recorded as
+        // UNVERIFIED (a suspension): renewals pause, and the next
+        // accepted STATE revives the reporter, exactly as it
+        // self-healed in hl4. A REAL close arrives as an INACTIVE
+        // state (owner revoke, hl5) and stops the reporter at once
+        // with reason=owner-inactive.
         if (now - BWKbVerifyLastQueryAt >= 2.0) {
             BWKbReporterLive = NO;
             BWKbSilenceQueries = 0;
             BWKbVerifyLastQueryAt = 0;
             OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[kbstate] reporter-stop reason=query-unanswered (%d query khong tra loi, im lang %.1fs)",
+                @"[kbstate] reporter-stop reason=query-unanswered class=unverified (%d query khong tra loi, im lang %.1fs)",
                 BWKbVerifyMaxQueries, now - BWStateRxAt]);
         }
         return;
@@ -806,11 +814,33 @@ static void BWArmAckTimeout(uint32_t seq) {
 
 static void BWOnStatePacket(uint64_t raw) {
     BWPacket p = BWUnpack(raw);
-    if (!p.valid || p.type == BWTypeInvalid) return;
-    if (p.type == BWTypeKbState) { BWOnKbPacket(p); return; } // WO ytz4 K2
-    if (p.type != BWTypeState) return;
-    if (p.hash28 != BWOwnHash28()) return;
-    if (!BWGenAccept(p.gen)) return;
+    // [hl5-rx] GPT verdict HL4->HL5, ruling 2 (measurement): STATE
+    // and KB-SYNC share ONE Darwin state word on this channel, so a
+    // packet can be overwritten between the owner's post and this
+    // callback and vanish without a trace (the standing hypothesis
+    // for the hl4 false reporter stop). Count what this callback
+    // actually SEES — by type, and by drop reason — and while a
+    // reporter verification episode is open, log every packet, so
+    // the next session log shows whether state packets arrived
+    // during the window at all, and if not, what arrived instead.
+    static uint32_t bwRxState, bwRxKb, bwRxDropType, bwRxDropHash, bwRxDropGen;
+    if (BWKbSilenceQueries > 0) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[bw1] rx-during-verify type=%u state=%u gen=%u seq=%u",
+            (unsigned)p.type, (unsigned)p.state,
+            (unsigned)p.gen, (unsigned)p.seq]);
+    }
+    if (!p.valid || p.type == BWTypeInvalid) { bwRxDropType++; return; }
+    if (p.type == BWTypeKbState) { bwRxKb++; BWOnKbPacket(p); return; } // WO ytz4 K2
+    if (p.type != BWTypeState) { bwRxDropType++; return; }
+    if (p.hash28 != BWOwnHash28()) { bwRxDropHash++; return; }
+    if (!BWGenAccept(p.gen)) { bwRxDropGen++; return; }
+    bwRxState++;
+    if ((bwRxState + bwRxKb) % 64 == 1) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[bw1] rx-sample state=%u kb=%u dropType=%u dropHash=%u dropGen=%u",
+            bwRxState, bwRxKb, bwRxDropType, bwRxDropHash, bwRxDropGen]);
+    }
     NSInteger st = BWNormState(p.state);
     NSTimeInterval now = BWNow();
     if (!BWKnown || st != BWState) BWStateChangedAt = now;
@@ -825,6 +855,40 @@ static void BWOnStatePacket(uint64_t raw) {
     BWPinchMode = BWNormMode(p.pinchMode);
     BWPinchAllowed = (p.flag != 0);
     BWKnown = YES;
+    if (st == BWStateInactive) {
+        // [hl5-revoke] GPT verdict HL4->HL5, ruling 2: an accepted
+        // INACTIVE is the owner stating this assignment is CLOSED —
+        // it must close the local identity, never open it. Before
+        // hl5, the code below set BWActSessionVerified and
+        // BWKbReporterLive for EVERY accepted state, INACTIVE
+        // included, so a torn-down app kept a "verified" identity:
+        // its kbstate reporter stayed live until a 12-14 s query
+        // timeout, and it posted act packets with the revoked
+        // identity minutes after teardown (hl4: act posted with
+        // stateage ~184 s, correctly rejected bad-hash by the
+        // owner). Close in place: reporter stops NOW with its own
+        // reason, the act session is unverified (the act gate's
+        // existing session check now actually engages), any open
+        // verification episode ends as answered-by-revoke, and the
+        // pinch recognizer detaches. BWGen/BWState stay latched so a
+        // later live state still passes BWGenAccept; BWResetAll
+        // remains the full teardown for the distributed close
+        // channels.
+        BWActSessionVerified = NO;
+        BWKbReporterLive = NO;
+        if (BWKbSilenceQueries > 0) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[kbstate] reporter-verify answered=INACTIVE sau %d query — assignment da dong",
+                BWKbSilenceQueries]);
+            BWKbSilenceQueries = 0;
+            BWKbVerifyLastQueryAt = 0;
+        }
+        OMCLogWrite(@"AppBridge",
+            @"[kbstate] reporter-stop reason=owner-inactive (assignment closed by owner STATE)");
+        BWKnown = NO;
+        ABPinchDetach();
+        return;
+    }
     BWActSessionVerified = YES; // WO fix-w W2-A: this acceptance (valid
                                 // pack + own hash + gen accepted) is the
                                 // act feed's session identity.
@@ -855,12 +919,50 @@ static void BWOnStatePacket(uint64_t raw) {
 
 static void BWOnAckPacket(uint64_t raw) {
     BWPacket p = BWUnpack(raw);
-    if (!p.valid || p.type == BWTypeInvalid) return;
-    if (p.type != BWTypeAck) return;
-    if (p.flag != 0) return; // role: only owner->app acks are consumed here
-    if (p.hash28 != BWOwnHash28()) return;
-    if (p.gen != BWGen) return;
-    if (BWEngine == BWEngIdle || p.seq != BWTxnSeq || BWAcked) return;
+    // [hl5-ack] GPT verdict HL4->HL5, ruling 4 (P1 telemetry): every
+    // return below used to be silent, so for hl4's one ack timeout
+    // nobody could tell whether the role=0 ack never arrived, was
+    // overwritten in the shared ack state word by another pane's
+    // ack, or arrived and failed a check. Record the raw callback
+    // BEFORE any filter, then name the drop. No behaviour change:
+    // same checks, same order, same consumption.
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[do] bw ack-cb type=%u flag=%u hash=%08x gen=%u seq=%lu txn=%lu engine=%d known=%d",
+        (unsigned)p.type, (unsigned)p.flag, p.hash28, (unsigned)p.gen,
+        (unsigned long)p.seq, (unsigned long)BWTxnSeq, (int)BWEngine,
+        BWKnown ? 1 : 0]);
+    if (!p.valid || p.type == BWTypeInvalid) {
+        OMCLogWrite(@"AppBridge", @"[do] bw ack-drop reason=invalid");
+        return;
+    }
+    if (p.type != BWTypeAck) {
+        OMCLogWrite(@"AppBridge", @"[do] bw ack-drop reason=type");
+        return;
+    }
+    if (p.flag != 0) { // role: only owner->app acks are consumed here
+        OMCLogWrite(@"AppBridge", @"[do] bw ack-drop reason=role");
+        return;
+    }
+    if (p.hash28 != BWOwnHash28()) {
+        OMCLogWrite(@"AppBridge", @"[do] bw ack-drop reason=hash");
+        return;
+    }
+    if (p.gen != BWGen) {
+        OMCLogWrite(@"AppBridge", @"[do] bw ack-drop reason=gen");
+        return;
+    }
+    if (BWEngine == BWEngIdle) {
+        OMCLogWrite(@"AppBridge", @"[do] bw ack-drop reason=engine-idle");
+        return;
+    }
+    if (p.seq != BWTxnSeq) {
+        OMCLogWrite(@"AppBridge", @"[do] bw ack-drop reason=seq");
+        return;
+    }
+    if (BWAcked) {
+        OMCLogWrite(@"AppBridge", @"[do] bw ack-drop reason=acked");
+        return;
+    }
     BWAcked = YES;
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[do] bw ack seq=%lu", (unsigned long)p.seq]);
