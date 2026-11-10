@@ -79,6 +79,7 @@ static NSInteger      bwPinchMode = BWModeOff;      // [ytz5] absent = OFF
 // back to the global bwWakeMode layer).
 static BOOL           bwGate3TrialEnabled = YES;    // kill-switch pref
 static NSInteger      bwPinchInAppMode = BWModeEnforce;
+static BOOL           bwCarHostPinchEnabled = YES; // [gpt-hl6-host-pinch] default host
 static uint64_t       bwGate3TrialSigBySlot[10];    // last logged shape
 static unsigned       bwGate3TrialEmitCount;        // ENFORCE packets sent
 // (an ENFORCE default shipped briefly on 2026-11-09 under Nguyen's
@@ -237,7 +238,8 @@ static void BWEmitModesForBundle(NSString *bundle, NSInteger *wmOut,
     (void)bundle; // [hl4] no per-bundle scope remains
     BOOL enforce = bwGate3TrialEnabled;
     if (wmOut) *wmOut = enforce ? BWModeEnforce : bwWakeMode;
-    if (pmOut) *pmOut = bwPinchInAppMode;
+    // Host and app recognizers must NEVER both toggle one gesture.
+    if (pmOut) *pmOut = bwCarHostPinchEnabled ? BWModeOff : bwPinchInAppMode;
     if (trialOut) *trialOut = enforce;
 }
 
@@ -884,6 +886,10 @@ static void BWEmitDrain(void) {
 
 - (BOOL)bwExpandedActive { return bwExpandedFlag; }
 
+// [gpt-hl6-host-pinch] CarPlay-only detector reads the same cached
+// mode that determines which packet recognizer is allowed to run.
+- (BOOL)bwCarHostPinchEnabled { return bwCarHostPinchEnabled; }
+
 #pragma mark - Aggregation (design §1.2/§1.3)
 
 - (void)bwRecomputeForPane:(SCPCarPane *)pane {
@@ -1110,10 +1116,13 @@ static void BWEmitDrain(void) {
     bwPinchInAppMode = !pa ? BWModeEnforce
         : [pa integerValue] == 0 ? BWModeOff
         : [pa integerValue] == 1 ? BWModeDryRun : BWModeEnforce;
+    id ch = OMCPref(@"bridgewake.carHostPinch", nil);
+    bwCarHostPinchEnabled = ch ? [ch boolValue] : YES;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[gate3] scope=all-hosted killswitch=%d packetPinch=%ld",
+        @"[gate3] scope=all-hosted killswitch=%d packetPinch=%ld carHostPinch=%d",
         (int)bwGate3TrialEnabled,
-        (long)bwPinchInAppMode]);
+        (long)(bwCarHostPinchEnabled ? BWModeOff : bwPinchInAppMode),
+        (int)bwCarHostPinchEnabled]);
     // Mode changes re-run aggregation for every hosted pane (§1.3
     // point 6); the emit signature carries the modes, so any change
     // re-emits even when the state enum itself does not move.
@@ -1461,6 +1470,10 @@ static void BWEmitDrain(void) {
 // Mode source is the owner's prefs read (§4); values share the packet
 // encoding 0/1/2. Anything outside is OFF (the controller also clamps).
 - (SCPPinchMode)pinchMode {
+    // [gpt-hl6-host-pinch] Stop the legacy container recognizer from
+    // issuing duplicate fullscreen commands when the CarPlay host
+    // detector is active. The adapter itself is unchanged.
+    if (bwCarHostPinchEnabled) return SCPPinchModeOff;
     if (bwPinchMode < 0 || bwPinchMode > 2) return SCPPinchModeOff;
     return (SCPPinchMode)bwPinchMode;
 }
