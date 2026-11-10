@@ -1,0 +1,45 @@
+# HL15 — một DEB tích hợp: phím native, picker và cài đặt trong OmniCar (2026-11-10)
+
+## Chỉ thị mới nhất
+Nguyen yêu cầu hoàn thiện **một vòng build DEB gộp** ba hạng mục: (1) phím native trong app hosted thiếu/cắt vùng phải và không theo tỷ lệ ô; (2) đổi app qua picker làm khu vực phía dưới không thấy content; (3) cài đặt nằm **trong app OmniCar ngoài màn hình iPhone**, không còn trang OmniCar riêng do PreferenceLoader đăng ký trong Settings.app. Không phá pinch fullscreen HL13, OwnID Home và Dock, không phát hành Sileo. Nguyen nghiệm thu trên xe; CI xanh không phải DEVICE PASS.
+
+## Căn cứ kỹ thuật và giới hạn thiết kế
+- Hai blob HL14 lúc 18:16–18:20 10/11: CarPlay PID 43506, SpringBoard 43482, TikTok 43513, YouTube 43518; có `[hl14kb]` và `[hl14-picker]`. Report [HL14_GPT_NEW_LOG_REVIEW_20261110.md](HL14_GPT_NEW_LOG_REVIEW_20261110.md).
+- `ABNativeKbFit` ở HL14 đổi `UIRemoteKeyboardWindow`, root view và `UIKeyboardLayoutStar` từ 414 sang 371/495, nhưng chính getter `keyboardScreenReferenceSize` trả **{414,736}** ngay sau resize; Nguyen nhìn thấy mất O/P/L. Lỗi reference size lệch là bằng chứng thật; việc patch private getter giúp sửa được pixel là **giả thuyết chờ xe**.
+- HL14 picker `hostFrameForPane` đã cho frame khác zero, `sameWin=1`, `picker-face mode=clear`; nhưng trong `showPickerForSlot:` có `[pane.view addSubview:picker]` full-pane ABOVE `pane.host` với `picker.alpha` tăng lên 1. Dù `backgroundColor` clear, lớp placeholder full-pane này vẫn là một ứng viên compositing cao. Vẫn chưa có video sau HL15 để chấm màn xe.
+- `OmniCar.app` trước đây là một trang text có nút `prefs:root=OmniCar`; giao diện thực nằm trong `OmniCarPrefs.bundle` dùng `OMCRootListController` và tài nguyên `Root/Feature*.plist`. Dùng lại đúng bundle/CFPreferences domain, không viết lại hàng chục trang.
+
+## Nguồn, commit và file thay đổi
+- Repo **duy nhất**: `chuongnguyen89dn-ui/Omnicar`. Cây code `recovered-source/`.
+- Nền nguồn HL14 `feature/hl14-kb-picker-floatfix-gpt-20261110` tip `fb02c9bd78787087b32e7e8f23510e0398c9c858`, bên dưới source `5d9280ee104ca462a6bbb32ab07c03059b8950d8`.
+- Nhánh code riêng: `feature/hl15-keyboard-picker-inapp-settings-20261110`; commit theo thứ tự:
+  1. `3c0bbb7828992660ec35099f8e2f1969a5badfd9` — settings trong app, picker placeholder ở live pane, gỡ PreferenceLoader.
+  2. `58c1643fda5629a04141cc5e3da6658a850421e5` — hook keyboard `keyboardScreenReferenceSize` **chỉ** đúng process/app/keyboard instance đang hosted, kiểm mã ABI, giữ original IMP, vô hiệu khi hide/release; keyplane `reloadInputViews` một lần mỗi chiều rộng thay đổi.
+  3. `9f125c1c2a0a76eeb389d5c76cfac112edabb43b` — workflow FAT HL15/marker/Verifier, tên bản và artifact.
+- File sửa: `recovered-source/src/App/OMCAppDelegate.m` và `project/OmniCarApp/OMCAppDelegate.m`; `project/OmniCarApp/Makefile`; `src/AppBridgeB/ABInApp.m` và `project/OmniCarAppBridge/ABInApp.m`; `src/SplitScreenB/SCPCarSplit+Picker.m` và `project/OmniCarSplitScreen/SCPCarSplit+Picker.m`; `project/control` Version/Depends/Description; xóa `project/layout/Library/PreferenceLoader/Preferences/OmniCarPrefs.plist`; `.github/workflows/build-fat-macos.yml` (CI).
+- 3 cặp src/project đã fetch cùng branch và so **trùng toàn bộ UTF-8**, blob: App `3c5843238f722cbf8ce9ea5db6518d466c887bab`; ABInApp `c2036398a8f023459901f2ddd0bc4c54c6fc784d`; Picker `b8ce358540d7ca8258a755e8e2694cb80ad64e9c`.
+- Không đổi những module pinch HL13, native scene/map feed, Dock OwnID hoặc YTZ. Không thêm split engine khác.
+- **Lưu ý riêng về keyboard:** hook private API phải đi qua gate `keyboardScreenReferenceSize` return-type `CGSize` (thực tế method ABI trong app chưa đo trên xe). Nếu log `[hl15-kb-ref] gate=abi-unknown`, override không cài và máy vẫn dùng UIKit gốc. Hook chỉ active khi `ABForcedOrientation >=1`, đúng `ABNativeKbWindow`, focus và native mode; restore trả original. Không lấy marker có trong binary làm bằng chứng hook đã kích hoạt.
+- **Lưu ý riêng về Prefs:** app now loads the original `OmniCarPrefs.bundle` using `NSBundle load`, checks `OMCRootListController : PSListController` then hosts it in `PSRootController`; fallback báo thiếu bundle ngay trong app, không mở iPhone Settings. Chính các trang/preferences cũ được giữ. Đã xóa **chỉ** file đăng ký PreferenceLoader; iOS tự có thể vẫn liệt kê app trong Settings > Apps như mọi ứng dụng cài đặt, đây không phải trang cấu hình tweak cũ.
+
+## Một build / một artifact — kiểm trực tiếp
+- Khi bắt đầu build, `ci-fat-test` tip thật `5d9280ee104ca462a6bbb32ab07c03059b8950d8`, không có run đang chạy; dùng GitHub connector `update_ref` fast-forward, `expected_sha` đúng tip cũ, tới `9f125c1c2a0a76eeb389d5c76cfac112edabb43b`. **Không merge main, không workflow_dispatch**, chỉ run push trigger 1 lần.
+- Run <https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42815756285> — job `129828305357` **completed/SUCCESS**, build Theos, package, verify FAT, verify markers HL8–HL15, kiểm trang settings được giữ và PreferenceLoader entry không còn, upload **đều SUCCESS** theo GitHub jobs API/log.
+- ZIP artifact ID **13765635314**, <https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42815756285/artifacts/13765635314>, 1.293.283 bytes, SHA256 `f5d073e16c22b2354438763496173f60b4dcaebb2b65bc30f55ee7d55b54eae6`.
+- DEB bên trong: `com.anlai.omnicar_1.0.3-hl15unified_iphoneos-arm64.deb`, **1.292.712 bytes**, SHA256 **`f8d3fd6449c4041466a419cc13fe15ae37625498b41bb1f10b00e52d4f049821`**. `dpkg-deb --field` từ chính DEB cuối: Package `com.anlai.omnicar`, Version `1.0.3-hl15unified`, Architecture `iphoneos-arm64`. Rootless.
+- GitHub `download_workflow_artifact` chuyển artifact ZIP vào container `/mnt/data/OmniCar_HL15_unified.zip` (connector file id `file_00000000867882099734d5d0fe2629ae`); xác minh ZIP có **một** DEB, SHA của ZIP/DEB khớp dòng CI, giải nén bằng `unzip`, kiểm `dpkg-deb --contents/--field/--extract`. Đã copy DEB nguyên byte ra `/mnt/data/OmniCar_HL15_unified.deb` để giao trực tiếp.
+- Kiểm độc lập bằng Python (chạy **qua container.exec**, không trên log CI): parse FAT header `cafebabe/cafebabf`, mỗi slice Mach-O `cffaedfe`, CPU arch arm64 subtype 0 và arm64e subtype 2, lệnh `LC_CODE_SIGNATURE` số 0x1d với payload nonempty; **8 files/16 slices/16 nonempty signatures PASS** (6 dylib + Prefs binary + App binary). Không đồng nhất dữ liệu chữ ký tồn tại với entitlement/trust/device accept.
+- Kiểm DEB trực tiếp: app binary có `[hl15-settings]` / `OMCRootListController`, không có chuỗi `prefs:root=OmniCar`; đủ `Root.plist`, `FeatureSplitScreen.plist`, `FeatureStartupScreen.plist`, `FeatureSpeedBubble.plist`; không có `var/jb/Library/PreferenceLoader/Preferences/OmniCarPrefs.plist`. CI PASS và independent PASS.
+- Không tự publish Sileo. Không có test xe/runtime bằng phiên HL15 khi checkpoint này lưu.
+
+## Một phiên xe gộp / cổng nghiệm thu
+1. iPhone mở OmniCar app từ Home; phải hiện **màn hình cài đặt thật**, vào Split Screen/Speed Bubble/Startup Screen/App Bridge được, đọc/ghi giá trị, chuyển ngôn ngữ, Back/Respring; nút `Mở Cài đặt` và chuyển `prefs:root` cũ không còn. Sau cài/Respring, trang OmniCar riêng do PreferenceLoader tạo trong Settings.app không còn. Kiểm `omnicar://splitscreen/...` từ Shortcuts còn được relay.
+2. CarPlay ô TikTok hoặc YouTube: mở phím rồi gõ đủ QWERTY, đặc biệt **O/P/L** và phím mép phải. Kéo divider khi đang mở bàn phím, đổi khung nhỏ/lớn, thu/bung toàn split; không cắt, chạm đúng; đóng/rehost không làm đổi keyboard iPhone. Trong log kiểm `[hl15-kb-ref] gate=hook-installed`, `effectiveRef` theo pane, `ev=reload-keyplane`, `[hl14kb] ev=restore` theo đúng PID; nếu `abi-unknown` hoặc pixel vẫn cắt thì FAIL DEVICE, không suy PASS từ CI.
+3. Mở picker trên ô TikTok/YouTube trong khi app sống, ảnh nội dung phía dưới phải còn nhìn thấy; bảng chọn phải chọn/hủy/swap được, app mới hiển thị, không đen. Marker `[hl15-picker] live-placeholder-retired` là tầng code, vẫn cần người dùng kiểm pixel. Test thêm picker native Maps, đóng X, giữa chừng bấm Home và quay lại, phân biệt đường home-system đóng split khác với picker close.
+4. Hồi quy: giữ logo OmniCar Home + Dock thật, app đã chọn trong Dock không trùng, pinch fullscreen bung/thu **toàn bộ split** giữ ẩn/hiện Dock, touch/AutoHide/Wake, native Maps. Không coi marker HL13 còn trong binary là device PASS.
+5. Nếu có failure, thu đúng log PID/time build/version, đối chiếu artifact SHA trước khi quyết định thay hunk.
+
+## Hoàn nguyên
+- Source HL15 được thực hiện trên nhánh riêng; không tự merge main. Nếu cần trở lại HL14, CI source `5d9280ee104ca462a6bbb32ab07c03059b8950d8` và bản FAT `1.0.3-hl14kbpicker` vẫn có run `42805032435`/artifact `13757617599`. Đừng copy nguyên file từ main cũ đè hunk HL13/HL14.
+- Cụ thể rollback từng hunk từ `3c0bbb` (AppDelegate, Picker, PreferenceLoader registration, control), `58c164` (keyboard), `9f125` (workflow); giữ source HL14/bảo toàn tính năng trước đó.
+- File `/mnt/data` chỉ là bản giao cho cuộc chat hiện tại, bản lưu bền ở GitHub qua commit và artifact. GitHub docs file này giữ mốc để nối chat mới.
