@@ -564,7 +564,12 @@ static void ABHL8Focus(NSString *event, id responder) {
     UIWindow *w = v.window;
     NSUInteger found = 0;
     NSMutableString *windows = [NSMutableString string];
-    for (UIWindow *x in [UIApplication sharedApplication].windows) {
+    // HL8 diagnostic reads all process-local windows, including non-scene windows.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            NSArray<UIWindow *> *hl8AllWindows = [UIApplication sharedApplication].windows;
+#pragma clang diagnostic pop
+            for (UIWindow *x in hl8AllWindows) {
         NSString *kind = NSStringFromClass(x.class);
         if ([kind containsString:@"Keyboard"] ||
             [kind containsString:@"InputSet"] ||

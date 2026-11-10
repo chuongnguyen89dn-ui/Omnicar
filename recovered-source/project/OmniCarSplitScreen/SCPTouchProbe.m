@@ -1135,7 +1135,12 @@ static void SCPHL8KeyboardViewScan(NSString *source) {
     if (!SCPHL8TraceEnabled()) return;
     NSUInteger matches = 0;
     NSMutableString *views = [NSMutableString string];
-    for (UIWindow *w in [UIApplication sharedApplication].windows) {
+    // HL8 diagnostic reads all process-local windows, including non-scene windows.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+            NSArray<UIWindow *> *hl8AllWindows = [UIApplication sharedApplication].windows;
+#pragma clang diagnostic pop
+            for (UIWindow *w in hl8AllWindows) {
         NSString *cls = NSStringFromClass(w.class);
         if ([cls containsString:@"Keyboard"] ||
             [cls containsString:@"TextEffects"] ||
