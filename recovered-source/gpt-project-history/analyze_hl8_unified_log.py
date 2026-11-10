@@ -116,10 +116,19 @@ def analyze(all_records, target_pid=None):
     applied = sum(get(r, "applied") == "1" for r in outcomes)
     pair_rejects = [r for r in owner if get(r, "eye") == "pinch"
                     and get(r, "ev") == "drop"]
+    drop_reasons = collections.Counter(
+        get(r, "reason", "unknown") for r in pair_rejects)
+    gate_states = collections.Counter(
+        get(r, "state", "unknown") for r in owner
+        if get(r, "eye") == "pinch" and get(r, "ev") == "fs-gate")
     if not formed:
         pinch = "NO_TWO_FINGER_PAIR_RECORDED"
     elif not requested:
-        pinch = "PAIR_FORMED_BUT_FULLSCREEN_GATE_NOT_REACHED"
+        # HL8 distinguishes a fully formed pair that never entered
+        # the fullscreen gate from a gate evaluation that did not
+        # issue an adapter request. Do not merge these two failures.
+        pinch = ("PAIR_FORMED_FS_GATE_EVALUATED_NO_REQUEST" if gates
+                 else "PAIR_FORMED_NO_FS_GATE_EVALUATION")
     elif not outcomes:
         pinch = "FULLSCREEN_REQUEST_WITHOUT_APPLIED_CALLBACK"
     elif not applied:
@@ -139,6 +148,15 @@ def analyze(all_records, target_pid=None):
               == "forwarded-to-orig"]
     on_logo = [r for r in beginnings
                if get(r, "inLogo") == "1" and get(r, "faded") == "0"]
+    wake_gates = [r for r in owner
+                  if get(r, "eye") == "native-wake"
+                  and get(r, "ev") == "gate"]
+    wake_forward_reasons = collections.Counter(
+        get(r, "reason", "unknown") for r in wake_gates
+        if get(r, "decision") == "forward")
+    wake_consume_reasons = collections.Counter(
+        get(r, "reason", "unknown") for r in wake_gates
+        if get(r, "decision") == "consume")
     logo_callbacks = count(owner, "logo", "callback")
     if leaked:
         native_wake = "FADED_NATIVE_TOUCH_FORWARDED_TO_APP"
@@ -204,12 +222,16 @@ def analyze(all_records, target_pid=None):
                   "fs_gate": gates, "requests": requested,
                   "fs_callback": len(outcomes),
                   "applied": applied, "drops": len(pair_rejects),
+                  "drop_reasons": dict(sorted(drop_reasons.items())),
+                  "gate_states": dict(sorted(gate_states.items())),
                   "gate_examples": sample(owner, "pinch", "fs-gate")},
         "native_wake": {"verdict": native_wake,
                         "faded_native_forwarded": len(leaked),
                         "consumed": sum(get(r, "eye") == "native-wake"
                                         and get(r, "decision") == "consume"
                                         for r in owner),
+                        "forward_reasons": dict(sorted(wake_forward_reasons.items())),
+                        "consume_reasons": dict(sorted(wake_consume_reasons.items())),
                         "examples": sample(owner, "native-wake", "gate")},
         "logo": {"verdict": logo, "visible_region_touches": len(on_logo),
                  "callbacks": logo_callbacks,
