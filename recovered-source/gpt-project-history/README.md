@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL11 BUILD PASS: native keyboard, native Logo, picker same-window
+- **CI thật:** `ci-fat-test` HEAD `5f7d4a0`, [run 42781775810](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42781775810) SUCCESS. FAT arm64/arm64e, 9/9 analyzer fixtures và HL8→HL11 binary markers PASS. **DEB đã tải về, giải nén và kiểm độc lập**: `com.anlai.omnicar_1.0.3-hl11nativekb_iphoneos-arm64.deb`, 1,284,808 bytes, SHA256 `6d6211bd56c9d3cc688e430d533fd9f3d628b63e73ec99e89eb691b465297952`; ZIP artifact `13746456934` [lấy tại đây](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42781775810/artifacts/13746456934).
+- **Chưa nghiệm thu xe:** chỉ pinch đã DEVICE PASS từ HL8. Bàn phím native học từ DuoFace QA179–181, Logo native HL9, picker HL10 đều **PENDING** trên xe. Không gọi build xanh là pixel PASS. Chưa merge main, chưa Sileo. Checkpoint đầy đủ [HL11_DUOFACE_KEYBOARD_INTEGRATION_20261110.md](HL11_DUOFACE_KEYBOARD_INTEGRATION_20261110.md); dòng "CI đang chạy" dưới đây là lịch sử trước khi build hoàn tất.
+
 ## 2026-11-10 — HL11: native keyboard repaired from DuoFace source; one integrated build
 - **Đã sửa source:** `ABInApp.m` app-side keyboard native in YouTube/TikTok: tìm `UIRemoteKeyboardWindow` trong chính process theo DuoFace QA179–181, căn vào key window của app, retry có giới hạn, restore khi rời session, đo theo PID mà không log chữ gõ. Commit `faa7502`, `b77e4b4`. Hai cây `src/project` cùng byte.
 - **Một DEB tích hợp:** nền HL9 Logo + HL10 picker same-window + HL11 keyboard, Version `1.0.3-hl11nativekb`; CI branch `ci-fat-test` tip `5f7d4a0`, [run 42781775810](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42781775810) đã khởi động. **Chưa DEVICE PASS** cho keyboard/native Logo/picker; pinch HL8 giữ nguyên. Không trộn build trước.
