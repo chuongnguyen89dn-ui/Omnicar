@@ -619,9 +619,13 @@ static NSArray<NSValue *> *SCPHostPinchDistinctKeys(void) {
 }
 
 static BOOL SCPHostPinchPopupBusy(SCPCarSplit *split) {
+    // [hl13pinch] popupOpen includes *any visible pane bar*. Normal
+    // chrome is not a modal blocker, and rejecting such pairs broke
+    // pinch while the controls were shown. Only actual modal overlays
+    // and in-progress divider gestures block fullscreen.
     return split.pickerSheet != nil || split.ratioMenu != nil ||
            split.tray != nil || split.dragGhost != nil ||
-           split.resizing || [split popupOpen];
+           split.resizing;
 }
 
 // [gpt-hl7] Evaluate a pair on Moved, Stationary AND Ended.
@@ -665,6 +669,18 @@ static void SCPHostPinchEvaluate(SCPCarSplit *split,
             ![liveA.bundleID isEqualToString:a[@"bundle"]] ||
             ![liveB.bundleID isEqualToString:b[@"bundle"]])
             return;
+        // [hl13-pinch] The hosted app's ORIGINAL two-finger relay owns
+        // a same-pane hosted pair. The CarPlay host remains owner of
+        // native and cross-pane pairs. Never allow BOTH to toggle the
+        // single fullscreen adapter for one physical gesture.
+        BOOL hostedFallback = [split bwHostedPinchFallbackEnabled];
+        if (hostedFallback && liveA == liveB && SCPVCIsHosted(liveA.vc)) {
+            sHostPinchPairKilled = YES; // until all fingers lift
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl13pinch] route=inapp-hosted slot=%ld hostSuppressed=1 pairCount=%lu",
+                (long)liveA.slot, (unsigned long)unique.count]);
+            return;
+        }
         CGPoint p1 = [a[@"current"] CGPointValue];
         CGPoint p2 = [b[@"current"] CGPointValue];
         CGFloat d = SCPHostPinchDistance(p1, p2);

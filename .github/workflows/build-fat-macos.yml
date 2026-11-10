@@ -123,12 +123,12 @@ jobs:
           fi
           echo "All required component binaries are FAT (arm64 + arm64e)."
 
-      - name: Verify HL12 Dock, HL11 keyboard, HL10 surface, HL9 logo, HL8 diagnostics
+      - name: Verify HL13 pinch fallback, HL12 Dock, HL11 keyboard, HL10 surface, HL9 logo, HL8 diagnostics
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl12dock_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl13pinch_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl12dock"
-          echo "HL11 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl13pinch"
+          echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
           for dylib in OmniCarSplitScreen OmniCarAppBridge; do
@@ -141,7 +141,7 @@ jobs:
               fi
               echo "HL8 marker PASS $dylib/$arch"
               if [ "$dylib" = "OmniCarAppBridge" ]; then
-                for marker in '[hl11kb]' 'ev=native-fit' 'ev=restore' 'ev=reload-input-views'; do
+                for marker in '[hl11kb]' 'ev=native-fit' 'ev=restore' 'ev=reload-input-views' '[pinch2] trigger=began toggle-sent dir=0'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL11 keyboard marker $marker missing in $dylib/$arch"
                     exit 1
@@ -150,12 +150,12 @@ jobs:
                 done
               fi
               if [ "$dylib" = "OmniCarSplitScreen" ]; then
-                for marker in 'dock-category' 'dock-readback' 'dock-tap' 'dock-lifecycle' 'active-model' 'dock-category-not-other'; do
+                for marker in '[hl13pinch]' 'route=inapp-hosted' 'hostedPinchFallback' 'dock-category' 'dock-readback' 'dock-tap' 'dock-lifecycle' 'active-model' 'dock-category-not-other'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
-                    echo "::error::HL12 dock marker $marker missing in $dylib/$arch"
+                    echo "::error::HL12/HL13 marker $marker missing in $dylib/$arch"
                     exit 1
                   fi
-                  echo "HL12 dock marker PASS $dylib/$arch: $marker"
+                  echo "HL12/HL13 marker PASS $dylib/$arch: $marker"
                 done
                 for marker in 'native-logo-owned' 'fs-hidden-save' 'fs-hidden-restore' 'ev=picker-host' 'ev=shield-host'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
@@ -171,5 +171,5 @@ jobs:
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: omnicar-hl12dock-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl12dock_iphoneos-arm64.deb
+          name: omnicar-hl13pinch-fat-deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl13pinch_iphoneos-arm64.deb

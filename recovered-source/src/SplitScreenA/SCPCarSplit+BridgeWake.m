@@ -80,6 +80,7 @@ static NSInteger      bwPinchMode = BWModeOff;      // [ytz5] absent = OFF
 static BOOL           bwGate3TrialEnabled = YES;    // kill-switch pref
 static NSInteger      bwPinchInAppMode = BWModeEnforce;
 static BOOL           bwCarHostPinchEnabled = YES; // [gpt-hl6-host-pinch] default host
+static BOOL           bwHostedPinchFallback = YES; // [hl13pinch] same hosted pane => app relay
 static uint64_t       bwGate3TrialSigBySlot[10];    // last logged shape
 static unsigned       bwGate3TrialEmitCount;        // ENFORCE packets sent
 // (an ENFORCE default shipped briefly on 2026-11-09 under Nguyen's
@@ -239,7 +240,12 @@ static void BWEmitModesForBundle(NSString *bundle, NSInteger *wmOut,
     BOOL enforce = bwGate3TrialEnabled;
     if (wmOut) *wmOut = enforce ? BWModeEnforce : bwWakeMode;
     // Host and app recognizers must NEVER both toggle one gesture.
-    if (pmOut) *pmOut = bwCarHostPinchEnabled ? BWModeOff : bwPinchInAppMode;
+    // [hl13pinch] Host sees only individual fingers on some current
+    // CarPlay presentations. Reenable the already-proven in-app
+    // pair-at-Began relay for hosted panes while keeping the host as
+    // sole owner of native and cross-pane pairs.
+    if (pmOut) *pmOut = (bwCarHostPinchEnabled && !bwHostedPinchFallback)
+        ? BWModeOff : bwPinchInAppMode;
     if (trialOut) *trialOut = enforce;
 }
 
@@ -725,8 +731,11 @@ static void BWEmitDrain(void) {
     }
     BOOL dirOK = (effDir == 1 && committed == SCPFullscreenStateSplit) ||
                  (effDir == 2 && committed == SCPFullscreenStateExpanded);
+    // [hl13pinch] A stale in-app relay must not bypass actual session
+    // visibility, picker, divider or resize gates.
     if (!pane || pane.slot != slot ||
-        ![[self hostedPanes] containsObject:pane] || !dirOK) {
+        ![[self hostedPanes] containsObject:pane] ||
+        ![self bwPinchAllowedForPane:pane] || !dirOK) {
         reject("badstate"); return;
     }
     bwPinchHasBySlot[slot] = YES;
@@ -889,6 +898,14 @@ static void BWEmitDrain(void) {
 // [gpt-hl6-host-pinch] CarPlay-only detector reads the same cached
 // mode that determines which packet recognizer is allowed to run.
 - (BOOL)bwCarHostPinchEnabled { return bwCarHostPinchEnabled; }
+
+// [hl13pinch] One authority for host/in-app arbitration. The host
+// defers a same-hosted-pane pair ONLY if a live app-side path is
+// enabled; never suppress the host when in-app pinch is explicitly OFF.
+- (BOOL)bwHostedPinchFallbackEnabled {
+    return bwCarHostPinchEnabled && bwHostedPinchFallback &&
+           bwPinchInAppMode != BWModeOff;
+}
 
 #pragma mark - Aggregation (design §1.2/§1.3)
 
@@ -1118,10 +1135,17 @@ static void BWEmitDrain(void) {
         : [pa integerValue] == 1 ? BWModeDryRun : BWModeEnforce;
     id ch = OMCPref(@"bridgewake.carHostPinch", nil);
     bwCarHostPinchEnabled = ch ? [ch boolValue] : YES;
+    id fallback = OMCPref(@"bridgewake.hostedPinchFallback", nil);
+    bwHostedPinchFallback = fallback ? [fallback boolValue] : YES;
+    NSInteger emittedPinch = (bwCarHostPinchEnabled && !bwHostedPinchFallback)
+        ? BWModeOff : bwPinchInAppMode;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[hl13pinch] route=split-hosted-owners host=%d hostedFallback=%d emittedPinch=%ld",
+        (int)bwCarHostPinchEnabled, (int)bwHostedPinchFallback,
+        (long)emittedPinch]);
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[gate3] scope=all-hosted killswitch=%d packetPinch=%ld carHostPinch=%d",
-        (int)bwGate3TrialEnabled,
-        (long)(bwCarHostPinchEnabled ? BWModeOff : bwPinchInAppMode),
+        (int)bwGate3TrialEnabled, (long)emittedPinch,
         (int)bwCarHostPinchEnabled]);
     // Mode changes re-run aggregation for every hosted pane (§1.3
     // point 6); the emit signature carries the modes, so any change
