@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL13 SIGNED DEB VERIFIED: sửa hồi quy pinch, chờ xe
+- **Đã build/ký/kiểm độc lập:** `com.anlai.omnicar_1.0.3-hl13pinch_iphoneos-arm64.deb` (1,288,846 bytes, SHA256 `955abef92cf19600ae4c88a818d0e47d3b015fe189862da0dd83552d7c14afaf`), artifact GitHub **13754819007**, [CI 42798481754](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42798481754) **SUCCESS**, build source `b6f2411`. FAT arm64/arm64e, 6 dylib/12 ký Mach-O slices, 9 fixture và marker HL8–HL13 PASS; verifier độc lập [verify_hl13_deb.py](verify_hl13_deb.py). Thay đổi chỉ reroute pinch hosted → app relay, native/cross → CarPlay host, bỏ normal bar khỏi modal gate. **DEVICE PENDING**, không tuyên bố zoom đã thành công; Maps trắng khi gõ còn mở. [Hồ sơ nguồn/log/artifact](HL13_PINCH_REGRESSION_20261110.md).
+
 ## 2026-11-10 — HL13 SOURCE-COMMITTED: sửa hồi quy zoom toàn bộ OmniCar
 - Nguyen xác nhận bản sau HL8 **hỏng zoom hai ngón** dù HL8 trước đó 33/33 chuyển đổi thành công. GPT truy vết: đường `carHostPinch` mặc định ép hosted packet `pm=0`, tắt in-app pair relay; khi CarPlay host không tạo cặp thì **không có fallback**. `SCPHostPinchPopupBusy` còn chặn cả normal bar vì dùng `popupOpen=panelOpen||anyBarVisible`. **Đã sửa source** HL13 trên branch `feature/hl13-pinch-regression-gpt-20261110` commit `b6f2411e7f1f45eb4ab0862571d7579e0347cf05`, 8 file src/project+control+workflow; một đường hosted in-app / host native+cả hai ô, không tạo split engine mới. CI run [42798481754](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42798481754) **đang chạy khi ghi mốc này**; DEVICE PENDING. [Hồ sơ đầy đủ](HL13_PINCH_REGRESSION_20261110.md).
 
