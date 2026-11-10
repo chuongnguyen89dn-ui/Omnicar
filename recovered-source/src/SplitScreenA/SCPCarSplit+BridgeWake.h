@@ -134,6 +134,12 @@ extern const char *SCPBridgeWakeAct;   // app -> owner (AutoHide activity, desig
 - (void)bwSetExpandedActive:(BOOL)active forBundle:(nullable NSString *)bundleID;
 - (BOOL)bwExpandedActive;
 
+// [gpt-hl6-host-pinch] Single source of truth for the CarPlay-side
+// two-finger detector. YES makes hosted packet pinchMode=OFF so the
+// in-app recognizer cannot toggle the SAME fullscreen a second time.
+// Pref bridgewake.carHostPinch absent = YES; NO rolls back to legacy.
+- (BOOL)bwCarHostPinchEnabled;
+
 // SCPPinchArbiter conformance (design-pinch §3.5 + impl-pinch deviation
 // L1: pinchMode also comes from the owner). The owner answers purely
 // from its stored per-slot wake state + the EXPANDED input above; the
