@@ -24,6 +24,8 @@
 #import "BridgeWakePack.h"
 #import "ABYTLease.h"
 #import <objc/runtime.h>
+#include <stdlib.h>
+#include <string.h>
 #import <substrate.h>
 #import <UIKit/UIGestureRecognizerSubclass.h> // [hl2-w6] ABPinchGestureRecognizer sets state
 #import <mach/mach_time.h> // WO fix-w W1: act decision log stamps
@@ -1043,6 +1045,72 @@ static CGRect ABNativeKbRootOriginal;
 static BOOL ABNativeKbHasOriginal = NO;
 static NSUInteger ABNativeKbEpoch = 0;
 
+// [hl15-kb-ref] HL14 device readback: the UIRemoteKeyboardWindow, root,
+// and UIKeyboardLayoutStar were 371/495 pt wide, BUT UIKit continued
+// reporting keyboardScreenReferenceSize={414,736}. The visual complaint
+// (O/P/L clipped) is consistent with a stale UIKit keyplane coordinate
+// system. We scope the selector override to the process-local *actual*
+// keyboard object; other app windows and iPhone sessions always call
+// the unchanged original. The ABI and the private class are verified
+// at runtime before installing; failures are logged, not guessed.
+static IMP ABNativeKbOriginalRefIMP = NULL;
+static Class ABNativeKbRefClass = Nil;
+static CGSize ABNativeKbRefTarget = {0, 0};
+static BOOL ABNativeKbRefActive = NO;
+static CGFloat ABNativeKbLastReloadWidth = 0;
+
+static CGSize ABNativeKbReferenceOverride(id obj, SEL selector) {
+    CGSize original = ABNativeKbOriginalRefIMP
+        ? ((CGSize (*)(id, SEL))ABNativeKbOriginalRefIMP)(obj, selector)
+        : CGSizeZero;
+    if (!ABNativeKbRefActive || obj != ABNativeKbWindow ||
+        ABForcedOrientation < 1 || ABDrawnKb ||
+        !ABCurrentResponder || ![ABCurrentResponder isFirstResponder] ||
+        ABNativeKbRefTarget.width < 90 || ABNativeKbRefTarget.height < 90)
+        return original;
+    return ABNativeKbRefTarget;
+}
+
+static BOOL ABNativeKbInstallReferenceHook(UIWindow *keyboard) {
+    if (!keyboard ||
+        ![NSStringFromClass(keyboard.class) containsString:@"UIRemoteKeyboardWindow"])
+        return NO;
+    if (ABNativeKbRefClass) return ABNativeKbRefClass == keyboard.class;
+    SEL selector = NSSelectorFromString(@"keyboardScreenReferenceSize");
+    Method inherited = class_getInstanceMethod(keyboard.class, selector);
+    if (!inherited || method_getNumberOfArguments(inherited) != 2)
+        return NO;
+    char *ret = method_copyReturnType(inherited);
+    BOOL abiOK = ret && (strstr(ret, "CGSize") || strstr(ret, "_NSSize"));
+    if (ret) free(ret);
+    if (!abiOK) {
+        OMCLogWrite(@"AppBridge",
+            @"[hl15-kb-ref] gate=abi-unknown; original getter retained");
+        return NO;
+    }
+    IMP original = method_getImplementation(inherited);
+    const char *types = method_getTypeEncoding(inherited);
+    if (!original || !types) return NO;
+    // Set original BEFORE hooking; the replacement may be invoked during
+    // next layout. class_addMethod only shadows an inherited selector
+    // on this keyboard class, never modifies a superclass.
+    ABNativeKbOriginalRefIMP = original;
+    if (!class_addMethod(keyboard.class, selector,
+                         (IMP)ABNativeKbReferenceOverride, types)) {
+        // A direct implementation exists: replace only that method.
+        Method own = class_getInstanceMethod(keyboard.class, selector);
+        if (!own) return NO;
+        ABNativeKbOriginalRefIMP = method_setImplementation(
+            own, (IMP)ABNativeKbReferenceOverride);
+    }
+    ABNativeKbRefClass = keyboard.class;
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl15-kb-ref] gate=hook-installed class=%@",
+        NSStringFromClass(keyboard.class)]);
+    return YES;
+}
+
+
 static CGFloat ABNativeKbLayoutStarWidth(UIView *view, NSUInteger depth) {
     if (!view || depth > 6) return 0;
     if ([NSStringFromClass(view.class) containsString:@"UIKeyboardLayoutStar"])
@@ -1080,6 +1148,10 @@ static NSArray<UIWindow *> *ABNativeKbWindows(void) {
 }
 
 static void ABNativeKbRestore(NSString *reason) {
+    // Reset the per-session override even when the root window is gone.
+    ABNativeKbRefActive = NO;
+    ABNativeKbRefTarget = CGSizeZero;
+    ABNativeKbLastReloadWidth = 0;
     if (!ABNativeKbHasOriginal) return;
     UIWindow *window = ABNativeKbWindow;
     UIView *root = ABNativeKbRoot;
@@ -1132,6 +1204,9 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
         keyboard.alpha > 0.01 && !CGRectIsEmpty(keyboard.bounds);
     BOOL valid = key && visible &&
         target.size.width >= 90 && target.size.height >= 90;
+    // An old input session is never allowed to resize a fresh keyboard.
+    if (ABNativeKbRefActive && keyboard != ABNativeKbWindow)
+        ABNativeKbRestore(@"keyboard-instance-replaced");
     UIView *root = valid ? keyboard.rootViewController.view : nil;
     CGRect rootBefore = root ? root.frame : CGRectNull;
     CGRect kbBefore = keyboard ? keyboard.frame : CGRectNull;
@@ -1146,6 +1221,7 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             if ([keyboard respondsToSelector:refSEL])
                 reference = ((CGSize (*)(id, SEL))objc_msgSend)(keyboard, refSEL);
         } @catch (__unused NSException *ex) {}
+        BOOL refHook = ABNativeKbInstallReferenceHook(keyboard);
         CGRect wantBounds = CGRectMake(0, 0, target.size.width, target.size.height);
         CGRect wantRoot = wantBounds;
         BOOL changed = !CGRectEqualToRect(keyboard.frame, target) ||
@@ -1169,11 +1245,31 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             keyboard.bounds = wantBounds;
             if (root) root.frame = wantRoot;
         }
+        // The geometry hook is engaged only for the exact keyboard
+        // currently bound to this hosted first-responder session.
+        if (refHook) {
+            if (!ABNativeKbHasOriginal) {
+                ABNativeKbWindow = keyboard;
+                ABNativeKbOriginal = keyboard.frame;
+                ABNativeKbOriginalBounds = keyboard.bounds;
+                ABNativeKbRoot = root;
+                ABNativeKbRootOriginal = root ? root.frame : CGRectNull;
+                ABNativeKbHasOriginal = YES;
+            }
+            ABNativeKbRefTarget = target.size;
+            ABNativeKbRefActive = YES;
+        }
         [keyboard setNeedsLayout];
         [root setNeedsLayout];
         for (UIView *sub in keyboard.subviews) [sub setNeedsLayout];
         [keyboard layoutIfNeeded];
         [root layoutIfNeeded];
+    }
+    CGSize effectiveRef = CGSizeZero;
+    if (valid && [keyboard respondsToSelector:
+                  NSSelectorFromString(@"keyboardScreenReferenceSize")]) {
+        effectiveRef = ((CGSize (*)(id, SEL))objc_msgSend)(
+            keyboard, NSSelectorFromString(@"keyboardScreenReferenceSize"));
     }
     CGFloat starAfter = valid ? ABNativeKbLayoutStarWidth(keyboard, 0) : 0;
     BOOL narrow = valid && starAfter > 0 &&
@@ -1190,7 +1286,7 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
         @"[hl14kb] ev=native-fit when=%@ try=%ld result=%@ windows=%lu "
          "key=%@ keyFrame=%@ kb=%@ kbBefore=%@ kbAfter=%@ "
          "kbBounds=%@ rootBefore=%@ rootAfter=%@ starBefore=%.1f "
-         "starAfter=%.1f refSize=%@ focus=1",
+         "starAfter=%.1f refSize=%@ effectiveRef=%@ refHook=%d focus=1",
         when, (long)attempt, result, (unsigned long)windows.count,
         key ? NSStringFromClass(key.class) : @"none",
         key ? NSStringFromCGRect(target) : @"nil",
@@ -1200,7 +1296,8 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
         keyboard ? NSStringFromCGRect(keyboard.bounds) : @"nil",
         NSStringFromCGRect(rootBefore),
         root ? NSStringFromCGRect(root.frame) : @"nil",
-        starBefore, starAfter, NSStringFromCGSize(reference)]);
+        starBefore, starAfter, NSStringFromCGSize(reference),
+        NSStringFromCGSize(effectiveRef), (int)ABNativeKbRefActive]);
     return valid && !narrow;
 }
 
@@ -1227,11 +1324,20 @@ static void ABNativeKbOnGeometry(NSNotification *note) {
                 ABDrawnKb || !ABCurrentResponder ||
                 ![ABCurrentResponder isFirstResponder]) return;
             BOOL good = ABNativeKbFit(@"geometry-settled", (NSInteger)i + 1);
-            if (!good && i == 1 &&
+            // Rebuild UIKit's keyplane ONCE after each committed size
+            // change, even when outer keyboard.frame has already settled.
+            BOOL freshWidth = ABNativeKbRefActive &&
+                ABNativeKbRefTarget.width >= 90 &&
+                fabs(ABNativeKbLastReloadWidth - ABNativeKbRefTarget.width) > 2;
+            if (i == 1 && (!good || freshWidth) &&
                 [ABCurrentResponder respondsToSelector:@selector(reloadInputViews)]) {
+                if (freshWidth)
+                    ABNativeKbLastReloadWidth = ABNativeKbRefTarget.width;
                 [ABCurrentResponder reloadInputViews];
                 OMCLogWrite(@"AppBridge",
-                    @"[hl14kb] ev=reload-input-views reason=layout-not-settled");
+                    freshWidth
+                    ? @"[hl15-kb-ref] ev=reload-keyplane reason=frame-resize"
+                    : @"[hl14kb] ev=reload-input-views reason=layout-not-settled");
             }
         });
     }
