@@ -786,10 +786,6 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     subLabel.textAlignment = NSTextAlignmentCenter;
     [sideColumn addSubview:subLabel];
 
-    NSInteger otherPickers = 0;
-    for (SCPCarPane *p in self.allPanes)
-        if (p.picker != nil && p != pane) otherPickers++;
-
     // Cancel chip in the side column: centre (120, 30) in column-local
     // coordinates (dump @0x34448-0x34458). The previous build had the
     // axes swapped — centre (30, 120) — and the wrong parent.
@@ -956,6 +952,11 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     }
 
     if (window == nil) [self pushHostFramesLive:NO];
+    // Count other panes after compact/regular layout branches have joined;
+    // the value is used only by the post-presentation diagnostic log.
+    NSInteger otherPickers = 0;
+    for (SCPCarPane *p in self.allPanes)
+        if (p.picker != nil && p != pane) otherPickers++;
     OMCLogWrite(@"SplitScreen",
         [NSString stringWithFormat:@"CarSplit: popup chon %ld app cho o %d (%s, %d o cho)",
             (long)count, pane.slot, window != nil ? "cua so rieng" : "container",
