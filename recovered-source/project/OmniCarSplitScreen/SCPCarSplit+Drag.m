@@ -109,6 +109,11 @@ void SCPStyleGhostIcon(UIImageView *imageView) {
                          blue:0.9725490196078431
                         alpha:1.0].CGColor;
     ghost.layer.borderWidth = 1.5;
+    // [hl18-perf] This card moves on every drag sample. A fixed rounded
+    // shadowPath avoids recompositing an unconstrained shadow each time.
+    ghost.layer.shadowPath =
+        [UIBezierPath bezierPathWithRoundedRect:ghost.bounds
+                                  cornerRadius:ghost.layer.cornerRadius].CGPath;
     ghost.userInteractionEnabled = NO;
 
     UIImageView *icon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 44, 44)];
