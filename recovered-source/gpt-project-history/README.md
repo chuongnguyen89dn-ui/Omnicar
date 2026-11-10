@@ -1,5 +1,11 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL8 unified diagnostic: một log cho pinch, Logo, keyboard, ratio
+- Đã source-commit nhánh `feature/hl7-touch-lifecycle-gpt-20261110`, base main `06fba113`; một log `[hl8diag]` nhiều mắt và script phân tích PID/BLIND. Toa kỹ thuật + file/hunk/rollback: [HL8_UNIFIED_DIAGNOSTIC_20261110.md](HL8_UNIFIED_DIAGNOSTIC_20261110.md).
+- Marker gồm touch begin/dispatch, native-wake gate/reason, pinch pair/fs-gate/fs-request/fs-result, logo callback/action, kb app/SpringBoard/CarPlay, relayout/frame send/receive/apply/settle. KHÔNG thu nội dung phím; kiểm pixel bàn phím và dock vẫn cần video.
+- `analyze_hl8_unified_log.py`, `test_analyze_hl8_unified_log.py` (9 test fixture đã viết; **chưa thực thi Python/compile**); CHƯA MERGE, CHƯA BUILD, CHƯA TEST XE. Muse chỉ tích hợp/build khi được giao, luôn bump control Version.
+
+
 ## 2026-11-10 — HL8 một log toàn diện, bốn mắt lỗi (chờ compile/build/xe)
 - Theo yêu cầu mới của Nguyen, GPT đã bổ sung marker [hl8diag] vào chính OmniCar.log xuyên CarPlay/SpringBoard/app-hosted để chẩn đoán Logo, pinch toàn split, keyboard native/drawn, layout ratio; reader ngoài tầm phải ghi BLIND thay vì ABSENT.
 - Hồ sơ checkpoint và một vòng thử xe: [HL8_UNIFIED_DIAGNOSTIC_AND_HANDOFF_20261110.md](HL8_UNIFIED_DIAGNOSTIC_AND_HANDOFF_20261110.md). Bộ phân tích [analyze_hl8_unified_log.py](analyze_hl8_unified_log.py), [7 unit tests](test_analyze_hl8_unified_log.py).
