@@ -90,7 +90,8 @@ jobs:
       # arm64e slices. The app binary is reported for information.
       - name: Verify FAT slices in the component binaries
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
+          VER=$(sed -n 's/^Version:[[:space:]]*//p' recovered-source/project/control | head -1)
+          DEB=recovered-source/project/packages/com.anlai.omnicar_${VER}_iphoneos-arm64.deb
           ls -la "$DEB"
           rm -rf /tmp/fatcheck && mkdir -p /tmp/fatcheck
           dpkg-deb -x "$DEB" /tmp/fatcheck
@@ -122,4 +123,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: omnicar-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl7_iphoneos-arm64.deb
