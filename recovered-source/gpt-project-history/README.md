@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — HL17 build lỗi scope đã sửa; CI ref mới e4612cc, DEB vẫn chờ kiểm
+- Kiểm trực tiếp run [42912021535](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42912021535): macOS đã chạy và **FAIL** biên dịch `SCPCarSplit+Picker.m:962` vì biến `otherPickers` ngoài scope; upload bị skip và artifact rỗng. Cảnh báo QUEUED trước đó không còn đúng cho run này.
+- Đã sửa đúng hunk trong cả `src/SplitScreenB/SCPCarSplit+Picker.m` và `project/OmniCarSplitScreen/SCPCarSplit+Picker.m` trên nhánh `feature/hl17-compact-picker-20261110`; commit cuối **`e4612cc3410d561f2e1d846a414ad94eddbd2461`**, cặp file cùng SHA `7440771c`. Đã CAS fast-forward `ci-fat-test` sang commit này (GitHub xác nhận `success=true`/compare identical), workflow có push trigger. **Chưa truy được run ID/status mới; chưa có DEB/artifact đã xác minh.** [Bằng chứng và checkpoint chi tiết](HL16B_LATE_LOG_PICKER_VERDICT_20261111.md).
+
+
 ## 2026-11-11 — HL17 đã đóng nguồn, CI FAT macOS đang chờ runner
 - Nguyen yêu cầu sửa ngay + **DEB**. Đã tiếp tục sửa trên nhánh `feature/hl17-compact-picker-20261110`, commit `7f9b3b8` (picker compact native 198pt, giữ chooser khi remote bar-dismiss) → **`5ad2dda5bca9e45fc35ed66aecc94e993085403d`** (đồng bộ chính hunk remote-dismiss ở `src/SplitScreenA/SCPCarSplit.m` với `project/OmniCarSplitScreen/SCPCarSplit.m`, giữ khác biệt baseline ngoài hunk; bump version `1.0.3-hl17picker`; cập nhật workflow kiểm marker HL17). Không thay Muse native feed, YTZ, Home/Dock, pinch hoặc logic bàn phím.
 - Đã dùng GitHub `update_ref` CAS fast-forward nhánh build `ci-fat-test` từ `fe1c1d6` tới `5ad2dda5`. Workflow **một run duy nhất** [42912021535](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42912021535) job `130164824427` — lúc checkpoint 22:13 UTC vẫn **queued/chưa cấp runner macOS**. Không có DEB/artifact HL17 để đưa người dùng và **không được đổi tên DEB HL16b thành HL17**; đợi CI có kết quả rồi kiểm artifact/size/hash/metadata/chữ ký, hoặc báo chính xác blocker. [Hồ sơ chi tiết HL17](HL16B_LATE_LOG_PICKER_VERDICT_20261111.md).
