@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL14: GPT kiểm log bàn phím và picker che nền
+- Đã đọc trực tiếp hai blob `logs/OmniCar.log.old` + `logs/OmniCar.log` tại commit upload `3e6e17f`; tách riêng phiên HL14 (CarPlay PID 43506, TikTok 43513, YouTube 43518). Đường `native-fit` đã thực thi (19 lần `applied`, 5 `restore`) nhưng chưa chứng minh không cắt phím bên phải trên màn xe. Picker 5 lần mở cùng cửa sổ với host, mặt sheet trong suốt; chưa có bằng chứng pixel app nền vẫn thấy. Ca 18:18:50 là **Home đóng cả split** chứ không phải picker tự tháo app. Chi tiết và lệnh khắc phục có điều kiện: [HL14_GPT_NEW_LOG_REVIEW_20261110.md](HL14_GPT_NEW_LOG_REVIEW_20261110.md). Chưa sửa source/build/CI/test xe ở lượt kiểm log này.
+
 ## 2026-11-10 — GPT SOURCE-COMMITTED: HL6 Logo/Wake và pinch fullscreen TOÀN BỘ OmniCar
 - Nguyen giao GPT tự sửa Logo, Wake, pinch (đổi phân công ba mục trước Muse); Muse chỉ tích hợp và build/ký một DEB. **Pinch nghĩa là bung/thu cả split + ẩn/hiện dock, không phải zoom video YouTube.**
 - Hồ sơ: [HL6_GPT_SOURCE_FIX_LOGO_WAKE_FULLSPLIT_PINCH_20261110.md](HL6_GPT_SOURCE_FIX_LOGO_WAKE_FULLSPLIT_PINCH_20261110.md); nhánh code feature/hl6-logo-wake-gpt-20261110, base main 817bf872, ba commit 58539895 -> 0581d232 -> 234c5207, 10 path src/project, ahead=3/behind=0.
