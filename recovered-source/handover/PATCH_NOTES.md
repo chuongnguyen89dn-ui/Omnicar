@@ -7741,3 +7741,14 @@ Work order chính: `gpt-project-history/HL5_TWO_LOGS_GPT_REVIEW_20261110.md` (co
 **3. Trạng thái phân định — CHƯA KẾT LUẬN:** chờ log phiên hl6. Discriminator riêng của hl6 (`[logo-hit]`/`hitWin=` phía SplitScreen, `[pinch2] began` dạng mới phía AppBridge, `[picker-surface]`) có xuất hiện trong log hay không sẽ phân định dứt điểm máy đang chạy mã hl6 hay mã cũ: có discriminator hl6 → mã mới đã chạy và verdict mục 1 phải đối chiếu lại từng mục bằng log; không có → giả thuyết đóng gói được xác nhận ở mức log và nghiệm thu §29.30 dời sang phiên sau khi cài lại đúng cách.
 
 **4. Quy tắc sửa từ vòng sau (bắt buộc):** mọi deb test phải mang `Version` phân biệt theo vòng trong control (ví dụ `1.0.3-hl7`); **kiểm trường Version của deb trước khi giao là một mục bắt buộc trong checklist đóng gói**, ngang hàng kiểm SHA/kích thước/discriminator.
+
+**5. Bổ sung — VERDICT CHI TIẾT QUA VIDEO KÈM LỜI KỂ (cùng phiên hl6; video quay trên màn hình xe thật 11:15–11:18 10/11/2026; bản chép lời `~/workspace/transcripts/hl6-video/transcript.txt`, whisper-small — nguồn: lời Nguyen nói trong video; mốc là mốc trong video):**
+- **(0:04, lặp lại 0:17–0:35 và 2:18–2:30)** Gọi logo **vẫn hiện HÀNG MENU** — không đổi so với hl5.
+- **(0:17–0:35, nhắc lại 2:13) MỚI — thời gian ẩn 4 giây bị chê RẤT LÂU:** mỗi lần muốn thử gọi logo phải chờ 4 s cho controls ẩn hẳn; nguyên văn hai lần: "4 giây gì mà lâu vậy". Ghi nhận là **phàn nàn UX về tham số AutoHide 4,0 s** — tham số của bản gốc, hl6 không đụng; cần GPT/Nguyen phán có rút ngắn hay không.
+- **(0:41–0:59)** Chạm phía ô bản đồ → bàn phím hiện và **VẪN LỖI RENDER** (hình bóp thành cột hẹp như phiên hl5); nguyên văn: "bàn phím như vậy thì bấm kiểu gì".
+- **(1:01–1:17)** YouTube **không có bàn phím** (hệ quả native-locked đã biết — Nguyen vẫn tính là lỗi); **pinch/zoom KHÔNG có trên YouTube** — thao tác hai ngón trong video bị YouTube xử lý như chạm thường.
+- **(1:41–1:50)** Lỗi giao diện render trong ô bản đồ khi đang split: icon danh mục bị bóp méo thành dải dọc.
+- **(2:18–2:30)** Chạm nút "Nhà hàng" ở ô bản đồ → **lại hiện hàng menu** (wake toàn ô — thuộc mục thiết kế target-qualified wake đang chờ phán quyết, hl6 chưa đổi theo đúng phạm vi GPT giao).
+- **(1:19)** Nguyên văn kết luận của Nguyen: *"tao thấy mình có sửa cái gì đâu"*.
+
+**Đối chiếu hình trong video (Muse chính quan sát):** thanh pill hiện trên **cả hai ô** khi chạm; ô TikTok **đen ~7 giây sau khi host lại** (khớp họ lỗi teardown/re-host đã kết án ở phiên hl5); bấm Home vẫn văng ra dashboard gốc. **Trạng thái phân định không đổi so với mục 3:** các verdict trên là mức màn hình/lời kể — máy đang chạy mã hl6 hay mã cũ vẫn chờ log hl6 (discriminator `[logo-hit]`/`hitWin=`/`[picker-surface]`) mới phân định được.
