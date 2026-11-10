@@ -1219,6 +1219,26 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
              ABNativeKbPhysicalViewport.height) < 18;
     if (key && havePhysical) {
         target.size = ABNativeKbPhysicalViewport;
+    } else if (key && keyboard && ABNativeKbRefActive &&
+               keyboard == ABNativeKbWindow &&
+               ABNativeKbRefTarget.width >= 90 &&
+               ABNativeKbRefTarget.height >= 90) {
+        // [hl18-kb] HL16b log observed a transient logical reflow:
+        // 396x360 -> 495x450 -> 396x360 in 26 ms. Preserve the last
+        // physical viewport while the updated tuple has not arrived.
+        BOOL confirmedUnitZoom = ABNativeKbHostedZoom >= 0.985 &&
+            ABNativeKbPhysicalViewport.width >= 90 &&
+            ABNativeKbPhysicalViewport.height >= 90 &&
+            fabs(logicalTarget.size.width -
+                 ABNativeKbPhysicalViewport.width) < 18 &&
+            fabs(logicalTarget.size.height -
+                 ABNativeKbPhysicalViewport.height) < 18;
+        if (!confirmedUnitZoom) {
+            target.size = ABNativeKbRefTarget;
+            if (!CGSizeEqualToSize(logicalTarget.size, target.size))
+                OMCLogWrite(@"AppBridge",
+                    @"[hl18-kb] ev=hold-last-physical reason=geometry-incomplete");
+        }
     }
     BOOL visible = keyboard && !keyboard.hidden &&
         keyboard.alpha > 0.01 && !CGRectIsEmpty(keyboard.bounds);
@@ -2888,15 +2908,21 @@ static void ABOrientationBlock(NSNotification *note) {
     CGFloat pW = [info[@"kbPhysicalWidth"] doubleValue];
     CGFloat pH = [info[@"kbPhysicalHeight"] doubleValue];
     CGFloat z = [info[@"kbZoom"] doubleValue];
-    if ([info[@"orientation"] intValue] >= 1 &&
-        pW >= 90 && pH >= 90 && z >= 0.6 && z <= 1.0) {
+    NSInteger orientation = [info[@"orientation"] intValue];
+    BOOL validPhysical = pW >= 90 && pH >= 90 && z >= 0.6 && z <= 1.0;
+    if (orientation >= 1 && validPhysical) {
         ABNativeKbPhysicalViewport = CGSizeMake(pW, pH);
         ABNativeKbHostedZoom = z;
-    } else {
+    } else if (orientation < 1 || ABForcedOrientation < 1) {
+        // Host release: never carry a previous assignment's geometry.
         ABNativeKbPhysicalViewport = CGSizeZero;
         ABNativeKbHostedZoom = 1.0;
+    } else {
+        // [hl18-kb] Missing physical fields during an intermediate
+        // orientation update do not signify a new keyboard size.
+        OMCLogWrite(@"AppBridge",
+            @"[hl18-kb] ev=viewport-retained reason=missing-geometry");
     }
-    NSInteger orientation = [info[@"orientation"] intValue];
     NSInteger old = ABForcedOrientation;
     if (orientation > 0) {
         ABForcedOrientation = orientation;
