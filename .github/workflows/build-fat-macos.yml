@@ -123,12 +123,12 @@ jobs:
           fi
           echo "All required component binaries are FAT (arm64 + arm64e)."
 
-      - name: Verify HL10 surface, HL9 logo, HL8 diagnostics / DEB SHA256
+      - name: Verify HL11 native keyboard, HL10 surface, HL9 logo, HL8 diagnostics
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl10surface_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl11nativekb_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl10surface"
-          echo "HL9 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl11nativekb"
+          echo "HL11 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
           for dylib in OmniCarSplitScreen OmniCarAppBridge; do
@@ -140,10 +140,19 @@ jobs:
                 exit 1
               fi
               echo "HL8 marker PASS $dylib/$arch"
+              if [ "$dylib" = "OmniCarAppBridge" ]; then
+                for marker in '[hl11kb]' 'ev=native-fit' 'ev=restore' 'ev=reload-input-views'; do
+                  if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
+                    echo "::error::HL11 keyboard marker $marker missing in $dylib/$arch"
+                    exit 1
+                  fi
+                  echo "HL11 keyboard marker PASS $dylib/$arch: $marker"
+                done
+              fi
               if [ "$dylib" = "OmniCarSplitScreen" ]; then
                 for marker in 'native-logo-owned' 'fs-hidden-save' 'fs-hidden-restore' 'ev=picker-host' 'ev=shield-host'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
-                    echo "::error::HL9 logo marker $marker missing in $dylib/$arch"
+                    echo "::error::SplitScreen marker $marker missing in $dylib/$arch"
                     exit 1
                   fi
                   echo "HL9 logo marker PASS $dylib/$arch: $marker"
@@ -155,5 +164,5 @@ jobs:
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: omnicar-hl10surface-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl10surface_iphoneos-arm64.deb
+          name: omnicar-hl11nativekb-fat-deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl11nativekb_iphoneos-arm64.deb
