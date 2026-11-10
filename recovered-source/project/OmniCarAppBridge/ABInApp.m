@@ -148,6 +148,12 @@ static NSTimeInterval BWStateChangedAt = 0; // systemUptime of last change
 // the accepted snapshot's state differs from the standing BWState).
 static uint32_t BWStateSeq = 0;        // seq of latest accepted state packet
 static NSUInteger BWStateFlipCount = 0; // observed BWState value changes
+// [hl6-wake] the state BWState was latched FROM at the last flip
+// (BWStateUnknown until the first flip): BWGatePass scopes its
+// 250 ms transition guard by whether the flip INTO Hidden left a
+// state that can still move — a flip out of WAKING is unsettled,
+// a fade settle VISIBLE -> HIDDEN is final.
+static NSInteger BWPrevState = BWStateUnknown;
 static int      BWStateRxToken = 0;
 static int      BWAckRxToken   = 0;
 static int      BWQueryToken   = 0;
@@ -847,7 +853,7 @@ static void BWOnStatePacket(uint64_t raw) {
     // [hl2-g6] flip counter (G6 iii): count every observed BWState
     // value change, including the first accepted snapshot when it
     // differs from the standing Unknown.
-    if (st != BWState) BWStateFlipCount++;
+    if (st != BWState) { BWStateFlipCount++; BWPrevState = BWState; }
     BWStateSeq = p.seq;
     BWState = st;
     BWGen = p.gen;
@@ -1054,8 +1060,8 @@ static BOOL BWGatePass(UIEvent *event, NSString **reason) {
     // first-hand source it only disarmed the gate.)
     if (BWKb == BWKbActive)  { if (reason) *reason = @"kb"; return NO; }
     if (BWSuppressLocked) { if (reason) *reason = @"mixed"; return NO; }
-    // transitioning: a wake transaction still in flight, or the state
-    // flipped less than 0.25 s ago — never swallow on a moving state.
+    // transitioning: a wake transaction still in flight — never
+    // swallow on a moving state.
     if (BWEngine != BWEngIdle) return NO;
     // [hl4-C1] The 250 ms transition gate STAYS (GPT ruling
     // 533ac9a) but now names itself: in hl3 a sequence starting
@@ -1063,7 +1069,25 @@ static BOOL BWGatePass(UIEvent *event, NSString **reason) {
     // reason and was read as a generic fail-open, when in fact
     // this gate was working exactly as designed (never swallow
     // on a moving state).
-    if (BWNow() - BWStateChangedAt < 0.25) {
+    // [hl6-wake] GPT work order HL5->HL6 (d313f17), item 1c: the
+    // blanket form is REFUTED by a device specimen — hl5 session B
+    // 10:30:32.794 the owner settled VISIBLE -> HIDDEN by fade;
+    // the Began at +152 ms (stateAgeMs=151) failed open on this
+    // guard and the touch reached the app under a just-hidden UI,
+    // exactly the video symptom "tap right after hiding goes into
+    // the app; only later taps swallow". The guard is therefore
+    // SCOPED to unsettled transitions: a flip INTO Hidden out of
+    // WAKING means a wake transaction just collapsed and the state
+    // may still move — the guard keeps vetoing there, under its
+    // existing name. Every other road here is settled by the
+    // checks above: the HIDDEN latch is positively verified (an
+    // accepted packet), the state is not WAKING, touches are not
+    // mixed (BWSuppressLocked), kb is not ACTIVE and no wake
+    // transaction is in flight (BWEngine idle) — a fade settle
+    // VISIBLE -> HIDDEN is final, so the gate swallows at once.
+    // Fail-open behaviour of every other branch is unchanged.
+    if (BWPrevState == BWStateWaking &&
+        BWNow() - BWStateChangedAt < 0.25) {
         if (reason) *reason = @"transition-250ms";
         return NO;
     }
@@ -1308,6 +1332,51 @@ static void ABPinchRelayFire(NSUInteger gid) {
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    // [hl6-pinch-measure] GPT work order HL5->HL6 (d313f17), item
+    // 4 — MEASURE ONLY, at the recognizer itself. hl5 split the
+    // failure in two (29.29): one incarnation died at the
+    // BWKnown attach gate, another attached for ~386 s yet never
+    // formed a pair — and the log could not say whether the second
+    // finger ever REACHED this recognizer (every app-probe read
+    // B=1; the CarPlay side cannot prove a two-finger formation
+    // either, since one touch is mirrored through two windows).
+    // This line records, for every Began the recognizer is shown:
+    // its view/window (class + key + scene), how many touches this
+    // call carries, how many DISTINCT touch objects the event
+    // holds (pointer identities — never coordinates), the tracked
+    // count after this call's touches join, the recognizer state,
+    // its cancellation setting, whether any event touch lives on a
+    // different (overlay) window, and the event type. No decision
+    // reads any of it; the activation path below is untouched.
+    {
+        UIWindow *recWin = self.view.window;
+        NSMutableString *touchIDs = [NSMutableString string];
+        BOOL foreignWin = NO;
+        for (UITouch *t in event.allTouches) {
+            if (touchIDs.length) [touchIDs appendString:@","];
+            [touchIDs appendFormat:@"%p", (void *)t];
+            if (t.window && self.view.window && t.window != self.view.window)
+                foreignWin = YES;
+        }
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[pinch2] began view=%@ win=%@ winKey=%d scene=%@ "
+            @"touches=%lu distinct=%lu ids=[%@] tracked=%lu state=%ld "
+            @"cancels=%d foreignWin=%d evType=%ld evSubtype=%ld "
+            @"known=%d stateSeq=%lu",
+            self.view ? NSStringFromClass(self.view.class) : @"nil",
+            recWin ? NSStringFromClass(recWin.class) : @"nil",
+            recWin ? (int)recWin.isKeyWindow : -1,
+            recWin.windowScene ? NSStringFromClass(recWin.windowScene.class) : @"nil",
+            (unsigned long)touches.count,
+            (unsigned long)event.allTouches.count,
+            touchIDs,
+            (unsigned long)_abTouches.count,
+            (long)self.state,
+            self.cancelsTouchesInView ? 1 : 0,
+            foreignWin ? 1 : 0,
+            (long)event.type, (long)event.subtype,
+            BWKnown ? 1 : 0, (unsigned long)BWStateSeq]);
+    }
     for (UITouch *t in touches) {
         // Exactly-two-touches law, same window: this recognizer's
         // view IS the hosted window; a touch addressed anywhere
@@ -1642,6 +1711,7 @@ static void BWResetAll(void) {
     BWSuppressLocked = NO;
     BWFailOpenLatch = NO;
     BWState = BWStateUnknown;
+    BWPrevState = BWStateUnknown; // [hl6-wake] flip history dies too
     BWKnown = NO;
     BWActSessionVerified = NO; // WO fix-w W2-A: session closed
     BWGen = 0;

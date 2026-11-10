@@ -146,6 +146,40 @@ static NSString *SCPMeasureZIndex(UIView *view) {
         (unsigned long)view.superview.subviews.count];
 }
 
+// [hl6-picker] MEASURE ONLY: superview chain of a view as class
+// names from the view up to (and including) its window, joined
+// with " < " — the window-hierarchy evidence the hl6 round adds
+// for the picture-loss question (29.29: the video's lost picture
+// was a real pane teardown + re-host, but whether the SHEET's
+// window sits over the pane's scene surface while presented is
+// still unproven either way). "nil" for a nil view, the chain
+// just ends early when a view has no window yet.
+static NSString *SCPMeasureChainDesc(UIView *view) {
+    if (view == nil) return @"nil";
+    NSMutableArray<NSString *> *parts = [NSMutableArray array];
+    UIView *v = view;
+    while (v != nil) {
+        [parts addObject:NSStringFromClass(v.class)];
+        if ([v isKindOfClass:UIWindow.class]) break;
+        v = v.superview;
+    }
+    return [parts componentsJoinedByString:@" < "];
+}
+
+// [hl6-picker] GPT work order HL5->HL6 (d313f17), item 3: the
+// close-done measurement snapshot, pinned as SCALARS at sheet
+// CREATION (buildPickerSheetForPane:) and read back by
+// removePickerSheet. hl5 pinned by reading self.pickerSheetPane
+// inside removePickerSheet — but refreshPickerSheet nils
+// pickerSheetPane (Picker.m, the found==nil path) BEFORE calling
+// removePickerSheet, so 4/4 hl5 close-done lines read slot=-1 /
+// preBundle=null (29.29 source conviction). These statics belong
+// to the CURRENT sheet: a rebuild re-pins them for the new sheet,
+// and removePickerSheet copies them into locals at entry, so a
+// completion block always reports the sheet it closes.
+static NSInteger SCPickerMeasureSlot = -1;
+static NSString *SCPickerMeasurePreBundle = nil;
+
 // Bridged-phone-app predicate @0x101bc (name INFERRED; also called from
 // module A methods — dedupe at integration, A owns most call sites).
 static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
@@ -406,6 +440,12 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 // parented the header block to contentView with area-wide coordinates,
 // so the grid drew over it.) @0x334e4 (9,628 bytes).
 - (void)buildPickerSheetForPane:(SCPCarPane *)pane {
+    // [hl6-picker] pin the close-done snapshot NOW, tied to the
+    // sheet this call creates (see the statics' note above):
+    // refreshPickerSheet may nil pickerSheetPane before the sheet
+    // is removed, but it never touches these scalars.
+    SCPickerMeasureSlot = pane.slot;
+    SCPickerMeasurePreBundle = [pane.bundleID copy];
     UIView *oldSheet = self.pickerSheet;
     UIView *oldShield = self.pickerShield;
     UIWindow *window = [self trayWindowForParent:self.container];
@@ -839,6 +879,36 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
             measureWinBg,
             SCPViewMeasureDesc(measureWin.rootViewController.view)]);
     }
+    // [hl6-picker] MEASURE ONLY: surface evidence at presented —
+    // the window hierarchy of the sheet and the scene-surface state
+    // of the TARGET pane, so the next round can convict or clear
+    // the sheet's window for the picture loss without guessing
+    // (29.29 left compositing unproven: effectNil=1 does not prove
+    // the media surface under a level-1065 window still shows).
+    // Read-only, like every measure block in this method.
+    {
+        UIView *surfSheet = self.pickerSheet;
+        UIView *surfHost = pane.host;
+        UIView *surfVCView = pane.vc.view;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[picker-surface] phase=presented slot=%d "
+            @"sheetChain{%@} sheetWin=%@ sheetLevel=%.0f "
+            @"hostChain{%@} hostWin=%@ hostLevel=%.0f sameWin=%d "
+            @"vcViewInHost=%d vcViewSuper=%@ hostSubs=%lu",
+            pane.slot,
+            SCPMeasureChainDesc(surfSheet),
+            surfSheet.window ? NSStringFromClass(surfSheet.window.class) : @"nil",
+            surfSheet.window ? surfSheet.window.windowLevel : -1.0,
+            SCPMeasureChainDesc(surfHost),
+            surfHost.window ? NSStringFromClass(surfHost.window.class) : @"nil",
+            surfHost.window ? surfHost.window.windowLevel : -1.0,
+            (surfSheet.window && surfHost.window &&
+             surfSheet.window == surfHost.window) ? 1 : 0,
+            (surfVCView && surfVCView.superview == surfHost) ? 1 : 0,
+            surfVCView.superview ? NSStringFromClass(surfVCView.superview.class)
+                                 : @"nil",
+            (unsigned long)(surfHost ? surfHost.subviews.count : 0)]);
+    }
 }
 
 // CLOSED (was PARTIAL): the sheet's pane gets a 3 pt border on its picker
@@ -865,8 +935,16 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // attached, so the measurement itself was broken, not the pane.
     // The completion below re-resolves the CURRENT pane at the slot
     // that was targeted when the sheet presented.
-    NSInteger measureSlot = self.pickerSheetPane ? self.pickerSheetPane.slot : -1;
-    NSString *measurePreBundle = self.pickerSheetPane.bundleID;
+    // [hl6-picker] GPT work order HL5->HL6 (d313f17), item 3: the
+    // hl5 scalars were still read off self.pickerSheetPane HERE —
+    // and refreshPickerSheet nils pickerSheetPane on its
+    // found==nil path BEFORE calling this method, so hl5 read
+    // slot=-1 in 4/4 closes (29.29). The scalars now come from the
+    // snapshot pinned at sheet CREATION (buildPickerSheetForPane:),
+    // copied into locals at entry so the completion below reports
+    // the sheet THIS call closes even if a rebuild re-pins them.
+    NSInteger measureSlot = SCPickerMeasureSlot;
+    NSString *measurePreBundle = SCPickerMeasurePreBundle;
     BOOL overlay = self.pickerSheetOverlay;
     self.pickerSheet = nil;
     self.pickerShield = nil;
@@ -931,6 +1009,27 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                     (donePane.host && !donePane.host.hidden &&
                      donePane.host.alpha > 0 &&
                      donePane.host.superview != nil) ? 1 : 0]);
+                // [hl6-picker] MEASURE ONLY: the target pane's
+                // surface state AFTER the close callback — the
+                // closing counterpart of the [picker-surface]
+                // presented line, so a lost picture can be told
+                // apart from a lost structure next round.
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"[picker-surface] phase=close-done slot=%ld "
+                    @"hostChain{%@} hostWin=%@ vcViewInHost=%d "
+                    @"hostSubs=%lu sheetSuper=%@",
+                    (long)measureSlot,
+                    SCPMeasureChainDesc(donePane.host),
+                    donePane.host.window
+                        ? NSStringFromClass(donePane.host.window.class)
+                        : @"nil",
+                    (donePane.vc.view &&
+                     donePane.vc.view.superview == donePane.host) ? 1 : 0,
+                    (unsigned long)(donePane.host
+                        ? donePane.host.subviews.count : 0),
+                    sheet.superview
+                        ? NSStringFromClass(sheet.superview.class)
+                        : @"nil"]);
             }];
         if (!overlay && self.active)
             [self pushHostFramesLive:NO];
