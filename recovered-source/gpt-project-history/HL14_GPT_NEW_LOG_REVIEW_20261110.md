@@ -34,3 +34,19 @@
 - Trước thay đổi source: xác định đúng commit/nhánh chứa patch HL14 trong source Muse, so với `main` mới nhất; không copy bản project cũ đè src.
 - Đề nghị Muse ghi đúng kết quả test phần nhìn/khả năng chọn app + khung phím ngoài cùng trước khi build tiếp. Không dùng `reader BLIND` để kết luận ABSENT.
 - Tiếp tục khi có log/video mới, phân tách PID/session/binary; chứng minh hoàn chỉnh từng tầng và chỉ gọi DEVICE PASS khi Nguyen thực sự nghiệm thu trên artifact có Version/SHA.
+
+## 6. Bổ sung sau khi tìm đúng source nhánh HL14 — phân biệt lỗi tầng và lỗi geometry (2026-11-10)
+
+**Đính chính mục 4**: Nhánh code HL14 **có tồn tại** trên GitHub (không ở `main`). Đã truy lại trực tiếp `feature/hl14-kb-picker-floatfix-gpt-20261110`, tip `fb02c9bd78787087b32e7e8f23510e0398c9c858`, source commit `5d9280ee104ca462a6bbb32ab07c03059b8950d8`, và [hồ sơ HL14 trên nhánh](https://github.com/chuongnguyen89dn-ui/Omnicar/blob/feature/hl14-kb-picker-floatfix-gpt-20261110/recovered-source/gpt-project-history/HL14_KEYBOARD_PICKER_FLOATING_DOCK_20261110.md). CI 42805032435 / artifact 13757617599 đã có PASS build + ký trên chính artifact **theo hồ sơ và checklist**; DEB 1.0.3-hl14kbpicker SHA256 `9e6ac2175c9e383ee4974911e333b148457f3943b6ff636b641d21607c313e23`. Trạng thái DEVICE vẫn chưa được chính GPT chứng minh qua pixel/tap xe.
+
+### 6.1 Picker: root cause geometry SOURCE-CONFIRMED, không mặc định là sai UIWindow level
+- Source HL13 trước đó, `SCPCarSplit.m -hostFrameForPane:` có cổng `pane.picker` và `pickerSheet&&!pickerSheetOverlay` trả CGRectZero khi thực tế scene hosted vẫn live; native app đi đường khác. HL14 đã sửa trong `recovered-source/project/OmniCarSplitScreen/SCPCarSplit.m:2240–2268`: chỉ zero khi `pane.picker && !slotOccupied`; picker sheet inline transparent không zero frame; log `[hl14-picker]` nonzero.
+- Đối chiếu HL14 xe PID 43506: `[hl14-picker]` lúc 18:17:40.839 (và các lần tiếp) `live=1 picker=1 frame={{45,0},{396,360}}`. Đây là chứng cứ fix đã chạy ở tầng *khung AppBridge* khi picker mở; `[picker-surface] sameWin=1` chứng minh đã xử lý sai tầng cửa sổ cũ. **Chưa chứng minh** texture/pixel remote scene không bị đục/mất vì sheet hay compositing. Đừng tiếp tục vặn `windowLevel` hoặc opacity theo suy đoán.
+- `SCPCarSplit+Picker.m:247–340` tạo placeholder picker clear nếu `hasContent=1` và đưa lên trên host; sheet face clear `Picker.m:579–622` khi đè hosted. Cần kiểm stack hình thực ở xe *trong khi sheet đang mở*, không chỉ sau close.
+
+### 6.2 Keyboard: root cause relayout SOURCE-CONFIRMED, sai tầng cửa sổ chưa kết án
+- `recovered-source/project/OmniCarAppBridge/ABHostBMethods.m:716–731` HL14 post `ABPostOrientationToApp` sau `layoutPane` non-live resize. `ABInApp.m:1030–1250`: tìm `UIRemoteKeyboardWindow` trong app, `ABNativeKbFit` đổi window.frame + bounds + root, `setNeedsLayout/layoutIfNeeded`, đo `UIKeyboardLayoutStar`, retry 0.12/0.35/0.7s, restore khi hide/release. **Không can thiệp private keyplane ABI**, do chưa xác minh.
+- Log HL14 đã đo keyplane width thật 414->371/495, geometry-push/recv và restore. Đây là fix hợp đồng resize **đã chạy**, không chỉ sửa UI layer. Chưa có bằng chứng về vùng phím cuối, vị trí ancestor clip và khả năng chạm O/P/L; `applied` không thể thay verdict xe.
+- Nếu hình vẫn bị cắt, cần đo trực tiếp keyboard rendered key cap/last-key frame + conversion và hitTest theo từng UIWindow/ancestor, đồng thời so target key.window và remote keyboard/window layer; chỉ sửa `clipsToBounds`/container/keyplane sau khi chứng minh điểm cắt, không chuyển `windowLevel` bừa. 
+
+**Tình trạng lượt bổ sung:** SOURCE INSPECTED, LOG MATCHED; không có sửa mã, build/CI mới hay nghiệm thu xe bởi GPT. Cần giữ HL13 pinch và OwnID Dock.
