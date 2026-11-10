@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL8 BUILD PASS: unified diagnostic DEB 1.0.3-hl8diag
+- **Đã kiểm thật:** GitHub CI `ci-fat-test` commit `b3da0d5f0789811f97656cf812fbe4b0c717e994`, run [42770928625](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42770928625) SUCCESS. DEB `com.anlai.omnicar_1.0.3-hl8diag_iphoneos-arm64.deb`, SHA256 `7cf53472431a8284d9a3423ea89c7ab3b285d398ecd183e764537c8d7d272424`, FAT arm64+arm64e, 9/9 analyzer fixtures PASS, marker `[hl8diag]` trong hai architecture SplitScreen/AppBridge. Artifact `13742445377` [download ZIP](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42770928625/artifacts/13742445377).
+- **Chưa DEVICE PASS**: Nguyen chưa xác nhận 4 hành vi trên xe. Hai run compile FAIL trước đó chỉ là lịch sử; đã sửa theo log và chốt run thành công. Quy trình/test chi tiết/checkpoint tại [HL8_UNIFIED_DIAGNOSTIC_20261110.md](HL8_UNIFIED_DIAGNOSTIC_20261110.md). Không merge main, không Sileo. Các đoạn "chưa build" bên dưới là lịch sử *trước* run này.
+
 ## 2026-11-10 — HL8 unified diagnostic: một log cho pinch, Logo, keyboard, ratio
 - Đã source-commit nhánh `feature/hl7-touch-lifecycle-gpt-20261110`, base main `06fba113`; một log `[hl8diag]` nhiều mắt và script phân tích PID/BLIND. Toa kỹ thuật + file/hunk/rollback: [HL8_UNIFIED_DIAGNOSTIC_20261110.md](HL8_UNIFIED_DIAGNOSTIC_20261110.md).
 - Marker gồm touch begin/dispatch, native-wake gate/reason, pinch pair/fs-gate/fs-request/fs-result, logo callback/action, kb app/SpringBoard/CarPlay, relayout/frame send/receive/apply/settle. KHÔNG thu nội dung phím; kiểm pixel bàn phím và dock vẫn cần video.
