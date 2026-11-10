@@ -507,9 +507,23 @@ static void ABFrameBlock(NSNotification *note) {
     NSValue *hl8Prev = hl8PreviousFrame[hl8Bundle];
     BOOL hl8Changed = !hl8Prev ||
         !CGRectEqualToRect([hl8Prev CGRectValue], frame);
-    BOOL hl8ShouldLog = ABHL8Trace() && hl8Changed;
+    // [hl18-perf] Keep ALL host-frame packets, but avoid scheduling one
+    // extra 350 ms window scan per continuously changing drag sample.
+    // First live sample, periodic live samples, and every committed
+    // frame remain visible to the diagnostic.
+    static NSMutableDictionary *hl8LastTraceAt;
+    if (!hl8LastTraceAt)
+        hl8LastTraceAt = [NSMutableDictionary dictionary];
+    CFAbsoluteTime traceNow = CFAbsoluteTimeGetCurrent();
+    NSNumber *lastTrace = hl8LastTraceAt[hl8Bundle];
+    BOOL committed = ![u[@"live"] boolValue];
+    BOOL hl8ShouldLog = ABHL8Trace() &&
+        (hl8Changed || committed) &&
+        (committed || !lastTrace || traceNow - lastTrace.doubleValue >= 0.35);
     if (hl8Changed)
         hl8PreviousFrame[hl8Bundle] = [NSValue valueWithCGRect:frame];
+    if (hl8ShouldLog)
+        hl8LastTraceAt[hl8Bundle] = @(traceNow);
     if (hl8ShouldLog)
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
             @"[hl8diag] eye=layout ev=frame-recv seq=%llu bundle=%@ "
