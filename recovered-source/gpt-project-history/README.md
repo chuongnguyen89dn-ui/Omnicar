@@ -1,5 +1,11 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL8 một log toàn diện, bốn mắt lỗi (chờ compile/build/xe)
+- Theo yêu cầu mới của Nguyen, GPT đã bổ sung marker [hl8diag] vào chính OmniCar.log xuyên CarPlay/SpringBoard/app-hosted để chẩn đoán Logo, pinch toàn split, keyboard native/drawn, layout ratio; reader ngoài tầm phải ghi BLIND thay vì ABSENT.
+- Hồ sơ checkpoint và một vòng thử xe: [HL8_UNIFIED_DIAGNOSTIC_AND_HANDOFF_20261110.md](HL8_UNIFIED_DIAGNOSTIC_AND_HANDOFF_20261110.md). Bộ phân tích [analyze_hl8_unified_log.py](analyze_hl8_unified_log.py), [7 unit tests](test_analyze_hl8_unified_log.py).
+- Branch feature/hl7-touch-lifecycle-gpt-20261110 từ main log 06fba113; 3 commit behavior + 10 commit chẩn đoán/parser/test trước hồ sơ. **Chưa compile, chưa CI/DEB HL8, chưa xe, chưa merge main.**
+
+
 ## 2026-11-10 — GPT SOURCE-COMMITTED: HL6 Logo/Wake và pinch fullscreen TOÀN BỘ OmniCar
 - Nguyen giao GPT tự sửa Logo, Wake, pinch (đổi phân công ba mục trước Muse); Muse chỉ tích hợp và build/ký một DEB. **Pinch nghĩa là bung/thu cả split + ẩn/hiện dock, không phải zoom video YouTube.**
 - Hồ sơ: [HL6_GPT_SOURCE_FIX_LOGO_WAKE_FULLSPLIT_PINCH_20261110.md](HL6_GPT_SOURCE_FIX_LOGO_WAKE_FULLSPLIT_PINCH_20261110.md); nhánh code feature/hl6-logo-wake-gpt-20261110, base main 817bf872, ba commit 58539895 -> 0581d232 -> 234c5207, 10 path src/project, ahead=3/behind=0.
