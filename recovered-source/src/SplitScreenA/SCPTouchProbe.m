@@ -727,6 +727,14 @@ static void SCPHostPinchEvaluate(SCPCarSplit *split,
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                 @"[car-pinch] request dir=%@ state=%ld source=pair-began d0=%.1f",
                 expand ? @"expand" : @"restore", (long)state, (double)d]);
+            if (SCPHL8TraceEnabled())
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"[hl8diag] eye=pinch ev=fs-request pair=%llu "
+                     "dir=%@ adapter=%@ state=%ld",
+                    (unsigned long long)hl8RequestID,
+                    expand ? @"expand" : @"restore",
+                    adapter ? NSStringFromClass([(id)adapter class]) : @"nil",
+                    (long)state]);
             if (expand) {
                 [adapter requestExpandWithCompletion:^(BOOL applied) {
                     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
