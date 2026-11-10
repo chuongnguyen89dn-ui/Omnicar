@@ -430,8 +430,19 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
         return;
     }
     UIView *parent = self.tabParent;
-    UIWindow *window = [self trayWindowForParent:parent];
+    // [hl10surface] A picker embedded in the split's existing
+    // UIWindow must not resurrect the full-screen, level-1065 tray
+    // window just to host its outside-tap shield. A shield in that
+    // separate window can hide the live scene even with 2% paint.
+    BOOL inlinePicker = self.pickerSheet &&
+        !self.pickerSheetOverlay && self.pickerSheet.superview == parent &&
+        self.pickerSheet.window == parent.window &&
+        !self.tray && !self.ratioMenu && !self.dragGhost;
+    UIWindow *window = inlinePicker ? nil : [self trayWindowForParent:parent];
     UIView *host = window != nil ? (UIView *)window : parent;
+    if (inlinePicker)
+        OMCLogWrite(@"SplitScreen",
+            @"[hl10surface] ev=shield-host mode=same-window");
     SCPCTouchWatch *shield = (SCPCTouchWatch *)self.popupShield; // [phase2; backported to src in phase 3] property is UIView* in metadata; the stored view is the touch watch
     if (shield == nil || shield.superview != host) {
         [shield removeFromSuperview];

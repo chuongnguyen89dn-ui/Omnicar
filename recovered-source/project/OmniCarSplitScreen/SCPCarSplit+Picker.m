@@ -448,16 +448,53 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     SCPickerMeasurePreBundle = [pane.bundleID copy];
     UIView *oldSheet = self.pickerSheet;
     UIView *oldShield = self.pickerShield;
-    UIWindow *window = [self trayWindowForParent:self.container];
+    // [hl10surface] A separate level-1065 window may occlude the
+    // compositor backing a living native/hosted pane even if the
+    // sheet backdrop is fully transparent. When a real pane is
+    // attached and no other tray overlay owns the aux window,
+    // present this picker in the EXISTING split UIWindow instead.
+    // Keep the legacy tray-window path for empty sessions, active
+    // tray/ratio/drag overlays and cross-window transitions.
+    UIWindow *splitWindow = self.container.window;
+    BOOL inlineSheet = NO;
+    if (splitWindow && self.tabParent &&
+        self.tabParent.window == splitWindow &&
+        !CGRectIsEmpty(self.tabParent.bounds) &&
+        !self.tray && !self.ratioMenu && !self.dragGhost &&
+        (!self.trayWindow || self.trayWindow.hidden) &&
+        (!oldSheet || oldSheet.window == splitWindow)) {
+        for (SCPCarPane *candidate in [self allPanes]) {
+            if (candidate.vc && candidate.host.window == splitWindow &&
+                !candidate.host.hidden && candidate.host.alpha > 0.01) {
+                inlineSheet = YES;
+                break;
+            }
+        }
+    }
+    UIWindow *window = inlineSheet ? nil :
+        [self trayWindowForParent:self.container];
     CGRect area;
     UIView *host;
-    if (window != nil) {
+    if (inlineSheet) {
+        // Tab parent spans the split inside the SAME backing window;
+        // sheet and popup shield will share this coordinate space.
+        host = self.tabParent;
+        area = [self.container convertRect:self.container.bounds toView:host];
+    } else if (window != nil) {
         area = [self.container convertRect:self.container.bounds toView:nil];
         host = window;
     } else {
         area = self.container.bounds;
         host = self.container;
     }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[hl10surface] ev=picker-host mode=%@ slot=%d parentWindow=%@ "
+         "sheetHost=%@ trayVisible=%d oldSheetWindow=%@",
+        inlineSheet ? @"same-window" : @"legacy-window",
+        pane.slot, NSStringFromClass(splitWindow.class),
+        NSStringFromClass(host.class),
+        self.trayWindow ? (int)!self.trayWindow.hidden : 0,
+        oldSheet.window ? NSStringFromClass(oldSheet.window.class) : @"none"]);
     [oldShield removeFromSuperview];
 
     // App list: native CarPlay apps + chosen phone apps; the float pane
@@ -545,9 +582,10 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         for (SCPCarPane *p in [self allPanes]) {
             if (!p.host || !SCPIsBridgedPhoneApp(p.bundleID) ||
                 (!p.vc && ![self slotOccupied:p.slot])) continue;
-            CGRect paneRect = window
-                ? [p.host convertRect:p.host.bounds toView:nil]
-                : [p.host convertRect:p.host.bounds toView:self.container];
+            CGRect paneRect = inlineSheet
+                ? [p.host convertRect:p.host.bounds toView:host]
+                : (window ? [p.host convertRect:p.host.bounds toView:nil]
+                          : [p.host convertRect:p.host.bounds toView:self.container]);
             if (CGRectIntersectsRect(sheet.frame, paneRect))
                 hostedUnderSheet++;
         }
