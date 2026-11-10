@@ -56,7 +56,42 @@ class HL8ReaderTests(unittest.TestCase):
         self.assertEqual(d["pinch"]["fs_gate"], 1)
         self.assertEqual(d["pinch"]["requests"], 0)
         self.assertEqual(d["pinch"]["verdict"],
-                         "PAIR_FORMED_BUT_FULLSCREEN_GATE_NOT_REACHED")
+                         "PAIR_FORMED_FS_GATE_EVALUATED_NO_REQUEST")
+        self.assertEqual(d["pinch"]["gate_states"], {"0": 1})
+
+    def test_pair_without_gate_does_not_claim_gate_failure(self):
+        lines = [
+            self.row("23:01.000", "CarPlay", 401,
+                     "eye=car ev=installed schema=1"),
+            self.row("23:02.000", "CarPlay", 401,
+                     "eye=pinch ev=formed pair=1"),
+            self.row("23:02.020", "CarPlay", 401,
+                     "eye=pinch ev=drop pair=1 reason=popup-or-divider"),
+        ]
+        d = self.report(lines)
+        self.assertEqual(d["pinch"]["fs_gate"], 0)
+        self.assertEqual(d["pinch"]["requests"], 0)
+        self.assertEqual(d["pinch"]["drop_reasons"],
+                         {"popup-or-divider": 1})
+        self.assertEqual(d["pinch"]["verdict"],
+                         "PAIR_FORMED_NO_FS_GATE_EVALUATION")
+
+    def test_native_wake_reason_is_exposed(self):
+        lines = [
+            self.row("23:01.000", "CarPlay", 401,
+                     "eye=car ev=installed schema=1"),
+            self.row("23:02.000", "CarPlay", 401,
+                     "eye=native-wake ev=gate decision=forward "
+                     "reason=controls-visible"),
+            self.row("23:03.000", "CarPlay", 401,
+                     "eye=native-wake ev=gate decision=consume "
+                     "reason=first-tap-while-faded"),
+        ]
+        d = self.report(lines)
+        self.assertEqual(d["native_wake"]["forward_reasons"],
+                         {"controls-visible": 1})
+        self.assertEqual(d["native_wake"]["consume_reasons"],
+                         {"first-tap-while-faded": 1})
 
     def test_carplay_incarnations_not_merged(self):
         lines = [
