@@ -123,11 +123,11 @@ jobs:
           fi
           echo "All required component binaries are FAT (arm64 + arm64e)."
 
-      - name: Verify HL16 in-app settings, keyplane and picker plus HL8-HL14 regressions
+      - name: Verify HL17 picker and HL16b app integrity plus HL8-HL16 regressions
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl16bappinfo_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl17picker_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl16bappinfo"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl17picker"
           echo "HL16 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -150,7 +150,7 @@ jobs:
                 done
               fi
               if [ "$dylib" = "OmniCarSplitScreen" ]; then
-                for marker in '[hl13pinch]' 'route=inapp-hosted' 'hostedPinchFallback' '[hl14-picker]' '[hl15-picker]' '[hl16-picker] ev=sheet-geometry' '[hl16-picker] ev=owner-switch' '[hl14-floating]' 'dock-hosted-readback' 'dock-category' 'dock-readback' 'dock-tap' 'dock-lifecycle' 'active-model' 'dock-category-not-other'; do
+                for marker in '[hl13pinch]' 'route=inapp-hosted' 'hostedPinchFallback' '[hl14-picker]' '[hl15-picker]' '[hl16-picker] ev=sheet-geometry' '[hl16-picker] ev=owner-switch' '[hl17-picker] layout=' '[hl17-picker] ev=bar-dismiss action=ignore-picker-open' '[hl14-floating]' 'dock-hosted-readback' 'dock-category' 'dock-readback' 'dock-tap' 'dock-lifecycle' 'active-model' 'dock-category-not-other'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL12/HL13/HL14 marker $marker missing in $dylib/$arch"
                     exit 1
@@ -236,5 +236,5 @@ jobs:
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: omnicar-hl16bappinfo-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl16bappinfo_iphoneos-arm64.deb
+          name: omnicar-hl17picker-fat-deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl17picker_iphoneos-arm64.deb

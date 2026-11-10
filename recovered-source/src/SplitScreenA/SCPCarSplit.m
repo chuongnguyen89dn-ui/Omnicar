@@ -2711,7 +2711,17 @@ static void SCPStyleSoloIconView(UIImageView *view) {
 }
 
 // -bridgeOutsideTouched (0x257e8) VERIFIED: a single tail call.
-- (void)bridgeOutsideTouched { [self closePopups]; }
+- (void)bridgeOutsideTouched {
+    // [hl17-picker] Remote hosted-bar dismiss does not own the picker.
+    // It may arrive after the CarPlay chooser opens; keep the chooser
+    // until its own Cancel, selection, or CarPlay outside-tap action.
+    if (self.pickerSheet && self.pickerSheet.superview) {
+        OMCLogWrite(@"SplitScreen",
+            @"[hl17-picker] ev=bar-dismiss action=ignore-picker-open");
+        return;
+    }
+    [self closePopups];
+}
 
 // -bridgeHandleDrag: (0x28260) VERIFIED: route a bridge handle drag by
 // phase (0 begin, 1 move, 2 end, anything else cancel); the float pane
