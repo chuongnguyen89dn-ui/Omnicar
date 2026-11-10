@@ -578,18 +578,26 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // face unconditionally.
     BOOL faceClear = NO;
     NSInteger hostedUnderSheet = 0;
+    NSInteger liveUnderSheet = 0;
     if (![SCPPrefs pickerSheetClearFaceOff]) {
         for (SCPCarPane *p in [self allPanes]) {
-            if (!p.host || !SCPIsBridgedPhoneApp(p.bundleID) ||
+            BOOL bridged = SCPIsBridgedPhoneApp(p.bundleID);
+            // Legacy separate-window face rule remains hosted-only;
+            // same-window presentation also protects native CarPlay
+            // scenes against an opaque picker backing layer.
+            if (!p.host || (!inlineSheet && !bridged) ||
                 (!p.vc && ![self slotOccupied:p.slot])) continue;
             CGRect paneRect = inlineSheet
                 ? [p.host convertRect:p.host.bounds toView:host]
                 : (window ? [p.host convertRect:p.host.bounds toView:nil]
                           : [p.host convertRect:p.host.bounds toView:self.container]);
-            if (CGRectIntersectsRect(sheet.frame, paneRect))
-                hostedUnderSheet++;
+            if (CGRectIntersectsRect(sheet.frame, paneRect)) {
+                liveUnderSheet++;
+                if (bridged) hostedUnderSheet++;
+            }
         }
-        faceClear = hostedUnderSheet > 0;
+        faceClear = hostedUnderSheet > 0 ||
+                    (inlineSheet && liveUnderSheet > 0);
     }
     BOOL meshPresent = NO;
     if (faceClear) {
@@ -607,9 +615,10 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[picker-face] mode=%@ targetSlot=%d hostedUnderSheet=%ld "
-        @"effectClass=%@ effectNil=%d meshPresent=%d",
+        @"liveUnderSheet=%ld inline=%d effectClass=%@ effectNil=%d meshPresent=%d",
         faceClear ? @"clear" : @"original", pane.slot,
-        (long)hostedUnderSheet, NSStringFromClass(effectView.class),
+        (long)hostedUnderSheet, (long)liveUnderSheet, (int)inlineSheet,
+        NSStringFromClass(effectView.class),
         effectView.effect == nil ? 1 : 0, meshPresent ? 1 : 0]);
     effectView.layer.cornerRadius = 24;
     effectView.layer.cornerCurve = kCACornerCurveContinuous;
