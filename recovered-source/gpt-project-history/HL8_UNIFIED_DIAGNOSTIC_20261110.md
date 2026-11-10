@@ -48,3 +48,11 @@ Tất cả marker có tiền tố `[hl8diag]`, cùng OMCLogWrite/OmniCar.log s�
 - Native wake gate chạy trước `UIApplication sendEvent:` chỉ khi controls faded + pane native + nguồn chạm hợp lệ, các đường khác fail-open. Có rủi ro UIKit touch delivery qua đường khác/hit-test; chú ý counter false-swallow và Home corner.
 - Hoàn nguyên riêng instrumentation bằng revert các commit `diag(hl8)` khi tích hợp; giữ baseline HL7, không force main. Không sửa mô-đun Muse chỉ để làm log.
 - Bước tiếp theo: (a) chạy test syntax/fixtures trên máy build có checkout, (b) kiểm hunk source/project và compile 2 module; (c) Muse tích hợp/build/ký **một** HL8 DEB sau khi kiểm workflow/job để không chạy CI trùng; (d) Nguyen thử một phiên, upload log cùng video và hash; (e) GPT chạy analyzer, chốt nguyên nhân từng mắt rồi sửa theo bằng chứng. **Không tự tạo/khởi chạy job**.
+
+
+## Kiểm tra hiện trạng DEB và CI — 2026-11-10 13:34 ICT
+
+- **HL8 vẫn CHƯA CÓ DEB.** GitHub Actions `GET /repos/chuongnguyen89dn-ui/Omnicar/actions/runs?per_page=30` trả về run mới nhất `42759723768`, workflow `build-fat-macos`, branch `ci-fat-test`, HEAD `5e7e301e2bcc79b23f6f750e31f2917d3ba2d9cc`, chạy 2026-11-10 05:03:47–05:07:45 UTC, kết quả SUCCESS. Không có job `in_progress` tại lần kiểm (`total_count=0`).
+- Job `129642317955` có log đóng gói `com.anlai.omnicar_1.0.3-hl7_iphoneos-arm64.deb` (1,263,168 bytes), xác nhận FAT arm64 + arm64e trên các component, upload artifact `omnicar-fat-deb` ID `13736992542` (ZIP 1,263,717 bytes), URL https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42759723768/artifacts/13736992542. **Đây là HL7, không phải HL8; không dùng để nghiệm thu HL8.** SHA256 `d71f77ae...` được Actions ghi cho ZIP, KHÔNG phải hash DEB.
+- Docs HL8 commit `4b3dfdaf7090b989549db624b75a6204fd1e7885` có timestamp 2026-11-10 06:17:44 UTC, **muộn hơn** build HL7; file checkpoint còn ghi SOURCE-COMMITTED, chưa compile/CI/DEB; không có chứng cứ build HL8. Chưa dispatch job, chưa tải artifact để kiểm hash DEB, không có test xe.
+- **Điểm tiếp tục:** hợp nhất branch HL8 đã source-commit vào staging build mới theo hunk, chạy fixture/compile, bump control Version khác HL7 (ví dụ `1.0.3-hl8diag`), dispatch một lần trên branch CI đúng hợp đồng, xác minh DEB cuối (file/hash/version/FAT/marker), rồi gửi Nguyen. Không chọn nhầm artifact HL7 vừa phát hiện; không phát hành Sileo.
