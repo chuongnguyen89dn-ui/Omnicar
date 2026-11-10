@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL13 SOURCE-COMMITTED: sửa hồi quy zoom toàn bộ OmniCar
+- Nguyen xác nhận bản sau HL8 **hỏng zoom hai ngón** dù HL8 trước đó 33/33 chuyển đổi thành công. GPT truy vết: đường `carHostPinch` mặc định ép hosted packet `pm=0`, tắt in-app pair relay; khi CarPlay host không tạo cặp thì **không có fallback**. `SCPHostPinchPopupBusy` còn chặn cả normal bar vì dùng `popupOpen=panelOpen||anyBarVisible`. **Đã sửa source** HL13 trên branch `feature/hl13-pinch-regression-gpt-20261110` commit `b6f2411e7f1f45eb4ab0862571d7579e0347cf05`, 8 file src/project+control+workflow; một đường hosted in-app / host native+cả hai ô, không tạo split engine mới. CI run [42798481754](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42798481754) **đang chạy khi ghi mốc này**; DEVICE PENDING. [Hồ sơ đầy đủ](HL13_PINCH_REGRESSION_20261110.md).
+
 ## 2026-11-10 — HL12 BUILD PASS + SIGNED DEB VERIFIED (GPT tự đóng theo lệnh Nguyen)
 - **Đã đóng/ký/kiểm chính DEB**: `com.anlai.omnicar_1.0.3-hl12dock_iphoneos-arm64.deb` (1,288,178 bytes, SHA256 `eb5bedc061d5bf75b1a77d1e4ea3a2b95b9661cb6fee8bef76c7d94436b33c7e`); ZIP GitHub artifact ID **13752542228**, [CI run 42793083818](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42793083818) **SUCCESS**. Source build HEAD `fb14c99`, 9 fixture HL8 + FAT arm64/arm64e + ký/HL8–HL12 marker PASS; Python kiểm độc lập trên chính DEB xác nhận 6 dylib/12 slices và LC_CODE_SIGNATURE. **DEVICE PENDING**; Maps trắng khi gõ vẫn chưa sửa. Nguyen giao GPT tự đóng vòng này; không chờ Muse, không Sileo/merge main. [Biên bản và hash](HL12_HOME_DOCK_20261110.md).
 
