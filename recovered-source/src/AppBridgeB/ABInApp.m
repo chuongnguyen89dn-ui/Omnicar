@@ -1026,6 +1026,146 @@ static void BWOnAckPacket(uint64_t raw) {
         @"[do] bw ack seq=%lu", (unsigned long)p.seq]);
     if (BWEngine == BWEngFinished) BWCompleteTxn();
 }
+// [hl11kb] DuoFace QA179-181 taught the correct ownership boundary:
+// the native keyboard WINDOW and key window must be inspected INSIDE
+// the hosted app process. The remote host's SpringBoard window scan is
+// BLIND to that state. Resize only the app's own visible keyboard window,
+// never the app's full screen or keyplane, and restore on hide/release.
+static __weak UIWindow *ABNativeKbWindow;
+static CGRect ABNativeKbOriginal;
+static BOOL ABNativeKbHasOriginal = NO;
+static NSUInteger ABNativeKbEpoch = 0;
+
+static NSArray<UIWindow *> *ABNativeKbWindows(void) {
+    NSMutableArray<UIWindow *> *out = [NSMutableArray array];
+    for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) {
+        if (![scene isKindOfClass:UIWindowScene.class]) continue;
+        for (UIWindow *w in ((UIWindowScene *)scene).windows)
+            if (![out containsObject:w]) [out addObject:w];
+    }
+    // UIRemoteKeyboardWindow is often absent from scene.windows.
+    // DuoFace QA179 uses the guarded, process-local internal list.
+    @try {
+        SEL sel = NSSelectorFromString(
+            @"allWindowsIncludingInternalWindows:onlyVisibleWindows:");
+        if ([UIWindow respondsToSelector:sel]) {
+            NSArray *more = ((NSArray *(*)(id, SEL, BOOL, BOOL))objc_msgSend)(
+                (id)UIWindow.class, sel, YES, NO);
+            if ([more isKindOfClass:NSArray.class])
+                for (id item in more)
+                    if ([item isKindOfClass:UIWindow.class] &&
+                        ![out containsObject:item])
+                        [out addObject:item];
+        }
+    } @catch (__unused NSException *e) {}
+    return out;
+}
+
+static void ABNativeKbRestore(NSString *reason) {
+    if (!ABNativeKbHasOriginal) return;
+    UIWindow *window = ABNativeKbWindow;
+    if (window && !CGRectEqualToRect(window.frame, ABNativeKbOriginal))
+        window.frame = ABNativeKbOriginal;
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl11kb] ev=restore reason=%@ found=%d original=%@",
+        reason, (int)(window != nil), NSStringFromCGRect(ABNativeKbOriginal)]);
+    ABNativeKbWindow = nil;
+    ABNativeKbHasOriginal = NO;
+}
+
+static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
+    if (ABForcedOrientation < 1 || ABDrawnKb ||
+        !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
+        return NO;
+    NSArray<UIWindow *> *windows = ABNativeKbWindows();
+    UIWindow *key = nil, *keyboard = nil;
+    for (UIWindow *w in windows) {
+        NSString *cn = NSStringFromClass(w.class);
+        BOOL kb = [cn containsString:@"Keyboard"];
+        BOOL textEffects = [cn containsString:@"TextEffects"];
+        if (kb) {
+            if (!keyboard || (keyboard.hidden && !w.hidden))
+                keyboard = w;
+        } else if (!textEffects &&
+                   fabs(w.windowLevel - UIWindowLevelNormal) < 0.5 &&
+                   !w.hidden) {
+            if (w.isKeyWindow) key = w;
+            else if (!key) key = w;
+        }
+    }
+    // The key-window rect is the same authority DuoFace used. If
+    // phone and key-window sizes are equal, there is nothing to fit.
+    CGRect target = key ? key.frame : CGRectNull;
+    BOOL visibleKeyboard = keyboard && !keyboard.hidden &&
+        keyboard.alpha > 0.01 && !CGRectIsEmpty(keyboard.bounds);
+    NSString *reason = !keyboard ? @"no-kb-window" :
+                       !visibleKeyboard ? @"kb-not-visible" :
+                       !key ? @"no-key-window" :
+                       CGRectIsEmpty(target) ? @"empty-target" :
+                       CGRectEqualToRect(keyboard.frame, target)
+                           ? @"already-fit" : @"applied";
+    if (visibleKeyboard && key && !CGRectIsEmpty(target)) {
+        if (ABNativeKbHasOriginal && keyboard != ABNativeKbWindow)
+            ABNativeKbRestore(@"window-replaced");
+        if (!CGRectEqualToRect(keyboard.frame, target)) {
+            if (!ABNativeKbHasOriginal) {
+                ABNativeKbWindow = keyboard;
+                ABNativeKbOriginal = keyboard.frame;
+                ABNativeKbHasOriginal = YES;
+            }
+            keyboard.frame = target;
+        }
+    }
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl11kb] ev=native-fit when=%@ try=%ld result=%@ "
+         "windows=%lu key=%@ keyFrame=%@ kb=%@ kbFrame=%@ "
+         "kbHidden=%d screen=%@ focus=1",
+        when, (long)attempt, reason, (unsigned long)windows.count,
+        key ? NSStringFromClass(key.class) : @"none",
+        key ? NSStringFromCGRect(key.frame) : @"nil",
+        keyboard ? NSStringFromClass(keyboard.class) : @"none",
+        keyboard ? NSStringFromCGRect(keyboard.frame) : @"nil",
+        keyboard ? (int)keyboard.hidden : -1,
+        NSStringFromCGRect(UIScreen.mainScreen.bounds)]);
+    return visibleKeyboard && key != nil && !CGRectIsEmpty(target);
+}
+
+static void ABNativeKbBegin(NSString *why) {
+    if (ABForcedOrientation < 1 || ABDrawnKb ||
+        !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
+        return;
+    NSUInteger epoch = ++ABNativeKbEpoch;
+    if (ABNativeKbFit(why, 0)) return;
+    for (NSUInteger n = 1; n <= 3; n++) {
+        NSTimeInterval delay = n == 1 ? 0.3 : (n == 2 ? 0.6 : 1.2);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                     (int64_t)(delay * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (epoch != ABNativeKbEpoch || ABForcedOrientation < 1 ||
+                !ABCurrentResponder ||
+                ![ABCurrentResponder isFirstResponder]) return;
+            BOOL found = ABNativeKbFit(@"retry", (NSInteger)n);
+            if (!found && n == 1 &&
+                [ABCurrentResponder respondsToSelector:@selector(reloadInputViews)]) {
+                // One bounded native UIKit re-evaluation when a valid
+                // responder exists but no keyboard window materialized.
+                [ABCurrentResponder reloadInputViews];
+                OMCLogWrite(@"AppBridge",
+                    @"[hl11kb] ev=reload-input-views reason=no-kb-window");
+            }
+        });
+    }
+}
+
+static void ABNativeKbWindowVisible(NSNotification *note) {
+    if (ABForcedOrientation < 1 || ABDrawnKb) return;
+    id obj = note.object;
+    if (![obj isKindOfClass:UIWindow.class] ||
+        ![NSStringFromClass([obj class]) containsString:@"Keyboard"])
+        return;
+    ABNativeKbFit(@"window-visible", 0);
+}
+
 // ---- keyboard guard: auxiliary notification evidence (§5.5) ----
 // A show/change-frame counts as "visible" evidence ONLY with a real
 // on-screen frame (origin.y in (0, screen height)); parked frames are
@@ -1735,7 +1875,20 @@ static void BWInstallBridgeWake(void) {
     [nc addObserverForName:UIKeyboardDidChangeFrameNotification object:nil
                      queue:mq usingBlock:^(NSNotification *n) { BWKbFrameNote(n); }];
     [nc addObserverForName:UIKeyboardWillHideNotification object:nil
-                     queue:mq usingBlock:^(NSNotification *n) { BWKbHideNote(n); }];
+                     queue:mq usingBlock:^(NSNotification *n) {
+        BWKbHideNote(n);
+        ++ABNativeKbEpoch;
+        ABNativeKbRestore(@"will-hide");
+    }];
+    [nc addObserverForName:UIKeyboardDidShowNotification object:nil
+                     queue:mq usingBlock:^(NSNotification *n) {
+        (void)n;
+        ABNativeKbBegin(@"did-show");
+    }];
+    [nc addObserverForName:UIWindowDidBecomeVisibleNotification object:nil
+                     queue:mq usingBlock:^(NSNotification *n) {
+        ABNativeKbWindowVisible(n);
+    }];
     // [ytz5-k5] kbstate reporter heartbeat (1 s): posts only while
     // the identity lives (BWKnown + BWKbReporterLive) — see
     // BWKbHeartbeatTick. The timer is never invalidated; BWResetAll
@@ -2461,7 +2614,10 @@ static void ABOrientationBlock(NSNotification *note) {
         ABAppOrientation = 0;
         ABDeviceFake = [info[@"device"] intValue];
     } else {
-        // Host released the app: drop the car keyboard first.
+        // Host released the app: restore keyboard geometry before
+        // resigning, and invalidate any delayed native-fit attempts.
+        ++ABNativeKbEpoch;
+        ABNativeKbRestore(@"host-release");
         if (ABCurrentResponder) [ABCurrentResponder resignFirstResponder];
         ABForcedOrientation = orientation;
         ABAppOrientation = 0;
@@ -2650,6 +2806,7 @@ static void ABResponderBecame(id responder) {
     if (ABForcedOrientation < 1) return;
     ABCurrentResponder = responder;
     ABHL8Focus(@"focus-became", responder);
+    if (!ABDrawnKb) ABNativeKbBegin(@"focus-became");
     // [hl3] marker eye 2 of 3: a responder became first responder
     // under the gate currently cached (native, hard-locked).
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
@@ -2668,6 +2825,8 @@ static void ABResponderBecame(id responder) {
 // sub_6D50 — after a successful resignFirstResponder.
 static void ABResponderResigned(id responder) {
     ABHL8Focus(@"focus-resigned", responder);
+    ++ABNativeKbEpoch;
+    ABNativeKbRestore(@"focus-resigned");
     ABRestoreBlankInputView(responder);
     if (ABCurrentResponder == responder) {
         ABCurrentResponder = nil;
