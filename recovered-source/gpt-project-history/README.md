@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL12 SOURCE-COMMITTED: OmniCar Home có, Dock chưa nhận active
+- Nguyen xác nhận phiên xe HL11 15:33–15:38: icon Home xuất hiện, tap mở đúng panel; **Dock trái thiếu icon OmniCar**. TikTok keyboard window 238×300 có pixel, nhưng Maps có lúc trắng khi gõ nên UI **CHƯA ĐẠT**. Log trực tiếp CarPlay PID 41737 15:37 chỉ chứng minh Home route, không chứng minh Dock.
+- GPT thêm đồng bộ AppHistory/active Dock/refresh + Dock tap vào panel sẵn có, category OwnID=Other bảo vệ Maps và observer lifecycle, **6 file src/project**, nhánh `feature/hl12-home-dock-gpt-20261110` commit `7f24fa79b538690f7d2e0ff7d336d7f7cb87e832`, nền HL11 `1722cfe`. Đối xứng code và review tĩnh đạt; **CHƯA BUILD HL12/CHƯA DEVICE PASS**. Muse vẫn tích hợp/ký **một DEB**, không CI/merge/Sileo do GPT. Hồ sơ: [HL12_HOME_DOCK_20261110.md](HL12_HOME_DOCK_20261110.md).
+
 ## 2026-11-10 — HL11 BUILD PASS: native keyboard, native Logo, picker same-window
 - **CI thật:** `ci-fat-test` HEAD `5f7d4a0`, [run 42781775810](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42781775810) SUCCESS. FAT arm64/arm64e, 9/9 analyzer fixtures và HL8→HL11 binary markers PASS. **DEB đã tải về, giải nén và kiểm độc lập**: `com.anlai.omnicar_1.0.3-hl11nativekb_iphoneos-arm64.deb`, 1,284,808 bytes, SHA256 `6d6211bd56c9d3cc688e430d533fd9f3d628b63e73ec99e89eb691b465297952`; ZIP artifact `13746456934` [lấy tại đây](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42781775810/artifacts/13746456934).
 - **Chưa nghiệm thu xe:** chỉ pinch đã DEVICE PASS từ HL8. Bàn phím native học từ DuoFace QA179–181, Logo native HL9, picker HL10 đều **PENDING** trên xe. Không gọi build xanh là pixel PASS. Chưa merge main, chưa Sileo. Checkpoint đầy đủ [HL11_DUOFACE_KEYBOARD_INTEGRATION_20261110.md](HL11_DUOFACE_KEYBOARD_INTEGRATION_20261110.md); dòng "CI đang chạy" dưới đây là lịch sử trước khi build hoàn tất.
