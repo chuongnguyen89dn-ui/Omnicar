@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL14: keyboard reflow/picker content/selected Dock/retire overlay, signed DEB
+- Nguyen yêu cầu lấy **DEB DuoNavi gốc** làm tham chiếu; đã tìm archive/ho-so, binary gốc chưa giải nén trực tiếp do connector UTF-8-only; không giả nhận đã disasm. **Đã sửa source** 12 path nhánh `feature/hl14-kb-picker-floatfix-gpt-20261110`, commit `5d9280ee`: kênh orientation cũ phát ở commit resize, app refit keyboard + keyplane width probe, picker không zero frame hosted, bỏ SCPCButton nổi, ghi Dock history app injected khi ready; không đụng pinch HL13/Own Dock. **CI FAT 42805032435 SUCCESS**, DEB `1.0.3-hl14kbpicker` 1.293.058 bytes SHA256 `9e6ac2175c9e383ee4974911e333b148457f3943b6ff636b641d21607c313e23`, artifact `13757617599`; kiểm độc lập 6 dylib/12 signed slices PASS. **DEVICE PENDING**. [Bản ghi và cổng nghiệm thu](HL14_KEYBOARD_PICKER_FLOATING_DOCK_20261110.md); [script kiểm DEB](verify_hl14_deb.py).
+
 ## 2026-11-10 — HL13 SIGNED DEB VERIFIED: sửa hồi quy pinch, chờ xe
 - **Đã build/ký/kiểm độc lập:** `com.anlai.omnicar_1.0.3-hl13pinch_iphoneos-arm64.deb` (1,288,846 bytes, SHA256 `955abef92cf19600ae4c88a818d0e47d3b015fe189862da0dd83552d7c14afaf`), artifact GitHub **13754819007**, [CI 42798481754](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42798481754) **SUCCESS**, build source `b6f2411`. FAT arm64/arm64e, 6 dylib/12 ký Mach-O slices, 9 fixture và marker HL8–HL13 PASS; verifier độc lập [verify_hl13_deb.py](verify_hl13_deb.py). Thay đổi chỉ reroute pinch hosted → app relay, native/cross → CarPlay host, bỏ normal bar khỏi modal gate. **DEVICE PENDING**, không tuyên bố zoom đã thành công; Maps trắng khi gõ còn mở. [Hồ sơ nguồn/log/artifact](HL13_PINCH_REGRESSION_20261110.md).
 
