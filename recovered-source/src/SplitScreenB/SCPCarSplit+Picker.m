@@ -549,14 +549,17 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     }
 
     double areaW = area.size.width, areaH = area.size.height;
+    // [hl17-picker] Maps pane is 198pt: never compress a 90pt miniature
+    // map/caption sidebar AND a 62pt app grid into a 172pt sheet.
+    // Narrow panes use a header + paged grid without the sidebar.
+    BOOL compactPicker = paneLocalSheet && areaW < 280.0;
     // [hl16-picker] Keep app list and 150pt legacy side column outside
     // compact mode only. A live pane gets an adaptive side column and
     // 1..N icon columns with horizontal pagination, inside its own width.
-    double sideW = paneLocalSheet
-        ? (areaW <= 225.0 ? 90.0 : MIN(132.0, MAX(90.0, areaW * 0.28)))
-        : 150.0;
+    double sideW = compactPicker ? 0.0 :
+        (paneLocalSheet ? MIN(132.0, MAX(90.0, areaW * 0.28)) : 150.0);
     double availableW = paneLocalSheet ? MAX(82.0, areaW - 12.0) : areaW;
-    if (paneLocalSheet && availableW < 182.0)
+    if (paneLocalSheet && availableW < 182.0 && !compactPicker)
         sideW = MAX(0.0, availableW - 82.0);
     double scale = (areaW > 1) ? MIN(96.0 * areaH / areaW, 56.0) : 40.0;
 
@@ -570,18 +573,21 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                                @"Tap an app to open it here");
     UIFont *titleFont = [UIFont systemFontOfSize:12.5 weight:UIFontWeightSemibold];
     UIFont *subFont = [UIFont systemFontOfSize:10.5];
-    double titleTextW = paneLocalSheet ? MAX(52.0, sideW - 12.0) : 134.0;
+    double titleTextW = compactPicker ? MAX(72.0, availableW - 54.0) :
+        (paneLocalSheet ? MAX(52.0, sideW - 12.0) : 134.0);
     double titleH = ceil([title boundingRectWithSize:CGSizeMake(titleTextW, 50)
         options:1 attributes:@{NSFontAttributeName: titleFont} context:nil].size.height);
     double subH = ceil([subtitle boundingRectWithSize:CGSizeMake(titleTextW, 40)
         options:1 attributes:@{NSFontAttributeName: subFont} context:nil].size.height);
 
     NSInteger count = (NSInteger)apps.count;
-    NSInteger t = paneLocalSheet
-        ? (NSInteger)floor(MAX(0.0, availableW - sideW - 20.0) / 62.0)
-        : (NSInteger)((areaW - 194.0) / 62.0);
+    NSInteger t = compactPicker
+        ? (NSInteger)floor(MAX(0.0, availableW - 20.0) / 62.0)
+        : (paneLocalSheet
+           ? (NSInteger)floor(MAX(0.0, availableW - sideW - 20.0) / 62.0)
+           : (NSInteger)((areaW - 194.0) / 62.0));
     NSInteger cols = MAX(MIN(MAX(count, 4), t), 1);
-    NSInteger rowsAvail = MAX((NSInteger)((areaH - 44.0) / 56.0), 1);
+    NSInteger rowsAvail = MAX((NSInteger)((areaH - (compactPicker ? 80.0 : 44.0)) / 56.0), 1);
     NSInteger totalRows = (count + cols - 1) / cols;
     NSInteger rowsPerPage = MAX(MIN(rowsAvail, totalRows), 1);
     NSInteger perPage = rowsPerPage * cols;
@@ -590,13 +596,16 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     double extra = (pages > 1) ? 16.0 : 0.0;   // VERIFIED (CLOSURE-2): parent
                                                // @0x33ad8 fcsel gt on (pages > 1)
                                                // picks 16.0; disasm/rem2_buildPickerSheetForPane.txt
-    double headerH = scale + 10.0 + 8.0 + titleH + 2.0 + subH;
-    double sheetH = MIN(areaH - 16.0, MAX(headerH + 66.0, gridH + 14.0 + extra));
+    double headerH = compactPicker ? 46.0 :
+        (scale + 10.0 + 8.0 + titleH + 2.0 + subH);
+    double sheetH = compactPicker
+        ? MIN(areaH - 8.0, MAX(118.0, gridH + 66.0 + extra))
+        : MIN(areaH - 16.0, MAX(headerH + 66.0, gridH + 14.0 + extra));
     // Constant CORRECTED 18.0 -> 14.0 (remediation, 2026-11-08): the
     // binary's grid candidate is gridH + 8.0 + extra + 6.0 (fadd chain
     // @0x33afc/@0x33b04/@0x33b0c in disasm/rem2_buildPickerSheetForPane.txt),
     // i.e. gridH + 14.0 + extra, before the MAX at @0x33b10-0x33b14.
-    double sheetW = cols * 62.0 + 20.0;
+    double sheetW = compactPicker ? availableW : cols * 62.0 + 20.0;
     if (paneLocalSheet && sheetW + sideW > availableW)
         sideW = MAX(0.0, availableW - sheetW);
     double totalW = sheetW + sideW;
@@ -609,7 +618,12 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         pane.slot, pane.bundleID ?: @"none", NSStringFromCGRect(area),
         NSStringFromCGRect(sheet.frame), (long)cols, sideW,
         CGRectContainsRect(CGRectInset(area, -0.5, -0.5), sheet.frame) ? 1 : 0]);
-    sheet.layer.cornerRadius = 24;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[hl17-picker] layout=%@ slot=%d paneW=%.1f sheetW=%.1f "
+         "gridCols=%ld sideW=%.1f",
+        compactPicker ? @"compact" : @"regular", pane.slot,
+        areaW, totalW, (long)cols, sideW]);
+    sheet.layer.cornerRadius = compactPicker ? 16 : 24;
     sheet.layer.cornerCurve = kCACornerCurveContinuous;
     sheet.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
                                               green:0.39215686274509803
@@ -692,6 +706,24 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // slot-map wrapper (@0x34114), title, subtitle (@0x3429c) and cancel
     // (@0x3445c) are ALL children of this column in column-local
     // coordinates; the scroll grid stays in contentView (@0x344e8).
+    if (compactPicker) {
+        UILabel *heading = [[UILabel alloc] initWithFrame:
+            CGRectMake(9, 6, MAX(48.0, sheetW - 49.0), 34)];
+        heading.text = title;
+        heading.font = [UIFont systemFontOfSize:12 weight:UIFontWeightSemibold];
+        heading.textColor = SCPColorSecondary();
+        heading.numberOfLines = 2;
+        heading.adjustsFontSizeToFitWidth = YES;
+        heading.minimumScaleFactor = 0.8;
+        [contentView addSubview:heading];
+        UIView *close = SCPWrapRatioChip(SCPSymbolImage(@"close", 14.0),
+                                         self, @selector(pickerCancel:));
+        close.bounds = CGRectMake(0, 0, 30, 30);
+        close.layer.cornerRadius = 15;
+        SCPStyleChip(close, 15.0);
+        close.center = CGPointMake(sheetW - 19, 21);
+        [contentView addSubview:close];
+    } else {
     UIView *sideColumn = [[UIView alloc] initWithFrame:
         CGRectMake(sheetW, 0, sideW, sheetH)];
     sideColumn.backgroundColor = UIColor.clearColor;
@@ -771,8 +803,11 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     cancel.center = CGPointMake(MAX(20, sideW - 20), 22);
     [sideColumn addSubview:cancel];
 
+    }
+
     UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(
-        0, MAX((sheetH - gridH - extra) * 0.5, 8), sheetW, gridH)];
+        0, compactPicker ? 44.0 :
+            MAX((sheetH - gridH - extra) * 0.5, 8), sheetW, gridH)];
     scrollView.pagingEnabled = YES;
     scrollView.showsHorizontalScrollIndicator = NO;
     scrollView.showsVerticalScrollIndicator = NO;
@@ -786,6 +821,8 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         if (p.bundleID != nil) [used addObject:p.bundleID];
     [used addObjectsFromArray:self.pending.allKeys];
 
+    CGFloat iconLeading = compactPicker
+        ? MAX(10.0, (sheetW - cols * 62.0) * 0.5) : 10.0;
     NSMutableArray *shownCells = [NSMutableArray array];
     for (NSInteger i = 0; i < count; i++) {
         NSDictionary *info = apps[i];
@@ -794,7 +831,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         NSInteger page = i / perPage;
         NSInteger rowInPage = (i % perPage) / cols;
         SCPCButton *cell = [SCPCButton buttonWithType:0];
-        cell.frame = CGRectMake(page * sheetW + 10 + col * 62,
+        cell.frame = CGRectMake(page * sheetW + iconLeading + col * 62,
                                 rowInPage * 56 + 2, 62, 56);
         cell.accessibilityIdentifier = bundleID;
         [cell addTarget:self action:@selector(pickerAppTapped:)
@@ -846,7 +883,8 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 
     if (pages >= 2) {
         UIView *dotsView = [[UIView alloc] initWithFrame:
-            CGRectMake(0, gridH + extra, sheetW, 16)];
+            CGRectMake(0, compactPicker ? (gridH + 48.0) : (gridH + extra),
+                       sheetW, 16)];
         dotsView.userInteractionEnabled = NO;
         for (NSInteger i = 0; i < pages; i++) {
             UIView *dot = [[UIView alloc] init];
@@ -905,7 +943,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         cell.alpha = 0;
         cell.transform = CGAffineTransformMakeTranslation(0, 16);
         NSInteger row = (NSInteger)((cell.frame.origin.y - 2) / 56);
-        NSInteger col = (NSInteger)((cell.frame.origin.x - 10) / 62);
+        NSInteger col = (NSInteger)((cell.frame.origin.x - iconLeading) / 62);
         [UIView animateWithDuration:0.45
                               delay:row * 0.05 + col * 0.012
              usingSpringWithDamping:0.85

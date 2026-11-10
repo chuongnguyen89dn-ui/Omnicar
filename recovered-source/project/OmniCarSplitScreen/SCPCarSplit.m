@@ -2711,7 +2711,20 @@ static void SCPStyleSoloIconView(UIImageView *view) {
 }
 
 // -bridgeOutsideTouched (0x257e8) VERIFIED: a single tail call.
-- (void)bridgeOutsideTouched { [self closePopups]; }
+- (void)bridgeOutsideTouched {
+    // [hl17-picker] The app-host bar dismiss channel has NO bundle/slot
+    // payload and may arrive after the user opened the chooser.
+    // HL16b: YouTube picker presented 22:39:13.205 and this channel
+    // closed it at 22:39:13.496, leaving no usable menu.
+    // Do not allow hosted bar dismissal to close the CarPlay chooser.
+    // CarPlay's popup shield, X button, and app selection still close it.
+    if (self.pickerSheet && self.pickerSheet.superview) {
+        OMCLogWrite(@"SplitScreen",
+            @"[hl17-picker] ev=bar-dismiss action=ignore-picker-open");
+        return;
+    }
+    [self closePopups];
+}
 
 // -bridgeHandleDrag: (0x28260) VERIFIED: route a bridge handle drag by
 // phase (0 begin, 1 move, 2 end, anything else cancel); the float pane
