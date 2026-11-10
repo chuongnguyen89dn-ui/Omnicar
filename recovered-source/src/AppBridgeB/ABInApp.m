@@ -2662,6 +2662,12 @@ static void ABOrientationBlock(NSNotification *note) {
         for (id link in [ABDisplayLinks() allObjects]) ABApplyFPSLimit(link);
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"gioi han khung hinh: %d", (int)fps]);
     }
+    // [hl11kb] Refit an ALREADY-OBSERVED native keyboard window when
+    // the host posts its updated frame/orientation after divider drag.
+    // Do not create a keyboard merely because layout changed.
+    if (orientation >= 1 && !ABDrawnKb && ABNativeKbHasOriginal &&
+        ABCurrentResponder && [ABCurrentResponder isFirstResponder])
+        ABNativeKbFit(@"host-frame", 0);
 }
 
 // ===========================================================================
