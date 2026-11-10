@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL11: native keyboard repaired from DuoFace source; one integrated build
+- **Đã sửa source:** `ABInApp.m` app-side keyboard native in YouTube/TikTok: tìm `UIRemoteKeyboardWindow` trong chính process theo DuoFace QA179–181, căn vào key window của app, retry có giới hạn, restore khi rời session, đo theo PID mà không log chữ gõ. Commit `faa7502`, `b77e4b4`. Hai cây `src/project` cùng byte.
+- **Một DEB tích hợp:** nền HL9 Logo + HL10 picker same-window + HL11 keyboard, Version `1.0.3-hl11nativekb`; CI branch `ci-fat-test` tip `5f7d4a0`, [run 42781775810](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42781775810) đã khởi động. **Chưa DEVICE PASS** cho keyboard/native Logo/picker; pinch HL8 giữ nguyên. Không trộn build trước.
+- Bằng chứng DuoFace/OmniCar, hunk, đường hoàn nguyên và phép thử: [HL11_DUOFACE_KEYBOARD_INTEGRATION_20261110.md](HL11_DUOFACE_KEYBOARD_INTEGRATION_20261110.md). Không tự merge/publish.
+
 ## 2026-11-10 — HL10 SOURCE-COMMITTED: picker/scene same-window; keyboard native pending
 - **Đã sửa source** trên nhánh `feature/hl10-surface-owner-gpt-20261110` từ HL9 CI `c5a437f`: `1f7ee4a` đưa picker và touch shield vào chung UIWindow của split thay vì cửa sổ phụ cấp 1065 khi có pane live; `42c9bb3` giữ mặt sheet trong suốt cả khi đè pane native, đúng hệ tọa độ; `4e35190` stage Version `1.0.3-hl10surface`, CI kiểm markers để tránh dùng DEB cũ. **Không build, không device pass; không đổi pinch**. [Checkpoint và đường rollback](HL10_PICKER_SAME_WINDOW_20261110.md).
 - **Vẫn mở:** Logo trên app CarPlay native chạm vào app (HL8 chứng minh, HL9 mới BUILD PASS chưa xe), keyboard **CarPlay hệ thống** ở app không hỗ trợ bị native-lock + không có pixel (không tự bật custom `ABKeyboard`), và mất hình khi đổi app phải xác minh bằng video/test HL10. Không tự coi `hostStructPresent=1` là có hình. Không phát hành Sileo.
