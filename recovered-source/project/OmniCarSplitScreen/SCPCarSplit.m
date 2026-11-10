@@ -2964,15 +2964,29 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
     UIView *sup = btn.superview;
     CGRect frameWin = btn ? (btn.window ? [btn convertRect:btn.bounds toView:nil] : btn.frame)
                           : CGRectZero;
+    // [hl6-logo] the button's REAL hit rect in window coordinates:
+    // SCPCButton's pointInside: expands the touch area symmetrically
+    // to a 44x44 pt minimum (SCPCButton.m), so the effective target
+    // is bigger than the visible 34x34 frame — log what a finger
+    // actually hits, not what the eye sees.
+    CGRect hitWin = CGRectZero;
+    if (btn) {
+        CGRect hb = btn.bounds;
+        double hw = MAX(hb.size.width, 44.0), hh = MAX(hb.size.height, 44.0);
+        CGRect hit = CGRectMake(hb.origin.x - (hw - hb.size.width) / 2,
+                                hb.origin.y - (hh - hb.size.height) / 2, hw, hh);
+        hitWin = btn.window ? [btn convertRect:hit toView:nil] : hit;
+    }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[GPT-F] Dock gate %@ gate=%@ active=%d featureEnabled=%d root=%@ parent=%@ homeSuper=%@ frameWin=%@ hidden=%d alpha=%.2f launcherWhere=%@",
+        @"[GPT-F] Dock gate %@ gate=%@ active=%d featureEnabled=%d root=%@ parent=%@ homeSuper=%@ frameWin=%@ hidden=%d alpha=%.2f launcherWhere=%@ hitWin=%@",
         event, gate, (int)owner.active, (int)[SCPPrefs enabled],
         root ? NSStringFromClass([root class]) : @"nil",
         parent ? NSStringFromClass(parent.class) : @"nil",
         sup ? NSStringFromClass(sup.class) : @"nil",
         NSStringFromCGRect(frameWin),
         btn ? (int)btn.hidden : 0, btn ? btn.alpha : 0.0,
-        owner.launcherWhere ?: @"nil"]);
+        owner.launcherWhere ?: @"nil",
+        NSStringFromCGRect(hitWin)]);
 }
 
 // -refreshHomeButton (0x41be4) VERIFIED: maintain the Split Screen
@@ -3029,20 +3043,55 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
     // did. Placement — never host identity — decides: the
     // dockHostForRect: fallback can return the parent view, which is
     // also the corner's host.
+    // [hl6-logo] GPT work order HL5->HL6 (d313f17): placement is the
+    // WRONG discriminator while a split session is live — the hl5
+    // build still lost the button on device (29.29): created at the
+    // corner with frameWin {{-17,-17},{34,34}} (off-screen), then the
+    // placement string flipped to the dock ("tren nut Home,30pt")
+    // as dashboard geometry settled and the button was retired even
+    // though active=1; session B never got it back. The split recall
+    // button and the supplementary dock button are told apart by
+    // ROLE (owner/location), not by the placement string and not by
+    // host pointer: while self.active, THIS button is the split's
+    // own recall button — it is built with the corner treatment and
+    // hosted on tabParent whatever the transient placement says, and
+    // it is never retired. Outside a split session the same button
+    // is the supplementary launcher the Home grid tile replaces, so
+    // it is retired under the grid-only gate and no custom dock
+    // button is recreated while inactive. Geometry discipline: the
+    // computed centre is clamped into the parent's usable bounds
+    // (and the dock strip's size/shift answers are discarded in
+    // split role — the button does not sit in the strip), so the
+    // button is never created off-screen while geometry settles;
+    // later refresh passes re-centre it onto the true corner.
     BOOL gridOnly = SCPHomeLauncherEnabled();
     CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
     double size = 34.0;
     double shift = 0.0;
     CGPoint center = [self launcherCenterInParent:parent size:&size shift:&shift];
-    BOOL bare = [self.launcherWhere hasPrefix:@"goc"];
-    if (gridOnly && !bare) {
+    BOOL splitRole = self.active;
+    BOOL bare = [self.launcherWhere hasPrefix:@"goc"] || splitRole;
+    if (gridOnly && !splitRole) {
         if (self.homeButton) {
-            SCPFDockGateLog(self, @"removed", @"native Home grid only (dock placement)", root, parent);
+            SCPFDockGateLog(self, @"removed", @"native Home grid only (outside split)", root, parent);
             [self removeHomeButton];
             OMCLogWrite(@"SplitScreen",
                 @"[home-launch] custom Dock button detached; native Home tile retained");
         }
         if ([self atHomeScreen]) [self installIconLongPress];
+        return;
+    }
+    if (splitRole) { size = 34.0; shift = 0.0; }
+    CGRect usable = parent.bounds;
+    if (usable.size.width >= size && usable.size.height >= size) {
+        center.x = MIN(MAX(center.x, CGRectGetMinX(usable) + size / 2),
+                       CGRectGetMaxX(usable) - size / 2);
+        center.y = MIN(MAX(center.y, CGRectGetMinY(usable) + size / 2),
+                       CGRectGetMaxY(usable) - size / 2);
+    } else {
+        // Geometry not usable yet: never create the button
+        // off-screen. Leave any existing button exactly as it is;
+        // the next layout pass retries with settled geometry.
         return;
     }
     UIView *btnSuper = self.homeButton.superview;

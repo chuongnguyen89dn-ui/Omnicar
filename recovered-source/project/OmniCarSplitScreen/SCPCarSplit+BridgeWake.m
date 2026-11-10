@@ -47,6 +47,12 @@ static uint8_t        bwHandledCount[10];     //   seqs handled per slot
 static uint8_t        bwHandledIdx[10];       //   (count guards seq 0)
 static uint64_t       bwEmitSigBySlot[10];    // last emitted packet shape
 static __weak SCPCarPane *bwPaneBySlot[10];   // last pane object per slot
+// [hl6-revoke] last INACTIVE revoke actually emitted per slot
+// (departed bundle + the generation it was emitted under): the
+// swap-revoke dedupe record — one logical departure emits once,
+// even if the assignment funnel is re-entered for it.
+static NSString      *bwRevokedBundleBySlot[10];
+static uint32_t       bwRevokedGenBySlot[10];
 
 static uint16_t       bwStateSeq;             // owner state seq (§3.2)
 static uint16_t       bwStateOnlySeq;         // [hl4-C2] STATE-only
@@ -477,13 +483,45 @@ static void BWEmitDrain(void) {
     // swap emits only for the old bundle (its own hash gates
     // acceptance at the receiver); a first assignment (no previous
     // bundle) emits nothing.
-    if (!bundle.length && bwPrevBundle.length) {
+    // [hl6-revoke] GPT work order HL5->HL6 (d313f17), item 2: the
+    // hl5 condition below fired ONLY when the new bundle was empty,
+    // so a direct swap A->B never revoked A (source conviction in
+    // the work order; hl5 log: swapped-out apps leaked noassignment
+    // reports and died minutes later by query-unanswered, while a
+    // true nil teardown stopped the app in ~3 ms). The departure
+    // test is now what it always claimed to be: a previous bundle
+    // that DIFFERS from the new one — nil included — is a teardown
+    // for the old app, even though the pane lives on. Same bundle
+    // re-assigned (rehost) is NOT a departure: no revoke, the gen
+    // step alone carries the identity forward. Ordering: the new
+    // bundle's already-QUEUED state emissions are pulled from the
+    // emit queue BEFORE the revoke posts, so nothing queued can
+    // overwrite the shared state word ahead of the departed app's
+    // callback; the recompute that follows every assignment change
+    // re-queues the new bundle's state (its signature moved with
+    // the gen) and the spaced drain posts it at least one 30 ms
+    // beat later. Dedupe: one (slot, bundle, gen) departure emits
+    // once (bwRevokedBundleBySlot/bwRevokedGenBySlot), and only the
+    // bundle read at THIS entry can be revoked — never a stale one.
+    BOOL bwDeparted = bwPrevBundle.length &&
+                      ![bwPrevBundle isEqualToString:bundle ?: @""];
+    if (bwDeparted &&
+        !([bwPrevBundle isEqualToString:bwRevokedBundleBySlot[slot]] &&
+          bwRevokedGenBySlot[slot] == bwGenBySlot[slot])) {
+        if (bundle.length && bwEmitQueue)
+            [bwEmitQueue removeObject:bundle];
         BWEmitStatePacket(bwPrevBundle, bwGenBySlot[slot],
                           BWStateInactive, NO, bwWakeMode, bwPinchMode);
+        bwRevokedBundleBySlot[slot] = [bwPrevBundle copy];
+        bwRevokedGenBySlot[slot] = bwGenBySlot[slot];
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
             @"[wake1] bw revoke slot=%ld bundle=%@ gen=%u "
-            @"(assignment removed; INACTIVE emitted)",
-            (long)slot, bwPrevBundle, bwGenBySlot[slot]]);
+            @"(%@; INACTIVE emitted)",
+            (long)slot, bwPrevBundle, bwGenBySlot[slot],
+            bundle.length
+                ? [NSString stringWithFormat:@"assignment swapped to %@",
+                                             bundle]
+                : @"assignment removed"]);
     }
 }
 

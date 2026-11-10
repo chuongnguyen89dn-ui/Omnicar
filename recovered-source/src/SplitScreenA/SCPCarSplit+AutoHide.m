@@ -111,6 +111,21 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
         AHPaintView(divider.knob, YES);
     }
     AHPaintView(self.homeButton, YES);
+    // [hl6-logo-hit] GPT work order HL5->HL6, item 1b: painting is
+    // layer.opacity ONLY — UIKit hit-testing ignores layer.opacity,
+    // so the faded (invisible) logo button kept eating every touch
+    // in its expanded 44x44 target at the pane's top-right corner
+    // (video hl5: the YouTube card X and the Maps "Nha hang" row
+    // opened the panel instead of the app). Gate the BUTTON's hit
+    // target on the faded state: faded = not hittable. Only the
+    // home button is gated — handles/divider/knob keep the original
+    // paint-only behaviour — and ahRestoreAllPainted /
+    // ahApplyCurrentStateToView: keep the flag in sync, so a
+    // revealed button is tappable again in the same beat it becomes
+    // visible. Consequence, intended: homeButtonTapped's
+    // AHSourceHome activity note now fires only for taps on the
+    // VISIBLE logo; waking a faded pane is the wake gate's job.
+    self.homeButton.userInteractionEnabled = NO;
 }
 
 // Restore EVERY view this TU has ever painted in this session —
@@ -120,6 +135,9 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
 - (void)ahRestoreAllPainted {
     for (UIView *view in ahPaintedViews.allObjects)
         AHPaintView(view, NO);
+    // [hl6-logo-hit] counterpart of the fade gate in
+    // ahPaintCurrentSet: a restored logo is hittable again.
+    if (self.homeButton) self.homeButton.userInteractionEnabled = YES;
 }
 
 #pragma mark - Timer
@@ -230,6 +248,26 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[autohide] reveal-applied reason=%s views=%lu",
         AHRevealName(reason), (unsigned long)restored]);
+    // [hl6-logo] GPT work order HL5->HL6, item 1a (measurement):
+    // prove the recall button's presence at reveal time with its
+    // REAL hit rect (44x44 minimum target, see SCPFDockGateLog)
+    // and its superview — hl5's reveals logged only views=4 and
+    // could not prove the logo was among them.
+    UIButton *logoBtn = self.homeButton;
+    if (logoBtn) {
+        CGRect hb = logoBtn.bounds;
+        double hw = MAX(hb.size.width, 44.0), hh = MAX(hb.size.height, 44.0);
+        CGRect hit = CGRectMake(hb.origin.x - (hw - hb.size.width) / 2,
+                                hb.origin.y - (hh - hb.size.height) / 2, hw, hh);
+        CGRect hitWin = logoBtn.window ? [logoBtn convertRect:hit toView:nil] : hit;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[logo-hit] reveal hitWin=%@ super=%@ interaction=%d",
+            NSStringFromCGRect(hitWin),
+            logoBtn.superview ? NSStringFromClass(logoBtn.superview.class) : @"nil",
+            (int)logoBtn.userInteractionEnabled]);
+    } else {
+        OMCLogWrite(@"SplitScreen", @"[logo-hit] reveal homeButton=nil");
+    }
 }
 
 #pragma mark - Public interface
@@ -441,6 +479,12 @@ static void AHPaintView(UIView *_Nullable view, BOOL faded) {
         return;
     }
     AHPaintView(view, ahFadedState);
+    // [hl6-logo-hit] a (re)built logo takes the CURRENT hit gate
+    // with its fade state (refreshHomeButton calls this on every
+    // rebuild): faded session -> button not hittable, visible
+    // session -> hittable.
+    if (view == self.homeButton)
+        view.userInteractionEnabled = !ahFadedState;
 }
 
 @end
