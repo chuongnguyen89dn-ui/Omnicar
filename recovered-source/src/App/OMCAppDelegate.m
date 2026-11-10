@@ -11,41 +11,43 @@
 @implementation OMCAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)options {
-    // [hl15-settings] iPhone OmniCar icon opens the actual preference pages.
+    // [hl16-settings] OmniCar iPhone app owns the actual preference controllers.
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     [self openSettings];
     [self.window makeKeyAndVisible];
     return YES;
 }
 
-// Load the SAME installed preference bundle: all Root/Feature plists,
-// page classes, localisations and existing com.anlai.omnicar keys survive.
+// [hl16-settings] The preference UI is linked into OmniCar.app, including
+// OMCRootListController and every feature page. Do not load a dylib from
+// /var/jb/Library/PreferenceBundles: sandbox/loader failure on HL15 device.
 - (UIViewController *)omcEmbeddedSettingsController {
-    NSArray<NSString *> *paths = @[
-        @"/var/jb/Library/PreferenceBundles/OmniCarPrefs.bundle",
-        @"/Library/PreferenceBundles/OmniCarPrefs.bundle"
-    ];
-    for (NSString *path in paths) {
-        NSBundle *bundle = [NSBundle bundleWithPath:path];
-        if (!bundle || ![bundle load]) continue;
-        Class cls = NSClassFromString(@"OMCRootListController");
-        if (!cls || ![cls isSubclassOfClass:PSListController.class]) continue;
-        @try {
-            PSListController *page = [[cls alloc] init];
-            page.bundle = bundle;
-            PSRootController *nav =
-                [[PSRootController alloc] initWithTitle:@"OmniCar"
-                                            identifier:@"com.anlai.omnicar"];
-            if (!page || !nav) continue;
-            [nav pushController:page];
-            if (nav.viewControllers.count == 0) continue;
-            nav.navigationBar.prefersLargeTitles = NO;
-            NSLog(@"[hl15-settings] loaded %@ pages=%lu", path,
-                  (unsigned long)nav.viewControllers.count);
-            return nav;
-        } @catch (NSException *e) {
-            NSLog(@"[hl15-settings] load exception=%@", e.reason);
+    Class cls = NSClassFromString(@"OMCRootListController");
+    NSBundle *bundle = [NSBundle mainBundle];
+    if (!cls || ![cls isSubclassOfClass:PSListController.class]) {
+        NSLog(@"[hl16-settings] gate=root-class-failed class=%@ bundle=%@",
+              cls, bundle.bundlePath);
+        return nil;
+    }
+    @try {
+        PSListController *page = [[cls alloc] init];
+        page.bundle = bundle;
+        PSRootController *nav =
+            [[PSRootController alloc] initWithTitle:@"OmniCar"
+                                        identifier:@"com.anlai.omnicar"];
+        if (!page || !nav) {
+            NSLog(@"[hl16-settings] gate=nav-init-failed");
+            return nil;
         }
+        [nav pushController:page];
+        NSLog(@"[hl16-settings] gate=embedded-root pages=%lu bundle=%@ root=%@",
+              (unsigned long)nav.viewControllers.count,
+              bundle.bundlePath,
+              [bundle pathForResource:@"Root" ofType:@"plist"] ?: @"missing");
+        return nav;
+    } @catch (NSException *exception) {
+        NSLog(@"[hl16-settings] gate=exception reason=%@",
+              exception.reason);
     }
     return nil;
 }
@@ -78,7 +80,7 @@
         [retry.topAnchor constraintEqualToAnchor:message.bottomAnchor constant:20],
         [retry.centerXAnchor constraintEqualToAnchor:safe.centerXAnchor]
     ]];
-    NSLog(@"[hl15-settings] bundle missing or unavailable");
+    NSLog(@"[hl16-settings] embedded controllers/resources unavailable");
     return vc;
 }
 
