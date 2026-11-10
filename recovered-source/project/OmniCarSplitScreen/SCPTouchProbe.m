@@ -994,7 +994,16 @@ static BOOL SCPNativeWakePreflight(UIEvent *event) {
         return YES;
     }
 
-    if (all.count > 2 || SCPProbePopupSub(split)) return NO;
+    NSString *hl8Popup = SCPProbePopupSub(split);
+    if (all.count > 2 || hl8Popup) {
+        if (SCPHL8TraceEnabled())
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl8diag] eye=native-wake ev=gate decision=forward "
+                 "reason=%@ contacts=%lu",
+                hl8Popup ?: @"three-contacts",
+                (unsigned long)all.count]);
+        return NO;
+    }
     CGPoint representative = CGPointZero;
     BOOL haveRepresentative = NO;
     NSString *bundle = nil;
@@ -1008,8 +1017,17 @@ static BOOL SCPNativeWakePreflight(UIEvent *event) {
                 isEqualToString:@"DBStatusBarWindow"]) return NO;
         SCPCarPane *pane = nil;
         SCPProbePaneAtScreenPoint(pt, screen, &pane);
-        if (!pane || !pane.bundleID.length || SCPVCIsHosted(pane.vc))
+        if (!pane || !pane.bundleID.length || SCPVCIsHosted(pane.vc)) {
+            if (SCPHL8TraceEnabled())
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"[hl8diag] eye=native-wake ev=gate decision=forward "
+                     "reason=%@ pane=%ld bundle=%@ faded=%d",
+                    !pane || !pane.bundleID.length ? @"no-live-pane"
+                        : @"hosted-pane-owned-by-app",
+                    (long)(pane ? pane.slot : -1),
+                    pane.bundleID ?: @"none", (int)[split ahFaded]]);
             return NO; // supported/native pane ONLY
+        }
         if (haveRepresentative &&
             (SCPHostPinchDistance(pt, representative) > 12.0 ||
              ![bundle isEqualToString:pane.bundleID]))
@@ -1026,7 +1044,14 @@ static BOOL SCPNativeWakePreflight(UIEvent *event) {
         event.timestamp - sNativeWakeLastDownAt <= 0.080 &&
         SCPHostPinchDistance(representative, sNativeWakeLastDownPt) <= 12.0 &&
         [bundle isEqualToString:sNativeWakeLastBundle];
-    if (!faded && !mirrored) return NO;
+    if (!faded && !mirrored) {
+        if (SCPHL8TraceEnabled())
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl8diag] eye=native-wake ev=gate decision=forward "
+                 "reason=controls-visible bundle=%@ position=%@",
+                bundle, NSStringFromCGPoint(representative)]);
+        return NO;
+    }
     for (UITouch *touch in all)
         [captured addObject:[NSValue valueWithPointer:(const void *)touch]];
     if (faded) {
@@ -1043,6 +1068,12 @@ static BOOL SCPNativeWakePreflight(UIEvent *event) {
         mirrored ? @"mirror" : @"first", bundle,
         NSStringFromCGPoint(representative), (unsigned long)all.count,
         (int)[split ahFaded]]);
+    if (SCPHL8TraceEnabled())
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl8diag] eye=native-wake ev=gate decision=consume "
+             "reason=%@ bundle=%@ contacts=%lu",
+            mirrored ? @"mirror-of-first" : @"first-tap-while-faded",
+            bundle, (unsigned long)all.count]);
     return YES;
 }
 
