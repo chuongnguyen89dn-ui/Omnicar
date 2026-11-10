@@ -461,6 +461,27 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
             return ok;
         };
         shield.outside = ^(CGPoint point) {
+            // [hl16-picker] The shield is observational (hitTest returns
+            // nil), but its outside callback used to tear down the
+            // YouTube chooser synchronously on a tap INSIDE Maps. That
+            // interrupts Maps' native 'Change app' button route.
+            SCPCarPane *sheetOwner = weakSelf.pickerSheetPane;
+            if (weakSelf.pickerSheet && sheetOwner) {
+                for (SCPCarPane *other in weakSelf.allPanes) {
+                    if (other == sheetOwner || !other.vc || !other.view.window)
+                        continue;
+                    CGRect otherRect = [other.view convertRect:other.view.bounds
+                                                       toView:nil];
+                    if (CGRectContainsPoint(otherRect, point)) {
+                        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                            @"[hl16-picker] ev=other-pane-touch owner=%d "
+                             "hitSlot=%d touch=%@ action=forward",
+                            sheetOwner.slot, other.slot,
+                            NSStringFromCGPoint(point)]);
+                        return;
+                    }
+                }
+            }
             [weakSelf closePopups];
         };
         [host addSubview:shield];

@@ -251,6 +251,13 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     if (pane == nil) return;
     [self removePickerFromPane:pane];
     [self removeLoaderFromPane:pane animated:NO];
+    // [hl16-picker] Explicit per-tap owner. A previous YouTube sheet must
+    // never become the owner of a new Maps (native slot 1) selection.
+    NSInteger previousOwner = self.pickerSheetPane ? self.pickerSheetPane.slot : -1;
+    self.pickerSheetPane = pane;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[hl16-picker] ev=owner-switch requested=%d old=%ld new=%d bundle=%@",
+        slot, (long)previousOwner, pane.slot, pane.bundleID ?: @"none"]);
     BOOL hasContent = (pane.vc != nil || [self slotOccupied:pane.slot]);
     UIView *picker = [[UIView alloc] init];
     pane.picker = picker;                                                // @0x315c0 setPicker: precedes styling
@@ -433,9 +440,15 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         [self removePickerSheet];
         return;
     }
-    NSString *key = [NSString stringWithFormat:@"%p/%d/%lu/%d/%@",
+    // [hl16-picker] Rebuild after divider/ratio changes. Container size
+    // can be unchanged while the selected pane becomes 198 pt wide.
+    CGRect targetFrame = found.view
+        ? [found.view convertRect:found.view.bounds toView:self.container]
+        : [self frameForSlot:found.slot];
+    NSString *key = [NSString stringWithFormat:@"%p/%d/%lu/%d/%@/%@",
         (void *)found, found.slot, (unsigned long)panes.count,
-        (int)self.mainStack, NSStringFromCGSize(self.container.bounds.size)];
+        (int)self.mainStack, NSStringFromCGSize(self.container.bounds.size),
+        NSStringFromCGRect(targetFrame)];
     if (self.pickerSheet == nil || ![key isEqualToString:self.pickerSheetKey]) {
         [self buildPickerSheetForPane:found];
         self.pickerSheetKey = key;
@@ -500,6 +513,20 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         area = self.container.bounds;
         host = self.container;
     }
+    // [hl16-picker] A picker for pane 0 may NEVER extend into a live
+    // native Maps pane 1. The old 'area' was the full split 595x360;
+    // for a live or empty target pane use that pane's own bounds.
+    // Coordinates are converted into the actual presentation host.
+    BOOL paneLocalSheet = (pane != self.floatPane && pane.view != nil &&
+                           pane.view.window != nil);
+    if (paneLocalSheet) {
+        CGRect localArea = window
+            ? [pane.view convertRect:pane.view.bounds toView:nil]
+            : [pane.view convertRect:pane.view.bounds toView:host];
+        if (!CGRectIsEmpty(localArea) && localArea.size.width > 50 &&
+            localArea.size.height > 70) area = localArea;
+        else paneLocalSheet = NO;
+    }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[hl10surface] ev=picker-host mode=%@ slot=%d parentWindow=%@ "
          "sheetHost=%@ trayVisible=%d oldSheetWindow=%@",
@@ -522,6 +549,15 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     }
 
     double areaW = area.size.width, areaH = area.size.height;
+    // [hl16-picker] Keep app list and 150pt legacy side column outside
+    // compact mode only. A live pane gets an adaptive side column and
+    // 1..N icon columns with horizontal pagination, inside its own width.
+    double sideW = paneLocalSheet
+        ? (areaW <= 225.0 ? 90.0 : MIN(132.0, MAX(90.0, areaW * 0.28)))
+        : 150.0;
+    double availableW = paneLocalSheet ? MAX(82.0, areaW - 12.0) : areaW;
+    if (paneLocalSheet && availableW < 182.0)
+        sideW = MAX(0.0, availableW - 82.0);
     double scale = (areaW > 1) ? MIN(96.0 * areaH / areaW, 56.0) : 40.0;
 
     NSString *title = (pane != self.floatPane)
@@ -534,13 +570,16 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                                @"Tap an app to open it here");
     UIFont *titleFont = [UIFont systemFontOfSize:12.5 weight:UIFontWeightSemibold];
     UIFont *subFont = [UIFont systemFontOfSize:10.5];
-    double titleH = ceil([title boundingRectWithSize:CGSizeMake(134, 40)
+    double titleTextW = paneLocalSheet ? MAX(52.0, sideW - 12.0) : 134.0;
+    double titleH = ceil([title boundingRectWithSize:CGSizeMake(titleTextW, 50)
         options:1 attributes:@{NSFontAttributeName: titleFont} context:nil].size.height);
-    double subH = ceil([subtitle boundingRectWithSize:CGSizeMake(134, 30)
+    double subH = ceil([subtitle boundingRectWithSize:CGSizeMake(titleTextW, 40)
         options:1 attributes:@{NSFontAttributeName: subFont} context:nil].size.height);
 
     NSInteger count = (NSInteger)apps.count;
-    NSInteger t = (NSInteger)((areaW - 194.0) / 62.0);
+    NSInteger t = paneLocalSheet
+        ? (NSInteger)floor(MAX(0.0, availableW - sideW - 20.0) / 62.0)
+        : (NSInteger)((areaW - 194.0) / 62.0);
     NSInteger cols = MAX(MIN(MAX(count, 4), t), 1);
     NSInteger rowsAvail = MAX((NSInteger)((areaH - 44.0) / 56.0), 1);
     NSInteger totalRows = (count + cols - 1) / cols;
@@ -558,10 +597,18 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // @0x33afc/@0x33b04/@0x33b0c in disasm/rem2_buildPickerSheetForPane.txt),
     // i.e. gridH + 14.0 + extra, before the MAX at @0x33b10-0x33b14.
     double sheetW = cols * 62.0 + 20.0;
-
+    if (paneLocalSheet && sheetW + sideW > availableW)
+        sideW = MAX(0.0, availableW - sheetW);
+    double totalW = sheetW + sideW;
     UIView *sheet = [[UIView alloc] initWithFrame:CGRectMake(
-        CGRectGetMidX(area) - (sheetW + 150.0) * 0.5,
-        CGRectGetMidY(area) - sheetH * 0.5, sheetW + 150.0, sheetH)];
+        CGRectGetMidX(area) - totalW * 0.5,
+        CGRectGetMidY(area) - sheetH * 0.5, totalW, sheetH)];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[hl16-picker] ev=sheet-geometry owner=%d pane=%@ area=%@ "
+         "sheet=%@ cols=%ld sideW=%.1f inPane=%d",
+        pane.slot, pane.bundleID ?: @"none", NSStringFromCGRect(area),
+        NSStringFromCGRect(sheet.frame), (long)cols, sideW,
+        CGRectContainsRect(CGRectInset(area, -0.5, -0.5), sheet.frame) ? 1 : 0]);
     sheet.layer.cornerRadius = 24;
     sheet.layer.cornerCurve = kCACornerCurveContinuous;
     sheet.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
@@ -646,7 +693,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // (@0x3445c) are ALL children of this column in column-local
     // coordinates; the scroll grid stays in contentView (@0x344e8).
     UIView *sideColumn = [[UIView alloc] initWithFrame:
-        CGRectMake(sheetW, 0, 150.0, sheetH)];
+        CGRectMake(sheetW, 0, sideW, sheetH)];
     sideColumn.backgroundColor = UIColor.clearColor;
     [contentView addSubview:sideColumn];
     CAGradientLayer *grad = [CAGradientLayer layer];
@@ -668,8 +715,9 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // (dump @0x33ff4-0x33ffc) and the vertical offset constant is 54.0
     // (dump @0x33fe8, bit pattern 0x404b000000000000), not 52.0.
     UIView *wrapper = [[UIView alloc] initWithFrame:CGRectMake(
-        (150.0 - mapW) * 0.5,
-        MAX((sheetH - 68.0 - headerH) * 0.5, 0) + 54.0, mapW, scale + 10.0)];
+        (sideW - MIN(mapW, MAX(sideW - 6.0, 0.0))) * 0.5,
+        MAX((sheetH - 68.0 - headerH) * 0.5, 0) + 54.0,
+        MIN(mapW, MAX(sideW - 6.0, 0.0)), scale + 10.0)];
     wrapper.backgroundColor = [UIColor colorWithWhite:1 alpha:0.35];
     wrapper.layer.cornerRadius = 12;
     wrapper.layer.cornerCurve = kCACornerCurveContinuous;
@@ -678,11 +726,18 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     [sideColumn addSubview:wrapper];
     if (map != nil) {
         map.frame = CGRectMake(5, 5, map.bounds.size.width, scale);
+        if (paneLocalSheet && map.bounds.size.width > wrapper.bounds.size.width - 10.0) {
+            CGFloat factor = MAX(0.1, (wrapper.bounds.size.width - 10.0) /
+                                         MAX(map.bounds.size.width, 1.0));
+            map.transform = CGAffineTransformMakeScale(factor, factor);
+            map.center = CGPointMake(wrapper.bounds.size.width * 0.5,
+                                     wrapper.bounds.size.height * 0.5);
+        }
         [wrapper addSubview:map];
     }
 
     UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(
-        8, CGRectGetMaxY(wrapper.frame) + 8, 134, titleH)];
+        6, CGRectGetMaxY(wrapper.frame) + 8, titleTextW, titleH)];
     titleLabel.text = title;
     titleLabel.font = titleFont;
     titleLabel.textColor = navy;
@@ -691,7 +746,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     [sideColumn addSubview:titleLabel];
 
     UILabel *subLabel = [[UILabel alloc] initWithFrame:CGRectMake(
-        8, CGRectGetMaxY(titleLabel.frame) + 2, 134, subH)];
+        6, CGRectGetMaxY(titleLabel.frame) + 2, titleTextW, subH)];
     subLabel.text = subtitle;
     subLabel.font = subFont;
     subLabel.textColor = SCPColorSecondary();
@@ -713,7 +768,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     SCPStyleChip(cancel, 16.0);
     cancel.tintColor = [UIColor colorWithRed:1.0 green:0.35294117647058826
                                         blue:0.37254901960784315 alpha:1.0];
-    cancel.center = CGPointMake(120, 30);
+    cancel.center = CGPointMake(MAX(20, sideW - 20), 22);
     [sideColumn addSubview:cancel];
 
     UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(
@@ -1227,6 +1282,10 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         if (pane == nil) pane = [self paneForView:sender];
         if (pane == nil) return;
         NSString *bundle = sender.accessibilityIdentifier;
+        OMCLogWrite(@"SplitScreen",
+            [NSString stringWithFormat:
+                @"[hl16-picker] ev=app-tap chosen=%@ owner=%d sender=%@",
+                bundle, pane.slot, NSStringFromClass(sender.class)]);
         OMCLogWrite(@"SplitScreen",
             [NSString stringWithFormat:@"CarSplit: chon %@ cho o %d",
                 bundle, pane.slot]);
