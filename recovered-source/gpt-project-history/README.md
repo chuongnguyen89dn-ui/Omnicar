@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL10 SOURCE-COMMITTED: picker/scene same-window; keyboard native pending
+- **Đã sửa source** trên nhánh `feature/hl10-surface-owner-gpt-20261110` từ HL9 CI `c5a437f`: `1f7ee4a` đưa picker và touch shield vào chung UIWindow của split thay vì cửa sổ phụ cấp 1065 khi có pane live; `42c9bb3` giữ mặt sheet trong suốt cả khi đè pane native, đúng hệ tọa độ; `4e35190` stage Version `1.0.3-hl10surface`, CI kiểm markers để tránh dùng DEB cũ. **Không build, không device pass; không đổi pinch**. [Checkpoint và đường rollback](HL10_PICKER_SAME_WINDOW_20261110.md).
+- **Vẫn mở:** Logo trên app CarPlay native chạm vào app (HL8 chứng minh, HL9 mới BUILD PASS chưa xe), keyboard **CarPlay hệ thống** ở app không hỗ trợ bị native-lock + không có pixel (không tự bật custom `ABKeyboard`), và mất hình khi đổi app phải xác minh bằng video/test HL10. Không tự coi `hostStructPresent=1` là có hình. Không phát hành Sileo.
+
 ## 2026-11-10 — HL9 SOURCE-COMMITTED: Logo native sau fullscreen, pinch HL8 giữ nguyên
 - Nguyen báo thử HL8: pinch **33/33 request/applied** (17 expand, 16 restore) đã hoạt động; Logo trên native Maps/Music/Calendar lọt chạm xuống app và YouTube/TikTok không có keyboard. Log mới upload `8b1f4b0`, CarPlay PID `41247` chạm đúng Logo `inLogo=1` nhưng `hidden=1`/forward; nguồn fullscreen assert hidden không hoàn nguyên. 
 - GPT trực tiếp sửa phần **Logo**, hai commit source `cc3269b` và `6833299`, nhánh `feature/hl9-logo-native-fs-gpt-20261110` từ HL8 CI `b3da0d5`, 4 file src/project: restore `homeButton.hidden` theo nút sau fullscreen, định tuyến duy nhất single Began đúng 44×44 Logo native tới controller sẵn có, chặn mirror, giữ nguyên pinch. Chưa DEVICE PASS. Điểm nối/từng hunk/rollback ở [HL9_NATIVE_LOGO_FS_RESTORE_20261110.md](HL9_NATIVE_LOGO_FS_RESTORE_20261110.md).
