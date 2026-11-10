@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-10 — HL12 BUILD PASS + SIGNED DEB VERIFIED (GPT tự đóng theo lệnh Nguyen)
+- **Đã đóng/ký/kiểm chính DEB**: `com.anlai.omnicar_1.0.3-hl12dock_iphoneos-arm64.deb` (1,288,178 bytes, SHA256 `eb5bedc061d5bf75b1a77d1e4ea3a2b95b9661cb6fee8bef76c7d94436b33c7e`); ZIP GitHub artifact ID **13752542228**, [CI run 42793083818](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42793083818) **SUCCESS**. Source build HEAD `fb14c99`, 9 fixture HL8 + FAT arm64/arm64e + ký/HL8–HL12 marker PASS; Python kiểm độc lập trên chính DEB xác nhận 6 dylib/12 slices và LC_CODE_SIGNATURE. **DEVICE PENDING**; Maps trắng khi gõ vẫn chưa sửa. Nguyen giao GPT tự đóng vòng này; không chờ Muse, không Sileo/merge main. [Biên bản và hash](HL12_HOME_DOCK_20261110.md).
+
 ## 2026-11-10 — HL12 SOURCE-COMMITTED: OmniCar Home có, Dock chưa nhận active
 - Nguyen xác nhận phiên xe HL11 15:33–15:38: icon Home xuất hiện, tap mở đúng panel; **Dock trái thiếu icon OmniCar**. TikTok keyboard window 238×300 có pixel, nhưng Maps có lúc trắng khi gõ nên UI **CHƯA ĐẠT**. Log trực tiếp CarPlay PID 41737 15:37 chỉ chứng minh Home route, không chứng minh Dock.
 - GPT thêm đồng bộ AppHistory/active Dock/refresh + Dock tap vào panel sẵn có, category OwnID=Other bảo vệ Maps và observer lifecycle, **6 file src/project**, nhánh `feature/hl12-home-dock-gpt-20261110` commit `7f24fa79b538690f7d2e0ff7d336d7f7cb87e832`, nền HL11 `1722cfe`. Đối xứng code và review tĩnh đạt; **CHƯA BUILD HL12/CHƯA DEVICE PASS**. Muse vẫn tích hợp/ký **một DEB**, không CI/merge/Sileo do GPT. Hồ sơ: [HL12_HOME_DOCK_20261110.md](HL12_HOME_DOCK_20261110.md).
