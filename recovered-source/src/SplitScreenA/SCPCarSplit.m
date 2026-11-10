@@ -3081,7 +3081,23 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
         if ([self atHomeScreen]) [self installIconLongPress];
         return;
     }
-    if (splitRole) { size = 34.0; shift = 0.0; }
+    if (splitRole) {
+        // [gpt-hl6-fix] A split recall button MUST use app-area geometry.
+        // launcherCenterInParent: may return a dock-strip centre even
+        // while active. Clamping that centre into parent.bounds still
+        // leaves it on the left dock (HL6 device hitWin x=0.5).
+        size = 34.0;
+        shift = 0.0;
+        CGRect appArea = CGRectIntersection([self appAreaInParent:parent],
+                                           parent.bounds);
+        if (CGRectIsNull(appArea) || CGRectIsEmpty(appArea) ||
+            appArea.size.width < 56.0 || appArea.size.height < 56.0)
+            return; // preserve existing button until a usable layout
+        // The real SCPCButton hit target is 44 pt, not the 34 pt glyph.
+        // Keep the entire hit rect inside the app-area top-right corner.
+        center = CGPointMake(CGRectGetMaxX(appArea) - 28.0,
+                             CGRectGetMinY(appArea) + 28.0);
+    }
     CGRect usable = parent.bounds;
     if (usable.size.width >= size && usable.size.height >= size) {
         center.x = MIN(MAX(center.x, CGRectGetMinX(usable) + size / 2),
@@ -3095,9 +3111,18 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
         return;
     }
     UIView *btnSuper = self.homeButton.superview;
-    if (btnSuper && btnSuper == self.launcherHost && now - self.lastLauncherCalc < 1.0) {
-        [self raiseLauncher];
-        return;
+    if (btnSuper && btnSuper == self.launcherHost &&
+        now - self.lastLauncherCalc < 1.0) {
+        // [gpt-hl6-fix] A live split's app-area may move during layout.
+        // Do not let the one-second throttle freeze the old dock centre.
+        CGPoint placed = [parent convertPoint:self.homeButton.center
+                                     fromView:btnSuper];
+        if (!splitRole ||
+            (fabs(placed.x - center.x) < 0.75 &&
+             fabs(placed.y - center.y) < 0.75)) {
+            [self raiseLauncher];
+            return;
+        }
     }
     self.lastLauncherCalc = now;
     [self setDockShift:shift];
@@ -3208,6 +3233,15 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
     }
     self.launcherHost = host;
     self.homeButton.center = [host convertPoint:center fromView:parent];
+    if (splitRole) {
+        CGRect area = [self appAreaInParent:parent];
+        CGRect hit = [self.homeButton convertRect:CGRectInset(self.homeButton.bounds, -5, -5)
+                                          toView:parent];
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[logo-geometry] split=1 area=%@ center=%@ hitParent=%@",
+            NSStringFromCGRect(area), NSStringFromCGPoint(center),
+            NSStringFromCGRect(hit)]);
+    }
     [self raiseLauncher];
     if ([self atHomeScreen]) [self installIconLongPress];
     [self ahApplyCurrentStateToView:self.homeButton]; // [autohide] a (re)built logo takes the current fade state (design-autohide §5.1)

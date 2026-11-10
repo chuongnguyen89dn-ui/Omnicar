@@ -544,16 +544,22 @@ static void BWAnswerSlot(NSString *bundle, BOOL appliedInTime) {
     uint32_t gen    = (uint32_t)[slot[@"gen"] unsignedIntValue];
     uint32_t seq    = (uint32_t)[slot[@"seq"] unsignedIntValue];
     uint32_t state  = BWStateUnknown;
-    if (appliedInTime) {
-        NSDictionary *snap = [[ABHost shared] bwAppliedSnapshotForBundle:bundle];
-        // §6: VISIBLE only when the bar was applied shown; ABHost never
-        // concludes HIDDEN from its own snapshot.
-        if (snap && ![snap[@"barHidden"] boolValue]) state = BWStateVisible;
-    }
+    NSDictionary *snap = appliedInTime
+        ? [[ABHost shared] bwAppliedSnapshotForBundle:bundle] : nil;
+    // [gpt-hl6-fix] Wake means the handle chrome was RESTORED, not
+    // the menu bar was opened. Confirm applied fade=NO + a visible
+    // handle; preserve the bar-shown alternative for legacy peers.
+    if (snap &&
+        (!([snap[@"handleHidden"] boolValue] || [snap[@"faded"] boolValue]) ||
+         ![snap[@"barHidden"] boolValue]))
+        state = BWStateVisible;
     BWEmitHostAck(hash28, gen, seq, state);
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[bridgewake] host ack role=1 bundle=%@ gen=%u seq=%u state=%u",
-        bundle, gen, seq, state]);
+        @"[bridgewake] host ack role=1 bundle=%@ gen=%u seq=%u state=%u "
+         "handleHidden=%@ barHidden=%@ faded=%@ inTime=%d",
+        bundle, gen, seq, state,
+        snap[@"handleHidden"] ?: @"?", snap[@"barHidden"] ?: @"?",
+        snap[@"faded"] ?: @"?", (int)appliedInTime]);
 }
 
 // A frame/open for `bundle` has just been applied by the registrar's
@@ -567,20 +573,9 @@ static void BWFrameApplied(NSString *bundle) {
     BWAnswerSlot(bundle, inTime);
 }
 
-static void BWObserveApplied(NSString *name) {
-    NSDistributedNotificationCenter *dc =
-        [NSClassFromString(@"NSDistributedNotificationCenter") defaultCenter];
-    [dc addObserverForName:name object:nil queue:[NSOperationQueue mainQueue]
-                usingBlock:^(NSNotification *note) {
-        NSString *bundle = note.userInfo[@"identifier"];
-        if (!bundle || !BWPendingSlots()[bundle]) return;
-        // One extra main-queue hop: the registrar's own handler for
-        // this notification was enqueued in the same delivery round,
-        // so the hop lands the snapshot read strictly after the frame
-        // has actually been applied — the end of the handler, §6.
-        dispatch_async(dispatch_get_main_queue(), ^{ BWFrameApplied(bundle); });
-    }];
-}
+// [gpt-hl6-fix] Host confirmation is now driven AFTER applyFade:
+// in AHObserveFadeChannel, not by a parallel observer that may read
+// the old faded snapshot before the fade handler has run.
 
 static void BWRegisterHostConfirm(void) {
     static int wakeToken;
@@ -604,6 +599,17 @@ static void BWRegisterHostConfirm(void) {
                                      @"seq": @(seq), @"at": @(BWNowSeconds())};
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
             @"[bridgewake] host arm bundle=%@ gen=%u seq=%u", bundle, gen, seq]);
+        // If the frame arrived just before this arm, an already
+        // restored handle can be confirmed by an applied-state read.
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 120000000LL),
+                       dispatch_get_main_queue(), ^{
+            NSDictionary *slot = BWPendingSlots()[bundle];
+            if (!slot || (uint32_t)[slot[@"gen"] unsignedIntValue] != gen ||
+                (uint32_t)[slot[@"seq"] unsignedIntValue] != seq) return;
+            NSDictionary *snap = [[ABHost shared] bwAppliedSnapshotForBundle:bundle];
+            if (snap && ![snap[@"handleHidden"] boolValue] &&
+                ![snap[@"faded"] boolValue]) BWFrameApplied(bundle);
+        });
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 800000000LL),
                        dispatch_get_main_queue(), ^{
             NSDictionary *slot = BWPendingSlots()[bundle];
@@ -612,8 +618,8 @@ static void BWRegisterHostConfirm(void) {
                 BWAnswerSlot(bundle, NO);   // 800 ms, no applied frame
         });
     });
-    BWObserveApplied(@"com.anlai.omnicar/appbridge.open");
-    BWObserveApplied(@"com.anlai.omnicar/appbridge.frame");
+    // Confirmation runs after the host's applied fade in
+    // AHObserveFadeChannel (same two channels, one applied snapshot).
 }
 
 // ===========================================================================
@@ -661,7 +667,12 @@ static void AHObserveFadeChannel(NSString *name, BOOL knobsChannel) {
         BOOL fade = [ui[@"fade"] boolValue];
         dispatch_async(dispatch_get_main_queue(), ^{
             ABPane *pane = [[ABHost shared] paneFor:bundle];
-            if (pane) [[ABHost shared] applyFade:fade forPane:pane];
+            if (pane) {
+                [[ABHost shared] applyFade:fade forPane:pane];
+                // [gpt-hl6-fix] Confirm wake only after the mirror's
+                // fade state for THIS frame has actually been applied.
+                BWFrameApplied(bundle);
+            }
         });
     }];
 }
