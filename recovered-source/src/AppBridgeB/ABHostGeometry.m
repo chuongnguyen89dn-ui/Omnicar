@@ -76,6 +76,22 @@ static void ABHL8KeyboardWindows(NSString *source) {
 // OMCCarWireless() == 1, else 0.
 // "device" = max(orientation, 0).
 // ===========================================================================
+// [hl16-kb] The hosted FBScene renders at a LOGICAL viewport (pane/zoom),
+// while the native keyboard is a separate UIWindow and needs the physical
+// pane dimensions. Use the existing orientation IPC, not another engine.
+static NSMutableDictionary<NSString *, NSDictionary *> *ABKbViewportCache;
+
+void ABRecordViewportForApp(NSString *bundleID, CGSize physical, double zoom) {
+    if (!bundleID || physical.width < 90 || physical.height < 90 ||
+        zoom < 0.6 || zoom > 1.0) return;
+    if (!ABKbViewportCache) ABKbViewportCache = [NSMutableDictionary dictionary];
+    ABKbViewportCache[bundleID] = @{
+        @"kbPhysicalWidth": @(physical.width),
+        @"kbPhysicalHeight": @(physical.height),
+        @"kbZoom": @(zoom)
+    };
+}
+
 void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
     if (!bundleID) return;
     NSInteger fps = 0;
@@ -89,7 +105,7 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
     // [hl2] the gate value is read once so the payload field and
     // the acceptance log line below can never disagree.
     BOOL drawnKb = ABDrawnKeyboardEnabled();
-    NSDictionary *info = @{
+    NSMutableDictionary *info = [@{
         @"orientation": @(orientation),
         @"device": @(MAX(orientation, 0)),
         @"fps": @((int)fps),
@@ -106,7 +122,13 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
         // reading, including after a mid-session flip re-post from
         // the prefschanged handler below.
         @"drawnKeyboard": @(drawnKb ? 1 : 0),
-    };
+    } mutableCopy];
+    if (orientation >= 1) {
+        NSDictionary *viewport = ABKbViewportCache[bundleID];
+        if (viewport) [info addEntriesFromDictionary:viewport];
+    } else {
+        [ABKbViewportCache removeObjectForKey:bundleID];
+    }
     [[NSDistributedNotificationCenter defaultCenter]
         postNotificationName:ABChanOrientation object:bundleID userInfo:info];
     // [hl2] acceptance eye (GPT ruling §5 chain): the effective

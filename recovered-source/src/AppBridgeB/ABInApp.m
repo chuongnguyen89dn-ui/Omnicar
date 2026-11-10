@@ -1058,6 +1058,10 @@ static Class ABNativeKbRefClass = Nil;
 static CGSize ABNativeKbRefTarget = {0, 0};
 static BOOL ABNativeKbRefActive = NO;
 static CGFloat ABNativeKbLastReloadWidth = 0;
+// [hl16-kb] Sent by ABHost's existing orientation channel. The box is
+// physical CarPlay points, whereas the app key window is box/zoom.
+static CGSize ABNativeKbPhysicalViewport = {0, 0};
+static CGFloat ABNativeKbHostedZoom = 1.0;
 
 static CGSize ABNativeKbReferenceOverride(id obj, SEL selector) {
     CGSize original = ABNativeKbOriginalRefIMP
@@ -1197,9 +1201,25 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             else if (!key) key = w;
         }
     }
-    CGRect target = key ? key.frame : CGRectNull;
-    if (key && CGRectIsEmpty(target))
-        target = CGRectMake(0, 0, key.bounds.size.width, key.bounds.size.height);
+    CGRect logicalTarget = key ? key.frame : CGRectNull;
+    if (key && CGRectIsEmpty(logicalTarget))
+        logicalTarget = CGRectMake(0, 0, key.bounds.size.width, key.bounds.size.height);
+    CGRect target = logicalTarget;
+    // [hl16-kb] On the car, the YouTube FBScene was 495x450 logical
+    // while its physical pane was 396x360 (0.8 zoom). The keyboard's
+    // own UIWindow was incorrectly sized to 495x450 and its rightmost
+    // keys fell outside the physical viewport. Only use the host's
+    // verified 0.6..1.0 projection, and never affect normal phone UI.
+    BOOL havePhysical = ABNativeKbPhysicalViewport.width >= 90 &&
+        ABNativeKbPhysicalViewport.height >= 90 &&
+        ABNativeKbHostedZoom >= 0.6 && ABNativeKbHostedZoom < 0.985 &&
+        fabs(logicalTarget.size.width * ABNativeKbHostedZoom -
+             ABNativeKbPhysicalViewport.width) < 18 &&
+        fabs(logicalTarget.size.height * ABNativeKbHostedZoom -
+             ABNativeKbPhysicalViewport.height) < 18;
+    if (key && havePhysical) {
+        target.size = ABNativeKbPhysicalViewport;
+    }
     BOOL visible = keyboard && !keyboard.hidden &&
         keyboard.alpha > 0.01 && !CGRectIsEmpty(keyboard.bounds);
     BOOL valid = key && visible &&
@@ -1282,6 +1302,12 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
                        CGRectEqualToRect(kbBefore, target) &&
                        CGRectEqualToRect(rootBefore, (CGRect){CGPointZero, target.size})
                            ? @"already-fit" : @"applied";
+    if (valid && havePhysical)
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl16-kb] ev=viewport-fit logical=%@ physical=%@ zoom=%.3f "
+             "keyplane=%.1f ref=%@",
+            NSStringFromCGRect(logicalTarget), NSStringFromCGRect(target),
+            ABNativeKbHostedZoom, starAfter, NSStringFromCGSize(effectiveRef)]);
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[hl14kb] ev=native-fit when=%@ try=%ld result=%@ windows=%lu "
          "key=%@ keyFrame=%@ kb=%@ kbBefore=%@ kbAfter=%@ "
@@ -1301,6 +1327,38 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
     return valid && !narrow;
 }
 
+
+static void ABNativeKbMaybeReload(NSString *why) {
+    if (!ABNativeKbRefActive || !ABCurrentResponder ||
+        ![ABCurrentResponder isFirstResponder] ||
+        ABNativeKbRefTarget.width < 90 ||
+        fabs(ABNativeKbRefTarget.width - ABNativeKbLastReloadWidth) <= 2)
+        return;
+    // [hl16-kb] HL15 only reloaded on geometry-recv, which did not fire
+    // in the device's show cycle. Queue ONE rebuild for each new width
+    // after UIKit has a real visible keyboard; never infinite-reload.
+    ABNativeKbLastReloadWidth = ABNativeKbRefTarget.width;
+    NSUInteger epoch = ABNativeKbEpoch;
+    __weak id responder = ABCurrentResponder;
+    CGFloat width = ABNativeKbLastReloadWidth;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                 (int64_t)(0.12 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        id focus = responder;
+        if (epoch != ABNativeKbEpoch || !ABNativeKbRefActive ||
+            !focus || focus != ABCurrentResponder ||
+            ![focus isFirstResponder] ||
+            fabs(ABNativeKbRefTarget.width - width) > 2) return;
+        if ([focus respondsToSelector:@selector(reloadInputViews)]) {
+            [focus reloadInputViews];
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[hl16-kb] ev=keyplane-reload width=%.1f reason=%@",
+                width, why]);
+            ABNativeKbFit(@"post-keyplane-reload", 1);
+        }
+    });
+}
+
 static void ABNativeKbOnGeometry(NSNotification *note) {
     if (ABForcedOrientation < 1 || ABDrawnKb ||
         !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
@@ -1315,6 +1373,7 @@ static void ABNativeKbOnGeometry(NSNotification *note) {
     // Each fresh geometry supersedes all pending retries. Never
     // generate a new keyboard, change keyplane or swallow touches.
     ABNativeKbFit(@"geometry-immediate", 0);
+    ABNativeKbMaybeReload(@"geometry");
     for (NSUInteger i = 0; i < 3; i++) {
         const NSTimeInterval waits[] = {0.12, 0.35, 0.7};
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
@@ -1348,7 +1407,10 @@ static void ABNativeKbBegin(NSString *why) {
         !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
         return;
     NSUInteger epoch = ++ABNativeKbEpoch;
-    if (ABNativeKbFit(why, 0)) return;
+    if (ABNativeKbFit(why, 0)) {
+        ABNativeKbMaybeReload(@"show");
+        return;
+    }
     for (NSUInteger n = 1; n <= 3; n++) {
         NSTimeInterval delay = n == 1 ? 0.3 : (n == 2 ? 0.6 : 1.2);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
@@ -1377,6 +1439,7 @@ static void ABNativeKbWindowVisible(NSNotification *note) {
         ![NSStringFromClass([obj class]) containsString:@"Keyboard"])
         return;
     ABNativeKbFit(@"window-visible", 0);
+    ABNativeKbMaybeReload(@"window-visible");
 }
 
 // ---- keyboard guard: auxiliary notification evidence (§5.5) ----
@@ -2820,6 +2883,19 @@ static void ABOrientationBlock(NSNotification *note) {
     // the else branch and every later responder event this session
     // see the gate the host currently holds.
     ABDrawnKbNoteFrameInfo(info);
+    // [hl16-kb] Receive the same physical/logical contract used by ABHost.
+    // Missing or invalid data is a conservative no-op (phone size retained).
+    CGFloat pW = [info[@"kbPhysicalWidth"] doubleValue];
+    CGFloat pH = [info[@"kbPhysicalHeight"] doubleValue];
+    CGFloat z = [info[@"kbZoom"] doubleValue];
+    if ([info[@"orientation"] intValue] >= 1 &&
+        pW >= 90 && pH >= 90 && z >= 0.6 && z <= 1.0) {
+        ABNativeKbPhysicalViewport = CGSizeMake(pW, pH);
+        ABNativeKbHostedZoom = z;
+    } else {
+        ABNativeKbPhysicalViewport = CGSizeZero;
+        ABNativeKbHostedZoom = 1.0;
+    }
     NSInteger orientation = [info[@"orientation"] intValue];
     NSInteger old = ABForcedOrientation;
     if (orientation > 0) {

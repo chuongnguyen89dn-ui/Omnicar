@@ -586,6 +586,9 @@ static ABBarButton *ABMakeBarButton(NSString *name, NSString *title, UIColor *ti
 // (cmp x27, x20 @0xF510); both reconstructions formerly truncated the
 // argument with a (uint32_t) cast.
 
+// [hl16-kb] Shared host viewport stamp, transported via ABChanOrientation.
+extern void ABRecordViewportForApp(NSString *bundleID, CGSize physical, double zoom);
+
 // -zoom (0xAE20, 136 B, disasm/m_ABHost_zoom.txt): VERIFIED
 // instruction-level in phase 2 — the orphan fragment that stood here
 // (a bare return with no signature, disagreeing with its own comment
@@ -817,6 +820,10 @@ static id ABSceneOfPane(ABPane *pane) {
         }
     }
     pane.sceneBox = boxSize;
+    // [hl16-kb] The physical pane box and the UIKit logical scene size
+    // must be stamped from this ONE layout transaction. The subsequent
+    // orientation IPC publishes them to the hosted keyboard process.
+    ABRecordViewportForApp(pane.bundleID, boxSize, z);
     // YT-ZOOM issuer hook (design-ytzoom.md §4.3): the size just
     // committed above is the lease's single source of truth — the
     // hook republishes the lease with it when one lives for this
