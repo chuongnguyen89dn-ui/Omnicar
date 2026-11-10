@@ -657,6 +657,49 @@ static void SCPHostPinchEvaluate(SCPCarSplit *split,
             @"[car-pinch] pair panes=%@/%@ bundles=%@/%@ d0=%.1f contacts=%lu distinct=%lu",
             a[@"slot"], b[@"slot"], a[@"bundle"], b[@"bundle"], d,
             (unsigned long)contacts.count, (unsigned long)unique.count]);
+
+        // [gpt-hl7-pair-toggle] HL7 car: 17/17 real physical two-finger
+        // pairs; 16/17 chains had no Moved callback. HL4's proven
+        // in-app recognizer toggled at pair formation. Reuse its
+        // pair-at-Began law on the CarPlay host's SAME fullscreen
+        // adapter. This toggles the entire OmniCar split, not a
+        // YouTube video. One transaction maximum for each pair.
+        //
+        // Pref bridgewake.carHostPinchPairToggle=NO falls back to the
+        // movement/terminal detector without changing the FS engine.
+        id pairPref = OMCPref(@"bridgewake.carHostPinchPairToggle", nil);
+        BOOL pairToggle = pairPref ? [pairPref boolValue] : YES;
+        if (pairToggle) {
+            id<SCPFullscreenControlling> adapter =
+                [SCPPinchController shared].adapter;
+            SCPFullscreenState state = adapter.currentState;
+            if (state != SCPFullscreenStateSplit &&
+                state != SCPFullscreenStateExpanded) {
+                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                    @"[car-pinch] pair-began-reject state=%ld",
+                    (long)state]);
+                sHostPinchPairFired = YES;
+                return;
+            }
+            BOOL expand = (state == SCPFullscreenStateSplit);
+            sHostPinchPairFired = YES;
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[car-pinch] request dir=%@ state=%ld source=pair-began d0=%.1f",
+                expand ? @"expand" : @"restore", (long)state, (double)d]);
+            if (expand) {
+                [adapter requestExpandWithCompletion:^(BOOL applied) {
+                    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                        @"[car-pinch] expand applied=%d newState=%ld source=pair-began",
+                        (int)applied, (long)adapter.currentState]);
+                }];
+            } else {
+                [adapter requestRestoreWithCompletion:^(BOOL applied) {
+                    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                        @"[car-pinch] restore applied=%d newState=%ld source=pair-began",
+                        (int)applied, (long)adapter.currentState]);
+                }];
+            }
+        }
         return;
     }
     if (sHostPinchPairFired || !contacts[sHostPinchKey1] ||
