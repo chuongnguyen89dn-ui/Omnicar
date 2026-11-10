@@ -484,7 +484,55 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 
     UIVisualEffectView *effectView = SCPKnobFaceView(); // [phase2; backported to src in phase 3] name unified
     effectView.frame = sheet.bounds;
-    SCPApplyMeshBackdrop(effectView);
+    // [hl5-picker] GPT verdict HL4->HL5, ruling 1: the convicted cover
+    // (29.26) is THIS sheet's backdrop face — the blur effect (in
+    // Lite, a white 0.92 background instead) plus the mesh image
+    // SCPApplyMeshBackdrop inserts paint an opaque 542x242 slab over
+    // ~61% of each pane while the picker is up, hiding the very app
+    // the user is picking away from. When the sheet's frame overlaps
+    // any LIVE hosted pane, build the sheet's face TRANSPARENT at
+    // this creation point only: no effect, no face background, no
+    // mesh. The factory and the mesh helper stay untouched for every
+    // other caller; sheet alpha / z-order / parent window / shield /
+    // animation / hit-test are unchanged, and the sheet's content
+    // (grid, side column, cancel) lives in contentView and stays
+    // fully visible and tappable. Rollback gate: pref
+    // splitScreenPickerSheetClearFaceOff = YES restores the original
+    // face unconditionally.
+    BOOL faceClear = NO;
+    NSInteger hostedUnderSheet = 0;
+    if (![SCPPrefs pickerSheetClearFaceOff]) {
+        for (SCPCarPane *p in [self allPanes]) {
+            if (!p.host || !SCPIsBridgedPhoneApp(p.bundleID) ||
+                (!p.vc && ![self slotOccupied:p.slot])) continue;
+            CGRect paneRect = window
+                ? [p.host convertRect:p.host.bounds toView:nil]
+                : [p.host convertRect:p.host.bounds toView:self.container];
+            if (CGRectIntersectsRect(sheet.frame, paneRect))
+                hostedUnderSheet++;
+        }
+        faceClear = hostedUnderSheet > 0;
+    }
+    BOOL meshPresent = NO;
+    if (faceClear) {
+        effectView.effect = nil;
+        effectView.backgroundColor = UIColor.clearColor;
+        effectView.contentView.backgroundColor = UIColor.clearColor;
+        // Keep only the hairline edge the mesh helper used to add, so
+        // the sheet still reads as a card floating over the live panes.
+        effectView.layer.borderWidth = 1;
+        effectView.layer.borderColor =
+            [UIColor colorWithWhite:1 alpha:0.85].CGColor;
+    } else {
+        SCPApplyMeshBackdrop(effectView);
+        meshPresent = YES;
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[picker-face] mode=%@ targetSlot=%d hostedUnderSheet=%ld "
+        @"effectClass=%@ effectNil=%d meshPresent=%d",
+        faceClear ? @"clear" : @"original", pane.slot,
+        (long)hostedUnderSheet, NSStringFromClass(effectView.class),
+        effectView.effect == nil ? 1 : 0, meshPresent ? 1 : 0]);
     effectView.layer.cornerRadius = 24;
     effectView.layer.cornerCurve = kCACornerCurveContinuous;
     effectView.clipsToBounds = YES;
@@ -811,7 +859,14 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // method deliberately does NOT clear pickerSheetPane, but the
     // completion below reads the pane's post-close state, so pin
     // the object here).
-    SCPCarPane *measurePane = self.pickerSheetPane;
+    // [hl5-picker] GPT verdict HL4->HL5, ruling 1 (L6): pin SCALARS,
+    // not the pane object — in hl4 the pinned object read slot=-1 /
+    // bundle NULL at close-done for hosted panes whose pane was still
+    // attached, so the measurement itself was broken, not the pane.
+    // The completion below re-resolves the CURRENT pane at the slot
+    // that was targeted when the sheet presented.
+    NSInteger measureSlot = self.pickerSheetPane ? self.pickerSheetPane.slot : -1;
+    NSString *measurePreBundle = self.pickerSheetPane.bundleID;
     BOOL overlay = self.pickerSheetOverlay;
     self.pickerSheet = nil;
     self.pickerShield = nil;
@@ -850,22 +905,32 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                 // is the close-choose / close-cancel line logged
                 // for the same slot ~0.22 s earlier. Logs only;
                 // no view state is touched.
+                // [hl5-picker] re-resolve the CURRENT pane at the
+                // slot pinned at presentation (GPT ruling 1, L6): a
+                // pane object pinned at open time goes stale, and a
+                // chosen pane may legitimately hold a NEW bundle by
+                // now — preBundle vs paneBundle is the comparison.
+                // The old contentBack field is renamed
+                // hostStructPresent: it only ever verified structure
+                // (host attached, visible, alpha > 0), never pixels.
+                SCPCarPane *donePane = s ? [s paneAtSlot:measureSlot] : nil;
                 OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                    @"[picker-measure2] phase=close-done slot=%d finished=%d "
+                    @"[picker-measure2] phase=close-done slot=%ld finished=%d "
                      "sheetGone=%d sheet{%@} shieldGone=%d shield{%@} "
-                     "paneBundle=%@ paneHasVC=%d host{%@} hostSuper=%@ "
-                     "contentBack=%d",
-                    measurePane ? measurePane.slot : -1, finished ? 1 : 0,
+                     "preBundle=%@ paneBundle=%@ paneHasVC=%d host{%@} hostSuper=%@ "
+                     "hostStructPresent=%d",
+                    (long)measureSlot, finished ? 1 : 0,
                     sheet.superview == nil ? 1 : 0, SCPViewMeasureDesc(sheet),
                     shield.superview == nil ? 1 : 0, SCPViewMeasureDesc(shield),
-                    measurePane.bundleID, measurePane.vc != nil ? 1 : 0,
-                    SCPViewMeasureDesc(measurePane.host),
-                    measurePane.host.superview
-                        ? NSStringFromClass(measurePane.host.superview.class)
+                    measurePreBundle, donePane.bundleID,
+                    donePane.vc != nil ? 1 : 0,
+                    SCPViewMeasureDesc(donePane.host),
+                    donePane.host.superview
+                        ? NSStringFromClass(donePane.host.superview.class)
                         : @"nil",
-                    (measurePane.host && !measurePane.host.hidden &&
-                     measurePane.host.alpha > 0 &&
-                     measurePane.host.superview != nil) ? 1 : 0]);
+                    (donePane.host && !donePane.host.hidden &&
+                     donePane.host.alpha > 0 &&
+                     donePane.host.superview != nil) ? 1 : 0]);
             }];
         if (!overlay && self.active)
             [self pushHostFramesLive:NO];

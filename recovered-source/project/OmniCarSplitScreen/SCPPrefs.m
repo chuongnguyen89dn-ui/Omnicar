@@ -161,5 +161,6 @@ static void SCPSetObjectForKey(NSString *key, id value) { SCPHomePrefSet(key, va
 + (BOOL)english { return [SCPObjectForKey(@"splitScreenEnglish") boolValue]; }
 + (NSInteger)tipCount { return [SCPObjectForKey(@"splitScreenTipCount") integerValue]; }
 + (void)setTipCount:(NSInteger)count { SCPSetObjectForKey(@"splitScreenTipCount", @(count)); }
++ (BOOL)pickerSheetClearFaceOff { return [SCPObjectForKey(@"splitScreenPickerSheetClearFaceOff") boolValue]; }
 
 @end

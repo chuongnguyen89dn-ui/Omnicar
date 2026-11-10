@@ -440,6 +440,7 @@ static void BWEmitDrain(void) {
 - (void)bwApplyAssignmentForSlot:(NSInteger)slot bundle:(NSString *)bundle {
     if (slot < 0 || slot >= 10) return;
     BWEnsureInputStore();
+    NSString *bwPrevBundle = bwBundleBySlot[slot];
     bwGenBySlot[slot] = bwGenBySlot[slot] ? BWGenNext(bwGenBySlot[slot]) : 1;
     bwBundleBySlot[slot] = [bundle copy];
     bwAssignAtBySlot[slot] = BWNow();
@@ -463,6 +464,27 @@ static void BWEmitDrain(void) {
                           BWBundleHash28(bundle), bwGenBySlot[slot]);
     else
         BWInputSlotClear(&bwInputStore, (int)slot);
+    // [hl5-revoke] GPT verdict HL4->HL5, ruling 2: per-pane teardown
+    // used to be SILENT at this — the single — identity writer: the
+    // departed app learned its assignment was gone only when the
+    // kbstate reporter's query verification timed out 12-14 s later
+    // (hl4), while bwSessionTeardown has always announced session
+    // death with an INACTIVE state packet. Announce per-pane death
+    // the same way: an INACTIVE packet for the DEPARTED bundle under
+    // the slot's NEW generation (the app's BWGenAccept takes the +1
+    // step), so the app closes its identity at once — reporter stop
+    // + act unverified — instead of timing out. A bundle->bundle
+    // swap emits only for the old bundle (its own hash gates
+    // acceptance at the receiver); a first assignment (no previous
+    // bundle) emits nothing.
+    if (!bundle.length && bwPrevBundle.length) {
+        BWEmitStatePacket(bwPrevBundle, bwGenBySlot[slot],
+                          BWStateInactive, NO, bwWakeMode, bwPinchMode);
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[wake1] bw revoke slot=%ld bundle=%@ gen=%u "
+            @"(assignment removed; INACTIVE emitted)",
+            (long)slot, bwPrevBundle, bwGenBySlot[slot]]);
+    }
 }
 
 // Public assignment-event entry (SCPCarSplit+BridgeWake.h): the
@@ -1075,7 +1097,26 @@ static void BWEmitDrain(void) {
     NSInteger slot = BWSlotForHash28(pkt.hash28);
     if (slot >= 0 && bwBundleBySlot[slot]) {
         SCPCarPane *pane = [self paneForBundle:bwBundleBySlot[slot]];
-        if (pane && pane.slot == slot) [self bwKbEmitForPane:pane];
+        if (pane && pane.slot == slot) {
+            [self bwKbEmitForPane:pane];
+            // [hl5-reporter] GPT verdict HL4->HL5, ruling 2: STATE
+            // and KB-SYNC share ONE Darwin state word on the state
+            // channel, so the kb packet above can overwrite a state
+            // packet before the app's callback reads it — the hl4
+            // false reporter stop (07:23:11-18) sat in exactly such a
+            // paired-emit window while the assignment was alive.
+            // Answer with the asker's CURRENT state as the LAST write
+            // of the answer: whatever the pane table says now —
+            // including INACTIVE for a pane no longer assigned — is
+            // the truth the app verifies against. Life is the
+            // assignment row; this handler never consults the
+            // kb-known flag.
+            [self bwEmitStateForPane:pane];
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[wake1] bw query-answer slot=%ld bundle=%@ gen=%u "
+                @"(kb emitted, state emitted last)",
+                (long)slot, bwBundleBySlot[slot], bwGenBySlot[slot]]);
+        }
     }
 }
 
@@ -1140,8 +1181,15 @@ static void BWEmitDrain(void) {
             notify_register_check(SCPBridgeWakeAck, &bwAckSendToken);
         uint64_t ack = BWPackFields(pkt.hash28, pkt.seq, pkt.gen, NO,
                                     0, 0, BWStateVisible, BWTypeAck);
-        notify_set_state(bwAckSendToken, ack);
-        notify_post(SCPBridgeWakeAck);
+        int ackSS = notify_set_state(bwAckSendToken, ack);
+        int ackPS = notify_post(SCPBridgeWakeAck);
+        // [hl5-ack] GPT verdict HL4->HL5, ruling 4 (P1 telemetry):
+        // hl4 could prove the host's role=1 confirm but never that
+        // this role=0 packet was actually posted — record the post
+        // and its set/post status at the emit gate.
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[ack0] posted site=already-visible slot=%ld seq=%u gen=%u set=%d post=%d",
+            (long)slot, pkt.seq, pkt.gen, ackSS, ackPS]);
         return;
     }
     // HIDDEN -> WAKING: wait for ABHost's applied-chrome confirm (§6).
@@ -1259,8 +1307,12 @@ static void BWEmitDrain(void) {
             notify_register_check(SCPBridgeWakeAck, &bwAckSendToken);
         uint64_t ack = BWPackFields(pkt.hash28, pkt.seq, pkt.gen, NO,
                                     0, 0, BWStateVisible, BWTypeAck);
-        notify_set_state(bwAckSendToken, ack);
-        notify_post(SCPBridgeWakeAck);
+        int ackSS = notify_set_state(bwAckSendToken, ack);
+        int ackPS = notify_post(SCPBridgeWakeAck);
+        // [hl5-ack] see the already-visible site in bwHandleWakePacket:
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[ack0] posted site=host-confirmed slot=%ld seq=%u gen=%u set=%d post=%d",
+            (long)slot, pkt.seq, pkt.gen, ackSS, ackPS]);
     } else {
         // ABHost could not confirm (UNKNOWN): demote, emit, no app
         // ack — the app fails open on its ack timeout (§5.4/§6).

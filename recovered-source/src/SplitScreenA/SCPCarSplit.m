@@ -3014,9 +3014,30 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
     // In particular, removeHomeButton restores the launcher-induced Dock
     // transform, and the icon long-press installer previously piggybacked
     // on this method: keep that operation even without a custom button.
-    if (SCPHomeLauncherEnabled()) {
+    // [hl5-logo] GPT verdict HL4->HL5: the retirement used to be
+    // decided by the block that stood here — BEFORE placement existed,
+    // under a condition identical to the feature-enabled bail above —
+    // so the construction path below was dead on both branches and
+    // homeButton stayed nil for whole sessions (29.25 conviction: the
+    // wake reveal showed handles + divider + knob + the panes' menu
+    // row, never the logo). The decision now waits for the PLACEMENT:
+    // center/bare are computed FIRST (before the throttle, so a
+    // corner<->dock transition can never be throttle-skipped), the
+    // button is retired only when the placement is the dock
+    // (bare == NO), and the split corner placement (bare == YES,
+    // attached straight to tabParent) builds exactly as the original
+    // did. Placement — never host identity — decides: the
+    // dockHostForRect: fallback can return the parent view, which is
+    // also the corner's host.
+    BOOL gridOnly = SCPHomeLauncherEnabled();
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    double size = 34.0;
+    double shift = 0.0;
+    CGPoint center = [self launcherCenterInParent:parent size:&size shift:&shift];
+    BOOL bare = [self.launcherWhere hasPrefix:@"goc"];
+    if (gridOnly && !bare) {
         if (self.homeButton) {
-            SCPFDockGateLog(self, @"removed", @"native Home grid only", root, parent);
+            SCPFDockGateLog(self, @"removed", @"native Home grid only (dock placement)", root, parent);
             [self removeHomeButton];
             OMCLogWrite(@"SplitScreen",
                 @"[home-launch] custom Dock button detached; native Home tile retained");
@@ -3024,18 +3045,13 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
         if ([self atHomeScreen]) [self installIconLongPress];
         return;
     }
-    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
     UIView *btnSuper = self.homeButton.superview;
     if (btnSuper && btnSuper == self.launcherHost && now - self.lastLauncherCalc < 1.0) {
         [self raiseLauncher];
         return;
     }
     self.lastLauncherCalc = now;
-    double size = 34.0;
-    double shift = 0.0;
-    CGPoint center = [self launcherCenterInParent:parent size:&size shift:&shift];
     [self setDockShift:shift];
-    BOOL bare = [self.launcherWhere hasPrefix:@"goc"];
     double imgW, imgH;
     if (bare) {
         imgW = size * 0.5;
