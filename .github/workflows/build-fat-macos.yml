@@ -123,12 +123,12 @@ jobs:
           fi
           echo "All required component binaries are FAT (arm64 + arm64e)."
 
-      - name: Verify HL8 diagnostic content and DEB SHA256
+      - name: Verify HL9 native logo and HL8 diagnostic content / DEB SHA256
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl8diag_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl9logo_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl8diag"
-          echo "HL8 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl9logo"
+          echo "HL9 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
           for dylib in OmniCarSplitScreen OmniCarAppBridge; do
@@ -140,11 +140,20 @@ jobs:
                 exit 1
               fi
               echo "HL8 marker PASS $dylib/$arch"
+              if [ "$dylib" = "OmniCarSplitScreen" ]; then
+                for marker in 'native-logo-owned' 'fs-hidden-save' 'fs-hidden-restore'; do
+                  if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
+                    echo "::error::HL9 logo marker $marker missing in $dylib/$arch"
+                    exit 1
+                  fi
+                  echo "HL9 logo marker PASS $dylib/$arch: $marker"
+                done
+              fi
             done
           done
 
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: omnicar-hl8diag-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl8diag_iphoneos-arm64.deb
+          name: omnicar-hl9logo-fat-deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl9logo_iphoneos-arm64.deb
