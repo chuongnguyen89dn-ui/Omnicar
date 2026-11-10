@@ -43,6 +43,10 @@ static void ABHL8KeyboardWindows(NSString *source) {
     if (!ABHL8Trace()) return;
     NSUInteger count = 0;
     NSMutableString *sample = [NSMutableString string];
+    // This diagnostic intentionally scans all SpringBoard windows, including
+    // windows not attached to a scene; suppress only the iOS 15 deprecation.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     for (UIWindow *w in [UIApplication sharedApplication].windows) {
         NSString *cls = NSStringFromClass(w.class);
         if ([cls containsString:@"Keyboard"] ||
@@ -54,6 +58,7 @@ static void ABHL8KeyboardWindows(NSString *source) {
                     cls, NSStringFromCGRect(w.frame), (int)w.hidden];
         }
     }
+#pragma clang diagnostic pop
     UIWindow *carWindow = [ABHost shared].carWindow;
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[hl8diag] eye=kb-spring ev=window-scan source=%@ "
@@ -502,7 +507,7 @@ static void ABFrameBlock(NSNotification *note) {
              "bundle=%@ pane=%@ box=%@ sceneBox=%@ view=%@",
             (unsigned long long)[hl8Seq unsignedLongLongValue], hl8Bundle,
             p ? NSStringFromCGRect(p.frame) : @"nil",
-            p.box ? NSStringFromCGRect(p.box.frame) : @"nil",
+            p.box ? NSStringFromCGRect(((UIView *)p.box).frame) : @"nil",
             p ? NSStringFromCGSize(p.sceneBox) : @"nil",
             p.appViewController
                 ? NSStringFromCGRect(((UIViewController *)p.appViewController).view.frame)
@@ -520,7 +525,7 @@ static void ABFrameBlock(NSNotification *note) {
                     joinedSeq, joinedBundle, (int)(settled && settled == p),
                     NSStringFromCGRect(frame),
                     settled ? NSStringFromCGRect(settled.frame) : @"nil",
-                    settled.box ? NSStringFromCGRect(settled.box.frame) : @"nil",
+                    settled.box ? NSStringFromCGRect(((UIView *)settled.box).frame) : @"nil",
                     settled ? NSStringFromCGSize(settled.sceneBox) : @"nil",
                     settled.appViewController
                         ? NSStringFromCGRect(((UIViewController *)settled.appViewController).view.frame)
