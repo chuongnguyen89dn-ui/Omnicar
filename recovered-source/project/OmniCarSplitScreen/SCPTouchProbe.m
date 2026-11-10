@@ -1,4 +1,7 @@
-// SCPTouchProbe.m — [fix-w] WO W4: passive sendEvent: probe in CarPlayApp.
+// SCPTouchProbe.m — CarPlayApp sendEvent: passive probe + live host pinch.
+// [gpt-hl6-host-pinch] The existing hook calls original FIRST, untouched;
+// CarPlay observes two real screen contacts and requests fullscreen of the
+// WHOLE OmniCar split from its one existing adapter (not YouTube video).
 // OmniCarSplitScreen (Muse feature TU — not part of the 1.0.3 original).
 //
 // WHAT THIS IS
@@ -23,8 +26,10 @@
 //       touch's window class, raw window point, screen-space point,
 //       pane assignment and event timestamp, so a later log can tell
 //       two independent simultaneous contacts in one pane apart from
-//       two window representations of ONE contact. Measure only —
-//       no pairing, no pinch command, no new recognizer.
+//       two window representations of ONE contact. This probe is
+//       still read-only; the separate host-gesture consumer below
+//       uses the same callback to request full-split expand/restore
+//       only after a proven two-finger directional gesture.
 //
 // WHAT IT LOGS (tag "SplitScreen", prefix [probe] / [probe-foreign])
 //   Per Began: monotonic timestamp, sequence number, scene class,
@@ -516,8 +521,8 @@ static void SCPProbeObserveEvent(UIEvent *event) {
 // pair formed. The CarPlay sendEvent probe can see the dashboard stream,
 // including native and hosted panes, but it also sees a physical contact
 // mirrored in _UISystemGestureWindow and a passthrough window. Count a
-// pair ONLY if TWO independent start points on the SAME live pane are
-// separated in screen coordinates; mirror objects never form a pair.
+// pair ONLY if TWO independent start points are in the SAME live split
+// session (they may span two panes); mirror objects never form a pair.
 //
 // This reuses the EXISTING SCPFullscreenAdapter (the sole fullscreen
 // owner, which expands the entire split and hides the stock dock).
@@ -673,14 +678,22 @@ static void SCPHostPinchObserve(UIEvent *event) {
     if (unique.count > 2) {
         sHostPinchPairKilled = YES; // a third physical contact is not pinch
     }
-    if (sHostPinchPairKilled || SCPHostPinchPopupBusy(split)) return;
+    if (SCPHostPinchPopupBusy(split)) sHostPinchPairKilled = YES;
+    if (sHostPinchPairKilled) return;
 
     if (!sHostPinchPairOpen) {
         if (unique.count != 2) return;
         NSDictionary *a = contacts[unique[0]], *b = contacts[unique[1]];
-        if (![a[@"bundle"] isEqualToString:b[@"bundle"]] ||
-            [a[@"slot"] integerValue] != [b[@"slot"] integerValue] ||
-            fabs([a[@"at"] doubleValue] - [b[@"at"] doubleValue]) > 1.2)
+        // A fullscreen OmniCar gesture is allowed ACROSS its two panes.
+        // Both original assignments must still be live, not necessarily
+        // the same bundle or slot.
+        if (fabs([a[@"at"] doubleValue] - [b[@"at"] doubleValue]) > 1.2)
+            return;
+        SCPCarPane *liveA = [split paneAtSlot:[a[@"slot"] integerValue]];
+        SCPCarPane *liveB = [split paneAtSlot:[b[@"slot"] integerValue]];
+        if (!liveA || !liveB ||
+            ![liveA.bundleID isEqualToString:a[@"bundle"]] ||
+            ![liveB.bundleID isEqualToString:b[@"bundle"]])
             return;
         CGPoint p1 = [a[@"current"] CGPointValue];
         CGPoint p2 = [b[@"current"] CGPointValue];
@@ -693,8 +706,8 @@ static void SCPHostPinchObserve(UIEvent *event) {
                                               (p1.y + p2.y) * 0.5);
         sHostPinchPairOpen = YES;
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[car-pinch] pair slot=%@ bundle=%@ d0=%.1f contacts=%lu distinct=%lu",
-            a[@"slot"], a[@"bundle"], d,
+            @"[car-pinch] pair panes=%@/%@ bundles=%@/%@ d0=%.1f contacts=%lu distinct=%lu",
+            a[@"slot"], b[@"slot"], a[@"bundle"], b[@"bundle"], d,
             (unsigned long)contacts.count, (unsigned long)unique.count]);
         return;
     }
@@ -717,6 +730,15 @@ static void SCPHostPinchObserve(UIEvent *event) {
     // direction never toggles: pinch OUT expands, pinch IN restores.
     id<SCPFullscreenControlling> adapter = [SCPPinchController shared].adapter;
     SCPFullscreenState state = adapter.currentState;
+    SCPCarPane *nowA = [split paneAtSlot:[a[@"slot"] integerValue]];
+    SCPCarPane *nowB = [split paneAtSlot:[b[@"slot"] integerValue]];
+    if (!nowA || !nowB ||
+        ![nowA.bundleID isEqualToString:a[@"bundle"]] ||
+        ![nowB.bundleID isEqualToString:b[@"bundle"]]) {
+        sHostPinchPairFired = YES;
+        OMCLogWrite(@"SplitScreen", @"[car-pinch] drop reason=assignment-changed");
+        return;
+    }
     BOOL correct = (outward && state == SCPFullscreenStateSplit) ||
                    (inward && state == SCPFullscreenStateExpanded);
     sHostPinchPairFired = YES; // one command maximum per physical pair
@@ -766,6 +788,6 @@ void SCPTouchProbeInstall(void) {
                     (IMP)Hook_UIApplication_sendEvent,
                     (IMP *)&orig_UIApplication_sendEvent);
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[probe] sendEvent probe installed pid=%d (passive, measure-only)",
+        @"[probe] sendEvent installed pid=%d (passive probe + host full-split pinch)",
         getpid()]);
 }
