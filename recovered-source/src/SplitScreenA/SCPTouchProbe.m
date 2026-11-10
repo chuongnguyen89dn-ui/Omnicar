@@ -8,10 +8,11 @@
 //   Exactly ONE additional MSHookMessageEx in this module, on
 //   -[UIApplication sendEvent:], installed only inside CarPlayApp
 //   (the caller, SCPInitDashboardHooks, is host-gated). The
-//   replacement calls the original FIRST, with the event untouched,
-//   and only then observes — inside @try/@catch — so a defect in this
-//   file can never delay, alter or drop a touch. No hitTest target is
-//   changed, no recognizer is installed, nothing is cancelled.
+//   replacement calls original for all events EXCEPT the accepted
+//   first wake chain on a faded native pane. That accepted chain is
+//   consumed before UIKit dispatch, and fully logged. All normal
+//   deliveries still invoke original exactly once, event untouched.
+//   No hitTest target is changed and no recognizer is installed.
 //
 // EVOLUTION ([fix-np] WO GPT items 2+3): the probe now also
 //   (A) FEEDS ACTIVITY for NATIVE panes only, through the existing
@@ -804,17 +805,151 @@ static void SCPHostPinchObserve(UIEvent *event) {
     if (contacts.count == 0) SCPHostPinchReset();
 }
 
-// The replacement: original FIRST, event untouched. The existing
-// passive feed remains passive; host pinch observes genuine multi-touch
-// AFTER original delivery. Single-finger events are never changed.
+// ============================================================================
+// [gpt-hl7-native-wake] Native CarPlay wake FIRST-touch ownership.
+//
+// HL7 car log 12:25:48/55: [probe-feed] fired on native Maps and the
+// user's first tap still operated the app. The old observer ran only
+// AFTER orig_UIApplication_sendEvent. While AutoHide is faded, intercept
+// ONLY a fresh single physical Began in a live native pane, reveal
+// controls before forwarding, and consume that UITouch chain. Hosted
+// panes keep their existing app-side Gate3 wake/swallow path.
+//
+// This path does not add an overlay, alter UITouch/UIEvent, consume
+// unrelated touches, or suppress an already-visible native pane.
+// It may not intercept independent delivery in CarPlayTemplateUIHost;
+// the next device log/visual test must prove the behaviour separately.
+// ============================================================================
+static NSMutableSet<NSValue *> *SCPNativeWakeCaptured(void) {
+    static NSMutableSet<NSValue *> *captured;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ captured = [NSMutableSet set]; });
+    return captured;
+}
+static const void *sNativeWakeContainer;
+static const void *sNativeWakeWindow;
+static NSTimeInterval sNativeWakeLastDownAt;
+static CGPoint sNativeWakeLastDownPt;
+static NSString *sNativeWakeLastBundle;
+
+static void SCPNativeWakeReset(void) {
+    [SCPNativeWakeCaptured() removeAllObjects];
+    sNativeWakeLastDownAt = -1.0;
+    sNativeWakeLastDownPt = CGPointZero;
+    sNativeWakeLastBundle = nil;
+}
+
+static BOOL SCPNativeWakePreflight(UIEvent *event) {
+    if (!event || event.type != UIEventTypeTouches) return NO;
+    SCPCarSplit *split = [SCPCarSplit shared];
+    UIWindow *carWindow = split.container.window;
+    const void *containerRef = (__bridge const void *)split.container;
+    const void *windowRef = (__bridge const void *)carWindow;
+    if (sNativeWakeContainer != containerRef ||
+        sNativeWakeWindow != windowRef) {
+        SCPNativeWakeReset();
+        sNativeWakeContainer = containerRef;
+        sNativeWakeWindow = windowRef;
+    }
+    if (!split.active || !carWindow) {
+        if (SCPNativeWakeCaptured().count) SCPNativeWakeReset();
+        return NO;
+    }
+    NSArray<UITouch *> *all = event.allTouches.allObjects;
+    if (all.count == 0) return NO;
+    NSMutableSet<NSValue *> *captured = SCPNativeWakeCaptured();
+    NSUInteger owned = 0;
+    for (UITouch *t in all)
+        if ([captured containsObject:[NSValue valueWithPointer:(const void *)t]])
+            owned++;
+    if (owned != 0) {
+        BOOL onlyOwned = owned == all.count;
+        for (UITouch *t in all) {
+            if (t.phase == UITouchPhaseEnded || t.phase == UITouchPhaseCancelled)
+                [captured removeObject:[NSValue valueWithPointer:(const void *)t]];
+        }
+        if (!onlyOwned) {
+            // An unrelated finger/gesture is now in the same UIEvent;
+            // never withhold its input just to hide a consumed finger.
+            OMCLogWrite(@"SplitScreen",
+                @"[native-wake] mixed event fail-open (unrelated touch present)");
+            return NO;
+        }
+        return YES;
+    }
+
+    if (all.count > 2 || SCPProbePopupSub(split)) return NO;
+    CGPoint representative = CGPointZero;
+    BOOL haveRepresentative = NO;
+    NSString *bundle = nil;
+    for (UITouch *touch in all) {
+        if (touch.phase != UITouchPhaseBegan) return NO;
+        CGPoint pt; UIScreen *screen = nil;
+        if (!SCPProbeTouchScreenPoint(touch, &pt, &screen) ||
+            screen != carWindow.screen ||
+            SCPProbeIsHomeCorner(pt, screen) ||
+            [NSStringFromClass(touch.window.class)
+                isEqualToString:@"DBStatusBarWindow"]) return NO;
+        SCPCarPane *pane = nil;
+        SCPProbePaneAtScreenPoint(pt, screen, &pane);
+        if (!pane || !pane.bundleID.length || SCPVCIsHosted(pane.vc))
+            return NO; // supported/native pane ONLY
+        if (haveRepresentative &&
+            (SCPHostPinchDistance(pt, representative) > 12.0 ||
+             ![bundle isEqualToString:pane.bundleID]))
+            return NO; // two real fingers must pass, not be swallowed
+        representative = pt;
+        haveRepresentative = YES;
+        bundle = pane.bundleID;
+    }
+    if (!haveRepresentative) return NO;
+
+    BOOL faded = [split ahFaded];
+    BOOL mirrored = !faded &&
+        event.timestamp >= sNativeWakeLastDownAt &&
+        event.timestamp - sNativeWakeLastDownAt <= 0.080 &&
+        SCPHostPinchDistance(representative, sNativeWakeLastDownPt) <= 12.0 &&
+        [bundle isEqualToString:sNativeWakeLastBundle];
+    if (!faded && !mirrored) return NO;
+    for (UITouch *touch in all)
+        [captured addObject:[NSValue valueWithPointer:(const void *)touch]];
+    if (faded) {
+        sNativeWakeLastDownAt = event.timestamp;
+        sNativeWakeLastDownPt = representative;
+        sNativeWakeLastBundle = [bundle copy];
+        // On CarPlayApp's main sendEvent path. Restore the faded
+        // controls before the original UIKit dispatch could deliver
+        // this one-tap chain to the native/template scene.
+        [split ahNoteActivity:AHSourceContainer];
+    }
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[native-wake] swallow=%@ bundle=%@ pt=%@ contacts=%lu nowFaded=%d",
+        mirrored ? @"mirror" : @"first", bundle,
+        NSStringFromCGPoint(representative), (unsigned long)all.count,
+        (int)[split ahFaded]]);
+    return YES;
+}
+
+// HL7 native wake runs BEFORE orig only when a hidden native pane's
+// first tap needs to be consumed. Every other event calls orig exactly
+// once, in the existing order; the probe remains read-only.
 static void Hook_UIApplication_sendEvent(id self, SEL _cmd, UIEvent *event) {
-    orig_UIApplication_sendEvent(self, _cmd, event);
+    BOOL consumed = NO;
     @try {
-        SCPProbeObserveEvent(event);
-        SCPHostPinchObserve(event);
+        consumed = SCPNativeWakePreflight(event);
     } @catch (id e) {
-        // Never let probe/pinch bookkeeping affect event delivery.
-        OMCLogWrite(@"SplitScreen", @"[car-pinch] observer exception; input unchanged");
+        // A bookkeeping exception MUST NOT suppress UIKit delivery.
+        OMCLogWrite(@"SplitScreen",
+            @"[native-wake] preflight exception; fail-open to UIKit");
+        consumed = NO;
+    }
+    if (!consumed) orig_UIApplication_sendEvent(self, _cmd, event);
+    @try {
+        SCPProbeObserveEvent(event); // always measure original coordinates
+        if (!consumed) SCPHostPinchObserve(event);
+    } @catch (id e) {
+        OMCLogWrite(@"SplitScreen",
+            @"[car-pinch] observer exception; no event mutation");
     }
 }
 
@@ -826,6 +961,6 @@ void SCPTouchProbeInstall(void) {
                     (IMP)Hook_UIApplication_sendEvent,
                     (IMP *)&orig_UIApplication_sendEvent);
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[probe] sendEvent installed pid=%d (passive probe + host full-split pinch)",
+        @"[probe] sendEvent installed pid=%d (passive probe + host pinch + native wake gate)",
         getpid()]);
 }
