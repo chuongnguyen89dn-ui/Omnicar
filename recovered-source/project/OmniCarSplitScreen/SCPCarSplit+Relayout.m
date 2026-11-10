@@ -151,8 +151,16 @@
             @"container=%@ area=%@ panes=%@",
             NSStringFromCGRect(self.container.frame),
             NSStringFromCGRect(area), rows];
-        if (![snapshot isEqualToString:hl8LastGeometry]) {
-            hl8LastGeometry = [snapshot copy];
+        BOOL snapshotChanged = ![snapshot isEqualToString:hl8LastGeometry];
+        if (snapshotChanged) hl8LastGeometry = [snapshot copy];
+        // [hl18-perf] Keep the final resize observation, but avoid
+        // synchronous disk writes and window scans for every live pan.
+        static CFAbsoluteTime hl8LastRelayoutTraceAt = 0;
+        CFAbsoluteTime traceNow = CFAbsoluteTimeGetCurrent();
+        if (snapshotChanged &&
+            (pushScenes || hl8LastRelayoutTraceAt == 0 ||
+             traceNow - hl8LastRelayoutTraceAt >= 0.35)) {
+            hl8LastRelayoutTraceAt = traceNow;
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                 @"[hl8diag] eye=layout ev=car-relayout animated=%d "
                  "pushScenes=%d active=%d zoom=%@ %@",
