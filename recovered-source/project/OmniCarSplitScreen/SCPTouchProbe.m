@@ -546,6 +546,7 @@ static CGPoint sHostPinchStartMidpoint;
 static BOOL sHostPinchPairOpen;
 static BOOL sHostPinchPairFired;
 static BOOL sHostPinchPairKilled;
+static BOOL sHostPinchTerminalLogged;
 static NSTimeInterval sHostPinchLastMirrorLog;
 
 static void SCPHostPinchReset(void) {
@@ -555,6 +556,7 @@ static void SCPHostPinchReset(void) {
     sHostPinchPairOpen = NO;
     sHostPinchPairFired = NO;
     sHostPinchPairKilled = NO;
+    sHostPinchTerminalLogged = NO;
     sHostPinchStartDistance = 0.0;
     sHostPinchStartMidpoint = CGPointZero;
 }
@@ -605,72 +607,16 @@ static BOOL SCPHostPinchPopupBusy(SCPCarSplit *split) {
            split.resizing || [split popupOpen];
 }
 
-static void SCPHostPinchObserve(UIEvent *event) {
-    if (event.type != UIEventTypeTouches) return;
-    SCPCarSplit *split = [SCPCarSplit shared];
-    UIWindow *carWindow = split.container.window;
-    const void *containerRef = (__bridge const void *)split.container;
-    const void *windowRef = (__bridge const void *)carWindow;
-    if (sHostPinchContainer != containerRef || sHostPinchWindow != windowRef) {
-        SCPHostPinchReset();
-        sHostPinchContainer = containerRef;
-        sHostPinchWindow = windowRef;
-    }
-    if (!split.active || !carWindow || ![split bwCarHostPinchEnabled]) {
-        if (SCPHostPinchContacts().count) SCPHostPinchReset();
-        return;
-    }
-
-    NSMutableDictionary *contacts = SCPHostPinchContacts();
-    for (UITouch *touch in event.allTouches) {
-        NSValue *key = [NSValue valueWithPointer:(const void *)touch];
-        switch (touch.phase) {
-        case UITouchPhaseBegan: {
-            if (contacts[key] || SCPHostPinchPopupBusy(split)) break;
-            CGPoint pt; UIScreen *screen = nil;
-            if (!SCPProbeTouchScreenPoint(touch, &pt, &screen) ||
-                screen != carWindow.screen ||
-                SCPProbeIsHomeCorner(pt, screen) ||
-                (touch.window &&
-                 [NSStringFromClass(touch.window.class)
-                    isEqualToString:@"DBStatusBarWindow"])) break;
-            SCPCarPane *pane = nil;
-            SCPProbePaneAtScreenPoint(pt, screen, &pane);
-            if (!pane || !pane.bundleID.length) break;
-            contacts[key] = [@{ @"start": [NSValue valueWithCGPoint:pt],
-                                @"current": [NSValue valueWithCGPoint:pt],
-                                @"at": @(event.timestamp),
-                                @"slot": @(pane.slot),
-                                @"bundle": pane.bundleID } mutableCopy];
-            break;
-        }
-        case UITouchPhaseMoved:
-        case UITouchPhaseStationary: {
-            NSMutableDictionary *rec = contacts[key];
-            if (!rec) break;
-            CGPoint pt; UIScreen *screen = nil;
-            if (SCPProbeTouchScreenPoint(touch, &pt, &screen) &&
-                screen == carWindow.screen)
-                rec[@"current"] = [NSValue valueWithCGPoint:pt];
-            break;
-        }
-        case UITouchPhaseEnded:
-        case UITouchPhaseCancelled:
-            [contacts removeObjectForKey:key];
-            break;
-        default:
-            break;
-        }
-    }
-
-    if (contacts.count == 0) {
-        SCPHostPinchReset();  // never carry touches into another gesture
-        return;
-    }
+// [gpt-hl7] Evaluate a pair on Moved, Stationary AND Ended.
+// Uses the existing fullscreen adapter. No inferred/synthetic motion.
+static void SCPHostPinchEvaluate(SCPCarSplit *split,
+                                 NSMutableDictionary *contacts,
+                                 NSTimeInterval eventTime,
+                                 BOOL terminalEvent) {
     NSArray<NSValue *> *unique = SCPHostPinchDistinctKeys();
     if (unique.count < contacts.count &&
-        event.timestamp - sHostPinchLastMirrorLog > 3.0) {
-        sHostPinchLastMirrorLog = event.timestamp;
+        eventTime - sHostPinchLastMirrorLog > 3.0) {
+        sHostPinchLastMirrorLog = eventTime;
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
             @"[car-pinch] mirrored contacts=%lu distinct=%lu (no synthetic pair)",
             (unsigned long)contacts.count, (unsigned long)unique.count]);
@@ -682,7 +628,8 @@ static void SCPHostPinchObserve(UIEvent *event) {
     if (sHostPinchPairKilled) return;
 
     if (!sHostPinchPairOpen) {
-        if (unique.count != 2) return;
+        // Never form a new pair from already-ended contacts.
+        if (terminalEvent || unique.count != 2) return;
         NSDictionary *a = contacts[unique[0]], *b = contacts[unique[1]];
         // A fullscreen OmniCar gesture is allowed ACROSS its two panes.
         // Both original assignments must still be live, not necessarily
@@ -721,6 +668,21 @@ static void SCPHostPinchObserve(UIEvent *event) {
     CGPoint mid = CGPointMake((p1.x + p2.x) * 0.5,
                               (p1.y + p2.y) * 0.5);
     CGFloat drift = SCPHostPinchDistance(mid, sHostPinchStartMidpoint);
+    // HL7 17 real pairs, 16 with zero Moved callbacks. The terminal
+    // position must be evaluated before the UITouch record is removed.
+    // When even the terminal position is stationary, never make up
+    // an expansion or restoration.
+    if (terminalEvent && !sHostPinchTerminalLogged) {
+        sHostPinchTerminalLogged = YES;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[car-pinch] terminal d0=%.1f d1=%.1f ratio=%.3f drift=%.1f "
+             "move=%ld/%ld p1=%@ p2=%@",
+            (double)sHostPinchStartDistance, (double)d,
+            (double)(d / MAX(sHostPinchStartDistance, 0.01)),
+            (double)drift, (long)[a[@"moves"] integerValue],
+            (long)[b[@"moves"] integerValue],
+            NSStringFromCGPoint(p1), NSStringFromCGPoint(p2)]);
+    }
     if (delta < 12.0 || drift > 0.6 * delta + 10.0) return;
     CGFloat ratio = d / sHostPinchStartDistance;
     BOOL outward = ratio >= 1.10;
@@ -764,6 +726,82 @@ static void SCPHostPinchObserve(UIEvent *event) {
                 (int)applied, (long)adapter.currentState]);
         }];
     }
+}
+
+static void SCPHostPinchObserve(UIEvent *event) {
+    if (event.type != UIEventTypeTouches) return;
+    SCPCarSplit *split = [SCPCarSplit shared];
+    UIWindow *carWindow = split.container.window;
+    const void *containerRef = (__bridge const void *)split.container;
+    const void *windowRef = (__bridge const void *)carWindow;
+    if (sHostPinchContainer != containerRef || sHostPinchWindow != windowRef) {
+        SCPHostPinchReset();
+        sHostPinchContainer = containerRef;
+        sHostPinchWindow = windowRef;
+    }
+    if (!split.active || !carWindow || ![split bwCarHostPinchEnabled]) {
+        if (SCPHostPinchContacts().count) SCPHostPinchReset();
+        return;
+    }
+
+    NSMutableDictionary *contacts = SCPHostPinchContacts();
+    NSMutableArray<NSValue *> *endedKeys = [NSMutableArray array];
+    for (UITouch *touch in event.allTouches) {
+        NSValue *key = [NSValue valueWithPointer:(const void *)touch];
+        switch (touch.phase) {
+        case UITouchPhaseBegan: {
+            if (contacts[key] || SCPHostPinchPopupBusy(split)) break;
+            CGPoint pt; UIScreen *screen = nil;
+            if (!SCPProbeTouchScreenPoint(touch, &pt, &screen) ||
+                screen != carWindow.screen ||
+                SCPProbeIsHomeCorner(pt, screen) ||
+                (touch.window &&
+                 [NSStringFromClass(touch.window.class)
+                    isEqualToString:@"DBStatusBarWindow"])) break;
+            SCPCarPane *pane = nil;
+            SCPProbePaneAtScreenPoint(pt, screen, &pane);
+            if (!pane || !pane.bundleID.length) break;
+            contacts[key] = [@{ @"start": [NSValue valueWithCGPoint:pt],
+                                @"current": [NSValue valueWithCGPoint:pt],
+                                @"at": @(event.timestamp),
+                                @"slot": @(pane.slot),
+                                @"bundle": pane.bundleID } mutableCopy];
+            break;
+        }
+        case UITouchPhaseMoved:
+        case UITouchPhaseStationary:
+        case UITouchPhaseEnded:
+        case UITouchPhaseCancelled: {
+            NSMutableDictionary *rec = contacts[key];
+            if (rec) {
+                CGPoint pt; UIScreen *screen = nil;
+                if (SCPProbeTouchScreenPoint(touch, &pt, &screen) &&
+                    screen == carWindow.screen)
+                    rec[@"current"] = [NSValue valueWithCGPoint:pt];
+                if (touch.phase == UITouchPhaseMoved)
+                    rec[@"moves"] = @([rec[@"moves"] integerValue] + 1);
+            }
+            if (touch.phase == UITouchPhaseCancelled)
+                sHostPinchPairKilled = YES;
+            if (touch.phase == UITouchPhaseEnded ||
+                touch.phase == UITouchPhaseCancelled)
+                [endedKeys addObject:key];
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    if (contacts.count == 0) {
+        SCPHostPinchReset();  // never carry touches into another gesture
+        return;
+    }
+    SCPHostPinchEvaluate(split, contacts, event.timestamp,
+                         endedKeys.count != 0);
+    for (NSValue *key in endedKeys)
+        [contacts removeObjectForKey:key];
+    if (contacts.count == 0) SCPHostPinchReset();
 }
 
 // The replacement: original FIRST, event untouched. The existing
