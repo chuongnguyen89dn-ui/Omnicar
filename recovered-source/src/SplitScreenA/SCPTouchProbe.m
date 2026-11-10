@@ -955,12 +955,18 @@ static const void *sNativeWakeWindow;
 static NSTimeInterval sNativeWakeLastDownAt;
 static CGPoint sNativeWakeLastDownPt;
 static NSString *sNativeWakeLastBundle;
+// A second UIWindow may mirror the very same native Logo Began.
+// Dedup only that 80ms / 8pt physical edge, not arbitrary app taps.
+static NSTimeInterval sNativeLogoLastAt = -1.0;
+static CGPoint sNativeLogoLastPt;
 
 static void SCPNativeWakeReset(void) {
     [SCPNativeWakeCaptured() removeAllObjects];
     sNativeWakeLastDownAt = -1.0;
     sNativeWakeLastDownPt = CGPointZero;
     sNativeWakeLastBundle = nil;
+    sNativeLogoLastAt = -1.0;
+    sNativeLogoLastPt = CGPointZero;
 }
 
 // [hl9logo] A native CarPlay scene can receive touch delivery through
@@ -970,7 +976,7 @@ static void SCPNativeWakeReset(void) {
 // Never borrow this route for a faded tap (wake only), a hosted pane,
 // a popup/resize or an unrelated native POI. A captured touch chain
 // is swallowed by the existing captured-set path on subsequent phases.
-static BOOL SCPNativeLogoBegan(SCPCarSplit *split,
+static BOOL SCPNativeLogoBegan(UIEvent *event, SCPCarSplit *split,
                                UIWindow *carWindow, NSArray<UITouch *> *all) {
     if (all.count != 1 || [split ahFaded]) return NO;
     UITouch *touch = all.firstObject;
@@ -1007,6 +1013,8 @@ static BOOL SCPNativeLogoBegan(SCPCarSplit *split,
     // may open a panel and mutate the view hierarchy synchronously.
     [SCPNativeWakeCaptured() addObject:
         [NSValue valueWithPointer:(const void *)touch]];
+    sNativeLogoLastAt = event.timestamp;
+    sNativeLogoLastPt = pt;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[hl9logo] ev=native-logo-owned bundle=%@ pane=%ld "
          "point=%@ hit=%@ button=%p faded=0",
@@ -1055,6 +1063,24 @@ static BOOL SCPNativeWakePreflight(UIEvent *event) {
         return YES;
     }
 
+    if (all.count == 1 && sNativeLogoLastAt >= 0.0 &&
+        event.timestamp >= sNativeLogoLastAt &&
+        event.timestamp - sNativeLogoLastAt <= 0.080) {
+        UITouch *mirror = all.firstObject;
+        CGPoint pt = CGPointZero;
+        UIScreen *screen = nil;
+        if (mirror.phase == UITouchPhaseBegan &&
+            SCPProbeTouchScreenPoint(mirror, &pt, &screen) &&
+            screen == carWindow.screen &&
+            SCPHostPinchDistance(pt, sNativeLogoLastPt) <= 8.0) {
+            [captured addObject:
+                [NSValue valueWithPointer:(const void *)mirror]];
+            OMCLogWrite(@"SplitScreen",
+                @"[hl9logo] ev=native-logo-mirror-consumed");
+            return YES;
+        }
+    }
+
     NSString *hl8Popup = SCPProbePopupSub(split);
     if (all.count > 2 || hl8Popup) {
         if (SCPHL8TraceEnabled())
@@ -1067,7 +1093,7 @@ static BOOL SCPNativeWakePreflight(UIEvent *event) {
     }
     // Native Logo is a separate, target-qualified action. The legacy
     // faded native wake branch below still owns the first fade tap.
-    if (SCPNativeLogoBegan(split, carWindow, all))
+    if (SCPNativeLogoBegan(event, split, carWindow, all))
         return YES;
     CGPoint representative = CGPointZero;
     BOOL haveRepresentative = NO;
