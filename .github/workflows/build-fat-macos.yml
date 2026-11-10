@@ -125,9 +125,9 @@ jobs:
 
       - name: Verify HL16 in-app settings, keyplane and picker plus HL8-HL14 regressions
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl16unified_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl16bappinfo_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl16unified"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl16bappinfo"
           echo "HL16 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -168,12 +168,47 @@ jobs:
             done
           done
 
-      - name: Verify HL16 in-app settings and retired PreferenceLoader registration
+      - name: Verify HL16b embedded Settings and original iPhone app identity
         run: |
           ROOT=/tmp/fatcheck/var/jb
           APP="$ROOT/Applications/OmniCar.app/OmniCar"
           PREFS="$ROOT/Library/PreferenceBundles/OmniCarPrefs.bundle/OmniCarPrefs"
           test -f "$APP" && test -f "$PREFS"
+          # [hl16b-appinfo] Previous HL16 CI was green with a .prefs
+          # Info.plist in the iPhone app. Reject such packages, even if
+          # all Mach-O files and resources are signed and present.
+          python3 - <<'PYCHECK'
+          import plistlib
+          from pathlib import Path
+          root = Path("/tmp/fatcheck/var/jb")
+          app = root / "Applications/OmniCar.app"
+          prefs = root / "Library/PreferenceBundles/OmniCarPrefs.bundle"
+          def load(path):
+              with path.open("rb") as file:
+                  return plistlib.load(file)
+          a = load(app / "Info.plist")
+          p = load(prefs / "Info.plist")
+          original = load(Path("recovered-source/project/OmniCarApp/Resources/Info.plist"))
+          required = {
+              "CFBundleIdentifier": "com.anlai.omnicar.app",
+              "CFBundleExecutable": "OmniCar",
+              "CFBundlePackageType": "APPL",
+              "LSRequiresIPhoneOS": True,
+          }
+          for key, value in required.items():
+              assert a.get(key) == value, f"Invalid OmniCar.app {key}: {a.get(key)!r}"
+              assert original.get(key) == value, f"Source app Info.plist mismatch {key}"
+          assert (app / a["CFBundleExecutable"]).is_file(), "Missing iPhone app executable"
+          schemes = [
+              s for typ in a.get("CFBundleURLTypes", [])
+              for s in typ.get("CFBundleURLSchemes", [])
+          ]
+          assert "omnicar" in schemes, f"Lost omnicar:// URL scheme: {schemes}"
+          assert p.get("CFBundleIdentifier") == "com.anlai.omnicar.prefs"
+          assert p.get("CFBundlePackageType") == "BNDL"
+          assert p.get("CFBundleExecutable") == "OmniCarPrefs"
+          print("HL16b App Identity PASS: actual iPhone app, own CarPlay Home bundle ID, URL scheme")
+          PYCHECK
           test ! -e "$ROOT/Library/PreferenceLoader/Preferences/OmniCarPrefs.plist"
           if ! strings "$APP" | grep -F '[hl16-settings]' >/dev/null; then
             echo "::error::OmniCar in-app Settings marker absent"
@@ -201,5 +236,5 @@ jobs:
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: omnicar-hl16unified-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl16unified_iphoneos-arm64.deb
+          name: omnicar-hl16bappinfo-fat-deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl16bappinfo_iphoneos-arm64.deb
