@@ -919,30 +919,30 @@ static void BWEmitDrain(void) {
     } else {
         BOOL liveSeen = !CGRectIsNull(pane.hostFrame);
         BOOL live = pane.hostHandle;
-        BOOL barHidden = (pane.bar == nil || pane.bar.isHidden);
+        // [gpt-hl6-fix] The recall-wake state describes AUTOHIDE
+        // chrome, not whether the optional per-pane menu row is open.
+        // A hidden menu with visible handles/logo is VISIBLE, and a
+        // faded handle/logo is HIDDEN without opening that menu.
         // transient (§1.2): bar fade-out in flight (model alpha already
         // 0, hidden not yet set — the completion recomputes), split
         // relayout/resize running, or the pane was reassigned < 0.25 s
-        // ago. bar.isHidden alone NEVER decides (§1.2 hard rule / B1).
+        // ago.
         BOOL fading = pane.bar != nil && !pane.bar.isHidden &&
                       pane.bar.alpha == 0;
         BOOL transient = fading || self.resizing ||
                          (now - bwAssignAtBySlot[slot] < 0.25);
         if (!liveSeen || !live || transient) {
             state = BWStateUnknown;
-        } else if (barHidden) {
-            // [autohide] HIDDEN now also requires the fade
-            // (design-autohide §3.3): fadedEffective = autohideEnabled
-            // ? ahFaded : YES, so with AutoHide off the definition is
-            // exactly wake1's (bar-only). Bar down but NOT yet faded is
-            // not HIDDEN — handles/knob/logo are still on screen — so
-            // the pane reports VISIBLE; a wake landing in that window
-            // still re-shows the bar on the accepted path below.
-            BOOL fadedEffective = !bwAutoHideEnabled || [self ahFaded];
-            if ([self bwPopupForPane:pane]) state = BWStateUnknown;
-            else if (fadedEffective) state = BWStateHidden;
-            else state = BWStateVisible;
+        } else if (bwAutoHideEnabled && [self ahFaded]) {
+            // [gpt-hl6-fix] HIDDEN means the AutoHide chrome was
+            // actually faded, independent of pane.bar.isHidden.
+            // Keep the old popup UNKNOWN guard to avoid swallowing
+            // touches while a picker/menu is on top.
+            state = [self bwPopupForPane:pane] ? BWStateUnknown
+                                               : BWStateHidden;
         } else {
+            // With AutoHide OFF (or not yet faded), the logo and
+            // handles remain visible even when the menu bar is closed.
             state = BWStateVisible;
         }
         // [ytz4-hb] EXPANDED no longer promotes HIDDEN -> VISIBLE
@@ -1204,15 +1204,11 @@ static void BWEmitDrain(void) {
         return;
     }
     BWSeqRecord(slot, pkt.seq);
-    // §2.3 isolation: the wake handler ONLY drives the Chrome show
-    // path. It never posts a pinch command, never touches solo/zoom.
-    [self setBarVisible:YES forPane:pane];
-    // [autohide] reveal path 2 (design-autohide §3.4): an accepted
-    // wake restores the FULL chrome set together with the bar — the
-    // AutoHide TU un-paints handles/dividers/knobs/logo and pushes the
-    // fade change to the hosted mirrors. Safe when nothing is faded.
-    [self ahRevealWithReason:AHRevealWake];
+    // [gpt-hl6-fix] A wake reveals the faded controls ONLY: it must
+    // never open the pane's optional menu via setBarVisible:YES.
+    // HIDDEN has an ACK transaction below; VISIBLE can ACK directly.
     if (state == BWStateVisible) {
+        [self ahRevealWithReason:AHRevealWake];
         // Controls were already up; the wake's goal is met — ack at
         // once (role=0, state=VISIBLE, echo seq — vector V5 shape).
         if (!bwAckSendToken)
@@ -1230,13 +1226,30 @@ static void BWEmitDrain(void) {
             (long)slot, pkt.seq, pkt.gen, ackSS, ackPS]);
         return;
     }
-    // HIDDEN -> WAKING: wait for ABHost's applied-chrome confirm (§6).
+    // HIDDEN -> WAKING: set the transaction BEFORE reveal, since
+    // AutoHide recomputes the pane synchronously as it restores paint.
     bwWakePendingBySlot[slot] = YES;
     bwWakeSeqBySlot[slot] = pkt.seq;
     bwWakeAtBySlot[slot] = BWNow();
     [self bwRecomputeForPane:pane]; // stores + emits WAKING
-    BWPublishChainSuppressed(); // [pinch1] a chain is now held (WAKING)
+    BWPublishChainSuppressed(); // [pinch1] chain held until host ACK
+    [self ahRevealWithReason:AHRevealWake];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[wake-ui] reveal-only bundle=%@ slot=%ld seq=%u gen=%u faded=%d barHidden=%d",
+        bundle, (long)slot, pkt.seq, pkt.gen,
+        (int)[self ahFaded], (int)(!pane.bar || pane.bar.isHidden)]);
     __weak SCPCarSplit *weakSelf = self;
+    // Host may arm its Darwin wake observer AFTER the first fade
+    // frame reached SpringBoard. Re-send the same current frame
+    // once after arm; this is NOT a second wake or FS transaction.
+    SCPDispatchAfter(0.08, ^{
+        if (bwWakePendingBySlot[slot] &&
+            bwWakeSeqBySlot[slot] == pkt.seq &&
+            bwGenBySlot[slot] == pkt.gen &&
+            [bwBundleBySlot[slot] isEqualToString:bundle]) {
+            [weakSelf pushHostFramesLive:NO];
+        }
+    });
     SCPDispatchAfter(1.0, ^{
         // §6 deadline: no confirm within 1.0 s -> back to UNKNOWN,
         // emit it, never retry this wake.
