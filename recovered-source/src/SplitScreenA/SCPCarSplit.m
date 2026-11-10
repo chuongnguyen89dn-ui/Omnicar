@@ -2194,8 +2194,19 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         info[@"hl8seq"] = @(++hl8FrameSequence);
         NSString *bundle = pane.bundleID ?: @"";
         NSValue *old = hl8LastFrame[bundle];
-        if (!old || !CGRectEqualToRect([old CGRectValue], frame)) {
+        BOOL geometryChanged = !old || !CGRectEqualToRect([old CGRectValue], frame);
+        if (geometryChanged)
             hl8LastFrame[bundle] = [NSValue valueWithCGRect:frame];
+        // [hl18-perf] Sample drag-only debug writes, not actual frame
+        // delivery. Always keep a final (live=NO) event in the log.
+        static NSMutableDictionary *hl8LastPrintedAt;
+        if (!hl8LastPrintedAt)
+            hl8LastPrintedAt = [NSMutableDictionary dictionary];
+        CFAbsoluteTime traceNow = CFAbsoluteTimeGetCurrent();
+        NSNumber *lastPrinted = hl8LastPrintedAt[bundle];
+        if ((geometryChanged || !live) &&
+            (!live || !lastPrinted || traceNow - lastPrinted.doubleValue >= 0.35)) {
+            hl8LastPrintedAt[bundle] = @(traceNow);
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
                 @"[hl8diag] eye=layout ev=frame-send seq=%llu "
                  "bundle=%@ slot=%ld frame=%@ sceneExpected=%@ "
