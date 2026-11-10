@@ -371,6 +371,127 @@ static BOOL SCPDockCanShowOwn(id dock, id history, NSString **why) {
     }
     return YES;
 }
+// [hl14-dockapps] Only user-selected, home-injected phone apps enter
+// the synthetic Dock history path. Native CarPlay apps retain Apple's
+// original AppDock policy; OmniCar's own Dock owner is unchanged.
+extern NSSet<NSString *> *SCPChosenPhoneApps(void);
+static BOOL SCPDockIsChosenHosted(NSString *bid) {
+    return [bid isKindOfClass:[NSString class]] && bid.length > 0 &&
+        !SCPHomeLauncherIsBundle(bid) && SCPIsInjectedPhoneApp(bid) &&
+        [SCPChosenPhoneApps() containsObject:bid];
+}
+void SCPHomeLauncherDockHostedReady(NSString *bid, NSString *reason) {
+    if (![NSThread isMainThread]) {
+        NSString *b = [bid copy], *r = [reason copy];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            SCPHomeLauncherDockHostedReady(b, r);
+        });
+        return;
+    }
+    if (!SCPHomeLauncherEnabled() || !SCPDockIsChosenHosted(bid)) {
+        HLog(@"dock-hosted", [NSString stringWithFormat:
+            @"status=skipped source=%@ bid=%@", reason ?: @"?", bid ?: @"nil"]);
+        return;
+    }
+    @try {
+        id root = SCPDashboardRootViewController();
+        id dock = SCPHomeSafeGet(root, @"appDockViewController");
+        id hist = SCPHomeSafeGet(dock, @"appHistory");
+        id provider = SCPHomeSafeGet(dock, @"iconProvider");
+        if (!dock || !hist || !provider) {
+            HLog(@"dock-hosted", [NSString stringWithFormat:
+                @"status=BLIND reason=no-model bid=%@", bid]);
+            return;
+        }
+        NSString *iconName = @"iconForIdentifier:";
+        if (!SCPDockABI(provider, iconName, '@', '@', 3)) {
+            HLog(@"dock-hosted", [NSString stringWithFormat:
+                @"status=BLIND reason=icon-abi bid=%@", bid]);
+            return;
+        }
+        id icon = ((id (*)(id, SEL, id))objc_msgSend)(
+            provider, NSSelectorFromString(iconName), bid);
+        if (!icon) {
+            HLog(@"dock-hosted", [NSString stringWithFormat:
+                @"status=BLIND reason=no-home-icon bid=%@", bid]);
+            return;
+        }
+        NSString *visibleName = @"isIconVisible:";
+        if (SCPDockABI(provider, visibleName, 'B', '@', 3) ||
+            SCPDockABI(provider, visibleName, 'c', '@', 3)) {
+            if (!((BOOL (*)(id, SEL, id))objc_msgSend)(
+                    provider, NSSelectorFromString(visibleName), icon)) {
+                HLog(@"dock-hosted", [NSString stringWithFormat:
+                    @"status=reject reason=icon-not-visible bid=%@", bid]);
+                return;
+            }
+        }
+        NSString *validName = @"isBundleIdentifierValidForDock:";
+        if (SCPDockABI(hist, validName, 'B', '@', 3) ||
+            SCPDockABI(hist, validName, 'c', '@', 3)) {
+            if (!((BOOL (*)(id, SEL, id))objc_msgSend)(
+                    hist, NSSelectorFromString(validName), bid)) {
+                HLog(@"dock-hosted", [NSString stringWithFormat:
+                    @"status=reject reason=policy bid=%@", bid]);
+                return;
+            }
+        }
+        NSString *categoryName = @"appDockCategoryForBundleIdentifier:";
+        if (!SCPDockABI(hist, categoryName, 'Q', '@', 3) &&
+            !SCPDockABI(hist, categoryName, 'q', '@', 3)) {
+            HLog(@"dock-hosted", [NSString stringWithFormat:
+                @"status=BLIND reason=category-abi bid=%@", bid]);
+            return;
+        }
+        unsigned long long category =
+            ((unsigned long long (*)(id, SEL, id))objc_msgSend)(
+                hist, NSSelectorFromString(categoryName), bid);
+        if (category != 0) {
+            HLog(@"dock-hosted", [NSString stringWithFormat:
+                @"status=reject reason=not-other bid=%@ category=%llu",
+                bid, category]);
+            return;
+        }
+        id entries = SCPHomeSafeGet(hist, @"appHistory");
+        if (![entries isKindOfClass:[NSMutableDictionary class]]) {
+            HLog(@"dock-hosted", [NSString stringWithFormat:
+                @"status=BLIND reason=history-not-mutable bid=%@", bid]);
+            return;
+        }
+        ((NSMutableDictionary *)entries)[bid] =
+            @([[NSDate date] timeIntervalSince1970]);
+        BOOL wrote = SCPDockSetActive(dock, bid);
+        BOOL refreshed = SCPDockRefresh(dock);
+        BOOL active = [SCPDockBundle(dock) isEqualToString:bid];
+        HLog(@"dock-hosted", [NSString stringWithFormat:
+            @"status=%@ bid=%@ source=%@ history=1 active=%d "
+             "wrote=%d refresh=%d",
+            active ? @"model-active" : @"model-not-confirmed",
+            bid, reason ?: @"?", active, wrote, refreshed]);
+        NSString *tracked = [bid copy];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSUInteger total = NSNotFound, found = 0;
+            id items = SCPHomeSafeGet(dock, @"orderedAppItems");
+            if ([items isKindOfClass:[NSArray class]]) {
+                total = [items count];
+                for (id item in items)
+                    if ([SCPHomeSafeGet(item, @"bundleIdentifier")
+                         isEqualToString:tracked]) found++;
+            }
+            HLog(@"dock-hosted-readback", [NSString stringWithFormat:
+                @"bid=%@ ownCells=%@ count=%@",
+                tracked,
+                total == NSNotFound ? @"BLIND" :
+                    [NSString stringWithFormat:@"%lu", (unsigned long)found],
+                total == NSNotFound ? @"BLIND" :
+                    [NSString stringWithFormat:@"%lu", (unsigned long)total]]);
+        });
+    } @catch (NSException *e) {
+        HLog(@"dock-hosted", [NSString stringWithFormat:
+            @"status=exception bid=%@ name=%@", bid, e.name]);
+    }
+}
+
 void SCPHomeLauncherDockSetVisible(BOOL presented, NSString *reason) {
     if (![NSThread isMainThread]) {
         NSString *r = [reason copy];
@@ -596,6 +717,7 @@ typedef unsigned long long (*SCPDockHistoryCategoryOriginalType)(id, SEL, id);
 static SCPDockHistoryCategoryOriginalType SCPDockHistoryCategoryOriginal;
 static unsigned long long SCPDockHistoryCategoryReplacement(id history, SEL action, id bundle) {
     if (SCPHomeLauncherIsBundle(bundle)) return 0; // Own launcher occupies OTHER, not Maps.
+    if (SCPDockIsChosenHosted(bundle)) return 0; // [hl14-dockapps] keep Maps/audio slots intact
     return SCPDockHistoryCategoryOriginal ?
         SCPDockHistoryCategoryOriginal(history, action, bundle) : 0;
 }

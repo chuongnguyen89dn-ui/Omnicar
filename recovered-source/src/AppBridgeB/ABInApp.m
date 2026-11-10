@@ -1031,10 +1031,28 @@ static void BWOnAckPacket(uint64_t raw) {
 // the hosted app process. The remote host's SpringBoard window scan is
 // BLIND to that state. Resize only the app's own visible keyboard window,
 // never the app's full screen or keyplane, and restore on hide/release.
+// [hl11kb/hl14kb] The keyboard and its keyplane are UIKit owned.
+// Keep the last genuine pre-host geometry, then resize the keyboard
+// WINDOW + root container and request UIKit relayout. The keyboard's
+// screen reference is observed but never spoofed by a guessed hook.
 static __weak UIWindow *ABNativeKbWindow;
 static CGRect ABNativeKbOriginal;
+static CGRect ABNativeKbOriginalBounds;
+static __weak UIView *ABNativeKbRoot;
+static CGRect ABNativeKbRootOriginal;
 static BOOL ABNativeKbHasOriginal = NO;
 static NSUInteger ABNativeKbEpoch = 0;
+
+static CGFloat ABNativeKbLayoutStarWidth(UIView *view, NSUInteger depth) {
+    if (!view || depth > 6) return 0;
+    if ([NSStringFromClass(view.class) containsString:@"UIKeyboardLayoutStar"])
+        return view.bounds.size.width;
+    for (UIView *sub in view.subviews) {
+        CGFloat width = ABNativeKbLayoutStarWidth(sub, depth + 1);
+        if (width > 0) return width;
+    }
+    return 0;
+}
 
 static NSArray<UIWindow *> *ABNativeKbWindows(void) {
     NSMutableArray<UIWindow *> *out = [NSMutableArray array];
@@ -1043,8 +1061,8 @@ static NSArray<UIWindow *> *ABNativeKbWindows(void) {
         for (UIWindow *w in ((UIWindowScene *)scene).windows)
             if (![out containsObject:w]) [out addObject:w];
     }
-    // UIRemoteKeyboardWindow is often absent from scene.windows.
-    // DuoFace QA179 uses the guarded, process-local internal list.
+    // DuoFace QA179: UIRemoteKeyboardWindow can be absent from
+    // scene.windows; enumerate only inside this hosted app process.
     @try {
         SEL sel = NSSelectorFromString(
             @"allWindowsIncludingInternalWindows:onlyVisibleWindows:");
@@ -1064,12 +1082,26 @@ static NSArray<UIWindow *> *ABNativeKbWindows(void) {
 static void ABNativeKbRestore(NSString *reason) {
     if (!ABNativeKbHasOriginal) return;
     UIWindow *window = ABNativeKbWindow;
-    if (window && !CGRectEqualToRect(window.frame, ABNativeKbOriginal))
-        window.frame = ABNativeKbOriginal;
+    UIView *root = ABNativeKbRoot;
+    if (window) {
+        if (!CGRectEqualToRect(window.frame, ABNativeKbOriginal))
+            window.frame = ABNativeKbOriginal;
+        if (!CGRectEqualToRect(window.bounds, ABNativeKbOriginalBounds))
+            window.bounds = ABNativeKbOriginalBounds;
+        if (root && root == window.rootViewController.view &&
+            !CGRectEqualToRect(root.frame, ABNativeKbRootOriginal))
+            root.frame = ABNativeKbRootOriginal;
+        [window setNeedsLayout];
+        [root setNeedsLayout];
+        [window layoutIfNeeded];
+        [root layoutIfNeeded];
+    }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[hl11kb] ev=restore reason=%@ found=%d original=%@",
-        reason, (int)(window != nil), NSStringFromCGRect(ABNativeKbOriginal)]);
+        @"[hl14kb] ev=restore reason=%@ found=%d frame=%@ bounds=%@",
+        reason, (int)(window != nil), NSStringFromCGRect(ABNativeKbOriginal),
+        NSStringFromCGRect(ABNativeKbOriginalBounds)]);
     ABNativeKbWindow = nil;
+    ABNativeKbRoot = nil;
     ABNativeKbHasOriginal = NO;
 }
 
@@ -1093,41 +1125,116 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             else if (!key) key = w;
         }
     }
-    // The key-window rect is the same authority DuoFace used. If
-    // phone and key-window sizes are equal, there is nothing to fit.
     CGRect target = key ? key.frame : CGRectNull;
-    BOOL visibleKeyboard = keyboard && !keyboard.hidden &&
+    if (key && CGRectIsEmpty(target))
+        target = CGRectMake(0, 0, key.bounds.size.width, key.bounds.size.height);
+    BOOL visible = keyboard && !keyboard.hidden &&
         keyboard.alpha > 0.01 && !CGRectIsEmpty(keyboard.bounds);
-    NSString *reason = !keyboard ? @"no-kb-window" :
-                       !visibleKeyboard ? @"kb-not-visible" :
-                       !key ? @"no-key-window" :
-                       CGRectIsEmpty(target) ? @"empty-target" :
-                       CGRectEqualToRect(keyboard.frame, target)
-                           ? @"already-fit" : @"applied";
-    if (visibleKeyboard && key && !CGRectIsEmpty(target)) {
-        if (ABNativeKbHasOriginal && keyboard != ABNativeKbWindow)
-            ABNativeKbRestore(@"window-replaced");
-        if (!CGRectEqualToRect(keyboard.frame, target)) {
+    BOOL valid = key && visible &&
+        target.size.width >= 90 && target.size.height >= 90;
+    UIView *root = valid ? keyboard.rootViewController.view : nil;
+    CGRect rootBefore = root ? root.frame : CGRectNull;
+    CGRect kbBefore = keyboard ? keyboard.frame : CGRectNull;
+    CGFloat starBefore = valid ? ABNativeKbLayoutStarWidth(keyboard, 0) : 0;
+    CGSize reference = CGSizeZero;
+    if (valid) {
+        // Read-only: QA180 measured the original phone screen as this
+        // getter's value; QA181 did NOT prove that hooking it repairs
+        // the layout. We never replace its IMP.
+        SEL refSEL = NSSelectorFromString(@"keyboardScreenReferenceSize");
+        @try {
+            if ([keyboard respondsToSelector:refSEL])
+                reference = ((CGSize (*)(id, SEL))objc_msgSend)(keyboard, refSEL);
+        } @catch (__unused NSException *ex) {}
+        CGRect wantBounds = CGRectMake(0, 0, target.size.width, target.size.height);
+        CGRect wantRoot = wantBounds;
+        BOOL changed = !CGRectEqualToRect(keyboard.frame, target) ||
+                       !CGRectEqualToRect(keyboard.bounds, wantBounds) ||
+                       (root && !CGRectEqualToRect(root.frame, wantRoot));
+        if (changed && ABNativeKbHasOriginal && keyboard != ABNativeKbWindow)
+            ABNativeKbRestore(@"keyboard-replaced");
+        if (changed) {
             if (!ABNativeKbHasOriginal) {
                 ABNativeKbWindow = keyboard;
                 ABNativeKbOriginal = keyboard.frame;
+                ABNativeKbOriginalBounds = keyboard.bounds;
+                ABNativeKbRoot = root;
+                ABNativeKbRootOriginal = root ? root.frame : CGRectNull;
                 ABNativeKbHasOriginal = YES;
             }
+            // DuoFace's fit frame + scene-size reconcile, together:
+            // setting a window.frame alone can leave its nested key
+            // layout at a previous phone width after divider changes.
             keyboard.frame = target;
+            keyboard.bounds = wantBounds;
+            if (root) root.frame = wantRoot;
         }
+        [keyboard setNeedsLayout];
+        [root setNeedsLayout];
+        for (UIView *sub in keyboard.subviews) [sub setNeedsLayout];
+        [keyboard layoutIfNeeded];
+        [root layoutIfNeeded];
     }
+    CGFloat starAfter = valid ? ABNativeKbLayoutStarWidth(keyboard, 0) : 0;
+    BOOL narrow = valid && starAfter > 0 &&
+        starAfter + 8 < target.size.width * 0.85;
+    NSString *result = !keyboard ? @"no-kb-window" :
+                       !visible ? @"kb-not-visible" :
+                       !key ? @"no-key-window" :
+                       !valid ? @"invalid-key-geometry" :
+                       narrow ? @"layout-narrow" :
+                       CGRectEqualToRect(kbBefore, target) &&
+                       CGRectEqualToRect(rootBefore, (CGRect){CGPointZero, target.size})
+                           ? @"already-fit" : @"applied";
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[hl11kb] ev=native-fit when=%@ try=%ld result=%@ "
-         "windows=%lu key=%@ keyFrame=%@ kb=%@ kbFrame=%@ "
-         "kbHidden=%d screen=%@ focus=1",
-        when, (long)attempt, reason, (unsigned long)windows.count,
+        @"[hl14kb] ev=native-fit when=%@ try=%ld result=%@ windows=%lu "
+         "key=%@ keyFrame=%@ kb=%@ kbBefore=%@ kbAfter=%@ "
+         "kbBounds=%@ rootBefore=%@ rootAfter=%@ starBefore=%.1f "
+         "starAfter=%.1f refSize=%@ focus=1",
+        when, (long)attempt, result, (unsigned long)windows.count,
         key ? NSStringFromClass(key.class) : @"none",
-        key ? NSStringFromCGRect(key.frame) : @"nil",
+        key ? NSStringFromCGRect(target) : @"nil",
         keyboard ? NSStringFromClass(keyboard.class) : @"none",
+        NSStringFromCGRect(kbBefore),
         keyboard ? NSStringFromCGRect(keyboard.frame) : @"nil",
-        keyboard ? (int)keyboard.hidden : -1,
-        NSStringFromCGRect(UIScreen.mainScreen.bounds)]);
-    return visibleKeyboard && key != nil && !CGRectIsEmpty(target);
+        keyboard ? NSStringFromCGRect(keyboard.bounds) : @"nil",
+        NSStringFromCGRect(rootBefore),
+        root ? NSStringFromCGRect(root.frame) : @"nil",
+        starBefore, starAfter, NSStringFromCGSize(reference)]);
+    return valid && !narrow;
+}
+
+static void ABNativeKbOnGeometry(NSNotification *note) {
+    if (ABForcedOrientation < 1 || ABDrawnKb ||
+        !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
+        return;
+    NSUInteger epoch = ++ABNativeKbEpoch;
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl14kb] ev=geometry-recv source=original-orientation-channel "
+         "orientation=%ld focus=1",
+        (long)[note.userInfo[@"orientation"] integerValue]]);
+    // The host has just requested a new FBScene frame, but the app
+    // may settle its key window one or two run-loop beats later.
+    // Each fresh geometry supersedes all pending retries. Never
+    // generate a new keyboard, change keyplane or swallow touches.
+    ABNativeKbFit(@"geometry-immediate", 0);
+    for (NSUInteger i = 0; i < 3; i++) {
+        const NSTimeInterval waits[] = {0.12, 0.35, 0.7};
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                                     (int64_t)(waits[i] * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (epoch != ABNativeKbEpoch || ABForcedOrientation < 1 ||
+                ABDrawnKb || !ABCurrentResponder ||
+                ![ABCurrentResponder isFirstResponder]) return;
+            BOOL good = ABNativeKbFit(@"geometry-settled", (NSInteger)i + 1);
+            if (!good && i == 1 &&
+                [ABCurrentResponder respondsToSelector:@selector(reloadInputViews)]) {
+                [ABCurrentResponder reloadInputViews];
+                OMCLogWrite(@"AppBridge",
+                    @"[hl14kb] ev=reload-input-views reason=layout-not-settled");
+            }
+        });
+    }
 }
 
 static void ABNativeKbBegin(NSString *why) {
@@ -2662,12 +2769,14 @@ static void ABOrientationBlock(NSNotification *note) {
         for (id link in [ABDisplayLinks() allObjects]) ABApplyFPSLimit(link);
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"gioi han khung hinh: %d", (int)fps]);
     }
-    // [hl11kb] Refit an ALREADY-OBSERVED native keyboard window when
-    // the host posts its updated frame/orientation after divider drag.
-    // Do not create a keyboard merely because layout changed.
-    if (orientation >= 1 && !ABDrawnKb && ABNativeKbHasOriginal &&
+    // [hl14kb] A completed divider/ratio resize now causes the
+    // ORIGINAL orientation channel to be re-posted by ABHost.
+    // The UIKit key window can settle after that notification, so
+    // refit and re-evaluate the keyplane on bounded main-loop beats.
+    // This never creates a keyboard when no responder is focused.
+    if (orientation >= 1 && !ABDrawnKb &&
         ABCurrentResponder && [ABCurrentResponder isFirstResponder])
-        ABNativeKbFit(@"host-frame", 0);
+        ABNativeKbOnGeometry(note);
 }
 
 // ===========================================================================

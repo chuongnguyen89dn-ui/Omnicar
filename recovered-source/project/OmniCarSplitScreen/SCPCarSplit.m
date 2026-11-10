@@ -1901,6 +1901,8 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         [self showSoloCoverForBundle:bundleID];
         [self hostSolo:bundleID];
     }
+    if ([self.soloHostedBundle isEqualToString:bundleID])
+        SCPHomeLauncherDockHostedReady(bundleID, @"home-tap-live-solo"); // [hl14-dockapps]
     return YES;
 }
 
@@ -2029,6 +2031,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     if (solo && [solo isEqualToString:bundleID]) {
         if ([state isEqualToString:@"ready"]) {
             [self hideSoloCover];
+            SCPHomeLauncherDockHostedReady(bundleID, @"solo-ready"); // [hl14-dockapps]
             return;
         }
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: app toan man %@ %@", bundleID, state]);
@@ -2041,6 +2044,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     SCPSceneVisLog([NSString stringWithFormat:@"host-state-%@", state], pane, pane.vc, NO); // [scenevis] throttled
     if ([state isEqualToString:@"ready"]) {
         [self removeLoaderFromPane:pane animated:YES];
+        SCPHomeLauncherDockHostedReady(bundleID, @"split-ready"); // [hl14-dockapps]
         return;
     }
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"AppBridge: %@ %@ -> dong o %d", bundleID, state, (int)pane.slot]);
@@ -2235,17 +2239,33 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
 // sheet / ratio menu overlays — the ratio menu cuts a 6 pt-inflated hole).
 - (CGRect)hostFrameForPane:(SCPCarPane *)pane {
     if (!self.active || !pane.vc) return CGRectZero;
-    if (pane.picker) return CGRectZero;
+    // [hl14-picker] A chooser overlays a LIVE pane; it must not
+    // zero the existing AppBridge frame while the picker is open.
+    if (pane.picker && ![self slotOccupied:pane.slot]) return CGRectZero;
     if (pane.view.alpha < 0.5) return CGRectZero;
     if (pane.view.bounds.size.width < 20.0) return CGRectZero;
     if (!pane.view.window) return CGRectZero;
     if (self.tray && !self.trayOverlay) return CGRectZero;
-    if (self.pickerSheet && !self.pickerSheetOverlay) return CGRectZero;
+    // [hl14-picker] Same-window pickerSheet is a transparent view,
+    // not a reason to revoke the already-hosted AppBridge surface.
     if (self.ratioMenu && !self.ratioOverlay) {
         CGRect hole = CGRectInset(self.ratioMenu.frame, -6.0, -6.0);
         if (CGRectIntersectsRect(hole, pane.view.frame)) return CGRectZero;
     }
-    return [pane.view convertRect:pane.view.bounds toView:nil];
+    CGRect stableFrame = [pane.view convertRect:pane.view.bounds toView:nil];
+    if (pane.picker || self.pickerSheet) {
+        static CFAbsoluteTime lastPickerProbe = 0;
+        CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+        if (now - lastPickerProbe > 0.75) {
+            lastPickerProbe = now;
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[hl14-picker] slot=%d live=%d picker=%d sheet=%d frame=%@",
+                (int)pane.slot, (int)(pane.vc != nil),
+                (int)(pane.picker != nil), (int)(self.pickerSheet != nil),
+                NSStringFromCGRect(stableFrame)]);
+        }
+    }
+    return stableFrame;
 }
 
 // -holeForPane: (0x3dca8) VERIFIED (rem_stub_holeForPane:.txt): the float
@@ -3047,6 +3067,19 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
         [self removeHomeButton];
         return;
     }
+    // [hl14-floating] No overlay launcher when the native own Home
+    // tile + CarPlay AppDock are available. This retires only the
+    // supplementary SCPCButton, never the real Dock or split engine.
+    if (SCPHomeLauncherEnabled()) {
+        if (self.homeButton) {
+            OMCLogWrite(@"SplitScreen",
+                @"[hl14-floating] removed extra on-app launcher; native Dock retained");
+            [self removeHomeButton];
+        }
+        if ([self atHomeScreen]) [self installIconLongPress];
+        return;
+    }
+
     // [gpt-home-grid-only] The real OmniCar Home tile now launches the
     // SAME SCPCarSplit layout panel. Retire ONLY our extra UIButton in
     // the Dock; keep the native Apple Dock and all split/host controllers.

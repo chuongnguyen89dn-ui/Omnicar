@@ -718,6 +718,17 @@ static ABBarButton *ABMakeBarButton(NSString *name, NSString *title, UIColor *ti
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"%@ -> %@ (huong %lld)",
                                    app, NSStringFromCGRect(frame),
                                    (long long)[self effectiveOrientation:pane]]);
+        // [hl14kb] Re-use the already working host->app orientation
+        // transport after a *committed* resize. The new logical FBScene
+        // dimensions were assigned by layoutPane above, so the app
+        // receives a UIKit keyboard relayout signal with the same
+        // native-only gate. Never publish live divider drag samples.
+        if (pane.orientation >= 1) {
+            ABPostOrientationToApp(app, pane.orientation);
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[hl14kb] ev=geometry-push bundle=%@ size=%@ orient=%ld",
+                app, NSStringFromCGSize(frame.size), (long)pane.orientation]);
+        }
     } else {
         ((UIViewController *)pane.appViewController).view.center = // [integration phase 2; backported to src in phase 3] cast: ABPane.appViewController is typed id; the message chain is unchanged
             CGPointMake(frame.size.width * 0.5, frame.size.height * 0.5);
