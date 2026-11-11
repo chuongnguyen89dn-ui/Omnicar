@@ -59,6 +59,10 @@ static NSDictionary *OMCRow(NSString *label,NSString *type,NSString *key,id def,
     if (choices) r[@"choices"]=choices;
     return r;
 }
+static NSDictionary *OMCSliderRow(NSString *label,NSString *key,NSInteger fallback,NSInteger minimum,NSInteger maximum) {
+    NSMutableDictionary *row=[OMCRow(label,@"slider",key,@(fallback),nil) mutableCopy];
+    row[@"min"]=@(minimum);row[@"max"]=@(maximum);return row;
+}
 static NSDictionary *OMCSection(NSString *header, NSArray *rows) {
     return @{@"header":header?:@"",@"rows":rows?:@[]};
 }
@@ -336,7 +340,10 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCSection(OMCNativeLocalized(@"SPLITSCREEN_FAV_GROUP"),favorites),
             OMCSection(OMCNativeLocalized(@"SPLITSCREEN_LAYOUT_GROUP"),@[
                 OMCRow(@"SPLITSCREEN_SHOW_RECENT",@"switch",@"splitScreenShowRecent",@YES,nil),
-                OMCRow(@"SPLITSCREEN_SHOW_FAVORITES",@"switch",@"splitScreenShowFavorites",@YES,nil)])
+                OMCRow(@"SPLITSCREEN_SHOW_FAVORITES",@"switch",@"splitScreenShowFavorites",@YES,nil)]),
+            OMCSection(OMCText(@"Cử chỉ và lệnh tắt",@"Gestures & Shortcuts"),@[
+                OMCRow(@"SPLITSCREEN_GESTURES",@"help",nil,nil,nil),
+                OMCRow(@"SPLITSCREEN_SIRI",@"shortcuts",nil,nil,nil)])
         ];
     }
     if (self.kind==2) return @[
@@ -355,15 +362,16 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         OMCSection(@"SPEEDBUBBLE",@[
             OMCRow(@"SPEEDBUBBLE_ENABLE",@"switch",@"speedBubbleEnabled",@YES,nil),
             OMCRow(@"SPEEDBUBBLE_SHOW_APP_ICON",@"switch",@"speedBubbleShowAppIcon",@YES,nil),
-            OMCRow(OMCText(@"Kiểu hiển thị",@"Appearance"),@"number",@"speedBubbleLook",@0,@[@0,@1,@2,@3,@4,@5]),
+            OMCRow(OMCText(@"Kiểu hiển thị",@"Appearance"),@"number",@"speedBubbleLook",@0,@[@0,@1,@2,@3,@4,@5,@6,@7,@8]),
             OMCRow(OMCText(@"Nguồn tốc độ",@"Speed source"),@"number",@"speedBubbleSource",@0,@[@0,@1,@2,@3]),
             OMCRow(OMCText(@"Màu sắc",@"Color"),@"number",@"speedBubbleColor",@0,@[@0,@1,@2,@3,@4,@5,@6]),
-            OMCRow(OMCText(@"Kích thước xe (%)",@"Car size (%)"),@"number",@"speedBubbleSizeCar",@100,@[@60,@70,@80,@90,@100,@110,@120,@130,@140,@150]),
-            OMCRow(OMCText(@"Kích thước điện thoại (%)",@"Phone size (%)"),@"number",@"speedBubbleSizePhone",@100,@[@60,@80,@100,@120,@140])]),
+            OMCSliderRow(OMCText(@"Kích thước xe (%)",@"Car size (%)"),@"speedBubbleSizeCar",100,60,220),
+            OMCSliderRow(OMCText(@"Kích thước điện thoại (%)",@"Phone size (%)"),@"speedBubbleSizePhone",100,60,220),
+            OMCRow(@"SPEEDBUBBLE_RESET_LAYOUT",@"resetbubble",nil,nil,nil)]),
         OMCSection(OMCText(@"Cảnh báo",@"Alerts"),@[
             OMCRow(OMCText(@"Chế độ cảnh báo",@"Warning mode"),@"number",@"speedBubbleWarnMode",@3,@[@0,@1,@2,@3]),
             OMCRow(OMCText(@"Hiệu ứng cảnh báo",@"Warning effect"),@"number",@"speedBubbleWarnFx",@0,@[@0,@1,@2,@3]),
-            OMCRow(OMCText(@"Ngưỡng cảnh báo",@"Over-limit threshold"),@"number",@"speedBubbleWarnOver",@5,@[@(-10),@(-5),@0,@5,@10]),
+            OMCSliderRow(OMCText(@"Ngưỡng cảnh báo",@"Over-limit threshold"),@"speedBubbleWarnOver",5,-10,10),
             OMCRow(OMCText(@"Âm cảnh báo",@"Warning sound"),@"number",@"speedBubbleWarnSound",@0,@[@0,@1]),
             OMCRow(OMCText(@"Tiếng cảnh báo",@"Warning tone"),@"number",@"speedBubbleWarnTone",@0,@[@0,@1,@2,@3,@4,@5]),
             OMCRow(OMCText(@"Lời nhắc",@"Warning voice"),@"number",@"speedBubbleWarnVoice",@0,@[@0,@1,@2,@3,@4,@5,@6,@7,@8]),
@@ -413,6 +421,15 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         objc_setAssociatedObject(sw,@selector(omcChanged:),key,OBJC_ASSOCIATION_COPY_NONATOMIC);
         [sw addTarget:self action:@selector(omcChanged:) forControlEvents:UIControlEventValueChanged];
         cell.accessoryView=sw;cell.accessoryType=UITableViewCellAccessoryNone;
+    } else if ([type isEqualToString:@"slider"]) {
+        UISlider *slider=[[UISlider alloc] initWithFrame:CGRectMake(0,0,150,44)];
+        slider.minimumValue=[r[@"min"] floatValue];slider.maximumValue=[r[@"max"] floatValue];
+        slider.value=[OMCNativePref(key,r[@"default"]?:@0) floatValue];
+        slider.accessibilityLabel=OMCRowName(r);
+        objc_setAssociatedObject(slider,@selector(omcSliderDone:),r,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [slider addTarget:self action:@selector(omcSliderDone:) forControlEvents:
+            UIControlEventTouchUpInside|UIControlEventTouchUpOutside];
+        cell.accessoryView=slider;cell.accessoryType=UITableViewCellAccessoryNone;
     } else if ([type isEqualToString:@"number"] || [type isEqualToString:@"text"] ||
                [type isEqualToString:@"pickapp"] || [type isEqualToString:@"favorite"]) {
         id value=OMCNativePref(key,[type isEqualToString:@"favorite"]?nil:r[@"default"]);
@@ -429,12 +446,35 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         s.on=!s.on; OMCAlert(self,OMCText(@"Không lưu được cấu hình.",@"Could not save settings."));
     }
 }
+- (void)omcSliderDone:(UISlider *)slider {
+    NSDictionary *r=objc_getAssociatedObject(slider,@selector(omcSliderDone:));
+    NSString *key=r[@"key"];
+    if (!key.length)return;
+    NSInteger n=(NSInteger)roundf(slider.value);
+    n=MAX([r[@"min"] integerValue],MIN(n,[r[@"max"] integerValue]));
+    if (!OMCNativeSetPref(key,@(n))) {
+        slider.value=[OMCNativePref(key,r[@"default"]?:@0) floatValue];
+        OMCAlert(self,OMCText(@"Không lưu được.",@"Failed to save."));
+    }else {
+        slider.value=n;
+        UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification,
+            [NSString stringWithFormat:@"%@: %ld",OMCRowName(r),(long)n]);
+    }
+}
 - (void)chooseValueFor:(NSDictionary *)r {
     NSString *key=r[@"key"];NSArray *values=r[@"choices"];
     UIAlertController *a=[UIAlertController alertControllerWithTitle:OMCRowName(r)
         message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     for (id v in values) {
         NSString *name=[v description];
+        if ([key isEqualToString:@"speedBubbleLook"]||
+            [key isEqualToString:@"speedBubbleColor"]||
+            [key isEqualToString:@"speedBubbleSource"]) {
+            NSString *prefix=[key isEqualToString:@"speedBubbleLook"]?@"SPEEDBUBBLE_LOOK":
+                ([key isEqualToString:@"speedBubbleColor"]?@"SPEEDBUBBLE_COLOR":@"SPEEDBUBBLE_SRC");
+            NSString *label=OMCNativeLocalized([NSString stringWithFormat:@"%@_%ld",prefix,(long)[v integerValue]]);
+            if (![label hasPrefix:prefix])name=label;
+        }
         if ([key isEqualToString:@"homeScreenGridCols"] ||
             [key isEqualToString:@"homeScreenGridRows"]) {
             if ([v integerValue]==0) name=OMCNativeLocalized(@"HOMESCREEN_AUTO");
@@ -604,7 +644,36 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         page.homeMode=YES;
         [self.navigationController pushViewController:page animated:YES];return;
     }
+    if ([type isEqualToString:@"help"]) {
+        OMCAlert(self,OMCNativeLocalized(@"SPLITSCREEN_GUIDE_CAR_TEXT"));return;
+    }
+    if ([type isEqualToString:@"shortcuts"]) {
+        NSString *urls=OMCNativeLocalized(@"SPLITSCREEN_SHORTCUTS_FOOTER");
+        UIAlertController *a=[UIAlertController alertControllerWithTitle:OMCText(@"Lệnh tắt",@"Shortcuts")
+            message:urls preferredStyle:UIAlertControllerStyleActionSheet];
+        for(NSString *line in [urls componentsSeparatedByString:@"\n"]) {
+            NSString *trim=[line stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+            if (!trim.length)continue;
+            [a addAction:[UIAlertAction actionWithTitle:trim style:UIAlertActionStyleDefault handler:^(UIAlertAction *act){
+                UIPasteboard.generalPasteboard.string=trim;
+            }]];
+        }
+        [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Hủy",@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+        a.popoverPresentationController.sourceView=self.view;
+        a.popoverPresentationController.sourceRect=CGRectMake(CGRectGetMidX(self.view.bounds),CGRectGetMidY(self.view.bounds),1,1);
+        [self presentViewController:a animated:YES completion:nil];return;
+    }
     if ([type isEqualToString:@"demo"]) {notify_post("com.anlai.omnicar/speedbubble.demo");return;}
+    if ([type isEqualToString:@"resetbubble"]) {
+        UIAlertController *a=[UIAlertController alertControllerWithTitle:OMCNativeLocalized(@"SPEEDBUBBLE_RESET_LAYOUT")
+            message:OMCText(@"Khôi phục vị trí bong bóng tốc độ?",@"Reset speed bubble position?")
+            preferredStyle:UIAlertControllerStyleAlert];
+        [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Hủy",@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+        [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Khôi phục",@"Reset") style:UIAlertActionStyleDestructive handler:^(UIAlertAction *act){
+            notify_post("com.anlai.omnicar/speedbubble.resetlayout");
+        }]];
+        [self presentViewController:a animated:YES completion:nil];return;
+    }
     if ([type isEqualToString:@"resethome"]) {[self resetHome];return;}
     if ([type isEqualToString:@"respring"]) {[self confirmRespring];return;}
     if ([type isEqualToString:@"car"]) {
