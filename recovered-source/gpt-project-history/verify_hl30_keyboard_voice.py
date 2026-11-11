@@ -47,7 +47,8 @@ assert 'ABNativeKbRestore(@"projection-guard")' in ab
 assert 'if (ABNativeKbFit(why, 0))' in ab
 assert 'if (found)' in ab and '++ABNativeKbEpoch;' in ab
 assert 'ABNativeKbObserveLayout' in ab
-assert 'return applied && layoutObserved;' in ab
+assert 'return applied && layoutObserved && planeInsideClip;' in ab
+assert 'planeInsideClip = !CGRectIsNull(planeRect)' in ab
 assert 'AB27FindKeyplane' in ab
 assert 'AB25ProbeKeyboardSurface' in ab
 assert 'UIKeyboardLayoutStar.transform =' not in ab
