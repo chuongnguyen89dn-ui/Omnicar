@@ -93,7 +93,7 @@ assert 'boxWindowSame=%d' in geometry
 assert 'UNKNOWN-cross-window' in geometry
 assert 'BOOL sameWindow = box.window && appView.window' in geometry
 assert 'sameWindow\n                ? NSStringFromCGRect([v convertRect:v.bounds toView:box])' in geometry
-assert "AB25ProbeKeyboardSurface(keyboard, key, windows, when, observedStar)" in app
+assert "AB25ProbeKeyboardSurface(keyboard, key, windows, when, observedStar)" in " ".join(app.split())  # HL30 multiline call keeps the same full argument order
 assert "ABNativeKbObserveLayout(UIWindow *window, CGFloat *widthOut," in app
 assert "UIView **layoutOut" in app
 assert "ABNativeKbFindLayout(keyboard, 0)" not in probe
