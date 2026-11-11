@@ -1058,11 +1058,14 @@ static UIView *ABNativeKbFindLayout(UIView *view, NSUInteger depth) {
 // Diagnostic only: no private keyplane setter, transform, or forced
 // re-layout. A wide visual rect may reflect UIKit's own intermediate
 // transform; this probe is NOT a pass/fail assertion for visible keys.
-static BOOL ABNativeKbObserveLayout(UIWindow *window, CGFloat *widthOut) {
+static BOOL ABNativeKbObserveLayout(UIWindow *window, CGFloat *widthOut,
+                                    UIView **layoutOut) {
     if (widthOut) *widthOut = 0;
+    if (layoutOut) *layoutOut = nil;
     if (!window) return NO;
     UIView *layout = ABNativeKbFindLayout(window, 0);
     if (!layout) return NO;
+    if (layoutOut) *layoutOut = layout;
     CGRect measured = [layout convertRect:layout.bounds toView:window];
     if (!isfinite(measured.size.width) ||
         CGRectIsEmpty(measured) || measured.size.width < 1) return NO;
@@ -1100,7 +1103,8 @@ static NSArray<UIWindow *> *ABNativeKbWindows(void) {
 // keyboard z-order. Never alter LayoutStar or expose typed input.
 // No synthesized taps/hit tests; screen raster/touch correctness stays UNKNOWN.
 static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
-                                     NSArray<UIWindow *> *windows, NSString *when) {
+                                     NSArray<UIWindow *> *windows, NSString *when,
+                                     UIView *star) {
     if (!keyboard) return;
     // Avoid flooding UIKit's focus/layout path during divider animation.
     // Sample the first observation of an epoch, then at most ~4/s.
@@ -1121,7 +1125,8 @@ static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
                 (int)w.isKeyWindow, NSStringFromCGRect(w.frame),
                 w.windowScene ? NSStringFromClass(w.windowScene.class) : @"nil"]];
         }
-        UIView *star = ABNativeKbFindLayout(keyboard, 0);
+        // Reuse the UIView already found by the existing HL24 keyplane scan.
+        // Do not walk the entire UIKit keyboard subtree twice per sample.
         CGRect projected = star ? [star convertRect:star.bounds toView:keyboard] : CGRectNull;
         CGRect available = keyboard.bounds;
         NSMutableArray<NSString *> *ancestors = [NSMutableArray array];
@@ -1225,8 +1230,10 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             ABNativeKbHasOriginal = YES;
         }
         if (changedFrame) keyboard.frame = target;
-        layoutObserved = ABNativeKbObserveLayout(keyboard, &starVisualWidth);
-        AB25ProbeKeyboardSurface(keyboard, key, windows, when);
+        UIView *observedStar = nil;
+        layoutObserved = ABNativeKbObserveLayout(keyboard, &starVisualWidth,
+                                                 &observedStar);
+        AB25ProbeKeyboardSurface(keyboard, key, windows, when, observedStar);
     }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[hl24-keyplane] when=%@ try=%ld observed=%d visualW=%.1f "
