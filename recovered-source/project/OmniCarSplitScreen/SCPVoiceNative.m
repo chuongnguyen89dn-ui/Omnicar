@@ -213,6 +213,10 @@ static void DCVoicePaint(SCPCarSplit *split, BOOL listening) {
 }
 @end
 
+void SCPVoiceNativeToggle(SCPCarSplit *split) {
+    if (!DCVoiceSession) DCVoiceSession=[DCVoiceCarSession new];
+    [DCVoiceSession toggle:split];
+}
 void SCPVoiceBubbleDetach(SCPCarSplit *split) {
     if (DCVoiceSession && DCVoiceSession.listening)
         [DCVoiceSession stop];
