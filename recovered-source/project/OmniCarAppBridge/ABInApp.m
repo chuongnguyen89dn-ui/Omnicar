@@ -27,6 +27,7 @@
 #import <substrate.h>
 #import <UIKit/UIGestureRecognizerSubclass.h> // [hl2-w6] ABPinchGestureRecognizer sets state
 #import <mach/mach_time.h> // WO fix-w W1: act decision log stamps
+#import <CoreFoundation/CoreFoundation.h> // [hl25] CFAbsoluteTime geometry sampling
 
 // [integration phase 1; backported to src in phase 3] forward
 // declarations: the in-app hook replacements below are installed near
@@ -1143,24 +1144,27 @@ static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
         // Geometry only. -hitTest:withEvent: is NOT an inert probe:
         // custom UIKit subclasses can route/consume events on that path.
         // LayoutStar is not the actual raster/keycap proof either.
-        BOOL rightInsideClip = NO, rightInsideWindow = NO;
+        NSString *rightInsideClip = @"UNKNOWN";
+        NSString *rightInsideWindow = @"UNKNOWN";
         if (star && !CGRectIsNull(projected) && !CGRectIsEmpty(projected)) {
             CGPoint edge = CGPointMake(CGRectGetMaxX(projected) - 12,
                                        CGRectGetMidY(projected));
-            rightInsideClip = CGRectContainsPoint(available, edge);
-            rightInsideWindow = CGRectContainsPoint(keyboard.bounds, edge);
+            rightInsideClip = CGRectContainsPoint(available, edge)
+                ? @"YES" : @"NO";
+            rightInsideWindow = CGRectContainsPoint(keyboard.bounds, edge)
+                ? @"YES" : @"NO";
         }
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
             @"[hl25-kb-surface] when=%@ key=%@ kb=%@ kbLevel=%.1f "
              "kbScene=%@ star=%d projected=%@ available=%@ "
-             "rightInsideClip=%d rightInsideWindow=%d probe=geometry-only "
-             "keycapRaster=UNKNOWN keycapTouch=UNKNOWN",
+             "rightInsideClip=%@ rightInsideWindow=%@ probe=geometry-only "
+             "keycapRaster=UNKNOWN keycapTouch=UNKNOWN occlusion=UNKNOWN",
             when, key ? NSStringFromCGRect(key.frame) : @"nil",
             NSStringFromCGRect(keyboard.frame), (double)keyboard.windowLevel,
             keyboard.windowScene ? NSStringFromClass(keyboard.windowScene.class) : @"nil",
             (int)(star != nil), NSStringFromCGRect(projected),
-            NSStringFromCGRect(available), (int)rightInsideClip,
-            (int)rightInsideWindow]);
+            NSStringFromCGRect(available), rightInsideClip,
+            rightInsideWindow]);
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
             @"[hl25-kb-ancestors] when=%@ %@",
             when, [ancestors componentsJoinedByString:@" / "]]);
