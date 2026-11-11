@@ -29,6 +29,7 @@ on:
       - ci-fat-test
       - feature/duocar-hl21-rebrand-20261111
       - feature/duocar-hl22-keyplane-menu-original-20261111
+      - feature/duocar-hl23-keyboard-physical-contract-20261111
 
 jobs:
   build-fat:
@@ -84,10 +85,10 @@ jobs:
         working-directory: recovered-source/gpt-project-history
         run: python3 -m unittest -v test_analyze_hl8_unified_log.py
 
-      - name: Verify HL22 source invariants (reversible keyboard layout, original picker, pinch, Dock)
+      - name: Verify HL22 baseline invariants (reversible keyboard layout, original picker, pinch, Dock)
         run: python3 recovered-source/gpt-project-history/verify_hl21_regression.py
 
-      - name: Verify HL22 keyboard geometry and DEB-original menu source fixtures
+      - name: Verify HL22 baseline keyboard geometry and DEB-original menu source fixtures
         run: python3 recovered-source/gpt-project-history/verify_hl22_geometry.py
 
       - name: Rebrand the complete source/build tree to DuoCar before compilation
@@ -140,9 +141,9 @@ jobs:
 
       - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl23duocar_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl22duocar"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl23duocar"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -156,7 +157,7 @@ jobs:
               fi
               echo "HL8 marker PASS $dylib/$arch"
               if [ "$dylib" = "DuoCarAppBridge" ]; then
-                for marker in '[hl11kb]' 'ev=native-fit' 'ev=restore' 'ev=reload-input-views' '[pinch2] trigger=began toggle-sent dir=0'; do
+                for marker in '[hl11kb]' '[hl23-kbphysical]' 'ev=native-fit' 'ev=restore' 'ev=reload-input-views' '[pinch2] trigger=began toggle-sent dir=0'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL11 keyboard marker $marker missing in $dylib/$arch"
                     exit 1
@@ -186,12 +187,12 @@ jobs:
       - name: Verify exact DuoCar package, app identity, signatures and zero old branding
         run: |
           python3 recovered-source/gpt-project-history/verify_duocar_payload.py \
-            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb
+            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl23duocar_iphoneos-arm64.deb
 
-      # HL22 is a private candidate: do not create a public Release and do
+      # HL23 is a private candidate: do not create a public Release and do
       # not publish to Sileo without device acceptance and authorization.
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: duocar-hl22-fat-deb
-          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb
+          name: duocar-hl23-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl23duocar_iphoneos-arm64.deb
