@@ -32,6 +32,7 @@ on:
       - feature/duocar-hl23-keyboard-physical-contract-20261111
       - feature/duocar-hl24-native-keyboard-stable-20261111
       - feature/duocar-hl25-scene-reference-keyboard-20261111
+      - feature/duocar-hl26-native-iphone-settings-20261111
 
 jobs:
   build-fat:
@@ -95,8 +96,8 @@ jobs:
           python3 recovered-source/gpt-project-history/verify_hl24_keyboard.py
           python3 recovered-source/gpt-project-history/verify_hl25_scene_keyboard.py
 
-      # Branch HL26 is NOT included in push branches above.
-      # The user must explicitly choose workflow_dispatch on HL26 to run a build.
+      # Nguyen explicitly authorized completing HL26: push-trigger this branch
+      # for one verified macOS build and any needed compile-error retries.
       - name: Verify HL26 UIKit-owned Settings, preferences, resources, and startup schema
         run: python3 recovered-source/gpt-project-history/verify_hl26_native_settings.py
 
