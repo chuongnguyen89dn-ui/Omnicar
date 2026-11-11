@@ -95,6 +95,11 @@ jobs:
           python3 recovered-source/gpt-project-history/verify_hl24_keyboard.py
           python3 recovered-source/gpt-project-history/verify_hl25_scene_keyboard.py
 
+      # Branch HL26 is NOT included in push branches above.
+      # The user must explicitly choose workflow_dispatch on HL26 to run a build.
+      - name: Verify HL26 UIKit-owned Settings, preferences, resources, and startup schema
+        run: python3 recovered-source/gpt-project-history/verify_hl26_native_settings.py
+
       - name: Rebrand the complete source/build tree to DuoCar before compilation
         working-directory: .
         run: python3 recovered-source/gpt-project-history/rebrand_duocar.py
@@ -145,9 +150,9 @@ jobs:
 
       - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl25duocar_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl26duocar_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl25duocar"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl26duocar"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -191,12 +196,12 @@ jobs:
       - name: Verify exact DuoCar package, app identity, signatures and zero old branding
         run: |
           python3 recovered-source/gpt-project-history/verify_duocar_payload.py \
-            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl25duocar_iphoneos-arm64.deb
+            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl26duocar_iphoneos-arm64.deb
 
-      # HL25 is a private diagnostic candidate: do not create a public Release and do
+      # HL26 is a private in-app Settings candidate: do not create a public Release and do
       # not publish to Sileo without device acceptance and authorization.
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: duocar-hl25-fat-deb
-          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl25duocar_iphoneos-arm64.deb
+          name: duocar-hl26-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl26duocar_iphoneos-arm64.deb
