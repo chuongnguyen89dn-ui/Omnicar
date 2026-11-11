@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — Điều tra voice DuoNavi 1.0.4 cho DuoCar (READ-ONLY)
+- Đã đối chiếu metadata binary gốc `DuoNaviDashboard.dylib` (SHA256 `44fdd4b4...`), tìm thấy session manager, Apple/cloud STT, capture/playback, directive dispatcher, scene dispatcher và `CBAIBubbleView`. **Khả thi** xây module tương đương cho DuoCar, nhưng không ghép binary vendor hay helper grant TCC. Nút micro trên màn hình CarPlay **khả thi**, nút giọng nói **vô-lăng mặc định gọi Siri**, chưa chứng minh DuoNavi intercept hoặc kích hoạt trợ lý riêng. **Chưa sửa source, chưa build, chưa device pass**. [Phân tích và cổng tích hợp](DUONAVI_104_VOICE_FEASIBILITY_20261111.md).
+
 ## 2026-11-11 — HL28 tích hợp bàn phím HL11 + Cài đặt/Respring HL27: FAT DEB đã ký, giao trực tiếp
 - Trên `feature/duocar-hl28-keyboard-settings-20261111` đã ghép chọn lọc hunk bàn phím HL11 vào HL27 Settings, giữ log `[hl27-keyplane]`, không đổi pinch/Home/Dock/menu. **HEAD `291e997c7df9077d166348902b0ce36701c501b4`**; CI run `43022171303` (job `130527782579`) **SUCCESS**, artifact **`13856075971`**. Đã tải và kiểm độc lập DEB trực tiếp **`DuoCar_HL28.deb`**, package `com.chuong.duocar`, version `1.0.3-hl28duocar`, **1.353.000 bytes**, SHA256 **`a1e3ba517c5026d81b53ab67cd3dda40df8e3416da1ecc189522de17a456c8ef`**; 8 FAT binaries arm64+arm64e có LC_CODE_SIGNATURE, 333 payload files, app UIKit APPL, Root15/Startup44, marker bàn phím/Respring và không còn old brand. Lượt CI đầu `43021840020` FAIL vì HL22 legacy test vẫn yêu cầu hai refit gây hồi quy; đã sửa gate và run 2 PASS. **CHƯA device PASS**, không Sileo/merge. [Checkpoint, source/hunk, failure/retry, artifact và đường lui](HL28_INTEGRATED_KEYBOARD_SETTINGS_20261111.md).
 
