@@ -52,6 +52,14 @@ NSDictionary<NSString *, id> *DCVoiceParseCommand(
     NSString *transcript, NSSet<NSString *> *approvedBundles) {
     NSString *t = DCVoiceNormalized(transcript);
     if (!t.length) return nil;
+    // Reject negated/instruction-injection speech rather than accidentally
+    // executing the first matching verb found inside an unsafe sentence.
+    if (DCVAny(t,@[@"khong ", @"dung ", @"do not ", @"dont ", @"never ",
+                   @"http", @"shell", @"command", @"lenh he thong",
+                   @"siri", @"xoa ", @"delete"])) return nil;
+    BOOL left=DCVAny(t,@[@"ben trai", @"o trai", @"left"]);
+    BOOL right=DCVAny(t,@[@"ben phai", @"o phai", @"right"]);
+    if (left && right) return nil;
     // No destructive/unsafe command family in v1.
     if (DCVAny(t,@[@"xoa", @"kill", @"tat app", @"tat het", @"respring",
                     @"xoa du lieu", @"reset", @"delete", @"shutdown"])) return nil;
