@@ -190,7 +190,7 @@ def update_control():
         if line.startswith("Name:"):
             line = "Name: DuoCar"
         if line.startswith("Version:"):
-            line = "Version: 1.0.3-hl25duocar"
+            line = "Version: 1.0.3-hl26duocar"
         if line.startswith("Maintainer:"):
             line = "Maintainer: DuoCar Project"
         if line.startswith("Author:"):
