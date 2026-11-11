@@ -387,6 +387,24 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
         runningY += 62.0;
     }
 
+    // [hl29-voice] An opt-in microphone entry inside the existing scroll
+    // content (not a new window/shield or a sixth per-pane action button).
+    // It never captures audio in CarPlayApp. The iPhone app checks foreground
+    // and permission before starting Apple Speech.
+    if ([OMCPref(@"voiceAssistantEnabled",@NO) boolValue]) {
+        UIButton *mic=[UIButton buttonWithType:UIButtonTypeSystem];
+        mic.frame=CGRectMake(42.0,runningY,MIN(200.0,scroll.bounds.size.width-48.0),40.0);
+        [mic setImage:[UIImage systemImageNamed:@"mic.fill"] forState:UIControlStateNormal];
+        [mic setTitle:OMCTr(@" Trợ lý giọng nói",@" Voice assistant")
+              forState:UIControlStateNormal];
+        mic.accessibilityLabel=OMCTr(@"Gọi trợ lý giọng nói DuoCar",@"DuoCar voice assistant");
+        mic.layer.cornerRadius=12.0;
+        mic.backgroundColor=[UIColor colorWithWhite:1 alpha:0.14];
+        [mic addTarget:self action:NSSelectorFromString(@"dcVoiceRequest:")
+            forControlEvents:UIControlEventTouchUpInside];
+        [scroll addSubview:mic];
+        runningY+=48.0;
+    }
     scroll.contentSize = CGSizeMake(104.0 + maxChoices * 84.0, runningY + 4.0);
     self.panelChoices = choices;
 
