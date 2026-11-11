@@ -171,9 +171,9 @@ jobs:
 
       - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl29voice104_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl29voice104r2_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl29voice104"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl29voice104r2"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -217,12 +217,12 @@ jobs:
       - name: Verify exact DuoCar package, app identity, signatures and zero old branding
         run: |
           python3 recovered-source/gpt-project-history/verify_duocar_payload.py \
-            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl29voice104_iphoneos-arm64.deb
+            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl29voice104r2_iphoneos-arm64.deb
 
       # HL29 is a private voice + keyboard + Settings/Respring candidate: do not create a public Release and do
       # not publish to Sileo without device acceptance and authorization.
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: duocar-hl29-voice104-fat-deb
-          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl29voice104_iphoneos-arm64.deb
+          name: duocar-hl29-voice104r2-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl29voice104r2_iphoneos-arm64.deb

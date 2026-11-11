@@ -17,7 +17,7 @@ def field(name):
     return subprocess.check_output(["dpkg-deb", "-f", str(deb), name], text=True).strip()
 
 fields = [field(k) for k in ("Package", "Version", "Architecture")]
-assert fields == ["com.chuong.duocar", "1.0.3-hl29voice104", "iphoneos-arm64"], fields
+assert fields == ["com.chuong.duocar", "1.0.3-hl29voice104r2", "iphoneos-arm64"], fields
 control_text=subprocess.check_output(["dpkg-deb","-f",str(deb)],text=True)
 assert "com.anlai.omnicar" not in control_text.lower(), "Old package referenced by dependency metadata"
 assert not any(line.startswith(("Replaces:","Breaks:")) for line in control_text.splitlines()), "Unexpected forced package replacement"

@@ -86,7 +86,7 @@ assert 'prefs:root' not in re.sub(r'/\*.*?\*/|//[^\n]*', '', settings, flags=re.
 rebrand = (ROOT / 'gpt-project-history/rebrand_duocar.py').read_text()
 payload = (ROOT / 'gpt-project-history/verify_duocar_payload.py').read_text()
 workflow = Path(".github/workflows/build-fat-macos.yml").read_text()
-assert '1.0.3-hl29voice104' in rebrand and '1.0.3-hl29voice104' in payload
+assert '1.0.3-hl29voice104r2' in rebrand and '1.0.3-hl29voice104r2' in payload
 assert '"[hl28-kbmerge]"' in payload
 assert 'verify_hl28_keyboard_settings.py' in workflow
 

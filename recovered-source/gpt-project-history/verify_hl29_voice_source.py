@@ -50,6 +50,8 @@ assert "self.ownsAudioSession" in voice
 assert "[hl29-voice]" in voice
 assert all(bad not in voice for bad in ("--grant-tcc","TCC.db","chatgpt.com","api.openai.com","generativelanguage.googleapis.com"))
 assert "AVAudioSessionInterruptionNotification" in voice
+assert "UIApplicationDidEnterBackgroundNotification" in voice
+assert "voiceAppBackgrounded:" in voice
 assert "UIApplicationStateActive" in voice and "UIApplicationStateActive" in delegate
 assert '"com.anlai.omnicar/voice.request"' in delegate
 assert '"com.anlai.omnicar/voice.action"' in voice

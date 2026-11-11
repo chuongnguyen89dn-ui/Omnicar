@@ -71,6 +71,15 @@ static NSNotificationCenter *DCVoiceDistributed(void) {
     [self.speaker stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     [self display:@"Phiên nghe bị ngắt bởi hệ thống âm thanh."];
 }
+- (void)voiceAppBackgrounded:(NSNotification *)note {
+    (void)note;
+    // App deactivation must never leave a permissioned microphone recording
+    // during background/lock transition even before the 12s timeout.
+    if (self.listening) {
+        [self stopListening];
+        [self display:@"Đã dừng nghe do DuoCar chuyển sang nền."];
+    }
+}
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title=@"Trợ lý DuoCar";
@@ -144,6 +153,9 @@ static NSNotificationCenter *DCVoiceDistributed(void) {
     [[NSNotificationCenter defaultCenter] addObserver:self
         selector:@selector(voiceInterrupted:)
         name:AVAudioSessionInterruptionNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(voiceAppBackgrounded:)
+        name:UIApplicationDidEnterBackgroundNotification object:nil];
 }
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
