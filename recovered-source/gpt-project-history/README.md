@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — DuoCar: bàn phím bị cắt nội dung, không phải lỗi không xuất hiện
+- Nguyen xác nhận DuoCar Sileo HL21 **CÓ** bàn phím UIKit nhưng **BỊ CẮT GIỮA CHỪNG**, DEVICE FAIL. HL11/HL21 `ABInApp.m` cùng blob `73557304...`: `ABNativeKbFit` chỉ gán `keyboard.frame=key.frame`, trả `YES` khi có window/key/target mà **không kiểm keycap, clipping hay hit test** — có thể kết luận sai `native-fit applied`. HL14 từng đổi bounds/root và `UIKeyboardLayoutStar` width, nhưng xe vẫn báo cắt, nên không lặp lại bản vá đó. Host `layoutPane` tính logical `boxSize/zoom`; app chưa đối chiếu physical viewport và clipping ancestor. Chưa có video DuoCar mới đính kèm/log đúng PID, chưa xác định chính xác view nào cắt, **chưa sửa code/build/đẩy Sileo**. Chỉ sửa đúng tầng sau khi đo viewport/ancestor/keyplane, bảo toàn pinch/menu/Dock. [Checkpoint & hướng kiểm](DUOCAR_REBRAND_SILEO_20261111.md).
+
 ## 2026-11-11 — DuoCar bàn phím DEVICE FAIL (user video pending)
 - Nguyen báo bản Sileo DuoCar `1.0.3-hl21duocar` vẫn lỗi bàn phím, có quay video nhưng clip mới chưa được đính kèm ở lượt này. Mã native keyboard HL11 `ABInApp.m` blob `73557304...` giữ nguyên qua HL21 rồi đổi tên khi build DuoCar, chỉ resize `UIRemoteKeyboardWindow.frame` theo key window, **không reflow keyplane**; nếu mất phím ngay từ đầu phải đo gate/focus/observer với PID, không kết tội frame-only. Log repo mới nhất cũ hơn release; **không có runtime-proof DuoCar mới**. **DEVICE FAIL keyboard, chưa tạo patch/DEB mới**. [Chi tiết, mốc HL11 và công việc tiếp](DUOCAR_REBRAND_SILEO_20261111.md).
 
