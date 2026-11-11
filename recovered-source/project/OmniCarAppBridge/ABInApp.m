@@ -1151,11 +1151,28 @@ static NSArray<UIWindow *> *ABNativeKbWindows(void) {
     return out;
 }
 
+static BOOL ABHL19UseHL11NativeKeyboardFit = YES;
+
 static void ABNativeKbRestore(NSString *reason) {
     // Reset the per-session override even when the root window is gone.
     ABNativeKbRefActive = NO;
     ABNativeKbRefTarget = CGSizeZero;
     ABNativeKbLastReloadWidth = 0;
+    if (ABHL19UseHL11NativeKeyboardFit) {
+        // HL11 changed only keyboard.window.frame; restore only that.
+        // Avoid HL14+ bounds/root mutation and forced keyplane layout.
+        if (!ABNativeKbHasOriginal) return;
+        UIWindow *window = ABNativeKbWindow;
+        if (window && !CGRectEqualToRect(window.frame, ABNativeKbOriginal))
+            window.frame = ABNativeKbOriginal;
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl20kb] restore=hl11-frame-only reason=%@ found=%d original=%@",
+            reason, (int)(window != nil), NSStringFromCGRect(ABNativeKbOriginal)]);
+        ABNativeKbWindow = nil;
+        ABNativeKbRoot = nil;
+        ABNativeKbHasOriginal = NO;
+        return;
+    }
     if (!ABNativeKbHasOriginal) return;
     UIWindow *window = ABNativeKbWindow;
     UIView *root = ABNativeKbRoot;
@@ -1186,8 +1203,6 @@ static void ABNativeKbRestore(NSString *reason) {
 // that build did not yet reflow it correctly with the split-pane ratio.
 // Keep this recovery strictly keyboard-local. Pinch, picker, Dock and
 // AutoHide stay on their existing, independently evolved code paths.
-static BOOL ABHL19UseHL11NativeKeyboardFit = YES;
-
 static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
     if (ABForcedOrientation < 1 || ABDrawnKb ||
         !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
@@ -1245,10 +1260,16 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
         }
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
             @"[hl19kb] mode=hl11-native-frame when=%@ attempt=%ld "
-             "result=%@ key=%@ keyboard=%@ focus=1",
+             "result=%@ key=%@ keyboard=%@ keyBounds=%@ "
+             "keyboardBounds=%@ keyplaneRoot=%@ focus=1",
             when, (long)attempt, statusHL11,
             key ? NSStringFromCGRect(key.frame) : @"none",
-            keyboard ? NSStringFromCGRect(keyboard.frame) : @"none"]);
+            keyboard ? NSStringFromCGRect(keyboard.frame) : @"none",
+            key ? NSStringFromCGRect(key.bounds) : @"none",
+            keyboard ? NSStringFromCGRect(keyboard.bounds) : @"none",
+            keyboard && keyboard.rootViewController.view
+                ? NSStringFromCGRect(keyboard.rootViewController.view.bounds)
+                : @"none"]);
         return kbVisibleHL11 && key != nil && !CGRectIsEmpty(targetHL11);
     }
     CGRect logicalTarget = key ? key.frame : CGRectNull;
@@ -1431,6 +1452,13 @@ static void ABNativeKbMaybeReload(NSString *why) {
 }
 
 static void ABNativeKbOnGeometry(NSNotification *note) {
+    if (ABHL19UseHL11NativeKeyboardFit) {
+        // HL11 never had the later divider geometry retry channel.
+        // UIKit keyboard window/focus notifications retain ownership.
+        (void)note;
+        OMCLogWrite(@"AppBridge", @"[hl20kb] geometry-path=hl11-skip");
+        return;
+    }
     if (ABForcedOrientation < 1 || ABDrawnKb ||
         !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
         return;
