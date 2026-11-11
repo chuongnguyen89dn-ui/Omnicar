@@ -1,0 +1,39 @@
+# HL29 — Tích hợp giọng nói DuoNavi 1.0.4 theo kiến trúc mới (2026-11-11)
+
+## 1. Yêu cầu hiện hành / bảo vệ phạm vi
+Nguyen: "Tích hợp phần giọng nói của 104 vào đi". Đúng phiên bản gốc tham khảo là **DuoNavi 1.0.4**, không phải 1.1.4 hoặc DuoFace voice 0.1.105. Chỉ tái sử dụng ý tưởng kiến trúc **session/audio/STT/directive/scene**, không chép binary hay lớp proprietary của DuoNavi. Bỏ hoàn toàn tính năng AI hội thoại có user API key. Ưu tiên Apple Speech + parser lệnh nội bộ cho DuoCar. Nút vô-lăng chưa chứng minh thuộc trợ lý riêng nên không intercept Siri. Không tự phát hành Sileo, không merge main, không sửa bàn phím/zoom/pinch/Home Dock/AutoHide/Respring ngoài điểm nối cần thiết. Muse vẫn có quyền tích hợp cuối, Nguyen test xe.
+
+## 2. Repo/branch/commit và trạng thái
+- Repo chính `chuongnguyen89dn-ui/Omnicar`, cây thi công `recovered-source/`; nhánh nguồn **`feature/duocar-hl29-voice104-firstparty-20261111`** tạo thật từ HL28 HEAD `291e997c7df9077d166348902b0ce36701c501b4`; tạo branch qua GitHub API, không checkout local. HEAD HL29 lúc ghi: **`ed6dc4711a35dcbd313040d88b90de46cabc35a7`**, 41 commit vì GitHub contents API commit từng file; compare HL28→HL29 ahead 41 behind 0, 31 file khác (danh sách bên dưới). Local `dirty state`: không có checkout nên **UNKNOWN/not applicable**, không được báo worktree sạch.
+- CI build đã được **push-trigger bởi duy nhất commit workflow cuối**, GitHub macOS Actions run **43035752121**, source HEAD đúng `ed6dc471...`; status **IN_PROGRESS** lúc kiểm, chưa có DEB/sha/artifact. Không dispatch thêm run khác khi đang chạy. Các commit kiểm thử/build sau nếu CI fail phải ghi rõ run mới.
+- Các lệnh thao tác thật của GPT: GitHub connector `fetch_file`, `fetch` branches/actions/tree, `compare_commits`, `create_branch`, `create_file`, `update_file` (blob SHA guard); code build chạy bởi workflow trên macOS chứ không do VM Muse.
+- `container.exec` thử `git ls-remote https://github.com/chuongnguyen89dn-ui/Omnicar.git HEAD` ở container hiện tại: **không DNS GitHub**, `fatal: Could not resolve host: github.com`. Không có iOS SDK/Theos macOS trong container; không gọi đã compile local.
+
+## 3. File đã sửa
+**App source `project/OmniCarApp` và `src/App`**:
+- Mới `DCVoiceCommand.h/.m`: parser tiếng Việt/en-US, normalization dấu/đ, whitelist bundle YouTube/Maps/TikTok/Facebook/Zalo/Spotify/Apple Music và xác minh membership trong user `appBridgeApps`/`splitScreenCarPlayApps`; command typed `open/layout/ratio/swap/fav/zoom`; reject câu phủ định, target trái/phải mâu thuẫn, invalid ratio, kill/Respring; không chuyển raw transcript qua IPC.
+- Mới `DCVoiceSession.h/.m`: một phiên **iPhone-foreground only**, Apple Speech/AVAudioEngine, xin quyền microphone + speech riêng, ưu tiên on-device `requiresOnDeviceRecognition`, tùy chọn cho phép Apple online qua toggle tường minh (OFF mặc định), không dùng API key/AI, 12s timeout, generation cancellation, AVAudioSession ownership cleanup, interruption, no audio file/log transcript. UI một nút Bắt đầu nghe/Dừng nghe + phản hồi text.
+- Sửa `OMCNativeSettings.m`: phần bật/tắt voice, chọn vi-VN/en-US, bật Apple online tùy chọn và "Chạm để nói" trên trang Cài đặt UIKit; giữ Root và Respring.
+- `OMCAppDelegate.m`: observer `com.anlai.omnicar/voice.request` cho CarPlay touch request **chỉ khi iPhone app foreground**, kiểm UUID time, mở màn hình voice và tự xin quyền/nghe; không chiếm SpringBoard. `openURL` cũ tự suspend vẫn được giữ và không dùng cho phiên nghe.
+- `Makefile` app link thêm `Speech`, `DCVoiceSession.m`, `DCVoiceCommand.m`; `Resources/Info.plist` và src `Info.plist` thêm `NSSpeechRecognitionUsageDescription`, `NSMicrophoneUsageDescription` (Apple TCC chuẩn).
+**SplitScreen `project/OmniCarSplitScreen` và `src/SplitScreenA/SplitScreenB`**:
+- Mới `SCPVoiceBridge.h/.m`: receiver `voice.action` chỉ đăng ký trong constructor CarPlayApp hiện hành, kiểm short-lived timestamp (±8s), UUID/dedupe/throttle, permission/prefs, type action, slot, catalog, layout/ratio; gọi **`SCPCarSplit` đang có**, ACK `accepted` nghĩa là đã dispatch, **không chứng minh lệnh hoàn tất về hình ảnh**. Chưa có message authentication mạnh do `NSDistributedNotificationCenter` là IPC local; whitelist/reject làm cổng tối thiểu.
+- `SCPHooks.m`: một import + `SCPVoiceInstall()` ngay sau native command observer trên cùng CarPlayApp owner, không tạo second split/constructor.
+- `SCPCarSplit+Panel.m`: thêm một nút micro **bên trong UIScrollView của panel bố cục gốc** khi voice enabled, không tạo overlay/shield/launcher icon mới hay chèn nút thứ sáu vào bar mỗi ô; CarPlay tap phát `voice.request` để iPhone foreground app mở nghe. Nếu iPhone đang chạy nền/màn hình khóa thì **không thu âm**, hiển thị chỉ dẫn mở app iPhone, không giả vờ micro trên xe được dùng.
+- `Makefile` SplitScreen link `SCPVoiceBridge.m`.
+- Source mirror project/src được cập nhật theo đúng các file hunk; **SCPHooks.m hai cây vốn khác nhau ở import SCPHomeLauncher**, đã patch cùng seam theo file riêng, không copy nguyên file lên cây khác.
+**Build/verifiers**:
+- `rebrand_duocar.py`, `verify_duocar_payload.py`, `verify_hl27_settings_respring.py`, `verify_hl28_keyboard_settings.py`, `.github/workflows/build-fat-macos.yml`: version mới **`1.0.3-hl29voice104`**, artifact tên `duocar-hl29-voice104-fat-deb`, giữ các cổng HL8/22/24/25/26/27/28, thêm marker `[hl29-voice]` trong app và SplitScreen FAT và hai Info.plist permission.
+- Mới `verify_hl29_voice_source.py`: kiểm quyền, parity 10 cặp nguồn, không TCC bypass/API, handler, parser và UI không tạo overlay.
+- Mới `test_hl29_voice_parser.m`: test REAL production Objective-C parser trên macOS Foundation, 13 positive + 18 negative, kể cả câu phủ định, ambiguous left/right, app chưa duyệt, ratio sai.
+
+## 4. Những phần CHƯA CHỨNG MINH, cổng nghiệm thu
+- **CHƯA BUILD SUCCESS/DEB ở checkpoint đầu.** Chờ CI run 43035752121. Khi fail, đọc `fetch_workflow_run_jobs` + `fetch_workflow_job_logs`, phân biệt lỗi verifier cũ, parser test và clang ObjC. Sửa source cụ thể, chỉ một lượt CI sau mỗi commit cuối.
+- Không cam kết **voice trên CarPlay khi iPhone app background hoặc locked**; nút CarPlay là shortcut yêu cầu tới app foreground. **Không bắt hệ thống cấp TCC SpringBoard** hay nút vô-lăng. Không cam kết offline tiếng Việt được Apple hỗ trợ trên iPhone X; khi không hỗ trợ, chỉ với user đồng ý mới chọn nhận dạng trực tuyến của Apple. Không có lời thoại AI, chưa có TTS qua loa xe, cũng không có audio route CarPlay microphone device proof.
+- **Device test Nguyen trên xe khi dừng**: mở DuoCar iPhone, bật voice, chạm mic, cấp quyền, nói `mở YouTube bên trái`, `chia 60/40`, `đổi chỗ`, `phóng to ô phải`, denied/no permission/offline, timeout; kiểm CarPlay panel mic khi iPhone foreground vs background, kiểm hồi quy YouTube bàn phím, Settings Respring, pinch, Home/Dock, menu, reconnect và không bị che màn hình. Dùng đúng marker `[hl29-voice]`, PID/commit/mtime, khác `[hl28-kbmerge]`.
+- Rollback code sạch: revert riêng phần HL29 trên branch, trở về HL28 source `291e997...` và DEB trực tiếp đã ký HL28 SHA256 `a1e3ba517c5026d81b53ab67cd3dda40df8e3416da1ecc189522de17a456c8ef`; không revert cả HL11/HL27.
+
+## 5. Điểm tiếp nối
+1. Kiểm job CI 43035752121 có HEAD/step chính xác, sửa lỗi nếu có; không bịa artifact.
+2. Khi build thành công, lấy đúng artifact của run HL29, extract direct `.deb`, kiểm `dpkg-deb`, FAT code signatures, 8 MachO, perm keys, iPhone UI/CarPlay marker, kiểm SHA256 file cuối.
+3. Gửi DEB trực tiếp nếu local path xác nhận; không Sileo. Bổ sung checkpoint bằng SHA/run/size và cập nhật README GPT sau ghi, **đọc lại**.
