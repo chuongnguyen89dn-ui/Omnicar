@@ -21,6 +21,7 @@
 #import "SCPTouchProbe.h" // [fix-w] WO W4 passive sendEvent probe install (measure-only)
 #import "../SplitScreenC/SCPHomeLauncher.h" // [gpt-home] own icon
 #import "SCPVoiceBridge.h" // [hl29] typed voice receiver
+#import "SCPVoiceNative.h" // [hl30] bubble on dashboard
 #import <objc/message.h>
 #import <objc/runtime.h>      // class_copyIvarList / object_getIvar (final closure)
 #import <notify.h>
@@ -402,6 +403,8 @@ static void Hook_RootVC_viewDidLayoutSubviews(id self, SEL _cmd) {
     // external override; a no-op in every other state.
     @try { [[SCPFullscreenController shared] fsDidLayout]; }
     @catch (NSException *ex) { SCPExceptionLog("fs fsDidLayout", ex); }
+    @try { SCPVoiceBubbleUpdate([SCPCarSplit shared]); }
+    @catch (NSException *ex) { SCPExceptionLog("voice bubble layout", ex); }
 }
 
 // sub_6988 VERIFIED: orig, then two delayed main-queue blocks:
