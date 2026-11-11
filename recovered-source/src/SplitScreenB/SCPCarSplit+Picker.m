@@ -422,7 +422,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 - (void)refreshPickerSheet {
     // [hl18-perf2] Queued refresh may run after beginResize. Keep the
     // existing sheet hidden; endResize will queue a final refresh.
-    if (self.resizing) return;
+    if (self.resizing && self.pickerSheet) return;
     NSArray *panes = self.active ? self.allPanes : @[];
     SCPCarPane *sheetPane = self.pickerSheetPane;
     if (sheetPane.picker == nil || ![panes containsObject:sheetPane])
