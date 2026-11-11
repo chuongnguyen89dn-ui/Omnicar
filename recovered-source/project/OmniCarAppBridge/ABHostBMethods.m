@@ -5,6 +5,7 @@
 #import "ABHost.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
+#import <string.h>
 #import <CoreFoundation/CoreFoundation.h> // [hl2] drawn-restore migration writes via CFPreferences (BridgeWake ytz5 idiom)
 
 extern id OMCPref(NSString *key, id defaultValue);
@@ -729,10 +730,65 @@ static ABBarButton *ABMakeBarButton(NSString *name, NSString *title, UIColor *ti
 //   setFrame: {0, 0, logicalSize} — logicalSize transposed when the
 //   effective orientation is 3, 4 or 5; setInterfaceOrientation: (if the
 //   selector exists); setBackgrounded:NO; setForeground:YES.
+// [hl25-scene-ref] DuoNavi 1.0.4 references these two FrontBoard
+// selectors, but its binary does not establish the receiver/ABI for this
+// iOS version. Never send a struct-valued private selector by name alone.
+// This is the EXISTING scene settings transaction, not a second engine.
+static BOOL AB25SceneRefArgIsOrientation(const char *type) {
+    return type && (strcmp(type, @encode(NSInteger)) == 0 ||
+                    strcmp(type, @encode(int)) == 0);
+}
+static BOOL AB25SceneRefABI(id target, SEL selector, NSUInteger n) {
+    if (!target || ![target respondsToSelector:selector]) return NO;
+    NSMethodSignature *sig = [target methodSignatureForSelector:selector];
+    if (!sig || sig.numberOfArguments != n ||
+        strcmp(sig.methodReturnType, @encode(void)) != 0 ||
+        strcmp([sig getArgumentTypeAtIndex:2], @encode(CGSize)) != 0)
+        return NO;
+    for (NSUInteger i = 3; i < n; i++) {
+        if (!AB25SceneRefArgIsOrientation([sig getArgumentTypeAtIndex:i]))
+            return NO;
+    }
+    return YES;
+}
+static NSString *AB25SceneReferenceApply(id settings, CGSize size,
+                                          NSInteger orientation) {
+    SEL two = NSSelectorFromString(@"setContentReferenceSize:withInterfaceOrientation:");
+    SEL three = NSSelectorFromString(@"setContentReferenceSize:withContentOrientation:andContainerOrientation:");
+    BOOL hasTwo = [settings respondsToSelector:two];
+    BOOL hasThree = [settings respondsToSelector:three];
+    // Orientation 5 is an app-specific layout state, not a safe
+    // UIInterfaceOrientation. Do not guess at the private ABI/semantics.
+    if (orientation != 1 && orientation != 3 && orientation != 4)
+        return @"skip-orientation";
+    @try {
+        // Prefer the two-argument interface-orientation contract. The
+        // three-argument form is a guarded compatibility fallback only.
+        if (AB25SceneRefABI(settings, two, 4)) {
+            ((void (*)(id, SEL, CGSize, NSInteger))objc_msgSend)(
+                settings, two, size, orientation);
+            return @"applied-interface-orientation";
+        }
+        if (AB25SceneRefABI(settings, three, 5)) {
+            ((void (*)(id, SEL, CGSize, NSInteger, NSInteger))objc_msgSend)(
+                settings, three, size, orientation, orientation);
+            return @"applied-content-container-orientation";
+        }
+    } @catch (NSException *e) {
+        return [NSString stringWithFormat:@"exception-%@", e.name];
+    }
+    return hasTwo || hasThree ? @"skip-abi-mismatch" : @"unavailable";
+}
+
 static void ABSceneSettingsApply(id scene, CGSize logicalSize, NSInteger orientation) {
     SEL update = NSSelectorFromString(@"updateSettingsWithBlock:");
     if (![scene respondsToSelector:update]) { ABMissingSelector(scene, @"updateSettingsWithBlock:"); return; }
     ((void (*)(id, SEL, id))objc_msgSend)(scene, update, ^(id settings) {
+        NSString *refResult = AB25SceneReferenceApply(settings, logicalSize, orientation);
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl25-scene-ref] settings=%@ size=%@ orientation=%ld status=%@",
+            NSStringFromClass([settings class]), NSStringFromCGSize(logicalSize),
+            (long)orientation, refResult]);
         SEL setFrame = NSSelectorFromString(@"setFrame:");
         ((void (*)(id, SEL, CGRect))objc_msgSend)(settings, setFrame,
                                                   CGRectMake(0, 0, logicalSize.width, logicalSize.height));
