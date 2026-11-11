@@ -1290,7 +1290,13 @@ static void ABNativeKbBegin(NSString *why) {
             // LayoutStar observation never justified reconstructing UIKit's
             // keyboard. Keep a bounded read-only/window fit retry instead.
             BOOL found = ABNativeKbFit(@"retry", (NSInteger)n);
-            if (!found && n == 1)
+            if (found) {
+                // [hl27-kbreg] A delayed find is also success: cancel the
+                // remaining retries for this responder/window generation.
+                ++ABNativeKbEpoch;
+                return;
+            }
+            if (n == 1)
                 OMCLogWrite(@"AppBridge",
                     @"[hl24-keyplane] ev=retry-no-visible-window (no reload)");
         });
@@ -1303,7 +1309,10 @@ static void ABNativeKbWindowVisible(NSNotification *note) {
     if (![obj isKindOfClass:UIWindow.class] ||
         ![NSStringFromClass([obj class]) containsString:@"Keyboard"])
         return;
-    ABNativeKbFit(@"window-visible", 0);
+    // [hl27-kbreg] A UIKit window-visible success supersedes pending
+    // no-window retries. Do not refit after UIKit has drawn its keyplane.
+    if (ABNativeKbFit(@"window-visible", 0))
+        ++ABNativeKbEpoch;
 }
 
 // ---- keyboard guard: auxiliary notification evidence (§5.5) ----
