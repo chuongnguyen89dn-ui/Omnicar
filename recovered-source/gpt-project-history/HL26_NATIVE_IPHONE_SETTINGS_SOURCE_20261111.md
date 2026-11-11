@@ -73,3 +73,7 @@
 4. Không merge main/Sileo. Hoàn nguyên code nhanh: trở về HL25 `bfc619254f2a3109a2b3e592e3a0bbd9ade38e49`, artifact HL25 ID `13844527276`. Những file tạm `/mnt/data` không là lưu bền vững.
 
 **Cổng hiện tại: SOURCE EXTENDED / STATIC REVIEW PASS, COMPILER=NOT RUN, PACKAGE=NOT BUILT, DEVICE=NOT TESTED.**
+
+
+## HL26 CI compile attempt 2026-11-11
+Nguyen has authorized completing HL26. New branch workflow commit `140fcc276e5803906d3730fc328e83527dcbc8ca` enabled CI for HL26. Actions run `43011406763` (job `130491635697`) was created by push at 2026-11-11T11:22:25Z and remained QUEUED at the last check; no compiler/test or DEB result yet. This is the sole build run being monitored. No merge to main, no Sileo, and HL25 keyboard test remains postponed. Once the job starts, inspect source gates and compiler errors, repair exactly as needed, then independently verify the signed FAT DEB before distributing a direct .deb link.
