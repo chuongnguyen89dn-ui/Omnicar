@@ -23,8 +23,18 @@ assert "ABNativeKbRestoreLayout" not in keyboard_p, "Legacy keyplane mutation ro
 assert "ABNativeKbLayoutOriginalTransform" not in keyboard_p, "Legacy keyplane transform state still present"
 assert "ABNativeKbFitLayout" not in keyboard_p, "Mutating keyplane fit must not run"
 assert "reloadInputViews]" not in keyboard_p, "Do not force keyboard reload after a missing keyplane"
-assert 'ABNativeKbFit(@"host-frame-settled"' in keyboard_p
-assert 'ABNativeKbFit(@"keyboard-frame"' in keyboard_p
+# Two valid generations: HL24/27 still had delayed re-fits, while
+# HL28 deliberately returns to the HL11 single-fit contract. Enforce the
+# expected behavior of whichever source generation this test is running.
+if "[hl28-kbmerge]" in keyboard_p:
+    assert 'ABNativeKbFit(@"host-frame-settled"' not in keyboard_p
+    assert 'ABNativeKbFit(@"keyboard-frame"' not in keyboard_p
+    assert 'if (ABNativeKbFit(why, 0))' in keyboard_p
+    assert 'if (ABNativeKbFit(@"window-visible", 0))' in keyboard_p
+    assert 'orientation >= 1 && !stale &&' in keyboard_p
+else:
+    assert 'ABNativeKbFit(@"host-frame-settled"' in keyboard_p
+    assert 'ABNativeKbFit(@"keyboard-frame"' in keyboard_p
 assert "keyboard.frame = target" in keyboard_p, "Native keyboard window frame fit removed"
 assert "[hl11kb]" in keyboard_p and "ABNativeKbFit" in keyboard_p
 
