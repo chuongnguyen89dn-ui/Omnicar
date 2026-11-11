@@ -1059,6 +1059,22 @@ static UIView *ABNativeKbFindLayout(UIView *view, NSUInteger depth) {
 // Diagnostic only: no private keyplane setter, transform, or forced
 // re-layout. A wide visual rect may reflect UIKit's own intermediate
 // transform; this probe is NOT a pass/fail assertion for visible keys.
+// HL27: read-only keyplane census. This reports geometric visibility of
+// the actual keyplane view when iOS exposes it; never reads key labels or
+// text, never changes a transform, window level or keyboard ownership.
+static UIView *AB27FindKeyplane(UIView *view, NSUInteger depth) {
+    if (!view || depth>18) return nil;
+    NSString *name=NSStringFromClass(view.class);
+    if ([name containsString:@"UIKBKeyplaneView"] ||
+        [name containsString:@"UIKBKeyplane"])
+        return view;
+    for (UIView *child in view.subviews) {
+        UIView *found=AB27FindKeyplane(child,depth+1);
+        if (found)return found;
+    }
+    return nil;
+}
+
 static BOOL ABNativeKbObserveLayout(UIWindow *window, CGFloat *widthOut,
                                     UIView **layoutOut) {
     if (widthOut) *widthOut = 0;
@@ -1142,6 +1158,18 @@ static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
                 NSStringFromClass(v.class), NSStringFromCGRect(r), (int)clip,
                 (int)v.hidden, (double)v.alpha, (double)v.layer.zPosition]];
         }
+        UIView *plane=star?AB27FindKeyplane(star,0):nil;
+        CGRect planeRect=plane?[plane convertRect:plane.bounds toView:keyboard]:CGRectNull;
+        NSString *status=@"UNKNOWN-no-keyplane";
+        if (plane && !CGRectIsNull(planeRect) && !CGRectIsEmpty(planeRect)) {
+            CGPoint right=CGPointMake(CGRectGetMaxX(planeRect)-10,CGRectGetMidY(planeRect));
+            status=CGRectContainsPoint(available,right)?@"IN-CLIP":@"OUTSIDE-CLIP";
+        }
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl27-keyplane] when=%@ found=%d rect=%@ clip=%@ "
+             "keyboardBounds=%@ right=%@ pixels=UNKNOWN touch=UNKNOWN",
+            when,(int)(plane!=nil),NSStringFromCGRect(planeRect),
+            NSStringFromCGRect(available),NSStringFromCGRect(keyboard.bounds),status]);
         // Geometry only. -hitTest:withEvent: is NOT an inert probe:
         // custom UIKit subclasses can route/consume events on that path.
         // LayoutStar is not the actual raster/keycap proof either.
