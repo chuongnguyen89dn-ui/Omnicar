@@ -222,7 +222,7 @@ def verify_no_legacy():
             if resources.is_dir():
                 after_files += [p for p in resources.rglob("*") if p.is_file()]
     for path in after_files:
-        if any(t in str(path).lower() for t in ("omnicar",)):
+        if "omnicar" in str(path.relative_to(ROOT)).lower():
             raise RuntimeError(f"Legacy name leaked in build path: {path}")
         data = path.read_bytes()
         if b"omnicar" in data.lower() or "OmniCar".encode("utf-16-le") in data:
