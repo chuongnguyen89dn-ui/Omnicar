@@ -47,6 +47,9 @@ assert "probe-3arg-abi-matches-container-unverified-NOT-CALLED" in scene
 assert "settings, three, size, orientation, orientation" not in scene
 assert "orientation != 1 && orientation != 3 && orientation != 4" in scene
 assert "objc_msgSend" not in scene, "Private scene setter must stay disabled before runtime proof"
+assert "applied-interface-orientation" not in scene, "Old mutation success label leaked"
+assert "probe-interface-abi-matches-NOT-CALLED" in scene
+assert "probe-3arg-abi-matches-container-unverified-NOT-CALLED" in scene
 block = host[host.index("static void ABSceneSettingsApply"):host.index("static id ABSceneOfPane")]
 assert "AB25SceneReferenceApply(settings, logicalSize, orientation)" in block
 assert "SEL setFrame = NSSelectorFromString(@\"setFrame:\")" in block
@@ -77,8 +80,15 @@ assert "(now - lastAt) < 0.25" in probe
 assert "lastEpoch == ABNativeKbEpoch" in probe
 assert 'NSStringFromCGAffineTransform(appView.transform)' in geometry
 assert 'boxWindowSame=%d' in geometry
-assert "AB25ProbeKeyboardSurface(keyboard, key, windows, when)" in app
-assert "ABNativeKbObserveLayout(keyboard, &starVisualWidth)" in app
+assert 'UNKNOWN-cross-window' in geometry
+assert 'BOOL sameWindow = box.window && appView.window' in geometry
+assert 'sameWindow\n                ? NSStringFromCGRect([v convertRect:v.bounds toView:box])' in geometry
+assert "AB25ProbeKeyboardSurface(keyboard, key, windows, when, observedStar)" in app
+assert "ABNativeKbObserveLayout(UIWindow *window, CGFloat *widthOut," in app
+assert "UIView **layoutOut" in app
+assert "ABNativeKbFindLayout(keyboard, 0)" not in probe
+assert "keycapTouch=UNKNOWN" in probe
+assert "ABNativeKbObserveLayout(keyboard, &starVisualWidth," in app
 
 # Independent historical geometry: all are one host-side zoom factor.
 for physical, logical in ((297,371), (310,388), (396,495), (406,508)):
