@@ -56,13 +56,6 @@ static int    sStackDragKind; // 0x8816c
 - (void)beginResize {                                                   // 0x2c128
     if (self.resizing) return;
     self.resizing = YES;
-    // [hl18-perf2] Preserve logical picker ownership, but suspend its
-    // expensive visible surface during a divider resize.
-    if (self.pickerSheet) {
-        self.pickerSheet.hidden = YES;
-        if (self.pickerShield) self.pickerShield.hidden = YES;
-        OMCLogWrite(@"SplitScreen", @"[hl18-perf2] picker=paused-on-divider");
-    }
     for (SCPCarPane *pane in self.slots)
         [self addCoverToPane:pane];
 }
@@ -70,11 +63,6 @@ static int    sStackDragKind; // 0x8816c
 - (void)endResize {                                                     // 0x2c25c
     if (!self.resizing) return;
     self.resizing = NO;
-    // Refresh after the terminal gesture; the queued main-loop block
-    // observes final geometry and restores the sheet if unchanged.
-    // Only resume a real sheet. pane.picker can intentionally outlive
-    // a dismissed sheet; it must not reopen it after resizing.
-    if (self.pickerSheet) [self refreshPickerSheetSoon];
     [self ahNoteActivity:AHSourceDragEnd]; // [autohide] §4.2: the clock runs from the release, not from the drag's last Began (additive line; original body untouched)
     [self pushHostFramesLive:NO];
     NSArray<SCPCarPane *> *panes = [self.slots copy];
