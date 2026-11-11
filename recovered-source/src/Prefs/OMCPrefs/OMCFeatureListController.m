@@ -20,7 +20,9 @@
     if (!_specifiers) {
         OMCLoadStrings();
         NSString *plist = [self.specifier propertyForKey:@"plist"];
-        _specifiers = [self loadSpecifiersFromPlistName:plist target:self];
+        NSBundle *resources = self.bundle ?: [NSBundle bundleForClass:[self class]];
+        _specifiers = [self loadSpecifiersFromPlistName:plist
+                                               target:self bundle:resources];
         OMCLocalizeSpecifiers(_specifiers);
         OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
             @"[W1] OMCFeatureListController specifiers after load plist=%@ count=%lu",

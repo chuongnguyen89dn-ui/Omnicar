@@ -31,7 +31,11 @@
 - (NSArray *)specifiers {
     if (!_specifiers) {
         OMCLoadStrings();
-        _specifiers = [self loadSpecifiersFromPlistName:@"Root" target:self];
+        // Explicit resource bundle works both in the original Prefs bundle
+        // and when this same class is compiled into OmniCar.app.
+        NSBundle *resources = self.bundle ?: [NSBundle bundleForClass:[self class]];
+        _specifiers = [self loadSpecifiersFromPlistName:@"Root"
+                                               target:self bundle:resources];
         [self insertFeatureSpecifiers];
         OMCLocalizeSpecifiers(_specifiers);
         [self applySupportState];
@@ -66,7 +70,7 @@
 // featureOrder, right after the empty "features" group of Root.plist.
 // [VERIFIED: construction read from disassembly]
 - (void)insertFeatureSpecifiers {
-    NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+    NSBundle *bundle = self.bundle ?: [NSBundle bundleForClass:[self class]];
     NSMutableArray *found = [NSMutableArray array];
     for (NSString *path in [bundle pathsForResourcesOfType:@"plist" inDirectory:nil]) {
         NSString *name = [[path lastPathComponent] stringByDeletingPathExtension];
