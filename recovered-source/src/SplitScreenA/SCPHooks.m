@@ -20,6 +20,7 @@
 #import "SCPCarSplit+AutoHide.h" // [autohide] ahInstall beside bwInstallOwner (design-autohide §5.1)
 #import "SCPTouchProbe.h" // [fix-w] WO W4 passive sendEvent probe install (measure-only)
 #import "../SplitScreenC/SCPHomeLauncher.h" // [gpt-home] own icon
+#import "SCPVoiceBridge.h" // [hl29] typed voice receiver
 #import <objc/message.h>
 #import <objc/runtime.h>      // class_copyIvarList / object_getIvar (final closure)
 #import <notify.h>
@@ -862,6 +863,8 @@ static void SCPInitDashboardHooks(void) {
                     usingBlock:^(NSNotification *n) { SCPBridgeKnobTouchBlock(n); }];
     [center addObserverForName:SCPNoteNativeCommand object:nil queue:mainQueue
                     usingBlock:^(NSNotification *n) { SCPNativeCommandBlock(n); }];
+    // Register on the same CarPlayApp owner as native split commands.
+    SCPVoiceInstall();
 
     // [wake1] bridgewake owner (design §7.1): this constructor is
     // already gated to CarPlayApp — register the Darwin query/wake/ack
