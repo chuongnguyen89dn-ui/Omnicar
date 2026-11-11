@@ -6,7 +6,6 @@
 #import <AVFoundation/AVFoundation.h>
 #import <objc/message.h>
 
-static NSString *const DCVoiceRequestName = @"com.anlai.omnicar/voice.request";
 static NSString *const DCVoiceActionName = @"com.anlai.omnicar/voice.action";
 static NSString *const DCVoiceAckName = @"com.anlai.omnicar/voice.ack";
 static BOOL DCVEnabled(void) {
@@ -75,6 +74,8 @@ static NSNotificationCenter *DCVoiceDistributed(void) {
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title=@"Trợ lý DuoCar";
+    NSLog(@"[hl29-voice] event=iphone-voice-ui-ready foreground=%d",
+          UIApplication.sharedApplication.applicationState==UIApplicationStateActive);
     self.view.backgroundColor=UIColor.systemBackgroundColor;
     UILabel *instructions=[UILabel new];
     instructions.translatesAutoresizingMaskIntoConstraints=NO;
@@ -328,12 +329,17 @@ void DCVoiceHandleCarRequest(NSDictionary *payload, UIViewController *root) {
         !root || !root.view.window) return;
     UIViewController *top=root;
     while (top.presentedViewController) top=top.presentedViewController;
+    // The CarPlay touchscreen request itself is the explicit user action.
+    // The app must already be active; permission dialogs remain on iPhone.
+    DCVoiceViewController *voice=(DCVoiceViewController *)DCVoiceCreateController();
     if ([top isKindOfClass:UINavigationController.class]) {
         UINavigationController *nav=(UINavigationController *)top;
-        [nav pushViewController:DCVoiceCreateController() animated:YES];
+        [nav pushViewController:voice animated:YES];
+        dispatch_async(dispatch_get_main_queue(), ^{ [voice toggleListening]; });
     } else {
-        [top presentViewController:[[UINavigationController alloc]
-            initWithRootViewController:DCVoiceCreateController()]
-            animated:YES completion:nil];
+        UINavigationController *nav=[[UINavigationController alloc]
+            initWithRootViewController:voice];
+        [top presentViewController:nav animated:YES
+                       completion:^{ [voice toggleListening]; }];
     }
 }
