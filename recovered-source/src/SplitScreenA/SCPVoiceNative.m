@@ -29,6 +29,8 @@ static UIButton *DCVoiceButton(SCPCarSplit *split) {
 @property(nonatomic,copy) NSString *oldCategory;
 @property(nonatomic,copy) NSString *oldMode;
 @property(nonatomic) AVAudioSessionCategoryOptions oldOptions;
+@property(nonatomic,strong) id interruptionObserver;
+@property(nonatomic,strong) id routeObserver;
 - (void)toggle:(SCPCarSplit *)split;
 - (void)stop;
 @end
@@ -44,6 +46,15 @@ static void DCVoicePaint(SCPCarSplit *split, BOOL listening) {
 - (void)stop {
     ++self.generation;
     self.listening=NO;
+    NSNotificationCenter *notices=[NSNotificationCenter defaultCenter];
+    if (self.interruptionObserver) {
+        [notices removeObserver:self.interruptionObserver];
+        self.interruptionObserver=nil;
+    }
+    if (self.routeObserver) {
+        [notices removeObserver:self.routeObserver];
+        self.routeObserver=nil;
+    }
     if (self.engine.isRunning) [self.engine stop];
     if (self.engine) {
         @try { [self.engine.inputNode removeTapOnBus:0]; }
@@ -120,6 +131,36 @@ static void DCVoicePaint(SCPCarSplit *split, BOOL listening) {
         return;
     }
     self.audioOwned=YES;
+    // Stop on incoming calls/Siri and when CarPlay audio route is lost.
+    // One tap, one bounded command; never auto-resume audio capture.
+    __weak typeof(self) weakSession=self;
+    self.interruptionObserver=[[NSNotificationCenter defaultCenter]
+        addObserverForName:AVAudioSessionInterruptionNotification
+        object:nil queue:NSOperationQueue.mainQueue
+        usingBlock:^(NSNotification *note) {
+            DCVoiceCarSession *owner=weakSession;
+            if (!owner || !owner.listening) return;
+            NSNumber *kind=note.userInfo[AVAudioSessionInterruptionTypeKey];
+            if (kind.integerValue!=AVAudioSessionInterruptionTypeBegan) return;
+            SCPCarSplit *target=owner.split;
+            [owner stop];
+            [target toast:@"Phiên giọng nói bị ngắt bởi Siri/cuộc gọi."];
+            NSLog(@"[hl30-voice] event=audio-interrupted reason=system");
+        }];
+    self.routeObserver=[[NSNotificationCenter defaultCenter]
+        addObserverForName:AVAudioSessionRouteChangeNotification
+        object:nil queue:NSOperationQueue.mainQueue
+        usingBlock:^(NSNotification *note) {
+            DCVoiceCarSession *owner=weakSession;
+            if (!owner || !owner.listening) return;
+            NSNumber *kind=note.userInfo[AVAudioSessionRouteChangeReasonKey];
+            if (kind.integerValue!=AVAudioSessionRouteChangeReasonOldDeviceUnavailable)
+                return;
+            SCPCarSplit *target=owner.split;
+            [owner stop];
+            [target toast:@"Microphone/CarPlay đã ngắt kết nối."];
+            NSLog(@"[hl30-voice] event=audio-route-lost");
+        }];
     @try {
         self.engine=[AVAudioEngine new];
         AVAudioInputNode *node=self.engine.inputNode;
@@ -248,7 +289,12 @@ void SCPVoiceBubbleUpdate(SCPCarSplit *split) {
     CGRect frame=CGRectMake(MAX(8,CGRectGetWidth(bounds)-54),
                              MAX(8,CGRectGetHeight(bounds)-62),46,46);
     if (!CGRectEqualToRect(frame,button.frame)) button.frame=frame;
-    button.hidden=([[SCPFullscreenController shared] fsCommittedState]
+    // Do not intercept the original picker/tray/ratio controls.
+    BOOL fullscreen=([[SCPFullscreenController shared] fsCommittedState]
         == SCPFullscreenStateExpanded);
+    BOOL popup=split.tray!=nil || split.pickerSheet!=nil ||
+        split.ratioMenu!=nil;
+    button.hidden=(fullscreen || popup);
+    button.userInteractionEnabled=!button.hidden;
     [host bringSubviewToFront:button];
 }
