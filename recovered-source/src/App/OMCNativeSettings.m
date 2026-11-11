@@ -166,6 +166,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 @interface OMCNativeSimplePage : UITableViewController <UIImagePickerControllerDelegate,UINavigationControllerDelegate,UIDocumentPickerDelegate>
 @property(nonatomic) NSInteger kind; // 0 general, 1 split, 2 Home, 3 Bubble, 4 profiles
 @property(nonatomic,strong) NSArray<NSDictionary *> *sections;
+@property(nonatomic,strong) UISwitch *masterSwitch;
+@property(nonatomic,strong) UILabel *masterStatus;
 - (instancetype)initWithKind:(NSInteger)kind;
 @end
 
@@ -405,7 +407,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         self.kind=kind;
         NSArray *keys=@[@"", @"SPLITSCREEN",@"HOME_SCREEN",@"SPEEDBUBBLE",@"PROFILES"];
         NSInteger selected=MAX(0,MIN(kind,4));
-        self.title=selected==0?OMCText(@"Cài đặt",@"Settings"):OMCNativeLocalized(keys[selected]);
+        self.title=selected==0?@"DuoCar":OMCNativeLocalized(keys[selected]);
     }
     return self;
 }
@@ -422,19 +424,24 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             [sections addObject:OMCSection(OMCNativeLocalized(@"CONFLICTS_GROUP"),@[
                 OMCRow([conflicts componentsJoinedByString:@", "],@"conflicts",nil,nil,nil)])];
         }
-        [sections addObject:OMCSection(OMCText(@"Tổng quan",@"Overview"),@[
-            OMCRow(OMCText(@"Bật DuoCar",@"Enable DuoCar"),@"switch",@"enabled",@YES,nil),
-            OMCRow(OMCText(@"Ngôn ngữ",@"Language"),@"language",nil,nil,nil)])];
+        // Match the original Root.plist layout and insert Feature*.plist by
+        // featureOrder 10 Startup, 20 SpeedBubble, 30 SplitScreen. The 3
+        // DuoNavi-style tabs remain for quick access, but Settings now
+        // reproduces the original OmniCar root ordering and header actions.
+        [sections addObject:OMCSection(OMCNativeLocalized(@"APPS_GROUP"),@[
+            OMCRow(@"APPS",@"apps",nil,nil,nil),
+            OMCRow(@"HOME_SCREEN",@"home",nil,nil,nil)])];
         [sections addObject:OMCSection(OMCNativeLocalized(@"FEATURES_GROUP"),@[
             OMCRow(@"STARTUPSCREEN",@"startup",nil,nil,nil),
             OMCRow(@"SPEEDBUBBLE",@"bubble",nil,nil,nil),
-            OMCRow(@"HOME_SCREEN",@"home",nil,nil,nil),
+            OMCRow(@"SPLITSCREEN",@"split",nil,nil,nil)])];
+        [sections addObject:OMCSection(@"",@[
             OMCRow(@"PROFILES",@"profiles",nil,nil,nil)])];
-        [sections addObject:OMCSection(OMCText(@"Hỗ trợ",@"Support"),@[
+        [sections addObject:OMCSection(OMCNativeLocalized(@"SUPPORT_GROUP"),@[
             OMCRow(@"ONB_SHOW_AGAIN",@"guide",nil,nil,nil),
-            OMCRow(@"WN_ROW",@"whatsnew",nil,nil,nil),
-            OMCRow(@"SEND_LOG",@"logs",nil,nil,nil),
-            OMCRow(OMCText(@"Respring (xác nhận)",@"Respring (confirm)"),@"respring",nil,nil,nil)])];
+            OMCRow(@"WN_ROW",@"whatsnew",nil,nil,nil)])];
+        [sections addObject:OMCSection(OMCNativeLocalized(@"DEV_GROUP"),@[
+            OMCRow(@"SEND_LOG",@"logs",nil,nil,nil)])];
         return sections;
     }
     if (self.kind==1) {
@@ -509,13 +516,77 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         OMCSection(OMCNativeLocalized(@"PROFILES_CARS"),cars)
     ];
 }
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    if (self.kind!=0)return;
+    // Original Prefs uses a 118pt header card with master switch, plus
+    // independent language and Respring actions in the navigation bar.
+    UIView *header=[[UIView alloc] initWithFrame:CGRectMake(0,0,
+        CGRectGetWidth(self.tableView.bounds),136)];
+    header.autoresizingMask=UIViewAutoresizingFlexibleWidth;
+    UIView *card=[[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0,8,
+        CGRectGetWidth(header.bounds),120),16,0)];
+    card.autoresizingMask=UIViewAutoresizingFlexibleWidth;
+    card.backgroundColor=UIColor.secondarySystemGroupedBackgroundColor;
+    card.layer.cornerRadius=15;
+    card.clipsToBounds=YES;
+    UILabel *title=[[UILabel alloc] initWithFrame:CGRectMake(18,15,
+        CGRectGetWidth(card.bounds)-105,36)];
+    title.autoresizingMask=UIViewAutoresizingFlexibleWidth;
+    title.text=@"DuoCar";
+    title.font=[UIFont systemFontOfSize:26 weight:UIFontWeightBold];
+    [card addSubview:title];
+    UILabel *subtitle=[[UILabel alloc] initWithFrame:CGRectMake(18,58,
+        CGRectGetWidth(card.bounds)-36,45)];
+    subtitle.autoresizingMask=UIViewAutoresizingFlexibleWidth;
+    subtitle.font=[UIFont preferredFontForTextStyle:UIFontTextStyleSubheadline];
+    subtitle.textColor=UIColor.secondaryLabelColor;
+    subtitle.numberOfLines=2;
+    [card addSubview:subtitle];self.masterStatus=subtitle;
+    UISwitch *sw=[UISwitch new];
+    CGRect fr=sw.frame;fr.origin=CGPointMake(CGRectGetWidth(card.bounds)-fr.size.width-15,18);
+    sw.frame=fr;sw.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin;
+    [sw addTarget:self action:@selector(omcMasterChanged:)
+      forControlEvents:UIControlEventValueChanged];
+    [card addSubview:sw];self.masterSwitch=sw;
+    [header addSubview:card];
+    self.tableView.tableHeaderView=header;
+    UIBarButtonItem *respring=[[UIBarButtonItem alloc]
+        initWithImage:[UIImage systemImageNamed:@"arrow.clockwise"]
+        style:UIBarButtonItemStylePlain target:self action:@selector(confirmRespring)];
+    respring.accessibilityLabel=OMCNativeLocalized(@"RESPRING");
+    UIBarButtonItem *language=[[UIBarButtonItem alloc]
+        initWithImage:[UIImage systemImageNamed:@"globe"]
+        style:UIBarButtonItemStylePlain target:self action:@selector(chooseLanguage)];
+    language.accessibilityLabel=OMCNativeLocalized(@"LANGUAGE");
+    self.navigationItem.rightBarButtonItems=@[respring,language];
+    [self refreshMasterCard];
+    NSLog(@"[hl27-settings] gate=original-root-cards feature-order=10,20,30");
+}
+- (void)refreshMasterCard {
+    if(self.kind!=0 || !self.masterSwitch)return;
+    BOOL enabled=[OMCNativePref(@"enabled",@YES) boolValue];
+    [self.masterSwitch setOn:enabled animated:NO];
+    self.masterStatus.text=[NSString stringWithFormat:@"%@ • %@",
+        OMCNativeLocalized(@"HEADER_TAGLINE"),
+        OMCNativeLocalized(enabled?@"STATUS_ON":@"STATUS_OFF")];
+}
+- (void)omcMasterChanged:(UISwitch *)sender {
+    BOOL wanted=sender.isOn;
+    if(!OMCNativeSetPref(@"enabled",@(wanted))) {
+        sender.on=!wanted;
+        OMCAlert(self,OMCText(@"Không lưu được cấu hình.",@"Could not save settings."));
+    }
+    [self refreshMasterCard];
+}
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     NSArray *keys=@[@"", @"SPLITSCREEN",@"HOME_SCREEN",@"SPEEDBUBBLE",@"PROFILES"];
-    self.title=self.kind==0?OMCText(@"Cài đặt",@"Settings"):
+    self.title=self.kind==0?@"DuoCar":
         OMCNativeLocalized(keys[MAX(0,MIN(self.kind,4))]);
     self.sections=[self makeSections];
     [self.tableView reloadData];
+    [self refreshMasterCard];
     NSLog(@"[hl26-settings] page=%ld sections=%lu",(long)self.kind,(unsigned long)self.sections.count);
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)t {return self.sections.count;}
@@ -555,6 +626,15 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     } else if ([type isEqualToString:@"car"]) {
         cell.detailTextLabel.text=[OMCNativePref(@"carProfileCurrent",@"") isEqual:key]
             ?@"✓":@"";
+    } else if (self.kind==0) {
+        NSString *featureKey=nil;
+        if([type isEqualToString:@"startup"])featureKey=@"startupScreenEnabled";
+        else if([type isEqualToString:@"bubble"])featureKey=@"speedBubbleEnabled";
+        else if([type isEqualToString:@"split"])featureKey=@"splitScreenEnabled";
+        if(featureKey.length) {
+            cell.detailTextLabel.text=OMCNativeLocalized(
+                [OMCNativePref(featureKey,@YES) boolValue]?@"STATUS_ON":@"STATUS_OFF");
+        }
     }
     return cell;
 }
@@ -997,6 +1077,12 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         NSString *k=r[@"key"];OMCNativeAppsPage *apps=[OMCNativeAppsPage new];
         apps.onPick=^(NSString *bid) {OMCNativeSetPref(k,bid);[self.tableView reloadData];};
         [self.navigationController pushViewController:apps animated:YES];return;
+    }
+    if ([type isEqualToString:@"apps"]) {
+        [self.navigationController pushViewController:[OMCNativeAppsPage new] animated:YES];return;
+    }
+    if ([type isEqualToString:@"split"]) {
+        [self.navigationController pushViewController:[[OMCNativeSimplePage alloc] initWithKind:1] animated:YES];return;
     }
     if ([type isEqualToString:@"startup"]) {
         [self.navigationController pushViewController:OMCNativeStartupController() animated:YES];return;
