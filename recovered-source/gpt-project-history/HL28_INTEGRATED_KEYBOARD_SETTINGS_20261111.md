@@ -34,3 +34,9 @@ Nguyen: "Phím và cài đặt cho lần deb này" — tích hợp hai sửa l�
 
 ## Lưu bền vững
 Được ghi trên GitHub main theo quyền tài liệu GPT. Sau khi build hoàn tất, cập nhật mục CI này với status thật, artifact ID, sha, size, links và readback; sửa README liên kết. Nếu không có DEB cuối hoặc chưa test, ghi rõ PACKAGE/DEVICE PENDING.
+
+
+## CI vòng 1 FAIL / vòng 2 đã kích hoạt (cập nhật)
+- Workflow run **43021840020**, job **130526672762** exact commit `5e842e7...`: **FAILED ở bước “Verify HL22 baseline invariants”**, trước rebrand/compile. Đọc chính job log `fetch_workflow_job_logs` thấy `verify_hl21_regression.py:26` còn assert `ABNativeKbFit(@"host-frame-settled"` và `ABNativeKbFit(@"keyboard-frame"` phải tồn tại. Đây là hai callback mà HL28 **cố ý gỡ** để khôi phục HL11. Không phải compiler failure hoặc bằng chứng lỗi runtime.
+- Đã sửa verifier cũ **không bỏ kiểm tra**: nếu có marker `[hl28-kbmerge]`, yêu cầu cả hai callback THẬT SỰ vắng, early-success guard + window-visible cancel + geometry guard có mặt; với source thế hệ cũ giữ assertion cũ. Chỉ sửa `recovered-source/gpt-project-history/verify_hl21_regression.py` trên branch HL28 (commit `291e997c7df9077d166348902b0ce36701c501b4`, blob `b8c1469c06dc573b2c08eeaaa24887fc49600b3a`).
+- Push commit sửa test làm GitHub tự sinh **run mới 43022171303**, job **130527782579**, exact HEAD `291e997...`. Run đang IN_PROGRESS lần kiểm gần nhất (checkout PASS, Install Theos in progress). **Không dispatch thêm**, run 1 thất bại không có artifact. Current build head đã đổi từ `5e842e7...` sang `291e997...`; phải đóng artifact trên HEAD mới, không lẫn hash của run cũ. Chưa có DEB HL28 ở thời điểm checkpoint này.
