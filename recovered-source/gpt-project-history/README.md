@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — DuoCar bàn phím DEVICE FAIL (user video pending)
+- Nguyen báo bản Sileo DuoCar `1.0.3-hl21duocar` vẫn lỗi bàn phím, có quay video nhưng clip mới chưa được đính kèm ở lượt này. Mã native keyboard HL11 `ABInApp.m` blob `73557304...` giữ nguyên qua HL21 rồi đổi tên khi build DuoCar, chỉ resize `UIRemoteKeyboardWindow.frame` theo key window, **không reflow keyplane**; nếu mất phím ngay từ đầu phải đo gate/focus/observer với PID, không kết tội frame-only. Log repo mới nhất cũ hơn release; **không có runtime-proof DuoCar mới**. **DEVICE FAIL keyboard, chưa tạo patch/DEB mới**. [Chi tiết, mốc HL11 và công việc tiếp](DUOCAR_REBRAND_SILEO_20261111.md).
+
 ## 2026-11-11 — DuoCar: đổi toàn bộ DEB HL21, Sileo PUBLIC PASS (DEVICE PENDING)
 - Đổi toàn bộ app/package, dyld, Settings, URL scheme, IPC/Prefs và tên hiển thị sang **DuoCar**, ID `com.chuong.duocar`; không đặt Conflicts/Replaces/Breaks với package cũ, Nguyen tự uninstall. Source build CI `42963581440` SUCCESS, GitHub Release `duocar-hl21-20261111`; đúng DEB **1.285.052 bytes**, SHA256 `275ad8a211b13e51b234d491c627592d675e217ea5529fcb736df0782eb83022`. **Sileo `carplaydsp` run `42964249671` build/deploy/public download PASS**, verified job `130338505510`. [Sileo](https://chuongnguyen89dn-ui.github.io/carplaydsp/) · [DEB công khai](https://chuongnguyen89dn-ui.github.io/carplaydsp/debs/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb) · [checkpoint](DUOCAR_REBRAND_SILEO_20261111.md). **DEVICE PENDING** (pinch, bàn phím, picker, Dock/Home chưa kiểm trên xe).
 
