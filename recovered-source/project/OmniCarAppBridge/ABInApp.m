@@ -1228,7 +1228,7 @@ static void ABNativeKbRestore(NSString *reason) {
         window.frame = ABNativeKbOriginal;
     }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[hl30-kbviewport] event=restore reason=%@ found=%d mode=%@ original=%@",
+        @"[hl30-kbviewport] event=restore ev=restore reason=%@ found=%d mode=%@ original=%@",
         reason, (int)(window != nil),
         ABNativeKbUsesViewport ? @"uniform-window-transform" : @"legacy",
         NSStringFromCGRect(ABNativeKbOriginal)]);
