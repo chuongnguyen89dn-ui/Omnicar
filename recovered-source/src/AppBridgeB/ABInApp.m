@@ -1301,7 +1301,7 @@ static void ABNativeKbBegin(NSString *why) {
     // This is not proof of keycap visibility or clipping correctness.
     if (ABNativeKbFit(why, 0)) {
         OMCLogWrite(@"AppBridge",
-            @"[hl27-kbreg] policy=HL11 first-window-visible no-extra-retry keycap=UNKNOWN");
+            @"[hl28-kbmerge] policy=HL11 first-window-visible no-extra-retry keycap=UNKNOWN");
         return;
     }
     // No keyboard window yet: retain the bounded HL11 retries.
