@@ -118,13 +118,29 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         id proxies=(workspace&&[workspace respondsToSelector:allSel])
             ?((id(*)(id,SEL))objc_msgSend)(workspace,allSel):nil;
         if ([proxies isKindOfClass:NSArray.class]) for (id proxy in proxies) {
-            SEL bidSel=NSSelectorFromString(@"applicationIdentifier");
+            // The original Prefs path uses LSApplicationProxy.bundleIdentifier.
+            SEL bidSel=NSSelectorFromString(@"bundleIdentifier");
             SEL titleSel=NSSelectorFromString(@"localizedName");
+            SEL typeSel=NSSelectorFromString(@"applicationType");
+            SEL tagsSel=NSSelectorFromString(@"appTags");
+            SEL hiddenSel=NSSelectorFromString(@"isLaunchProhibited");
+            SEL placeholderSel=NSSelectorFromString(@"isPlaceholder");
             if (![proxy respondsToSelector:bidSel]) continue;
             id bid=((id(*)(id,SEL))objc_msgSend)(proxy,bidSel);
             if (![bid isKindOfClass:NSString.class] || ![bid length] ||
                 [bid hasPrefix:@"com.apple.springboard"] ||
+                [bid hasPrefix:@"com.apple.CarPlay"] ||
                 [bid hasPrefix:@"com.anlai.omnicar"]) continue;
+            id type=[proxy respondsToSelector:typeSel]
+                ?((id(*)(id,SEL))objc_msgSend)(proxy,typeSel):nil;
+            if (![type isEqual:@"User"] && ![type isEqual:@"System"]) continue;
+            id tags=[proxy respondsToSelector:tagsSel]
+                ?((id(*)(id,SEL))objc_msgSend)(proxy,tagsSel):nil;
+            if ([tags isKindOfClass:NSArray.class] && [tags containsObject:@"hidden"])continue;
+            if ([proxy respondsToSelector:hiddenSel] &&
+                ((BOOL(*)(id,SEL))objc_msgSend)(proxy,hiddenSel)) continue;
+            if ([proxy respondsToSelector:placeholderSel] &&
+                ((BOOL(*)(id,SEL))objc_msgSend)(proxy,placeholderSel)) continue;
             id name=[proxy respondsToSelector:titleSel]
                 ?((id(*)(id,SEL))objc_msgSend)(proxy,titleSel):nil;
             all[bid]=[name isKindOfClass:NSString.class]&&[name length]?name:bid;
@@ -164,6 +180,13 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
                 ![entry[@"id"] isKindOfClass:NSString.class])continue;
             [carIDs addObject:entry[@"id"]];
             if ([entry[@"off"] boolValue]) [offIDs addObject:entry[@"id"]];
+        }
+        if (!carIDs.count) {
+            // The original Prefs path falls back to splitScreenCarPlayApps.
+            id fallback=OMCNativePref(@"splitScreenCarPlayApps",@[]);
+            if ([fallback isKindOfClass:NSArray.class]) for (id bid in fallback)
+                if ([bid isKindOfClass:NSString.class] && [bid length])
+                    [carIDs addObject:bid];
         }
         if (carIDs.count) {
             self.inventory=[self.inventory filteredArrayUsingPredicate:
@@ -464,11 +487,15 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCNativeSetPref(layout,v);[self.tableView reloadData];
         }]];
     }
-    for (NSInteger i=1;i<=4;i++) {
-        NSString *key=[base stringByAppendingFormat:@"App%ld",(long)i];
-        NSString *name=[NSString stringWithFormat:@"%@ %ld",OMCText(@"Ô",@"Slot"),(long)i];
+    // Original SSFavParts() is exactly Left, Right, Third; never App1..4.
+    NSInteger slotCount=[OMCNativePref(layout,@2) integerValue]==2?2:3;
+    NSArray<NSString *> *parts=@[@"Left",@"Right",@"Third"];
+    for (NSInteger i=0;i<slotCount;i++) {
+        NSString *key=[base stringByAppendingString:parts[i]];
+        NSString *name=[NSString stringWithFormat:@"%@ %ld",OMCText(@"Ô",@"Slot"),(long)(i+1)];
         [a addAction:[UIAlertAction actionWithTitle:name style:UIAlertActionStyleDefault handler:^(UIAlertAction *x){
             OMCNativeAppsPage *page=[OMCNativeAppsPage new];
+            page.title=name;
             page.onPick=^(NSString *bid){OMCNativeSetPref(key,bid);[self.tableView reloadData];};
             [self.navigationController pushViewController:page animated:YES];
         }]];
