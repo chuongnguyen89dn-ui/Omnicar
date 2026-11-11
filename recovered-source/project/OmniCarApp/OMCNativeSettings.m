@@ -1,6 +1,7 @@
 // HL26: UIKit-owned iPhone settings. Do not instantiate Settings.app Preferences controllers.
 // All values use the same domain/key/notify contract as OmniCarPrefs and the CarPlay owner.
 #import "OMCNativeSettings.h"
+#import "DCVoiceSession.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
@@ -437,6 +438,17 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(@"SPLITSCREEN",@"split",nil,nil,nil)])];
         [sections addObject:OMCSection(@"",@[
             OMCRow(@"PROFILES",@"profiles",nil,nil,nil)])];
+        // [hl29-voice] Explicit opt-in. Online recognition can send audio to Apple.
+        [sections addObject:OMCSection(OMCText(@"Trợ lý giọng nói", @"Voice Assistant"),@[
+            OMCRow(OMCText(@"Bật trợ lý giọng nói", @"Enable voice assistant"),
+                   @"switch",@"voiceAssistantEnabled",@NO,nil),
+            OMCRow(OMCText(@"Ngôn ngữ nhận dạng", @"Recognition language"),
+                   @"voice-language",@"voiceAssistantLanguage",@"vi-VN",nil),
+            OMCRow(OMCText(@"Cho phép nhận dạng trực tuyến qua Apple (có thể gửi âm thanh đến Apple)",
+                           @"Allow Apple online speech recognition (audio may be sent to Apple)"),
+                   @"switch",@"voiceAppleOnlineEnabled",@NO,nil),
+            OMCRow(OMCText(@"Chạm để nói", @"Tap to speak"),
+                   @"voice",nil,nil,nil)])];
         [sections addObject:OMCSection(OMCNativeLocalized(@"SUPPORT_GROUP"),@[
             OMCRow(@"ONB_SHOW_AGAIN",@"guide",nil,nil,nil),
             OMCRow(@"WN_ROW",@"whatsnew",nil,nil,nil)])];
@@ -623,6 +635,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
                [type isEqualToString:@"pickapp"] || [type isEqualToString:@"favorite"]) {
         id value=OMCNativePref(key,[type isEqualToString:@"favorite"]?nil:r[@"default"]);
         cell.detailTextLabel.text=value?[value description]:OMCText(@"Chưa chọn",@"Not set");
+    } else if ([type isEqualToString:@"voice-language"]) {
+        cell.detailTextLabel.text=OMCNativePref(@"voiceAssistantLanguage",@"vi-VN");
     } else if ([type isEqualToString:@"car"]) {
         cell.detailTextLabel.text=[OMCNativePref(@"carProfileCurrent",@"") isEqual:key]
             ?@"✓":@"";
@@ -1072,6 +1086,34 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     if ([type isEqualToString:@"number"]) {[self chooseValueFor:r];return;}
     if ([type isEqualToString:@"text"]) {[self editTextFor:r];return;}
     if ([type isEqualToString:@"language"]) {[self chooseLanguage];return;}
+    if ([type isEqualToString:@"voice"]) {
+        if (!DCVoiceIsEnabled()) {
+            OMCAlert(self,OMCText(@"Bật Trợ lý giọng nói trước khi sử dụng.",
+                                  @"Enable the voice assistant first."));return;
+        }
+        [self.navigationController pushViewController:DCVoiceCreateController() animated:YES];
+        return;
+    }
+    if ([type isEqualToString:@"voice-language"]) {
+        UIAlertController *a=[UIAlertController alertControllerWithTitle:
+            OMCText(@"Ngôn ngữ nhận dạng", @"Recognition language")
+            message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+        for (NSString *lang in @[@"vi-VN",@"en-US"]) {
+            NSString *title=[lang isEqualToString:@"vi-VN"]?@"Tiếng Việt":@"English";
+            [a addAction:[UIAlertAction actionWithTitle:title
+                style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *act) {
+                OMCNativeSetPref(@"voiceAssistantLanguage",lang);
+                [self.tableView reloadData];
+            }]];
+        }
+        [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Hủy",@"Cancel")
+            style:UIAlertActionStyleCancel handler:nil]];
+        a.popoverPresentationController.sourceView=self.view;
+        a.popoverPresentationController.sourceRect=CGRectMake(
+            CGRectGetMidX(self.view.bounds),CGRectGetMidY(self.view.bounds),1,1);
+        [self presentViewController:a animated:YES completion:nil];
+        return;
+    }
     if ([type isEqualToString:@"favorite"]) {[self editFavorite:r];return;}
     if ([type isEqualToString:@"pickapp"]) {
         NSString *k=r[@"key"];OMCNativeAppsPage *apps=[OMCNativeAppsPage new];
