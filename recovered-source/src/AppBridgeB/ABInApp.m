@@ -1121,9 +1121,10 @@ static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
             if (w.screen != keyboard.screen) continue;
             if (w.hidden || w.alpha <= 0.01) continue;
             [siblings addObject:[NSString stringWithFormat:
-                @"%@ lvl=%.1f key=%d frame=%@ scene=%@",
+                @"%@ lvl=%.1f z=%.1f key=%d frame=%@ scene=%@",
                 NSStringFromClass(w.class), (double)w.windowLevel,
-                (int)w.isKeyWindow, NSStringFromCGRect(w.frame),
+                (double)w.layer.zPosition, (int)w.isKeyWindow,
+                NSStringFromCGRect(w.frame),
                 w.windowScene ? NSStringFromClass(w.windowScene.class) : @"nil"]];
         }
         // Reuse the UIView already found by the existing HL24 keyplane scan.
@@ -1137,9 +1138,9 @@ static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
             BOOL clip = v.clipsToBounds || v.layer.masksToBounds;
             if (clip) available = CGRectIntersection(available, r);
             [ancestors addObject:[NSString stringWithFormat:
-                @"%@ rect=%@ clip=%d alpha=%.2f",
+                @"%@ rect=%@ clip=%d hidden=%d alpha=%.2f z=%.1f",
                 NSStringFromClass(v.class), NSStringFromCGRect(r), (int)clip,
-                (double)v.alpha]];
+                (int)v.hidden, (double)v.alpha, (double)v.layer.zPosition]];
         }
         // Geometry only. -hitTest:withEvent: is NOT an inert probe:
         // custom UIKit subclasses can route/consume events on that path.
