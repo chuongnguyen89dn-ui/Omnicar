@@ -647,7 +647,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     if(!url || self.kind!=2)return;
     NSFileManager *fm=NSFileManager.defaultManager;
     NSString *tmp=[NSTemporaryDirectory() stringByAppendingPathComponent:
-        [NSString stringWithFormat:@"omc-home-import-%@.mp4",NSUUID.UUID.UUIDString]];
+        [NSString stringWithFormat:@"omc-home-import-%@.mp4",[[NSUUID UUID] UUIDString]]];
     NSError *err=nil;
     if(![fm copyItemAtURL:url toURL:[NSURL fileURLWithPath:tmp] error:&err]) {
         OMCAlert(self,err.localizedDescription?:@"Video copy failed");return;
@@ -669,7 +669,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     AVAssetExportSession *exp=[[AVAssetExportSession alloc] initWithAsset:comp
         presetName:AVAssetExportPreset1280x720];
     NSString *out=[NSTemporaryDirectory() stringByAppendingPathComponent:
-        [NSString stringWithFormat:@"omc-home-export-%@.mp4",NSUUID.UUID.UUIDString]];
+        [NSString stringWithFormat:@"omc-home-export-%@.mp4",[[NSUUID UUID] UUIDString]]];
     exp.outputURL=[NSURL fileURLWithPath:out];exp.outputFileType=AVFileTypeMPEG4;
     exp.shouldOptimizeForNetworkUse=YES;
     UIAlertController *pending=[UIAlertController alertControllerWithTitle:@"DuoCar"
@@ -740,9 +740,10 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     NSURL *url=urls.firstObject;if(!url)return;
     BOOL scope=[url startAccessingSecurityScopedResource];
     @try{
-        if([UTType typeWithFilenameExtension:url.pathExtension].conformsToType:UTTypeImage)
+        UTType *kind=[UTType typeWithFilenameExtension:url.pathExtension];
+        if([kind conformsToType:UTTypeImage])
             [self homeUseImage:[UIImage imageWithContentsOfFile:url.path]];
-        else if ([UTType typeWithFilenameExtension:url.pathExtension].conformsToType:UTTypeMovie)
+        else if ([kind conformsToType:UTTypeMovie])
             [self homeUseVideo:url];
         else OMCAlert(self,OMCText(@"Định dạng không hỗ trợ.",@"Unsupported format."));
     } @finally{if(scope)[url stopAccessingSecurityScopedResource];}
