@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — HL19 menu nguyên bản + bàn phím native HL11 + Prefs bên trong app iPhone
+- Chỉ thị mới của Nguyen: **bản DEB hiện tại đã sửa xong lỗi khởi động app văng về Home**, không sửa đường đó nữa; điều còn lại là các trang Cài đặt phải hoạt động **trong OmniCar.app**. Trên nhánh `feature/hl19-hl7-native-keyboard-restore-20261111`, sau keyboard `3eb68dc` đã hoàn nguyên picker riêng `c748479`; xử lý controller root/feature Prefs `7d5b7bd` và chuyển sang UINavigationController `pushViewController:animated:` `439cbfa5392fc926d40eab1a4e2995763c452a33`. Source src/project đã đọc lại khớp SHA từng cặp. **SOURCE COMMITTED; chưa build DEB HL19, chưa device-proof Settings/menu/keyboard; keyboard resize còn OPEN.** [Checkpoint hunk, bằng chứng, cổng nghiệm thu](HL19_PICKER_NATIVE_KB_INAPP_PREFS_CHECKPOINT_20261111.md).
+
 ## 2026-11-11 — HL19 phục hồi đúng bàn phím UIKit đã hiển thị/nhập được ở video HL11
 - Đã truy lại mốc video xe `IMG_8191.mp4` 10/11 15:33–15:38: HL11 native keyboard hiển thị/nhập được; còn lỗi resize theo ô, Maps trắng; pinch khi đó hồi quy nên **không quay cả binary HL11**. Trên nhánh code đã tồn tại `feature/hl19-hl7-native-keyboard-restore-20261111`, GPT sửa **duy nhất hai file `ABInApp.m` trong project/src**, commit **`3eb68dc26a6eb0e753c15a176dc96662954b107b`**, hai path đọc lại cùng blob `abf3235...`. Bật đường HL11 `UIRemoteKeyboardWindow.frame` fit, không chạy sửa private keyplane/refSize và forced reload HL15–HL18; các module pinch, menu, Home/Dock, Muse không bị thay. **SOURCE COMMITTED; chưa build/CI/DEB/device test; resize còn OPEN.** [Checkpoint HL19 đầy đủ](HL19_HL11_NATIVE_KEYBOARD_RESTORE_20261111.md).
 
