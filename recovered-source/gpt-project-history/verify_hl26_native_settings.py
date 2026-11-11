@@ -28,7 +28,10 @@ native=(PROJECT / "OmniCarApp" / "OMCNativeSettings.m").read_text()
 startup=(PROJECT / "OmniCarApp" / "OMCNativeStartup.m").read_text()
 makefile=(PROJECT / "OmniCarApp" / "Makefile").read_text()
 resource=PROJECT / "OmniCarPrefs" / "Resources"
-appinfo=plistlib.load((PROJECT / "OmniCarApp" / "Resources" / "Info.plist").open("rb"))
+app_info_path=PROJECT / "OmniCarApp" / "Resources" / "Info.plist"
+canonical_info=SOURCE / "App" / "Info.plist"
+assert app_info_path.read_bytes()==canonical_info.read_bytes(), "src/project app Info.plist drift"
+appinfo=plistlib.load(app_info_path.open("rb"))
 
 # Remove comments before checking executable code for the old Settings.app route.
 without_comments=re.sub(r"/\*.*?\*/|//[^\n]*", "", delegate, flags=re.S)
@@ -94,6 +97,12 @@ assert appinfo["CFBundleIdentifier"]=="com.anlai.omnicar.app"
 assert appinfo["CFBundleExecutable"]=="OmniCar"
 assert "omnicar" in appinfo["CFBundleURLTypes"][0]["CFBundleURLSchemes"]
 assert appinfo.get("NSPhotoLibraryUsageDescription"), "UIImagePickerController privacy key required"
+assert appinfo.get("NSPhotoLibraryAddUsageDescription"), "Photo add permission missing"
+for lang in ("en","vi"):
+    locale_dir=resource/(lang+".lproj")
+    assert (locale_dir/"Localizable.strings").is_file(), lang
+    assert (locale_dir/"StartupScreen.strings").is_file(), lang
+assert (resource/"en.lproj"/"Car.strings").is_file(), "Car.strings fallback missing"
 
 root=plistlib.load((resource/"Root.plist").open("rb"))
 startup_pl=plistlib.load((resource/"FeatureStartupScreen.plist").open("rb"))
