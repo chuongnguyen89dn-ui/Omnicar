@@ -1,0 +1,62 @@
+name: DuoCar HL22 direct DEB test download
+
+on:
+  push:
+    branches:
+      - feature/duocar-hl22-keyplane-menu-original-20261111
+    paths:
+      - .github/workflows/duocar-hl22-direct-deb-test-release.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  direct-deb:
+    if: github.repository == 'chuongnguyen89dn-ui/Omnicar'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Copy exact already-signed HL22 DEB from successful build artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/duocar-deb"
+          gh run download 42969820723 \
+            --repo "chuongnguyen89dn-ui/Omnicar" \
+            --name "duocar-hl22-fat-deb" \
+            --dir "$RUNNER_TEMP/duocar-deb"
+          FILE="$RUNNER_TEMP/duocar-deb/com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb"
+          test -f "$FILE"
+          test "$(stat -c%s "$FILE")" = "1286710"
+          printf '%s  %s\n' 'e79ff6f576082097253744b6e510fc40bce686063f4da79035c1c5c8cb0e956c' "$FILE" | sha256sum -c -
+          test "$(dpkg-deb -f "$FILE" Package)" = com.chuong.duocar
+          test "$(dpkg-deb -f "$FILE" Version)" = 1.0.3-hl22duocar
+          test "$(dpkg-deb -f "$FILE" Architecture)" = iphoneos-arm64
+          echo 'HL22_DIRECT_DEB_ORIGINAL_HASH_VERIFIED'
+
+      - name: Create isolated GitHub prerelease test DEB (not Sileo)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG='duocar-hl22-test-deb-20261111'
+          FILE="$RUNNER_TEMP/duocar-deb/com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb"
+          if gh release view "$TAG" --repo "chuongnguyen89dn-ui/Omnicar" >/dev/null 2>&1; then
+            echo "::error::Candidate test tag already exists; refusing to overwrite signed package"
+            exit 1
+          fi
+          gh release create "$TAG" "$FILE" \
+            --repo "chuongnguyen89dn-ui/Omnicar" \
+            --target "c1b3cc75c21747c5483366472b1375bd6a12ba53" \
+            --prerelease \
+            --title 'DuoCar HL22 — DEB tải trực tiếp để thử xe' \
+            --notes 'Bản thử nghiệm, chưa kiểm chứng trên xe, KHÔNG đưa lên Sileo. Mã nguồn c1b3cc75. Bản ký nguyên trạng từ GitHub Actions run 42969820723, SHA256 e79ff6f576082097253744b6e510fc40bce686063f4da79035c1c5c8cb0e956c.'
+          gh release view "$TAG" --repo "chuongnguyen89dn-ui/Omnicar" \
+            --json isPrerelease,assets --jq '{prerelease:.isPrerelease,assetNames:[.assets[].name]}'
+          gh release download "$TAG" --repo "chuongnguyen89dn-ui/Omnicar" \
+            --pattern "com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb" \
+            --dir "$RUNNER_TEMP/readback"
+          printf '%s  %s\n' 'e79ff6f576082097253744b6e510fc40bce686063f4da79035c1c5c8cb0e956c' "$RUNNER_TEMP/readback/com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb" | sha256sum -c -
+          echo 'HL22_PUBLIC_PRERELEASE_DIRECT_DEB_SHA256_PASS_NO_SILEO'
