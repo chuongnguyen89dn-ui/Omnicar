@@ -762,18 +762,18 @@ static NSString *AB25SceneReferenceApply(id settings, CGSize size,
     if (orientation != 1 && orientation != 3 && orientation != 4)
         return @"skip-orientation";
     @try {
-        // Prefer the two-argument interface-orientation contract. The
-        // three-argument form is a guarded compatibility fallback only.
+        // DuoNavi's static IMP xrefs alone do not prove the receiver,
+        // method semantics or invocation timing on iOS 16.7.16.
+        // Fail closed even with a matching ABI: no private setter call
+        // until the real runtime receiver/scene contract is validated.
         if (AB25SceneRefABI(settings, two, 4)) {
-            ((void (*)(id, SEL, CGSize, NSInteger))objc_msgSend)(
-                settings, two, size, orientation);
-            return @"applied-interface-orientation";
+            (void)size;
+            return @"probe-interface-abi-matches-NOT-CALLED";
         }
         if (AB25SceneRefABI(settings, three, 5)) {
-            // DuoNavi uses a separate CONTAINER orientation; the app-side
-            // effective orientation alone cannot supply it safely.
-            // Log capability but never invent a matching second argument.
-            return @"skip-3arg-container-orientation-unverified";
+            // Content and container orientation are separate authorities;
+            // do not guess either argument, and do not call the selector.
+            return @"probe-3arg-abi-matches-container-unverified-NOT-CALLED";
         }
     } @catch (NSException *e) {
         return [NSString stringWithFormat:@"exception-%@", e.name];
