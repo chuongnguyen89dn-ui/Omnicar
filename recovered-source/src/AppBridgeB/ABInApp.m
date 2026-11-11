@@ -1435,6 +1435,16 @@ static void ABNativeKbBegin(NSString *why) {
             if (n == 1)
                 OMCLogWrite(@"AppBridge",
                     @"[hl24-keyplane] ev=retry-no-visible-window (no reload)");
+            if (n == 3 && !found && ABNativeKbHasOriginal) {
+                // [hl30-kbviewport] A permanently stale keyplane cannot
+                // justify leaving a transformed system keyboard on screen.
+                // Fall back to UIKit-owned geometry and record that this
+                // episode did NOT meet the visibility/touch acceptance gate.
+                ABNativeKbRestore(@"keyplane-timeout-rollback");
+                OMCLogWrite(@"AppBridge",
+                    @"[hl30-kbviewport] event=keyplane-unstable "
+                     "fallback=system-native outcome=NOT-PROVEN");
+            }
         });
     }
 }
