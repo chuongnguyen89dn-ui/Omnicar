@@ -1181,6 +1181,13 @@ static void ABNativeKbRestore(NSString *reason) {
     ABNativeKbHasOriginal = NO;
 }
 
+// [hl19kb] Re-enable the source-verified HL11 native UIKit keyboard path.
+// The HL11 device-video session showed a visible, typable stock keyboard;
+// that build did not yet reflow it correctly with the split-pane ratio.
+// Keep this recovery strictly keyboard-local. Pinch, picker, Dock and
+// AutoHide stay on their existing, independently evolved code paths.
+static BOOL ABHL19UseHL11NativeKeyboardFit = YES;
+
 static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
     if (ABForcedOrientation < 1 || ABDrawnKb ||
         !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
@@ -1200,6 +1207,49 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             if (w.isKeyWindow) key = w;
             else if (!key) key = w;
         }
+    }
+    if (ABHL19UseHL11NativeKeyboardFit) {
+        // HL11: find the hosted app's visible system keyboard window,
+        // fit only UIWindow.frame to the app's key window, and let
+        // UIKit own the internal keyplane geometry. Do not override
+        // keyboardScreenReferenceSize or issue forced keyplane reloads.
+        CGRect targetHL11 = key ? key.frame : CGRectNull;
+        BOOL kbVisibleHL11 = keyboard && !keyboard.hidden &&
+            keyboard.alpha > 0.01 && !CGRectIsEmpty(keyboard.bounds);
+        NSString *statusHL11 = !keyboard ? @"no-kb-window" :
+            !kbVisibleHL11 ? @"kb-not-visible" :
+            !key ? @"no-key-window" :
+            CGRectIsEmpty(targetHL11) ? @"empty-target" :
+            CGRectEqualToRect(keyboard.frame, targetHL11)
+                ? @"already-fit" : @"applied";
+        ABNativeKbRefActive = NO;
+        ABNativeKbRefTarget = CGSizeZero;
+        ABNativeKbLastReloadWidth = 0;
+        if (kbVisibleHL11 && key && !CGRectIsEmpty(targetHL11)) {
+            if (ABNativeKbHasOriginal && keyboard != ABNativeKbWindow)
+                ABNativeKbRestore(@"window-replaced");
+            if (!CGRectEqualToRect(keyboard.frame, targetHL11)) {
+                if (!ABNativeKbHasOriginal) {
+                    ABNativeKbWindow = keyboard;
+                    ABNativeKbOriginal = keyboard.frame;
+                    // Shared restore still carries modern snapshots;
+                    // record them without modifying these geometries.
+                    ABNativeKbOriginalBounds = keyboard.bounds;
+                    ABNativeKbRoot = keyboard.rootViewController.view;
+                    ABNativeKbRootOriginal = ABNativeKbRoot
+                        ? ABNativeKbRoot.frame : CGRectNull;
+                    ABNativeKbHasOriginal = YES;
+                }
+                keyboard.frame = targetHL11;
+            }
+        }
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl19kb] mode=hl11-native-frame when=%@ attempt=%ld "
+             "result=%@ key=%@ keyboard=%@ focus=1",
+            when, (long)attempt, statusHL11,
+            key ? NSStringFromCGRect(key.frame) : @"none",
+            keyboard ? NSStringFromCGRect(keyboard.frame) : @"none"]);
+        return kbVisibleHL11 && key != nil && !CGRectIsEmpty(targetHL11);
     }
     CGRect logicalTarget = key ? key.frame : CGRectNull;
     if (key && CGRectIsEmpty(logicalTarget))
@@ -1349,6 +1399,7 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
 
 
 static void ABNativeKbMaybeReload(NSString *why) {
+    if (ABHL19UseHL11NativeKeyboardFit) return;
     if (!ABNativeKbRefActive || !ABCurrentResponder ||
         ![ABCurrentResponder isFirstResponder] ||
         ABNativeKbRefTarget.width < 90 ||
@@ -1408,7 +1459,7 @@ static void ABNativeKbOnGeometry(NSNotification *note) {
             BOOL freshWidth = ABNativeKbRefActive &&
                 ABNativeKbRefTarget.width >= 90 &&
                 fabs(ABNativeKbLastReloadWidth - ABNativeKbRefTarget.width) > 2;
-            if (i == 1 && (!good || freshWidth) &&
+            if (!ABHL19UseHL11NativeKeyboardFit && i == 1 && (!good || freshWidth) &&
                 [ABCurrentResponder respondsToSelector:@selector(reloadInputViews)]) {
                 if (freshWidth)
                     ABNativeKbLastReloadWidth = ABNativeKbRefTarget.width;
