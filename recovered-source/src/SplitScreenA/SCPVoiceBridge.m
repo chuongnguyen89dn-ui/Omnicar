@@ -64,6 +64,42 @@ static void DCVoiceAck(NSString *rid, NSString *status) {
         postNotificationName:DCVoiceAckName object:nil
         userInfo:@{@"requestID":rid,@"status":status}];
 }
+// One command executor for BOTH CarPlay-originated speech and the
+// existing iPhone-to-CarPlay typed IPC. No second split dispatcher.
+// Returned YES means accepted and forwarded to the controller, NOT
+// confirmed visible on the vehicle screen.
+static BOOL SCPVoiceExecute(NSDictionary *command) {
+    if (![command isKindOfClass:NSDictionary.class]) return NO;
+    SCPCarSplit *split=[SCPCarSplit shared];
+    if (![SCPPrefs enabled] ||
+        ![OMCPref(@"voiceAssistantEnabled",@NO) boolValue] ||
+        !DCVoiceAllow(command,split)) return NO;
+    NSString *action=command[@"action"];
+    @try {
+        if ([action isEqualToString:@"open"])
+            [split openApp:command[@"identifier"] slot:[command[@"slot"] integerValue]];
+        else if ([action isEqualToString:@"layout"])
+            [split urlLayout:[command[@"id"] integerValue]];
+        else if ([action isEqualToString:@"fav"])
+            [split openFavorite:[command[@"index"] integerValue]];
+        else if ([action isEqualToString:@"swap"])
+            [split urlSwap];
+        else if ([action isEqualToString:@"ratio"])
+            [split urlRatio:[command[@"r"] doubleValue]];
+        else if ([action isEqualToString:@"zoom"])
+            [split urlZoomPane:[command[@"pane"] intValue]];
+        else return NO;
+        NSLog(@"[hl30-voice] event=owner-accepted action=%@ result=not-device-proven",action);
+        return YES;
+    } @catch (NSException *ex) {
+        NSLog(@"[hl30-voice] event=owner-exception action=%@ exception=%@",action,ex.name);
+        return NO;
+    }
+}
+BOOL SCPVoiceDispatchLocalCommand(NSDictionary *command) {
+    if (!NSThread.isMainThread) return NO;
+    return SCPVoiceExecute(command);
+}
 static void SCPVoiceHandle(NSNotification *note) {
     NSDictionary *packet=note.userInfo;
     if (![packet isKindOfClass:NSDictionary.class]) return;
@@ -83,33 +119,10 @@ static void SCPVoiceHandle(NSNotification *note) {
     }
     DCVoiceLastID=[rid copy];
     DCVoiceLastReceiveAt=now;
-    SCPCarSplit *split=[SCPCarSplit shared];
-    if (![SCPPrefs enabled] ||
-        ![OMCPref(@"voiceAssistantEnabled",@NO) boolValue] ||
-        !DCVoiceAllow(command,split)) {
-        DCVoiceAck(rid,@"rejected");
-        return;
-    }
-    NSString *action=command[@"action"];
-    @try {
-        if ([action isEqualToString:@"open"])
-            [split openApp:command[@"identifier"] slot:[command[@"slot"] integerValue]];
-        else if ([action isEqualToString:@"layout"])
-            [split urlLayout:[command[@"id"] integerValue]];
-        else if ([action isEqualToString:@"fav"])
-            [split openFavorite:[command[@"index"] integerValue]];
-        else if ([action isEqualToString:@"swap"])
-            [split urlSwap];
-        else if ([action isEqualToString:@"ratio"])
-            [split urlRatio:[command[@"r"] doubleValue]];
-        else if ([action isEqualToString:@"zoom"])
-            [split urlZoomPane:[command[@"pane"] intValue]];
-        DCVoiceAck(rid,@"accepted");
-        NSLog(@"[hl29-voice] event=command-dispatched action=%@ request=%@ result=accepted-not-device-proven",action,rid);
-    } @catch (NSException *exception) {
-        DCVoiceAck(rid,@"rejected");
-        NSLog(@"[hl29-voice] event=exception action=%@",action);
-    }
+    BOOL accepted=SCPVoiceExecute(command);
+    DCVoiceAck(rid, accepted ? @"accepted" : @"rejected");
+    NSLog(@"[hl29-voice] event=command-dispatched action=%@ request=%@ status=%@ device-proof=pending",
+          command[@"action"],rid,accepted ? @"accepted" : @"rejected");
 }
 void SCPVoiceInstall(void) {
     // Called only from the existing CarPlayApp guarded constructor, once.
