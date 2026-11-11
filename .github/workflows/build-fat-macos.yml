@@ -213,7 +213,21 @@ jobs:
           assert p.get("CFBundleIdentifier") == "com.anlai.omnicar.prefs"
           assert p.get("CFBundlePackageType") == "BNDL"
           assert p.get("CFBundleExecutable") == "OmniCarPrefs"
-          print("HL16b App Identity PASS: actual iPhone app, own CarPlay Home bundle ID, URL scheme")
+          # HL19 accepted mere file presence and shipped a fallback page.
+          # This gate also verifies that the packaged resource can be read
+          # as the real OmniCar specifier schema rather than an empty stub.
+          root_page = load(app / "Root.plist")
+          root_rows = root_page.get("items", []) if isinstance(root_page, dict) else []
+          assert len(root_rows) >= 12, f"Empty or invalid OmniCar Root.items: {len(root_rows)}"
+          assert any(r.get("id") == "features" for r in root_rows), "Features anchor absent"
+          assert any(r.get("detail") == "OMCAppBridgeAppsController" for r in root_rows), "Apps page absent"
+          for feature in ("FeatureSplitScreen", "FeatureSpeedBubble", "FeatureStartupScreen"):
+              sheet = load(app / (feature + ".plist"))
+              rows = sheet.get("items", []) if isinstance(sheet, dict) else []
+              assert len(rows) >= 2, f"Missing settings rows in {feature}: {len(rows)}"
+              assert isinstance(sheet.get("featureController"), str), f"Missing controller {feature}"
+          print("HL20 OmniCar.app real Settings item schema PASS")
+          print("HL20 App Identity PASS: app bundle ID, URL scheme and Prefs resources")
           PYCHECK
           test ! -e "$ROOT/Library/PreferenceLoader/Preferences/OmniCarPrefs.plist"
           if ! strings "$APP" | grep -F '[hl20-settings] gate=app-navigation-ready' >/dev/null; then
