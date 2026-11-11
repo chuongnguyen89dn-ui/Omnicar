@@ -53,6 +53,26 @@ assert "FeatureStartupScreen" in startup
 assert "AVAssetReader" in startup
 assert '@"fps":@24' in startup
 assert "audio.m4a" in startup
+# Negative gates are critical: HL19/HL20 could still render a wrapper while
+# handing most taps back to Settings.app or writing keys the engine never reads.
+assert 'NSSelectorFromString(@"bundleIdentifier")' in native
+assert 'NSSelectorFromString(@"applicationIdentifier")' not in native
+assert '@"Left",@"Right",@"Third"' in native
+assert 'stringByAppendingFormat:@"App%ld"' not in native
+assert '"speedBubbleLook",@0,@[@0,@1,@2,@3,@4,@5,@6,@7,@8]' in native
+assert '"speedBubbleSizeCar",100,60,220' in native
+assert '"speedBubbleSizePhone",100,60,220' in native
+assert "OMCNativePendingRescue" in native
+assert 'OMCNativeSetPref(@"rescueFeatures",nil)' in native
+assert "home catalog=BLIND no-changes-allowed" in native
+assert "homeUseVideo:" in native and "homeUseImage:" in native
+assert "replaceItemAtURL:" in native, "Existing Home video must be preserved on staging failure"
+assert "OMCNativeStartupDirectory" in startup
+assert "BOOL randomRow=" in startup and "style==10" in startup
+assert "NSCalendarIdentifierChinese" in startup and "i<400" in startup
+assert "AVAudioSessionCategoryPlayback" in startup
+assert "indexPathForCell:(UITableViewCell *)sw.superview.superview" not in startup
+assert "OMCNativeStartupController()" in native
 
 for f in files:
     assert f in makefile or f.endswith(".h"), f"Makefile missing {f}"
@@ -75,9 +95,19 @@ assert len(split_pl["items"])==2
 assert len(bubble_pl["items"])==2
 assert {r.get("detail") for r in root["items"] if r.get("detail")}>={
     "OMCAppBridgeAppsController","OMCHomeScreenController","OMCCarProfilesController"}
+root_actions={r.get("action") for r in root["items"] if r.get("action")}
+root_handlers={"rescueRestore":"confirmRescue","sendLog":'@"logs"',
+               "showGuide":'@"guide"',"showWhatsNew":'@"whatsnew"'}
+assert root_actions==set(root_handlers), root_actions
+for original, native_token in root_handlers.items():
+    assert native_token in native, f"Unmapped Root action: {original}"
 actions={r.get("action") for r in startup_pl["items"] if r.get("action")}
 for action in sorted(actions):
     assert f'[action isEqualToString:@"{action}"]' in startup, f"Unmapped startup action: {action}"
+style_groups=[tuple(r.get("ssStyles",())) for r in startup_pl["items"] if "ssStyles" in r]
+assert (9,) in style_groups, "Random style source marker changed"
+assert any(r.get("label")=="STARTUPSCREEN_RANDOM_GROUP" and r.get("ssStyles")==[9]
+           for r in startup_pl["items"]), "Random group source changed"
 for key in ("startupScreenVideoName","startupScreenDuration","startupScreenRandomSet",
             "startupScreenSoundFile","startupScreenBirthday"):
     assert key in startup, f"Startup binding missing {key}"
