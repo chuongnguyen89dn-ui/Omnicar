@@ -1035,20 +1035,14 @@ static __weak UIWindow *ABNativeKbWindow;
 static CGRect ABNativeKbOriginal;
 static BOOL ABNativeKbHasOriginal = NO;
 static NSUInteger ABNativeKbEpoch = 0;
-// [hl23-kbphysical] Validated session-local dimensions from the host's
-// existing orientation packet. Zero means unknown; never guess a pane width
-// from the phone screen and never apply this limit outside a hosted scene.
+// [hl24-kbsource] UIKit is the sole owner of UIKeyboardLayoutStar,
+// its transform, and keyplane creation. Do not shrink the key subtree:
+// ABHost.layoutPane already applies the pane zoom to app content.
+// This code observes the keyplane WITHOUT setting transform or center.
 static CGFloat ABNativeKbPhysicalWidth = 0;
 static CGFloat ABNativeKbLogicalWidth = 0;
- // [hl22-keyplane] UIKit owns the keys. Only when a visible layout subtree
- // is wider than the actual keyboard window do we apply a reversible
- // UIView transform to that subtree. Its hit-test coordinates transform
- // together with the keys; do not spoof keyboardScreenReferenceSize or
- // overwrite the private keyplane/individual keys.
-static __weak UIView *ABNativeKbLayoutView;
-static CGAffineTransform ABNativeKbLayoutOriginalTransform;
-static CGPoint ABNativeKbLayoutOriginalCenter;
-static BOOL ABNativeKbLayoutAdjusted = NO;
+static NSString *ABNativeKbHostEpoch = nil;
+static unsigned long long ABNativeKbGeometryRevision = 0;
 
 static UIView *ABNativeKbFindLayout(UIView *view, NSUInteger depth) {
     if (!view || depth > 14) return nil;
@@ -1061,77 +1055,20 @@ static UIView *ABNativeKbFindLayout(UIView *view, NSUInteger depth) {
     return nil;
 }
 
-static void ABNativeKbRestoreLayout(void) {
-    UIView *view = ABNativeKbLayoutView;
-    if (ABNativeKbLayoutAdjusted && view) {
-        view.transform = ABNativeKbLayoutOriginalTransform;
-        view.center = ABNativeKbLayoutOriginalCenter;
-    }
-    ABNativeKbLayoutView = nil;
-    ABNativeKbLayoutAdjusted = NO;
-}
-
-// Geometry verification is deliberately conservative: we only scale if
-// the key-layout visual rect would otherwise exceed the window viewport.
-// No assumptions about the labels or contents of any individual key.
-static BOOL ABNativeKbFitLayout(UIWindow *window, CGFloat *widthBefore,
-                                CGFloat *widthAfter, CGFloat *ratioOut) {
-    if (widthBefore) *widthBefore = 0;
-    if (widthAfter) *widthAfter = 0;
-    if (ratioOut) *ratioOut = 1;
+// Diagnostic only: no private keyplane setter, transform, or forced
+// re-layout. A wide visual rect may reflect UIKit's own intermediate
+// transform; this probe is NOT a pass/fail assertion for visible keys.
+static BOOL ABNativeKbObserveLayout(UIWindow *window, CGFloat *widthOut) {
+    if (widthOut) *widthOut = 0;
     if (!window) return NO;
     UIView *layout = ABNativeKbFindLayout(window, 0);
     if (!layout) return NO;
-    if (ABNativeKbLayoutAdjusted && layout != ABNativeKbLayoutView)
-        ABNativeKbRestoreLayout();
-    if (ABNativeKbLayoutAdjusted && layout == ABNativeKbLayoutView) {
-        layout.transform = ABNativeKbLayoutOriginalTransform;
-        layout.center = ABNativeKbLayoutOriginalCenter;
-    }
-    CGRect before = [layout convertRect:layout.bounds toView:window];
-    CGFloat targetWidth = window.bounds.size.width;
-    // [hl23-kbphysical] A floating keyboard window can be logical-width
-    // while its CarPlay viewport is physically narrower (e.g. 495 -> 396).
-    // Use the physical limit only when the host-stamped logical width
-    // actually matches this keyboard window. Otherwise fail open.
-    if (ABNativeKbPhysicalWidth >= 100 &&
-        ABNativeKbLogicalWidth >= ABNativeKbPhysicalWidth &&
-        fabs(ABNativeKbLogicalWidth - targetWidth) <= 8.0)
-        targetWidth = MIN(targetWidth, ABNativeKbPhysicalWidth);
-    CGFloat width = before.size.width;
-    if (widthBefore) *widthBefore = width;
-    if (!isfinite(width) || !isfinite(targetWidth) ||
-        width < 50 || targetWidth < 90 || CGRectIsEmpty(before))
-        return NO;
-    const CGFloat inset = 2.0;
-    CGFloat startX = MAX(0, CGRectGetMinX(before));
-    CGFloat available = targetWidth - startX - inset;
-    CGFloat factor = width > available + 2.0 ? available / width : 1.0;
-    // Avoid corrupting UIKit geometry on unrealistic/stale view sizes.
-    if (factor < 0.40 || factor > 1.0) return NO;
-    if (factor < 0.999) {
-        if (!ABNativeKbLayoutAdjusted) {
-            ABNativeKbLayoutView = layout;
-            ABNativeKbLayoutOriginalTransform = layout.transform;
-            ABNativeKbLayoutOriginalCenter = layout.center;
-            ABNativeKbLayoutAdjusted = YES;
-        }
-        layout.transform = CGAffineTransformScale(
-            ABNativeKbLayoutOriginalTransform, factor, 1.0);
-        CGRect scaled = [layout convertRect:layout.bounds toView:window];
-        CGPoint center = layout.center;
-        center.x += startX - CGRectGetMinX(scaled);
-        layout.center = center;
-    } else if (ABNativeKbLayoutAdjusted) {
-        ABNativeKbRestoreLayout();
-    }
-    CGRect after = [layout convertRect:layout.bounds toView:window];
-    if (widthAfter) *widthAfter = after.size.width;
-    if (ratioOut) *ratioOut = factor;
-    return CGRectGetMinX(after) >= -2.0 &&
-           CGRectGetMaxX(after) <= targetWidth + 2.0;
+    CGRect measured = [layout convertRect:layout.bounds toView:window];
+    if (!isfinite(measured.size.width) ||
+        CGRectIsEmpty(measured) || measured.size.width < 1) return NO;
+    if (widthOut) *widthOut = measured.size.width;
+    return YES;
 }
-
 
 static NSArray<UIWindow *> *ABNativeKbWindows(void) {
     NSMutableArray<UIWindow *> *out = [NSMutableArray array];
@@ -1159,7 +1096,8 @@ static NSArray<UIWindow *> *ABNativeKbWindows(void) {
 }
 
 static void ABNativeKbRestore(NSString *reason) {
-    ABNativeKbRestoreLayout();
+    // [hl24-kbsource] Restore ONLY the native keyboard WINDOW.
+    // LayoutStar was never modified by this build.
     if (!ABNativeKbHasOriginal) return;
     UIWindow *window = ABNativeKbWindow;
     if (window && !CGRectEqualToRect(window.frame, ABNativeKbOriginal))
@@ -1202,8 +1140,8 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
                        CGRectIsEmpty(target) ? @"empty-target" :
                        CGRectEqualToRect(keyboard.frame, target)
                            ? @"already-fit" : @"applied";
-    CGFloat layoutBefore = 0, layoutAfter = 0, layoutRatio = 1;
-    BOOL layoutMeasured = NO;
+    CGFloat starVisualWidth = 0;
+    BOOL layoutObserved = NO;
     if (visibleKeyboard && key && !CGRectIsEmpty(target)) {
         if (ABNativeKbHasOriginal && keyboard != ABNativeKbWindow)
             ABNativeKbRestore(@"window-replaced");
@@ -1214,21 +1152,14 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             ABNativeKbHasOriginal = YES;
         }
         if (changedFrame) keyboard.frame = target;
-        layoutMeasured = ABNativeKbFitLayout(
-            keyboard, &layoutBefore, &layoutAfter, &layoutRatio);
-        if (ABNativeKbLayoutAdjusted && !ABNativeKbHasOriginal) {
-            ABNativeKbWindow = keyboard;
-            ABNativeKbOriginal = changedFrame ? ABNativeKbOriginal : keyboard.frame;
-            ABNativeKbHasOriginal = YES;
-        }
+        layoutObserved = ABNativeKbObserveLayout(keyboard, &starVisualWidth);
     }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[hl22-keyplane] when=%@ try=%ld found=%d starBefore=%.1f starAfter=%.1f "
-         "factor=%.3f viewport=%.1f physicalW=%.1f logicalW=%.1f adjusted=%d",
-        when, (long)attempt, (int)layoutMeasured, layoutBefore, layoutAfter,
-        layoutRatio, keyboard ? keyboard.bounds.size.width : 0,
-        ABNativeKbPhysicalWidth, ABNativeKbLogicalWidth,
-        (int)ABNativeKbLayoutAdjusted]);
+        @"[hl24-keyplane] when=%@ try=%ld observed=%d visualW=%.1f "
+         "windowW=%.1f physicalW=%.1f logicalW=%.1f policy=read-only",
+        when, (long)attempt, (int)layoutObserved, starVisualWidth,
+        keyboard ? keyboard.bounds.size.width : 0,
+        ABNativeKbPhysicalWidth, ABNativeKbLogicalWidth]);
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[hl11kb] ev=native-fit when=%@ try=%ld result=%@ "
          "windows=%lu key=%@ keyFrame=%@ kb=%@ kbFrame=%@ "
@@ -1240,10 +1171,10 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
         keyboard ? NSStringFromCGRect(keyboard.frame) : @"nil",
         keyboard ? (int)keyboard.hidden : -1,
         NSStringFromCGRect(UIScreen.mainScreen.bounds)]);
-    // A fitted window with an oversized keyboard subtree is NOT success.
-    // If UIKit has not created LayoutStar yet, defer the layout verdict.
-    return visibleKeyboard && key != nil && !CGRectIsEmpty(target) &&
-           layoutMeasured;
+    // Window visibility is distinct from keycap completeness. Returning
+    // success here only means a visible native WINDOW was found; log
+    // observed=0 when UIKit's keyplane cannot yet be inspected.
+    return visibleKeyboard && key != nil && !CGRectIsEmpty(target);
 }
 
 static void ABNativeKbBegin(NSString *why) {
@@ -1264,15 +1195,13 @@ static void ABNativeKbBegin(NSString *why) {
             if (epoch != ABNativeKbEpoch || ABForcedOrientation < 1 ||
                 !ABCurrentResponder ||
                 ![ABCurrentResponder isFirstResponder]) return;
+            // Do not force reloadInputViews on a live responder: a missing
+            // LayoutStar observation never justified reconstructing UIKit's
+            // keyboard. Keep a bounded read-only/window fit retry instead.
             BOOL found = ABNativeKbFit(@"retry", (NSInteger)n);
-            if (!found && n == 1 &&
-                [ABCurrentResponder respondsToSelector:@selector(reloadInputViews)]) {
-                // One bounded native UIKit re-evaluation when a valid
-                // responder exists but no keyboard window materialized.
-                [ABCurrentResponder reloadInputViews];
+            if (!found && n == 1)
                 OMCLogWrite(@"AppBridge",
-                    @"[hl11kb] ev=reload-input-views reason=no-kb-window");
-            }
+                    @"[hl24-keyplane] ev=retry-no-visible-window (no reload)");
         });
     }
 }
@@ -2744,18 +2673,40 @@ static void ABOrientationBlock(NSNotification *note) {
     // phone size; reject absent, stale or impossible host geometry.
     CGFloat physicalW = [info[@"kbPhysicalW"] doubleValue];
     CGFloat logicalW = [info[@"kbLogicalW"] doubleValue];
-    if (orientation > 0 && isfinite(physicalW) && isfinite(logicalW) &&
+    NSString *hostEpoch = [info[@"kbHostEpoch"] isKindOfClass:NSString.class]
+        ? info[@"kbHostEpoch"] : nil;
+    unsigned long long revision = [info[@"kbGeometryRevision"] unsignedLongLongValue];
+    BOOL epochChanged = hostEpoch.length &&
+        ![hostEpoch isEqualToString:ABNativeKbHostEpoch];
+    if (epochChanged) {
+        ABNativeKbHostEpoch = [hostEpoch copy];
+        ABNativeKbGeometryRevision = 0;
+    }
+    BOOL stale = hostEpoch.length && !epochChanged &&
+        revision < ABNativeKbGeometryRevision;
+    if (!stale && hostEpoch.length)
+        ABNativeKbGeometryRevision = revision;
+    CGFloat prevPhysicalW = ABNativeKbPhysicalWidth;
+    CGFloat prevLogicalW = ABNativeKbLogicalWidth;
+    BOOL validGeometry = orientation > 0 && !stale &&
+        isfinite(physicalW) && isfinite(logicalW) &&
         physicalW >= 100 && logicalW >= physicalW &&
-        logicalW <= physicalW * 2.1) {
+        logicalW <= physicalW * 2.1;
+    if (validGeometry) {
         ABNativeKbPhysicalWidth = physicalW;
         ABNativeKbLogicalWidth = logicalW;
-    } else {
+    } else if (!stale) {
         ABNativeKbPhysicalWidth = 0;
         ABNativeKbLogicalWidth = 0;
     }
+    BOOL geometryChanged = !stale &&
+        (fabs(prevPhysicalW - ABNativeKbPhysicalWidth) > 1.0 ||
+         fabs(prevLogicalW - ABNativeKbLogicalWidth) > 1.0);
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[hl23-kbphysical] recv physicalW=%.1f logicalW=%.1f hosted=%d",
-        ABNativeKbPhysicalWidth, ABNativeKbLogicalWidth, (int)(orientation > 0)]);
+        @"[hl24-geometry] recv rev=%llu stale=%d changed=%d physicalW=%.1f logicalW=%.1f hosted=%d",
+        revision, (int)stale, (int)geometryChanged,
+        ABNativeKbPhysicalWidth, ABNativeKbLogicalWidth,
+        (int)(orientation > 0)]);
     NSInteger old = ABForcedOrientation;
     if (orientation > 0) {
         ABForcedOrientation = orientation;
@@ -2766,6 +2717,10 @@ static void ABOrientationBlock(NSNotification *note) {
         // resigning, and invalidate any delayed native-fit attempts.
         ++ABNativeKbEpoch;
         ABNativeKbRestore(@"host-release");
+        ABNativeKbHostEpoch = nil;
+        ABNativeKbGeometryRevision = 0;
+        ABNativeKbPhysicalWidth = 0;
+        ABNativeKbLogicalWidth = 0;
         if (ABCurrentResponder) [ABCurrentResponder resignFirstResponder];
         ABForcedOrientation = orientation;
         ABAppOrientation = 0;
@@ -2813,7 +2768,9 @@ static void ABOrientationBlock(NSNotification *note) {
     // [hl11kb] Refit an ALREADY-OBSERVED native keyboard window when
     // the host posts its updated frame/orientation after divider drag.
     // Do not create a keyboard merely because layout changed.
-    if (orientation >= 1 && !ABDrawnKb && ABNativeKbHasOriginal &&
+    if (orientation >= 1 && !stale &&
+        (geometryChanged || orientation != old) &&
+        !ABDrawnKb && ABNativeKbHasOriginal &&
         ABCurrentResponder && [ABCurrentResponder isFirstResponder]) {
         NSUInteger epoch = ++ABNativeKbEpoch;
         ABNativeKbFit(@"host-frame", 0);

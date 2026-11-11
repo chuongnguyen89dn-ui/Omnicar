@@ -77,6 +77,30 @@ static void ABHL8KeyboardWindows(NSString *source) {
 // OMCCarWireless() == 1, else 0.
 // "device" = max(orientation, 0).
 // ===========================================================================
+// [hl24-stable] One revision per bundle, bumped on every new frame
+// request. Only the latest confirmed frame may publish geometry after
+// the divider settles; old delayed callbacks are rejected.
+static NSMutableDictionary<NSString *, NSNumber *> *AB24FrameRevisions(void) {
+    static NSMutableDictionary<NSString *, NSNumber *> *revisions;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ revisions = [NSMutableDictionary dictionary]; });
+    return revisions;
+}
+static unsigned long long AB24FrameRevision(NSString *bundleID) {
+    return [AB24FrameRevisions()[bundleID ?: @""] unsignedLongLongValue];
+}
+static unsigned long long AB24AdvanceFrameRevision(NSString *bundleID) {
+    unsigned long long newRevision = AB24FrameRevision(bundleID) + 1;
+    AB24FrameRevisions()[bundleID] = @(newRevision);
+    return newRevision;
+}
+static NSString *AB24HostEpoch(void) {
+    static NSString *epoch;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ epoch = [NSUUID UUID].UUIDString; });
+    return epoch;
+}
+
 void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
     if (!bundleID) return;
     NSInteger fps = 0;
@@ -93,6 +117,13 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
     // not introduce a second transport or a separate keyboard surface.
     ABPane *pane = [[ABHost shared] paneFor:bundleID];
     CGFloat physicalW = pane ? pane.frame.size.width : 0;
+    // Only committed scene-box geometry is stable enough to describe
+    // UIKit's keyboard viewport. During live drag, do not claim that
+    // the app's FBScene already has the new size.
+    if (!pane ||
+        fabs(pane.sceneBox.width - pane.frame.size.width) > 1.0 ||
+        fabs(pane.sceneBox.height - pane.frame.size.height) > 1.0)
+        physicalW = 0;
     double zoom = [[ABHost shared] zoom];
     CGFloat logicalW = (physicalW > 0 && isfinite(zoom) && zoom > 0.3)
         ? round(physicalW / zoom) : 0;
@@ -108,6 +139,8 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
     NSDictionary *info = @{
         @"kbPhysicalW": @(physicalW),
         @"kbLogicalW": @(logicalW),
+        @"kbGeometryRevision": @(AB24FrameRevision(bundleID)),
+        @"kbHostEpoch": AB24HostEpoch(),
         @"orientation": @(orientation),
         @"device": @(MAX(orientation, 0)),
         @"fps": @((int)fps),
@@ -521,6 +554,32 @@ static void ABFrameBlock(NSNotification *note) {
                                            [u[@"pb"] doubleValue], [u[@"pr"] doubleValue]);
     [host setFrame:frame forApp:app live:[u[@"live"] boolValue]
             handle:[u[@"handle"] boolValue] passInsets:insets];
+    // [hl24-stable] Hold the geometry packet until the LAST frame of
+    // the divider has committed its sceneBox. Reject stale timers even
+    // when the old pane object still exists. This path runs independent
+    // of the optional HL8 diagnostic logger.
+    if (app.length && isfinite(frame.size.width) &&
+        isfinite(frame.size.height) && frame.size.width >= 100 &&
+        frame.size.height >= 100) {
+        unsigned long long revision = AB24AdvanceFrameRevision(app);
+        NSString *bundle = [app copy];
+        ABPane *captured = [host paneFor:bundle];
+        CGRect expected = frame;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 350000000LL),
+                       dispatch_get_main_queue(), ^{
+            ABPane *current = [[ABHost shared] paneFor:bundle];
+            BOOL valid = AB24FrameRevision(bundle) == revision &&
+                current && current == captured && current.orientation >= 1 &&
+                CGRectEqualToRect(current.frame, expected) &&
+                fabs(current.sceneBox.width - expected.size.width) <= 1.0 &&
+                fabs(current.sceneBox.height - expected.size.height) <= 1.0;
+            if (!valid) return;
+            ABPostOrientationToApp(bundle, current.orientation);
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[hl24-stable] commit bundle=%@ revision=%llu paneW=%.1f",
+                bundle, revision, expected.size.width]);
+        });
+    }
     if (hl8ShouldLog) {
         ABPane *p = [host paneFor:app];
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:

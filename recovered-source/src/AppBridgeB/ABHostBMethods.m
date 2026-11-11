@@ -806,11 +806,9 @@ static id ABSceneOfPane(ABPane *pane) {
         }
     }
     pane.sceneBox = boxSize;
-    // [hl23-kbphysical] Commit dimension packet only once layoutPane
-    // committed its scene size; initial attach and settled divider changes
-    // reuse the existing orientation relay (no new IPC).
-    if (pane.orientation >= 1)
-        ABPostOrientationToApp(pane.bundleID, pane.orientation);
+    // [hl24-stable] Do not re-post keyboard geometry from layoutPane:
+    // it can run for intermediate divider widths. ABFrameBlock publishes
+    // only the last committed frame after a guarded settle delay.
     // YT-ZOOM issuer hook (design-ytzoom.md §4.3): the size just
     // committed above is the lease's single source of truth — the
     // hook republishes the lease with it when one lives for this
@@ -1782,8 +1780,12 @@ static void AHHostRestoreView(UIView *view) {
                 ABPane *p = weakPane;
                 if (!host || !p) return;
                 if (![host.panes containsObject:p]) return;
-                ABPostOrientationToApp(p.bundleID, p.orientation);   // INFERRED position
                 [host layoutPane:p];
+                // [hl24-stable] The initial orientation/keyboard packet
+                // must describe the committed scene size, not the
+                // pre-layout pane dimensions. Divider updates use the
+                // generation-guarded settled-frame path instead.
+                ABPostOrientationToApp(p.bundleID, p.orientation);
                 // YT-ZOOM (design-ytzoom.md §4.4): launch-complete
                 // is the grant point — the pane exists and the
                 // layoutPane: above has committed its first size.

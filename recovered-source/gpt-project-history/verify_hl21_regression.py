@@ -17,10 +17,12 @@ def git_blob_sha(content):
 keyboard_p = read(project / "OmniCarAppBridge/ABInApp.m")
 keyboard_s = read(src / "AppBridgeB/ABInApp.m")
 assert keyboard_p == keyboard_s, "HL11 keyboard project/src differ"
-assert "ABNativeKbFitLayout(" in keyboard_p, "HL22 native layout fit not installed"
-assert "ABNativeKbRestoreLayout();" in keyboard_p, "Restore on keyboard hide/resign missing"
-assert "[hl22-keyplane]" in keyboard_p
-assert "factor < 0.40 || factor > 1.0" in keyboard_p
+assert "ABNativeKbObserveLayout(" in keyboard_p, "HL24 read-only keyplane observation missing"
+assert "[hl24-keyplane]" in keyboard_p and "policy=read-only" in keyboard_p
+assert "ABNativeKbRestoreLayout" not in keyboard_p, "Legacy keyplane mutation rollback still present"
+assert "ABNativeKbLayoutOriginalTransform" not in keyboard_p, "Legacy keyplane transform state still present"
+assert "ABNativeKbFitLayout" not in keyboard_p, "Mutating keyplane fit must not run"
+assert "reloadInputViews]" not in keyboard_p, "Do not force keyboard reload after a missing keyplane"
 assert 'ABNativeKbFit(@"host-frame-settled"' in keyboard_p
 assert 'ABNativeKbFit(@"keyboard-frame"' in keyboard_p
 assert "keyboard.frame = target" in keyboard_p, "Native keyboard window frame fit removed"

@@ -17,7 +17,7 @@ def field(name):
     return subprocess.check_output(["dpkg-deb", "-f", str(deb), name], text=True).strip()
 
 fields = [field(k) for k in ("Package", "Version", "Architecture")]
-assert fields == ["com.chuong.duocar", "1.0.3-hl23duocar", "iphoneos-arm64"], fields
+assert fields == ["com.chuong.duocar", "1.0.3-hl24duocar", "iphoneos-arm64"], fields
 control_text=subprocess.check_output(["dpkg-deb","-f",str(deb)],text=True)
 assert "com.anlai.omnicar" not in control_text.lower(), "Old package referenced by dependency metadata"
 assert not any(line.startswith(("Replaces:","Breaks:")) for line in control_text.splitlines()), "Unexpected forced package replacement"
@@ -63,7 +63,7 @@ with tempfile.TemporaryDirectory() as folder:
     dylib = root / "Library/MobileSubstrate/DynamicLibraries"
     components = {
         "DuoCarCore.dylib": [],
-        "DuoCarAppBridge.dylib": ["[hl8diag]", "[hl11kb]", "[hl22-keyplane]", "[hl23-kbphysical]", "ev=native-fit", "ev=restore", "[pinch2] trigger=began toggle-sent dir=0"],
+        "DuoCarAppBridge.dylib": ["[hl8diag]", "[hl11kb]", "[hl24-keyplane]", "[hl24-geometry]", "[hl24-stable]", "ev=native-fit", "ev=restore", "[pinch2] trigger=began toggle-sent dir=0"],
         "DuoCarCarProbe.dylib": [],
         "DuoCarSpeedBubble.dylib": [],
         "DuoCarSplitScreen.dylib": ["[hl8diag]", "[hl13pinch]", "[hl21-floating]", "[hl21-legacy-picker]", "[hl22-original]", "[picker-face]", "[home-launch]"],
