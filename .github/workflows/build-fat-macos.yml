@@ -87,12 +87,12 @@ jobs:
       - name: Verify HL22 source invariants (reversible keyboard layout, original picker, pinch, Dock)
         run: python3 recovered-source/gpt-project-history/verify_hl21_regression.py
 
+      - name: Verify HL22 keyboard geometry and DEB-original menu source fixtures
+        run: python3 recovered-source/gpt-project-history/verify_hl22_geometry.py
+
       - name: Rebrand the complete source/build tree to DuoCar before compilation
         working-directory: .
         run: python3 recovered-source/gpt-project-history/rebrand_duocar.py
-
-      - name: Verify HL22 keyboard geometry and DEB-original menu source fixtures
-        run: python3 recovered-source/gpt-project-history/verify_hl22_geometry.py
 
       - name: Build the package (arm64 + arm64e)
         working-directory: recovered-source/project
