@@ -62,9 +62,18 @@ assert "DCVoiceCreateController()" in settings
 assert "DCVoiceParseCommand(phrase,approved)" in voice
 assert '@"appBridgeApps", @"splitScreenCarPlayApps"' in voice
 
-# The original UI layouts, pinch, keyboard, Settings and Respring are
-# not rewritten; voice is a single footer button in original scroll.
-assert 'addTarget:self action:NSSelectorFromString(@"dcVoiceRequest:")' in panel
+# HL29 used the picker footer. HL30 moves the only CarPlay microphone
+# button into the split-owned bubble and leaves the picker original.
+native_path=project/"OmniCarSplitScreen/SCPVoiceNative.m"
+if native_path.exists():
+    native=native_path.read_text()
+    assert "SCPVoiceBubbleUpdate" in native
+    assert "SCPVoiceNativeToggle" in bridge
+    assert "SCPVoiceNative.m" in make_car
+    assert "dcVoiceRequest:" not in panel
+    assert "TCC.db" not in native and "--grant-tcc" not in native
+else:
+    assert 'addTarget:self action:NSSelectorFromString(@"dcVoiceRequest:")' in panel
 assert 'scroll.contentSize = CGSizeMake(104.0 + maxChoices * 84.0' in panel
 assert "self.tray = panel;" in panel
 assert "SCPVoiceBridge.m" in make_car
