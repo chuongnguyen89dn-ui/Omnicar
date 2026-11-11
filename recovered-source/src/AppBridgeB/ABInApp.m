@@ -1263,6 +1263,7 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
     UIView *star = visibleKeyboard ? ABNativeKbFindLayout(keyboard, 0) : nil;
     CGFloat starVisualWidth = 0;
     BOOL layoutObserved = NO;
+    BOOL planeInsideClip = NO;
     BOOL applied = NO;
     NSString *reason = !keyboard ? @"no-kb-window" :
                        !visibleKeyboard ? @"kb-not-visible" :
@@ -1296,11 +1297,19 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             // Keyplane receives no transform, private setter or reloadInputViews.
             // Anchor the bottom of the complete source keyboard at the bottom
             // of the current scene; the host applies its existing pane zoom.
-            keyboard.transform = CGAffineTransformIdentity;
-            keyboard.bounds = CGRectMake(0, 0, sourceW, sourceH);
-            keyboard.transform = CGAffineTransformMakeScale(scale, scale);
-            keyboard.center = CGPointMake(CGRectGetMidX(target),
-                CGRectGetMaxY(target) - sourceH * scale * 0.5);
+            // Re-inspecting a settled window MUST NOT reset UIKit's
+            // pending keyplane animation. Re-apply only when target moves.
+            BOOL viewportUnchanged = ABNativeKbUsesViewport &&
+                fabs(keyboard.frame.size.width-target.size.width)<1.0 &&
+                fabs(CGRectGetMaxY(keyboard.frame)-CGRectGetMaxY(target))<1.0 &&
+                fabs(CGRectGetMidX(keyboard.frame)-CGRectGetMidX(target))<1.0;
+            if (!viewportUnchanged) {
+                keyboard.transform = CGAffineTransformIdentity;
+                keyboard.bounds = CGRectMake(0, 0, sourceW, sourceH);
+                keyboard.transform = CGAffineTransformMakeScale(scale, scale);
+                keyboard.center = CGPointMake(CGRectGetMidX(target),
+                    CGRectGetMaxY(target) - sourceH * scale * 0.5);
+            }
             ABNativeKbUsesViewport = YES;
             CGRect projected = keyboard.frame;
             applied = fabs(projected.size.width-target.size.width) < 2 &&
@@ -1341,6 +1350,31 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
                 &starVisualWidth, &observedStar);
             AB25ProbeKeyboardSurface(keyboard, key, windows, when,
                                      observedStar);
+            // The reported HL28 success was a visible WINDOW, not fully
+            // visible keys. The new gate explicitly checks the keyplane's
+            // projected left/right edges against the CLIPPED ancestors.
+            UIView *plane = observedStar ? AB27FindKeyplane(observedStar,0) : nil;
+            if (plane) {
+                CGRect planeRect = [plane convertRect:plane.bounds toView:keyboard];
+                CGRect clipRect = keyboard.bounds;
+                NSUInteger depth=0;
+                for (UIView *ancestor=plane; ancestor && depth<20;
+                     ancestor=ancestor.superview, ++depth) {
+                    if (ancestor.clipsToBounds || ancestor.layer.masksToBounds)
+                        clipRect=CGRectIntersection(clipRect,
+                            [ancestor convertRect:ancestor.bounds toView:keyboard]);
+                }
+                planeInsideClip = !CGRectIsNull(planeRect) &&
+                    !CGRectIsEmpty(planeRect) && !CGRectIsNull(clipRect) &&
+                    !CGRectIsEmpty(clipRect) &&
+                    CGRectGetMinX(planeRect)>=CGRectGetMinX(clipRect)-1.0 &&
+                    CGRectGetMaxX(planeRect)<=CGRectGetMaxX(clipRect)+1.0;
+                OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+                    @"[hl30-kbviewport] when=%@ keyplane=%@ clip=%@ "
+                     "edgesInside=%d (raster/touch=DEVICE-PENDING)",
+                     when, NSStringFromCGRect(planeRect),
+                     NSStringFromCGRect(clipRect),(int)planeInsideClip]);
+            }
         }
     }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
@@ -1363,7 +1397,7 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
     // A visible WINDOW alone is not success: wait for the layout tree and
     // the verified viewport projection. The existing HL11 retry epochs stop
     // after this succeeds; they never force a keyplane re-layout.
-    return applied && layoutObserved;
+    return applied && layoutObserved && planeInsideClip;
 }
 static void ABNativeKbBegin(NSString *why) {
     if (ABForcedOrientation < 1 || ABDrawnKb ||
