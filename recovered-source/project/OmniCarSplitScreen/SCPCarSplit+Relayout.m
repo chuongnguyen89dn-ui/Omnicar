@@ -38,7 +38,9 @@
     if (!self.container) {
         return;
     }
-    if (self.pickerSheet) {
+    // [hl18-perf2] endResize queues one final picker refresh. Avoid
+    // re-enumerating apps and rebuilding a sheet for each drag sample.
+    if (self.pickerSheet && !self.resizing) {
         [self refreshPickerSheetSoon];
     }
     if (self.zoomedSlot) {
