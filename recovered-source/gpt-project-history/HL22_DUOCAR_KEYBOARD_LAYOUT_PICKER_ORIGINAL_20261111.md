@@ -26,3 +26,8 @@ Nguyen báo bàn phím DuoCar `1.0.3-hl21duocar` **có xuất hiện, nhưng n�
 2. Menu trên ô đã có app phải che nội dung như DEB gốc, có thể chọn/hủy, background app trở lại không mất scene.
 3. Pinch fullscreen toàn DuoCar và ẩn/hiện Dock, Home own icon, không nút phụ nổi, Logo recall, reconnect/restart không hồi quy.
 4. Nếu screen/video lỗi vẫn còn, cần log đúng DuoCar binary/PID với `[hl22-keyplane]` để phân biệt `layoutMeasured=0` hay ratio, không đoán nguyên nhân.
+
+## 2026-11-11 — CI fail test-order trước compile, đã sửa, retry
+- First HL22 run **`42969536072`**, job `130354519424`, HEAD `ee684e1c`: fail **sau Verify HL22 source invariants PASS và rebrand 476 files PASS**, nhưng trước make/ldid. Đã đọc GitHub job log: `FileNotFoundError` của fixture `verify_hl22_geometry.py` tìm `project/OmniCarAppBridge/ABInApp.m` **sau khi rebrand module name thành DuoCar**. Đây là lỗi **thứ tự CI**, không phải lỗi compiler hay lỗi UIKit.
+- Sửa đúng một hunk thứ tự workflow: chuyển step `Verify HL22 keyboard geometry and DEB-original menu source fixtures` lên trước `Rebrand the complete source/build tree`, giữ nguyên source code và marker. Commit **`c1b3cc75c21747c5483366472b1375bd6a12ba53`**, đã fetch_file đọc lại đúng thứ tự + không có `gh release create`.
+- Retry CI do branch push **`42969820723`**, job `130355416880`, lúc ghi checkpoint đang cài Theos. DEB **chưa có** từ run thất bại; source actual HL22 commit `ee684e1c`, workflow final HEAD `c1b3cc75`. Cần lấy đúng DEB từ run mới khi các gate hoàn thành.
