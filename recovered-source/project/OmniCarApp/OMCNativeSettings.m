@@ -165,10 +165,17 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             [carIDs addObject:entry[@"id"]];
             if ([entry[@"off"] boolValue]) [offIDs addObject:entry[@"id"]];
         }
-        if (carIDs.count)self.inventory=[self.inventory filteredArrayUsingPredicate:
-            [NSPredicate predicateWithBlock:^BOOL(NSDictionary *a,NSDictionary *ctx){
-                return [carIDs containsObject:a[@"id"]];
-            }]];
+        if (carIDs.count) {
+            self.inventory=[self.inventory filteredArrayUsingPredicate:
+                [NSPredicate predicateWithBlock:^BOOL(NSDictionary *a,NSDictionary *ctx){
+                    return [carIDs containsObject:a[@"id"]];
+                }]];
+        } else {
+            // A missing native CarPlay catalog is BLIND, never a license to
+            // hide arbitrary iPhone apps from CarPlay Home.
+            self.inventory=@[];
+            NSLog(@"[hl26-settings] home catalog=BLIND no-changes-allowed");
+        }
         NSSet *hidden=[NSSet setWithArray:OMCNativePref(@"homeScreenHiddenApps",@[])];
         NSSet *shown=[NSSet setWithArray:OMCNativePref(@"homeScreenShownApps",@[])];
         self.chosen=[NSMutableSet set];
@@ -595,8 +602,36 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         [self presentViewController:a animated:YES completion:nil];return;
     }
     if ([type isEqualToString:@"guide"]||[type isEqualToString:@"whatsnew"]) {
-        OMCAlert(self,OMCText(@"Cài đặt DuoCar hiện đã chuyển vào ứng dụng iPhone. Các tính năng CarPlay vẫn dùng cấu hình trước đây.",
-                              @"DuoCar settings now live in the iPhone app. Existing CarPlay preferences are preserved."));return;
+        BOOL whatsNew=[type isEqualToString:@"whatsnew"];
+        UIViewController *vc=[UIViewController new];
+        vc.title=whatsNew?OMCNativeLocalized(@"WN_ROW"):OMCNativeLocalized(@"ONB_SHOW_AGAIN");
+        vc.view.backgroundColor=UIColor.systemBackgroundColor;
+        UITextView *text=[[UITextView alloc] initWithFrame:CGRectZero];
+        text.translatesAutoresizingMaskIntoConstraints=NO;
+        text.editable=NO;text.selectable=YES;
+        text.font=[UIFont preferredFontForTextStyle:UIFontTextStyleBody];
+        NSMutableArray *paragraphs=[NSMutableArray array];
+        if (whatsNew) {
+            for (NSString *key in @[@"WN_ZOOM_TEXT",@"WN_KEYBOARD_TEXT",@"WN_LANG_TITLE"]) {
+                NSString *v=OMCNativeLocalized(key);if(![v isEqualToString:key])[paragraphs addObject:v];
+            }
+        } else {
+            for(NSInteger i=1;i<=4;i++){
+                NSString *t=[NSString stringWithFormat:@"ONB_P%ld_TITLE",(long)i];
+                NSString *b=[NSString stringWithFormat:@"ONB_P%ld_BODY",(long)i];
+                [paragraphs addObject:[NSString stringWithFormat:@"%@\n%@",
+                    OMCNativeLocalized(t),OMCNativeLocalized(b)]];
+            }
+        }
+        text.text=[paragraphs componentsJoinedByString:@"\n\n"];
+        [vc.view addSubview:text];
+        [NSLayoutConstraint activateConstraints:@[
+            [text.leadingAnchor constraintEqualToAnchor:vc.view.safeAreaLayoutGuide.leadingAnchor constant:16],
+            [text.trailingAnchor constraintEqualToAnchor:vc.view.safeAreaLayoutGuide.trailingAnchor constant:-16],
+            [text.topAnchor constraintEqualToAnchor:vc.view.safeAreaLayoutGuide.topAnchor constant:16],
+            [text.bottomAnchor constraintEqualToAnchor:vc.view.safeAreaLayoutGuide.bottomAnchor constant:-16]
+        ]];
+        [self.navigationController pushViewController:vc animated:YES];return;
     }
     if ([type isEqualToString:@"logs"]) {
         NSMutableString *report=[NSMutableString stringWithFormat:
