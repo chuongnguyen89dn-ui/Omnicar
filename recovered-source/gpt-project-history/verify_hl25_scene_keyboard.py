@@ -24,6 +24,10 @@ geometry = paired("ABHostGeometry.m")
 assert "AB24AdvanceFrameRevision(app)" in geometry
 assert "AB24FrameRevision(bundle) == revision" in geometry
 assert "CGRectEqualToRect(current.frame, expected)" in geometry
+assert "[hl25-host-surface]" in geometry
+assert "AB25HostSurface(current, bundle, revision)" in geometry
+assert "CGRectEqualToRect(current.frame, expected)" in geometry[
+    geometry.index("static void ABFrameBlock("):]
 
 # Correct receiver is the settings object delivered to the EXISTING
 # updateSettingsWithBlock transaction, not arbitrary scene or UIKeyboard.
