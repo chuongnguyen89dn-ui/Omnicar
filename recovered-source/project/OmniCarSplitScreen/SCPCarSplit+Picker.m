@@ -251,7 +251,11 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     if (pane == nil) return;
     [self removePickerFromPane:pane];
     [self removeLoaderFromPane:pane animated:NO];
+    // Keep this state for existing diagnostics, never for the face opacity.
     BOOL hasContent = (pane.vc != nil || [self slotOccupied:pane.slot]);
+    // [hl22-original] The original DEB uses an opaque pane placeholder
+    // for both occupied and empty panes. It protects the content beneath
+    // while the picker is active; do not opt into the HL5 transparent fix.
     UIView *picker = [[UIView alloc] init];
     pane.picker = picker;                                                // @0x315c0 setPicker: precedes styling
     // Dump @0x315cc-0x315e4: the picker frame is (0, 0, slotSize) — the
@@ -261,14 +265,11 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // origin and displaced the picker inside the pane.
     CGRect slotFrame = [self frameForSlot:slot];
     picker.frame = CGRectMake(0, 0, slotFrame.size.width, slotFrame.size.height);
-    OMCLogWrite(@"SplitScreen",
-        [NSString stringWithFormat:@"[picker] hasContent=%d", (int)hasContent]);
-    picker.backgroundColor = hasContent
-        ? [UIColor clearColor]
-        : [UIColor colorWithRed:0.9333333333333333
-                             green:0.9411764705882353
-                              blue:0.984313725490196
-                             alpha:1.0];   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
+    picker.backgroundColor = [UIColor colorWithRed:0.9333333333333333
+                                               green:0.9411764705882353
+                                                blue:0.984313725490196
+                                               alpha:1.0]; // original @0x315ec..0x31624
+    OMCLogWrite(@"SplitScreen", @"[hl22-original] picker-pane-opacity=1.0");   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
     // [hl2-split P6] THE single picker measurement line (2026-11-09):
     // the ytz5hl1 car log proved hasContent=1 on both real opens while
     // the pane still showed white, and the source audit could NOT

@@ -28,6 +28,7 @@ on:
     branches:
       - ci-fat-test
       - feature/duocar-hl21-rebrand-20261111
+      - feature/duocar-hl22-keyplane-menu-original-20261111
 
 jobs:
   build-fat:
@@ -83,12 +84,15 @@ jobs:
         working-directory: recovered-source/gpt-project-history
         run: python3 -m unittest -v test_analyze_hl8_unified_log.py
 
-      - name: Verify HL21 source invariants (keyboard hash, pinch fallback, legacy picker, no extra button)
+      - name: Verify HL22 source invariants (reversible keyboard layout, original picker, pinch, Dock)
         run: python3 recovered-source/gpt-project-history/verify_hl21_regression.py
 
       - name: Rebrand the complete source/build tree to DuoCar before compilation
         working-directory: .
         run: python3 recovered-source/gpt-project-history/rebrand_duocar.py
+
+      - name: Verify HL22 keyboard geometry and DEB-original menu source fixtures
+        run: python3 recovered-source/gpt-project-history/verify_hl22_geometry.py
 
       - name: Build the package (arm64 + arm64e)
         working-directory: recovered-source/project
@@ -136,9 +140,9 @@ jobs:
 
       - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl21duocar"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl22duocar"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -182,28 +186,12 @@ jobs:
       - name: Verify exact DuoCar package, app identity, signatures and zero old branding
         run: |
           python3 recovered-source/gpt-project-history/verify_duocar_payload.py \
-            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb
+            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb
 
-      - name: Upload immutable DuoCar release binary for Sileo publisher
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          TAG='duocar-hl21-20261111'
-          FILE='recovered-source/project/packages/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb'
-          test -s "$FILE"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "::error::DuoCar release tag already exists; refusing overwrite"
-            exit 1
-          fi
-          gh release create "$TAG" "$FILE" --target "$GITHUB_SHA" \
-            --title 'DuoCar HL21 (CarPlay test)' \
-            --notes 'DuoCar first rebranded build from HL11 keyboard and HL13 pinch. Package CI verified; on-car runtime not yet validated.'
-          gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fx "${FILE##*/}"
-          shasum -a 256 "$FILE"
-
+      # HL22 is a private candidate: do not create a public Release and do
+      # not publish to Sileo without device acceptance and authorization.
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: duocar-hl21-fat-deb
-          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb
+          name: duocar-hl22-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl22duocar_iphoneos-arm64.deb

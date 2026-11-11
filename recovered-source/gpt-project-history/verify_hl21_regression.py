@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""HL21 source invariants, not a device or runtime test. Run from repository root."""
+"""HL22 source invariants, not a device or runtime test. Run from repository root."""
 from pathlib import Path
 import hashlib
 
@@ -17,7 +17,13 @@ def git_blob_sha(content):
 keyboard_p = read(project / "OmniCarAppBridge/ABInApp.m")
 keyboard_s = read(src / "AppBridgeB/ABInApp.m")
 assert keyboard_p == keyboard_s, "HL11 keyboard project/src differ"
-assert git_blob_sha(keyboard_p) == "73557304be29f4b5b7f7a4301e199e3ec655c9c3", "HL11 original keyboard modified"
+assert "ABNativeKbFitLayout(" in keyboard_p, "HL22 native layout fit not installed"
+assert "ABNativeKbRestoreLayout();" in keyboard_p, "Restore on keyboard hide/resign missing"
+assert "[hl22-keyplane]" in keyboard_p
+assert "factor < 0.40 || factor > 1.0" in keyboard_p
+assert 'ABNativeKbFit(@"host-frame-settled"' in keyboard_p
+assert 'ABNativeKbFit(@"keyboard-frame"' in keyboard_p
+assert "keyboard.frame = target" in keyboard_p, "Native keyboard window frame fit removed"
 assert "[hl11kb]" in keyboard_p and "ABNativeKbFit" in keyboard_p
 
 touch_p = read(project / "OmniCarSplitScreen/SCPTouchProbe.m")
@@ -41,6 +47,9 @@ assert "trayWindowForParent:self.container" in picker
 assert "faceClear = hostedUnderSheet > 0" not in picker
 assert "BOOL faceClear = NO;" in picker
 assert "[hl21-legacy-picker] ev=opaque-tray-face" in picker
+assert "[hl22-original] picker-pane-opacity=1.0" in picker
+assert "picker.backgroundColor = hasContent" not in picker
+assert '[UIColor clearColor]' not in picker.split('picker.backgroundColor = ', 1)[1].split(';',1)[0]
 assert "ev=picker-host mode=" not in picker
 assert "[hl10surface] ev=shield-host" not in chrome
 
@@ -54,4 +63,4 @@ for version in (home, home_src):
     assert "[self installIconLongPress];" in block
 
 assert "Version: 1.0.3-hl21restored" in read(project / "control")
-print("HL21 SOURCE-INVARIANT PASS (not DEVICE PASS)")
+print("HL22 SOURCE-INVARIANT PASS (not DEVICE PASS)")

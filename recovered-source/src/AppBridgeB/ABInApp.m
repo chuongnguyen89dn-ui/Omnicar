@@ -1035,6 +1035,90 @@ static __weak UIWindow *ABNativeKbWindow;
 static CGRect ABNativeKbOriginal;
 static BOOL ABNativeKbHasOriginal = NO;
 static NSUInteger ABNativeKbEpoch = 0;
+ // [hl22-keyplane] UIKit owns the keys. Only when a visible layout subtree
+ // is wider than the actual keyboard window do we apply a reversible
+ // UIView transform to that subtree. Its hit-test coordinates transform
+ // together with the keys; do not spoof keyboardScreenReferenceSize or
+ // overwrite the private keyplane/individual keys.
+static __weak UIView *ABNativeKbLayoutView;
+static CGAffineTransform ABNativeKbLayoutOriginalTransform;
+static CGPoint ABNativeKbLayoutOriginalCenter;
+static BOOL ABNativeKbLayoutAdjusted = NO;
+
+static UIView *ABNativeKbFindLayout(UIView *view, NSUInteger depth) {
+    if (!view || depth > 14) return nil;
+    if ([NSStringFromClass(view.class) containsString:@"UIKeyboardLayoutStar"])
+        return view;
+    for (UIView *child in view.subviews) {
+        UIView *found = ABNativeKbFindLayout(child, depth + 1);
+        if (found) return found;
+    }
+    return nil;
+}
+
+static void ABNativeKbRestoreLayout(void) {
+    UIView *view = ABNativeKbLayoutView;
+    if (ABNativeKbLayoutAdjusted && view) {
+        view.transform = ABNativeKbLayoutOriginalTransform;
+        view.center = ABNativeKbLayoutOriginalCenter;
+    }
+    ABNativeKbLayoutView = nil;
+    ABNativeKbLayoutAdjusted = NO;
+}
+
+// Geometry verification is deliberately conservative: we only scale if
+// the key-layout visual rect would otherwise exceed the window viewport.
+// No assumptions about the labels or contents of any individual key.
+static BOOL ABNativeKbFitLayout(UIWindow *window, CGFloat *widthBefore,
+                                CGFloat *widthAfter, CGFloat *ratioOut) {
+    if (widthBefore) *widthBefore = 0;
+    if (widthAfter) *widthAfter = 0;
+    if (ratioOut) *ratioOut = 1;
+    if (!window) return NO;
+    UIView *layout = ABNativeKbFindLayout(window, 0);
+    if (!layout) return NO;
+    if (ABNativeKbLayoutAdjusted && layout != ABNativeKbLayoutView)
+        ABNativeKbRestoreLayout();
+    if (ABNativeKbLayoutAdjusted && layout == ABNativeKbLayoutView) {
+        layout.transform = ABNativeKbLayoutOriginalTransform;
+        layout.center = ABNativeKbLayoutOriginalCenter;
+    }
+    CGRect before = [layout convertRect:layout.bounds toView:window];
+    CGFloat targetWidth = window.bounds.size.width;
+    CGFloat width = before.size.width;
+    if (widthBefore) *widthBefore = width;
+    if (!isfinite(width) || !isfinite(targetWidth) ||
+        width < 50 || targetWidth < 90 || CGRectIsEmpty(before))
+        return NO;
+    const CGFloat inset = 2.0;
+    CGFloat startX = MAX(0, CGRectGetMinX(before));
+    CGFloat available = targetWidth - startX - inset;
+    CGFloat factor = width > available + 2.0 ? available / width : 1.0;
+    // Avoid corrupting UIKit geometry on unrealistic/stale view sizes.
+    if (factor < 0.40 || factor > 1.0) return NO;
+    if (factor < 0.999) {
+        if (!ABNativeKbLayoutAdjusted) {
+            ABNativeKbLayoutView = layout;
+            ABNativeKbLayoutOriginalTransform = layout.transform;
+            ABNativeKbLayoutOriginalCenter = layout.center;
+            ABNativeKbLayoutAdjusted = YES;
+        }
+        layout.transform = CGAffineTransformScale(
+            ABNativeKbLayoutOriginalTransform, factor, 1.0);
+        CGRect scaled = [layout convertRect:layout.bounds toView:window];
+        CGPoint center = layout.center;
+        center.x += startX - CGRectGetMinX(scaled);
+        layout.center = center;
+    } else if (ABNativeKbLayoutAdjusted) {
+        ABNativeKbRestoreLayout();
+    }
+    CGRect after = [layout convertRect:layout.bounds toView:window];
+    if (widthAfter) *widthAfter = after.size.width;
+    if (ratioOut) *ratioOut = factor;
+    return CGRectGetMinX(after) >= -2.0 &&
+           CGRectGetMaxX(after) <= targetWidth + 2.0;
+}
+
 
 static NSArray<UIWindow *> *ABNativeKbWindows(void) {
     NSMutableArray<UIWindow *> *out = [NSMutableArray array];
@@ -1062,6 +1146,7 @@ static NSArray<UIWindow *> *ABNativeKbWindows(void) {
 }
 
 static void ABNativeKbRestore(NSString *reason) {
+    ABNativeKbRestoreLayout();
     if (!ABNativeKbHasOriginal) return;
     UIWindow *window = ABNativeKbWindow;
     if (window && !CGRectEqualToRect(window.frame, ABNativeKbOriginal))
@@ -1104,18 +1189,32 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
                        CGRectIsEmpty(target) ? @"empty-target" :
                        CGRectEqualToRect(keyboard.frame, target)
                            ? @"already-fit" : @"applied";
+    CGFloat layoutBefore = 0, layoutAfter = 0, layoutRatio = 1;
+    BOOL layoutMeasured = NO;
     if (visibleKeyboard && key && !CGRectIsEmpty(target)) {
         if (ABNativeKbHasOriginal && keyboard != ABNativeKbWindow)
             ABNativeKbRestore(@"window-replaced");
-        if (!CGRectEqualToRect(keyboard.frame, target)) {
-            if (!ABNativeKbHasOriginal) {
-                ABNativeKbWindow = keyboard;
-                ABNativeKbOriginal = keyboard.frame;
-                ABNativeKbHasOriginal = YES;
-            }
-            keyboard.frame = target;
+        BOOL changedFrame = !CGRectEqualToRect(keyboard.frame, target);
+        if (changedFrame && !ABNativeKbHasOriginal) {
+            ABNativeKbWindow = keyboard;
+            ABNativeKbOriginal = keyboard.frame;
+            ABNativeKbHasOriginal = YES;
+        }
+        if (changedFrame) keyboard.frame = target;
+        layoutMeasured = ABNativeKbFitLayout(
+            keyboard, &layoutBefore, &layoutAfter, &layoutRatio);
+        if (ABNativeKbLayoutAdjusted && !ABNativeKbHasOriginal) {
+            ABNativeKbWindow = keyboard;
+            ABNativeKbOriginal = changedFrame ? ABNativeKbOriginal : keyboard.frame;
+            ABNativeKbHasOriginal = YES;
         }
     }
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl22-keyplane] when=%@ try=%ld found=%d starBefore=%.1f starAfter=%.1f "
+         "factor=%.3f viewport=%.1f adjusted=%d",
+        when, (long)attempt, (int)layoutMeasured, layoutBefore, layoutAfter,
+        layoutRatio, keyboard ? keyboard.bounds.size.width : 0,
+        (int)ABNativeKbLayoutAdjusted]);
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[hl11kb] ev=native-fit when=%@ try=%ld result=%@ "
          "windows=%lu key=%@ keyFrame=%@ kb=%@ kbFrame=%@ "
@@ -1127,7 +1226,10 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
         keyboard ? NSStringFromCGRect(keyboard.frame) : @"nil",
         keyboard ? (int)keyboard.hidden : -1,
         NSStringFromCGRect(UIScreen.mainScreen.bounds)]);
-    return visibleKeyboard && key != nil && !CGRectIsEmpty(target);
+    // A fitted window with an oversized keyboard subtree is NOT success.
+    // If UIKit has not created LayoutStar yet, defer the layout verdict.
+    return visibleKeyboard && key != nil && !CGRectIsEmpty(target) &&
+           layoutMeasured;
 }
 
 static void ABNativeKbBegin(NSString *why) {
@@ -1186,6 +1288,18 @@ static void BWKbFrameNote(NSNotification *note) {
     CGRect f = v.CGRectValue;
     CGFloat h = [UIScreen mainScreen].bounds.size.height;
     if (f.origin.y > 0 && f.origin.y < h) BWKbLocalSet(BWKbActive);
+    // Defer to the next main-loop pass: UIKit may still be laying out its
+    // keyboard when UIKeyboardDidChangeFrame fires. No new keyboard created.
+    if (ABCurrentResponder && [ABCurrentResponder isFirstResponder] &&
+        !ABDrawnKb && ABForcedOrientation >= 1) {
+        NSUInteger epoch = ABNativeKbEpoch;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (epoch == ABNativeKbEpoch && ABCurrentResponder &&
+                [ABCurrentResponder isFirstResponder] &&
+                ABForcedOrientation >= 1)
+                ABNativeKbFit(@"keyboard-frame", 0);
+        });
+    }
 }
 static void BWKbHideNote(NSNotification *note) {
     (void)note;
@@ -2666,8 +2780,22 @@ static void ABOrientationBlock(NSNotification *note) {
     // the host posts its updated frame/orientation after divider drag.
     // Do not create a keyboard merely because layout changed.
     if (orientation >= 1 && !ABDrawnKb && ABNativeKbHasOriginal &&
-        ABCurrentResponder && [ABCurrentResponder isFirstResponder])
+        ABCurrentResponder && [ABCurrentResponder isFirstResponder]) {
+        NSUInteger epoch = ++ABNativeKbEpoch;
         ABNativeKbFit(@"host-frame", 0);
+        // The host scene and UIKit keyboard settle asynchronously.
+        const NSTimeInterval delays[] = {0.12, 0.35};
+        for (NSUInteger i = 0; i < 2; ++i) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                (int64_t)(delays[i] * NSEC_PER_SEC)),
+                dispatch_get_main_queue(), ^{
+                    if (epoch != ABNativeKbEpoch || ABForcedOrientation < 1 ||
+                        !ABCurrentResponder ||
+                        ![ABCurrentResponder isFirstResponder]) return;
+                    ABNativeKbFit(@"host-frame-settled", (NSInteger)i + 1);
+                });
+        }
+    }
 }
 
 // ===========================================================================
