@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — HL23: sửa source bàn phím theo ô CarPlay; đối chiếu DEB DuoNavi, SidePlay và DuoDash (SOURCE ONLY)
+- Đọc hồ sơ ARM64/quét binary đã lưu ở `chuongnguyen89dn-ui/Duoface/spec-main`, gồm DuoNavi 1.0.4 chính gốc, SidePlay 1.0.4-1, DuoDash 1.1.3+fullscreen1 REPACK (đã xác minh byte ở lần QA146 của Muse; lần này không tự tải được DEB nguyên byte). Tìm ra bất tương xứng giữa kích thước logical-keyboard và physical-pane của DuoCar HL22. **Đã sửa source** ở nhánh `feature/duocar-hl23-keyboard-physical-contract-20261111`, commit `3513ced0558ba079958ee49cd5c59916a310d457` (đúng 6 file, 3 cặp src/project đồng SHA). Host chuyển physical/logical dimensions qua kênh sẵn có, re-push sau layout, app chỉ co LayoutStar khi khớp kích thước phiên và kiểm lại trong nhịp settle; giữ native keyboard và restore. Static readback/contract PASS, **chưa compile/build/ký DEB hoặc test xe**, không merge/main source, không Sileo. [Bằng chứng, hunk, rollback và cổng tiếp](DUOCAR_KEYBOARD_DEB_COMPARISON_20261111.md).
+
 ## 2026-11-11 — Đối chiếu bàn phím DuoNavi / SidePlay / DuoDash cho DuoCar (ANALYSIS ONLY)
 - Kiểm lại kho DEB GitHub (DuoNavi 1.0.4, SidePlay 1.0.4-1; chưa tìm thấy DuoDash độc lập), đọc 5 báo cáo giải mã nhị phân trước đây của Muse và đối chiếu source DuoCar HL22. Bằng chứng DuoNavi xử lý keyboard traits / layout/keyplane/width từ tầng dựng; DuoCar HL22 còn dựa trên window và scale khi LayoutStar vượt bounds cửa sổ, chưa đối chiếu viewport physical/logical. Công cụ GitHub hiện không truyền được bytes DEB để giải mã lại; **không tự nhận đã quét trực tiếp binary**, không sửa runtime/CI/Sileo và không có DEVICE PASS. [Checkpoint, mã và bước tiếp](DUOCAR_KEYBOARD_DEB_COMPARISON_20261111.md).
 
