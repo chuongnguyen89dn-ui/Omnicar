@@ -3,6 +3,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "SCPVoiceBridge.h"
+#import "SCPVoiceNative.h"
 #import "SCPIntegrationShims.h"
 #import "SCPCarSplit.h"
 #import "SCPShared.h"
@@ -127,15 +128,7 @@ void SCPVoiceInstall(void) {
         [self toast:@"Bật Trợ lý giọng nói trong Cài đặt DuoCar."];
         return;
     }
-    // Never record from CarPlayApp/SpringBoard. This only requests the
-    // foreground iPhone app to show its own authorized microphone UI.
-    NSString *rid=NSUUID.UUID.UUIDString;
-    NSDictionary *payload=@{@"requestID":rid,
-        @"time":@([NSDate date].timeIntervalSince1970)};
-    [[NSDistributedNotificationCenter defaultCenter]
-        postNotificationName:@"com.anlai.omnicar/voice.request"
-        object:nil userInfo:payload];
-    [self toast:@"Yêu cầu đã gửi. Mở DuoCar trên iPhone nếu chưa ở màn hình chính."];
-    NSLog(@"[hl29-voice] event=car-touch-request (phone-foreground-required)");
+    // HL30: CarPlay bubble talks to local, permission-gated speech capture.
+    SCPVoiceNativeToggle(self);
 }
 @end
