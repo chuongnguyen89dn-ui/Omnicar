@@ -34,15 +34,57 @@ BOOL OMCNativeSetPref(NSString *key, id value) {
     return synced;
 }
 
-NSString *OMCNativeLocalized(NSString *key) {
-    if (!key.length) return @"";
-    NSBundle *b=NSBundle.mainBundle;
-    for (NSString *t in @[@"Localizable",@"AppBridge",@"HomeScreen",@"Profiles",
-                          @"SplitScreen",@"SpeedBubble",@"StartupScreen",@"Onboarding",@"WhatsNew"]) {
-        NSString *s=NSLocalizedStringFromTableInBundle(key,t,b,key);
-        if (![s isEqualToString:key]) return s;
+static NSString *OMCNativeCurrentLanguage(void) {
+    NSArray *supported=@[@"vi",@"en",@"es",@"pt-BR",@"de",@"fr",@"it",@"ru",
+                          @"zh-Hans",@"ja",@"ko",@"ar",@"th",@"id"];
+    id saved=OMCNativePref(@"language",nil);
+    if([saved isKindOfClass:NSString.class]&&[supported containsObject:saved])return saved;
+    for(NSString *preferred in NSLocale.preferredLanguages){
+        for(NSString *lang in supported)
+            if([preferred isEqualToString:lang]||
+               [preferred hasPrefix:[lang stringByAppendingString:@"-"]])return lang;
+        NSString *base=preferred.pathExtension.length?preferred:
+            [[preferred componentsSeparatedByString:@"-"] firstObject];
+        if([base isEqualToString:@"zh"])continue;
+        for(NSString *lang in supported)
+            if([[[lang componentsSeparatedByString:@"-"] firstObject] isEqualToString:base])return lang;
     }
-    return key;
+    return @"en";
+}
+// Original OMCLoadStrings merges every .strings table (en fallback + selected
+// language), including Car.strings, and honors the "language" preference.
+// NSLocale-only NSLocalizedStringFromTableInBundle misses user overrides.
+NSString *OMCNativeLocalized(NSString *key) {
+    if(!key.length)return @"";
+    static NSMutableDictionary<NSString *,NSDictionary *> *cache;
+    NSString *lang=OMCNativeCurrentLanguage();
+    @synchronized(NSBundle.mainBundle) {
+        if(!cache)cache=[NSMutableDictionary dictionary];
+        NSDictionary *strings=cache[lang];
+        if(!strings) {
+            NSMutableDictionary *merged=[NSMutableDictionary dictionary];
+            NSArray *tables=@[@"Localizable",@"AppBridge",@"Car",@"HomeScreen",
+                @"Profiles",@"SplitScreen",@"SpeedBubble",@"StartupScreen",
+                @"Onboarding",@"WhatsNew"];
+            NSArray *locales=[lang isEqualToString:@"en"]?@[@"en"]:@[@"en",lang];
+            for(NSString *locale in locales) {
+                NSString *folder=[NSBundle.mainBundle pathForResource:locale ofType:@"lproj"];
+                if(!folder.length)continue;
+                for(NSString *table in tables) {
+                    NSString *path=[folder stringByAppendingPathComponent:
+                        [table stringByAppendingPathExtension:@"strings"]];
+                    NSDictionary *dict=[NSDictionary dictionaryWithContentsOfFile:path];
+                    if([dict isKindOfClass:NSDictionary.class])[merged addEntriesFromDictionary:dict];
+                }
+            }
+            strings=[merged copy];
+            cache[lang]=strings;
+            NSLog(@"[hl26-settings] localization lang=%@ keys=%lu",
+                lang,(unsigned long)strings.count);
+        }
+        id result=strings[key];
+        return [result isKindOfClass:NSString.class]?result:key;
+    }
 }
 
 NSString *OMCNativeStartupDirectory(void) {
@@ -85,7 +127,7 @@ static NSArray<NSString *> *OMCNativeActiveConflicts(void) {
     }
     return [active.allObjects sortedArrayUsingSelector:@selector(compare:)];
 }
-static BOOL OMCVi(void) { return [[[NSLocale preferredLanguages] firstObject] hasPrefix:@"vi"]; }
+static BOOL OMCVi(void) { return [OMCNativeCurrentLanguage() isEqualToString:@"vi"]; }
 static NSString *OMCText(NSString *vi,NSString *en) {return OMCVi()?vi:en;}
 static NSString *OMCRowName(NSDictionary *r) {
     NSString *key=r[@"label"];
@@ -342,8 +384,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 - (instancetype)initWithKind:(NSInteger)kind {
     if ((self=[super initWithStyle:UITableViewStyleInsetGrouped])) {
         self.kind=kind;
-        NSArray *titles=@[@"Cài đặt",@"Chia màn hình",@"Màn hình Home",@"Bong bóng tốc độ",@"Hồ sơ xe"];
-        self.title=titles[MAX(0,MIN(kind,4))];
+        NSArray *keys=@[@"", @"SPLITSCREEN",@"HOME_SCREEN",@"SPEEDBUBBLE",@"PROFILES"];
+        NSInteger selected=MAX(0,MIN(kind,4));
+        self.title=selected==0?OMCText(@"Cài đặt",@"Settings"):OMCNativeLocalized(keys[selected]);
     }
     return self;
 }
@@ -449,6 +492,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    NSArray *keys=@[@"", @"SPLITSCREEN",@"HOME_SCREEN",@"SPEEDBUBBLE",@"PROFILES"];
+    self.title=self.kind==0?OMCText(@"Cài đặt",@"Settings"):
+        OMCNativeLocalized(keys[MAX(0,MIN(self.kind,4))]);
     self.sections=[self makeSections];
     [self.tableView reloadData];
     NSLog(@"[hl26-settings] page=%ld sections=%lu",(long)self.kind,(unsigned long)self.sections.count);
@@ -610,7 +656,15 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         NSString *code=codes[i];
         [a addAction:[UIAlertAction actionWithTitle:names[i] style:UIAlertActionStyleDefault
             handler:^(UIAlertAction *action){
-                if (OMCNativeSetPref(@"language",code)) [self.tableView reloadData];
+                if (OMCNativeSetPref(@"language",code)) {
+                    NSArray *tabs=@[OMCNativeLocalized(@"APPS"),OMCNativeLocalized(@"SPLITSCREEN"),
+                                    OMCText(@"Cài đặt",@"Settings")];
+                    for(NSUInteger n=0;n<self.tabBarController.tabBar.items.count && n<tabs.count;n++)
+                        self.tabBarController.tabBar.items[n].title=tabs[n];
+                    self.title=OMCText(@"Cài đặt",@"Settings");
+                    self.sections=[self makeSections];
+                    [self.tableView reloadData];
+                }
             }]];
     }
     [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Hủy",@"Cancel")
