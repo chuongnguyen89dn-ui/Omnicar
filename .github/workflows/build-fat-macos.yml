@@ -24,6 +24,7 @@ on:
   push:
     branches:
       - ci-fat-test
+      - feature/hl21-from-hl11-pinch-legacy-picker-20261111
 
 jobs:
   build-fat:
@@ -79,6 +80,9 @@ jobs:
         working-directory: recovered-source/gpt-project-history
         run: python3 -m unittest -v test_analyze_hl8_unified_log.py
 
+      - name: Verify HL21 source invariants (keyboard hash, pinch fallback, legacy picker, no extra button)
+        run: python3 recovered-source/gpt-project-history/verify_hl21_regression.py
+
       - name: Build the package (arm64 + arm64e)
         working-directory: recovered-source/project
         env:
@@ -123,11 +127,11 @@ jobs:
           fi
           echo "All required component binaries are FAT (arm64 + arm64e)."
 
-      - name: Verify HL13 pinch fallback, HL12 Dock, HL11 keyboard, HL10 surface, HL9 logo, HL8 diagnostics
+      - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl13pinch_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl21restored_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl13pinch"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl21restored"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -157,7 +161,7 @@ jobs:
                   fi
                   echo "HL12/HL13 marker PASS $dylib/$arch: $marker"
                 done
-                for marker in 'native-logo-owned' 'fs-hidden-save' 'fs-hidden-restore' 'ev=picker-host' 'ev=shield-host'; do
+                for marker in 'native-logo-owned' 'fs-hidden-save' 'fs-hidden-restore' '[hl21-legacy-picker]' '[picker-face]' '[hl21-floating]'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::SplitScreen marker $marker missing in $dylib/$arch"
                     exit 1
@@ -171,5 +175,5 @@ jobs:
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: omnicar-hl13pinch-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl13pinch_iphoneos-arm64.deb
+          name: omnicar-hl21restored-fat-deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl21restored_iphoneos-arm64.deb

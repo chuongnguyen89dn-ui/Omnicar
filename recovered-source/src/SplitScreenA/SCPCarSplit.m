@@ -3047,6 +3047,19 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
         [self removeHomeButton];
         return;
     }
+    // [hl21-floating] Restore the HL14 rule: when the native OmniCar Home
+    // launcher owns the entry, remove only our supplementary launcher UIButton.
+    // Never remove or mutate the native CarPlay Home/Dock icon itself.
+    if (SCPHomeLauncherEnabled()) {
+        if (self.homeButton) {
+            OMCLogWrite(@"SplitScreen",
+                @"[hl21-floating] removed extra on-app launcher; native Home/Dock retained");
+            [self removeHomeButton];
+        }
+        if ([self atHomeScreen]) [self installIconLongPress];
+        return;
+    }
+
     // [gpt-home-grid-only] The real OmniCar Home tile now launches the
     // SAME SCPCarSplit layout panel. Retire ONLY our extra UIButton in
     // the Dock; keep the native Apple Dock and all split/host controllers.

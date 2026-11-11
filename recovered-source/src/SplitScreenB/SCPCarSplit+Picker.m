@@ -551,8 +551,12 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
             if (CGRectIntersectsRect(sheet.frame, paneRect))
                 hostedUnderSheet++;
         }
-        faceClear = hostedUnderSheet > 0;
+        // [hl21-legacy-picker] Restore the original opaque/blurred picker face:
+        // hosted content underneath is intentionally covered. Count overlap
+        // only for diagnostics; never change the face to transparent.
+        // faceClear stays NO for all panes and sizes.
     }
+    OMCLogWrite(@"SplitScreen", @"[hl21-legacy-picker] ev=opaque-tray-face");
     BOOL meshPresent = NO;
     if (faceClear) {
         effectView.effect = nil;
