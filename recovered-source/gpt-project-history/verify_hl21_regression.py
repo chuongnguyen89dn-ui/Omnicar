@@ -3,7 +3,7 @@
 from pathlib import Path
 import hashlib
 
-root = Path(__file__).resolve().parents[2]
+root = Path(__file__).resolve().parents[1]
 project = root / "project"
 src = root / "src"
 
