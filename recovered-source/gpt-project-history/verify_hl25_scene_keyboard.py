@@ -52,6 +52,12 @@ assert "probe-interface-abi-matches-NOT-CALLED" in scene
 assert "probe-3arg-abi-matches-container-unverified-NOT-CALLED" in scene
 block = host[host.index("static void ABSceneSettingsApply"):host.index("static id ABSceneOfPane")]
 assert "AB25SceneReferenceApply(settings, logicalSize, orientation)" in block
+assert "if (AB25SceneProbeShouldLog())" in block
+assert "sampled=1" in block
+assert "static BOOL AB25SceneProbeShouldLog(void)" in host
+assert "now - lastProbeAt < 1.0" in host
+assert "@synchronized(probeLock)" in host
+assert "dispatch_once(&once" in host
 assert "SEL setFrame = NSSelectorFromString(@\"setFrame:\")" in block
 assert "setInterfaceOrientation:" in block
 
@@ -76,6 +82,7 @@ for forbidden in ("setFrame:", "layoutIfNeeded", "reloadInputViews",
     assert forbidden not in probe, f"unexpected mutation in probe: {forbidden}"
 assert "[keyboard hitTest:" not in probe, "Diagnostic must not dispatch custom touch handlers"
 assert "keycapRaster=UNKNOWN keycapTouch=UNKNOWN occlusion=UNKNOWN" in probe
+assert "w.layer.zPosition" in probe and "v.layer.zPosition" in probe
 assert 'NSString *rightInsideClip = @"UNKNOWN";' in probe
 assert 'NSString *rightInsideWindow = @"UNKNOWN";' in probe
 assert "[keyboard hitTest:" not in probe
