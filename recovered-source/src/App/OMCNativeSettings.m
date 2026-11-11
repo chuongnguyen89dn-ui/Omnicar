@@ -3,6 +3,8 @@
 #import "OMCNativeSettings.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <objc/message.h>
+#import <objc/runtime.h>
+#import <dlfcn.h>
 #import <notify.h>
 #import <math.h>
 
@@ -432,10 +434,28 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         style:UIAlertActionStyleCancel handler:nil]];
     [a addAction:[UIAlertAction actionWithTitle:@"Respring"
         style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action){
-            // This is an explicit user action. Do not bypass launchd/system policy.
-            notify_post("com.anlai.omnicar/respring");
-            OMCAlert(self,OMCText(@"Đã gửi yêu cầu Respring. Nếu hệ thống không phản hồi, không ép buộc khởi động lại.",
-                                   @"Requested Respring. No forced restart if unsupported."));
+            // Use exactly the original FrontBoardServices respring contract.
+            // No guessed Darwin channel and no killall fallback.
+            dlopen("/System/Library/PrivateFrameworks/FrontBoardServices.framework/FrontBoardServices",RTLD_LAZY);
+            dlopen("/System/Library/PrivateFrameworks/SpringBoardServices.framework/SpringBoardServices",RTLD_LAZY);
+            Class actionClass=NSClassFromString(@"SBSRelaunchAction");
+            Class serviceClass=NSClassFromString(@"FBSSystemService");
+            SEL actionSelector=NSSelectorFromString(@"actionWithReason:options:targetURL:");
+            SEL serviceSelector=NSSelectorFromString(@"sharedService");
+            SEL sendSelector=NSSelectorFromString(@"sendActions:withResult:");
+            if (actionClass&&[actionClass respondsToSelector:actionSelector]&&
+                serviceClass&&[serviceClass respondsToSelector:serviceSelector]){
+                id result=((id(*)(id,SEL,id,NSUInteger,id))objc_msgSend)(
+                     actionClass,actionSelector,@"RestartRenderServer",4,nil);
+                id service=((id(*)(id,SEL))objc_msgSend)(serviceClass,serviceSelector);
+                if (result&&service&&[service respondsToSelector:sendSelector]){
+                    ((void(*)(id,SEL,id,id))objc_msgSend)(service,sendSelector,
+                        [NSSet setWithObject:result],nil);
+                    return;
+                }
+            }
+            OMCAlert(self,OMCText(@"Respring không khả dụng trên thiết bị này.",
+                @"Respring unavailable on this device."));
         }]];
     [self presentViewController:a animated:YES completion:nil];
 }
@@ -512,14 +532,23 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
                               @"DuoCar settings now live in the iPhone app. Existing CarPlay preferences are preserved."));return;
     }
     if ([type isEqualToString:@"logs"]) {
-        NSString *file=@"/var/mobile/Library/Logs/DuoCar.log";
-        if (![[NSFileManager defaultManager] fileExistsAtPath:file]) {
-            OMCAlert(self,OMCText(@"Chưa tìm thấy log ở đường dẫn mặc định.",
-                @"No log file at the default path."));return;
+        NSMutableString *report=[NSMutableString stringWithFormat:
+            @"DuoCar iPhone settings report\nEnabled: %@\nLanguage: %@\n",
+            OMCNativePref(@"enabled",@YES),OMCNativePref(@"language",@"en")];
+        for (NSString *f in @[@"/var/mobile/Documents/OmniCar.log.old",
+                              @"/var/mobile/Documents/OmniCar.log"]) {
+            NSString *body=[NSString stringWithContentsOfFile:f encoding:NSUTF8StringEncoding error:nil];
+            [report appendFormat:@"\n=== %@ ===\n%@\n",f,body?:@"(not available)"];
+        }
+        NSString *file=[NSTemporaryDirectory() stringByAppendingPathComponent:@"OmniCar-report.txt"];
+        if (![report writeToFile:file atomically:YES encoding:NSUTF8StringEncoding error:nil]) {
+            OMCAlert(self,OMCText(@"Không tạo được báo cáo.",@"Could not write report."));return;
         }
         UIActivityViewController *share=[[UIActivityViewController alloc]
              initWithActivityItems:@[[NSURL fileURLWithPath:file]] applicationActivities:nil];
         share.popoverPresentationController.sourceView=self.view;
+        share.popoverPresentationController.sourceRect=CGRectMake(CGRectGetMidX(self.view.bounds),
+                                                                 CGRectGetMidY(self.view.bounds),1,1);
         [self presentViewController:share animated:YES completion:nil];return;
     }
 }
