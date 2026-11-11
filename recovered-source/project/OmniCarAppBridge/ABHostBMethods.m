@@ -770,9 +770,10 @@ static NSString *AB25SceneReferenceApply(id settings, CGSize size,
             return @"applied-interface-orientation";
         }
         if (AB25SceneRefABI(settings, three, 5)) {
-            ((void (*)(id, SEL, CGSize, NSInteger, NSInteger))objc_msgSend)(
-                settings, three, size, orientation, orientation);
-            return @"applied-content-container-orientation";
+            // DuoNavi uses a separate CONTAINER orientation; the app-side
+            // effective orientation alone cannot supply it safely.
+            // Log capability but never invent a matching second argument.
+            return @"skip-3arg-container-orientation-unverified";
         }
     } @catch (NSException *e) {
         return [NSString stringWithFormat:@"exception-%@", e.name];
