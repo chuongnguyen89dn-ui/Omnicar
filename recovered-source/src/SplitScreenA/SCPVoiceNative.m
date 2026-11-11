@@ -9,6 +9,7 @@
 #import "SCPCarSplit.h"
 #import "SCPVoiceBridge.h"
 #import "SCPPrefs.h"
+#import "SCPShared.h" // OMCPref declaration (renamed DCRPref in signed DuoCar build)
 #import "SCPFullscreenController.h"
 #import "DCVoiceCommand.h"
 
