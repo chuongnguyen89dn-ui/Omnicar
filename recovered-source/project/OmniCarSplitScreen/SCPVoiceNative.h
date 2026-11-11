@@ -3,3 +3,4 @@
 @class SCPCarSplit;
 FOUNDATION_EXPORT void SCPVoiceBubbleUpdate(SCPCarSplit *split);
 FOUNDATION_EXPORT void SCPVoiceBubbleDetach(SCPCarSplit *split);
+FOUNDATION_EXPORT void SCPVoiceNativeToggle(SCPCarSplit *split);
