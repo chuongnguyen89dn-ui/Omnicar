@@ -43,8 +43,7 @@ static NSString *OMCNativeCurrentLanguage(void) {
         for(NSString *lang in supported)
             if([preferred isEqualToString:lang]||
                [preferred hasPrefix:[lang stringByAppendingString:@"-"]])return lang;
-        NSString *base=preferred.pathExtension.length?preferred:
-            [[preferred componentsSeparatedByString:@"-"] firstObject];
+        NSString *base=[[preferred componentsSeparatedByString:@"-"] firstObject];
         if([base isEqualToString:@"zh"])continue;
         for(NSString *lang in supported)
             if([[[lang componentsSeparatedByString:@"-"] firstObject] isEqualToString:base])return lang;
@@ -254,6 +253,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    self.title=self.homeMode?OMCNativeLocalized(@"HOME_SCREEN"):OMCNativeLocalized(@"APPS");
     self.inventory=[self installed];
     if (self.homeMode) {
         self.title=OMCNativeLocalized(@"HOME_SCREEN");
