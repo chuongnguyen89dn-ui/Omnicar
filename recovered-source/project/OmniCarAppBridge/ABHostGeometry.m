@@ -522,13 +522,20 @@ static void AB25HostSurface(ABPane *pane, NSString *bundle,
         UIView *box = (UIView *)pane.box;
         UIView *appView = ((UIViewController *)pane.appViewController).view;
         if (!box || !appView) return;
+        // Cross-window convertRect is not a reliable measurement of
+        // physical pane clipping. Mark it UNKNOWN instead of inventing
+        // a comparable coordinate space.
+        BOOL sameWindow = box.window && appView.window &&
+                          box.window == appView.window;
         NSMutableArray<NSString *> *trace = [NSMutableArray array];
         NSUInteger depth = 0;
         for (UIView *v = appView; v && depth < 12; v = v.superview, depth++) {
-            CGRect projected = [v convertRect:v.bounds toView:box];
+            NSString *projection = sameWindow
+                ? NSStringFromCGRect([v convertRect:v.bounds toView:box])
+                : @"UNKNOWN-cross-window";
             [trace addObject:[NSString stringWithFormat:
                 @"%@ rectInBox=%@ clip=%d alpha=%.2f",
-                NSStringFromClass(v.class), NSStringFromCGRect(projected),
+                NSStringFromClass(v.class), projection,
                 (int)(v.clipsToBounds || v.layer.masksToBounds),
                 (double)v.alpha]];
         }
@@ -541,7 +548,7 @@ static void AB25HostSurface(ABPane *pane, NSString *bundle,
             (int)(box.clipsToBounds || box.layer.masksToBounds),
             NSStringFromCGAffineTransform(appView.transform),
             (double)appView.window.windowLevel,
-            (int)(box.window && box.window == appView.window),
+            (int)sameWindow,
             [trace componentsJoinedByString:@" / "]]);
     } @catch (NSException *e) {
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
