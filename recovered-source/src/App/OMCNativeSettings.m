@@ -48,6 +48,43 @@ NSString *OMCNativeLocalized(NSString *key) {
 NSString *OMCNativeStartupDirectory(void) {
     return @"/var/mobile/Library/OmniCar/StartupScreen";
 }
+// Original OMCRescueFeatures filters feature names already enabled.
+static NSArray<NSString *> *OMCNativePendingRescue(void) {
+    id data=OMCNativePref(@"rescueFeatures",@[]);
+    if (![data isKindOfClass:NSArray.class])return @[];
+    NSMutableArray *out=[NSMutableArray array];
+    for (id feature in data) {
+        if (![feature isKindOfClass:NSString.class] || ![feature length] || [feature length]>80)continue;
+        NSString *key=[feature stringByAppendingString:@"Enabled"];
+        if (![OMCNativePref(key,@YES) boolValue] && ![out containsObject:feature])
+            [out addObject:feature];
+    }
+    return out;
+}
+static NSArray<NSString *> *OMCNativeActiveConflicts(void) {
+    NSDictionary *known=@{@"carbridge":@"CarBridge",@"duodash":@"DuoDash",
+                          @"truedash":@"TrueDash",@"carplayenable":@"CarPlayEnable"};
+    NSMutableSet *active=[NSMutableSet set];
+    NSFileManager *fm=NSFileManager.defaultManager;
+    for(NSString *dir in @[@"/var/jb/Library/MobileSubstrate/DynamicLibraries",
+                            @"/Library/MobileSubstrate/DynamicLibraries",
+                            @"/var/jb/usr/lib/TweakInject",
+                            @"/usr/lib/TweakInject"]) {
+        NSArray *files=[fm contentsOfDirectoryAtPath:dir error:nil];
+        for(NSString *file in files){
+            if(![file.pathExtension isEqualToString:@"dylib"])continue;
+            NSString *name=[file.stringByDeletingPathExtension lowercaseString];
+            NSMutableString *norm=[NSMutableString string];
+            for(NSUInteger i=0;i<name.length;i++){
+                unichar ch=[name characterAtIndex:i];
+                if ((ch>='a'&&ch<='z')||(ch>='0'&&ch<='9'))[norm appendFormat:@"%C",ch];
+            }
+            NSString *vendor=known[norm];
+            if(vendor.length)[active addObject:vendor];
+        }
+    }
+    return [active.allObjects sortedArrayUsingSelector:@selector(compare:)];
+}
 static BOOL OMCVi(void) { return [[[NSLocale preferredLanguages] firstObject] hasPrefix:@"vi"]; }
 static NSString *OMCText(NSString *vi,NSString *en) {return OMCVi()?vi:en;}
 static NSString *OMCRowName(NSDictionary *r) {
@@ -311,21 +348,33 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     return self;
 }
 - (NSArray<NSDictionary *> *)makeSections {
-    if (self.kind==0) return @[
-        OMCSection(OMCText(@"Tổng quan",@"Overview"),@[
+    if (self.kind==0) {
+        NSMutableArray *sections=[NSMutableArray array];
+        NSArray *pending=OMCNativePendingRescue();
+        if (pending.count) {
+            [sections addObject:OMCSection(OMCNativeLocalized(@"RESCUE_GROUP"),@[
+                OMCRow(@"RESCUE_RESTORE",@"rescue",nil,nil,nil)])];
+        }
+        NSArray *conflicts=OMCNativeActiveConflicts();
+        if (conflicts.count){
+            [sections addObject:OMCSection(OMCNativeLocalized(@"CONFLICTS_GROUP"),@[
+                OMCRow([conflicts componentsJoinedByString:@", "],@"conflicts",nil,nil,nil)])];
+        }
+        [sections addObject:OMCSection(OMCText(@"Tổng quan",@"Overview"),@[
             OMCRow(OMCText(@"Bật DuoCar",@"Enable DuoCar"),@"switch",@"enabled",@YES,nil),
-            OMCRow(OMCText(@"Ngôn ngữ",@"Language"),@"language",nil,nil,nil)]),
-        OMCSection(OMCNativeLocalized(@"FEATURES_GROUP"),@[
+            OMCRow(OMCText(@"Ngôn ngữ",@"Language"),@"language",nil,nil,nil)])];
+        [sections addObject:OMCSection(OMCNativeLocalized(@"FEATURES_GROUP"),@[
             OMCRow(@"STARTUPSCREEN",@"startup",nil,nil,nil),
             OMCRow(@"SPEEDBUBBLE",@"bubble",nil,nil,nil),
             OMCRow(@"HOME_SCREEN",@"home",nil,nil,nil),
-            OMCRow(@"PROFILES",@"profiles",nil,nil,nil)]),
-        OMCSection(OMCText(@"Hỗ trợ",@"Support"),@[
+            OMCRow(@"PROFILES",@"profiles",nil,nil,nil)])];
+        [sections addObject:OMCSection(OMCText(@"Hỗ trợ",@"Support"),@[
             OMCRow(@"ONB_SHOW_AGAIN",@"guide",nil,nil,nil),
             OMCRow(@"WN_ROW",@"whatsnew",nil,nil,nil),
             OMCRow(@"SEND_LOG",@"logs",nil,nil,nil),
-            OMCRow(OMCText(@"Respring (xác nhận)",@"Respring (confirm)"),@"respring",nil,nil,nil)])
-    ];
+            OMCRow(OMCText(@"Respring (xác nhận)",@"Respring (confirm)"),@"respring",nil,nil,nil)])];
+        return sections;
+    }
     if (self.kind==1) {
         NSMutableArray *favorites=[NSMutableArray array];
         for (NSInteger i=1;i<=3;i++) {
@@ -568,6 +617,32 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
                                            style:UIAlertActionStyleCancel handler:nil]];
     a.popoverPresentationController.sourceView=self.view;
     a.popoverPresentationController.sourceRect=CGRectMake(CGRectGetMidX(self.view.bounds),CGRectGetMidY(self.view.bounds),1,1);
+    [self presentViewController:a animated:YES completion:nil];
+}
+- (void)confirmRescue {
+    NSArray<NSString *> *features=OMCNativePendingRescue();
+    if(!features.count){[self.tableView reloadData];return;}
+    UIAlertController *a=[UIAlertController alertControllerWithTitle:OMCNativeLocalized(@"RESCUE_RESTORE")
+        message:[NSString stringWithFormat:@"%@\n%@",OMCNativeLocalized(@"RESCUE_GROUP"),
+                 [features componentsJoinedByString:@", "]]
+        preferredStyle:UIAlertControllerStyleAlert];
+    [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Hủy",@"Cancel")
+        style:UIAlertActionStyleCancel handler:nil]];
+    [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Khôi phục",@"Restore")
+        style:UIAlertActionStyleDefault handler:^(UIAlertAction *act){
+        BOOL ok=YES;
+        for(NSString *feature in features) {
+            NSString *key=[feature stringByAppendingString:@"Enabled"];
+            ok=OMCNativeSetPref(key,@YES)&&ok;
+        }
+        if(ok) {
+            ok=OMCNativeSetPref(@"rescueFeatures",nil)&&ok;
+            ok=OMCNativeSetPref(@"rescueDate",nil)&&ok;
+        }
+        if(!ok)OMCAlert(self,OMCText(@"Chưa khôi phục được tất cả tính năng.",
+                @"Some features could not be restored."));
+        self.sections=[self makeSections];[self.tableView reloadData];
+    }]];
     [self presentViewController:a animated:YES completion:nil];
 }
 - (void)confirmRespring {
@@ -847,6 +922,12 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     }
     if ([type isEqualToString:@"resethome"]) {[self resetHome];return;}
     if ([type isEqualToString:@"respring"]) {[self confirmRespring];return;}
+    if ([type isEqualToString:@"rescue"]) {[self confirmRescue];return;}
+    if ([type isEqualToString:@"conflicts"]) {
+        OMCAlert(self,[NSString stringWithFormat:@"%@\n%@",
+            OMCNativeLocalized(@"CONFLICTS_FOOTER"),
+            [OMCNativeActiveConflicts() componentsJoinedByString:@", "]]);return;
+    }
     if ([type isEqualToString:@"car"]) {
         NSString *key=r[@"key"];
         UIAlertController *a=[UIAlertController alertControllerWithTitle:OMCRowName(r)
