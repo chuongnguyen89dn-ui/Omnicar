@@ -1,5 +1,5 @@
 # build-fat-macos.yml — FAT (arm64 + arm64e) build of the recovered
-# OmniCar 1.0.3 source on a real macOS runner.
+# DuoCar 1.0.3 source on a real macOS runner.
 #
 # Why this exists: the analysis VM's Ubuntu clang-18 silently
 # degrades arm64e to arm64, so the locally built package is
@@ -19,12 +19,15 @@
 # ci-fat-test branch.
 name: build-fat-macos
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   push:
     branches:
       - ci-fat-test
-      - feature/hl21-from-hl11-pinch-legacy-picker-20261111
+      - feature/duocar-hl21-rebrand-20261111
 
 jobs:
   build-fat:
@@ -83,6 +86,10 @@ jobs:
       - name: Verify HL21 source invariants (keyboard hash, pinch fallback, legacy picker, no extra button)
         run: python3 recovered-source/gpt-project-history/verify_hl21_regression.py
 
+      - name: Rebrand the complete source/build tree to DuoCar before compilation
+        working-directory: .
+        run: python3 recovered-source/gpt-project-history/rebrand_duocar.py
+
       - name: Build the package (arm64 + arm64e)
         working-directory: recovered-source/project
         env:
@@ -99,20 +106,20 @@ jobs:
       - name: Verify FAT slices in the component binaries
         run: |
           VER=$(sed -n 's/^Version:[[:space:]]*//p' recovered-source/project/control | head -1)
-          DEB=recovered-source/project/packages/com.anlai.omnicar_${VER}_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.chuong.duocar_${VER}_iphoneos-arm64.deb
           ls -la "$DEB"
           rm -rf /tmp/fatcheck && mkdir -p /tmp/fatcheck
           dpkg-deb -x "$DEB" /tmp/fatcheck
           ROOT=/tmp/fatcheck/var/jb
           FAIL=0
           for f in \
-            Library/MobileSubstrate/DynamicLibraries/OmniCarCore.dylib \
-            Library/MobileSubstrate/DynamicLibraries/OmniCarAppBridge.dylib \
-            Library/MobileSubstrate/DynamicLibraries/OmniCarCarProbe.dylib \
-            Library/MobileSubstrate/DynamicLibraries/OmniCarSpeedBubble.dylib \
-            Library/MobileSubstrate/DynamicLibraries/OmniCarSplitScreen.dylib \
-            Library/MobileSubstrate/DynamicLibraries/OmniCarStartupScreen.dylib \
-            Library/PreferenceBundles/OmniCarPrefs.bundle/OmniCarPrefs ; do
+            Library/MobileSubstrate/DynamicLibraries/DuoCarCore.dylib \
+            Library/MobileSubstrate/DynamicLibraries/DuoCarAppBridge.dylib \
+            Library/MobileSubstrate/DynamicLibraries/DuoCarCarProbe.dylib \
+            Library/MobileSubstrate/DynamicLibraries/DuoCarSpeedBubble.dylib \
+            Library/MobileSubstrate/DynamicLibraries/DuoCarSplitScreen.dylib \
+            Library/MobileSubstrate/DynamicLibraries/DuoCarStartupScreen.dylib \
+            Library/PreferenceBundles/DuoCarPrefs.bundle/DuoCarPrefs ; do
             INFO=$(lipo -info "$ROOT/$f")
             echo "$f -> $INFO"
             case "$INFO" in
@@ -120,7 +127,7 @@ jobs:
               *) echo "::error::$f is not FAT arm64+arm64e"; FAIL=1 ;;
             esac
           done
-          echo "App binary (informational): $(lipo -info "$ROOT/Applications/OmniCar.app/OmniCar")"
+          echo "App binary (informational): $(lipo -info "$ROOT/Applications/DuoCar.app/DuoCar")"
           if [ "$FAIL" -ne 0 ]; then
             echo "::error::FAT verification failed"
             exit 1
@@ -129,13 +136,13 @@ jobs:
 
       - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl21restored_iphoneos-arm64.deb
-          test "$(dpkg-deb -f "$DEB" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl21restored"
+          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb
+          test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl21duocar"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
-          for dylib in OmniCarSplitScreen OmniCarAppBridge; do
+          for dylib in DuoCarSplitScreen DuoCarAppBridge; do
             for arch in arm64 arm64e; do
               THIN="/tmp/hl8-${dylib}-${arch}"
               lipo -thin "$arch" "$ROOT/${dylib}.dylib" -output "$THIN"
@@ -144,7 +151,7 @@ jobs:
                 exit 1
               fi
               echo "HL8 marker PASS $dylib/$arch"
-              if [ "$dylib" = "OmniCarAppBridge" ]; then
+              if [ "$dylib" = "DuoCarAppBridge" ]; then
                 for marker in '[hl11kb]' 'ev=native-fit' 'ev=restore' 'ev=reload-input-views' '[pinch2] trigger=began toggle-sent dir=0'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL11 keyboard marker $marker missing in $dylib/$arch"
@@ -153,7 +160,7 @@ jobs:
                   echo "HL11 keyboard marker PASS $dylib/$arch: $marker"
                 done
               fi
-              if [ "$dylib" = "OmniCarSplitScreen" ]; then
+              if [ "$dylib" = "DuoCarSplitScreen" ]; then
                 for marker in '[hl13pinch]' 'route=inapp-hosted' 'hostedPinchFallback' 'dock-category' 'dock-readback' 'dock-tap' 'dock-lifecycle' 'active-model' 'dock-category-not-other'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL12/HL13 marker $marker missing in $dylib/$arch"
@@ -172,8 +179,31 @@ jobs:
             done
           done
 
+      - name: Verify exact DuoCar package, app identity, signatures and zero old branding
+        run: |
+          python3 recovered-source/gpt-project-history/verify_duocar_payload.py \
+            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb
+
+      - name: Upload immutable DuoCar release binary for Sileo publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG='duocar-hl21-20261111'
+          FILE='recovered-source/project/packages/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb'
+          test -s "$FILE"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::DuoCar release tag already exists; refusing overwrite"
+            exit 1
+          fi
+          gh release create "$TAG" "$FILE" --target "$GITHUB_SHA" \
+            --title 'DuoCar HL21 (CarPlay test)' \
+            --notes 'DuoCar first rebranded build from HL11 keyboard and HL13 pinch. Package CI verified; on-car runtime not yet validated.'
+          gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fx "${FILE##*/}"
+          shasum -a 256 "$FILE"
+
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: omnicar-hl21restored-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl21restored_iphoneos-arm64.deb
+          name: duocar-hl21-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb
