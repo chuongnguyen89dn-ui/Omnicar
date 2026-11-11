@@ -75,5 +75,5 @@ assert features==[(10,"FeatureStartupScreen"),(20,"FeatureSpeedBubble"),(30,"Fea
 root=plistlib.load((prefs/"Root.plist").open("rb"))
 assert len(root["items"])==15
 rebrand=(ROOT/"gpt-project-history"/"rebrand_duocar.py").read_text()
-assert "1.0.3-hl27duocar" in rebrand
+assert "1.0.3-hl28duocar" in rebrand
 print("HL27_SOURCE_PASS",{"project_src_pairs":len(pairs),"root":15,"features":features,"springboard_only":True,"keyplane_read_only":True})
