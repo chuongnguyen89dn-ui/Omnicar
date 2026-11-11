@@ -202,7 +202,9 @@ static NSArray *OMCStartupRandomSet(void) {
         slider.minimumValue=[r[@"min"] floatValue];slider.maximumValue=[r[@"max"] floatValue];
         slider.value=[OMCNativePref(key,r[@"default"]?:@0) floatValue];
         objc_setAssociatedObject(slider,@selector(sliderChanged:),r,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        [slider addTarget:self action:@selector(sliderChanged:) forControlEvents:UIControlEventValueChanged];
+        // Commit only once after the user finishes dragging, not on every frame.
+        [slider addTarget:self action:@selector(sliderChanged:)
+             forControlEvents:UIControlEventTouchUpInside|UIControlEventTouchUpOutside];
         cell.accessoryView=slider;
         cell.detailTextLabel.text=[NSString stringWithFormat:@"%.0f",slider.value];
     } else if ([type isEqualToString:@"PSEditTextCell"] ||
@@ -495,6 +497,24 @@ static NSArray *OMCStartupRandomSet(void) {
     if (!diskOK || count==0) {
         [fm removeItemAtPath:dir error:nil];return NO;
     }
+    // Reproduce the optional movie audio.m4a contract used by the original
+    // startup renderer. Export off the main thread; bound the wait to avoid a hang.
+    if ([asset tracksWithMediaType:AVMediaTypeAudio].count) {
+        AVAssetExportSession *exp=[AVAssetExportSession exportSessionWithAsset:asset
+            presetName:AVAssetExportPresetAppleM4A];
+        if (exp) {
+            exp.outputURL=[NSURL fileURLWithPath:[dir stringByAppendingPathComponent:@"audio.m4a"]];
+            exp.outputFileType=AVFileTypeAppleM4A;
+            exp.timeRange=CMTimeRangeMake(kCMTimeZero,CMTimeMakeWithSeconds(seconds,600));
+            dispatch_semaphore_t done=dispatch_semaphore_create(0);
+            [exp exportAsynchronouslyWithCompletionHandler:^{dispatch_semaphore_signal(done);}];
+            long wait=dispatch_semaphore_wait(done,
+                 dispatch_time(DISPATCH_TIME_NOW,20LL*NSEC_PER_SEC));
+            if (wait) [exp cancelExport];
+            if (wait || exp.status!=AVAssetExportSessionStatusCompleted)
+                NSLog(@"[hl26-settings] startup video-audio-unavailable status=%ld",(long)exp.status);
+        }
+    }
     NSDictionary *info=@{@"version":@2,@"count":@(count),@"fps":@24};
     BOOL ok=[info writeToFile:[dir stringByAppendingPathComponent:@"info.plist"] atomically:YES];
     if (!ok) [fm removeItemAtPath:dir error:nil];
@@ -527,7 +547,7 @@ static NSArray *OMCStartupRandomSet(void) {
         [fm removeItemAtPath:[OMCStartupVideos() stringByAppendingPathComponent:name] error:nil];
         [fm removeItemAtPath:[[OMCStartupVideos() stringByAppendingPathComponent:@".frames"]
             stringByAppendingPathComponent:name] error:nil];
-        OMCNativeSetPref(@"startupScreenVideoName",OMCStartupVideoFiles().firstObject);
+        OMCNativeSetPref(@"startupScreenVideoName",[OMCStartupVideoFiles() firstObject]);
         [self rebuild];[self refreshGallery];
     }];
 }
