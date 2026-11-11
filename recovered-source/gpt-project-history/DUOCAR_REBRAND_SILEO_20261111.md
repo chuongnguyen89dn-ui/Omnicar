@@ -21,3 +21,10 @@
 
 ## Trạng thái checkpoint sớm
 CODE PREPARED/COMMITTED; CI `42963004255` đang chạy; Sileo **CHƯA PUBLISH**. Tiếp theo: đọc job nếu FAIL, sửa đúng script, rebuild; khi PASS thì pin hash vào publisher; sau deploy verify public Packages và DEB. Không tự gỡ phiên OmniCar của Nguyen.
+
+## 2026-11-11 12:05 ICT — lỗi CI bplist localization và sửa có bằng chứng
+- GitHub Actions `42963004255` / job `130333709423` **FAIL ở Rebrand, chưa compile**. Đã đọc trực tiếp job log: `UnicodeDecodeError` trong `decode_text` rồi `RuntimeError: Unparsed binary with legacy identifier: recovered-source/project/OmniCarPrefs/Resources/ar.lproj/Car.strings`. Đây là file **binary property list bplist00**, dù phần mở rộng là `.strings`; không được bỏ qua vì chứa thương hiệu cũ.
+- Xác minh trên DEB HL21 cũ bằng container `python3` + `plistlib.loads`: `ar.lproj/Car.strings` có 83 key, 2 giá trị chứa OmniCar; `plistlib.dumps(..., FMT_BINARY)` và roundtrip giữ đủ 83 key. Đây là fixture thực, không suy đoán.
+- Đã sửa script trên branch DuoCar, commit **`6ab5bf7fe81ec15f9a8abd03b9448563667a3d33`**: mọi file có header `bplist00` (gồm `.strings`) phải thay bằng plistlib, cả XML `.stringsdict`; không bỏ qua binary localization. Đã fetch_file đọc lại script SHA `409905773c3da4417aeab5dd5fe57cfa94950707`.
+- CI mới `42963372890` / job `130334885428` đã start trên commit sửa; ở checkpoint đang chạy Theos. Run cũ FAIL không tạo DEB; **chưa có phát hành Sileo**.
+- Lệnh Nguyen mới nhất vẫn giữ nguyên: **không thêm Conflicts/Replaces yêu cầu gỡ OmniCar; Nguyen sẽ tự gỡ**. Kiểm script vẫn loại `Replaces:`, không thêm legacy package vào `Conflicts:`.
