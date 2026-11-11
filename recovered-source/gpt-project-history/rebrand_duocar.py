@@ -79,7 +79,8 @@ def rewrite_file(path: Path):
     REPORT["visited"] += 1
     # Read *binary* property lists structurally; an ASCII regex in bplist00
     # would corrupt offset tables or leave embedded CF strings unchanged.
-    if path.suffix == ".plist" and data.startswith(b"bplist00"):
+    # Localizations use bplist00 even with the .strings extension, not just .plist.
+    if data.startswith(b"bplist00"):
         obj = plistlib.loads(data)
         changed = change_tree(obj)
         if changed != obj:
@@ -87,7 +88,7 @@ def rewrite_file(path: Path):
             REPORT["files_changed"] += 1
             REPORT["plist_changed"] += 1
         return
-    if path.suffix == ".plist" and (data.startswith(b"<?xml") or data.startswith(b"\xef\xbb\xbf<?xml")):
+    if path.suffix in (".plist", ".strings", ".stringsdict") and (data.startswith(b"<?xml") or data.startswith(b"\xef\xbb\xbf<?xml")):
         obj = plistlib.loads(data)
         changed = change_tree(obj)
         if changed != obj:
@@ -183,7 +184,6 @@ def update_control():
     for line in lines:
         if line.startswith("Replaces:"):
             # A separately identified app must never overwrite other package files.
-            # Conflicts force the user to remove an old install explicitly.
             continue
         if line.startswith("Package:"):
             line = "Package: " + NEW_PKG
