@@ -2,7 +2,8 @@
 
 static NSString *DCVoiceNormalized(NSString *speech) {
     if (![speech isKindOfClass:NSString.class] || speech.length > 512) return @"";
-    NSString *s = [[speech lowercaseString]
+    NSString *s = [[[speech lowercaseString]
+        stringByReplacingOccurrencesOfString:@"đ" withString:@"d"]
         stringByFoldingWithOptions:NSDiacriticInsensitiveSearch
         locale:[NSLocale localeWithLocaleIdentifier:@"vi_VN"]];
     NSMutableString *clean = [NSMutableString stringWithCapacity:s.length];
