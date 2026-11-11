@@ -1296,11 +1296,16 @@ static void ABNativeKbBegin(NSString *why) {
         !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
         return;
     NSUInteger epoch = ++ABNativeKbEpoch;
-    ABNativeKbFit(why, 0);
-    // [hl23-kbphysical] Never mistake a fitted outer window at first-show
-    // for the final UIKit keyplane. UIKit may relayout on the next tick
-    // without changing the keyboard frame or emitting another DidShow.
-    // Keep bounded follow-up evaluations even if the initial fit succeeded.
+    // [hl27-kbreg] Restore HL11's early exit: a visible keyboard WINDOW
+    // must not trigger three more forced fits while UIKit draws keycaps.
+    // This is not proof of keycap visibility or clipping correctness.
+    if (ABNativeKbFit(why, 0)) {
+        OMCLogWrite(@"AppBridge",
+            @"[hl27-kbreg] policy=HL11 first-window-visible no-extra-retry keycap=UNKNOWN");
+        return;
+    }
+    // No keyboard window yet: retain the bounded HL11 retries.
+    // Keep HL24's no-reloadInputViews guard to avoid resetting UIKit.
     for (NSUInteger n = 1; n <= 3; n++) {
         NSTimeInterval delay = n == 1 ? 0.3 : (n == 2 ? 0.6 : 1.2);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
@@ -1313,7 +1318,13 @@ static void ABNativeKbBegin(NSString *why) {
             // LayoutStar observation never justified reconstructing UIKit's
             // keyboard. Keep a bounded read-only/window fit retry instead.
             BOOL found = ABNativeKbFit(@"retry", (NSInteger)n);
-            if (!found && n == 1)
+            if (found) {
+                // [hl27-kbreg] A delayed find is also success: cancel the
+                // remaining retries for this responder/window generation.
+                ++ABNativeKbEpoch;
+                return;
+            }
+            if (n == 1)
                 OMCLogWrite(@"AppBridge",
                     @"[hl24-keyplane] ev=retry-no-visible-window (no reload)");
         });
@@ -1326,7 +1337,10 @@ static void ABNativeKbWindowVisible(NSNotification *note) {
     if (![obj isKindOfClass:UIWindow.class] ||
         ![NSStringFromClass([obj class]) containsString:@"Keyboard"])
         return;
-    ABNativeKbFit(@"window-visible", 0);
+    // [hl27-kbreg] A UIKit window-visible success supersedes pending
+    // no-window retries. Do not refit after UIKit has drawn its keyplane.
+    if (ABNativeKbFit(@"window-visible", 0))
+        ++ABNativeKbEpoch;
 }
 
 // ---- keyboard guard: auxiliary notification evidence (§5.5) ----
@@ -1349,18 +1363,9 @@ static void BWKbFrameNote(NSNotification *note) {
     CGRect f = v.CGRectValue;
     CGFloat h = [UIScreen mainScreen].bounds.size.height;
     if (f.origin.y > 0 && f.origin.y < h) BWKbLocalSet(BWKbActive);
-    // Defer to the next main-loop pass: UIKit may still be laying out its
-    // keyboard when UIKeyboardDidChangeFrame fires. No new keyboard created.
-    if (ABCurrentResponder && [ABCurrentResponder isFirstResponder] &&
-        !ABDrawnKb && ABForcedOrientation >= 1) {
-        NSUInteger epoch = ABNativeKbEpoch;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (epoch == ABNativeKbEpoch && ABCurrentResponder &&
-                [ABCurrentResponder isFirstResponder] &&
-                ABForcedOrientation >= 1)
-                ABNativeKbFit(@"keyboard-frame", 0);
-        });
-    }
+    // [hl27-kbreg] HL11 only used frame notifications as input-state
+    // evidence. Do not resize the native window from a UIKit callback
+    // while UIKit may be rebuilding the keyplane.
 }
 static void BWKbHideNote(NSNotification *note) {
     (void)note;
@@ -2879,27 +2884,15 @@ static void ABOrientationBlock(NSNotification *note) {
         for (id link in [ABDisplayLinks() allObjects]) ABApplyFPSLimit(link);
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"gioi han khung hinh: %d", (int)fps]);
     }
-    // [hl11kb] Refit an ALREADY-OBSERVED native keyboard window when
-    // the host posts its updated frame/orientation after divider drag.
-    // Do not create a keyboard merely because layout changed.
+    // [hl27-kbreg] Preserve HL24's committed host geometry / stale
+    // revision guard, but apply HL11's single refit for an observed
+    // keyboard. Do not schedule a second forced refit during UIKit settle.
     if (orientation >= 1 && !stale &&
         (geometryChanged || orientation != old) &&
         !ABDrawnKb && ABNativeKbHasOriginal &&
         ABCurrentResponder && [ABCurrentResponder isFirstResponder]) {
-        NSUInteger epoch = ++ABNativeKbEpoch;
+        ++ABNativeKbEpoch;
         ABNativeKbFit(@"host-frame", 0);
-        // The host scene and UIKit keyboard settle asynchronously.
-        const NSTimeInterval delays[] = {0.12, 0.35};
-        for (NSUInteger i = 0; i < 2; ++i) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-                (int64_t)(delays[i] * NSEC_PER_SEC)),
-                dispatch_get_main_queue(), ^{
-                    if (epoch != ABNativeKbEpoch || ABForcedOrientation < 1 ||
-                        !ABCurrentResponder ||
-                        ![ABCurrentResponder isFirstResponder]) return;
-                    ABNativeKbFit(@"host-frame-settled", (NSInteger)i + 1);
-                });
-        }
     }
 }
 
