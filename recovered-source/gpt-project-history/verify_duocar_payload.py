@@ -17,7 +17,7 @@ def field(name):
     return subprocess.check_output(["dpkg-deb", "-f", str(deb), name], text=True).strip()
 
 fields = [field(k) for k in ("Package", "Version", "Architecture")]
-assert fields == ["com.chuong.duocar", "1.0.3-hl25duocar", "iphoneos-arm64"], fields
+assert fields == ["com.chuong.duocar", "1.0.3-hl26duocar", "iphoneos-arm64"], fields
 control_text=subprocess.check_output(["dpkg-deb","-f",str(deb)],text=True)
 assert "com.anlai.omnicar" not in control_text.lower(), "Old package referenced by dependency metadata"
 assert not any(line.startswith(("Replaces:","Breaks:")) for line in control_text.splitlines()), "Unexpected forced package replacement"
@@ -68,7 +68,7 @@ with tempfile.TemporaryDirectory() as folder:
         "DuoCarSpeedBubble.dylib": [],
         "DuoCarSplitScreen.dylib": ["[hl8diag]", "[hl13pinch]", "[hl21-floating]", "[hl21-legacy-picker]", "[hl22-original]", "[picker-face]", "[home-launch]"],
         "DuoCarStartupScreen.dylib": [],
-        "DuoCar.app/DuoCar": [],
+        "DuoCar.app/DuoCar": ["[hl26-settings] gate=uikit-tab-ready", "[hl26-settings] gate=app-root-launched", "[hl26-settings] page=startup"],
         "DuoCarPrefs.bundle/DuoCarPrefs": [],
     }
     reports = []
@@ -88,6 +88,19 @@ with tempfile.TemporaryDirectory() as folder:
     info = plistlib.loads((root / "Applications/DuoCar.app/Info.plist").read_bytes())
     assert info.get("CFBundleIdentifier") == "com.chuong.duocar.app"
     assert info.get("CFBundlePackageType") == "APPL"
+    # HL26 app owns the full UIKit settings page resources, not Settings.app.
+    assert info.get("NSPhotoLibraryUsageDescription"), "Photo picker permission missing"
+    schemes = [s for u in info.get("CFBundleURLTypes", []) for s in u.get("CFBundleURLSchemes", [])]
+    assert "duocar" in schemes, schemes
+    app_dir = root / "Applications/DuoCar.app"
+    for name, count in [("Root.plist",15),("FeatureStartupScreen.plist",44),
+                        ("FeatureSplitScreen.plist",2),("FeatureSpeedBubble.plist",2)]:
+        res = app_dir / name
+        assert res.is_file(), f"App-owned resource missing: {name}"
+        rows = plistlib.loads(res.read_bytes()).get("items", [])
+        assert len(rows) == count, (name,len(rows),count)
+    binary = (app_dir / "DuoCar").read_bytes()
+    assert b"prefs:root=DuoCar" not in binary and b"prefs:root=OmniCar" not in binary, "App still opens Settings.app"
     # Full payload audit, including all FAT binaries, preference/localization
     # resources, filenames, app metadata and injected filter plists.
     checked = 0
