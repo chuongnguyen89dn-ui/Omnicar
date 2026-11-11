@@ -76,6 +76,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 @property(nonatomic,strong) NSArray<NSDictionary *> *visible;
 @property(nonatomic,copy) NSString *query;
 @property(nonatomic,strong) NSMutableSet<NSString *> *chosen;
+@property(nonatomic) BOOL homeMode;
 @end
 
 @interface OMCNativeSimplePage : UITableViewController
@@ -153,8 +154,33 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     self.inventory=[self installed];
-    id data=OMCNativePref(@"appBridgeApps",@[]);
-    self.chosen=[NSMutableSet setWithArray:[data isKindOfClass:NSArray.class]?data:@[]];
+    if (self.homeMode) {
+        self.title=OMCNativeLocalized(@"HOME_SCREEN");
+        id c=OMCNativePref(@"homeScreenCarApps",@[]);
+        NSMutableSet *carIDs=[NSMutableSet set];
+        NSMutableSet *offIDs=[NSMutableSet set];
+        if([c isKindOfClass:NSArray.class])for(id entry in c){
+            if (![entry isKindOfClass:NSDictionary.class] ||
+                ![entry[@"id"] isKindOfClass:NSString.class])continue;
+            [carIDs addObject:entry[@"id"]];
+            if ([entry[@"off"] boolValue]) [offIDs addObject:entry[@"id"]];
+        }
+        if (carIDs.count)self.inventory=[self.inventory filteredArrayUsingPredicate:
+            [NSPredicate predicateWithBlock:^BOOL(NSDictionary *a,NSDictionary *ctx){
+                return [carIDs containsObject:a[@"id"]];
+            }]];
+        NSSet *hidden=[NSSet setWithArray:OMCNativePref(@"homeScreenHiddenApps",@[])];
+        NSSet *shown=[NSSet setWithArray:OMCNativePref(@"homeScreenShownApps",@[])];
+        self.chosen=[NSMutableSet set];
+        for (NSDictionary *row in self.inventory) {
+            NSString *bid=row[@"id"];
+            if (![hidden containsObject:bid] &&
+                (![offIDs containsObject:bid]||[shown containsObject:bid])) [self.chosen addObject:bid];
+        }
+    } else {
+        id data=OMCNativePref(@"appBridgeApps",@[]);
+        self.chosen=[NSMutableSet setWithArray:[data isKindOfClass:NSArray.class]?data:@[]];
+    }
     [self updateSearchResultsForSearchController:self.navigationItem.searchController];
     NSLog(@"[hl26-settings] page=apps inventory=%lu chosen=%lu",
           (unsigned long)self.inventory.count,(unsigned long)self.chosen.count);
@@ -182,18 +208,58 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     cell.detailTextLabel.text=a[@"id"];
     cell.accessoryType=[self.chosen containsObject:a[@"id"]]
         ?UITableViewCellAccessoryCheckmark:UITableViewCellAccessoryNone;
+    if (self.homeMode && [self isHomeProtected:a[@"id"]]) {
+        cell.textLabel.textColor=UIColor.secondaryLabelColor;
+        cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    } else {
+        cell.textLabel.textColor=UIColor.labelColor;
+        cell.selectionStyle=UITableViewCellSelectionStyleDefault;
+    }
     return cell;
+}
+- (BOOL)isHomeProtected:(NSString *)bid {
+    if ([@[@"com.apple.mobilephone",@"com.apple.Music",@"com.apple.Maps",
+          @"com.apple.MobileSMS",@"com.apple.InCallService"] containsObject:bid])return YES;
+    return [bid hasPrefix:@"com.apple.CarPlay"]||
+        [bid rangeOfString:@"NowPlaying"].location!=NSNotFound;
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)p {
     [tableView deselectRowAtIndexPath:p animated:YES];
     NSString *bid=self.visible[p.row][@"id"];
-    if (self.onPick) {self.onPick(bid);[self.navigationController popViewControllerAnimated:YES];return;}
-    if ([self.chosen containsObject:bid]) [self.chosen removeObject:bid];
-    else [self.chosen addObject:bid];
-    NSArray *sorted=[self.chosen.allObjects sortedArrayUsingSelector:@selector(compare:)];
-    if (!OMCNativeSetPref(@"appBridgeApps",sorted)) {
-        OMCAlert(self,OMCText(@"Không lưu được danh sách app.",@"Failed to save the app list."));
-        return;
+    if (self.onPick) {
+        self.onPick(bid);[self.navigationController popViewControllerAnimated:YES];return;
+    }
+    if(self.homeMode){
+        if ([self isHomeProtected:bid])return;
+        NSMutableSet *hidden=[NSMutableSet setWithArray:OMCNativePref(@"homeScreenHiddenApps",@[])];
+        NSMutableSet *shown=[NSMutableSet setWithArray:OMCNativePref(@"homeScreenShownApps",@[])];
+        id entries=OMCNativePref(@"homeScreenCarApps",@[]);
+        BOOL iosOff=NO;
+        if([entries isKindOfClass:NSArray.class])for(id entry in entries)
+            if([entry isKindOfClass:NSDictionary.class]&&[entry[@"id"] isEqual:bid]) {
+                iosOff=[entry[@"off"] boolValue];break;
+            }
+        if ([self.chosen containsObject:bid]) {
+            [self.chosen removeObject:bid];
+            if ([shown containsObject:bid]) [shown removeObject:bid];
+            else [hidden addObject:bid];
+        } else {
+            [self.chosen addObject:bid];[hidden removeObject:bid];
+            if(iosOff)[shown addObject:bid];
+        }
+        NSArray *h=[hidden.allObjects sortedArrayUsingSelector:@selector(compare:)];
+        NSArray *a=[shown.allObjects sortedArrayUsingSelector:@selector(compare:)];
+        if (!OMCNativeSetPref(@"homeScreenHiddenApps",h) ||
+            !OMCNativeSetPref(@"homeScreenShownApps",a)) {
+            OMCAlert(self,OMCText(@"Không lưu được Home.",@"Unable to save Home apps."));
+        }
+    }else{
+        if ([self.chosen containsObject:bid]) [self.chosen removeObject:bid];
+        else [self.chosen addObject:bid];
+        NSArray *sorted=[self.chosen.allObjects sortedArrayUsingSelector:@selector(compare:)];
+        if (!OMCNativeSetPref(@"appBridgeApps",sorted)) {
+            OMCAlert(self,OMCText(@"Không lưu được danh sách app.",@"Failed to save the app list."));
+        }
     }
     [tableView reloadRowsAtIndexPaths:@[p] withRowAnimation:UITableViewRowAnimationNone];
 }
@@ -500,8 +566,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         [self.navigationController pushViewController:[[OMCNativeSimplePage alloc] initWithKind:4] animated:YES];return;
     }
     if ([type isEqualToString:@"homeapps"]) {
-        OMCAlert(self,OMCText(@"Các app trên Home được chọn trong tab Ứng dụng. Tùy chỉnh kích thước ở trang này.",
-                               @"Select Home apps in the Apps tab and customize layout here."));return;
+        OMCNativeAppsPage *page=[OMCNativeAppsPage new];
+        page.homeMode=YES;
+        [self.navigationController pushViewController:page animated:YES];return;
     }
     if ([type isEqualToString:@"demo"]) {notify_post("com.anlai.omnicar/speedbubble.demo");return;}
     if ([type isEqualToString:@"resethome"]) {[self resetHome];return;}
