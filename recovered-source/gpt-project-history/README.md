@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — Đối chiếu bàn phím DuoNavi / SidePlay / DuoDash cho DuoCar (ANALYSIS ONLY)
+- Kiểm lại kho DEB GitHub (DuoNavi 1.0.4, SidePlay 1.0.4-1; chưa tìm thấy DuoDash độc lập), đọc 5 báo cáo giải mã nhị phân trước đây của Muse và đối chiếu source DuoCar HL22. Bằng chứng DuoNavi xử lý keyboard traits / layout/keyplane/width từ tầng dựng; DuoCar HL22 còn dựa trên window và scale khi LayoutStar vượt bounds cửa sổ, chưa đối chiếu viewport physical/logical. Công cụ GitHub hiện không truyền được bytes DEB để giải mã lại; **không tự nhận đã quét trực tiếp binary**, không sửa runtime/CI/Sileo và không có DEVICE PASS. [Checkpoint, mã và bước tiếp](DUOCAR_KEYBOARD_DEB_COMPARISON_20261111.md).
+
 ## 2026-11-11 — HL22 DuoCar: picker gốc và native keyboard layout (PACKAGE PASS; DEVICE PENDING)
 - Source `feature/duocar-hl22-keyplane-menu-original-20261111` commits `ee684e1c` (keyboard layout reversible + picker opacity=1) và `c1b3cc75` (CI fixture order); **GitHub Actions `42969820723` SUCCESS**, artifact `13832369745` verified. DuoCar **`1.0.3-hl22duocar`** DEB 1.286.710 bytes, SHA256 **`e79ff6f576082097253744b6e510fc40bce686063f4da79035c1c5c8cb0e956c`**, independent 8 FAT binaries/16 signatures + 176 files + marker audit PASS. Đã gửi DEB trực tiếp cho Nguyen; **DEVICE PENDING** (các phím mép, menu, pinch/Dock). **KHÔNG publish Sileo HL22**; bản live vẫn HL21. [Checkpoint, cổng nghiệm thu và rollback](HL22_DUOCAR_KEYBOARD_LAYOUT_PICKER_ORIGINAL_20261111.md).
 
