@@ -806,6 +806,11 @@ static id ABSceneOfPane(ABPane *pane) {
         }
     }
     pane.sceneBox = boxSize;
+    // [hl23-kbphysical] Commit dimension packet only once layoutPane
+    // committed its scene size; initial attach and settled divider changes
+    // reuse the existing orientation relay (no new IPC).
+    if (pane.orientation >= 1)
+        ABPostOrientationToApp(pane.bundleID, pane.orientation);
     // YT-ZOOM issuer hook (design-ytzoom.md §4.3): the size just
     // committed above is the lease's single source of truth — the
     // hook republishes the lease with it when one lives for this

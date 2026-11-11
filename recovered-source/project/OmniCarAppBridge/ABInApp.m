@@ -1035,6 +1035,11 @@ static __weak UIWindow *ABNativeKbWindow;
 static CGRect ABNativeKbOriginal;
 static BOOL ABNativeKbHasOriginal = NO;
 static NSUInteger ABNativeKbEpoch = 0;
+// [hl23-kbphysical] Validated session-local dimensions from the host's
+// existing orientation packet. Zero means unknown; never guess a pane width
+// from the phone screen and never apply this limit outside a hosted scene.
+static CGFloat ABNativeKbPhysicalWidth = 0;
+static CGFloat ABNativeKbLogicalWidth = 0;
  // [hl22-keyplane] UIKit owns the keys. Only when a visible layout subtree
  // is wider than the actual keyboard window do we apply a reversible
  // UIView transform to that subtree. Its hit-test coordinates transform
@@ -1085,6 +1090,14 @@ static BOOL ABNativeKbFitLayout(UIWindow *window, CGFloat *widthBefore,
     }
     CGRect before = [layout convertRect:layout.bounds toView:window];
     CGFloat targetWidth = window.bounds.size.width;
+    // [hl23-kbphysical] A floating keyboard window can be logical-width
+    // while its CarPlay viewport is physically narrower (e.g. 495 -> 396).
+    // Use the physical limit only when the host-stamped logical width
+    // actually matches this keyboard window. Otherwise fail open.
+    if (ABNativeKbPhysicalWidth >= 100 &&
+        ABNativeKbLogicalWidth >= ABNativeKbPhysicalWidth &&
+        fabs(ABNativeKbLogicalWidth - targetWidth) <= 8.0)
+        targetWidth = MIN(targetWidth, ABNativeKbPhysicalWidth);
     CGFloat width = before.size.width;
     if (widthBefore) *widthBefore = width;
     if (!isfinite(width) || !isfinite(targetWidth) ||
@@ -1211,9 +1224,10 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
     }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[hl22-keyplane] when=%@ try=%ld found=%d starBefore=%.1f starAfter=%.1f "
-         "factor=%.3f viewport=%.1f adjusted=%d",
+         "factor=%.3f viewport=%.1f physicalW=%.1f logicalW=%.1f adjusted=%d",
         when, (long)attempt, (int)layoutMeasured, layoutBefore, layoutAfter,
         layoutRatio, keyboard ? keyboard.bounds.size.width : 0,
+        ABNativeKbPhysicalWidth, ABNativeKbLogicalWidth,
         (int)ABNativeKbLayoutAdjusted]);
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[hl11kb] ev=native-fit when=%@ try=%ld result=%@ "
@@ -1237,7 +1251,11 @@ static void ABNativeKbBegin(NSString *why) {
         !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
         return;
     NSUInteger epoch = ++ABNativeKbEpoch;
-    if (ABNativeKbFit(why, 0)) return;
+    ABNativeKbFit(why, 0);
+    // [hl23-kbphysical] Never mistake a fitted outer window at first-show
+    // for the final UIKit keyplane. UIKit may relayout on the next tick
+    // without changing the keyboard frame or emitting another DidShow.
+    // Keep bounded follow-up evaluations even if the initial fit succeeded.
     for (NSUInteger n = 1; n <= 3; n++) {
         NSTimeInterval delay = n == 1 ? 0.3 : (n == 2 ? 0.6 : 1.2);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
@@ -2722,6 +2740,22 @@ static void ABOrientationBlock(NSNotification *note) {
     // see the gate the host currently holds.
     ABDrawnKbNoteFrameInfo(info);
     NSInteger orientation = [info[@"orientation"] intValue];
+    // [hl23-kbphysical] Transport values are independent of UIScreen's
+    // phone size; reject absent, stale or impossible host geometry.
+    CGFloat physicalW = [info[@"kbPhysicalW"] doubleValue];
+    CGFloat logicalW = [info[@"kbLogicalW"] doubleValue];
+    if (orientation > 0 && isfinite(physicalW) && isfinite(logicalW) &&
+        physicalW >= 100 && logicalW >= physicalW &&
+        logicalW <= physicalW * 2.1) {
+        ABNativeKbPhysicalWidth = physicalW;
+        ABNativeKbLogicalWidth = logicalW;
+    } else {
+        ABNativeKbPhysicalWidth = 0;
+        ABNativeKbLogicalWidth = 0;
+    }
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl23-kbphysical] recv physicalW=%.1f logicalW=%.1f hosted=%d",
+        ABNativeKbPhysicalWidth, ABNativeKbLogicalWidth, (int)(orientation > 0)]);
     NSInteger old = ABForcedOrientation;
     if (orientation > 0) {
         ABForcedOrientation = orientation;

@@ -24,6 +24,7 @@
 #import <substrate.h> // FIX-ROUND2: ABInstallSpringBoardHooks (below) calls MSHookMessageEx/MSHookFunction from this TU
 #import <dlfcn.h>     // FIX-ROUND2: dlsym for BKSDisplayServicesSetScreenBlanked in ABInstallSpringBoardHooks
 #import <CoreFoundation/CoreFoundation.h> // [ytz5-k5] CFNotificationCenter (Darwin prefschanged observer, below)
+#import <math.h> // [hl23-kbphysical] finite dimension validation
 
 // OMC scaffold helpers (shared, not part of this module).
 extern BOOL OMCLiteActive(void);
@@ -86,10 +87,27 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
             else fps = (OMCCarWireless() == 1) ? 30 : 0;
         }
     }
+    // [hl23-kbphysical] Authoritative PHYSICAL pane geometry is pane.frame,
+    // not box.bounds (which may still animate) or the app's logical UIWindow.
+    // This packet extends the existing host->app orientation channel, it does
+    // not introduce a second transport or a separate keyboard surface.
+    ABPane *pane = [[ABHost shared] paneFor:bundleID];
+    CGFloat physicalW = pane ? pane.frame.size.width : 0;
+    double zoom = [[ABHost shared] zoom];
+    CGFloat logicalW = (physicalW > 0 && isfinite(zoom) && zoom > 0.3)
+        ? round(physicalW / zoom) : 0;
+    if (!isfinite(physicalW) || !isfinite(logicalW) ||
+        physicalW < 100 || logicalW < physicalW ||
+        logicalW > physicalW * 2.1) {
+        physicalW = 0;
+        logicalW = 0;
+    }
     // [hl2] the gate value is read once so the payload field and
     // the acceptance log line below can never disagree.
     BOOL drawnKb = ABDrawnKeyboardEnabled();
     NSDictionary *info = @{
+        @"kbPhysicalW": @(physicalW),
+        @"kbLogicalW": @(logicalW),
         @"orientation": @(orientation),
         @"device": @(MAX(orientation, 0)),
         @"fps": @((int)fps),
@@ -114,6 +132,9 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[ytz5-k5] payload %@ drawnKeyboard=%d mode=%@",
         bundleID, drawnKb ? 1 : 0, drawnKb ? @"drawn" : @"native-locked-hl3"]);
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl23-kbphysical] send bundle=%@ physicalW=%.1f logicalW=%.1f zoom=%.3f",
+        bundleID, physicalW, logicalW, zoom]);
     if (ABHL8Trace())
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
             @"[hl8diag] eye=kb-relay ev=mode-push bundle=%@ "
