@@ -786,8 +786,11 @@ static NSString *AB25SceneReferenceApply(id settings, CGSize size,
 // source of visible flicker or keyboard layout latency.
 static BOOL AB25SceneProbeShouldLog(void) {
     static CFAbsoluteTime lastProbeAt = 0;
+    static NSObject *probeLock = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ probeLock = [NSObject new]; });
     CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
-    @synchronized([ABHost class]) {
+    @synchronized(probeLock) {
         if (now - lastProbeAt < 1.0) return NO;
         lastProbeAt = now;
     }
