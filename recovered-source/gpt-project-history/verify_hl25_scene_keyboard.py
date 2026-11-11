@@ -75,7 +75,10 @@ for forbidden in ("setFrame:", "layoutIfNeeded", "reloadInputViews",
                   "transform =", "center =", "setNeedsLayout"):
     assert forbidden not in probe, f"unexpected mutation in probe: {forbidden}"
 assert "[keyboard hitTest:" not in probe, "Diagnostic must not dispatch custom touch handlers"
-assert "keycapRaster=UNKNOWN keycapTouch=UNKNOWN" in probe
+assert "keycapRaster=UNKNOWN keycapTouch=UNKNOWN occlusion=UNKNOWN" in probe
+assert 'NSString *rightInsideClip = @"UNKNOWN";' in probe
+assert 'NSString *rightInsideWindow = @"UNKNOWN";' in probe
+assert "[keyboard hitTest:" not in probe
 assert "(now - lastAt) < 0.25" in probe
 assert "lastEpoch == ABNativeKbEpoch" in probe
 assert 'NSStringFromCGAffineTransform(appView.transform)' in geometry
