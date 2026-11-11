@@ -624,12 +624,42 @@ static NSArray *OMCStartupRandomSet(void) {
         OMCNativeSetPref(@"startupScreenSoundFile",nil);[self rebuild];
     }];
 }
+// The original preview selects the first upcoming day in the next 400 days.
+// This UIKit page implements the real calendar selection; animated
+// SSStartupView is still a separately tracked fidelity gap.
 - (void)previewOccasion {
     NSString *birthday=OMCNativePref(@"startupScreenBirthday",@"");
-    NSString *msg=birthday.length
-        ?[NSString stringWithFormat:@"%@: %@",OMCStartupLabel(@"STARTUPSCREEN_BIRTHDAY"),birthday]
-        :OMCStartupLabel(@"STARTUPSCREEN_OCCASIONS_GROUP");
-    OMCStartupAlert(self,msg);
+    NSCalendar *greg=[NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
+    NSCalendar *chinese=[NSCalendar calendarWithIdentifier:NSCalendarIdentifierChinese];
+    NSTimeZone *tz=[NSTimeZone timeZoneForSecondsFromGMT:25200];
+    greg.timeZone=tz;chinese.timeZone=tz;
+    NSDate *day=[greg dateBySettingHour:12 minute:0 second:0
+        ofDate:NSDate.date options:0]?:NSDate.date;
+    NSInteger event=1;
+    for(NSInteger i=0;i<400;i++){
+        NSDateComponents *g=[greg components:NSCalendarUnitMonth|NSCalendarUnitDay fromDate:day];
+        NSDateComponents *c=[chinese components:NSCalendarUnitMonth|NSCalendarUnitDay fromDate:day];
+        if(!c.isLeapMonth&&c.month==1&&c.day<4){event=1;break;}
+        NSString *stamp=[NSString stringWithFormat:@"%02ld-%02ld",(long)g.month,(long)g.day];
+        if([birthday isKindOfClass:NSString.class]&&birthday.length==5&&[stamp isEqualToString:birthday]){
+            event=2;break;
+        }
+        if(g.month==1&&g.day==1){event=5;break;}
+        if(g.month==12&&(g.day==24||g.day==25)){event=3;break;}
+        if(!c.isLeapMonth&&c.month==8&&c.day==15){event=4;break;}
+        NSDate *next=[greg dateByAddingUnit:NSCalendarUnitDay value:1 toDate:day options:0];
+        if(!next)break;day=next;
+    }
+    NSArray *keys=@[@"STARTUPSCREEN_OCC_TET",@"STARTUPSCREEN_OCC_BIRTHDAY",
+                    @"STARTUPSCREEN_OCC_XMAS",@"STARTUPSCREEN_OCC_MIDAUTUMN",
+                    @"STARTUPSCREEN_OCC_NEWYEAR"];
+    NSString *label=OMCStartupLabel(keys[MAX(0,MIN(4,event-1))]);
+    NSString *message=[NSString stringWithFormat:OMCStartupLabel(@"STARTUPSCREEN_OCCASION_PREVIEW"),label];
+    // UI proof is the selected event, not a pretend SSStartupView animation.
+    self.previewImage.image=nil;
+    self.previewLabel.text=label;
+    OMCStartupAlert(self,message);
+    NSLog(@"[hl26-settings] startup occasion-preview event=%ld",(long)event);
 }
 @end
 
