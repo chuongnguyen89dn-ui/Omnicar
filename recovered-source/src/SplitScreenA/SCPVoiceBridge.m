@@ -128,7 +128,8 @@ void SCPVoiceInstall(void) {
         [self toast:@"Bật Trợ lý giọng nói trong Cài đặt DuoCar."];
         return;
     }
-    // HL30: CarPlay bubble talks to local, permission-gated speech capture.
+    // HL30: a touch on the CarPlay bubble controls the local, explicitly
+    // authorized one-shot session. No iPhone foreground navigation.
     SCPVoiceNativeToggle(self);
 }
 @end
