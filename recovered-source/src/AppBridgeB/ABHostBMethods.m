@@ -781,15 +781,30 @@ static NSString *AB25SceneReferenceApply(id settings, CGSize size,
     return hasTwo || hasThree ? @"skip-abi-mismatch" : @"unavailable";
 }
 
+// [hl25-scene-ref] The frame transaction also runs during live divider
+// drag. Sample capability at <=1 Hz so diagnostics do not become a new
+// source of visible flicker or keyboard layout latency.
+static BOOL AB25SceneProbeShouldLog(void) {
+    static CFAbsoluteTime lastProbeAt = 0;
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    @synchronized([ABHost class]) {
+        if (now - lastProbeAt < 1.0) return NO;
+        lastProbeAt = now;
+    }
+    return YES;
+}
+
 static void ABSceneSettingsApply(id scene, CGSize logicalSize, NSInteger orientation) {
     SEL update = NSSelectorFromString(@"updateSettingsWithBlock:");
     if (![scene respondsToSelector:update]) { ABMissingSelector(scene, @"updateSettingsWithBlock:"); return; }
     ((void (*)(id, SEL, id))objc_msgSend)(scene, update, ^(id settings) {
-        NSString *refResult = AB25SceneReferenceApply(settings, logicalSize, orientation);
-        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[hl25-scene-ref] settings=%@ size=%@ orientation=%ld status=%@",
-            NSStringFromClass([settings class]), NSStringFromCGSize(logicalSize),
-            (long)orientation, refResult]);
+        if (AB25SceneProbeShouldLog()) {
+            NSString *refResult = AB25SceneReferenceApply(settings, logicalSize, orientation);
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[hl25-scene-ref] settings=%@ size=%@ orientation=%ld status=%@ sampled=1",
+                NSStringFromClass([settings class]), NSStringFromCGSize(logicalSize),
+                (long)orientation, refResult]);
+        }
         SEL setFrame = NSSelectorFromString(@"setFrame:");
         ((void (*)(id, SEL, CGRect))objc_msgSend)(settings, setFrame,
                                                   CGRectMake(0, 0, logicalSize.width, logicalSize.height));
