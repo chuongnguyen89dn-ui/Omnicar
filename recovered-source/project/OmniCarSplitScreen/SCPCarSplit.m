@@ -2737,9 +2737,12 @@ static void SCPStyleSoloIconView(UIImageView *view) {
     // [hl18-picker] The chooser is scheduled asynchronously. The pane's
     // logical picker is already registered before the sheet is attached.
     // Ignore the remote bar-dismiss during this pending interval too.
-    if (self.pickerSheetPane && self.pickerSheetPane.picker) {
+    // [hl18-perf2] pane.picker outlives the sheet. Only suppress a
+    // remote dismiss while a main-queue sheet refresh is really queued.
+    if (self.pickerSheetQueued && self.pickerSheetPane &&
+        self.pickerSheetPane.picker) {
         OMCLogWrite(@"SplitScreen",
-            @"[hl18-picker] ev=bar-dismiss action=ignore-picker-pending");
+            @"[hl18-picker] ev=bar-dismiss action=ignore-picker-queued");
         return;
     }
     [self closePopups];
