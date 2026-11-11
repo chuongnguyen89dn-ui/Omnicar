@@ -124,12 +124,12 @@ jobs:
           fi
           echo "All eight required binaries are FAT (arm64 + arm64e)."
 
-      - name: Verify HL19 native keyboard, legacy picker, and HL8-HL18 regressions
+      - name: Verify HL20 HL11-keyboard and legacy picker with earlier regression markers
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl19nativeprefs_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl20inappkb_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl19nativeprefs"
-          echo "HL19 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl20inappkb"
+          echo "HL20 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
           for dylib in OmniCarSplitScreen OmniCarAppBridge; do
@@ -147,12 +147,12 @@ jobs:
                 # geometry branches dead under release optimization; absence
                 # of their strings is expected, not a functional regression.
                 # Check the active native fit plus unchanged hosted pinch.
-                for marker in '[hl11kb]' '[hl19kb] mode=hl11-native-frame' '[pinch2] trigger=began toggle-sent dir=0'; do
+                for marker in '[hl11kb]' '[hl19kb] mode=hl11-native-frame' '[hl20kb] restore=hl11-frame-only' '[hl20kb] geometry-path=hl11-skip' '[pinch2] trigger=began toggle-sent dir=0'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
-                    echo "::error::HL19 active keyboard/pinch marker $marker missing in $dylib/$arch"
+                    echo "::error::HL20 native keyboard/pinch marker $marker missing in $dylib/$arch"
                     exit 1
                   fi
-                  echo "HL19 keyboard/pinch marker PASS $dylib/$arch: $marker"
+                  echo "HL20 keyboard/pinch marker PASS $dylib/$arch: $marker"
                 done
               fi
               if [ "$dylib" = "OmniCarSplitScreen" ]; then
@@ -174,7 +174,7 @@ jobs:
             done
           done
 
-      - name: Verify HL19 embedded Settings and original iPhone app identity
+      - name: Verify HL20 UIKit app-owned Settings and original iPhone app identity
         run: |
           ROOT=/tmp/fatcheck/var/jb
           APP="$ROOT/Applications/OmniCar.app/OmniCar"
@@ -216,8 +216,8 @@ jobs:
           print("HL16b App Identity PASS: actual iPhone app, own CarPlay Home bundle ID, URL scheme")
           PYCHECK
           test ! -e "$ROOT/Library/PreferenceLoader/Preferences/OmniCarPrefs.plist"
-          if ! strings "$APP" | grep -F '[hl19-settings] gate=embedded-preferences-ready' >/dev/null; then
-            echo "::error::HL19 in-app Settings controller marker absent"
+          if ! strings "$APP" | grep -F '[hl20-settings] gate=app-navigation-ready' >/dev/null; then
+            echo "::error::HL20 in-app Settings controller marker absent"
             exit 1
           fi
           if ! strings "$APP" | grep -F 'OMCRootListController' >/dev/null; then
@@ -239,13 +239,13 @@ jobs:
           done
           # Root navigation is embedded in the actual iPhone app, not just
           # the Prefs dylib; the real controller selection remains dynamic.
-          strings "$APP" | grep -F 'OMCEmbeddedPrefsRootController' >/dev/null || {
-            echo "::error::HL19 embedded root navigation class missing"; exit 1;
+          strings "$APP" | grep -F 'OMCInAppSettingsNavigationController' >/dev/null || {
+            echo "::error::HL20 UIKit in-app navigation class missing"; exit 1;
           }
-          echo "HL19 in-app Settings, navigation markers and resources PASS"
+          echo "HL20 in-app Settings UIKit navigation markers and resources PASS"
 
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: omnicar-hl19nativeprefs-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl19nativeprefs_iphoneos-arm64.deb
+          name: omnicar-hl20inappkb-fat-deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl20inappkb_iphoneos-arm64.deb
