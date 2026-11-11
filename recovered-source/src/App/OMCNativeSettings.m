@@ -5,6 +5,8 @@
 #import <objc/message.h>
 #import <objc/runtime.h>
 #import <dlfcn.h>
+#import <AVFoundation/AVFoundation.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <notify.h>
 #import <math.h>
 
@@ -83,7 +85,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 @property(nonatomic) BOOL homeMode;
 @end
 
-@interface OMCNativeSimplePage : UITableViewController
+@interface OMCNativeSimplePage : UITableViewController <UIImagePickerControllerDelegate,UINavigationControllerDelegate,UIDocumentPickerDelegate>
 @property(nonatomic) NSInteger kind; // 0 general, 1 split, 2 Home, 3 Bubble, 4 profiles
 @property(nonatomic,strong) NSArray<NSDictionary *> *sections;
 - (instancetype)initWithKind:(NSInteger)kind;
@@ -354,6 +356,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(@"HOMESCREEN_NAMES",@"switch",@"homeScreenShowNames",@YES,nil),
             OMCRow(@"HOMESCREEN_BLUR",@"number",@"homeScreenBlur",@0,@[@0,@5,@10,@15,@20,@25,@30]),
             OMCRow(@"HOMESCREEN_DIM",@"number",@"homeScreenDim",@25,@[@0,@10,@20,@25,@30,@40,@50,@60,@70])]),
+        OMCSection(OMCNativeLocalized(@"HOMESCREEN_WALLPAPER"),@[
+            OMCRow(@"HOMESCREEN_WALLPAPER",@"homewallpaper",nil,nil,nil)]),
         OMCSection(OMCText(@"Ứng dụng trên Home",@"Home applications"),@[
             OMCRow(@"APPS",@"homeapps",nil,nil,nil),
             OMCRow(OMCText(@"Khôi phục bố cục Home",@"Reset Home layout"),@"resethome",nil,nil,nil)])
@@ -599,6 +603,171 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         }]];
     [self presentViewController:a animated:YES completion:nil];
 }
+// Home background: the same file/key contract as OMCAppBridgeAppsController.
+- (NSString *)nativeHomeDirectory {
+    return @"/var/mobile/Library/OmniCar/HomeScreen";
+}
+- (BOOL)homeWriteJPEG:(UIImage *)image name:(NSString *)name {
+    if (!image || image.size.width<=0 || image.size.height<=0 || !name.length)return NO;
+    CGFloat w=image.size.width*image.scale,h=image.size.height*image.scale;
+    CGFloat scale=MIN(1,2000.0/MAX(w,h));
+    CGSize newSize=CGSizeMake(MAX(1,round(w*scale)),MAX(1,round(h*scale)));
+    UIGraphicsImageRendererFormat *fmt=[UIGraphicsImageRendererFormat preferredFormat];
+    fmt.scale=1;fmt.opaque=YES;
+    UIGraphicsImageRenderer *r=[[UIGraphicsImageRenderer alloc] initWithSize:newSize format:fmt];
+    UIImage *rendered=[r imageWithActions:^(UIGraphicsImageRendererContext *ctx){
+        [image drawInRect:CGRectMake(0,0,newSize.width,newSize.height)];
+    }];
+    NSData *jpeg=UIImageJPEGRepresentation(rendered,0.85);
+    NSString *dir=[self nativeHomeDirectory];
+    NSError *err=nil;
+    if(![NSFileManager.defaultManager createDirectoryAtPath:dir
+            withIntermediateDirectories:YES attributes:nil error:&err]) {
+        NSLog(@"[hl26-settings] Home mkdir failed: %@",err);return NO;
+    }
+    NSString *dest=[dir stringByAppendingPathComponent:name];
+    if(![jpeg writeToFile:dest options:NSDataWritingAtomic error:&err]) {
+        NSLog(@"[hl26-settings] Home JPEG write failed: %@",err);return NO;
+    }
+    [NSFileManager.defaultManager setAttributes:@{NSFilePosixPermissions:@0644}
+        ofItemAtPath:dest error:nil];
+    return YES;
+}
+- (void)homeUseImage:(UIImage *)image {
+    if (![self homeWriteJPEG:image name:@"photo.jpg"] ||
+        ![self homeWriteJPEG:image name:@"wallpaper.jpg"]) {
+        OMCAlert(self,OMCText(@"Không lưu được ảnh nền.",@"Could not save Home wallpaper."));return;
+    }
+    if (!OMCNativeSetPref(@"homeScreenWallpaperStyle",@7) ||
+        !OMCNativeSetPref(@"homeScreenWallpaper",@YES))
+        OMCAlert(self,OMCText(@"Không lưu được trạng thái ảnh nền.",@"Wallpaper settings not saved."));
+    [self.tableView reloadData];
+}
+- (void)homeUseVideo:(NSURL *)url {
+    if(!url || self.kind!=2)return;
+    NSFileManager *fm=NSFileManager.defaultManager;
+    NSString *tmp=[NSTemporaryDirectory() stringByAppendingPathComponent:
+        [NSString stringWithFormat:@"omc-home-import-%@.mp4",NSUUID.UUID.UUIDString]];
+    NSError *err=nil;
+    if(![fm copyItemAtURL:url toURL:[NSURL fileURLWithPath:tmp] error:&err]) {
+        OMCAlert(self,err.localizedDescription?:@"Video copy failed");return;
+    }
+    AVURLAsset *asset=[AVURLAsset URLAssetWithURL:[NSURL fileURLWithPath:tmp] options:nil];
+    AVAssetTrack *track=[asset tracksWithMediaType:AVMediaTypeVideo].firstObject;
+    if(!track){[fm removeItemAtPath:tmp error:nil];
+        OMCAlert(self,OMCNativeLocalized(@"APPS_VIDEO_FAILED"));return;}
+    AVMutableComposition *comp=[AVMutableComposition composition];
+    AVMutableCompositionTrack *video=[comp addMutableTrackWithMediaType:AVMediaTypeVideo
+        preferredTrackID:kCMPersistentTrackID_Invalid];
+    CMTime limit=CMTimeMinimum(asset.duration,CMTimeMakeWithSeconds(20,600));
+    if(![video insertTimeRange:CMTimeRangeMake(kCMTimeZero,limit)
+        ofTrack:track atTime:kCMTimeZero error:&err]){
+        [fm removeItemAtPath:tmp error:nil];
+        OMCAlert(self,err.localizedDescription?:@"Video track failed");return;
+    }
+    video.preferredTransform=track.preferredTransform;
+    AVAssetExportSession *exp=[[AVAssetExportSession alloc] initWithAsset:comp
+        presetName:AVAssetExportPreset1280x720];
+    NSString *out=[NSTemporaryDirectory() stringByAppendingPathComponent:
+        [NSString stringWithFormat:@"omc-home-export-%@.mp4",NSUUID.UUID.UUIDString]];
+    exp.outputURL=[NSURL fileURLWithPath:out];exp.outputFileType=AVFileTypeMPEG4;
+    exp.shouldOptimizeForNetworkUse=YES;
+    UIAlertController *pending=[UIAlertController alertControllerWithTitle:@"DuoCar"
+        message:OMCNativeLocalized(@"APPS_VIDEO_WORKING")
+        preferredStyle:UIAlertControllerStyleAlert];
+    [self presentViewController:pending animated:YES completion:nil];
+    [exp exportAsynchronouslyWithCompletionHandler:^{
+        dispatch_async(dispatch_get_main_queue(),^{
+            [pending dismissViewControllerAnimated:YES completion:^{
+                [fm removeItemAtPath:tmp error:nil];
+                if(exp.status!=AVAssetExportSessionStatusCompleted) {
+                    [fm removeItemAtPath:out error:nil];
+                    OMCAlert(self,exp.error.localizedDescription?:@"Video export failed");return;
+                }
+                NSString *dest=[[self nativeHomeDirectory] stringByAppendingPathComponent:@"video.mp4"];
+                [fm createDirectoryAtPath:[self nativeHomeDirectory] withIntermediateDirectories:YES attributes:nil error:nil];
+                [fm removeItemAtPath:dest error:nil];
+                NSError *mv=nil;
+                if(![fm moveItemAtPath:out toPath:dest error:&mv]) {
+                    OMCAlert(self,mv.localizedDescription?:@"Video write failed");return;
+                }
+                [fm setAttributes:@{NSFilePosixPermissions:@0644} ofItemAtPath:dest error:nil];
+                AVAssetImageGenerator *g=[[AVAssetImageGenerator alloc]
+                    initWithAsset:[AVURLAsset URLAssetWithURL:[NSURL fileURLWithPath:dest] options:nil]];
+                g.appliesPreferredTrackTransform=YES;
+                CGImageRef cg=[g copyCGImageAtTime:kCMTimeZero actualTime:nil error:nil];
+                UIImage *thumb=cg?[UIImage imageWithCGImage:cg]:nil;
+                if(cg)CGImageRelease(cg);
+                if(![self homeWriteJPEG:thumb name:@"video.jpg"] ||
+                   ![self homeWriteJPEG:thumb name:@"wallpaper.jpg"]) {
+                    OMCAlert(self,OMCNativeLocalized(@"APPS_VIDEO_FAILED"));return;
+                }
+                OMCNativeSetPref(@"homeScreenWallpaperStyle",@8);
+                OMCNativeSetPref(@"homeScreenWallpaper",@YES);
+                [self.tableView reloadData];
+            }];
+        });
+    }];
+}
+- (void)homePickerFromPhotos {
+    if(![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]){
+        OMCAlert(self,OMCText(@"Thư viện ảnh không khả dụng.",@"Photos unavailable."));return;
+    }
+    UIImagePickerController *picker=[UIImagePickerController new];
+    picker.sourceType=UIImagePickerControllerSourceTypePhotoLibrary;
+    picker.mediaTypes=@[UTTypeImage.identifier,UTTypeMovie.identifier];
+    picker.videoExportPreset=AVAssetExportPresetPassthrough;
+    picker.delegate=self;
+    [self presentViewController:picker animated:YES completion:nil];
+}
+- (void)homePickerFromFiles {
+    UIDocumentPickerViewController *picker=[[UIDocumentPickerViewController alloc]
+        initForOpeningContentTypes:@[UTTypeImage,UTTypeMovie] asCopy:YES];
+    picker.delegate=self;
+    [self presentViewController:picker animated:YES completion:nil];
+}
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    NSURL *video=info[UIImagePickerControllerMediaURL];
+    UIImage *photo=info[UIImagePickerControllerOriginalImage];
+    [picker dismissViewControllerAnimated:YES completion:^{
+        if(video)[self homeUseVideo:video];else if(photo)[self homeUseImage:photo];
+    }];
+}
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+- (void)documentPicker:(UIDocumentPickerViewController *)picker didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
+    NSURL *url=urls.firstObject;if(!url)return;
+    BOOL scope=[url startAccessingSecurityScopedResource];
+    @try{
+        if([UTType typeWithFilenameExtension:url.pathExtension].conformsToType:UTTypeImage)
+            [self homeUseImage:[UIImage imageWithContentsOfFile:url.path]];
+        else if ([UTType typeWithFilenameExtension:url.pathExtension].conformsToType:UTTypeMovie)
+            [self homeUseVideo:url];
+        else OMCAlert(self,OMCText(@"Định dạng không hỗ trợ.",@"Unsupported format."));
+    } @finally{if(scope)[url stopAccessingSecurityScopedResource];}
+}
+- (void)homeWallpaperOptions {
+    UIAlertController *a=[UIAlertController alertControllerWithTitle:OMCNativeLocalized(@"HOMESCREEN_WALLPAPER")
+        message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    [a addAction:[UIAlertAction actionWithTitle:OMCNativeLocalized(@"HOMESCREEN_WALLPAPER_DEFAULT")
+        style:UIAlertActionStyleDefault handler:^(UIAlertAction *act) {
+            [NSFileManager.defaultManager removeItemAtPath:[[self nativeHomeDirectory]
+                stringByAppendingPathComponent:@"wallpaper.jpg"] error:nil];
+            OMCNativeSetPref(@"homeScreenWallpaperStyle",@0);
+            OMCNativeSetPref(@"homeScreenWallpaper",@NO);
+            [self.tableView reloadData];
+        }]];
+    [a addAction:[UIAlertAction actionWithTitle:OMCNativeLocalized(@"APPS_FROM_PHOTOS")
+        style:UIAlertActionStyleDefault handler:^(UIAlertAction *act){[self homePickerFromPhotos];}]];
+    [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Chọn từ Tệp",@"Choose from Files")
+        style:UIAlertActionStyleDefault handler:^(UIAlertAction *act){[self homePickerFromFiles];}]];
+    [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Hủy",@"Cancel")
+        style:UIAlertActionStyleCancel handler:nil]];
+    a.popoverPresentationController.sourceView=self.view;
+    a.popoverPresentationController.sourceRect=CGRectMake(CGRectGetMidX(self.view.bounds),CGRectGetMidY(self.view.bounds),1,1);
+    [self presentViewController:a animated:YES completion:nil];
+}
 - (void)resetHome {
     UIAlertController *a=[UIAlertController alertControllerWithTitle:OMCText(@"Khôi phục Home",@"Reset Home")
         message:OMCNativeLocalized(@"HOMESCREEN_RESET_CONFIRM")
@@ -639,6 +808,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     if ([type isEqualToString:@"profiles"]) {
         [self.navigationController pushViewController:[[OMCNativeSimplePage alloc] initWithKind:4] animated:YES];return;
     }
+    if ([type isEqualToString:@"homewallpaper"]) {[self homeWallpaperOptions];return;}
     if ([type isEqualToString:@"homeapps"]) {
         OMCNativeAppsPage *page=[OMCNativeAppsPage new];
         page.homeMode=YES;
