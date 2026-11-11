@@ -73,6 +73,16 @@ assert "NSCalendarIdentifierChinese" in startup and "i<400" in startup
 assert "AVAudioSessionCategoryPlayback" in startup
 assert "indexPathForCell:(UITableViewCell *)sw.superview.superview" not in startup
 assert "OMCNativeStartupController()" in native
+assert "OMCNativeCurrentLanguage" in native
+assert '@"Car"' in native and '@"Localizable"' in native
+assert '@"language",nil' in native
+assert 'dictionaryWithContentsOfFile:path' in native
+assert 'if(!self.onPick)' in native and 'nativeIDs' in native
+assert "OMCNativeActiveConflicts" in native
+assert "UIAccessibilityPostNotification" in native
+assert "homeWallpaperOptions" in native
+assert "imagePickerController:(" in native
+assert "AVAssetExportPreset1280x720" in native
 
 for f in files:
     assert f in makefile or f.endswith(".h"), f"Makefile missing {f}"
