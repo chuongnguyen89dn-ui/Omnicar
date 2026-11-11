@@ -1,7 +1,7 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
-## 2026-11-11 — DuoCar: đổi toàn bộ nhãn DEB HL21 và đưa Sileo (BUILD/PUBLISH PENDING)
-- Nhánh DuoCar từ HL21, app/package mới `com.chuong.duocar`, không dùng Conflicts/Replaces yêu cầu gỡ OmniCar; Nguyễn tự gỡ bản cũ. Script rebrand source khi build, kiểm full DEB rồi pin SHA lên kho Sileo `carplaydsp`. **CI `42963004255` đang chạy; chưa có public Sileo pass**. [Checkpoint](DUOCAR_REBRAND_SILEO_20261111.md).
+## 2026-11-11 — DuoCar: đổi toàn bộ DEB HL21, Sileo PUBLIC PASS (DEVICE PENDING)
+- Đổi toàn bộ app/package, dyld, Settings, URL scheme, IPC/Prefs và tên hiển thị sang **DuoCar**, ID `com.chuong.duocar`; không đặt Conflicts/Replaces/Breaks với package cũ, Nguyen tự uninstall. Source build CI `42963581440` SUCCESS, GitHub Release `duocar-hl21-20261111`; đúng DEB **1.285.052 bytes**, SHA256 `275ad8a211b13e51b234d491c627592d675e217ea5529fcb736df0782eb83022`. **Sileo `carplaydsp` run `42964249671` build/deploy/public download PASS**, verified job `130338505510`. [Sileo](https://chuongnguyen89dn-ui.github.io/carplaydsp/) · [DEB công khai](https://chuongnguyen89dn-ui.github.io/carplaydsp/debs/com.chuong.duocar_1.0.3-hl21duocar_iphoneos-arm64.deb) · [checkpoint](DUOCAR_REBRAND_SILEO_20261111.md). **DEVICE PENDING** (pinch, bàn phím, picker, Dock/Home chưa kiểm trên xe).
 
 
 ## 2026-11-11 — HL21 từ HL11: pinch + bỏ nút phụ + picker gốc (CI/PACKAGE PASS; DEVICE PENDING)
