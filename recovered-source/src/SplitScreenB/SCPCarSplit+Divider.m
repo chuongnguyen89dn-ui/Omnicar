@@ -72,9 +72,9 @@ static int    sStackDragKind; // 0x8816c
     self.resizing = NO;
     // Refresh after the terminal gesture; the queued main-loop block
     // observes final geometry and restores the sheet if unchanged.
-    if (self.pickerSheet ||
-        (self.pickerSheetPane && self.pickerSheetPane.picker))
-        [self refreshPickerSheetSoon];
+    // Only resume a real sheet. pane.picker can intentionally outlive
+    // a dismissed sheet; it must not reopen it after resizing.
+    if (self.pickerSheet) [self refreshPickerSheetSoon];
     [self ahNoteActivity:AHSourceDragEnd]; // [autohide] §4.2: the clock runs from the release, not from the drag's last Began (additive line; original body untouched)
     [self pushHostFramesLive:NO];
     NSArray<SCPCarPane *> *panes = [self.slots copy];
