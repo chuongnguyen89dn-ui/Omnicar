@@ -244,8 +244,13 @@ static NSArray *OMCStartupRandomSet(void) {
     NSString *key=r[@"key"];
     NSInteger newValue=(NSInteger)roundf(sw.value);
     if (OMCNativeSetPref(key,@(newValue))) {
-        NSIndexPath *p=[self.tableView indexPathForCell:(UITableViewCell *)sw.superview.superview];
-        if (p) [self.tableView reloadRowsAtIndexPaths:@[p] withRowAnimation:UITableViewRowAnimationNone];
+        // An accessory UISlider can be wrapped in private UIKit views.
+        // Never cast superview.superview into a cell: it may be UITableView.
+        UIView *parent=sw;
+        while (parent && ![parent isKindOfClass:UITableViewCell.class])
+            parent=parent.superview;
+        if ([parent isKindOfClass:UITableViewCell.class])
+            ((UITableViewCell *)parent).detailTextLabel.text=[NSString stringWithFormat:@"%ld",(long)newValue];
     }
 }
 - (void)editString:(NSDictionary *)row {
@@ -609,6 +614,9 @@ static NSArray *OMCStartupRandomSet(void) {
     NSString *name=OMCNativePref(@"startupScreenSoundFile",@"");
     NSString *file=[OMCStartupSounds() stringByAppendingPathComponent:name.lastPathComponent];
     NSError *err=nil;
+    AVAudioSession *session=AVAudioSession.sharedInstance;
+    [session setCategory:AVAudioSessionCategoryPlayback error:nil];
+    [session setActive:YES error:nil];
     self.soundPlayer=[[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL fileURLWithPath:file] error:&err];
     if (!self.soundPlayer) {OMCStartupAlert(self,err.localizedDescription?:OMCStartupLabel(@"STARTUPSCREEN_SOUND_NONE"));return;}
     self.soundPlayer.volume=fminf(1,fmaxf(0,[OMCNativePref(@"startupScreenSoundVolume",@100) floatValue]/100));
@@ -634,7 +642,7 @@ static NSArray *OMCStartupRandomSet(void) {
     NSTimeZone *tz=[NSTimeZone timeZoneForSecondsFromGMT:25200];
     greg.timeZone=tz;chinese.timeZone=tz;
     NSDate *day=[greg dateBySettingHour:12 minute:0 second:0
-        ofDate:NSDate.date options:0]?:NSDate.date;
+        ofDate:[NSDate date] options:0]?:[NSDate date];
     NSInteger event=1;
     for(NSInteger i=0;i<400;i++){
         NSDateComponents *g=[greg components:NSCalendarUnitMonth|NSCalendarUnitDay fromDate:day];
