@@ -718,36 +718,67 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     }]];
     [self presentViewController:a animated:YES completion:nil];
 }
+// HL27: The iPhone app cannot assume its own FrontBoard request has
+// authority to restart SpringBoard. Route only an explicit confirmed tap
+// over the already-established NSDistributed channel into our SpringBoard
+// tweak, with a short-lived nonce and an acknowledgement.
 - (void)confirmRespring {
-    UIAlertController *a=[UIAlertController alertControllerWithTitle:@"Respring"
-         message:OMCText(@"Khởi động lại giao diện SpringBoard?",@"Restart SpringBoard UI?")
+    UIAlertController *a=[UIAlertController alertControllerWithTitle:OMCNativeLocalized(@"RESPRING")
+         message:OMCNativeLocalized(@"RESPRING_CONFIRM")
          preferredStyle:UIAlertControllerStyleAlert];
-    [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Hủy",@"Cancel")
+    [a addAction:[UIAlertAction actionWithTitle:OMCNativeLocalized(@"CANCEL")
         style:UIAlertActionStyleCancel handler:nil]];
-    [a addAction:[UIAlertAction actionWithTitle:@"Respring"
+    [a addAction:[UIAlertAction actionWithTitle:OMCNativeLocalized(@"RESPRING")
         style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action){
-            // Use exactly the original FrontBoardServices respring contract.
-            // No guessed Darwin channel and no killall fallback.
-            dlopen("/System/Library/PrivateFrameworks/FrontBoardServices.framework/FrontBoardServices",RTLD_LAZY);
-            dlopen("/System/Library/PrivateFrameworks/SpringBoardServices.framework/SpringBoardServices",RTLD_LAZY);
-            Class actionClass=NSClassFromString(@"SBSRelaunchAction");
-            Class serviceClass=NSClassFromString(@"FBSSystemService");
-            SEL actionSelector=NSSelectorFromString(@"actionWithReason:options:targetURL:");
-            SEL serviceSelector=NSSelectorFromString(@"sharedService");
-            SEL sendSelector=NSSelectorFromString(@"sendActions:withResult:");
-            if (actionClass&&[actionClass respondsToSelector:actionSelector]&&
-                serviceClass&&[serviceClass respondsToSelector:serviceSelector]){
-                id result=((id(*)(id,SEL,id,NSUInteger,id))objc_msgSend)(
-                     actionClass,actionSelector,@"RestartRenderServer",4,nil);
-                id service=((id(*)(id,SEL))objc_msgSend)(serviceClass,serviceSelector);
-                if (result&&service&&[service respondsToSelector:sendSelector]){
-                    ((void(*)(id,SEL,id,id))objc_msgSend)(service,sendSelector,
-                        [NSSet setWithObject:result],nil);
-                    return;
-                }
+            Class klass=NSClassFromString(@"NSDistributedNotificationCenter");
+            SEL shared=NSSelectorFromString(@"defaultCenter");
+            SEL add=NSSelectorFromString(@"addObserverForName:object:queue:usingBlock:");
+            SEL send=NSSelectorFromString(@"postNotificationName:object:userInfo:");
+            if (!klass || ![klass respondsToSelector:shared]) {
+                NSLog(@"[hl27-respring] stage=unavailable-center");
+                OMCAlert(self,OMCText(@"Không có kênh liên lạc SpringBoard.",
+                          @"SpringBoard messaging is unavailable."));return;
             }
-            OMCAlert(self,OMCText(@"Respring không khả dụng trên thiết bị này.",
-                @"Respring unavailable on this device."));
+            id center=((id(*)(id,SEL))objc_msgSend)(klass,shared);
+            if(!center || ![center respondsToSelector:send] ||
+                ![center respondsToSelector:add]) {
+                NSLog(@"[hl27-respring] stage=unavailable-selector");
+                OMCAlert(self,OMCText(@"SpringBoard không hỗ trợ kênh điều khiển.",
+                          @"SpringBoard control channel unavailable."));return;
+            }
+            NSString *nonce=[[NSUUID UUID] UUIDString];
+            __block BOOL acked=NO;
+            __block id observer=nil;
+            observer=((id(*)(id,SEL,id,id,id,id))objc_msgSend)(
+                 center,add,@"com.anlai.omnicar/respring.ack",nil,
+                 [NSOperationQueue mainQueue],^(NSNotification *note){
+                if(![note.userInfo[@"nonce"] isEqualToString:nonce])return;
+                acked=YES;
+                NSLog(@"[hl27-respring] stage=ack-received status=%@",
+                      note.userInfo[@"status"]);
+                if(observer && [center respondsToSelector:@selector(removeObserver:)])
+                    [center removeObserver:observer];
+                observer=nil;
+            });
+            if (!observer) {
+                NSLog(@"[hl27-respring] stage=observer-failed");
+                OMCAlert(self,OMCText(@"Không thể theo dõi phản hồi từ SpringBoard.",
+                    @"Could not subscribe to SpringBoard acknowledgement."));return;
+            }
+            NSLog(@"[hl27-respring] stage=request-sent nonce=%@",nonce);
+            ((void(*)(id,SEL,id,id,id))objc_msgSend)(center,send,
+                @"com.anlai.omnicar/respring.request",nil,
+                @{@"nonce":nonce,@"issuedAt":@(CFAbsoluteTimeGetCurrent())});
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,3LL*NSEC_PER_SEC),
+                           dispatch_get_main_queue(),^{
+                if(acked)return;
+                if(observer && [center respondsToSelector:@selector(removeObserver:)])
+                    [center removeObserver:observer];
+                observer=nil;
+                NSLog(@"[hl27-respring] stage=ack-timeout; not proven");
+                OMCAlert(self,OMCText(@"SpringBoard chưa xác nhận yêu cầu. Không báo đã respring.",
+                    @"SpringBoard did not acknowledge the request."));
+            });
         }]];
     [self presentViewController:a animated:YES completion:nil];
 }
