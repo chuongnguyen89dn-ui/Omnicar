@@ -174,16 +174,12 @@ static void DCVoicePaint(SCPCarSplit *split, BOOL listening) {
                         [activeSplit toast:@"Không hiểu lệnh, hãy thử lại."];
                         return;
                     }
-                    NSDictionary *payload=@{
-                        @"requestID":NSUUID.UUID.UUIDString,
-                        @"time":@(NSDate.date.timeIntervalSince1970),
-                        @"command":command};
-                    [[NSDistributedNotificationCenter defaultCenter]
-                        postNotificationName:DCVoiceActionName object:nil
-                        userInfo:payload];
-                    [activeSplit toast:@"Đã gửi lệnh, kiểm tra kết quả trên xe."];
-                    NSLog(@"[hl30-voice] event=command-sent action=%@ ack=device-pending",
-                          command[@"action"]);
+                    BOOL accepted=SCPVoiceDispatchLocalCommand(command);
+                    [activeSplit toast:accepted
+                        ? @"Đã nhận lệnh, kiểm tra kết quả trên xe."
+                        : @"CarPlay từ chối lệnh này."];
+                    NSLog(@"[hl30-voice] event=command-dispatch action=%@ accepted=%d device-proven=NO",
+                          command[@"action"],(int)accepted);
                 });
             } else if (failure) {
                 dispatch_async(dispatch_get_main_queue(), ^{
