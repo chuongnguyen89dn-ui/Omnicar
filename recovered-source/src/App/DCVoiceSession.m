@@ -105,7 +105,7 @@ static NSNotificationCenter *DCVoiceDistributed(void) {
     hint.font=[UIFont preferredFontForTextStyle:UIFontTextStyleFootnote];
     hint.textColor=UIColor.secondaryLabelColor;
     hint.text=@"Ví dụ: Mở YouTube bên trái; Chia 2 ô; Chia 60/40; Đổi chỗ hai ô.\n"
-              "Lệnh được xử lý nội bộ, không lưu bản ghi âm.";
+              @"Lệnh được xử lý nội bộ, không lưu bản ghi âm.";
     [self.view addSubview:instructions];
     [self.view addSubview:state];
     [self.view addSubview:button];
