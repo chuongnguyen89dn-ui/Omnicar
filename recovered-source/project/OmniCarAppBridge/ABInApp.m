@@ -1103,11 +1103,11 @@ static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
                                      NSArray<UIWindow *> *windows, NSString *when) {
     if (!keyboard) return;
     // Avoid flooding UIKit's focus/layout path during divider animation.
-    // Sample the first observation of an epoch, then at most ~3/s.
+    // Sample the first observation of an epoch, then at most ~4/s.
     static NSUInteger lastEpoch = 0;
     static CFAbsoluteTime lastAt = 0;
     CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
-    if (lastEpoch == ABNativeKbEpoch && (now - lastAt) < 0.33) return;
+    if (lastEpoch == ABNativeKbEpoch && (now - lastAt) < 0.25) return;
     lastEpoch = ABNativeKbEpoch;
     lastAt = now;
     @try {
