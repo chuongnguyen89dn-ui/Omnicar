@@ -1036,6 +1036,15 @@ static __weak UIWindow *ABNativeKbWindow;
 static CGRect ABNativeKbOriginal;
 static BOOL ABNativeKbHasOriginal = NO;
 static NSUInteger ABNativeKbEpoch = 0;
+// [hl30-kbviewport] Keep UIKit's complete native keyboard layout at the
+// phone's intrinsic size. Render its WHOLE window into the hosted scene with
+// one reversible uniform transform; never resize its LayoutStar/keyplane.
+// Previous window.frame writes made a 495-wide keyplane clip inside a 371-wide
+// window during divider changes (device log 2026-11-11 21:35:16).
+static CGAffineTransform ABNativeKbOriginalTransform;
+static CGRect ABNativeKbOriginalBounds;
+static CGPoint ABNativeKbOriginalCenter;
+static BOOL ABNativeKbUsesViewport = NO;
 // [hl24-kbsource] UIKit is the sole owner of UIKeyboardLayoutStar,
 // its transform, and keyplane creation. Do not shrink the key subtree:
 // ABHost.layoutPane already applies the pane zoom to app content.
@@ -1207,17 +1216,25 @@ static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
 }
 
 static void ABNativeKbRestore(NSString *reason) {
-    // [hl24-kbsource] Restore ONLY the native keyboard WINDOW.
-    // LayoutStar was never modified by this build.
     if (!ABNativeKbHasOriginal) return;
     UIWindow *window = ABNativeKbWindow;
-    if (window && !CGRectEqualToRect(window.frame, ABNativeKbOriginal))
+    // [hl30-kbviewport] Restore every UIKit-owned property we changed.
+    if (window && ABNativeKbUsesViewport) {
+        window.transform = ABNativeKbOriginalTransform;
+        window.bounds = ABNativeKbOriginalBounds;
+        window.center = ABNativeKbOriginalCenter;
+    } else if (window && !CGRectEqualToRect(window.frame, ABNativeKbOriginal)) {
+        // Legacy fallback for non-remote keyboard window subclasses.
         window.frame = ABNativeKbOriginal;
+    }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[hl11kb] ev=restore reason=%@ found=%d original=%@",
-        reason, (int)(window != nil), NSStringFromCGRect(ABNativeKbOriginal)]);
+        @"[hl30-kbviewport] event=restore reason=%@ found=%d mode=%@ original=%@",
+        reason, (int)(window != nil),
+        ABNativeKbUsesViewport ? @"uniform-window-transform" : @"legacy",
+        NSStringFromCGRect(ABNativeKbOriginal)]);
     ABNativeKbWindow = nil;
     ABNativeKbHasOriginal = NO;
+    ABNativeKbUsesViewport = NO;
 }
 
 static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
@@ -1240,33 +1257,91 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             else if (!key) key = w;
         }
     }
-    // The key-window rect is the same authority DuoFace used. If
-    // phone and key-window sizes are equal, there is nothing to fit.
     CGRect target = key ? key.frame : CGRectNull;
     BOOL visibleKeyboard = keyboard && !keyboard.hidden &&
         keyboard.alpha > 0.01 && !CGRectIsEmpty(keyboard.bounds);
+    UIView *star = visibleKeyboard ? ABNativeKbFindLayout(keyboard, 0) : nil;
+    CGFloat starVisualWidth = 0;
+    BOOL layoutObserved = NO;
+    BOOL applied = NO;
     NSString *reason = !keyboard ? @"no-kb-window" :
                        !visibleKeyboard ? @"kb-not-visible" :
                        !key ? @"no-key-window" :
                        CGRectIsEmpty(target) ? @"empty-target" :
-                       CGRectEqualToRect(keyboard.frame, target)
-                           ? @"already-fit" : @"applied";
-    CGFloat starVisualWidth = 0;
-    BOOL layoutObserved = NO;
-    if (visibleKeyboard && key && !CGRectIsEmpty(target)) {
+                       !star ? @"wait-layoutstar" : @"unsupported-window";
+    if (visibleKeyboard && key && !CGRectIsEmpty(target) && star) {
         if (ABNativeKbHasOriginal && keyboard != ABNativeKbWindow)
             ABNativeKbRestore(@"window-replaced");
-        BOOL changedFrame = !CGRectEqualToRect(keyboard.frame, target);
-        if (changedFrame && !ABNativeKbHasOriginal) {
-            ABNativeKbWindow = keyboard;
-            ABNativeKbOriginal = keyboard.frame;
-            ABNativeKbHasOriginal = YES;
+        NSString *className = NSStringFromClass(keyboard.class);
+        BOOL remote = [className containsString:@"UIRemoteKeyboardWindow"];
+        CGFloat sourceW = UIScreen.mainScreen.bounds.size.width;
+        CGFloat sourceH = UIScreen.mainScreen.bounds.size.height;
+        CGFloat scale = target.size.width / sourceW;
+        BOOL validScale = isfinite(scale) && scale >= 0.55 && scale <= 1.6 &&
+            sourceW >= 200 && sourceH >= 300 &&
+            fabs(target.size.height) >= 200;
+        BOOL identitySource = ABNativeKbHasOriginal
+            ? CGAffineTransformIsIdentity(ABNativeKbOriginalTransform)
+            : CGAffineTransformIsIdentity(keyboard.transform);
+        if (remote && validScale && identitySource) {
+            if (!ABNativeKbHasOriginal) {
+                ABNativeKbWindow = keyboard;
+                ABNativeKbOriginal = keyboard.frame;
+                ABNativeKbOriginalBounds = keyboard.bounds;
+                ABNativeKbOriginalCenter = keyboard.center;
+                ABNativeKbOriginalTransform = keyboard.transform;
+                ABNativeKbHasOriginal = YES;
+            }
+            // Set source bounds FIRST, then apply a single uniform matrix.
+            // Keyplane receives no transform, private setter or reloadInputViews.
+            // Anchor the bottom of the complete source keyboard at the bottom
+            // of the current scene; the host applies its existing pane zoom.
+            keyboard.transform = CGAffineTransformIdentity;
+            keyboard.bounds = CGRectMake(0, 0, sourceW, sourceH);
+            keyboard.transform = CGAffineTransformMakeScale(scale, scale);
+            keyboard.center = CGPointMake(CGRectGetMidX(target),
+                CGRectGetMaxY(target) - sourceH * scale * 0.5);
+            ABNativeKbUsesViewport = YES;
+            CGRect projected = keyboard.frame;
+            applied = fabs(projected.size.width-target.size.width) < 2 &&
+                fabs(CGRectGetMaxY(projected)-CGRectGetMaxY(target)) < 2 &&
+                fabs(CGRectGetMidX(projected)-CGRectGetMidX(target)) < 2;
+            reason = applied ? @"uniform-window-transform" : @"viewport-invalid";
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[hl30-kbviewport] when=%@ attempt=%ld mode=%@ "
+                 "source=%.1fx%.1f target=%@ scale=%.4f projected=%@ "
+                 "layoutStar=present touch=DEVICE-PENDING",
+                when, (long)attempt, reason, sourceW, sourceH,
+                NSStringFromCGRect(target), scale, NSStringFromCGRect(projected)]);
+            if (!applied) {
+                ABNativeKbRestore(@"projection-guard");
+            }
+        } else if (!remote) {
+            // Preserve old behavior on unknown keyboard types; do not apply
+            // a guessed scene transform outside the iPhone X evidence.
+            BOOL changed = !CGRectEqualToRect(keyboard.frame, target);
+            if (changed && !ABNativeKbHasOriginal) {
+                ABNativeKbWindow = keyboard;
+                ABNativeKbOriginal = keyboard.frame;
+                ABNativeKbHasOriginal = YES;
+            }
+            if (changed) keyboard.frame = target;
+            applied = YES;
+            reason = @"legacy-unknown-window";
+        } else {
+            reason = !validScale ? @"invalid-scene-scale" :
+                     @"keyboard-transform-not-identity";
+            OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+                @"[hl30-kbviewport] when=%@ rejected=%@ class=%@",
+                when,reason,className]);
         }
-        if (changedFrame) keyboard.frame = target;
-        UIView *observedStar = nil;
-        layoutObserved = ABNativeKbObserveLayout(keyboard, &starVisualWidth,
-                                                 &observedStar);
-        AB25ProbeKeyboardSurface(keyboard, key, windows, when, observedStar);
+        if (applied) {
+            UIView *observedStar = nil;
+            layoutObserved = ABNativeKbObserveLayout(keyboard,
+                &starVisualWidth, &observedStar);
+            AB25ProbeKeyboardSurface(keyboard, key, windows, when,
+                                     observedStar);
+        }
     }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[hl24-keyplane] when=%@ try=%ld observed=%d visualW=%.1f "
@@ -1285,12 +1360,11 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
         keyboard ? NSStringFromCGRect(keyboard.frame) : @"nil",
         keyboard ? (int)keyboard.hidden : -1,
         NSStringFromCGRect(UIScreen.mainScreen.bounds)]);
-    // Window visibility is distinct from keycap completeness. Returning
-    // success here only means a visible native WINDOW was found; log
-    // observed=0 when UIKit's keyplane cannot yet be inspected.
-    return visibleKeyboard && key != nil && !CGRectIsEmpty(target);
+    // A visible WINDOW alone is not success: wait for the layout tree and
+    // the verified viewport projection. The existing HL11 retry epochs stop
+    // after this succeeds; they never force a keyplane re-layout.
+    return applied && layoutObserved;
 }
-
 static void ABNativeKbBegin(NSString *why) {
     if (ABForcedOrientation < 1 || ABDrawnKb ||
         !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
