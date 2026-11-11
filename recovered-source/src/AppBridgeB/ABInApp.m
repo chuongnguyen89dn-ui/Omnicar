@@ -1098,9 +1098,18 @@ static NSArray<UIWindow *> *ABNativeKbWindows(void) {
 // [hl25-kb-surface] Read-only compositor/clip probe in the hosted app
 // process. SpringBoard's window list is not evidence of this process's
 // keyboard z-order. Never alter LayoutStar or expose typed input.
+// No synthesized taps/hit tests; screen raster/touch correctness stays UNKNOWN.
 static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
                                      NSArray<UIWindow *> *windows, NSString *when) {
     if (!keyboard) return;
+    // Avoid flooding UIKit's focus/layout path during divider animation.
+    // Sample the first observation of an epoch, then at most ~3/s.
+    static NSUInteger lastEpoch = 0;
+    static CFAbsoluteTime lastAt = 0;
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    if (lastEpoch == ABNativeKbEpoch && (now - lastAt) < 0.33) return;
+    lastEpoch = ABNativeKbEpoch;
+    lastAt = now;
     @try {
         NSMutableArray<NSString *> *siblings = [NSMutableArray array];
         for (UIWindow *w in windows) {
@@ -1126,27 +1135,27 @@ static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
                 NSStringFromClass(v.class), NSStringFromCGRect(r), (int)clip,
                 (double)v.alpha]];
         }
-        CGPoint edge = CGPointZero;
-        UIView *hit = nil;
-        BOOL inside = NO;
+        // Geometry only. -hitTest:withEvent: is NOT an inert probe:
+        // custom UIKit subclasses can route/consume events on that path.
+        // LayoutStar is not the actual raster/keycap proof either.
+        BOOL rightInsideClip = NO, rightInsideWindow = NO;
         if (star && !CGRectIsNull(projected) && !CGRectIsEmpty(projected)) {
-            edge = CGPointMake(CGRectGetMaxX(projected) - 12,
-                               CGRectGetMidY(projected));
-            inside = CGRectContainsPoint(available, edge);
-            if (CGRectContainsPoint(keyboard.bounds, edge))
-                hit = [keyboard hitTest:edge withEvent:nil];
+            CGPoint edge = CGPointMake(CGRectGetMaxX(projected) - 12,
+                                       CGRectGetMidY(projected));
+            rightInsideClip = CGRectContainsPoint(available, edge);
+            rightInsideWindow = CGRectContainsPoint(keyboard.bounds, edge);
         }
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
             @"[hl25-kb-surface] when=%@ key=%@ kb=%@ kbLevel=%.1f "
              "kbScene=%@ star=%d projected=%@ available=%@ "
-             "rightInsideClip=%d hit=%@ hitInStar=%d",
+             "rightInsideClip=%d rightInsideWindow=%d probe=geometry-only "
+             "keycapRaster=UNKNOWN keycapTouch=UNKNOWN",
             when, key ? NSStringFromCGRect(key.frame) : @"nil",
             NSStringFromCGRect(keyboard.frame), (double)keyboard.windowLevel,
             keyboard.windowScene ? NSStringFromClass(keyboard.windowScene.class) : @"nil",
             (int)(star != nil), NSStringFromCGRect(projected),
-            NSStringFromCGRect(available), (int)inside,
-            hit ? NSStringFromClass(hit.class) : @"nil",
-            (int)(star && hit && (hit == star || [hit isDescendantOfView:star]))]);
+            NSStringFromCGRect(available), (int)rightInsideClip,
+            (int)rightInsideWindow]);
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
             @"[hl25-kb-ancestors] when=%@ %@",
             when, [ancestors componentsJoinedByString:@" / "]]);
