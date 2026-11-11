@@ -158,8 +158,15 @@ static NSArray *OMCStartupRandomSet(void) {
     for (NSDictionary *row in items) {
         if (![row isKindOfClass:NSDictionary.class])continue;
         NSArray *styles=row[@"ssStyles"];
-        if ([styles isKindOfClass:NSArray.class] && ![styles containsObject:@(style)] &&
-            !(style==10&&[styles containsObject:@9]))continue;
+        if ([styles isKindOfClass:NSArray.class]) {
+            // The restored plist marks the random chooser as ssStyles=9,
+            // while runtime style index 9 is Liquid and index 10 is Random.
+            // Do not leak random-style controls into Liquid.
+            BOOL randomRow=[row[@"ssRandomStyle"] isKindOfClass:NSNumber.class] ||
+                [row[@"label"] isEqualToString:@"STARTUPSCREEN_RANDOM_GROUP"];
+            BOOL visible=randomRow?(style==10):[styles containsObject:@(style)];
+            if (!visible)continue;
+        }
         NSString *cell=row[@"cell"];
         if ([cell isEqualToString:@"PSGroupCell"]) {
             if (rows.count) [sections addObject:@{@"header":header,@"rows":[rows copy]}];
