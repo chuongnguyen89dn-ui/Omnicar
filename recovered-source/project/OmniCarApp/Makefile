@@ -11,7 +11,9 @@ include $(THEOS)/makefiles/common.mk
 APPLICATION_NAME = OmniCar
 OmniCar_FILES = main.m OMCAppDelegate.m OMCNativeSettings.m OMCNativeStartup.m
 OmniCar_FRAMEWORKS = UIKit AVFoundation AVKit CoreMedia CoreImage CoreVideo ImageIO CoreGraphics QuartzCore UniformTypeIdentifiers
-# Reuse the original real Root/Feature schemas and translations. Never copy Prefs Info.plist\n# over the application's APPL Info.plist (historical HL16 regression).\nOmniCar_RESOURCE_FILES = $(filter-out ../OmniCarPrefs/Resources/Info.plist,$(wildcard ../OmniCarPrefs/Resources/*))
+# Reuse the original real Root/Feature schemas and translations. Never copy Prefs Info.plist
+# over the application's APPL Info.plist (historical HL16 regression).
+OmniCar_RESOURCE_FILES = $(filter-out ../OmniCarPrefs/Resources/Info.plist,$(wildcard ../OmniCarPrefs/Resources/*))
 OmniCar_CFLAGS = -fobjc-arc
 OmniCar_LDFLAGS = -fuse-ld=lld
 
