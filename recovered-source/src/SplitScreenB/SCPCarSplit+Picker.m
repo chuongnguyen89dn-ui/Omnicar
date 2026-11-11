@@ -443,15 +443,13 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         [self removePickerSheet];
         return;
     }
-    // [hl16-picker] Rebuild after divider/ratio changes. Container size
-    // can be unchanged while the selected pane becomes 198 pt wide.
-    CGRect targetFrame = found.view
-        ? [found.view convertRect:found.view.bounds toView:self.container]
-        : [self frameForSlot:found.slot];
-    NSString *key = [NSString stringWithFormat:@"%p/%d/%lu/%d/%@/%@",
+    // [hl19-picker-restore] Original binary-derived cache identity.
+    // Rebuilding on the divider's changing targetFrame caused the
+    // 13-rebuild HL17 loop. The legacy sheet belongs to the full
+    // container; target-pane frame is not a layout-cache component.
+    NSString *key = [NSString stringWithFormat:@"%p/%d/%lu/%d/%@",
         (void *)found, found.slot, (unsigned long)panes.count,
-        (int)self.mainStack, NSStringFromCGSize(self.container.bounds.size),
-        NSStringFromCGRect(targetFrame)];
+        (int)self.mainStack, NSStringFromCGSize(self.container.bounds.size)];
     if (self.pickerSheet == nil || ![key isEqualToString:self.pickerSheetKey]) {
         [self buildPickerSheetForPane:found];
         self.pickerSheetKey = key;
@@ -480,59 +478,24 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     SCPickerMeasurePreBundle = [pane.bundleID copy];
     UIView *oldSheet = self.pickerSheet;
     UIView *oldShield = self.pickerShield;
-    // [hl10surface] A separate level-1065 window may occlude the
-    // compositor backing a living native/hosted pane even if the
-    // sheet backdrop is fully transparent. When a real pane is
-    // attached and no other tray overlay owns the aux window,
-    // present this picker in the EXISTING split UIWindow instead.
-    // Keep the legacy tray-window path for empty sessions, active
-    // tray/ratio/drag overlays and cross-window transitions.
+    // [hl19-picker-restore] Return to original picker ownership:
+    // use the existing tray window (or container fallback), full
+    // container bounds and the original two-region icon grid/side
+    // column. Do not inline the sheet into a live pane window,
+    // narrow it to one pane, or invent a second selection engine.
     UIWindow *splitWindow = self.container.window;
     BOOL inlineSheet = NO;
-    if (splitWindow && self.tabParent &&
-        self.tabParent.window == splitWindow &&
-        !CGRectIsEmpty(self.tabParent.bounds) &&
-        !self.tray && !self.ratioMenu && !self.dragGhost &&
-        (!self.trayWindow || self.trayWindow.hidden) &&
-        (!oldSheet || oldSheet.window == splitWindow)) {
-        for (SCPCarPane *candidate in [self allPanes]) {
-            if (candidate.vc && candidate.host.window == splitWindow &&
-                !candidate.host.hidden && candidate.host.alpha > 0.01) {
-                inlineSheet = YES;
-                break;
-            }
-        }
-    }
-    UIWindow *window = inlineSheet ? nil :
-        [self trayWindowForParent:self.container];
+    UIWindow *window = [self trayWindowForParent:self.container];
     CGRect area;
     UIView *host;
-    if (inlineSheet) {
-        // Tab parent spans the split inside the SAME backing window;
-        // sheet and popup shield will share this coordinate space.
-        host = self.tabParent;
-        area = [self.container convertRect:self.container.bounds toView:host];
-    } else if (window != nil) {
+    if (window != nil) {
         area = [self.container convertRect:self.container.bounds toView:nil];
         host = window;
     } else {
         area = self.container.bounds;
         host = self.container;
     }
-    // [hl16-picker] A picker for pane 0 may NEVER extend into a live
-    // native Maps pane 1. The old 'area' was the full split 595x360;
-    // for a live or empty target pane use that pane's own bounds.
-    // Coordinates are converted into the actual presentation host.
-    BOOL paneLocalSheet = (pane != self.floatPane && pane.view != nil &&
-                           pane.view.window != nil);
-    if (paneLocalSheet) {
-        CGRect localArea = window
-            ? [pane.view convertRect:pane.view.bounds toView:nil]
-            : [pane.view convertRect:pane.view.bounds toView:host];
-        if (!CGRectIsEmpty(localArea) && localArea.size.width > 50 &&
-            localArea.size.height > 70) area = localArea;
-        else paneLocalSheet = NO;
-    }
+    BOOL paneLocalSheet = NO;
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[hl10surface] ev=picker-host mode=%@ slot=%d parentWindow=%@ "
          "sheetHost=%@ trayVisible=%d oldSheetWindow=%@",
@@ -656,29 +619,12 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // fully visible and tappable. Rollback gate: pref
     // splitScreenPickerSheetClearFaceOff = YES restores the original
     // face unconditionally.
+    // [hl19-picker-restore] Original face is opaque/meshed. The
+    // HL5 clear-face customization was explicitly withdrawn by
+    // Nguyen; do not depend on a stale user preference to restore it.
     BOOL faceClear = NO;
     NSInteger hostedUnderSheet = 0;
     NSInteger liveUnderSheet = 0;
-    if (![SCPPrefs pickerSheetClearFaceOff]) {
-        for (SCPCarPane *p in [self allPanes]) {
-            BOOL bridged = SCPIsBridgedPhoneApp(p.bundleID);
-            // Legacy separate-window face rule remains hosted-only;
-            // same-window presentation also protects native CarPlay
-            // scenes against an opaque picker backing layer.
-            if (!p.host || (!inlineSheet && !bridged) ||
-                (!p.vc && ![self slotOccupied:p.slot])) continue;
-            CGRect paneRect = inlineSheet
-                ? [p.host convertRect:p.host.bounds toView:host]
-                : (window ? [p.host convertRect:p.host.bounds toView:nil]
-                          : [p.host convertRect:p.host.bounds toView:self.container]);
-            if (CGRectIntersectsRect(sheet.frame, paneRect)) {
-                liveUnderSheet++;
-                if (bridged) hostedUnderSheet++;
-            }
-        }
-        faceClear = hostedUnderSheet > 0 ||
-                    (inlineSheet && liveUnderSheet > 0);
-    }
     BOOL meshPresent = NO;
     if (faceClear) {
         effectView.effect = nil;
