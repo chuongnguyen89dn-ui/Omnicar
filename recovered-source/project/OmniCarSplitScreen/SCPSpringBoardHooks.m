@@ -11,6 +11,9 @@
 #import <objc/message.h>
 #import <notify.h>
 #import <substrate.h>
+#import <signal.h>
+#import <unistd.h>
+#import <math.h>
 
 void *orig_SpringBoard_applicationDidFinishLaunching;
 
@@ -147,6 +150,42 @@ static void SCPURLBlock(NSNotification *note) {
     SCPPostNativeSplitRequest(command);
 }
 
+// HL27: user-confirmed Respring belongs in SpringBoard, not the iPhone app.
+// Previous HL26 sent SBSRelaunchAction from a sandboxed iPhone app and
+// returned without observing execution. This route uses the existing
+// SpringBoard-loaded split tweak and NSDistributedNotificationCenter.
+// It is never invoked on startup: a fresh, timely, explicit request is required.
+static CFAbsoluteTime SCP27RespringLastAt = 0;
+static void SCP27RespringRequest(NSNotification *note) {
+    if (![[NSBundle.mainBundle bundleIdentifier] isEqualToString:@"com.apple.springboard"])
+        return;
+    NSDictionary *payload=note.userInfo;
+    NSString *nonce=[payload[@"nonce"] isKindOfClass:NSString.class]?payload[@"nonce"]:nil;
+    NSNumber *stamp=[payload[@"issuedAt"] isKindOfClass:NSNumber.class]?payload[@"issuedAt"]:nil;
+    CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+    BOOL valid=nonce.length==36 && stamp &&
+        isfinite(stamp.doubleValue) && fabs(now-stamp.doubleValue)<12.0 &&
+        now-SCP27RespringLastAt>=8.0;
+    if (!valid) {
+        OMCLogWrite(@"SplitScreen",@"[hl27-respring] stage=reject invalid-or-stale-request");
+        return;
+    }
+    SCP27RespringLastAt=now;
+    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+        @"[hl27-respring] stage=accepted springboard-pid=%d", getpid()]);
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotificationName:@"com.anlai.omnicar/respring.ack" object:nil
+                    userInfo:@{@"nonce":nonce,@"status":@"accepted"}];
+    // Give the acknowledgement time to reach the app and the log relay
+    // before terminating our own SpringBoard process. launchd owns restart.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.75*NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl27-respring] stage=terminate-self springboard-pid=%d", getpid()]);
+        kill(getpid(),SIGTERM);
+    });
+}
+
 // sub_8540 VERIFIED: replacement for -[SpringBoard
 // applicationDidFinishLaunching:]: original first, then register the four
 // distributed-notification observers (main queue).
@@ -163,6 +202,10 @@ static void Hook_applicationDidFinishLaunching(id self, SEL _cmd, id app) {
                     usingBlock:^(NSNotification *n) { SCPKillAppBlock(n); }];
     [center addObserverForName:SCPNoteURL object:nil queue:mainQueue
                     usingBlock:^(NSNotification *n) { SCPURLBlock(n); }];
+    [center addObserverForName:@"com.anlai.omnicar/respring.request"
+                       object:nil queue:mainQueue
+                   usingBlock:^(NSNotification *n) { SCP27RespringRequest(n); }];
+    OMCLogWrite(@"SplitScreen",@"[hl27-respring] stage=observer-ready owner=SpringBoard");
 }
 
 // __init_2 (0x843c) VERIFIED end-to-end. Runs in SpringBoard only; the hook
