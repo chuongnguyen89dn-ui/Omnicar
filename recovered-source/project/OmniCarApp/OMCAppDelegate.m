@@ -8,7 +8,6 @@
 #import <Preferences/PSListController.h>
 #import <Preferences/PSRootController.h>
 #import <Preferences/PSSpecifier.h>
-#import <objc/message.h>
 
 
  // [hl19-settings] Preferences.framework expects a concrete root owner
@@ -39,20 +38,17 @@
              NSLog(@"[hl19-settings] gate=resources-or-class-missing root=%@ class=%@",
                    rootPath ?: @"missing", cls);
          } else {
-             PSListController *root = [[cls alloc] initForContentSize:size];
+             PSListController *root = [[cls alloc] init];
+             (void)size;
              root.bundle = bundle;
              root.title = @"OmniCar";
-             PSSpecifier *specifier = [PSSpecifier new];
-             specifier.target = root;
+             // PSRootController is a UINavigationController. The legacy
+             // -pushController: selector is documented for pre-iOS 3.2
+             // and cannot be assumed available on iOS 16. Use its stable
+             // UINavigationController push path for the real Prefs page.
              root.rootController = (id)self;
              root.parentController = (id)self;
-             if ([root respondsToSelector:@selector(viewWillBecomeVisible:)]) {
-                 // The selector belongs to Preferences.framework and is
-                 // intentionally called only when this runtime has it.
-                 ((void (*)(id, SEL, id))objc_msgSend)(
-                     root, @selector(viewWillBecomeVisible:), specifier);
-             }
-             [self pushController:root];
+             [self pushViewController:root animated:NO];
              installed = self.viewControllers.count > 0;
              NSLog(@"[hl19-settings] gate=root-wired installed=%d pages=%lu bundle=%@",
                    (int)installed, (unsigned long)self.viewControllers.count,
