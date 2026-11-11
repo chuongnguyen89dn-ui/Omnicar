@@ -1,6 +1,7 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
 ## 2026-11-11 — Điều tra voice DuoNavi 1.0.4 cho DuoCar (READ-ONLY)
+**Quyết định mới nhất của Nguyen: bỏ BYOK; không yêu cầu người dùng tự lấy/nhập API key. AI trò chuyện tạm gác; nếu tiếp tục trợ lý, ưu tiên lệnh điều khiển DuoCar qua Apple Speech + xử lý nội bộ. §10 của hồ sơ chỉ còn là lịch sử; §11 là quyết định hiện hành. Chưa triển khai source/build.**
 - Đã đối chiếu metadata binary gốc `DuoNaviDashboard.dylib` (SHA256 `44fdd4b4...`), tìm thấy session manager, Apple/cloud STT, capture/playback, directive dispatcher, scene dispatcher và `CBAIBubbleView`. **Khả thi** xây module tương đương cho DuoCar, nhưng không ghép binary vendor hay helper grant TCC. Nút micro trên màn hình CarPlay **khả thi**, nút giọng nói **vô-lăng mặc định gọi Siri**, chưa chứng minh DuoNavi intercept hoặc kích hoạt trợ lý riêng. **Chưa sửa source, chưa build, chưa device pass**. [Phân tích và cổng tích hợp](DUONAVI_104_VOICE_FEASIBILITY_20261111.md).
 
 ## 2026-11-11 — HL28 tích hợp bàn phím HL11 + Cài đặt/Respring HL27: FAT DEB đã ký, giao trực tiếp
