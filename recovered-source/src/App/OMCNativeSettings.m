@@ -295,6 +295,25 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     } else {
         id data=OMCNativePref(@"appBridgeApps",@[]);
         self.chosen=[NSMutableSet setWithArray:[data isKindOfClass:NSArray.class]?data:@[]];
+        if(!self.onPick) {
+            // The original AppBridge page separates phone-only apps from
+            // native CarPlay apps. Keep historical choices visible for removal,
+            // but never offer a new native system app as an AppBridge duplicate.
+            NSMutableSet *nativeIDs=[NSMutableSet set];
+            id catalog=OMCNativePref(@"homeScreenCarApps",@[]);
+            if([catalog isKindOfClass:NSArray.class])for(id item in catalog)
+                if([item isKindOfClass:NSDictionary.class]&&
+                   [item[@"id"] isKindOfClass:NSString.class])
+                    [nativeIDs addObject:item[@"id"]];
+            if(nativeIDs.count) {
+                NSSet *already=[self.chosen copy];
+                self.inventory=[self.inventory filteredArrayUsingPredicate:
+                    [NSPredicate predicateWithBlock:^BOOL(NSDictionary *app,NSDictionary *unused){
+                        return ![nativeIDs containsObject:app[@"id"]]||
+                               [already containsObject:app[@"id"]];
+                    }]];
+            }
+        }
     }
     [self updateSearchResultsForSearchController:self.navigationItem.searchController];
     NSLog(@"[hl26-settings] page=apps inventory=%lu chosen=%lu",
