@@ -38,6 +38,8 @@ for sel in (
 assert "AB25SceneRefABI(settings, two, 4)" in scene
 assert "AB25SceneRefABI(settings, three, 5)" in scene
 assert "skip-abi-mismatch" in scene and "unavailable" in scene
+assert "skip-3arg-container-orientation-unverified" in scene
+assert "settings, three, size, orientation, orientation" not in scene
 assert "orientation != 1 && orientation != 3 && orientation != 4" in scene
 assert "objc_msgSend" in scene
 block = host[host.index("static void ABSceneSettingsApply"):host.index("static id ABSceneOfPane")]
