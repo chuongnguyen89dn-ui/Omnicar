@@ -760,11 +760,33 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
                     OMCAlert(self,exp.error.localizedDescription?:@"Video export failed");return;
                 }
                 NSString *dest=[[self nativeHomeDirectory] stringByAppendingPathComponent:@"video.mp4"];
-                [fm createDirectoryAtPath:[self nativeHomeDirectory] withIntermediateDirectories:YES attributes:nil error:nil];
-                [fm removeItemAtPath:dest error:nil];
                 NSError *mv=nil;
-                if(![fm moveItemAtPath:out toPath:dest error:&mv]) {
-                    OMCAlert(self,mv.localizedDescription?:@"Video write failed");return;
+                if(![fm createDirectoryAtPath:[self nativeHomeDirectory]
+                        withIntermediateDirectories:YES attributes:nil error:&mv]) {
+                    [fm removeItemAtPath:out error:nil];
+                    OMCAlert(self,mv.localizedDescription?:@"Home directory not writable");return;
+                }
+                // Stage on the destination volume. Keep the previous video
+                // intact if copying or atomic replacement fails.
+                NSString *stage=[[self nativeHomeDirectory] stringByAppendingPathComponent:
+                    [NSString stringWithFormat:@".incoming-%@.mp4",[[NSUUID UUID] UUIDString]]];
+                if(![fm copyItemAtPath:out toPath:stage error:&mv]) {
+                    [fm removeItemAtPath:out error:nil];
+                    OMCAlert(self,mv.localizedDescription?:@"Video staging failed");return;
+                }
+                BOOL installed=NO;
+                if([fm fileExistsAtPath:dest]) {
+                    NSURL *result=nil;
+                    installed=[fm replaceItemAtURL:[NSURL fileURLWithPath:dest]
+                        withItemAtURL:[NSURL fileURLWithPath:stage]
+                        backupItemName:nil options:0 resultingItemURL:&result error:&mv];
+                } else {
+                    installed=[fm moveItemAtPath:stage toPath:dest error:&mv];
+                }
+                [fm removeItemAtPath:out error:nil];
+                if(!installed) {
+                    [fm removeItemAtPath:stage error:nil];
+                    OMCAlert(self,mv.localizedDescription?:@"Video replace failed");return;
                 }
                 [fm setAttributes:@{NSFilePosixPermissions:@0644} ofItemAtPath:dest error:nil];
                 AVAssetImageGenerator *g=[[AVAssetImageGenerator alloc]
