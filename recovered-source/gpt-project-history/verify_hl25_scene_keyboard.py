@@ -42,10 +42,11 @@ for sel in (
 assert "AB25SceneRefABI(settings, two, 4)" in scene
 assert "AB25SceneRefABI(settings, three, 5)" in scene
 assert "skip-abi-mismatch" in scene and "unavailable" in scene
-assert "skip-3arg-container-orientation-unverified" in scene
+assert "probe-interface-abi-matches-NOT-CALLED" in scene
+assert "probe-3arg-abi-matches-container-unverified-NOT-CALLED" in scene
 assert "settings, three, size, orientation, orientation" not in scene
 assert "orientation != 1 && orientation != 3 && orientation != 4" in scene
-assert "objc_msgSend" in scene
+assert "objc_msgSend" not in scene, "Private scene setter must stay disabled before runtime proof"
 block = host[host.index("static void ABSceneSettingsApply"):host.index("static id ABSceneOfPane")]
 assert "AB25SceneReferenceApply(settings, logicalSize, orientation)" in block
 assert "SEL setFrame = NSSelectorFromString(@\"setFrame:\")" in block
@@ -63,13 +64,19 @@ probe_start = app.index("static void AB25ProbeKeyboardSurface(")
 probe_end = app.index("static void ABNativeKbRestore(", probe_start)
 probe = app[probe_start:probe_end]
 for token in ("windowLevel", "windowScene", "clipsToBounds",
-              "masksToBounds", "CGRectIntersection", "hitTest:edge",
+              "masksToBounds", "CGRectIntersection", "rightInsideWindow",
               "convertRect:v.bounds toView:keyboard", "hl25-kb-surface",
               "hl25-kb-ancestors", "hl25-kb-windows"):
     assert token in probe, f"missing compositor diagnostic {token}"
 for forbidden in ("setFrame:", "layoutIfNeeded", "reloadInputViews",
                   "transform =", "center =", "setNeedsLayout"):
     assert forbidden not in probe, f"unexpected mutation in probe: {forbidden}"
+assert "[keyboard hitTest:" not in probe, "Diagnostic must not dispatch custom touch handlers"
+assert "keycapRaster=UNKNOWN keycapTouch=UNKNOWN" in probe
+assert "(now - lastAt) < 0.25" in probe
+assert "lastEpoch == ABNativeKbEpoch" in probe
+assert 'NSStringFromCGAffineTransform(appView.transform)' in geometry
+assert 'boxWindowSame=%d' in geometry
 assert "AB25ProbeKeyboardSurface(keyboard, key, windows, when)" in app
 assert "ABNativeKbObserveLayout(keyboard, &starVisualWidth)" in app
 
