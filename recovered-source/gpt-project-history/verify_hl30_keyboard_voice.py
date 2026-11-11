@@ -60,6 +60,15 @@ assert 'SCPVoiceBubbleUpdate(SCPCarSplit *split)' in native
 assert 'SCPVoiceBubbleDetach(SCPCarSplit *split)' in native
 assert 'SCPVoiceNativeToggle(SCPCarSplit *split)' in native
 assert 'SCPVoiceNativeToggle(self)' in bridge
+# Local voice commands must use the SAME allowlisted owner (direct call,
+# no duplicate NSDistributedNotificationCenter dispatch / phantom ACK).
+assert 'SCPVoiceDispatchLocalCommand(command)' in native
+assert 'BOOL SCPVoiceDispatchLocalCommand(NSDictionary *command)' in bridge
+assert 'SCPVoiceExecute(command)' in bridge
+assert 'AVAudioSessionInterruptionNotification' in native
+assert 'AVAudioSessionRouteChangeReasonOldDeviceUnavailable' in native
+assert 'button.userInteractionEnabled=!button.hidden' in native
+assert 'split.tray!=nil || split.pickerSheet!=nil' in native
 assert '[button addTarget:split action:@selector(dcVoiceRequest:)' in native
 assert 'dcVoiceRequest:' not in panel
 assert 'SCPVoiceBubbleUpdate(self)' in split
