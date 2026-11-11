@@ -28,3 +28,7 @@ CODE PREPARED/COMMITTED; CI `42963004255` đang chạy; Sileo **CHƯA PUBLISH**.
 - Đã sửa script trên branch DuoCar, commit **`6ab5bf7fe81ec15f9a8abd03b9448563667a3d33`**: mọi file có header `bplist00` (gồm `.strings`) phải thay bằng plistlib, cả XML `.stringsdict`; không bỏ qua binary localization. Đã fetch_file đọc lại script SHA `409905773c3da4417aeab5dd5fe57cfa94950707`.
 - CI mới `42963372890` / job `130334885428` đã start trên commit sửa; ở checkpoint đang chạy Theos. Run cũ FAIL không tạo DEB; **chưa có phát hành Sileo**.
 - Lệnh Nguyen mới nhất vẫn giữ nguyên: **không thêm Conflicts/Replaces yêu cầu gỡ OmniCar; Nguyen sẽ tự gỡ**. Kiểm script vẫn loại `Replaces:`, không thêm legacy package vào `Conflicts:`.
+
+## 2026-11-11 12:07 ICT — tránh lỗi so đường dẫn checkout không phải nội dung DEB
+- CI `42963372890`, job `130334885428` **FAIL trước compile**; log ghi `RuntimeError: Legacy name leaked in build path: /Users/runner/work/Omnicar/Omnicar/recovered-source/project/Makefile`. Đây là false positive do bộ kiểm tra quét **absolute checkout path** (tên repository lịch sử OmniCar), không phải path/file trong DEB.
+- Đã sửa script so **`str(path.relative_to(ROOT)).lower()`**, không lấy đường dẫn tuyệt đối của GitHub runner. Commit branch DuoCar **`055950de091e18e6cab8180379e2558949d2ac9a`**, đọc lại script xác nhận. CI kế tiếp **`42963581440`**, lúc này đang chạy. Không có DEB được tạo từ hai lượt FAIL `42963004255`, `42963372890`; không publish Sileo khi còn lỗi.
