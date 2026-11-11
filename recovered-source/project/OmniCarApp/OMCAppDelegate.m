@@ -10,59 +10,29 @@
 #import <Preferences/PSSpecifier.h>
 
 
- // [hl19-settings] Preferences.framework expects a concrete root owner
- // and a parent/root relationship before pushing child PSListControllers.
- // The old code directly instantiated its abstract PSRootController and
- // never performed this step. Keep the existing Prefs pages and keys.
- @interface OMCEmbeddedPrefsRootController : PSRootController {
-     BOOL _omcPreparingRoot;
- }
- - (BOOL)omcInstallRootForSize:(CGSize)size;
- @end
+// [hl20-settings] DuoFace uses an app-owned settings controller.
+// OmniCar reuses its real restored PSListController pages but no longer
+// instantiates PSRootController (a host owned by Apple's Settings app).
+// Adapt only the Preferences push selector onto a UIKit navigation stack.
+@interface OMCInAppSettingsNavigationController : UINavigationController
+- (void)pushController:(UIViewController *)controller;
+- (void)pushController:(UIViewController *)controller animate:(BOOL)animated;
+- (UIViewController *)popController;
+@end
 
- @implementation OMCEmbeddedPrefsRootController
- - (void)setupRootListForSize:(CGSize)size {
-     (void)[self omcInstallRootForSize:size];
- }
- - (BOOL)omcInstallRootForSize:(CGSize)size {
-     if (self.viewControllers.count > 0) return YES;
-     if (_omcPreparingRoot) return NO;
-     _omcPreparingRoot = YES;
-     BOOL installed = NO;
-     @try {
-         NSBundle *bundle = [NSBundle mainBundle];
-         NSString *rootPath = [bundle pathForResource:@"Root" ofType:@"plist"];
-         Class cls = NSClassFromString(@"OMCRootListController");
-         if (!rootPath || !cls ||
-             ![cls isSubclassOfClass:PSListController.class]) {
-             NSLog(@"[hl19-settings] gate=resources-or-class-missing root=%@ class=%@",
-                   rootPath ?: @"missing", cls);
-         } else {
-             PSListController *root = [[cls alloc] init];
-             (void)size;
-             root.bundle = bundle;
-             root.title = @"OmniCar";
-             // PSRootController is a UINavigationController. The legacy
-             // -pushController: selector is documented for pre-iOS 3.2
-             // and cannot be assumed available on iOS 16. Use its stable
-             // UINavigationController push path for the real Prefs page.
-             root.rootController = (id)self;
-             root.parentController = (id)self;
-             [self pushViewController:root animated:NO];
-             installed = self.viewControllers.count > 0;
-             NSLog(@"[hl19-settings] gate=root-wired installed=%d pages=%lu bundle=%@",
-                   (int)installed, (unsigned long)self.viewControllers.count,
-                   bundle.bundlePath);
-         }
-     } @catch (NSException *exception) {
-         NSLog(@"[hl19-settings] gate=root-exception name=%@ reason=%@",
-               exception.name, exception.reason);
-     } @finally {
-         _omcPreparingRoot = NO;
-     }
-     return installed;
- }
- @end
+@implementation OMCInAppSettingsNavigationController
+- (void)pushController:(UIViewController *)controller {
+    if (controller && controller != self.topViewController)
+        [self pushViewController:controller animated:YES];
+}
+- (void)pushController:(UIViewController *)controller animate:(BOOL)animated {
+    if (controller && controller != self.topViewController)
+        [self pushViewController:controller animated:animated];
+}
+- (UIViewController *)popController {
+    return [self popViewControllerAnimated:YES];
+}
+@end
 
 @implementation OMCAppDelegate
 
@@ -78,8 +48,9 @@
 // OMCRootListController and every feature page. Do not load a dylib from
 // /var/jb/Library/PreferenceBundles: sandbox/loader failure on HL15 device.
 - (UIViewController *)omcEmbeddedSettingsController {
-    // [hl19-settings] Real feature pages live in OmniCar.app, not a
-    // PreferenceLoader pane or a dylib outside the app sandbox.
+    // [hl20-settings] The actual plist resources/controller implementations
+    // are statically linked into OmniCar.app; no dylib loading, no
+    // Settings.app deep link and no independent preference state.
     NSBundle *bundle = [NSBundle mainBundle];
     NSArray<NSString *> *required = @[@"Root", @"FeatureSplitScreen",
                                       @"FeatureSpeedBubble", @"FeatureStartupScreen"];
@@ -88,28 +59,47 @@
         if (![bundle pathForResource:name ofType:@"plist"])
             [missing addObject:name];
     if (missing.count) {
-        NSLog(@"[hl19-settings] gate=missing-resources %@ bundle=%@",
+        NSLog(@"[hl20-settings] gate=resources-missing names=%@ bundle=%@",
               [missing componentsJoinedByString:@","], bundle.bundlePath);
         return nil;
     }
+    NSString *rootPath = [bundle pathForResource:@"Root" ofType:@"plist"];
+    NSDictionary *rootPlist = [NSDictionary dictionaryWithContentsOfFile:rootPath];
+    NSArray *items = [rootPlist isKindOfClass:NSDictionary.class]
+        ? rootPlist[@"items"] : nil;
+    if (![items isKindOfClass:NSArray.class] || items.count == 0) {
+        NSLog(@"[hl20-settings] gate=root-items-invalid path=%@", rootPath);
+        return nil;
+    }
     @try {
-        OMCEmbeddedPrefsRootController *nav =
-            [[OMCEmbeddedPrefsRootController alloc]
-                initWithTitle:@"OmniCar" identifier:@"com.anlai.omnicar"];
-        // Older Preferences runtimes may call setupRootListForSize:
-        // lazily. Explicitly prime it once if no root has been wired.
-        if (!nav.viewControllers.count)
-            [nav omcInstallRootForSize:[UIScreen mainScreen].bounds.size];
-        if (!nav.viewControllers.count) {
-            NSLog(@"[hl19-settings] gate=empty-navigation");
+        Class cls = NSClassFromString(@"OMCRootListController");
+        if (!cls || ![cls isSubclassOfClass:PSListController.class]) {
+            NSLog(@"[hl20-settings] gate=root-class-missing class=%@", cls);
             return nil;
         }
-        NSLog(@"[hl19-settings] gate=embedded-preferences-ready pages=%lu",
-              (unsigned long)nav.viewControllers.count);
+        PSListController *root = [[cls alloc] init];
+        root.bundle = bundle;
+        root.title = @"OmniCar";
+        OMCInAppSettingsNavigationController *nav =
+            [[OMCInAppSettingsNavigationController alloc]
+                initWithRootViewController:root];
+        // PSListController uses rootController for pushes; this UIKit
+        // adapter implements the required pushController selectors.
+        // Feature controllers and the original prefs domain remain intact.
+        root.rootController = (id)nav;
+        root.parentController = (id)nav;
+        if (nav.topViewController != root) {
+            NSLog(@"[hl20-settings] gate=root-not-installed");
+            return nil;
+        }
+        NSLog(@"[hl20-settings] gate=app-navigation-ready root=%@ "
+              "items=%lu controllers=%lu bundle=%@",
+              NSStringFromClass(root.class), (unsigned long)items.count,
+              (unsigned long)nav.viewControllers.count, bundle.bundlePath);
         return nav;
     } @catch (NSException *exception) {
-        NSLog(@"[hl19-settings] gate=exception name=%@ reason=%@",
-              exception.name, exception.reason);
+        NSLog(@"[hl20-settings] gate=exception name=%@ reason=%@ stack=%@",
+              exception.name, exception.reason, exception.callStackSymbols);
         return nil;
     }
 }
