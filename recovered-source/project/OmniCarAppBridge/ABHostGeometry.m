@@ -534,12 +534,14 @@ static void AB25HostSurface(ABPane *pane, NSString *bundle,
         }
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
             @"[hl25-host-surface] bundle=%@ revision=%llu box=%@ "
-             "app=%@ boxClip=%d appScale=%.3f winLevel=%.1f chain=%@",
+             "app=%@ boxClip=%d appTransform=%@ winLevel=%.1f "
+             "boxWindowSame=%d chain=%@",
             bundle, revision, NSStringFromCGRect(box.bounds),
             NSStringFromCGRect(appView.frame),
             (int)(box.clipsToBounds || box.layer.masksToBounds),
-            (double)appView.transform.a,
+            NSStringFromCGAffineTransform(appView.transform),
             (double)appView.window.windowLevel,
+            (int)(box.window && box.window == appView.window),
             [trace componentsJoinedByString:@" / "]]);
     } @catch (NSException *e) {
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
