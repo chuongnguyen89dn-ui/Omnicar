@@ -182,7 +182,9 @@ static void SCP27RespringRequest(NSNotification *note) {
                    dispatch_get_main_queue(), ^{
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
             @"[hl27-respring] stage=terminate-self springboard-pid=%d", getpid()]);
-        kill(getpid(),SIGTERM);
+        // Match the original confirmed Respring fallback: terminate only
+        // this SpringBoard PID. launchd will spawn a fresh instance.
+        kill(getpid(),SIGKILL);
     });
 }
 
