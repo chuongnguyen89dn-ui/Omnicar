@@ -98,7 +98,7 @@ assert "ABNativeKbObserveLayout(UIWindow *window, CGFloat *widthOut," in app
 assert "UIView **layoutOut" in app
 assert "ABNativeKbFindLayout(keyboard, 0)" not in probe
 assert "keycapTouch=UNKNOWN" in probe
-assert "ABNativeKbObserveLayout(keyboard, &starVisualWidth," in app
+assert "ABNativeKbObserveLayout(keyboard, &starVisualWidth, &observedStar)" in " ".join(app.split())  # HL30 multiline call with unchanged arguments
 
 # Independent historical geometry: all are one host-side zoom factor.
 for physical, logical in ((297,371), (310,388), (396,495), (406,508)):
