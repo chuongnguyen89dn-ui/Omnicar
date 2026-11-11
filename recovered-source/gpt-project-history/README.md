@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — HL22 DuoCar: sửa layout phím bị cắt và trả picker về DEB gốc (CI PENDING)
+- Code branch `feature/duocar-hl22-keyplane-menu-original-20261111` từ DuoCar HL21, commit `ee684e1c`. Khôi phục màu `pane.picker` opaque alpha1 theo disasm gốc; thêm reversible horizontal keyboard layout transform khi `UIKeyboardLayoutStar` vượt viewport, guard epoch/hide/resize, giữ pinch/Dock/Home. CI build FAT run `42969536072` **đang chạy** lúc checkpoint, chưa có DEB/DEVICE PASS; không publish Sileo. [Checkpoint và rollback](HL22_DUOCAR_KEYBOARD_LAYOUT_PICKER_ORIGINAL_20261111.md).
+
 ## 2026-11-11 — Đính chính menu DuoCar: chỉ hoàn nguyên một phần, đối chiếu nguy cơ che bàn phím
 - DEB gốc 1.0.3 disassembly `showPickerForSlot:` @0x315ec–0x31624 xác nhận `pane.picker` phủ **toàn ô** bằng màu lavender alpha=1.0; DuoCar HL21 còn `hasContent ? clearColor : lavender` tại `SCPCarSplit+Picker.m:266–270`. HL21 chỉ phục hồi tray window/Chrome về HL9 và `pickerSheet` opaque/mesh, **không hoàn nguyên đầy đủ DEB gốc**; chưa có menu DEVICE PASS. `pickerSheet`/tray window có thể che pixel khi còn hiện; `pane.picker` có thể khiến `hostFrameForPane` trả zero và AppBridge ẩn host, rồi stale relayout phím. Tuy nhiên **chưa có log DuoCar cùng phiên** chứng minh những layer này gây cắt keyplane; `popupShield` alpha=.02 không tự che đặc. Bàn phím DuoCar **DEVICE FAIL — hiển thị nhưng bị cắt**. Không sửa/build/publish. [Bằng chứng original-disasm, 5 lớp và cổng kiểm](DUOCAR_REBRAND_SILEO_20261111.md).
 
