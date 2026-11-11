@@ -49,6 +49,8 @@ assert 'if (found)' in ab and '++ABNativeKbEpoch;' in ab
 assert 'ABNativeKbObserveLayout' in ab
 assert 'return applied && layoutObserved && planeInsideClip;' in ab
 assert 'planeInsideClip = !CGRectIsNull(planeRect)' in ab
+assert 'ABNativeKbRestore(@"keyplane-timeout-rollback")' in ab
+assert 'fallback=system-native outcome=NOT-PROVEN' in ab
 assert 'AB27FindKeyplane' in ab
 assert 'AB25ProbeKeyboardSurface' in ab
 assert 'UIKeyboardLayoutStar.transform =' not in ab
