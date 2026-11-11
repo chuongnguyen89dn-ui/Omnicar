@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — HL19 phục hồi đúng bàn phím UIKit đã hiển thị/nhập được ở video HL11
+- Đã truy lại mốc video xe `IMG_8191.mp4` 10/11 15:33–15:38: HL11 native keyboard hiển thị/nhập được; còn lỗi resize theo ô, Maps trắng; pinch khi đó hồi quy nên **không quay cả binary HL11**. Trên nhánh code đã tồn tại `feature/hl19-hl7-native-keyboard-restore-20261111`, GPT sửa **duy nhất hai file `ABInApp.m` trong project/src**, commit **`3eb68dc26a6eb0e753c15a176dc96662954b107b`**, hai path đọc lại cùng blob `abf3235...`. Bật đường HL11 `UIRemoteKeyboardWindow.frame` fit, không chạy sửa private keyplane/refSize và forced reload HL15–HL18; các module pinch, menu, Home/Dock, Muse không bị thay. **SOURCE COMMITTED; chưa build/CI/DEB/device test; resize còn OPEN.** [Checkpoint HL19 đầy đủ](HL19_HL11_NATIVE_KEYBOARD_RESTORE_20261111.md).
+
 ## 2026-11-11 — Gói TXT tự chứa gửi Claude: HL17/HL18 source và log
 - Claude không có repo/source/log OmniCar. Đã chuẩn bị **bản bàn giao TXT tự chứa** gồm 343 dòng/24.146 ký tự: đúng 8 đường source ở nhánh HL18 với đoạn code có line numbers, mốc log HL17 mới nhất `logs/OmniCar.log` (SHA `55348d5e92db99448c9a2299615713cf15a5d752`) và HL16b bàn phím, phân tích 13 lần picker rebuild/24 cặp IPC log, rủi ro stale keyboard/pending dismiss, và 4 câu hỏi hẹp yêu cầu Claude trả lời không đoán. [Mở và sao chép TXT gửi Claude](HL18_CLAUDE_SELF_CONTAINED_REVIEW_PACKET_20261111.txt). Commit tạo `928c7045477fa8cbb8c5cd6d0e3481d37e217353`; đã đọc lại byte-for-byte. Không cập nhật source/CI trong bước bàn giao này.
 
