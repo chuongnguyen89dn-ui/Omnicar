@@ -89,9 +89,9 @@ jobs:
           make package FINALPACKAGE=1 ARCHS="arm64 arm64e"
           ls -la packages/
 
-      # Acceptance: the 6 dylibs and the Prefs bundle binary inside
+      # Acceptance: the 6 dylibs, the Prefs bundle binary and OmniCar.app inside
       # the produced .deb must each be FAT with exactly the arm64 and
-      # arm64e slices. The app binary is reported for information.
+      # arm64e slices, including the iPhone app identity binary.
       - name: Verify FAT slices in the component binaries
         run: |
           VER=$(sed -n 's/^Version:[[:space:]]*//p' recovered-source/project/control | head -1)
@@ -108,7 +108,8 @@ jobs:
             Library/MobileSubstrate/DynamicLibraries/OmniCarSpeedBubble.dylib \
             Library/MobileSubstrate/DynamicLibraries/OmniCarSplitScreen.dylib \
             Library/MobileSubstrate/DynamicLibraries/OmniCarStartupScreen.dylib \
-            Library/PreferenceBundles/OmniCarPrefs.bundle/OmniCarPrefs ; do
+            Library/PreferenceBundles/OmniCarPrefs.bundle/OmniCarPrefs \
+            Applications/OmniCar.app/OmniCar ; do
             INFO=$(lipo -info "$ROOT/$f")
             echo "$f -> $INFO"
             case "$INFO" in
@@ -121,14 +122,14 @@ jobs:
             echo "::error::FAT verification failed"
             exit 1
           fi
-          echo "All required component binaries are FAT (arm64 + arm64e)."
+          echo "All eight required binaries are FAT (arm64 + arm64e)."
 
-      - name: Verify HL18 keyboard picker drag plus HL8-HL17 regressions
+      - name: Verify HL19 native keyboard, legacy picker, and HL8-HL18 regressions
         run: |
-          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl18kbpickerperf_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl19nativeprefs_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.anlai.omnicar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl18kbpickerperf"
-          echo "HL16 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl19nativeprefs"
+          echo "HL19 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
           for dylib in OmniCarSplitScreen OmniCarAppBridge; do
@@ -141,7 +142,7 @@ jobs:
               fi
               echo "HL8 marker PASS $dylib/$arch"
               if [ "$dylib" = "OmniCarAppBridge" ]; then
-                for marker in '[hl11kb]' '[hl14kb] ev=native-fit' '[hl14kb] ev=restore' 'ev=geometry-recv source=original-orientation-channel' '[hl15-kb-ref] gate=hook-installed' '[hl15-kb-ref] ev=reload-keyplane' '[hl16-kb] ev=viewport-fit' '[hl16-kb] ev=keyplane-reload' 'ev=reload-input-views reason=layout-not-settled' '[hl18-kb] ev=hold-last-physical reason=geometry-incomplete' '[hl18-kb] ev=viewport-retained reason=missing-geometry' '[hl18-picker] ev=replace shield-cleared before-post' '[hl14kb] ev=geometry-push' '[pinch2] trigger=began toggle-sent dir=0'; do
+                for marker in '[hl11kb]' '[hl14kb] ev=native-fit' '[hl14kb] ev=restore' 'ev=geometry-recv source=original-orientation-channel' '[hl15-kb-ref] gate=hook-installed' '[hl15-kb-ref] ev=reload-keyplane' '[hl16-kb] ev=viewport-fit' '[hl16-kb] ev=keyplane-reload' 'ev=reload-input-views reason=layout-not-settled' '[hl18-kb] ev=hold-last-physical reason=geometry-incomplete' '[hl18-kb] ev=viewport-retained reason=missing-geometry' '[hl19kb] mode=hl11-native-frame' '[hl14kb] ev=geometry-push' '[pinch2] trigger=began toggle-sent dir=0'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL11/HL14 keyboard marker $marker missing in $dylib/$arch"
                     exit 1
@@ -150,7 +151,7 @@ jobs:
                 done
               fi
               if [ "$dylib" = "OmniCarSplitScreen" ]; then
-                for marker in '[hl13pinch]' 'route=inapp-hosted' 'hostedPinchFallback' '[hl14-picker]' '[hl15-picker]' '[hl16-picker] ev=sheet-geometry' '[hl16-picker] ev=owner-switch' '[hl17-picker] layout=' '[hl17-picker] ev=bar-dismiss action=ignore-picker-open' '[hl18-picker] ev=bar-dismiss action=ignore-picker-pending' '[hl14-floating]' 'dock-hosted-readback' 'dock-category' 'dock-readback' 'dock-tap' 'dock-lifecycle' 'active-model' 'dock-category-not-other'; do
+                for marker in '[hl13pinch]' 'route=inapp-hosted' 'hostedPinchFallback' '[hl14-picker]' '[hl15-picker]' '[hl16-picker] ev=sheet-geometry' '[hl16-picker] ev=owner-switch' '[hl17-picker] layout=' '[hl17-picker] ev=bar-dismiss action=ignore-picker-open' '[hl18-picker] ev=bar-dismiss action=ignore-picker-queued' '[hl14-floating]' 'dock-hosted-readback' 'dock-category' 'dock-readback' 'dock-tap' 'dock-lifecycle' 'active-model' 'dock-category-not-other'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL12/HL13/HL14 marker $marker missing in $dylib/$arch"
                     exit 1
@@ -168,7 +169,7 @@ jobs:
             done
           done
 
-      - name: Verify HL16b embedded Settings and original iPhone app identity
+      - name: Verify HL19 embedded Settings and original iPhone app identity
         run: |
           ROOT=/tmp/fatcheck/var/jb
           APP="$ROOT/Applications/OmniCar.app/OmniCar"
@@ -210,8 +211,8 @@ jobs:
           print("HL16b App Identity PASS: actual iPhone app, own CarPlay Home bundle ID, URL scheme")
           PYCHECK
           test ! -e "$ROOT/Library/PreferenceLoader/Preferences/OmniCarPrefs.plist"
-          if ! strings "$APP" | grep -F '[hl16-settings]' >/dev/null; then
-            echo "::error::OmniCar in-app Settings marker absent"
+          if ! strings "$APP" | grep -F '[hl19-settings] gate=embedded-preferences-ready' >/dev/null; then
+            echo "::error::HL19 in-app Settings controller marker absent"
             exit 1
           fi
           if ! strings "$APP" | grep -F 'OMCRootListController' >/dev/null; then
@@ -231,10 +232,15 @@ jobs:
               echo "::error::HL16 iPhone app missing controller $marker"; exit 1;
             fi
           done
-          echo "HL16 in-app Settings and resource preservation PASS"
+          # Root navigation is embedded in the actual iPhone app, not just
+          # the Prefs dylib; the real controller selection remains dynamic.
+          strings "$APP" | grep -F 'OMCEmbeddedPrefsRootController' >/dev/null || {
+            echo "::error::HL19 embedded root navigation class missing"; exit 1;
+          }
+          echo "HL19 in-app Settings, navigation markers and resources PASS"
 
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: omnicar-hl18kbpickerperf-fat-deb
-          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl18kbpickerperf_iphoneos-arm64.deb
+          name: omnicar-hl19nativeprefs-fat-deb
+          path: recovered-source/project/packages/com.anlai.omnicar_1.0.3-hl19nativeprefs_iphoneos-arm64.deb
