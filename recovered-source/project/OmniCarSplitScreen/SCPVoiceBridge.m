@@ -118,3 +118,24 @@ void SCPVoiceInstall(void) {
         usingBlock:^(NSNotification *note) { SCPVoiceHandle(note); }];
     NSLog(@"[hl29-voice] event=carplay-observer-ready");
 }
+
+
+@implementation SCPCarSplit (DCVoiceButton)
+- (void)dcVoiceRequest:(id)sender {
+    (void)sender;
+    if (![OMCPref(@"voiceAssistantEnabled",@NO) boolValue]) {
+        [self toast:@"Bật Trợ lý giọng nói trong Cài đặt DuoCar."];
+        return;
+    }
+    // Never record from CarPlayApp/SpringBoard. This only requests the
+    // foreground iPhone app to show its own authorized microphone UI.
+    NSString *rid=NSUUID.UUID.UUIDString;
+    NSDictionary *payload=@{@"requestID":rid,
+        @"time":@([NSDate date].timeIntervalSince1970)};
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotificationName:@"com.anlai.omnicar/voice.request"
+        object:nil userInfo:payload];
+    [self toast:@"Yêu cầu đã gửi. Mở DuoCar trên iPhone nếu chưa ở màn hình chính."];
+    NSLog(@"[hl29-voice] event=car-touch-request (phone-foreground-required)");
+}
+@end
