@@ -35,6 +35,7 @@ on:
       - feature/duocar-hl27-settings-respring-diagnostics-20261111
       - feature/duocar-hl26-native-iphone-settings-20261111
       - feature/duocar-hl28-keyboard-settings-20261111
+      - feature/duocar-hl29-voice104-firstparty-20261111
 
 jobs:
   build-fat:
@@ -109,6 +110,17 @@ jobs:
       - name: Verify HL28 keyboard HL11 early-stop and integrated UIKit Settings/Respring
         run: python3 recovered-source/gpt-project-history/verify_hl28_keyboard_settings.py
 
+      - name: Verify HL29 permission-based voice integration and project/source parity
+        run: python3 recovered-source/gpt-project-history/verify_hl29_voice_source.py
+
+      - name: Compile and test real voice parser with macOS Foundation
+        run: |
+          xcrun clang -fobjc-arc -fmodules -framework Foundation \
+            recovered-source/project/OmniCarApp/DCVoiceCommand.m \
+            recovered-source/gpt-project-history/test_hl29_voice_parser.m \
+            -o /tmp/hl29-voice-parser
+          /tmp/hl29-voice-parser
+
       - name: Rebrand the complete source/build tree to DuoCar before compilation
         working-directory: .
         run: python3 recovered-source/gpt-project-history/rebrand_duocar.py
@@ -159,9 +171,9 @@ jobs:
 
       - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl28duocar_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl29voice104_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl28duocar"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl29voice104"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -205,12 +217,12 @@ jobs:
       - name: Verify exact DuoCar package, app identity, signatures and zero old branding
         run: |
           python3 recovered-source/gpt-project-history/verify_duocar_payload.py \
-            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl28duocar_iphoneos-arm64.deb
+            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl29voice104_iphoneos-arm64.deb
 
-      # HL28 is a private keyboard + Settings/Respring candidate: do not create a public Release and do
+      # HL29 is a private voice + keyboard + Settings/Respring candidate: do not create a public Release and do
       # not publish to Sileo without device acceptance and authorization.
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: duocar-hl28-fat-deb
-          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl28duocar_iphoneos-arm64.deb
+          name: duocar-hl29-voice104-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl29voice104_iphoneos-arm64.deb
