@@ -1095,6 +1095,70 @@ static NSArray<UIWindow *> *ABNativeKbWindows(void) {
     return out;
 }
 
+// [hl25-kb-surface] Read-only compositor/clip probe in the hosted app
+// process. SpringBoard's window list is not evidence of this process's
+// keyboard z-order. Never alter LayoutStar or expose typed input.
+static void AB25ProbeKeyboardSurface(UIWindow *keyboard, UIWindow *key,
+                                     NSArray<UIWindow *> *windows, NSString *when) {
+    if (!keyboard) return;
+    @try {
+        NSMutableArray<NSString *> *siblings = [NSMutableArray array];
+        for (UIWindow *w in windows) {
+            if (w.screen != keyboard.screen) continue;
+            if (w.hidden || w.alpha <= 0.01) continue;
+            [siblings addObject:[NSString stringWithFormat:
+                @"%@ lvl=%.1f key=%d frame=%@ scene=%@",
+                NSStringFromClass(w.class), (double)w.windowLevel,
+                (int)w.isKeyWindow, NSStringFromCGRect(w.frame),
+                w.windowScene ? NSStringFromClass(w.windowScene.class) : @"nil"]];
+        }
+        UIView *star = ABNativeKbFindLayout(keyboard, 0);
+        CGRect projected = star ? [star convertRect:star.bounds toView:keyboard] : CGRectNull;
+        CGRect available = keyboard.bounds;
+        NSMutableArray<NSString *> *ancestors = [NSMutableArray array];
+        NSUInteger depth = 0;
+        for (UIView *v = star; v && depth < 16; v = v.superview, depth++) {
+            CGRect r = [v convertRect:v.bounds toView:keyboard];
+            BOOL clip = v.clipsToBounds || v.layer.masksToBounds;
+            if (clip) available = CGRectIntersection(available, r);
+            [ancestors addObject:[NSString stringWithFormat:
+                @"%@ rect=%@ clip=%d alpha=%.2f",
+                NSStringFromClass(v.class), NSStringFromCGRect(r), (int)clip,
+                (double)v.alpha]];
+        }
+        CGPoint edge = CGPointZero;
+        UIView *hit = nil;
+        BOOL inside = NO;
+        if (star && !CGRectIsNull(projected) && !CGRectIsEmpty(projected)) {
+            edge = CGPointMake(CGRectGetMaxX(projected) - 12,
+                               CGRectGetMidY(projected));
+            inside = CGRectContainsPoint(available, edge);
+            if (CGRectContainsPoint(keyboard.bounds, edge))
+                hit = [keyboard hitTest:edge withEvent:nil];
+        }
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl25-kb-surface] when=%@ key=%@ kb=%@ kbLevel=%.1f "
+             "kbScene=%@ star=%d projected=%@ available=%@ "
+             "rightInsideClip=%d hit=%@ hitInStar=%d",
+            when, key ? NSStringFromCGRect(key.frame) : @"nil",
+            NSStringFromCGRect(keyboard.frame), (double)keyboard.windowLevel,
+            keyboard.windowScene ? NSStringFromClass(keyboard.windowScene.class) : @"nil",
+            (int)(star != nil), NSStringFromCGRect(projected),
+            NSStringFromCGRect(available), (int)inside,
+            hit ? NSStringFromClass(hit.class) : @"nil",
+            (int)(star && hit && (hit == star || [hit isDescendantOfView:star]))]);
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl25-kb-ancestors] when=%@ %@",
+            when, [ancestors componentsJoinedByString:@" / "]]);
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl25-kb-windows] when=%@ %@",
+            when, [siblings componentsJoinedByString:@" | "]]);
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl25-kb-surface] when=%@ exception=%@", when, e.name]);
+    }
+}
+
 static void ABNativeKbRestore(NSString *reason) {
     // [hl24-kbsource] Restore ONLY the native keyboard WINDOW.
     // LayoutStar was never modified by this build.
@@ -1153,6 +1217,7 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
         }
         if (changedFrame) keyboard.frame = target;
         layoutObserved = ABNativeKbObserveLayout(keyboard, &starVisualWidth);
+        AB25ProbeKeyboardSurface(keyboard, key, windows, when);
     }
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[hl24-keyplane] when=%@ try=%ld observed=%d visualW=%.1f "
