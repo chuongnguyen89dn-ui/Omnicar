@@ -31,7 +31,7 @@ resource=PROJECT / "OmniCarPrefs" / "Resources"
 appinfo=plistlib.load((PROJECT / "OmniCarApp" / "Resources" / "Info.plist").open("rb"))
 
 # Remove comments before checking executable code for the old Settings.app route.
-without_comments=re.sub(r"/\\*.*?\\*/|//[^\\n]*", "", delegate, flags=re.S)
+without_comments=re.sub(r"/\*.*?\*/|//[^\n]*", "", delegate, flags=re.S)
 assert 'prefs:root' not in without_comments, "Settings.app deep-link reintroduced"
 assert "OMCNativeSettingsRootController()" in delegate
 assert "application:(UIApplication *)application openURL:" in delegate
@@ -45,9 +45,9 @@ assert 'kOMCNativeChanged="com.anlai.omnicar/prefschanged"' in native
 assert "notify_post(kOMCNativeChanged)" in native
 assert "home catalog=BLIND no-changes-allowed" in native
 assert "setContentReferenceSize:" not in delegate+native+startup
-assert "OMCNativeSetPref(\"appBridgeApps\"" in native
-assert "OMCNativeSetPref(\"homeScreenHiddenApps\"" in native
-assert "OMCNativeSetPref(\"homeScreenShownApps\"" in native
+assert 'OMCNativeSetPref(@"appBridgeApps"' in native
+assert 'OMCNativeSetPref(@"homeScreenHiddenApps"' in native
+assert 'OMCNativeSetPref(@"homeScreenShownApps"' in native
 assert "OMCNativeStartupController()" in native
 assert "FeatureStartupScreen" in startup
 assert "AVAssetReader" in startup
@@ -56,7 +56,7 @@ assert "audio.m4a" in startup
 
 for f in files:
     assert f in makefile or f.endswith(".h"), f"Makefile missing {f}"
-assert re.search(r"^OmniCar_RESOURCE_FILES\\s*=",makefile,re.M), "App resources not staged"
+assert re.search(r"^OmniCar_RESOURCE_FILES\s*=",makefile,re.M), "App resources not staged"
 assert "filter-out ../OmniCarPrefs/Resources/Info.plist" in makefile, "Prefs Info would overwrite APPL"
 
 assert appinfo["CFBundlePackageType"]=="APPL"
