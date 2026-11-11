@@ -1,0 +1,29 @@
+# DuoCar HL24 — native keyboard ownership + stable geometry (2026-11-11)
+
+## Proven reason to change
+HL23 DEVICE FAIL based on `feature/duocar-hl23-physical-keyboard-20261111:logs/DuoCar.log` 468 lines, TikTok PID 47975 / SpringBoard 47938 / CarPlay 47961, around 14:17:01–07:
+- `495 -> 300.5` factor `0.607`; `371 -> 207.5` factor `0.559`; `698 -> 394` factor `0.564`; subsequent source widths `1052.8` / `1553.6` failed `found=0` while `adjusted=1`.
+- Host `layoutPane:` already applies zoom `0.8` to app scene. HL22–HL23 separately transforms `UIKeyboardLayoutStar`, causing double-scale/feedback geometry. Old `frame-settled` callbacks overlapped drag. Active keyboard state remained 1 until true hide/resign after 14:17:07.554; AutoHide occurred later and cannot explain the early problem.
+- Do not claim all video disappearing events share one cause; keyboard keycaps and hit testing need physical car acceptance. `logs/DuoCar.log.old` unreadable through GitHub connector => BLIND.
+
+## Source patch confirmed on GitHub
+Repository: `chuongnguyen89dn-ui/Omnicar`, working tree `recovered-source/`. Branch `feature/duocar-hl24-native-keyboard-stable-20261111` **created from HL23 head** `883afa1a1caf52f12ba739844026e6d5f698be98`; first HL24 commit **`8d50510d39896fefe08a79e09cec850052ce7140`**. Confirmed compare `ahead=1 behind=0`, exactly 11 paths (3 src/project pairs + source fixtures/tooling + GitHub workflow). No main source merge; no file overwritten from older base. Exact changed pairs, read back and blob SHA equal:
+- `recovered-source/project/OmniCarAppBridge/ABInApp.m` == `recovered-source/src/AppBridgeB/ABInApp.m` SHA `6b7b4911056b3d32fe7840e525977bba22a65558`
+- `ABHostGeometry.m` project/src same SHA `999a7d280b450d7ae9d10395ddb3d503312e8644`
+- `ABHostBMethods.m` project/src same SHA `31a5e540daded28a752d02f869d6091b2fe8e6f7`
+
+Implementation:
+1. ABInApp: remove all mutation of `UIKeyboardLayoutStar.transform/center` and stateful `ABNativeKbLayoutAdjusted`; keep read-only `ABNativeKbObserveLayout`. Keep existing window-only `ABNativeKbFit` and `ABNativeKbRestore` on hide/release, distinguish window fit success from keycap visibility; log `[hl24-keyplane] policy=read-only`. Do not call `reloadInputViews` when keyplane is missing. Preserve explicit native-locked mode, keyboard session and input dispatch; do not add second keyboard engine.
+2. ABHostGeometry: add bundle frame revision generation increment on every received CarPlay frame; schedule a 350ms settle after frame assignment and ONLY publish if latest generation, same pane, same exact frame, same committed `sceneBox` geometry and active orientation. Include `kbHostEpoch` UUID / `kbGeometryRevision` in existing `ABChanOrientation` info, not a new channel. During drag, packet physical width is unknown if `sceneBox` does not equal pane frame (rather than inventing dimensions). Emit `[hl24-stable]`.
+3. ABInApp receives geometry revisions; reject stale width updates and do not refit unless geometry changed or orientation changed, still gated on active first responder and observed native keyboard. Emit `[hl24-geometry]`.
+4. ABHostBMethods: remove immediate geometry re-post from `layoutPane:` (which is called for intermediate widths), retain initial launch packet **after** first `layoutPane` committed; preserve YTZ/scene lifecycle.
+5. Source and package tests: `recovered-source/gpt-project-history/verify_hl21_regression.py` now prohibits old mutation; `verify_hl24_keyboard.py` new source/geometry regression tests including historical bad width tuples; `rebrand_duocar.py` stamps version `1.0.3-hl24duocar`; `verify_duocar_payload.py` expects new package version and marker set; `.github/workflows/build-fat-macos.yml` adds isolated HL24 push trigger, tests, signs + checks FAT `arm64 arm64e`, uploads **`duocar-hl24-fat-deb`**. Old `verify_hl22_geometry.py` kept in history, **not invoked** because it demands the now-banned keyboard transform.
+
+## Actual commands/operations and state
+- Used GitHub connector `fetch_file`, `fetch_blob`, `create_blob` x8, `create_tree(base_tree=98fbd1afc2ce951ddd57ab12d44fa9df49ad0155)`, `create_commit(parent=883afa1...)`, `create_branch` and readbacks. Base tree SHA `98fbd1afc2ce951ddd57ab12d44fa9df49ad0155`. No local checkout or shell build and no claim of local dirty state.
+- GitHub workflow automatically started on new branch push: run **`42984429323`**, job `130402124724`, code HEAD `8d50510...`. At first status poll workflow `in_progress`, Theos install in progress; do not claim compile/DEB success before job gates. Workflow command: `cd recovered-source/project && make clean && make package FINALPACKAGE=1 ARCHS="arm64 arm64e"`; before building `python3 recovered-source/gpt-project-history/rebrand_duocar.py`, verifier Python scripts. No manual dispatch or Sileo publish.
+- Still pending: CI compiler, source fixtures, ldid signatures, exact artifact/deb extraction/hash, device test. User requested direct `.deb`, not a ZIP; link only when file exists in active container and passes artifact verification.
+- Rollback baseline code `feature/duocar-hl23-keyboard-physical-contract-20261111` at `883afa1...` (but DEVICE FAIL); HL22 separate at `b2192339...` also not DEVICE PASS. HL24 revert via branch checkout or commit revert, not merge into main.
+
+## Acceptance on car
+First show, rightmost/bottom keycaps rendered+touchable, two divider directions and ratios while focus stays, no tiny blank keyplane, hide/show keyboard, switch app, pinch entire split, original menu, Home icon + Dock, disconnect/reconnect. Frame fit/alive state alone does not confer DEVICE PASS. A new DuoCar device log must correlate PID + marker `[hl24-keyplane]`, frame revision, keyboard epoch, focus/show/hide with screenshot/video; no old generation binary mixing.
