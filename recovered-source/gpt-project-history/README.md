@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — HL21 phục hồi từ HL11: pinch + xóa nút phụ + menu gốc che nội dung (BUILD PENDING)
+- Chỉ làm trên nhánh `feature/hl21-from-hl11-pinch-legacy-picker-20261111`, nền HL13 giữ byte-for-byte native keyboard HL11 + Dock HL12, phục hồi picker/chrome tray trước HL10, chọn face opaque gốc, phục hồi hunk xóa icon nổi HL14. Source commit `1af5a965`, `9fd66c3`, fix verifier `6b9a011`. **Chưa có DEB đã xác minh hoặc DEVICE PASS ở checkpoint này.** [Hồ sơ nguồn/CI/rollback](HL21_HL11_PINCH_DOCK_LEGACY_PICKER_20261111.md).
+
+
 ## 2026-11-11 — HL20 DEVICE FAIL: chốt thay kiến trúc Cài đặt và keyplane (CHƯA SỬA SOURCE)
 - Nguyen xác nhận HL20 **DEVICE FAIL** ở Cài đặt iPhone và resize bàn phím xe; CI/PACKAGE PASS lịch sử không thay đổi kết luận này. Đã kiểm nhánh `feature/hl20-inapp-settings-20261111`: AppDelegate còn root `OMCRootListController : PSListController` trong UINavigationController, keyboard `ABHL19UseHL11NativeKeyboardFit=YES` chỉ gán `UIRemoteKeyboardWindow.frame` và bỏ geometry event. **Không làm thêm wrapper hoặc frame-only**. Đã trích chính DEB HL20 và đọc schema 15 Root items + 2 Split + 2 Bubble + 44 Startup; Startup vẫn phụ thuộc PSListController và nhiều action không thuần prefs. Hướng tiếp: UIKit root + các feature/action thật (CFPreferences domain gốc + notify), keyplane reflow dựa vào physical/logical pane geometry với rollback và log before/after. Pinch/menu/Dock/Home/native keyboard phải bảo toàn. **Chưa có source fix/DEB mới, chưa có DEVICE PASS.** [Checkpoint, bảng page/action và cổng nghiệm thu](HL20_SETTINGS_DUOFACE_KEYBOARD_RESTORE_20261111.md).
 
