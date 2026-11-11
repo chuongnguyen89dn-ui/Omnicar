@@ -512,6 +512,42 @@ void ABCarPlayChanged(NSNotification *note) {
 // ===========================================================================
 // NSDistributed consumers
 // ===========================================================================
+// [hl25-host-surface] Read-only host projection at a committed divider
+// revision. Correlate with the in-app [hl25-kb-surface] probe by time/bundle.
+// This process cannot prove remote UIKit keyboard z-order.
+static void AB25HostSurface(ABPane *pane, NSString *bundle,
+                            unsigned long long revision) {
+    if (!pane) return;
+    @try {
+        UIView *box = (UIView *)pane.box;
+        UIView *appView = ((UIViewController *)pane.appViewController).view;
+        if (!box || !appView) return;
+        NSMutableArray<NSString *> *trace = [NSMutableArray array];
+        NSUInteger depth = 0;
+        for (UIView *v = appView; v && depth < 12; v = v.superview, depth++) {
+            CGRect projected = [v convertRect:v.bounds toView:box];
+            [trace addObject:[NSString stringWithFormat:
+                @"%@ rectInBox=%@ clip=%d alpha=%.2f",
+                NSStringFromClass(v.class), NSStringFromCGRect(projected),
+                (int)(v.clipsToBounds || v.layer.masksToBounds),
+                (double)v.alpha]];
+        }
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl25-host-surface] bundle=%@ revision=%llu box=%@ "
+             "app=%@ boxClip=%d appScale=%.3f winLevel=%.1f chain=%@",
+            bundle, revision, NSStringFromCGRect(box.bounds),
+            NSStringFromCGRect(appView.frame),
+            (int)(box.clipsToBounds || box.layer.masksToBounds),
+            (double)appView.transform.a,
+            (double)appView.window.windowLevel,
+            [trace componentsJoinedByString:@" / "]]);
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl25-host-surface] bundle=%@ revision=%llu exception=%@",
+            bundle, revision, e.name]);
+    }
+}
+
 // sub_8274 — frame consumer. One notification carries the whole geometry
 // state for one app; every field is applied through ABHost setters:
 //   x,y,w,h (double) + identifier + live,handle (bool) + pt,pl,pb,pr
@@ -578,6 +614,7 @@ static void ABFrameBlock(NSNotification *note) {
             OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
                 @"[hl24-stable] commit bundle=%@ revision=%llu paneW=%.1f",
                 bundle, revision, expected.size.width]);
+            AB25HostSurface(current, bundle, revision);
         });
     }
     if (hl8ShouldLog) {
