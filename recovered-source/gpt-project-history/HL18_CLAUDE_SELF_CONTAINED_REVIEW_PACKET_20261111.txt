@@ -1,0 +1,342 @@
+OMNICAR / CLAUDE CONSULTATION — SELF-CONTAINED EVIDENCE PACK
+Date: 2026-11-11. This is a technical consultation, NOT authorization to change source or build.
+Claude has NO repo access. The exact relevant code and log excerpts are INCLUDED below. Do not request Claude to browse GitHub.
+
+1) EXACT TASK
+User's HL17 vehicle test FAILED: keyboard wrong, YouTube "Change app" menu cannot be used, divider/swap dragging noticeably laggy.
+Please critically review the existing HL18 source patches and recommend MINIMAL changes (pseudodiff acceptable). Do not guess runtime results from compilation. Do NOT touch YTZ5, Home/Dock, native Maps, AutoHide/Wake, other than a demonstrably necessary interface.
+
+Repo (reference only): chuongnguyen89dn-ui/Omnicar, implementation tree recovered-source/.
+HL17 installed: commit e4612cc3410d561f2e1d846a414ad94eddbd2461, version 1.0.3-hl17picker; CI run 42918873696 passed FAT/signature/packaging only; VEHICLE FAIL.
+HL18 in progress: feature/hl18-picker-kb-frameperf-20261111, ahead by 16 commits over HL17 at check, 14 changed paths; control Version=1.0.3-hl18kbpickerperf; ci-fat-test STILL equals HL17. HL18 NOT proven to compile, build or work on vehicle.
+Project src and project trees mirror code for build; do not overwrite whole files. This packet quotes project/ source at HL18 feature branch.
+
+2) HL17 DEVICE LOG — VERIFIED NEW SESSION
+File logs/OmniCar.log (main), blob sha 55348d5e92db99448c9a2299615713cf15a5d752; 781 lines, 2026-11-11 06:19:19–06:19:49.
+PIDs CarPlay 44790, SpringBoard 44767, YouTube 44809, Facebook 44810; there are 14 [hl17-picker] markers. NOT the 2026-11-10 HL16b session with PIDs 44549/44518/44555.
+Selected EXACT lines (long logs marked TRUNCATED):
+48|2026-11-11 06:19:21.830 [SpringBoard:44767] AppBridge: thanh nut com.facebook.Facebook: replace
+52|2026-11-11 06:19:21.834 [CarPlay:44790] SplitScreen: AppBridge: thanh nut replace cua com.facebook.Facebook
+54|2026-11-11 06:19:21.836 [CarPlay:44790] SplitScreen: [hl16-picker] ev=owner-switch requested=1 old=0 new=1 bundle=com.facebook.Facebook
+71|2026-11-11 06:19:22.075 [CarPlay:44790] SplitScreen: CarSplit: popup chon 19 app cho o 1 (container, 1 o cho)
+110|2026-11-11 06:19:23.697 [SpringBoard:44767] AppBridge: cham tron vach 0: pha 0 tai {344.66666666666663, 175.33333333333331}
+138|2026-11-11 06:19:23.994 [SpringBoard:44767] AppBridge: cham tron vach 0: pha 2 tai {398, 173.33333333333331}
+145|2026-11-11 06:19:24.123 [CarPlay:44790] SplitScreen: CarSplit: popup chon 19 app cho o 1 (container, 1 o cho)
+214|2026-11-11 06:19:24.769 [CarPlay:44790] SplitScreen: [hl16-picker] ev=sheet-geometry owner=1 pane=com.facebook.Facebook area={{361, 0}, {279, 360}} sheet={{367, 4}, {267, 352}} cols=3 sideW=0.0 inPane=1
+222|2026-11-11 06:19:24.864 [CarPlay:44790] SplitScreen: CarSplit: popup chon 19 app cho o 1 (container, 1 o cho)
+588|2026-11-11 06:19:27.996 [CarPlay:44790] SplitScreen: [hl16-picker] ev=sheet-geometry owner=1 pane=com.facebook.Facebook area={{442, 0}, {198, 360}} sheet={{448, 4}, {186, 352}} cols=2 sideW=0.0 inPane=1
+589|2026-11-11 06:19:27.996 [CarPlay:44790] SplitScreen: [hl17-picker] layout=compact slot=1 paneW=198.0 sheetW=186.0 gridCols=2 sideW=0.0
+594|2026-11-11 06:19:28.082 [CarPlay:44790] SplitScreen: CarSplit: popup chon 19 app cho o 1 (container, 1 o cho)
+668|2026-11-11 06:19:30.214 [SpringBoard:44767] AppBridge: cham ngoai thanh nut (lop chan) -> an thanh nut
+669|2026-11-11 06:19:30.222 [CarPlay:44790] SplitScreen: [hl17-picker] ev=bar-dismiss action=ignore-picker-open
+Counts from full log: 13 "CarSplit: popup chon 19 app cho o 1", 13 "picker-native count=14", 13 "picker-chosen count=5"; i.e. 26 app-catalog builder invocations, not 26 menus. First menu at 06:19:22.075; during divider drag 06:19:23.697–27.761 it is rebuilt 12 times, final pane 198x360, sheet 186x352. 24 matching frame-send/frame-recv sequence pairs: 13–48 ms, average 24.1 ms of cross-process LOG timestamps, NOT measured CPU time and NOT proof of synchronous IPC.
+Only Facebook:replace appears at 21.830; YouTube:replace = ZERO in this 30-second log. One SpringBoard bar shield touch at 30.214; CarPlay '[hl17-picker] ... ignore-picker-open' at 30.222 confirms guard runs, but NOT that YouTube picker worked. There is NO captured active keyboard native-fit test in this HL17 excerpt (kbstate state=0 is not a focus test).
+
+3) ISSUE A — DRAG LAG: CONCRETE PICKER REBUILD LOOP
+Exact source excerpts (line numbers at HL18 snapshot):
+recovered-source/project/OmniCarSplitScreen/SCPCarSplit+Relayout.m:36-43
+36|- (void)relayoutAnimated:(BOOL)animated pushScenes:(BOOL)pushScenes
+37|{
+38|    if (!self.container) {
+39|        return;
+40|    }
+41|    if (self.pickerSheet) {
+42|        [self refreshPickerSheetSoon];
+43|    }
+
+recovered-source/project/OmniCarSplitScreen/SCPCarSplit+Picker.m:376-383
+376|- (void)refreshPickerSheetSoon {                                         // 0x30100 (approx.)
+377|    if (self.pickerSheetQueued) return;
+378|    self.pickerSheetQueued = YES;
+379|    dispatch_async(dispatch_get_main_queue(), ^{
+380|        self.pickerSheetQueued = NO;
+381|        [self refreshPickerSheet];
+382|    });
+383|}
+
+recovered-source/project/OmniCarSplitScreen/SCPCarSplit+Picker.m:422-456
+422|- (void)refreshPickerSheet {
+423|    NSArray *panes = self.active ? self.allPanes : @[];
+424|    SCPCarPane *sheetPane = self.pickerSheetPane;
+425|    if (sheetPane.picker == nil || ![panes containsObject:sheetPane])
+426|        sheetPane = nil;
+427|    NSArray *order = self.active ? [self panesInReadingOrder] : @[];
+428|    SCPCarPane *found = sheetPane;
+429|    if (found == nil) {
+430|        for (SCPCarPane *pane in order) {
+431|            if (pane.picker != nil) { found = pane; break; }
+432|        }
+433|    }
+434|    self.pickerSheetPane = found;
+435|    if (found == nil) {
+436|        [self removePickerSheet];
+437|        return;
+438|    }
+439|    if (self.container.window == nil) {
+440|        [self removePickerSheet];
+441|        return;
+442|    }
+443|    // [hl16-picker] Rebuild after divider/ratio changes. Container size
+444|    // can be unchanged while the selected pane becomes 198 pt wide.
+445|    CGRect targetFrame = found.view
+446|        ? [found.view convertRect:found.view.bounds toView:self.container]
+447|        : [self frameForSlot:found.slot];
+448|    NSString *key = [NSString stringWithFormat:@"%p/%d/%lu/%d/%@/%@",
+449|        (void *)found, found.slot, (unsigned long)panes.count,
+450|        (int)self.mainStack, NSStringFromCGSize(self.container.bounds.size),
+451|        NSStringFromCGRect(targetFrame)];
+452|    if (self.pickerSheet == nil || ![key isEqualToString:self.pickerSheetKey]) {
+453|        [self buildPickerSheetForPane:found];
+454|        self.pickerSheetKey = key;
+455|    }
+456|    [self markPickerPanes];
+
+recovered-source/project/OmniCarSplitScreen/SCPCarSplit+Picker.m:538-550
+538|    [oldShield removeFromSuperview];
+539|
+540|    // App list: native CarPlay apps + chosen phone apps; the float pane
+541|    // only offers non-bridged apps.
+542|    NSMutableArray *apps = [NSMutableArray array];
+543|    NSArray *all = [SCPCarPlayAppInfos()
+544|        arrayByAddingObjectsFromArray:SCPChosenPhoneAppInfos()];
+545|    for (NSDictionary *info in all) {
+546|        if (pane == self.floatPane && SCPIsBridgedPhoneApp(info[@"id"]))
+547|            continue;
+548|        [apps addObject:info];
+549|    }
+550|
+
+Causal chain evident from source:
+dividerPan -> relayoutAnimated:pushScenes: -> refreshPickerSheetSoon -> refreshPickerSheet -> buildPickerSheetForPane:.
+The refresh key INCLUDES NSStringFromCGRect(targetFrame), so every pane width change reconstructs the entire picker and re-enumerates SCPCarPlayAppInfos + SCPChosenPhoneAppInfos. HL18 currently throttles some [hl8diag] logs but does NOT remove this loop.
+Need Claude to evaluate a minimal design: keep picker owner/sheet hit-testing stable; during live divider drag only move/reflow existing sheet if safe; rebuild catalog/grid when columns/topology really changes or once after endResize. State exactly when to freeze/reposition/rebuild, including 280pt compact transition, 198pt pane, 19-app paging, cancellation, and final committed frame. Do not coalesce scene frames or defer bar/shield blindly.
+
+4) ISSUE B — HOST SHIELD VS CARPLAY PICKER
+recovered-source/project/OmniCarAppBridge/ABChromeViews.m:119-124
+119|- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+120|    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"cham ngoai thanh nut (lop chan) -> an thanh nut"]);
+121|    [[NSDistributedNotificationCenter defaultCenter]
+122|        postNotificationName:ABChanBarDismiss object:nil userInfo:@{}];
+123|    [[ABHost shared] outsideTouched];
+124|}
+
+recovered-source/project/OmniCarAppBridge/ABHostLaunch.m:339-355
+339|- (void)postBarAction:(NSString *)action from:(id)sender {
+340|    ABPane *pane = [self paneOfBarButton:sender];
+341|    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+342|        @"thanh nut %@: %@", pane.bundleID, action]);
+343|    // [hl18-picker] SpringBoard's bar shield can swallow the very next
+344|    // touch over a CarPlay picker. Remove it before posting replace.
+345|    if ([action isEqualToString:@"replace"]) {
+346|        [self outsideTouched];
+347|        OMCLogWrite(@"AppBridge",
+348|            @"[hl18-picker] ev=replace shield-cleared before-post");
+349|    }
+350|    NSDistributedNotificationCenter *center =
+351|        [NSClassFromString(@"NSDistributedNotificationCenter") defaultCenter];
+352|    NSDictionary *info = @{@"identifier": pane.bundleID ?: @"",
+353|                           @"action": action};
+354|    [center postNotificationName:kABBarActionName object:nil userInfo:info];
+355|}
+
+recovered-source/project/OmniCarSplitScreen/SCPCarSplit.m:2725-2746
+2725|- (void)bridgeOutsideTouched {
+2726|    // [hl17-picker] The app-host bar dismiss channel has NO bundle/slot
+2727|    // payload and may arrive after the user opened the chooser.
+2728|    // HL16b: YouTube picker presented 22:39:13.205 and this channel
+2729|    // closed it at 22:39:13.496, leaving no usable menu.
+2730|    // Do not allow hosted bar dismissal to close the CarPlay chooser.
+2731|    // CarPlay's popup shield, X button, and app selection still close it.
+2732|    if (self.pickerSheet && self.pickerSheet.superview) {
+2733|        OMCLogWrite(@"SplitScreen",
+2734|            @"[hl17-picker] ev=bar-dismiss action=ignore-picker-open");
+2735|        return;
+2736|    }
+2737|    // [hl18-picker] The chooser is scheduled asynchronously. The pane's
+2738|    // logical picker is already registered before the sheet is attached.
+2739|    // Ignore the remote bar-dismiss during this pending interval too.
+2740|    if (self.pickerSheetPane && self.pickerSheetPane.picker) {
+2741|        OMCLogWrite(@"SplitScreen",
+2742|            @"[hl18-picker] ev=bar-dismiss action=ignore-picker-pending");
+2743|        return;
+2744|    }
+2745|    [self closePopups];
+2746|}
+
+recovered-source/project/OmniCarSplitScreen/SCPCarSplit+Picker.m:1102-1108
+1102|    BOOL overlay = self.pickerSheetOverlay;
+1103|    self.pickerSheet = nil;
+1104|    self.pickerShield = nil;
+1105|    self.pickerSheetKey = nil;
+1106|    self.pickerSheetOverlay = NO;
+1107|    [self updatePopupShield];
+1108|    [self publishBusy];
+
+HL16b prior log proved YouTube picker presented 22:39:13.205 and remote bar dismissal closed it 22:39:13.496, shield touch at 13.486. HL17 now ignores that dismiss while sheet is present; HL18 additionally calls [self outsideTouched] SYNCHRONOUSLY before posting replace on same SpringBoard call stack and ignores remote dismiss when pickerSheetPane.picker exists but sheet not yet attached.
+Risk visible in source: removePickerSheet resets pickerSheet/shield/key but intentionally DOES NOT reset pickerSheetPane; pane.picker can persist. Thus pending guard may suppress unrelated future remote dismiss without a timeout. There is no transaction ID in ABChanBarDismiss.
+Need Claude to propose scoping to the actual initiating touch: transaction/gen/timestamp+expiry; ensure X, app-tap, genuine outside-touch, host release, failed build and reconnect cleanup. Also ask how to test hit-test / z-order when YouTube replacement is actually pressed. Do not claim YouTube call path ran in HL17 log, because it did not appear there.
+
+5) ISSUE C — KEYBOARD PHYSICAL vs LOGICAL, STALE GEOMETRY
+Previous HL16b log (different binary / PIDs!), blob 1b96588fcbf622a9e63421e0cf17ec72f2fb62c2, actual snippets:
+4728|2026-11-10 22:37:56.491 [YouTube:44555] AppBridge: [hl14kb] ev=geometry-recv source=original-orientation-channel orientation=1 focus=1
+4747|2026-11-10 22:37:56.516 [YouTube:44555] AppBridge: [hl14kb] ev=native-fit when=geometry-immediate try=0 result=applied windows=3 key=YTMainWindow keyFrame={{0, 0}, {495, 450}} kb=UIRemoteKeyboardWindow kbBefore={{0, 0}, {396, 360}} kbAfter={{0, 0}, {495, 450}} kbBounds={{0, 0}, {495, 450}} rootBefore={{0, 0}, {396, 360}} rootAfter={{0, 0}, {495, 450}} starBefore=396.0 starAfter=495.0 refSize={396, 360} effectiveRef={495, 450} refHook=1 focus=1
+4778|2026-11-10 22:37:56.541 [YouTube:44555] AppBridge: [hl16-kb] ev=viewport-fit logical={{0, 0}, {495, 450}} physical={{0, 0}, {396, 360}} zoom=0.800 keyplane=396.0 ref={396, 360}
+4779|2026-11-10 22:37:56.542 [YouTube:44555] AppBridge: [hl14kb] ev=native-fit when=geometry-immediate try=0 result=applied windows=3 key=YTMainWindow keyFrame={{0, 0}, {396, 360}} kb=UIRemoteKeyboardWindow kbBefore={{0, 0}, {495, 450}} kbAfter={{0, 0}, {396, 360}} kbBounds={{0, 0}, {396, 360}} rootBefore={{0, 0}, {495, 450}} rootAfter={{0, 0}, {396, 360}} starBefore=495.0 starAfter=396.0 refSize={495, 450} effectiveRef={396, 360} refHook=1 focus=1
+4794|2026-11-10 22:37:56.666 [YouTube:44555] AppBridge: [hl16-kb] ev=keyplane-reload width=396.0 reason=geometry
+These establish 396x360 -> 495x450 -> 396x360 in 26 ms after a geometry-recv. They do NOT by themselves identify the visually correct coordinate system for every hosted app.
+HL18 keyboard source:
+recovered-source/project/OmniCarAppBridge/ABInApp.m:1204-1242
+1204|    CGRect logicalTarget = key ? key.frame : CGRectNull;
+1205|    if (key && CGRectIsEmpty(logicalTarget))
+1206|        logicalTarget = CGRectMake(0, 0, key.bounds.size.width, key.bounds.size.height);
+1207|    CGRect target = logicalTarget;
+1208|    // [hl16-kb] On the car, the YouTube FBScene was 495x450 logical
+1209|    // while its physical pane was 396x360 (0.8 zoom). The keyboard's
+1210|    // own UIWindow was incorrectly sized to 495x450 and its rightmost
+1211|    // keys fell outside the physical viewport. Only use the host's
+1212|    // verified 0.6..1.0 projection, and never affect normal phone UI.
+1213|    BOOL havePhysical = ABNativeKbPhysicalViewport.width >= 90 &&
+1214|        ABNativeKbPhysicalViewport.height >= 90 &&
+1215|        ABNativeKbHostedZoom >= 0.6 && ABNativeKbHostedZoom < 0.985 &&
+1216|        fabs(logicalTarget.size.width * ABNativeKbHostedZoom -
+1217|             ABNativeKbPhysicalViewport.width) < 18 &&
+1218|        fabs(logicalTarget.size.height * ABNativeKbHostedZoom -
+1219|             ABNativeKbPhysicalViewport.height) < 18;
+1220|    if (key && havePhysical) {
+1221|        target.size = ABNativeKbPhysicalViewport;
+1222|    } else if (key && keyboard && ABNativeKbRefActive &&
+1223|               keyboard == ABNativeKbWindow &&
+1224|               ABNativeKbRefTarget.width >= 90 &&
+1225|               ABNativeKbRefTarget.height >= 90) {
+1226|        // [hl18-kb] HL16b log observed a transient logical reflow:
+1227|        // 396x360 -> 495x450 -> 396x360 in 26 ms. Preserve the last
+1228|        // physical viewport while the updated tuple has not arrived.
+1229|        BOOL confirmedUnitZoom = ABNativeKbHostedZoom >= 0.985 &&
+1230|            ABNativeKbPhysicalViewport.width >= 90 &&
+1231|            ABNativeKbPhysicalViewport.height >= 90 &&
+1232|            fabs(logicalTarget.size.width -
+1233|                 ABNativeKbPhysicalViewport.width) < 18 &&
+1234|            fabs(logicalTarget.size.height -
+1235|                 ABNativeKbPhysicalViewport.height) < 18;
+1236|        if (!confirmedUnitZoom) {
+1237|            target.size = ABNativeKbRefTarget;
+1238|            if (!CGSizeEqualToSize(logicalTarget.size, target.size))
+1239|                OMCLogWrite(@"AppBridge",
+1240|                    @"[hl18-kb] ev=hold-last-physical reason=geometry-incomplete");
+1241|        }
+1242|    }
+
+recovered-source/project/OmniCarAppBridge/ABInApp.m:2907-2925
+2907|    // Missing or invalid data is a conservative no-op (phone size retained).
+2908|    CGFloat pW = [info[@"kbPhysicalWidth"] doubleValue];
+2909|    CGFloat pH = [info[@"kbPhysicalHeight"] doubleValue];
+2910|    CGFloat z = [info[@"kbZoom"] doubleValue];
+2911|    NSInteger orientation = [info[@"orientation"] intValue];
+2912|    BOOL validPhysical = pW >= 90 && pH >= 90 && z >= 0.6 && z <= 1.0;
+2913|    if (orientation >= 1 && validPhysical) {
+2914|        ABNativeKbPhysicalViewport = CGSizeMake(pW, pH);
+2915|        ABNativeKbHostedZoom = z;
+2916|    } else if (orientation < 1 || ABForcedOrientation < 1) {
+2917|        // Host release: never carry a previous assignment's geometry.
+2918|        ABNativeKbPhysicalViewport = CGSizeZero;
+2919|        ABNativeKbHostedZoom = 1.0;
+2920|    } else {
+2921|        // [hl18-kb] Missing physical fields during an intermediate
+2922|        // orientation update do not signify a new keyboard size.
+2923|        OMCLogWrite(@"AppBridge",
+2924|            @"[hl18-kb] ev=viewport-retained reason=missing-geometry");
+2925|    }
+
+Existing retry cancellation by ABNativeKbEpoch ALREADY exists:
+recovered-source/project/OmniCarAppBridge/ABInApp.m:1382-1405
+1382|static void ABNativeKbOnGeometry(NSNotification *note) {
+1383|    if (ABForcedOrientation < 1 || ABDrawnKb ||
+1384|        !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
+1385|        return;
+1386|    NSUInteger epoch = ++ABNativeKbEpoch;
+1387|    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+1388|        @"[hl14kb] ev=geometry-recv source=original-orientation-channel "
+1389|         "orientation=%ld focus=1",
+1390|        (long)[note.userInfo[@"orientation"] integerValue]]);
+1391|    // The host has just requested a new FBScene frame, but the app
+1392|    // may settle its key window one or two run-loop beats later.
+1393|    // Each fresh geometry supersedes all pending retries. Never
+1394|    // generate a new keyboard, change keyplane or swallow touches.
+1395|    ABNativeKbFit(@"geometry-immediate", 0);
+1396|    ABNativeKbMaybeReload(@"geometry");
+1397|    for (NSUInteger i = 0; i < 3; i++) {
+1398|        const NSTimeInterval waits[] = {0.12, 0.35, 0.7};
+1399|        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+1400|                                     (int64_t)(waits[i] * NSEC_PER_SEC)),
+1401|                       dispatch_get_main_queue(), ^{
+1402|            if (epoch != ABNativeKbEpoch || ABForcedOrientation < 1 ||
+1403|                ABDrawnKb || !ABCurrentResponder ||
+1404|                ![ABCurrentResponder isFirstResponder]) return;
+1405|            BOOL good = ABNativeKbFit(@"geometry-settled", (NSInteger)i + 1);
+
+Reload guard ALREADY exists (must not reinvent):
+recovered-source/project/OmniCarAppBridge/ABInApp.m:1351-1373
+1351|static void ABNativeKbMaybeReload(NSString *why) {
+1352|    if (!ABNativeKbRefActive || !ABCurrentResponder ||
+1353|        ![ABCurrentResponder isFirstResponder] ||
+1354|        ABNativeKbRefTarget.width < 90 ||
+1355|        fabs(ABNativeKbRefTarget.width - ABNativeKbLastReloadWidth) <= 2)
+1356|        return;
+1357|    // [hl16-kb] HL15 only reloaded on geometry-recv, which did not fire
+1358|    // in the device's show cycle. Queue ONE rebuild for each new width
+1359|    // after UIKit has a real visible keyboard; never infinite-reload.
+1360|    ABNativeKbLastReloadWidth = ABNativeKbRefTarget.width;
+1361|    NSUInteger epoch = ABNativeKbEpoch;
+1362|    __weak id responder = ABCurrentResponder;
+1363|    CGFloat width = ABNativeKbLastReloadWidth;
+1364|    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+1365|                                 (int64_t)(0.12 * NSEC_PER_SEC)),
+1366|                   dispatch_get_main_queue(), ^{
+1367|        id focus = responder;
+1368|        if (epoch != ABNativeKbEpoch || !ABNativeKbRefActive ||
+1369|            !focus || focus != ABCurrentResponder ||
+1370|            ![focus isFirstResponder] ||
+1371|            fabs(ABNativeKbRefTarget.width - width) > 2) return;
+1372|        if ([focus respondsToSelector:@selector(reloadInputViews)]) {
+1373|            [focus reloadInputViews];
+
+Potential stale: HL18 retains last physical viewport when orientation update incomplete; it only clears on release, and ABNativeKbRefTarget is reused while same UIWindow remains. Review swap pane, same app new assignment, zoom 0.8 to 1.0, reconnect; differentiate zoom=1 VALID fields from MISSING fields. A geometry generation should complement existing ABNativeKbEpoch (local retries), not replace it.
+Need Claude to specify precise contract: {app bundle/assignment ID, logical, physical, zoom, generation, release}, acceptance/expiration, last-good validity, and when to issue a single keyplane reload. Important: no HL17 active-focus native-fit data yet. Do not claim HL18 is fixed.
+
+6) ISSUE D — PERF DIAGNOSTICS ACTUAL PATCH
+recovered-source/project/OmniCarAppBridge/ABHostGeometry.m:508-526
+508|    BOOL hl8Changed = !hl8Prev ||
+509|        !CGRectEqualToRect([hl8Prev CGRectValue], frame);
+510|    // [hl18-perf] Keep ALL host-frame packets, but avoid scheduling one
+511|    // extra 350 ms window scan per continuously changing drag sample.
+512|    // First live sample, periodic live samples, and every committed
+513|    // frame remain visible to the diagnostic.
+514|    static NSMutableDictionary *hl8LastTraceAt;
+515|    if (!hl8LastTraceAt)
+516|        hl8LastTraceAt = [NSMutableDictionary dictionary];
+517|    CFAbsoluteTime traceNow = CFAbsoluteTimeGetCurrent();
+518|    NSNumber *lastTrace = hl8LastTraceAt[hl8Bundle];
+519|    BOOL committed = ![u[@"live"] boolValue];
+520|    BOOL hl8ShouldLog = ABHL8Trace() &&
+521|        (hl8Changed || committed) &&
+522|        (committed || !lastTrace || traceNow - lastTrace.doubleValue >= 0.35);
+523|    if (hl8Changed)
+524|        hl8PreviousFrame[hl8Bundle] = [NSValue valueWithCGRect:frame];
+525|    if (hl8ShouldLog)
+526|        hl8LastTraceAt[hl8Bundle] = @(traceNow);
+recovered-source/project/OmniCarAppBridge/ABHostGeometry.m:551-556
+551|        NSString *joinedBundle = [hl8Bundle copy];
+552|        unsigned long long joinedSeq = [hl8Seq unsignedLongLongValue];
+553|        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 350000000LL),
+554|                       dispatch_get_main_queue(), ^{
+555|            @try {
+556|                ABPane *settled = [[ABHost shared] paneFor:joinedBundle];
+
+HL18 schedules 350ms deferred window scan only while hl8ShouldLog, typically every 350ms during live dragging, and always on committed frame; [hl8.unifiedDiag] default YES on CarPlay. This throttles observer work but still leaves real IPC per divider sample, layout and the picker rebuild loop. Please identify what must be timed as per-transaction totals (no per-frame file logs).
+
+7) ANSWER FORMAT — PLEASE LIMIT RESPONSE TO <= 900 VIETNAMESE WORDS
+A. 3-5 critical findings ranked by source/log evidence, with exact method names; label PROVEN / HIGH-RISK / UNKNOWN.
+B. One coherent minimal patch PLAN for picker hot loop + remote dismiss, with state cleanup and touch ownership; avoid proposing alternative systems without choosing.
+C. Keyboard protocol/generation fix only if sufficient; otherwise list exactly 2-3 missing instrument fields and next source location.
+D. Short measurement plan: one summary per drag, one event per picker state transition, one event per keyboard fit/skip. Specify pass gates. Do NOT invent compile results, vehicle PASS, or new logs.
+If further code is truly essential, request by precise file + method + a 10-30 line range; do not say "send entire repo".
