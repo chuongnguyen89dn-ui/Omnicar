@@ -1,7 +1,7 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
-## 2026-11-11 — HL21 phục hồi từ HL11: pinch + xóa nút phụ + menu gốc che nội dung (BUILD PENDING)
-- Chỉ làm trên nhánh `feature/hl21-from-hl11-pinch-legacy-picker-20261111`, nền HL13 giữ byte-for-byte native keyboard HL11 + Dock HL12, phục hồi picker/chrome tray trước HL10, chọn face opaque gốc, phục hồi hunk xóa icon nổi HL14. Source commit `1af5a965`, `9fd66c3`, fix verifier `6b9a011`. **Chưa có DEB đã xác minh hoặc DEVICE PASS ở checkpoint này.** [Hồ sơ nguồn/CI/rollback](HL21_HL11_PINCH_DOCK_LEGACY_PICKER_20261111.md).
+## 2026-11-11 — HL21 từ HL11: pinch + bỏ nút phụ + picker gốc (CI/PACKAGE PASS; DEVICE PENDING)
+- Chỉ làm trên nhánh `feature/hl21-from-hl11-pinch-legacy-picker-20261111`, nền HL13 giữ byte-for-byte native keyboard HL11 + Dock HL12, phục hồi picker/chrome tray trước HL10, chọn face opaque gốc, phục hồi hunk xóa icon nổi HL14. Source commit `1af5a965`, `9fd66c3`, fix verifier `6b9a011`. **Run `42960173185` SUCCESS** (commit `6b9a011`), artifact `13828967080`; DEB trực tiếp `1.0.3-hl21restored`, 1.286.824 bytes, SHA256 **`d7bdc04cae5cee01d2ce692851a704dff7ae3ee89b759c7bf5adcb32e9ca5021`**, kiểm 8 FAT Mach-O/16 ký+marker PASS. **DEVICE PENDING**; bàn phím chưa chứng minh resized và Logo wake phải kiểm hồi quy; không merge main/Sileo. Verifier độc lập [verify_hl21_artifact.py](verify_hl21_artifact.py). [Hồ sơ nguồn/CI/rollback](HL21_HL11_PINCH_DOCK_LEGACY_PICKER_20261111.md).
 
 
 ## 2026-11-11 — HL20 DEVICE FAIL: chốt thay kiến trúc Cài đặt và keyplane (CHƯA SỬA SOURCE)
