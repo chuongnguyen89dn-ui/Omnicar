@@ -101,6 +101,9 @@ jobs:
       - name: Verify HL26 UIKit-owned Settings, preferences, resources, and startup schema
         run: python3 recovered-source/gpt-project-history/verify_hl26_native_settings.py
 
+      - name: Verify HL27 original Settings root, SpringBoard Respring acknowledgement and keyplane diagnostics
+        run: python3 recovered-source/gpt-project-history/verify_hl27_settings_respring.py
+
       - name: Rebrand the complete source/build tree to DuoCar before compilation
         working-directory: .
         run: python3 recovered-source/gpt-project-history/rebrand_duocar.py
@@ -151,9 +154,9 @@ jobs:
 
       - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl26duocar_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl27duocar_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl26duocar"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl27duocar"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -167,7 +170,7 @@ jobs:
               fi
               echo "HL8 marker PASS $dylib/$arch"
               if [ "$dylib" = "DuoCarAppBridge" ]; then
-                for marker in '[hl11kb]' '[hl24-keyplane]' '[hl24-geometry]' '[hl24-stable]' '[hl25-kb-surface]' '[hl25-kb-ancestors]' '[hl25-kb-windows]' '[hl25-host-surface]' '[hl25-scene-ref]' 'probe-interface-abi-matches-NOT-CALLED' 'ev=native-fit' 'ev=restore' '[pinch2] trigger=began toggle-sent dir=0'; do
+                for marker in '[hl11kb]' '[hl24-keyplane]' '[hl24-geometry]' '[hl24-stable]' '[hl25-kb-surface]' '[hl25-kb-ancestors]' '[hl25-kb-windows]' '[hl25-host-surface]' '[hl25-scene-ref]' 'probe-interface-abi-matches-NOT-CALLED' '[hl27-keyplane]' 'ev=native-fit' 'ev=restore' '[pinch2] trigger=began toggle-sent dir=0'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL11 keyboard marker $marker missing in $dylib/$arch"
                     exit 1
@@ -183,7 +186,7 @@ jobs:
                   fi
                   echo "HL12/HL13 marker PASS $dylib/$arch: $marker"
                 done
-                for marker in 'native-logo-owned' 'fs-hidden-save' 'fs-hidden-restore' '[hl21-legacy-picker]' '[picker-face]' '[hl21-floating]'; do
+                for marker in '[hl27-respring] stage=observer-ready' '[hl27-respring] stage=accepted' '[hl27-respring] stage=terminate-self' 'native-logo-owned' 'fs-hidden-save' 'fs-hidden-restore' '[hl21-legacy-picker]' '[picker-face]' '[hl21-floating]'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::SplitScreen marker $marker missing in $dylib/$arch"
                     exit 1
@@ -197,12 +200,12 @@ jobs:
       - name: Verify exact DuoCar package, app identity, signatures and zero old branding
         run: |
           python3 recovered-source/gpt-project-history/verify_duocar_payload.py \
-            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl26duocar_iphoneos-arm64.deb
+            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl27duocar_iphoneos-arm64.deb
 
-      # HL26 is a private in-app Settings candidate: do not create a public Release and do
+      # HL27 is a private Settings/Respring candidate: do not create a public Release and do
       # not publish to Sileo without device acceptance and authorization.
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: duocar-hl26-fat-deb
-          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl26duocar_iphoneos-arm64.deb
+          name: duocar-hl27-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl27duocar_iphoneos-arm64.deb
