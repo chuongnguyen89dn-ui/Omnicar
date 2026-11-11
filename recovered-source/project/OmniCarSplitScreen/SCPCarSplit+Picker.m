@@ -420,6 +420,9 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 // the body; the fallback order is panesInReadingOrder (sorted
 // allPanes). @0x31eac.
 - (void)refreshPickerSheet {
+    // [hl18-perf2] Queued refresh may run after beginResize. Keep the
+    // existing sheet hidden; endResize will queue a final refresh.
+    if (self.resizing) return;
     NSArray *panes = self.active ? self.allPanes : @[];
     SCPCarPane *sheetPane = self.pickerSheetPane;
     if (sheetPane.picker == nil || ![panes containsObject:sheetPane])
@@ -454,6 +457,9 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         self.pickerSheetKey = key;
     }
     [self markPickerPanes];
+    // Re-show an unchanged cached sheet when no rebuild was required.
+    if (self.pickerSheet) self.pickerSheet.hidden = NO;
+    if (self.pickerShield) self.pickerShield.hidden = NO;
 }
 
 // CLOSED (was STUB-UNRECOVERED): the app-grid sheet. Hosted in the tray
