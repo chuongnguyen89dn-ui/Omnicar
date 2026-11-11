@@ -234,6 +234,12 @@ static void DCVoicePaint(SCPCarSplit *split, BOOL listening) {
                 });
             }
         }];
+        if (!self.task) {
+            [self stop];
+            [split toast:@"Apple Speech không tạo được phiên nhận dạng."];
+            NSLog(@"[hl30-voice] event=recognition-task-nil");
+            return;
+        }
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,12*NSEC_PER_SEC),
             dispatch_get_main_queue(), ^{
             DCVoiceCarSession *owner=weakSelf;
@@ -293,7 +299,7 @@ void SCPVoiceBubbleUpdate(SCPCarSplit *split) {
     BOOL fullscreen=([[SCPFullscreenController shared] fsCommittedState]
         == SCPFullscreenStateExpanded);
     BOOL popup=split.tray!=nil || split.pickerSheet!=nil ||
-        split.ratioMenu!=nil;
+        split.ratioMenu!=nil || split.resizing || split.dragGhost!=nil;
     button.hidden=(fullscreen || popup);
     button.userInteractionEnabled=!button.hidden;
     [host bringSubviewToFront:button];
