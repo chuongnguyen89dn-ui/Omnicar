@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-11 — Gói TXT tự chứa gửi Claude: HL17/HL18 source và log
+- Claude không có repo/source/log OmniCar. Đã chuẩn bị **bản bàn giao TXT tự chứa** gồm 343 dòng/24.146 ký tự: đúng 8 đường source ở nhánh HL18 với đoạn code có line numbers, mốc log HL17 mới nhất `logs/OmniCar.log` (SHA `55348d5e92db99448c9a2299615713cf15a5d752`) và HL16b bàn phím, phân tích 13 lần picker rebuild/24 cặp IPC log, rủi ro stale keyboard/pending dismiss, và 4 câu hỏi hẹp yêu cầu Claude trả lời không đoán. [Mở và sao chép TXT gửi Claude](HL18_CLAUDE_SELF_CONTAINED_REVIEW_PACKET_20261111.txt). Commit tạo `928c7045477fa8cbb8c5cd6d0e3481d37e217353`; đã đọc lại byte-for-byte. Không cập nhật source/CI trong bước bàn giao này.
+
+
 ## 2026-11-11 — HL17 log 06:19 đã có: HL18 critique được cập nhật
 - Đọc trực tiếp `logs/OmniCar.log` trên main (blob `55348d5e92db99448c9a2299615713cf15a5d752`, 781 dòng, 06:19:19–06:19:49; CarPlay 44790/SpringBoard 44767/YouTube 44809/Facebook 44810). Có 14 marker HL17; 13 lần dựng lại picker Facebook lúc kéo divider, 26 lượt xây danh sách 14+5 app; 24 cặp frame-send/recv có độ trễ ghi log trung bình 24.1ms. HL17 guard bar-dismiss thực chạy một lần, nhưng chưa có lần YouTube replace trong log này và không có bản đo keyboard native-focus. Ưu tiên kiểm hot loop `relayoutAnimated:pushScenes:` → `refreshPickerSheet` → `buildPickerSheetForPane:` vì key chứa targetFrame đổi theo drag. Nhánh `feature/hl18-picker-kb-frameperf-20261111` chưa có build/DEVICE PASS được xác minh. [Phản biện và checkpoint chi tiết](HL18_TECHNICAL_REVIEW_FOR_CLAUDE_20261111.md).
 
