@@ -6,6 +6,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <objc/runtime.h>
 #import "SCPVoiceNative.h"
+#import "SCPVoiceBubbleView.h"
 #import "SCPCarSplit.h"
 #import "SCPVoiceBridge.h"
 #import "SCPPrefs.h"
@@ -13,10 +14,9 @@
 #import "SCPFullscreenController.h"
 #import "DCVoiceCommand.h"
 
-static char DCVoiceButtonAssociation;
-static NSString *const DCVoiceActionName=@"com.anlai.omnicar/voice.action";
-static UIButton *DCVoiceButton(SCPCarSplit *split) {
-    return split ? objc_getAssociatedObject(split,&DCVoiceButtonAssociation) : nil;
+static char DCVoiceBubbleAssociation;
+static SCPVoiceBubbleView *DCVoiceBubble(SCPCarSplit *split) {
+    return split ? objc_getAssociatedObject(split,&DCVoiceBubbleAssociation) : nil;
 }
 @interface DCVoiceCarSession : NSObject
 @property(nonatomic,strong) AVAudioEngine *engine;
@@ -37,11 +37,8 @@ static UIButton *DCVoiceButton(SCPCarSplit *split) {
 @end
 static DCVoiceCarSession *DCVoiceSession;
 static void DCVoicePaint(SCPCarSplit *split, BOOL listening) {
-    UIButton *b=DCVoiceButton(split);
-    if (!b) return;
-    [b setImage:[UIImage systemImageNamed:(listening ? @"waveform" : @"mic.fill")]
-         forState:UIControlStateNormal];
-    b.accessibilityLabel=listening ? @"Dừng nghe DuoCar" : @"Nói với DuoCar trên CarPlay";
+    [DCVoiceBubble(split) setVoiceState:
+        (listening ? SCPVoiceBubbleStateListening : SCPVoiceBubbleStateIdle) animated:YES];
 }
 @implementation DCVoiceCarSession
 - (void)stop {
@@ -95,6 +92,10 @@ static void DCVoicePaint(SCPCarSplit *split, BOOL listening) {
         m!=AVAudioSessionRecordPermissionGranted) {
         NSLog(@"[hl30-voice] event=permission-block speech=%ld mic=%ld keys=%d/%d",
               (long)s,(long)m,(int)(microphone.length>0),(int)(speech.length>0));
+        [DCVoiceBubble(split) setVoiceState:SCPVoiceBubbleStateError animated:YES];
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl31-voice] event=carplay-permission-block speech=%ld mic=%ld usageMic=%d usageSpeech=%d",
+            (long)s,(long)m,(int)(microphone.length>0),(int)(speech.length>0)]);
         [split toast:@"CarPlay chưa được cấp quyền Micro/Speech. Không bắt đầu nghe."];
         return;
     }
@@ -189,6 +190,9 @@ static void DCVoicePaint(SCPCarSplit *split, BOOL listening) {
         NSLog(@"[hl30-voice] event=audio-started route=%@ language=%@ offline=%d",
              audio.currentRoute.inputs.firstObject.portType ?: @"none",
              lang,(int)self.recognizer.supportsOnDeviceRecognition);
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl31-voice] event=carplay-audio-started route=%@",
+            audio.currentRoute.inputs.firstObject.portType?:@"none"]);
         [split toast:@"Đang nghe trên CarPlay (12 giây)..."];
         self.task=[self.recognizer recognitionTaskWithRequest:self.request
             resultHandler:^(SFSpeechRecognitionResult *result,NSError *failure) {
@@ -264,44 +268,53 @@ void SCPVoiceNativeToggle(SCPCarSplit *split) {
 void SCPVoiceBubbleDetach(SCPCarSplit *split) {
     if (DCVoiceSession && DCVoiceSession.listening)
         [DCVoiceSession stop];
-    [DCVoiceButton(split) removeFromSuperview];
-    if (split) objc_setAssociatedObject(split,&DCVoiceButtonAssociation,nil,
+    SCPVoiceBubbleView *bubble=DCVoiceBubble(split);
+    bubble.onBubbleTapped=nil;
+    bubble.onPositionChanged=nil;
+    [bubble removeFromSuperview];
+    if (split) objc_setAssociatedObject(split,&DCVoiceBubbleAssociation,nil,
         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    OMCLogWrite(@"SplitScreen",@"[hl31-bubble] event=detach voice=stopped");
 }
 void SCPVoiceBubbleUpdate(SCPCarSplit *split) {
     if (!NSThread.isMainThread) return;
     if (!split || !split.active || !split.container.superview ||
         ![SCPPrefs enabled] ||
         ![OMCPref(@"voiceAssistantEnabled",@NO) boolValue]) {
-        SCPVoiceBubbleDetach(split); return;
-    }
-    UIButton *button=DCVoiceButton(split);
-    if (!button) {
-        button=[UIButton buttonWithType:UIButtonTypeSystem];
-        button.tintColor=UIColor.whiteColor;
-        button.backgroundColor=[UIColor colorWithWhite:0.08 alpha:0.88];
-        button.layer.cornerRadius=23;
-        button.layer.borderWidth=1;
-        button.layer.borderColor=[UIColor colorWithWhite:1 alpha:0.4].CGColor;
-        [button addTarget:split action:@selector(dcVoiceRequest:)
-            forControlEvents:UIControlEventTouchUpInside];
-        objc_setAssociatedObject(split,&DCVoiceButtonAssociation,button,
-            OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        DCVoicePaint(split,NO);
-        NSLog(@"[hl30-voice] event=bubble-created on=carplay");
+        SCPVoiceBubbleDetach(split);
+        return;
     }
     UIView *host=split.container;
-    if (button.superview!=host) [host addSubview:button];
-    CGRect bounds=host.bounds;
-    CGRect frame=CGRectMake(MAX(8,CGRectGetWidth(bounds)-54),
-                             MAX(8,CGRectGetHeight(bounds)-62),46,46);
-    if (!CGRectEqualToRect(frame,button.frame)) button.frame=frame;
-    // Do not intercept the original picker/tray/ratio controls.
+    SCPVoiceBubbleView *bubble=DCVoiceBubble(split);
+    if (!bubble) {
+        bubble=[[SCPVoiceBubbleView alloc] initWithBoundaryBounds:host.bounds];
+        __weak SCPCarSplit *weakSplit=split;
+        bubble.onBubbleTapped=^{
+            SCPCarSplit *owner=weakSplit;
+            if (!owner || !owner.active) return;
+            OMCLogWrite(@"SplitScreen",
+                @"[hl31-voice] event=carplay-bubble-hit owner=existing-split");
+            SCPVoiceNativeToggle(owner);
+        };
+        bubble.onPositionChanged=^(BOOL left,CGFloat y) {
+            OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+                @"[hl31-voice] event=bubble-position edge=%@ y=%.3f",
+                left?@"left":@"right",y]);
+        };
+        objc_setAssociatedObject(split,&DCVoiceBubbleAssociation,bubble,
+            OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        OMCLogWrite(@"SplitScreen",
+            @"[hl31-bubble] event=created mode=stateful-pan-tap-edge-snap-idle");
+    }
+    if (bubble.superview!=host) [host addSubview:bubble];
+    [bubble updateBoundaryBounds:host.bounds];
+    // The original layout picker, divider and fullscreen remain the owners
+    // of their touch areas; bubble never creates another UIWindow.
     BOOL fullscreen=([[SCPFullscreenController shared] fsCommittedState]
         == SCPFullscreenStateExpanded);
-    BOOL popup=split.tray!=nil || split.pickerSheet!=nil ||
-        split.ratioMenu!=nil || split.resizing || split.dragGhost!=nil;
-    button.hidden=(fullscreen || popup);
-    button.userInteractionEnabled=!button.hidden;
-    [host bringSubviewToFront:button];
+    BOOL popup=(split.tray!=nil || split.pickerSheet!=nil ||
+                split.ratioMenu!=nil || split.resizing || split.dragGhost!=nil);
+    bubble.hidden=(fullscreen || popup);
+    bubble.userInteractionEnabled=!bubble.hidden;
+    if (!bubble.hidden) [host bringSubviewToFront:bubble];
 }
