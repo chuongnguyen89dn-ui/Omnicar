@@ -74,3 +74,17 @@ Chuẩn bị đóng gói **version mới hơn HL36**: `1.0.3-hl37kbsync1` (packa
 **Phép thử phân biệt trước khi lại sửa DEB**: Chỉ trên hosted app, giữ tất cả các chức năng và app native nguyên trạng, thử 2 phiên với `appBridgeZoom=80` (mặc định) và **100** (zoom=1.0), cùng ô physical W=198/297/396, cùng thao tác focus và kéo hai chiều. Log đúng PID/focus/revision: `pane.frame, pane.sceneBox, appView.frame/transform, scene logical, keyWindow, UIRemoteKeyboardWindow/_UIKeyboardWindowScene, UIKeyboardLayoutStar projectedRect`, và đối chiếu ảnh + phím cạnh phải gõ được. **100% PASS / 80% FAIL** củng cố zoom/coordinate contract; **cả 2 FAIL** chỉ ra riêng keyboard scene/keyplane lifecycle vẫn lỗi. Không khẳng định zero-zoom sẽ sửa cho đến khi A/B trên xe. Nếu muốn test không đổi code, chỉ thay giá trị pref `appBridgeZoom` ở app nếu đã có control hoạt động, tránh giả định giao diện settings có sẵn. Không build hoặc phát thêm DEB từ phỏng đoán.
 
 **Trạng thái**: Source không đổi, không chạy CI/build, không có DEB mới, không có DEVICE PASS; hypothesis từ source/log đã được đọc và ghi checkpoint, không tuyên bố đã áp dụng sửa.
+
+
+## Xác minh: Cài đặt DuoCar KHÔNG có bộ chỉnh appBridgeZoom
+
+Đính chính hướng dẫn đã sai trong lượt trước: **không thể yêu cầu Nguyen vào Cài đặt DuoCar để chỉnh zoom 80% lên 100%**, vì mục đó không có trong UIKit Settings của bản HL37.
+
+Đã trực tiếp kiểm đúng branch code `feature/duocar-hl36-keyplane-sync-20261112` (base binary `4c317cfc`):
+- `recovered-source/project/OmniCarApp/OMCNativeSettings.m` (blob `d8c42b9d9b5637ff2a542a89ccc48edbc0de35de`): hàm `OMCNativeSimplePage::makeSections`, vùng 414–468, chỉ trang Apps/Home/Startup/SpeedBubble/Split/Profiles/Support/Logs; trong Split không có `appBridgeZoom`. Các từ “zoom” chỉ nằm trong key bản tin WhatsNew `WN_ZOOM_TEXT`, không có điều khiển.
+- `recovered-source/project/OmniCarPrefs/OMCAppBridgeAppsController.m`: không có `appBridgeZoom`; chỉ đọc `appBridgeEnabled`/`appBridgeFps` ở đoạn 168.
+- `recovered-source/metadata/PREFS_MAP.md`: `appBridgeZoom` nằm trong danh sách **code-only keys read but never written at a proven site** (dòng ~168).
+- `recovered-source/project/OmniCarAppBridge/ABHostBMethods.m:606–610`: `OMCPref(@"appBridgeZoom", @80)` / 100, clamp [0.6, 1.0], mặc định 80%. Đây là **tham số ẩn trong runtime**, không phải tùy chọn người dùng thấy trong Cài đặt.
+- Nếu cần phân biệt zoom có gây lỗi hay không, phải chuẩn bị phương pháp test A/B riêng có thể hoàn nguyên, xác minh thực tế 80% vs 100%, không giả định có slider/toggle hiện hữu. Không tự đổi prefs người dùng, không sửa runtime hoặc xuất DEB trong lượt tra cứu này.
+
+Trạng thái: **CONFIRMED SOURCE** Cài đặt không có zoom; chẩn đoán zoom là **HYPOTHESIS**, chưa phải nguyên nhân đã chứng minh. 
