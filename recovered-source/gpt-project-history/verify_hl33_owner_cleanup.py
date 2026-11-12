@@ -58,7 +58,7 @@ assert "DCHL33Pass_" in native and "SCPCPassHitTest" not in native
 assert "voiceWindow.hidden=!visible" in native
 assert "window.windowLevel=UIWindowLevelStatusBar+64.0" in native
 assert "voiceWindow" in native and "[host addSubview:bubble]" not in native
-assert "CGRect inOverlay" not in native  # no hidden coordinate shortcuts
+assert "CGRect inOverlay=[overlay convertRect:inHost fromWindow:host.window];" in native
 assert "fromWindow:host.window" in native
 assert "SCPVoiceBubbleUpdate(self)" in picker and ratio
 assert "trayWindowForParent:" in picker
