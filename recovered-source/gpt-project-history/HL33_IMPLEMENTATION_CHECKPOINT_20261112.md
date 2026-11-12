@@ -1,0 +1,31 @@
+# HL33 – thay thế quyền sở hữu bàn phím, bong bóng overlay và sửa phiên thu voice
+
+Checkpoint dự án GPT 2026-11-12 (sau báo cáo Nguyen hỏi "Sao r"). **Dừng kết luận ở CI và source: chưa giao DEB HL33, chưa DEVICE PASS.** Mã nguồn chạy trong repo duy nhất `chuongnguyen89dn-ui/Omnicar`, dưới `recovered-source/`. HEAD kiểm gần nhất nhánh `feature/duocar-hl33-owner-cleanup-20261112`: `038aa47fe4302f5999e81e9402498cd011dae232`. Branch base HL32 `4f13d1ea14381afef35d382b88e24125262cf689` (DEVICE FAIL từ video IMG_8216 + logs/DuoCar.log). Khoảng so commit HL32→HL33: 10 commits ahead, 23 files, cả source/project mirror tương ứng.
+
+## Ranh giới làm việc
+Mục tiêu hiện hành Nguyen: đọc/đối chiếu DuoNavi 1.0.4 từ DEB gốc, gỡ/vô hiệu hóa **đường sửa cũ gây xung đột** thay vì thêm cơ chế chồng, sửa phím đầy đủ ô nhỏ/lớn/solo, bubble visible/tappable cả TikTok lẫn map, voice có tiếng nói thật/hiểu/trả lời qua CarPlay. Không sửa Home/Dock, YTZ, AutoHide, picker gốc, pinch/fullscreen, native feed, settings ngoài điểm nối popup/teardown cần thiết; không tự chỉnh quyền hệ thống/TCC. Không merge main, publish Sileo hay cấp TCC. Muse tích hợp source/build/ký cuối trừ khi Nguyen đổi phân công; CI được chạy do push-trigger workflow, không dispatch riêng. Đọc `gpt-project-history/README.md`, `TIEP_TUC_DU_AN.md`, hồ sơ HL32 video/device fail và review HL33 trước khi tiếp tục.
+
+## Source changes (SOURCE-COMMITTED, unproven)
+- `f73c828` và `047236f`: `project/OmniCarAppBridge/ABInApp.m`, `ABKeyboardTraits104.m/.h`, `ABHostGeometry.m`, mirror `src/AppBridgeB`. **Xóa** writer `keyboard.frame=target`, `ABNativeKbFit`, `ABNativeKbRestore`, frame snapshot/retry/time-out-rollback; giữ probe read-only. Logical width từ committed host packet làm nguồn chuẩn, thêm physical/logical height. ABKeyboardTraits104 thêm hook scoped `UIInputSetContainerView`/`UIInputSetHostView` layout/didMove (hướng lấy từ static DuoNavi 1.0.4), gỡ mask/clip trong keyboard window-only, restore snapshot khi hide/close. Chưa có raster/touch/solo device evidence.
+- `f5df98c`: `project/OmniCarSplitScreen/SCPVoiceNative.m`, mirror `src/SplitScreenA`: bubble được chuyển khỏi `split.container` sang cửa sổ `UIRootSceneWindow` riêng cho CarPlay với hitTest passthrough, windowLevel dự kiến > TikTok, không dùng chung tray của picker. `4770808`: tích hợp visibility khi mở/đóng picker và ratio menu, giới hạn keyboard lease khi explicit close/close all.
+- `acd9924`: `project/OmniCarSplitScreen/SCPVoiceSpringAgent.m`, mirror `src/SplitScreenA`: phiên thu `PlayAndRecord`, mode Default/options/sample rate mô phỏng cấu hình đã đối chiếu từ DuoNavi 1.0.4; đo mọi kênh PCM, phân loại silent/weak, chỉ báo listening khi có energy, thêm báo cáo route/input, voice error riêng. Giữ TCC hiện hành. **Không chứng minh CarAudio có năng lượng hữu ích trong phiên thiết bị**.
+- Cập nhật workflow/tests mới `verify_hl33_owner_cleanup.py`, sửa gates HL21/HL27/HL29/HL30/HL31/HL32 không còn đòi writer/overlay cũ, version mục tiêu `1.0.3-hl33ownercleanup`. Đã kiểm GitHub compare trên branch: chỉ các module kể trên, workflow/tests/rebrand và mirror; không sửa code Home/Dock/YTZ/pinch trực tiếp.
+- Mốc HEAD gần nhất `038aa47f` thông điệp "fix(hl33): correct ARC audio sample pointer qualifiers and compile-time overlay rect initializer". **Kiểm tra lại branch HEAD trước khi sửa; nhánh có thể có nhiều lượt ghi song song.**
+
+## CI kiểm chứng (đọc trực tiếp GitHub)
+- `43159714189` (commit d16b094) FAILED ở `Verify HL33 no duplicate keyboard writer...` (tự kiểm thử quá cứng).
+- `43159805546` (f4e72145) FAILED trong FAT build.
+- `43159937826` (3c556d7) FAILED trong FAT build: `SCPVoiceNative.m:24:38 error: initializer element is not a compile-time constant` vì static `CGRectNull`, rõ ràng không phải runtime/device.
+- `43160076523` (be1eea5) IN_PROGRESS ở bước Build FAT tại lần đọc gần nhất; bản này có lỗi static `CGRectNull`, nên không coi là PASS.
+- `43160289936` (038aa47f, job ID chưa chốt): IN_PROGRESS lúc kiểm gần nhất, đang ở bước `Install ldid and dpkg`; **chưa có kết quả compile/package/upload**. Không khởi tạo run trùng.
+- Chưa có artifact ID/DEB SHA-256 HL33 đã kiểm. Chưa có keyboard/voice DEVICE PASS. Thời điểm kiểm gần nhất: ngày 2026-11-12 qua GitHub connector (UTC run created 05:16:33).
+
+## Tiếp tục từ đây
+1. Đọc HEAD/CI run `43160289936` và log **đúng job**. Nếu compile fail, sửa chính hunk/Objective-C ABI, làm parity project/src; không báo “đã sửa triệt để” dựa source tests.
+2. Rà lại pass-through CarPlay window (overlay chỉ nhận bubble, rest click xuyên; verify hit on TikTok/Maps), xử lý picker/ratio/autoHide/scene lifecycle. Cẩn trọng quyền sở hữu `UIRootSceneWindow` và teardown.
+3. Keyboard: xác minh `ABNativeKbRestore`, `ABNativeKbFit`, `keyboard.frame=target` vắng khỏi **binary mới**, còn metrics/keyplane/clip scopes và shared YTZ/Home không hồi quy. Kiểm solowidth/height với thực tế; clipping outer alone không chứng minh keycap/touch.
+4. Voice: TCC SpringBoard đã Authorized/Granted trên xe ở HL32; không cấp quyền lại. Cần chứng minh `CarAudio` PCM samples có amplitude >0 ở đúng tuyến microphone rồi STT partial/final, command owner-ACK và TTS âm thanh nghe được qua xe. Không kết luận voice đã hoạt động chỉ từ `AVAudioEngine.start`.
+5. Nếu có build FAT PASS, tải **đúng** artifact, kiểm architecture arm64/arm64e, package/version, hash DEB, marker path và chữ ký trước khi có link. Nghiệm thu xe cần Nguyen với 35:65, 50:50, 65:35, solo, focus/drag, icon/Home, bubble TikTok/map/picker, lệnh/loa; log PID/marker và video một phiên. Chưa được coi DEVICE PASS.
+
+## Checkpoint không chứa
+Không lưu token/cookie. Không có lệnh shell local hay checkout dirty (GitHub connector-only). Đường đầy đủ rollback base HL32 `4f13d1ea` nhưng bản đó đã DEVICE FAIL, không gọi known-good.
