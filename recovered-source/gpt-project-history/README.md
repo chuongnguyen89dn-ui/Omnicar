@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL36 keyplane/window sync cho hosted app (SOURCE COMMITTED / DEVICE PENDING)
+- Nguyen xác nhận trên xe **bàn phím các app CarPlay hệ thống hoạt động đúng**. Sửa riêng đồng bộ `UIRemoteKeyboardWindow` ↔ UIKit keyplane của app hosted trên nhánh `feature/duocar-hl36-keyplane-sync-20261112` từ HL36 `fa21883e`: defer viewport khi keyplane còn tràn; dùng `reloadInputViews` có focus/revision/epoch guards; giữ native apps, YTZ/Dock/picker/zoom/voice-off và không hồi sinh drawn keyboard. 3 cặp `project/src` đồng nhất, kiểm connector tĩnh 21/21, **chưa chạy Python/CI/build/DEB, chưa device PASS**. [Checkpoint chuyên đề](https://github.com/chuongnguyen89dn-ui/Omnicar/blob/feature/duocar-hl36-keyplane-sync-20261112/recovered-source/gpt-project-history/HL36_KEYPLANE_SYNC_20261112.md).
+
+
+
 ## 2026-11-12 — Truy ngược log native scene và xác nhận bàn phím hệ thống (USER DEVICE OBSERVATION)
 - Đã đọc lịch sử `logs/OmniCar.log` qua 26 commit cùng các bản cũ, bản 07/11 và `logs/DuoCar.log` HL36. Log xác nhận Google Maps/Waze và các app hỗ trợ native đã được gắn bằng `DBApplicationSceneViewController`/CarPlayTemplateUIHost trong ô chia; **không có bằng chứng riêng rằng bàn phím của Google Maps đã gõ thành công**.
 - Nguyen xác nhận trên xe: **tất cả bàn phím của app hệ thống đều hiển thị đúng và resize đúng**. HL36 YouTube hosted lại có `UIRemoteKeyboardWindow=371pt` nhưng `UIKeyboardLayoutStar=495pt` (tràn phải 131,5pt). Cần đối chiếu chủ scene/keyboard geometry + UIKit reflow của hosted, **không sửa bàn phím các app hệ thống**. [Checkpoint truy log native scene và keyboard](NATIVE_CARPLAY_SCENE_LOG_TRACE_20261112.md). Chưa sửa source/build/DEB trong lượt truy log.
