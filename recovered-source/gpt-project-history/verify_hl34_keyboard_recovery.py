@@ -117,15 +117,26 @@ assert "keyboard.frame=target" in kb
 assert "CGRect keyplaneInWindow" in hdr
 assert "CGRect keyplaneInWindow" in kb
 assert "KB104PlaneFitsViewport" in kb
-assert "planeKnown && !fits && (narrowing || !changed)" in kb
+assert "planeKnown && !fits && (narrowing || !changed)" not in kb
+assert "action=commit-one-owner-and-refresh-traits" in kb
 assert "ABNativeKbScheduleUIKitReflow" in ab
 assert "[responder reloadInputViews]" in ab
 assert "ABNativeKbReflowTicket" in ab
 assert "revision!=ABNativeKbGeometryRevision" in ab
 assert "focus!=ABNativeKbFocusSerial" in ab
 assert 'ABNativeKbObserve(@"post-uikit-reflow")' in ab
-assert '"[hl36-kbsync] event=viewport-await-uikit' in kb
-assert '"[hl36-kbsync] event=uikit-reflow-request' in ab
+assert '"[hl38-keyplane] event=viewport-stale-plane' in kb
+assert '"[hl38-keyplane] event=refresh-request' in kb
+assert "ABKB104RequestUIKitKeyplaneUpdate" in kb
+assert "ABKB104RequestUIKitKeyplaneUpdate" in hdr
+assert "KB104Signature(starClass,setter,NO,3,'v','@',0)" in kb
+assert 'NSSelectorFromString(@"updateKeyplaneName")' in kb
+assert "((void (*)(id,SEL,id))objc_msgSend)(layout,setter,traits)" in kb
+assert "KB104RefreshInProgress" in kb
+assert "keyboard.windowScene.coordinateSpace.bounds" in ab
+assert '"[hl38-keyplane] event=scene-layout-request' in ab
+assert "ABKB104RequestUIKitKeyplaneUpdate(" in ab
+assert 'requested?@"setScreenTraits":@"reloadInputViews-fallback"' in ab
 assert "keyboard.transform=" not in kb+ab
 assert "UIKeyboardLayoutStar.transform=" not in kb+ab
 # Independent HL36 on-car specimens: matching WIDTH alone does not
@@ -135,7 +146,8 @@ assert 7.5+495 > 371+1
 assert 25.5+371 <= 495+1
 # Missing keyplane on window-visible is not a shrink failure; allow
 # UIKit's first viewport placement while the keyplane is being built.
-assert "if (planeKnown && !fits && (narrowing || !changed))" in kb
+assert "if (planeKnown && !fits && (narrowing || !changed))" not in kb
+assert "if (planeKnown && !fits)" in kb
 assert len(re.findall(r"keyboard\.frame\s*=",kb))==1
 # HL36: voice code is retained ONLY in source; the package must never
 # compile assistant capture, UI, bubble, or typed command parser.
