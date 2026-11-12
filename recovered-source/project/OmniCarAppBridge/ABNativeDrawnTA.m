@@ -440,13 +440,6 @@ static void DC40Pump(void) {
         postNotificationName:DC40Command object:DC40CurrentBundle userInfo:head];
     DC40LastPost=now;
 }
-// [hl42] ABKeyboard should wait for authenticated native focus-off before
-// removing its drawn panel. Hosted uses its untouched original instant-hide.
-BOOL DC42NativeHideWaitForFocusEnd(void) {
-    NSString *app=[ABKeyboard shared].app;
-    return DC40CurrentNonce && app.length &&
-        [app isEqualToString:DC40CurrentBundle];
-}
 BOOL DC40NativeKeyboardRouteKey(NSString *action, NSUInteger del, NSString *text) {
     if (!DC40CurrentNonce || !DC40CurrentBundle.length ||
         ![[ABKeyboard shared].app isEqualToString:DC40CurrentBundle])
