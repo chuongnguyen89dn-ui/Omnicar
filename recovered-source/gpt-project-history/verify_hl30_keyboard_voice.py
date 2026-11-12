@@ -69,9 +69,9 @@ assert 'BOOL SCPVoiceDispatchLocalCommand(NSDictionary *command)' in bridge
 assert 'SCPVoiceExecute(command)' in bridge
 assert 'AVAudioSessionInterruptionNotification' in native
 assert 'AVAudioSessionRouteChangeReasonOldDeviceUnavailable' in native
-assert 'button.userInteractionEnabled=!button.hidden' in native
+assert 'bubble.userInteractionEnabled=!bubble.hidden' in native
 assert 'split.tray!=nil || split.pickerSheet!=nil' in native
-assert '[button addTarget:split action:@selector(dcVoiceRequest:)' in native
+assert 'bubble.onBubbleTapped=^' in native and 'SCPVoiceNativeToggle(owner)' in native
 assert 'dcVoiceRequest:' not in panel
 assert 'SCPVoiceBubbleUpdate(self)' in split
 assert 'SCPVoiceBubbleDetach(self)' in split
@@ -102,7 +102,7 @@ assert 'now-DCVoiceLastReceiveAt<0.5' in bridge
 assert all(needle not in native for needle in
            ('TCC.db','--grant-tcc','SiriInvocation','api.openai.com',
             'apiKey=','chatgpt.com','DuoNaviDashboard.dylib'))
-assert '1.0.3-hl30kbvoice' in version
+assert '1.0.3-hl31bubbleaudit' in version
 assert all(key in parser for key in
            ('@"swap"', '@"ratio"', '@"layout"', '@"open"'))
 
