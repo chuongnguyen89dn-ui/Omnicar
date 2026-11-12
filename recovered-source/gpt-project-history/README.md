@@ -1,5 +1,11 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL31: giọng nói thực sự từ bong bóng CarPlay, SpringBoard capture + Apple TTS (SOURCE-COMMITTED, CI RUNNING, DEVICE UNPROVEN)
+- User yêu cầu **nghe lời nói và trả lời bằng tiếng từ bong bóng**; không nhận chỉ trang trí. Đã nghiên cứu thật ARM64 **DuoNavi 1.0.4** gốc (chạm/pan/dim bubble, VoiceSessionManager, AudioCapture, Apple STT partial, Player, SpringBoard TCC helper). Ghi tách bạch static code vs runtime.
+- Nhánh `feature/duocar-hl31-duonavi-parity-20261112`: thêm bubble stateful kéo/hít cạnh/nhớ vị trí; nối `voice.capture.request/state` CarPlay ↔ SpringBoard, agent người dùng chạm mới thu micro, Apple Speech partial → typed parser/owner → TTS phát âm thanh, log đúng PID/route; sửa iPhone partial. **Không nhập binary DuoNavi, không cấp TCC ngầm.** Commit mới nhất kiểm tra `70c7c4870d407a0fca06989a150b2d0fdeb51402`; version `1.0.3-hl31voiceagent`.
+- Run bubble-only `43138108363` **CI SUCCESS nhưng không có audio agent**. Run voice-agent đầu fail static verifier; CI run `43140397415` sau sửa source test đang chạy. **Chưa DEB cuối, chưa thử xe, không biết SpringBoard có TCC hay đường TTS ra loa xe không**. Không merge main/không Sileo. [Checkpoint cụ thể: từng IMP, file/commit, log gate, cách hoàn nguyên](HL31_DUONAVI_BUBBLE_VOICE_AGENT_20261112.md).
+
+
 ## 2026-11-12 — Kiểm chứng lại DuoNavi 1.0.4 trước khi sửa DuoCar HL30 (RESEARCH, NO PATCH)
 - Theo yêu cầu Nguyen quét kỹ thay vì đoán mò, đã đối chiếu **DuoNavi 1.0.4 nguyên gốc** qua lịch sử GitHub + archive DEB đúng SHA256 `f3f911de5db461d487ce91249aed1bb25d44f076e7ff5fb89e54b658569328dd`. Gói bị xóa khỏi current tree DuoFace 06/11 (cleanup 1.079 DEB) nhưng còn blob Git `617fe1e132f362784880899af80146afa85b3492`, và archive `duoface-debs-/historical/dist/`.
 - Đã tải **artifact kiểm toán ARM64 nguyên bản** run `40989729701`/artifact `12948133998` (không phải raw DEB), đọc trực tiếp JSON gồm **326 method entry, 27 body disassembly**; tìm được `CBVoiceTransport +syncCarPlayContextOnce:` IMP `0x138ec0` gọi `resolvedBackendBaseURL` và `postJSON:toURL:timeout:customHeaders:completion:`, chứng minh đường đồng bộ bối cảnh qua HTTP, **không chứng minh STT luôn cloud**. `CBVoiceAudioCapture`, `CBVoiceSessionManager`, `CBAIBubbleView`, provider Apple/cloud và dispatcher có selector/IMP nhưng **chưa có full body/caller graph**.
