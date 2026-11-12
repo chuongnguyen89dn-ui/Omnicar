@@ -1,5 +1,12 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — Nguyen báo DEB HL37 lỗi: bước lỗi chưa xác định
+- Nguyen phản hồi **“Súc vật lại lỗi deb”** sau khi nhận trực tiếp `com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb`. **USER ISSUE, unresolved**: chưa có thông báo cụ thể xác nhận lỗi xảy ra khi tải, khi trình cài đặt Sileo/Filza đọc gói, khi cài đặt, hay lúc khởi chạy. Không suy luận đó là lỗi keyboard hoặc hỏng file.
+- GPT kiểm độc lập trên container ngày 12/11: file `/mnt/data/com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb`, 1.343.814 bytes, `file` nhận Debian package 2.0; `dpkg-deb -I` đọc Package/Version/Architecture chính xác, `dpkg-deb -x` giải ra 333 tệp, `unzip -t` artifact ZIP PASS. Chạy **`python /mnt/data/verify_hl37_deb.py /mnt/data/com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb`**: PASS 8/8 Mach-O FAT arm64/arm64e, có LC_CODE_SIGNATURE, marker HL36; SHA-256 `ce280cbac711760c6de038bc0a713368dd1d5deb9ebb3a576e8014c521544e29`. Kết luận chỉ xác nhận tính toàn vẹn file trong container, không chứng minh iPhone tải/cài/mở được.
+- Đã sao chép byte-identical thành `/mnt/data/DuoCar_HL37_kbsync1.deb` (so `cmp` và hash khớp) và gửi link sandbox trực tiếp mới; **không phải binary sửa mới, không đổi phiên bản**. Cần người dùng xác định đúng bước lỗi và nếu có thì cung cấp thông báo lỗi từ iPhone/Sileo; mới lựa chọn sửa gói hay sửa luồng tải. Không build DEB mới, không merge, không Sileo, không can thiệp runtime trong lượt chẩn đoán này.
+
+
+
 ## 2026-11-12 — HL37kbsync1: kiểm source + build/ký/kiểm trực tiếp DEB (BUILD PASS / DEVICE PENDING)
 - **Yêu cầu Nguyen**: sửa đồng bộ UIKit keyplane/window cho ứng dụng hosted trên nền HL36, giữ tất cả bàn phím native/hệ thống và chức năng khác; chạy test, build/ký 1 DEB, gửi **trực tiếp DEB không phải ZIP**. Repo duy nhất `chuongnguyen89dn-ui/Omnicar`; branch `feature/duocar-hl36-keyplane-sync-20261112`, HEAD **`4c317cfcf73a1c9c8ef762aec457b176c5e15322`** của binary build. Không merge code vào main.
 - Cơ chế sửa tại 3 cặp src/project (`ABKeyboardTraits104.m/.h`, `ABInApp.m`): preflight plane và defer thu hẹp window nếu keyplane đang tràn, `reloadInputViews` có focus/geometry-revision/epoch guard, một writer. Đối chiếu 3/3 mirror và điều kiện source tĩnh; không thay keyboard app CarPlay native, dock, YTZ, picker, zoom, settings, voice off. Hồ sơ [HL36 sync](https://github.com/chuongnguyen89dn-ui/Omnicar/blob/feature/duocar-hl36-keyplane-sync-20261112/recovered-source/gpt-project-history/HL36_KEYPLANE_SYNC_20261112.md).
