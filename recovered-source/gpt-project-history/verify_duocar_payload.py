@@ -17,7 +17,7 @@ def field(name):
     return subprocess.check_output(["dpkg-deb", "-f", str(deb), name], text=True).strip()
 
 fields = [field(k) for k in ("Package", "Version", "Architecture")]
-assert fields == ["com.chuong.duocar", "1.0.3-hl34nativeowner", "iphoneos-arm64"], fields
+assert fields == ["com.chuong.duocar", "1.0.3-hl36nativeonly", "iphoneos-arm64"], fields
 control_text=subprocess.check_output(["dpkg-deb","-f",str(deb)],text=True)
 assert "com.anlai.omnicar" not in control_text.lower(), "Old package referenced by dependency metadata"
 assert not any(line.startswith(("Replaces:","Breaks:")) for line in control_text.splitlines()), "Unexpected forced package replacement"
@@ -63,12 +63,12 @@ with tempfile.TemporaryDirectory() as folder:
     dylib = root / "Library/MobileSubstrate/DynamicLibraries"
     components = {
         "DuoCarCore.dylib": [],
-        "DuoCarAppBridge.dylib": ["[hl34-keyboard]", "[hl33-kb-owner]", "[hl32-kbtraits]", "[hl8diag]", "[hl24-geometry]", "[hl24-stable]", "[hl25-kb-surface]", "[hl25-kb-ancestors]", "[hl25-kb-windows]", "probe-interface-abi-matches-NOT-CALLED", "[pinch2] trigger=began toggle-sent dir=0"],
+        "DuoCarAppBridge.dylib": ["[hl36-native-only]", "[hl34-keyboard]", "[hl33-kb-owner]", "[hl32-kbtraits]", "[hl8diag]", "[hl24-geometry]", "[hl24-stable]", "[hl25-kb-surface]", "[hl25-kb-ancestors]", "[hl25-kb-windows]", "probe-interface-abi-matches-NOT-CALLED", "[pinch2] trigger=began toggle-sent dir=0"],
         "DuoCarCarProbe.dylib": [],
         "DuoCarSpeedBubble.dylib": [],
-        "DuoCarSplitScreen.dylib": ["[hl33-bubble-window]", "[hl33-voice]", "[hl32-voice]", "[hl31-voice-agent]", "[hl31-bubble]", "[hl31-voice]", "[hl30-voice]", "[hl29-voice]", "[hl27-respring] stage=observer-ready", "[hl27-respring] stage=accepted", "[hl27-respring] stage=terminate-self", "[hl8diag]", "[hl13pinch]", "[hl21-floating]", "[hl21-legacy-picker]", "[hl22-original]", "[picker-face]", "[home-launch]"],
+        "DuoCarSplitScreen.dylib": [ "[hl27-respring] stage=observer-ready", "[hl27-respring] stage=accepted", "[hl27-respring] stage=terminate-self", "[hl8diag]", "[hl13pinch]", "[hl21-floating]", "[hl21-legacy-picker]", "[hl22-original]", "[picker-face]", "[home-launch]"],
         "DuoCarStartupScreen.dylib": [],
-        "DuoCar.app/DuoCar": ["[hl29-voice]", "[hl26-settings] gate=uikit-tab-ready", "[hl26-settings] gate=app-root-launched", "[hl26-settings] page=startup", "[hl27-settings] gate=original-root-cards", "[hl27-respring] stage=request-sent", "[hl27-respring] stage=ack-timeout"],
+        "DuoCar.app/DuoCar": [ "[hl26-settings] gate=uikit-tab-ready", "[hl26-settings] gate=app-root-launched", "[hl26-settings] page=startup", "[hl27-settings] gate=original-root-cards", "[hl27-respring] stage=request-sent", "[hl27-respring] stage=ack-timeout"],
         "DuoCarPrefs.bundle/DuoCarPrefs": [],
     }
     reports = []
@@ -84,14 +84,42 @@ with tempfile.TemporaryDirectory() as folder:
         for subtype, sig, code in slices:
             for marker in markers:
                 assert marker.encode() in code, f"Missing {marker} in {name} subtype={subtype}"
+
+            # HL36: test the FINAL signed FAT binary, not only build lists.
+            # Exact terminated identifiers avoid false positives from native
+            # ABKeyboardTraits104 and the unrelated speed-warning feature.
+            retired = {
+                "DuoCarAppBridge.dylib": [
+                    b"ABKeyboard\x00", b"ABKey\x00",
+                    b"_OBJC_CLASS_$_ABKeyboard", b"_OBJC_CLASS_$_ABKey",
+                    b"ABTelexApply\x00",
+                    b"/appbridge.key\x00", b"/appbridge.keyboard\x00"],
+                "DuoCarSplitScreen.dylib": [
+                    b"SCPVoiceBubbleView\x00", b"SCPVoiceSpringSession\x00",
+                    b"SCPVoiceBubbleUpdate\x00", b"SCPVoiceSpringInstall\x00",
+                    b"/voice.capture.request\x00", b"/voice.capture.state\x00",
+                    b"/voice.action\x00", b"/voice.ack\x00"],
+                "DuoCar.app/DuoCar": [
+                    b"DCVoiceViewController\x00", b"DCVoiceCreateController\x00",
+                    b"DCVoiceHandleCarRequest\x00", b"/voice.request\x00"],
+            }.get(name, [])
+            for retired_identifier in retired:
+                assert retired_identifier not in code, (
+                    f"Retired HL36 feature is still present in {name} "
+                    f"subtype={subtype}: {retired_identifier!r}")
+            if name in ("DuoCarAppBridge.dylib", "DuoCarSplitScreen.dylib",
+                        "DuoCar.app/DuoCar"):
+                assert b"/Speech.framework/" not in code, (
+                    f"Speech framework still linked in {name} subtype={subtype}")
         reports.append({"name": name, "slices": [{"subtype": subtype, "signature_size": sig} for subtype,sig,_ in slices]})
     info = plistlib.loads((root / "Applications/DuoCar.app/Info.plist").read_bytes())
     assert info.get("CFBundleIdentifier") == "com.chuong.duocar.app"
     assert info.get("CFBundlePackageType") == "APPL"
     # HL26 app owns the full UIKit settings page resources, not Settings.app.
     assert info.get("NSPhotoLibraryUsageDescription"), "Photo picker permission missing"
-    assert info.get("NSSpeechRecognitionUsageDescription"), "Speech permission missing"
-    assert info.get("NSMicrophoneUsageDescription"), "Microphone permission missing"
+    # HL36 voice is out of the product; do not ship assistant permissions.
+    assert "NSSpeechRecognitionUsageDescription" not in info, "Voice permission leaked"
+    assert "NSMicrophoneUsageDescription" not in info, "Microphone permission leaked"
     schemes = [s for u in info.get("CFBundleURLTypes", []) for s in u.get("CFBundleURLSchemes", [])]
     assert "duocar" in schemes, schemes
     app_dir = root / "Applications/DuoCar.app"
@@ -131,5 +159,5 @@ with tempfile.TemporaryDirectory() as folder:
     print(json.dumps({
         "deb": str(deb), "sha256": sha, "size": len(blob),
         "package_fields": fields, "app_id": info.get("CFBundleIdentifier"),
-        "payload_files_checked": checked, "binaries": reports, "gate": "STATIC/PACKAGE PASS, NOT DEVICE PASS"
+        "payload_files_checked": checked, "binaries": reports, "gate": "HL36_PACKAGE_BINARY_PASS / DEVICE-PENDING"
     }, indent=2))

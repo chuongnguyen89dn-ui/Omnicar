@@ -112,5 +112,49 @@ assert "ABNotifyAppOrient" in host
 assert "KB104PositionedWindow" in kb
 assert "keyboard.frame=target" in kb
 assert len(re.findall(r"keyboard\.frame\s*=",kb))==1
-print("HL36_NATIVE_ONLY_SOURCE_PASS: drawn UI/key relay unlinked; native UIKit focus, single owner, kbstate and src/project mirrors retained; DEVICE-PENDING")
+# HL36: voice code is retained ONLY in source; the package must never
+# compile assistant capture, UI, bubble, or typed command parser.
+app_make=(project/"OmniCarApp/Makefile").read_text()
+split_make=(project/"OmniCarSplitScreen/Makefile").read_text()
+app_files=next(x for x in app_make.splitlines()
+               if x.startswith("OmniCar_FILES =")).partition("=")[2].split()
+split_files=next(x for x in split_make.splitlines()
+                 if x.startswith("OmniCarSplitScreen_FILES =")).partition("=")[2].split()
+assert not {"DCVoiceSession.m", "DCVoiceCommand.m"} & set(app_files)
+assert not {"SCPVoiceBridge.m", "SCPVoiceBubbleView.m", "SCPVoiceNative.m",
+            "SCPVoiceSpringAgent.m", "../OmniCarApp/DCVoiceCommand.m"} & set(split_files)
+assert "Speech" not in next(x for x in app_make.splitlines()
+                            if x.startswith("OmniCar_FRAMEWORKS =")).split()
+assert "Speech" not in next(x for x in split_make.splitlines()
+                            if x.startswith("OmniCarSplitScreen_FRAMEWORKS =")).split()
+app=(project/"OmniCarApp/OMCAppDelegate.m").read_text()
+settings=(project/"OmniCarApp/OMCNativeSettings.m").read_text()
+info=(project/"OmniCarApp/Resources/Info.plist").read_text()
+assert "DCVoice" not in app+settings
+assert "voiceAssistantEnabled" not in settings
+assert "voiceAppleOnlineEnabled" not in settings
+assert "speedBubbleWarnVoice" in settings  # speed warnings are unrelated
+assert "NSMicrophoneUsageDescription" not in info
+assert "NSSpeechRecognitionUsageDescription" not in info
+assert "NSPhotoLibraryUsageDescription" in info
+for n in ("OMCAppDelegate.m", "OMCNativeSettings.m"):
+    assert (project/"OmniCarApp"/n).read_bytes()==(src/"App"/n).read_bytes(),n
+assert (project/"OmniCarApp/Resources/Info.plist").read_bytes()==(
+        src/"App/Info.plist").read_bytes()
+split_project=project/"OmniCarSplitScreen"
+def no_voice_calls(path):
+    body=path.read_text()
+    runtime="\n".join(line.split("//",1)[0] for line in body.splitlines())
+    assert not re.search(r"\b(?:SCPVoice|DCVoice)[A-Za-z0-9_]*\s*\(",runtime),path
+    assert "SCPVoiceNative.h" not in runtime,path
+    assert "SCPVoiceBridge.h" not in runtime,path
+    assert "SCPVoiceSpringAgent.h" not in runtime,path
+for name in ("SCPCarSplit.m", "SCPHooks.m", "SCPSpringBoardHooks.m",
+             "SCPCarSplit+Picker.m", "SCPCarSplit+RatioMenu.m"):
+    no_voice_calls(split_project/name)
+assert "SCPNativeCommandBlock(n)" in (split_project/"SCPHooks.m").read_text()
+assert "bwInstallOwner" in (split_project/"SCPHooks.m").read_text()
+assert "SCPHomeLauncherDockSetVisible(YES" in (
+    split_project/"SCPCarSplit.m").read_text()
+print("HL36_NATIVE_VOICE_OFF_SOURCE_PASS: no drawn UI or voice assistant build; native UIKit and speed warning retained; DEVICE-PENDING")
 
