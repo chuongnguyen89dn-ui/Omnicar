@@ -18,8 +18,7 @@
 # Triggers: manual (workflow_dispatch) and pushes to the
 # ci-fat-test branch.
 name: build-fat-macos
-# HL36 one-time user-authorized build: temporary push trigger for this branch.
-# Remove this trigger after CI attempts; restore manual-only for future builds.
+# HL36 is workflow_dispatch ONLY; builds are explicit and never pushed automatically.
 
 permissions:
   contents: write
@@ -43,7 +42,6 @@ on:
       - feature/duocar-hl32-keyboard-voice-20261112
       - feature/duocar-hl33-owner-cleanup-20261112
       - feature/duocar-hl34-keyboard-recovery-20261112
-      - feature/duocar-hl36-native-only-retire-drawn-20261112
 
 jobs:
   build-fat:
@@ -60,7 +58,29 @@ jobs:
           git show FETCH_HEAD:logs/DuoCar.log > /tmp/hl34-vehicle.log
           python3 recovered-source/gpt-project-history/analyze_hl34_car_log.py /tmp/hl34-vehicle.log
 
+      # Fail inexpensive source gates before provisioning a new macOS toolchain.
+      # Keep the existing downstream checks as an independent post-provision gate.
+      - name: HL36 source-only preflight before installing Theos
+        if: github.ref_name == 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        working-directory: recovered-source/gpt-project-history
+        run: |
+          python3 -m unittest -q test_analyze_hl8_unified_log.py
+          python3 verify_hl21_regression.py
+          python3 verify_hl26_native_settings.py
+          python3 verify_hl27_settings_respring.py
+          python3 verify_hl34_keyboard_recovery.py
+
+      # The runner is ephemeral; cache the toolchain after a successful job
+      # to avoid cloning Theos and the 16.5 SDK on every subsequent HL36 run.
+      - name: Restore cached Theos and SDK
+        id: cache-theos
+        uses: actions/cache@v4
+        with:
+          path: ~/theos
+          key: hl36-theos-ios16-5-${{ runner.os }}-${{ runner.arch }}-v1
+
       - name: Install Theos
+        if: steps.cache-theos.outputs.cache-hit != 'true'
         run: |
           git clone --recursive https://github.com/theos/theos.git ~/theos
           # Sparse-checkout just the iPhoneOS 16.5 SDK from theos/sdks.
