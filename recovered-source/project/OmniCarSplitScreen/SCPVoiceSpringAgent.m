@@ -16,6 +16,77 @@ static NSString *const DCState=@"com.anlai.omnicar/voice.capture.state";
 static NSString *const DCAction=@"com.anlai.omnicar/voice.action";
 static NSString *const DCAck=@"com.anlai.omnicar/voice.ack";
 static volatile int32_t DCBuffers;
+// [hl33-voice] One audio-owner, diagnostic metrics ONLY. No audio or
+// transcripts stored. The realtime tap updates integers, never logs.
+static uint64_t DC33TotalFrames,DC33TotalSamples,DC33AboveLow,DC33AboveHigh;
+static uint64_t DC33SumSquaresNano,DC33MaxPeakMicro,DC33UnsupportedBuffers;
+static volatile int32_t DC33SignalSent;
+static void DC33ResetEnergy(void) {
+    __atomic_store_n(&DC33TotalFrames,0,__ATOMIC_RELAXED);
+    __atomic_store_n(&DC33TotalSamples,0,__ATOMIC_RELAXED);
+    __atomic_store_n(&DC33AboveLow,0,__ATOMIC_RELAXED);
+    __atomic_store_n(&DC33AboveHigh,0,__ATOMIC_RELAXED);
+    __atomic_store_n(&DC33SumSquaresNano,0,__ATOMIC_RELAXED);
+    __atomic_store_n(&DC33MaxPeakMicro,0,__ATOMIC_RELAXED);
+    __atomic_store_n(&DC33UnsupportedBuffers,0,__ATOMIC_RELAXED);
+    DC33SignalSent=0;
+}
+static void DC33MeasureBuffer(AVAudioPCMBuffer *buffer) {
+    AVAudioFrameCount frames=buffer.frameLength;
+    AVAudioChannelCount channels=buffer.format.channelCount;
+    if (!frames || !channels || channels>16 || frames>16384) return;
+    BOOL interleaved=buffer.format.isInterleaved;
+    AVAudioCommonFormat common=buffer.format.commonFormat;
+    float **f=(common==AVAudioPCMFormatFloat32)?buffer.floatChannelData:NULL;
+    int16_t **i16=(common==AVAudioPCMFormatInt16)?buffer.int16ChannelData:NULL;
+    if ((!f && !i16) || (f && !f[0]) || (i16 && !i16[0])) {
+        __atomic_fetch_add(&DC33UnsupportedBuffers,1,__ATOMIC_RELAXED);
+        return;
+    }
+    uint64_t samples=0,low=0,high=0,squares=0,peak=0;
+    for (AVAudioChannelCount c=0;c<channels;c++) {
+        if ((!interleaved && f && !f[c]) ||
+            (!interleaved && i16 && !i16[c])) continue;
+        for (AVAudioFrameCount j=0;j<frames;j++) {
+            NSUInteger ix=interleaved ? (NSUInteger)j*channels+c:j;
+            double v=f ? (double)f[interleaved?0:c][ix]
+                       : (double)i16[interleaved?0:c][ix]/32768.0;
+            if (!isfinite(v)) continue;
+            double a=fabs(v);
+            if (a>1) a=1;
+            if (a>0.0001) low++;
+            if (a>0.001) high++;
+            uint64_t vpeak=(uint64_t)(a*1000000.0);
+            if (vpeak>peak) peak=vpeak;
+            squares+=(uint64_t)(a*a*1000000000.0);
+            samples++;
+        }
+    }
+    __atomic_fetch_add(&DC33TotalFrames,(uint64_t)frames,__ATOMIC_RELAXED);
+    __atomic_fetch_add(&DC33TotalSamples,samples,__ATOMIC_RELAXED);
+    __atomic_fetch_add(&DC33AboveLow,low,__ATOMIC_RELAXED);
+    __atomic_fetch_add(&DC33AboveHigh,high,__ATOMIC_RELAXED);
+    __atomic_fetch_add(&DC33SumSquaresNano,squares,__ATOMIC_RELAXED);
+    uint64_t observed=__atomic_load_n(&DC33MaxPeakMicro,__ATOMIC_RELAXED);
+    while (peak>observed &&
+        !__atomic_compare_exchange_n(&DC33MaxPeakMicro,&observed,peak,
+            NO,__ATOMIC_RELAXED,__ATOMIC_RELAXED)) {}
+}
+static NSString *DC33RouteSignature(AVAudioSession *session,BOOL input) {
+    NSArray<AVAudioSessionPortDescription *> *ports=input?
+        session.currentRoute.inputs:session.currentRoute.outputs;
+    NSMutableArray<NSString *> *entries=[NSMutableArray array];
+    for (AVAudioSessionPortDescription *port in ports) {
+        // Never log raw device UIDs, which can contain user identifiers.
+        uint32_t signature=2166136261u;
+        const char *uid=port.UID.UTF8String;
+        if (uid) for (const unsigned char *p=(const unsigned char*)uid;*p;p++)
+            signature=(signature^*p)*16777619u;
+        [entries addObject:[NSString stringWithFormat:@"%@:%08x:%lu",
+            port.portType?:@"none",signature,(unsigned long)port.channels.count]];
+    }
+    return entries.count?[entries componentsJoinedByString:@","]:@"none";
+}
 
 @interface SCPVoiceSpringSession : NSObject <AVSpeechSynthesizerDelegate>
 @property(nonatomic,strong) AVAudioEngine *engine;
@@ -41,6 +112,9 @@ static volatile int32_t DCBuffers;
 @property(nonatomic) CFTimeInterval lastPartialAt;
 @property(nonatomic,copy) NSString *waitingAck;
 @property(nonatomic,copy) NSString *activeSource;
+@property(nonatomic) NSUInteger partialCount;
+@property(nonatomic) NSUInteger finalLength;
+- (void)energyTickForGeneration:(NSUInteger)generation;
 @property(nonatomic,strong) id interruptionObserver;
 @property(nonatomic,strong) id routeObserver;
 - (void)handle:(NSDictionary *)payload;
@@ -68,6 +142,7 @@ static BOOL DCVoiceEnabled(void) {
       @"offline":@"Nhận dạng offline không khả dụng. Hãy kiểm tra cài đặt DuoCar.",
       @"microphone":@"Không truy cập được microphone.",
       @"no-speech":@"Tôi chưa nghe rõ. Vui lòng thử lại.",
+      @"no-input-energy":@"Micro xe chưa đưa tiếng nói vào DuoCar. Hãy kiểm tra tuyến âm thanh.",
       @"interrupted":@"Phiên nghe bị gián đoạn.",
       @"unavailable":@"Giọng nói hiện chưa khả dụng.",
       @"disabled":@"Trợ lý giọng nói đang tắt."
@@ -80,6 +155,7 @@ static BOOL DCVoiceEnabled(void) {
       @"offline":@"Offline speech recognition is unavailable. Check DuoCar settings.",
       @"microphone":@"Microphone is unavailable.",
       @"no-speech":@"I didn't hear you. Please try again.",
+      @"no-input-energy":@"Car microphone input is silent. Check the input route.",
       @"interrupted":@"Listening was interrupted.",
       @"unavailable":@"Speech is currently unavailable.",
       @"disabled":@"Voice assistant is disabled."
@@ -171,6 +247,23 @@ static BOOL DCVoiceEnabled(void) {
         getpid(),state,detail?:@""]);
 }
 - (void)stopCapture {
+    // Capture verdict BEFORE tearing down the active session. Incomplete
+    // source/audio format is UNKNOWN, not false "no speech" certainty.
+    uint64_t samples=__atomic_load_n(&DC33TotalSamples,__ATOMIC_RELAXED);
+    uint64_t peak=__atomic_load_n(&DC33MaxPeakMicro,__ATOMIC_RELAXED);
+    uint64_t low=__atomic_load_n(&DC33AboveLow,__ATOMIC_RELAXED);
+    uint64_t unsupported=__atomic_load_n(&DC33UnsupportedBuffers,__ATOMIC_RELAXED);
+    if (self.listening)
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl33-voice] event=voice-verdict pid=%d buffers=%d "
+             "samples=%llu maxPeak=%.6f above1e-4=%llu "
+             "unsupported=%llu partial=%lu finalLen=%lu "
+             "input=%@ source=raw-tap acoustic=DEVICE-PENDING",
+            getpid(),(int)DCBuffers,(unsigned long long)samples,
+            (double)peak/1e6,(unsigned long long)low,
+            (unsigned long long)unsupported,(unsigned long)self.partialCount,
+            (unsigned long)self.finalLength,
+            DC33RouteSignature(AVAudioSession.sharedInstance,YES)]);
     ++self.generation;
     self.listening=NO;
     if (self.interruptionObserver) {
@@ -223,6 +316,7 @@ static BOOL DCVoiceEnabled(void) {
 - (void)finishRecognized:(NSString *)text {
     if (!self.listening) return;
     NSUInteger sourceLength=text.length;
+    self.finalLength=sourceLength;
     [self stopCapture]; // release mic before voice output or split action
     if (sourceLength==0) {
         [self sendState:@"reply" detail:@"no-speech" reply:@"no-speech"];
@@ -261,6 +355,29 @@ static BOOL DCVoiceEnabled(void) {
             [self sendState:@"reply" detail:@"owner-ack-timeout" reply:@"unavailable"];
             [self speakReply:@"unavailable"];
         }
+    });
+}
+- (void)energyTickForGeneration:(NSUInteger)generation {
+    if (self.generation!=generation || !self.listening) return;
+    uint64_t samples=__atomic_load_n(&DC33TotalSamples,__ATOMIC_RELAXED);
+    uint64_t low=__atomic_load_n(&DC33AboveLow,__ATOMIC_RELAXED);
+    uint64_t high=__atomic_load_n(&DC33AboveHigh,__ATOMIC_RELAXED);
+    uint64_t power=__atomic_load_n(&DC33SumSquaresNano,__ATOMIC_RELAXED);
+    uint64_t peak=__atomic_load_n(&DC33MaxPeakMicro,__ATOMIC_RELAXED);
+    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+        @"[hl33-voice] event=voice-energy pid=%d buffers=%d frames=%llu "
+         "samples=%llu rms=%.7f peak=%.6f above1e-4=%llu "
+         "above1e-3=%llu unsupported=%llu",
+        getpid(),(int)DCBuffers,
+        (unsigned long long)__atomic_load_n(&DC33TotalFrames,__ATOMIC_RELAXED),
+        (unsigned long long)samples,
+        samples?sqrt((double)power/(1000000000.0*(double)samples)):0.0,
+        (double)peak/1000000.0,(unsigned long long)low,
+        (unsigned long long)high,
+        (unsigned long long)__atomic_load_n(&DC33UnsupportedBuffers,__ATOMIC_RELAXED)]);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(NSEC_PER_SEC)),
+        dispatch_get_main_queue(),^{
+        [self energyTickForGeneration:generation];
     });
 }
 - (void)startSession {
@@ -306,10 +423,22 @@ static BOOL DCVoiceEnabled(void) {
     self.previousMode=audio.mode;
     self.previousOptions=audio.categoryOptions;
     NSError *error=nil;
+    // Original DuoNavi 1.0.4 ARM64: category PlayAndRecord with options
+    // 0x6e, mode Default, preferred sample rate 48000. Do NOT switch
+    // input devices or pause media: those need an explicit device test.
+    AVAudioSessionCategoryOptions options=
+        AVAudioSessionCategoryOptionDuckOthers |
+        AVAudioSessionCategoryOptionAllowBluetooth |
+        AVAudioSessionCategoryOptionDefaultToSpeaker |
+        AVAudioSessionCategoryOptionAllowBluetoothA2DP |
+        AVAudioSessionCategoryOptionAllowAirPlay;
     BOOL configured=[audio setCategory:AVAudioSessionCategoryPlayAndRecord
-        mode:AVAudioSessionModeDefault options:
-            (AVAudioSessionCategoryOptionMixWithOthers|AVAudioSessionCategoryOptionAllowBluetooth)
-        error:&error];
+        mode:AVAudioSessionModeDefault options:options error:&error];
+    NSError *rateError=nil;
+    if (configured && ![audio setPreferredSampleRate:48000 error:&rateError])
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl33-voice] event=sample-rate-warning domain=%@ code=%ld",
+            rateError.domain,(long)rateError.code]);
     if (!configured || ![audio setActive:YES error:&error]) {
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
             @"[hl31-voice-agent] event=audio-session-failed domain=%@ code=%ld",
@@ -317,11 +446,24 @@ static BOOL DCVoiceEnabled(void) {
         [self fail:@"audio-session-failed" reply:@"microphone"];return;
     }
     self.ownsAudio=YES;
+    self.partialCount=0;self.finalLength=0;
+    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+        @"[hl33-voice] event=voice-session category=%@ mode=%@ options=%lu "
+         "rate=%.0f input=%@ output=%@ otherAudio=%d availableInputs=%lu",
+        audio.category,audio.mode,(unsigned long)audio.categoryOptions,
+        audio.sampleRate,DC33RouteSignature(audio,YES),
+        DC33RouteSignature(audio,NO),(int)audio.isOtherAudioPlaying,
+        (unsigned long)audio.availableInputs.count]);
     @try {
         self.engine=[AVAudioEngine new];
         AVAudioInputNode *input=self.engine.inputNode;
         AVAudioFormat *format=[input outputFormatForBus:0];
-        if (!format || format.sampleRate<=0) {
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl33-voice] event=voice-format hwRate=%.0f channels=%u "
+             "common=%ld interleaved=%d sessionRate=%.0f",
+            format.sampleRate,(unsigned)format.channelCount,
+            (long)format.commonFormat,(int)format.isInterleaved,audio.sampleRate]);
+        if (!format || format.sampleRate<=0 || format.channelCount==0) {
             [self fail:@"audio-no-input-format" reply:@"microphone"];return;
         }
         self.request=[SFSpeechAudioBufferRecognitionRequest new];
@@ -336,34 +478,22 @@ static BOOL DCVoiceEnabled(void) {
         NSUInteger generation=++self.generation;
         __weak typeof(self) weakSelf=self;
         DCBuffers=0;
+        DC33ResetEnergy();
         [input installTapOnBus:0 bufferSize:1024 format:format
             block:^(AVAudioPCMBuffer *buffer,__unused AVAudioTime *when) {
             SCPVoiceSpringSession *owner=weakSelf;
             if (!owner || owner.generation!=generation || !owner.request) return;
             int32_t n=__sync_add_and_fetch(&DCBuffers,1);
             [owner.request appendAudioPCMBuffer:buffer];
-            if (n==1 || (n%40)==0) {
-                // Input energy telemetry only, never store PCM/transcripts.
-                float rms=-1.f;
-                if (buffer.format.commonFormat==AVAudioPCMFormatFloat32 &&
-                    buffer.floatChannelData && buffer.floatChannelData[0]) {
-                    AVAudioFrameCount count=MIN(buffer.frameLength,(AVAudioFrameCount)512);
-                    if (count) {
-                        double sum=0;
-                        const float *samples=buffer.floatChannelData[0];
-                        for (AVAudioFrameCount i=0;i<count;i++)
-                            sum+=(double)samples[i]*(double)samples[i];
-                        rms=(float)sqrt(sum/(double)count);
-                    }
-                }
-                float level=rms;
+            // Raw input tap: count energy in ALL channels, every buffer.
+            // No NSLog, allocations, dispatch, or transcript on realtime tap.
+            DC33MeasureBuffer(buffer);
+            uint64_t low=__atomic_load_n(&DC33AboveLow,__ATOMIC_RELAXED);
+            if (low>32 && __sync_bool_compare_and_swap(&DC33SignalSent,0,1)) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    if (owner.generation!=generation || !owner.listening) return;
-                    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-                        @"[hl32-voice] pid=%d event=pcm-frames count=%d rms=%.5f source=actual-input",
-                        getpid(),(int)n,(double)level]);
-                    if (n==1)
-                        [owner sendState:@"listening" detail:@"pcm-confirmed" reply:@""];
+                    if (owner.generation==generation && owner.listening)
+                        [owner sendState:@"listening"
+                            detail:@"input-energy-detected" reply:@""];
                 });
             }
         }];
@@ -378,7 +508,8 @@ static BOOL DCVoiceEnabled(void) {
             @"[hl31-voice-agent] pid=%d event=capture-started routeIn=%@ routeOut=%@ rate=%.0f lang=%@ offline=%d",
             getpid(),inputRoute,outputRoute,format.sampleRate,lang,(int)supportsOffline]);
         // AVAudioEngine.start is NOT microphone proof; a PCM callback is.
-        [self sendState:@"requesting" detail:@"awaiting-first-pcm" reply:@""];
+        [self sendState:@"requesting" detail:@"awaiting-input-energy" reply:@""];
+        [self energyTickForGeneration:generation];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(2*NSEC_PER_SEC)),
             dispatch_get_main_queue(), ^{
             if (self.generation==generation && self.listening && DCBuffers==0) {
@@ -401,6 +532,7 @@ static BOOL DCVoiceEnabled(void) {
                     BOOL changed=![w.lastPartial isEqualToString:partial];
                     w.lastPartial=[partial copy];
                     if (changed) {
+                        w.partialCount++;
                         CFTimeInterval touched=CFAbsoluteTimeGetCurrent();
                         w.lastPartialAt=touched;
                         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
@@ -445,7 +577,14 @@ static BOOL DCVoiceEnabled(void) {
             dispatch_get_main_queue(),^{
             if (self.generation==generation && self.listening) {
                 if (self.lastPartial.length) [self finishRecognized:self.lastPartial];
-                else [self fail:@"no-speech-timeout" reply:@"no-speech"];
+                else {
+                    uint64_t samples=__atomic_load_n(&DC33TotalSamples,__ATOMIC_RELAXED);
+                    uint64_t strong=__atomic_load_n(&DC33AboveLow,__ATOMIC_RELAXED);
+                    BOOL silent=samples>0 && strong==0 &&
+                        __atomic_load_n(&DC33UnsupportedBuffers,__ATOMIC_RELAXED)==0;
+                    [self fail:(silent?@"no-input-energy":@"no-speech-timeout")
+                          reply:(silent?@"no-input-energy":@"no-speech")];
+                }
             }
         });
     } @catch (NSException *e) {
