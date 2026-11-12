@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify DuoCar payload, recompiled FAT signatures and full original-brand absence."""
+"""Verify DuoCar HL40 drawn keyboard for hosted+native, signed ARM64 package."""
 import hashlib
 import json
 import pathlib
@@ -17,28 +17,17 @@ def field(name):
     return subprocess.check_output(["dpkg-deb", "-f", str(deb), name], text=True).strip()
 
 fields = [field(k) for k in ("Package", "Version", "Architecture")]
-assert fields == ["com.chuong.duocar", "1.0.3-hl37kbsync1", "iphoneos-arm64"], fields
+assert fields == ["com.chuong.duocar", "1.0.3-hl40drawall1", "iphoneos-arm64"], fields
 control_text=subprocess.check_output(["dpkg-deb","-f",str(deb)],text=True)
 assert "com.anlai.omnicar" not in control_text.lower(), "Old package referenced by dependency metadata"
 assert not any(line.startswith(("Replaces:","Breaks:")) for line in control_text.splitlines()), "Unexpected forced package replacement"
 
 def fat_slices(data):
     magic = data[:4]
-    assert magic in (bytes.fromhex("cafebabe"), bytes.fromhex("cafebabf")), magic.hex()
-    fat64 = magic == bytes.fromhex("cafebabf")
-    n = struct.unpack_from(">I", data, 4)[0]
-    assert n == 2, f"Expected 2 architectures, got {n}"
-    pos = 8
+    # The user requested this diagnostic as a single ARM64 slice, not FAT.
+    assert magic == bytes.fromhex("cffaedfe"), "HL40 diagnostic must be thin ARM64"
     entries = []
-    for _ in range(n):
-        if fat64:
-            cpu, subtype, offset, size, align, reserved = struct.unpack_from(">IIQQII", data, pos)
-            pos += 32
-        else:
-            cpu, subtype, offset, size, align = struct.unpack_from(">IIIII", data, pos)
-            pos += 20
-        assert offset + size <= len(data)
-        thin = data[offset:offset+size]
+    for subtype, thin in [(0, data)]:
         assert thin[:4] == bytes.fromhex("cffaedfe"), "Expected little-endian 64-bit Mach-O"
         _, cputype, _, _, ncmds, _, _, _ = struct.unpack_from("<IiiIIIII", thin, 0)
         assert cputype == 0x0100000c, "Not arm64"
@@ -54,7 +43,7 @@ def fat_slices(data):
             command += cmdsize
         assert sig is not None and sig > 500, "Missing signed payload"
         entries.append((subtype & 0xffffff, sig, thin))
-    assert {a[0] for a in entries} == {0, 2}, "Expected arm64 and arm64e"
+    assert len(entries) == 1 and entries[0][0] == 0, "Expected arm64 only"
     return entries
 
 with tempfile.TemporaryDirectory() as folder:
@@ -63,7 +52,7 @@ with tempfile.TemporaryDirectory() as folder:
     dylib = root / "Library/MobileSubstrate/DynamicLibraries"
     components = {
         "DuoCarCore.dylib": [],
-        "DuoCarAppBridge.dylib": ["[hl36-native-only]", "[hl36-kbsync]", "[hl34-keyboard]", "[hl33-kb-owner]", "[hl32-kbtraits]", "[hl8diag]", "[hl24-geometry]", "[hl24-stable]", "[hl25-kb-surface]", "[hl25-kb-ancestors]", "[hl25-kb-windows]", "probe-interface-abi-matches-NOT-CALLED", "[pinch2] trigger=began toggle-sent dir=0"],
+        "DuoCarAppBridge.dylib": ["[hl40-original-keyboard]", "[hl40-native-drawn]", "[hl36-kbsync]", "[hl34-keyboard]", "[hl33-kb-owner]", "[hl32-kbtraits]", "[hl8diag]", "[hl24-geometry]", "[hl24-stable]", "[hl25-kb-surface]", "[hl25-kb-ancestors]", "[hl25-kb-windows]", "probe-interface-abi-matches-NOT-CALLED", "[pinch2] trigger=began toggle-sent dir=0"],
         "DuoCarCarProbe.dylib": [],
         "DuoCarSpeedBubble.dylib": [],
         "DuoCarSplitScreen.dylib": [ "[hl27-respring] stage=observer-ready", "[hl27-respring] stage=accepted", "[hl27-respring] stage=terminate-self", "[hl8diag]", "[hl13pinch]", "[hl21-floating]", "[hl21-legacy-picker]", "[hl22-original]", "[picker-face]", "[home-launch]"],
@@ -89,11 +78,7 @@ with tempfile.TemporaryDirectory() as folder:
             # Exact terminated identifiers avoid false positives from native
             # ABKeyboardTraits104 and the unrelated speed-warning feature.
             retired = {
-                "DuoCarAppBridge.dylib": [
-                    b"ABKeyboard\x00", b"ABKey\x00",
-                    b"_OBJC_CLASS_$_ABKeyboard", b"_OBJC_CLASS_$_ABKey",
-                    b"ABTelexApply\x00",
-                    b"/appbridge.key\x00", b"/appbridge.keyboard\x00"],
+                "DuoCarAppBridge.dylib": [],
                 "DuoCarSplitScreen.dylib": [
                     b"SCPVoiceBubbleView\x00", b"SCPVoiceSpringSession\x00",
                     b"SCPVoiceBubbleUpdate\x00", b"SCPVoiceSpringInstall\x00",
@@ -159,5 +144,5 @@ with tempfile.TemporaryDirectory() as folder:
     print(json.dumps({
         "deb": str(deb), "sha256": sha, "size": len(blob),
         "package_fields": fields, "app_id": info.get("CFBundleIdentifier"),
-        "payload_files_checked": checked, "binaries": reports, "gate": "HL36_PACKAGE_BINARY_PASS / DEVICE-PENDING"
+        "payload_files_checked": checked, "binaries": reports, "gate": "HL40_DRAWN_ALL_PACKAGE_BINARY_PASS / DEVICE-PENDING"
     }, indent=2))

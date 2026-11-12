@@ -18,6 +18,7 @@
 
 #import "AppBridgeB.h"
 #import "ABHost.h"
+#import "ABKeyboardDecl.h" // [hl40-original-keyboard] restored original host panel class
 #import <objc/runtime.h>
 #import <objc/message.h> // [integration phase 1; backported to src in phase 3] declares objc_msgSend used below
 #import <substrate.h> // FIX-ROUND2: ABInstallSpringBoardHooks (below) calls MSHookMessageEx/MSHookFunction from this TU
@@ -382,6 +383,11 @@ void ABSpringBoardReady(id self, SEL _cmd, id application) {
     notify_register_dispatch(ABNotifyAppOrient, &apporientToken,
                              dispatch_get_main_queue(),
                              ^(int token) { ABAppOrientDispatch(token); });
+    // [hl40-original-keyboard] Restore the original keyboard-state receiver.
+    static int keyboardToken;
+    notify_register_dispatch(ABNotifyKeyboard, &keyboardToken,
+                             dispatch_get_main_queue(),
+                             ^(int token) { ABKeyboardDispatch(token); });
     // [ytz5-k5] native-keyboard gate: watch the shared prefschanged
     // signal (ABYTZoom registration pattern) so a mid-session flip
     // closes a live panel and re-relays drawnKeyboard to the apps.
@@ -430,8 +436,42 @@ void ABAppOrientDispatch(int token) {
                  supportedMask:(NSUInteger)((state >> 8) & 0xFFFF)];
 }
 
-// [hl36-native-only] Retired drawn-panel Darwin consumer. The original
-// app orientation dispatch and independent kbstate reporting are retained.
+// [hl40-original-keyboard] The original Darwin keyboard consumer (sub_93B0).
+// Only hashes of panes held by ABHost are eligible; native CarPlay apps
+// never enter this registry and keep their UIKit/CarPlay keyboard.
+void ABKeyboardDispatch(int token) {
+    @try {
+        if (!ABDrawnKeyboardEnabled()) return;
+        uint64_t state = 0;
+        if (notify_get_state(token, &state) != NOTIFY_STATUS_OK) return;
+        NSString *bundleID = [[ABHost shared] bundleForHash:(state >> 24)];
+        if (!bundleID.length || ![[ABHost shared] paneFor:bundleID]) {
+            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+                @"[hl40-original-keyboard] ignore non-hosted keyboard hash=%llu",
+                (unsigned long long)(state >> 24)]);
+            return;
+        }
+        ABKeyboard *kb = [ABKeyboard shared];
+        if ((state & 1u) != 0) {
+            NSString *oldOwner = [kb.app copy];
+            if (oldOwner.length && ![oldOwner isEqualToString:bundleID])
+                ABKbSyncNoteEvent(oldOwner, NO);
+            [kb showForApp:bundleID
+             keyboardType:(UIKeyboardType)((state >> 1) & 0x7Fu)
+               returnType:(UIReturnKeyType)((state >> 8) & 0xFFu)];
+            if ([kb.app isEqualToString:bundleID] && kb.panel.superview &&
+                (!abKbLiveSession || ![abKbLiveBundle isEqualToString:bundleID]))
+                ABKbSyncNoteEvent(bundleID, YES);
+        } else {
+            [kb hideForApp:bundleID];
+            ABKbSyncNoteEvent(bundleID, NO);
+        }
+    } @catch (NSException *ex) {
+        OMCLogWrite(@"AppBridge",
+            [NSString stringWithFormat:@"[hl40-original-keyboard] dispatch error %@", ex]);
+    }
+}
+
 // ===========================================================================
 // ===========================================================================
 // sub_958C — CarPlayIsConnectedDidChange. Determines connection from
@@ -456,7 +496,9 @@ void ABCarPlayChanged(NSNotification *note) {
         // [ytz4-hb] the force-hide below closes whichever session is
         // live; report that close before the record is torn down.
         NSString *kbBundle = abKbLiveBundle;
-        // UIKit owns the native keyboard window; discard stale metadata.
+        // [hl40-original-keyboard] Force-hide the original panel before
+        // ABHost frees the scene; never leave its overlay on reconnect.
+        [[ABKeyboard shared] hideForApp:nil];
         if (kbBundle) ABKbSyncNoteEvent(kbBundle, NO);
         [[ABHost shared] carDisconnected];
     }

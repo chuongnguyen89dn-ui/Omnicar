@@ -3,6 +3,7 @@
 // Agent A scope. Bodies reconstructed from disassembly; statuses inline.
 
 #import "ABHost.h"
+#import "ABKeyboardDecl.h" // [hl40-original-keyboard] original panel lifetime
 #import "ABChromeViews.h" // [integration phase 1; backported to src in phase 3] full chrome-view interfaces (module B decls)
 #import "OMCCore.h"
 #import <objc/runtime.h>
@@ -251,8 +252,8 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
     if (!pane) return;
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"dong %@%@", bundleID, terminate ? @" (tat han)" : @""]);
-    // [hl36-native-only] No SpringBoard keyboard panel instance exists.
-    // Preserve per-app kb-sync invalidation before tearing down the pane.
+    // [hl40-original-keyboard] Close the panel before the hosted pane.
+    [[ABKeyboard shared] hideForApp:bundleID];
     ABKbSyncNoteEvent(bundleID, NO);
     [self teardownPane:pane];
     [self.panes removeObject:pane];

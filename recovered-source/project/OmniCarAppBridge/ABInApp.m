@@ -63,7 +63,8 @@ NSInteger ABForcedOrientation = -1;  // 0x3E7D0 (stored as int32 in the original
 int64_t   ABAppOrientation    = 0;   // 0x3E9C8
 NSInteger ABDeviceFake       = 0;   // 0x3E9D0 (int32)
 NSInteger ABFPSLimit         = 0;   // 0x3E9B0 (int32)
-__weak id ABCurrentResponder = nil; // 0x3E930
+__weak id ABCurrentResponder = nil;
+static int ABKeyboardToken = 0; // [hl40-original-keyboard] original Darwin keyboard-state sender // 0x3E930
 
 static BOOL ABHooksInstalled = NO;  // 0x3E938 (byte)
 static int ABAppOrientToken = 0;    // 0x3E9E0
@@ -543,7 +544,7 @@ static NSInteger BWKbEffective(NSInteger *srcOut, long *ageMsOut) {
 // drawn panel is not used — overrides the GPT drawn-default
 // ruling. The drawn code stays in the tree, unreachable.
 // ===========================================================================
-static const BOOL ABDrawnKb = NO; // [hl36] immutable UIKit-native gate; panel no longer compiled.
+static const BOOL ABDrawnKb = YES; // [hl40-original-keyboard] hosted app uses original drawn keyboard; native CarPlay unchanged.
 static BOOL ABDrawnKbGateSeen = NO; // [hl2-k6] an explicit drawnKeyboard value has been received
 
 static BOOL ABDrawnKeyboardActive(void) { return ABDrawnKb; }
@@ -593,31 +594,23 @@ static void ABHL8Focus(NSString *event, id responder) {
 }
 
 static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
-    // Preserve host->app payload compatibility, but never enable drawn UI.
-    id v = info[@"drawnKeyboard"];
-    if (ABHL8Trace())
-        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[hl8diag] eye=kb-app ev=mode-recv bundle=%@ requested=%@ "
-             "cached=0 orientation=%@ focus=%d",
-            [NSBundle mainBundle].bundleIdentifier ?: @"unknown",
-            v ?: @"missing", info[@"orientation"] ?: @"missing",
-            (int)(ABCurrentResponder != nil)]);
-    if (![v isKindOfClass:NSNumber.class]) return;
-    if ([v boolValue]) {
-        static BOOL ignoredLogged;
-        if (!ignoredLogged) {
-            ignoredLogged = YES;
-            OMCLogWrite(@"AppBridge",
-                @"[hl36-native-only] drawnKeyboard=1 ignored; no drawn UI linked");
-        }
+    // [hl40-original-keyboard] Host now sends drawnKeyboard=1 for
+    // AppBridge-hosted apps. This informational packet never grants
+    // ownership to an app in the native CarPlay presentation path.
+    id flag = info[@"drawnKeyboard"];
+    if (![flag isKindOfClass:NSNumber.class]) return;
+    if (![flag boolValue]) {
+        OMCLogWrite(@"AppBridge",
+            @"[hl40-original-keyboard] stale-native-packet ignored by drawn-hosted build");
         return;
     }
     if (!ABDrawnKbGateSeen) {
         ABDrawnKbGateSeen = YES;
         OMCLogWrite(@"AppBridge",
-            @"[hl36-native-only] native session accepted; inputView owned by UIKit");
+            @"[hl40-original-keyboard] hosted-drawn-packet accepted; nativeCarPlay=system");
     }
 }
+
 
 // ===========================================================================
 // [ytz5-k5] kbstate reporter — app -> owner input-session truth
@@ -2895,13 +2888,52 @@ static void ABOrientationBlock(NSNotification *note) {
 
 }
 
-// [hl36-native-only] Removed synthetic NSDistributed appbridge.key receiver.
-// Native UIKit handles its own text input; no custom text actions accepted.
+// [hl40-original-keyboard] Original ABKeyBlock from OmniCar 1.0.3,
+ // restored to deliver drawn-panel keys only to the active hosted responder.
+static void ABKeyBlock(NSNotification *note) {
+    @try {
+        // [hl40-original-keyboard] never accept synthetic keys outside an active hosted pane.
+        if (ABForcedOrientation < 1 || !ABDrawnKb) return;
+        NSDictionary *info = note.userInfo;
+        id responder = ABCurrentResponder;
+        if (!responder || ![responder isFirstResponder]) return;
+        if (![responder conformsToProtocol:@protocol(UITextInput)]) return;
+        NSString *action = info[@"action"];
+        if ([action isEqualToString:@"type"]) {
+            NSInteger del = [info[@"del"] intValue];
+            for (NSInteger i = 0; i < del; i++) [responder deleteBackward];
+            NSString *text = info[@"text"];
+            if ([text isKindOfClass:NSString.class] && text.length > 0)
+                [responder insertText:text];
+        } else if ([action isEqualToString:@"return"]) {
+            if ([responder isKindOfClass:UITextField.class]) {
+                id<UITextFieldDelegate> delegate = [(UITextField *)responder delegate];
+                BOOL proceed = YES;
+                if ([delegate respondsToSelector:@selector(textFieldShouldReturn:)])
+                    proceed = [delegate textFieldShouldReturn:(UITextField *)responder];
+                if (proceed)
+                    [(UIControl *)responder sendActionsForControlEvents:UIControlEventEditingDidEndOnExit]; // 0x80000
+            } else {
+                [responder insertText:@"\n"];
+            }
+        } else if ([action isEqualToString:@"dismiss"]) {
+            [responder resignFirstResponder];
+        }
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"%@: phim loi %@",
+                                   [NSBundle mainBundle].bundleIdentifier, e]);
+    }
+}
+
 void ABInstallInAppObservers(NSString *bundleID) {
     NSDistributedNotificationCenter *center = [NSDistributedNotificationCenter defaultCenter];
     NSOperationQueue *queue = [NSOperationQueue mainQueue];
     [center addObserverForName:ABChanOrientation object:bundleID queue:queue
                     usingBlock:^(NSNotification *n) { ABOrientationBlock(n); }];
+    // [hl40-original-keyboard] Per-app addressed input delivery; the
+    // First Responder + ABForcedOrientation guard rejects native apps.
+    [center addObserverForName:ABChanKey object:bundleID queue:queue
+                    usingBlock:^(NSNotification *n) { ABKeyBlock(n); }];
     // YT-ZOOM (design-ytzoom §5.1): the lease observer exists ONLY in
     // the YouTube process. A lease may arrive before the first
     // orientation packet; it is only stored until the hooks land.
@@ -2968,9 +3000,51 @@ static void ABAfterDelay(NSTimeInterval seconds) {
 }
 
 // ===========================================================================
-// [hl36-native-only] Preserve UITextField / UITextView responder hooks.
-// The original panel's blank inputView and associated-object marker are
-// retired; no code replaces inputView or suppresses UIKit's keyboard.
+// [hl40-original-keyboard] Preserve the existing responder/wake hooks while
+// reinstating original hosted-only drawn keyboard and text relay. Native
+// CarPlay apps are not assigned ABForcedOrientation by this host.
+// [hl40-original-keyboard] Restore exactly the original empty inputView
+// workaround for a non-CarPlay-supported app hosted in an ABHost pane.
+static const void *ABBlankInputViewKey = (const void *)0x3E9E4; // address-as-key in the original
+
+static void ABSuppressSystemKeyboard(id responder) {
+    if (ABForcedOrientation < 1) return;
+    if (![responder respondsToSelector:@selector(setInputView:)]) return;
+    if ([responder inputView] != nil) return;
+    UIView *blank = [[UIView alloc] initWithFrame:CGRectZero];
+    [responder setInputView:blank];
+    objc_setAssociatedObject(responder, ABBlankInputViewKey, (id)kCFBooleanTrue,
+                             OBJC_ASSOCIATION_ASSIGN); // policy 1 in the original
+}
+
+
+static void ABRestoreBlankInputView(id responder) {
+    if (!responder || !objc_getAssociatedObject(responder, ABBlankInputViewKey)) return;
+    objc_setAssociatedObject(responder, ABBlankInputViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
+    if ([responder respondsToSelector:@selector(setInputView:)])
+        [responder setInputView:nil];
+}
+
+static void ABKeyboardPublish(BOOL shown, id traits) {
+    if (!ABKeyboardToken)
+        notify_register_check(ABNotifyKeyboard, &ABKeyboardToken);
+    uint64_t state = 0;
+    if (shown) {
+        state = 1;
+        if ([traits respondsToSelector:@selector(keyboardType)])
+            state |= (uint64_t)([traits keyboardType] & 0x7F) << 1;
+        if ([traits respondsToSelector:@selector(returnKeyType)])
+            state |= (uint64_t)([traits returnKeyType] & 0xFF) << 8;
+    }
+    state |= (uint64_t)ABBundleHash([NSBundle mainBundle].bundleIdentifier) << 24;
+    notify_set_state(ABKeyboardToken, state);
+    notify_post(ABNotifyKeyboard);
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"ban phim xe: %@ (%@)",
+                               shown ? @"hien" : @"an",
+                               traits ? NSStringFromClass([traits class]) : @"-"]);
+}
+
+
 // ===========================================================================
 // sub_6A70 — after a successful becomeFirstResponder while hosted.
 static void ABResponderBecame(id responder) {
@@ -2978,6 +3052,7 @@ static void ABResponderBecame(id responder) {
     ++ABNativeKbFocusSerial;
     if (!ABDrawnKb) ABKB104InstallIfAvailable();
     ABCurrentResponder = responder;
+    if (ABDrawnKb) ABKeyboardPublish(YES, responder);
     ABHL8Focus(@"focus-became", responder);
     if (!ABDrawnKb) ABNativeKbBegin(@"focus-became");
     // [hl3] marker eye 2 of 3: a responder became first responder
@@ -2998,6 +3073,7 @@ static void ABResponderBecame(id responder) {
 
 // sub_6D50 — after a successful resignFirstResponder.
 static void ABResponderResigned(id responder) {
+    if (ABDrawnKb) ABRestoreBlankInputView(responder);
     ABHL8Focus(@"focus-resigned", responder);
     ++ABNativeKbEpoch;
     ++ABNativeKbReflowTicket; // Cancel stale UIKit reloads after focus ends.
@@ -3008,6 +3084,7 @@ static void ABResponderResigned(id responder) {
         @"[hl33-kb-owner] event=focus-resigned action=observe-only");
     if (ABCurrentResponder == responder) {
         ABCurrentResponder = nil;
+        if (ABDrawnKb) ABKeyboardPublish(NO, nil);
         BWKbLocalSet(BWKbInactive); // BridgeWake kb guard: only the
                                     // responder session may lower
                                     // ACTIVE (§5.5)
@@ -3021,7 +3098,8 @@ static void ABResponderResigned(id responder) {
 }
 
 static BOOL ABHook_TFBecome(UITextField *self, SEL _cmd) {
-    if (ABForcedOrientation>=1 && !ABDrawnKb) ABKB104InstallIfAvailable();
+    if (ABForcedOrientation>=1 && ABDrawnKb) ABSuppressSystemKeyboard(self);
+    else if (ABForcedOrientation>=1) ABKB104InstallIfAvailable();
     BOOL ok = ((BOOL (*)(id, SEL))orig_TF_become)(self, _cmd);
     if (ok) ABResponderBecame(self);
     return ok;
@@ -3032,7 +3110,9 @@ static BOOL ABHook_TFResign(UITextField *self, SEL _cmd) {
     return ok;
 }
 static BOOL ABHook_TVBecome(UITextView *self, SEL _cmd) {
-    if (self.isEditable && ABForcedOrientation>=1 && !ABDrawnKb)
+    if (self.isEditable && ABForcedOrientation>=1 && ABDrawnKb)
+        ABSuppressSystemKeyboard(self);
+    else if (self.isEditable && ABForcedOrientation>=1)
         ABKB104InstallIfAvailable();
     BOOL ok = ((BOOL (*)(id, SEL))orig_TV_become)(self, _cmd);
     if (ok && self.isEditable) ABResponderBecame(self);

@@ -22,7 +22,9 @@
 #import <substrate.h>
 #import <dlfcn.h> // [integration phase 1; backported to src in phase 3] declares dlsym used in this file
 
-extern void ABInstallInAppObservers(NSString *bundleID);   // ABInApp.m
+extern void ABInstallInAppObservers(NSString *bundleID);
+extern void DC40NativeClientStart(NSString *bundleID); // [hl40-native-drawn]
+extern void DC40NativePresenterStart(void);            // [hl40-native-drawn]   // ABInApp.m
 extern void ABSpringBoardReady(id self, SEL _cmd, id app); // ABHost registrar (module A file in original layout; block bodies in ABHostGeometry.m / module A)
 
 // ---------------------------------------------------------------------------
@@ -41,6 +43,22 @@ static void ABAppCtor(void) {
         NSString *bundleID = bundle.bundleIdentifier;
         if (bundleID.length == 0) return;
         if (![bundle.bundlePath containsString:@".app"]) return;
+        // [hl40-native-drawn] CarPlayApp presents one independent overlay
+        // over native scenes; it does not become the keyboard text owner.
+        if ([bundleID isEqualToString:@"com.apple.CarPlayApp"]) {
+            DC40NativeClientStart(bundleID); // CarPlayApp-owned native UI can itself focus.
+            dispatch_async(dispatch_get_main_queue(), ^{
+                DC40NativePresenterStart();
+            });
+            return;
+        }
+        // Every other UIKit application can own a native CarPlay scene.
+        // The client itself accepts ONLY a CarPlay-scene first responder
+        // when it is not already being hosted by ABHost.
+        if (![bundleID isEqualToString:@"com.apple.springboard"] &&
+            ![bundleID isEqualToString:@"com.apple.InCallService"] &&
+            ![bundleID isEqualToString:@"com.apple.Preferences"])
+            DC40NativeClientStart(bundleID);
         // Constant array at 0x393D8 (__objc_arrayobj, 6 elements, verbatim):
         static NSArray<NSString *> *excluded;
         static dispatch_once_t once;

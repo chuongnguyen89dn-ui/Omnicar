@@ -16,6 +16,11 @@
 #import "AppBridgeB.h"
 #import "ABHost.h"
 
+// [hl40-native-drawn] Two tiny process-specific adapters; every original
+// keycap, Telex, layout and preview method is kept byte-for-byte otherwise.
+extern UIWindow *DC40NativeKeyboardHostWindow(void);
+extern BOOL DC40NativeKeyboardRouteKey(NSString *action, NSUInteger del, NSString *text);
+
 // OMC scaffold helpers used here (shared component, declared for
 // self-consistency; implementations live in the Core module):
 extern void OMCLogWrite(NSString *tag, NSString *message);
@@ -248,6 +253,9 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
 // text only when non-nil; object = self.app (per-app addressing).
 - (void)send:(NSString *)action del:(NSUInteger)del text:(NSString *)text {
     if (!self.app) return;
+    // [hl40-native-drawn] Native has a different authenticated ACK owner.
+    // The original hosted appbridge.key route remains unchanged below.
+    if (DC40NativeKeyboardRouteKey(action,del,text)) return;
     NSMutableDictionary *info = [@{@"action": action, @"del": @(del)} mutableCopy];
     if (text) info[@"text"] = text;
     [[NSDistributedNotificationCenter defaultCenter]
@@ -274,7 +282,8 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
 //    (0.1, 1)) animates it to identity (animation block sub_192EC).
 //  * Logs "ban phim xe: hien cho %@ (kieu %ld, phim enter %ld)".
 - (void)showForApp:(NSString *)bundleID keyboardType:(NSInteger)keyboardType returnType:(NSInteger)returnType {
-    UIWindow *carWindow = [[ABHost shared] carWindow];
+    UIWindow *carWindow = DC40NativeKeyboardHostWindow();
+    if (!carWindow) carWindow = [[ABHost shared] carWindow];
     if (!bundleID || !carWindow) {
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"ban phim xe: khong co cua so (%@)", bundleID]);
         return;
@@ -560,7 +569,8 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
 // intersection's).
 - (void)layoutPanelIn:(UIView *)container {
     CGRect bounds = container.bounds;
-    CGRect area = [ABHost shared].carAppArea;
+    CGRect area = (container == DC40NativeKeyboardHostWindow())
+        ? CGRectZero : [ABHost shared].carAppArea;
     CGRect rect = bounds;
     if (area.size.width > 100.0) rect = CGRectIntersection(area, bounds);
     if (CGRectIsEmpty(rect)) rect = bounds;

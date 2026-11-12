@@ -21,6 +21,7 @@
 
 #import "AppBridgeB.h"
 
+NSString *const ABChanKey         = @"com.anlai.omnicar/appbridge.key"; // [hl40-original-keyboard]
 NSString *const ABChanOrientation = @"com.anlai.omnicar/appbridge.orientation";
 NSString *const ABChanOpen        = @"com.anlai.omnicar/appbridge.open";
 NSString *const ABChanFrame       = @"com.anlai.omnicar/appbridge.frame";
@@ -36,6 +37,7 @@ NSString *const ABChanBarAction   = @"com.anlai.omnicar/appbridge.baraction";
 NSString *const ABChanBarDismiss  = @"com.anlai.omnicar/appbridge.bardismiss";
 NSString *const ABChanKbSync      = @"com.anlai.omnicar/appbridge.kbsync"; // [ytz4-hb] host->car {identifier, kbactive, kbsession, kbsource}, object nil — NEW (GPT ytz4 kb ruling)
 
+const char *ABNotifyKeyboard = "com.anlai.omnicar/appbridge.keyboard"; // [hl40-original-keyboard]
 const char *ABNotifyAppOrient = "com.anlai.omnicar/appbridge.apporient";
 
 // BridgeWake v1 Darwin channels (design-bridgewake.md §3.1) — a NEW

@@ -77,27 +77,15 @@ extern id OMCLogoMeshImage(int style);   // shared unit (OMCCommon.h:188)
 // when the gate flips.
 // ===========================================================================
 BOOL ABNativeKeyboardEnabled(void) {
-    // [hl3] HARD LOCK — Nguyen's direct order 2026-11-09 22:14
-    // ("quay ve phim CarPlay toan bo, khong su dung phim tu ve")
-    // OVERRIDES the GPT drawn-default ruling and the hl2 K6 flip:
-    // the effective mode is ALWAYS native for hosted apps in this
-    // build. The pref is no longer read here at all, so neither a
-    // stored appBridgeNativeKeyboard value nor the hl2 migration
-    // marker (appBridgeNativeKeyboardDrawnRestoredHl2, possibly
-    // already written to the device by the hl2 build) can pull
-    // this build back to drawn; the hl2 migration block is removed
-    // together with the read. HL36 keeps the legacy panel code in
-    // archived source only: its UI and Telex are not linked.
-    // One log line per process states
-    // the lock and its source, so a session log can never be
-    // misread as a pref-driven mode.
-    static BOOL abKbHl3LockLogged;
-    if (!abKbHl3LockLogged) {
-        abKbHl3LockLogged = YES;
+    // [hl40-original-keyboard] ABHost only owns unsupported/hosted apps.
+    // Restore the original drawn keyboard there. CarPlay native apps
+    // remain entirely on their system keyboard path.
+    static dispatch_once_t logged;
+    dispatch_once(&logged, ^{
         OMCLogWrite(@"AppBridge",
-            @"[ytz5-k5] hl3: native KHOA CUNG cho app hosted (lenh Nguyen 22:14, ghi de phan quyet drawn cua GPT); pref appBridgeNativeKeyboard + marker hl2 vo hieu");
-    }
-    return YES;
+            @"[hl40-original-keyboard] host=drawn appBridge=hosted-only nativeCarPlay=system");
+    });
+    return NO;
 }
 BOOL ABDrawnKeyboardEnabled(void) {
     return !ABNativeKeyboardEnabled();
