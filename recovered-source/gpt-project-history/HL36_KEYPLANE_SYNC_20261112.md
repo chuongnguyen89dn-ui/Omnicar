@@ -23,3 +23,15 @@
 ## Bước tiếp và cổng thành công
 - Kiểm script thật trong đúng checkout: `python3 recovered-source/gpt-project-history/verify_hl34_keyboard_recovery.py` với cwd gốc repo; đọc workflow `.github/workflows/build-fat-macos.yml` trước CI, không dispatch khi chưa được giao. Sau đó build/ký **một DEB tổng hợp** từ đúng HEAD, xác minh hash/version/arm64+arm64e/signature trên chính artifact.
 - Nguyen thử thực tế bàn phím QWERTY (phím cuối, Backspace, Return), drag hẹp↔rộng, close/reopen, đổi app, reconnect trên YouTube và TikTok; giữ nguyên bàn phím native. Đọc log cùng PID + `[hl36-kbsync]` / revision và ảnh. Chỉ qua cổng nếu thực sự hiển thị **đủ phím và gõ được**.
+
+## Lượt kiểm và yêu cầu DEB trực tiếp (2026-11-12)
+
+Nguyen giao tiếp tục kiểm, build/ký **một file DEB trực tiếp**. Đã xác minh cấu trúc và chức năng workflow thật tại `.github/workflows/build-fat-macos.yml` trên chính nhánh. Docker hiện tại không có checkout; `git ls-remote` từ container thất bại `Could not resolve host: github.com`, nên không được nhận đã chạy Python/compiler local. Có thể chạy cổng test trên macOS Actions theo quy trình cũ (không tự merge Sileo).
+
+Đã sửa lỗ hổng test tĩnh: `verify_hl34_keyboard_recovery.py` còn kiểm chuỗi `if (keyboard && key)` cũ (vì source mới dùng `BOOL placed=keyboard && key`), thay đúng hợp đồng source hiện tại, commit `bd05fc01a200c4e510321f95e2e649dd32a2a1e3`. Điều này chỉ sửa test lỗi thời, **không sửa implementation**.
+
+Chuẩn bị đóng gói **version mới hơn HL36**: `1.0.3-hl37kbsync1` (package `com.chuong.duocar`; không trùng `1.0.3-hl36nativeonly` đã cài, không tự gỡ OmniCar). 
+- `rebrand_duocar.py` commit `2c56b9cbf59933fcbf52727ac19722fda01bd497`.
+- `verify_duocar_payload.py` commit `946d31e85dc1550d3f6c0ff552f76e5deeaa47fb`: version + marker `[hl36-kbsync]` trong chính FAT AppBridge.
+- Dự kiến artifact sau runner: `com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb` (cần xác minh tên, hash, FAT, ldid từ **artifact thật**, không đặt tên thủ công cho một DEB cũ).
+- Chỉ cập nhật build glue/workflow để áp dụng gate HL36 đúng cho nhánh mới. Workflow phải được xác nhận đã trigger đúng HEAD, không suy build từ push. Việc chuyển DEB đến cuộc trò chuyện phải dùng artifact sau khi CI SUCCESS, giải nén ZIP và đưa chính `.deb` trực tiếp, không bắt Nguyen tải ZIP.
