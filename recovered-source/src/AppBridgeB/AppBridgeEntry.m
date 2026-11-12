@@ -43,13 +43,10 @@ static void ABAppCtor(void) {
         NSString *bundleID = bundle.bundleIdentifier;
         if (bundleID.length == 0) return;
         if (![bundle.bundlePath containsString:@".app"]) return;
-        // [hl40-native-drawn] CarPlayApp presents one independent overlay
-        // over native scenes; it does not become the keyboard text owner.
+        // [hl41-native-host] CarPlayApp can own native input but never
+        // creates a drawn keyboard window. SpringBoard hosts the panel.
         if ([bundleID isEqualToString:@"com.apple.CarPlayApp"]) {
-            DC40NativeClientStart(bundleID); // CarPlayApp-owned native UI can itself focus.
-            dispatch_async(dispatch_get_main_queue(), ^{
-                DC40NativePresenterStart();
-            });
+            DC40NativeClientStart(bundleID); // Native first-responder client only.
             return;
         }
         // Every other UIKit application can own a native CarPlay scene.
