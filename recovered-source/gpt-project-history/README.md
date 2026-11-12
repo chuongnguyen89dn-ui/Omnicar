@@ -1,5 +1,15 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL37kbsync1 CI đã kích hoạt, chờ runner macOS (CHƯA CÓ DEB)
+- Nguyen yêu cầu kiểm thử, build/ký, giao **một DEB trực tiếp**, không tải ZIP; chỉ sửa keyboard hosted, các app CarPlay hệ thống và chức năng khác giữ nguyên. Nhánh `feature/duocar-hl36-keyplane-sync-20261112` có source + kiểm thử; source xuất phát `fa21883e`, script/test chỉnh `bd05fc01`, rebrand `2c56b9cb`, binary verifier `946d31e8`, checkpoint `81c302f2`.
+- Đã nâng version thực của script rebrand/payload verifier/workflow thành `com.chuong.duocar 1.0.3-hl37kbsync1`, chặn nhầm cùng version HL36 cũ và thêm kiểm marker `[hl36-kbsync]` trong FAT binary. Chỉ chỉnh build glue, không đụng các chức năng runtime khác.
+- GitHub Actions run `43200294319` (commit `e01f5876`) **FAIL** tức thì do YAML parse `if: !startsWith`, không có job build. Đã sửa gói 12 biểu thức `if` bằng `${{ ... }}`, commit `458153c5e75c2b0bd254c8ed2f0ce434f8cb383b`.
+- **Run chính xác `43200418451`**, workflow `build-fat-macos`, event `push`, HEAD `458153c5...`, job ID `131122061667`, đã được Actions nhận (không còn lỗi cú pháp). Kiểm nhiều lần đến khoảng **17:36 VN ngày 12/11**, kết quả **`status=queued`, chưa có runner macOS**; do đó **CHƯA CHẠY test Python trên checkout, CHƯA compile, ký, tạo artifact/DEB, CHƯA DEVICE PASS**. Không được giao DEB cũ 1.0.3-hl36nativeonly như của bản mới.
+- Đường khi tiếp tục: đọc `GET /repos/chuongnguyen89dn-ui/Omnicar/actions/runs/43200418451` và connector `fetch_workflow_run_jobs`. Khi status SUCCESS mới `fetch_workflow_run_artifacts` → `download_workflow_artifact`; công cụ này đã được thử trên artifact cũ và tự đưa ZIP vào `/mnt/data`. Giải ZIP, lấy **chính .deb**, dùng `dpkg-deb`/SHA-256/FAT/LC_CODE_SIGNATURE/marker và đối chiếu run HEAD, rồi gửi `sandbox:` link đến file .deb đã kiểm. Nếu FAIL, đọc step+job logs, chỉ vá lỗi build/test thật và chạy lại, không làm chức năng khác.
+- Không merge main (ngoại trừ hồ sơ), không publish Sileo, không xóa package OmniCar, không chạy build thứ hai khi một job đang queued. Checkpoint kỹ thuật đã có [HL36 sync](https://github.com/chuongnguyen89dn-ui/Omnicar/blob/feature/duocar-hl36-keyplane-sync-20261112/recovered-source/gpt-project-history/HL36_KEYPLANE_SYNC_20261112.md).
+
+
+
 ## 2026-11-12 — HL36 keyplane/window sync cho hosted app (SOURCE COMMITTED / DEVICE PENDING)
 - Nguyen xác nhận trên xe **bàn phím các app CarPlay hệ thống hoạt động đúng**. Sửa riêng đồng bộ `UIRemoteKeyboardWindow` ↔ UIKit keyplane của app hosted trên nhánh `feature/duocar-hl36-keyplane-sync-20261112` từ HL36 `fa21883e`: defer viewport khi keyplane còn tràn; dùng `reloadInputViews` có focus/revision/epoch guards; giữ native apps, YTZ/Dock/picker/zoom/voice-off và không hồi sinh drawn keyboard. 3 cặp `project/src` đồng nhất, kiểm connector tĩnh 21/21, **chưa chạy Python/CI/build/DEB, chưa device PASS**. [Checkpoint chuyên đề](https://github.com/chuongnguyen89dn-ui/Omnicar/blob/feature/duocar-hl36-keyplane-sync-20261112/recovered-source/gpt-project-history/HL36_KEYPLANE_SYNC_20261112.md).
 
