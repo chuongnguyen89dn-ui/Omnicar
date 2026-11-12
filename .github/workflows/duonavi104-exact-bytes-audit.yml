@@ -1,0 +1,34 @@
+name: Read-only exact DuoNavi 1.0.4 full binary acquisition
+on:
+  push:
+    branches: [audit/duonavi104-full-kb-voice-20261112]
+    paths:
+      - ".github/workflows/duonavi104-exact-bytes-audit.yml"
+permissions:
+  contents: read
+concurrency:
+  group: duonavi104-exact-readonly
+  cancel-in-progress: false
+jobs:
+  verify-exact-original:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - name: Get exact original package, read only; verify SHA and identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p exact-original
+          curl --fail --location --silent --show-error --retry 4             "https://raw.githubusercontent.com/chuongnguyen89dn-ui/duoface-debs-/3d791cd4ef8d43ab8a04e26890697b9554c7e49e/historical/dist/com.duonavi.app_1.0.4_iphoneos-arm64.deb"             -o exact-original/com.duonavi.app_1.0.4_iphoneos-arm64.deb
+          echo "f3f911de5db461d487ce91249aed1bb25d44f076e7ff5fb89e54b658569328dd  exact-original/com.duonavi.app_1.0.4_iphoneos-arm64.deb" | sha256sum -c -
+          test "$(dpkg-deb -f exact-original/com.duonavi.app_1.0.4_iphoneos-arm64.deb Package)" = com.duonavi.app
+          printf '%s\n' "SOURCE original archive 3d791cd4ef8d43ab8a04e26890697b9554c7e49e" > exact-original/source.txt
+          sha256sum exact-original/com.duonavi.app_1.0.4_iphoneos-arm64.deb >> exact-original/source.txt
+          dpkg-deb --contents exact-original/com.duonavi.app_1.0.4_iphoneos-arm64.deb > exact-original/files.txt
+      - name: Preserve exact bytes for local forensic analysis; not a build or release
+        uses: actions/upload-artifact@v4
+        with:
+          name: duonavi104-exact-original-readonly
+          path: exact-original/
+          if-no-files-found: error
+          retention-days: 7
