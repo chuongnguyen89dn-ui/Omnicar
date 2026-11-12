@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL36 — bàn phím UIKit native-only (SOURCE COMMITTED / DEVICE PENDING)
+- Theo lệnh Nguyen: bỏ hẳn bàn phím vẽ OmniCar khỏi **bản biên dịch**, giữ source gốc để tham chiếu và giữ các hook responder/kbstate/BridgeWake. Nhánh riêng `feature/duocar-hl36-native-only-retire-drawn-20261112` từ HL35 `1cc0820f`, source commit `54c8fafd`, sửa/kiểm script đến `31b80661`; 14 file src/project đổi (6 cặp mirror) + script HL34 mở rộng. **21/21 kiểm tra tĩnh trên GitHub đạt**, chưa build/ký/DEB, chưa xác nhận hiển thị phím trên xe; không đụng voice/YTZ/picker. Phải cập nhật version HL34 đang ở workflow/rebrand trước build và phối hợp yêu cầu bỏ voice khỏi DEB. [Checkpoint HL36 trên nhánh thi công](https://github.com/chuongnguyen89dn-ui/Omnicar/blob/feature/duocar-hl36-native-only-retire-drawn-20261112/recovered-source/gpt-project-history/HL36_NATIVE_ONLY_KEYBOARD_20261112.md).
+
+
 ## 2026-11-12 — Truy vết trực tiếp bàn phím vẽ OmniCar (HL35, chỉ kiểm mã nguồn)
 - Đã đối chiếu cơ chế gốc `ABKeyboard/ABKey`: hosted responder → blank inputView (chế độ drawn) → Darwin `appbridge.keyboard` → SpringBoard dựng phím UIButton trên carWindow → NSDistributed `appbridge.key` → `insertText`/`deleteBackward`; trên HL35 native gate đang chặn render nhưng `ABKeyboard.m`/`ABTelex.m` **vẫn được biên dịch**, chưa loại hẳn khỏi DEB. Nhánh HL35/HL34 cùng SHA `1cc0820f`; không sửa source, không CI/DEB, chưa DEVICE PASS. Chi tiết & bằng chứng: [HL35 — Truy vết cơ chế bàn phím vẽ OmniCar gốc và trạng thái native](HL35_DRAWN_KEYBOARD_SOURCE_TRACE_20261112.md).
 
