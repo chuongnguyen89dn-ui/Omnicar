@@ -1,0 +1,28 @@
+# HL41 — native keyboard on original hosted CarPlay surface
+Date: 2026-11-13 Asia/Ho_Chi_Minh. Built from the device-failed HL40 without merging main.
+
+## Scope and evidence
+- User's HL40 screenshot `IMG_8220.jpeg` and fresh GitHub log `logs/DuoCar.log` (main commit `77695453f1605fb4b94679076428008b34b76709`, blob `79049416b193daec8911c8d0a023f8ef638aa8a6`): native Apple system keyboard visible and accepts input in the correct native pane; erroneous *drawn* keyboard appears near the top, masked under hosted content and overlapping Dock. Native CarPlay is `CarPlayTemplateUIHost:5977`, presenter `CarPlay:5974`; hosted YouTube `YouTube:5983`, `SpringBoard:5928`. Do NOT mix with older PIDs (e.g., CarPlay:5530).
+- User specifically clarifies that the *original hosted drawn keyboard intentionally spans BOTH split panes*, excluding the left dock. Never clip hosted keyboard to one 297pt pane.
+- Source-confirmed HL40 problem: presenter window in CarPlayApp used whole `scene.coordinateSpace.bounds` of 640x360 and `UIWindowLevelAlert+2` instead of SpringBoard `ABHost.carWindow` whose `carAppArea` is x45..640. Native panel computed (x6,y74,width628,height280) would overlap dock; hosted-original panel using carAppArea computed (x51,y74,width583,height280).
+
+## Code branch, real confirmed writes
+- One repo `chuongnguyen89dn-ui/Omnicar`, isolated branch `feature/duocar-hl41-native-hosted-surface-gpt-20261112` created from HL40 HEAD `e7269f1504a0b427920169c83d9b4b98661f4099`. Did NOT merge code to main, publish Sileo, or send outside messages.
+- `recovered-source/src/AppBridgeB/ABNativeDrawnTA.m` mirrored in `recovered-source/project/OmniCarAppBridge/ABNativeDrawnTA.m`: move native presenter to original SpringBoard `ABHost.carWindow`, remove CarPlayApp `DC40OverlayWindow` allocation and window level, make adapter `DC40NativeKeyboardHostWindow` return nil to retain original ABKeyboard layout area (x45..640), ensure native close does not close hosted keyboard, guard native key relay owner; native UIKit inputView prearmed before `UITextField`/`UITextView` becomeFirstResponder, late-focus fallback logs UNKNOWN rather than assumes keyboard suppression, native ACK logs no text, coalesce same responder focus close 160ms.
+- `recovered-source/src/AppBridgeB/AppBridgeEntry.m` and project mirror: CarPlayApp remains a native client but no longer starts a separate presenter.
+- `recovered-source/src/AppBridgeB/ABHostGeometry.m` and project mirror: register presenter once in `ABSpringBoardReady` after one-time registration guard, retaining original registrar order and all existing host channels.
+- Original `ABKeyboard.m` and `ABTelex.m` unchanged byte-for-byte from HL40 branch. So hosted full-width layout, Zoom, picker, menu, Dock, SplitScreen, voice-off and pinch code untouched.
+- Confirmed GitHub write commits: `92f6ffc0`, `6c0b393a`, `85758039`, `c527283b`, `85dd6c5c`, `494cd438`, `f979203e`, `43c5b5d2`.
+- Source/package gates on this feature branch: `verify_hl41_native_host.py` (`175ca724`), `rebrand_duocar_hl41.py` (`3e251a85`), `verify_duocar_payload_hl41.py` (`77f3fa4f`), `.github/workflows/build-hl41-arm64.yml` (`1d954e1d82d03d3e952ef2136cf55f74dd8d7e09`). Each is an actual GitHub contents-file create response.
+
+## CI build and delivery
+- **One workflow automatically triggered by push of workflow file**, not separately dispatched: `DuoCar HL41 native-host single-arm64 signed DEB`, run `43326573111`, HEAD `1d954e1d82d03d3e952ef2136cf55f74dd8d7e09`, job `131560411506`.
+- Verified directly via GitHub workflow run jobs: source-only verifier **PASS**; Theos and SDK installation successful; build stage **in_progress** at last check. Until final artifact exists, do NOT claim compiled, signed, installable, or device-pass.
+- Expected package only after a green run: `com.chuong.duocar`, `1.0.3-hl41nativehost1`, `iphoneos-arm64`, artifact `duocar-hl41nativehost1-arm64-deb` as ZIP carrier with a direct `.deb` inside; must extract and check `dpkg-deb`, package fields, SHA256 and actual signed arm64 Mach-O before offering direct sandbox DEB. Do not confuse HL40, HL39, nor report ZIP as DEB. No FAT or arm64e build.
+- No local toolchain (`ldid`, iOS SDK), GitHub clone from container DNS failed; GitHub connector fetch/create/update confirmed all remote writes. Do not claim local compile from the GPT container.
+
+## Risk and acceptance
+- Pre-focus `inputView` hooks may not suppress the distinct template-controlled Apple keyplane. HL40 `setInputView` after focus failed on-device; HL41 attempts earlier interception, but **device test REQUIRED**. Never equate source gate or build success with suppression.
+- Native/hosted need device checks: one drawn panel in intended x45..640 app area (no Dock overlap), no duplicated Apple native keyboard, no fragment hidden under other content, correct insertion/backspace/Telex/Return and exact target responder, no focus flicker, no lag on divider resize (198/297/396), close/reconnect/restart and dock wake. Hosted keyboard intentionally spans both panes. Native ACK success must be measured on device, not inferred from observer registration.
+- Current status: source modifications committed, source gate PASS, build in progress at checkpoint; no new DEB verified yet, no DEVICE PASS.
+- Next: query exact run `43326573111` job state and artifacts, inspect failure logs by job `131560411506` if needed. If success download artifact via `mcp__GitHub__download_workflow_artifact`, extract direct .deb, verify and hand off. If failure, repair only the failed hunk and allow a fresh branch push run; never claim a result from a stale artifact.
