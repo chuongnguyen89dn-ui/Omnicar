@@ -105,6 +105,7 @@ static NSString *DC33RouteSignature(AVAudioSession *session,BOOL input) {
 @property(nonatomic,copy) NSString *previousCategory;
 @property(nonatomic,copy) NSString *previousMode;
 @property(nonatomic) AVAudioSessionCategoryOptions previousOptions;
+@property(nonatomic) double previousSampleRate;
 @property(nonatomic) BOOL ownsAudio;
 @property(nonatomic) BOOL listening;
 @property(nonatomic) NSUInteger generation;
@@ -290,6 +291,8 @@ static BOOL DCVoiceEnabled(void) {
         if (self.previousCategory.length && self.previousMode.length)
             [a setCategory:self.previousCategory mode:self.previousMode
                 options:self.previousOptions error:nil];
+        if (self.previousSampleRate>0)
+            [a setPreferredSampleRate:self.previousSampleRate error:nil];
     }
     OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
         @"[hl31-voice-agent] pid=%d event=capture-stop bufferCount=%d",
@@ -422,6 +425,7 @@ static BOOL DCVoiceEnabled(void) {
     self.previousCategory=audio.category;
     self.previousMode=audio.mode;
     self.previousOptions=audio.categoryOptions;
+    self.previousSampleRate=audio.preferredSampleRate;
     NSError *error=nil;
     // Original DuoNavi 1.0.4 ARM64: category PlayAndRecord with options
     // 0x6e, mode Default, preferred sample rate 48000. Do NOT switch

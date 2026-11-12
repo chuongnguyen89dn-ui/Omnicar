@@ -20,6 +20,9 @@ static NSString *const DCVoiceCaptureRequest=@"com.anlai.omnicar/voice.capture.r
 static char DCVoiceBubbleAssociation;
 static char DCVoiceWindowAssociation;
 static char DCVoiceWindowHitTargetAssociation;
+static CFTimeInterval DC33BubbleLastLog=0;
+static CGRect DC33BubbleLastBoundary=CGRectNull;
+static BOOL DC33BubbleLastVisible=NO;
 static UIWindow *DCVoiceWindow(SCPCarSplit *split) {
     return split ? objc_getAssociatedObject(split,&DCVoiceWindowAssociation):nil;
 }
@@ -222,6 +225,7 @@ void SCPVoiceBubbleDetach(SCPCarSplit *split) {
         DCVoiceSendRequest(@"stop");
     }
     DCRemotePhase=@"idle";
+    if (!DCVoiceBubble(split) && !DCVoiceWindow(split)) return;
     SCPVoiceBubbleView *bubble=DCVoiceBubble(split);
     UIWindow *voiceWindow=DCVoiceWindow(split);
     bubble.onBubbleTapped=nil;
@@ -301,10 +305,18 @@ void SCPVoiceBubbleUpdate(SCPCarSplit *split) {
     bubble.userInteractionEnabled=visible;
     voiceWindow.hidden=!visible;
     if (visible) [voiceWindow bringSubviewToFront:bubble];
-    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-        @"[hl33-bubble-window] event=update available=1 visible=%d "
-         "level=%.1f window=%@ boundary=%@ bubble=%@ touch=pass-only-bubble",
-        (int)visible,voiceWindow.windowLevel,
-        NSStringFromCGRect(voiceWindow.bounds),NSStringFromCGRect(boundary),
-        NSStringFromCGRect(bubble.frame)]);
+    CFTimeInterval now=CACurrentMediaTime();
+    if (visible!=DC33BubbleLastVisible ||
+        !CGRectEqualToRect(boundary,DC33BubbleLastBoundary) ||
+        now-DC33BubbleLastLog>3.0) {
+        DC33BubbleLastVisible=visible;
+        DC33BubbleLastBoundary=boundary;
+        DC33BubbleLastLog=now;
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl33-bubble-window] event=update available=1 visible=%d "
+             "level=%.1f window=%@ boundary=%@ bubble=%@ touch=pass-only-bubble",
+            (int)visible,voiceWindow.windowLevel,
+            NSStringFromCGRect(voiceWindow.bounds),
+            NSStringFromCGRect(boundary),NSStringFromCGRect(bubble.frame)]);
+    }
 }

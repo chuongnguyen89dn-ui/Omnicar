@@ -2750,17 +2750,25 @@ static void ABOrientationBlock(NSNotification *note) {
         physicalW >= 100 && physicalW<=1800 &&
         logicalW >= 200 && logicalW <= 1800 &&
         physicalW/logicalW >= 0.45 && physicalW/logicalW<=2.1;
+    // A zero geometry during scene-box animation is NOT release.
+    // Preserve the last committed packet until a real frame or explicit
+    // ABChanClose/CloseAll/orientation=0 arrives.
+    BOOL pendingScene = orientation>0 && !stale && !validGeometry &&
+                        physicalW==0 && logicalW==0;
     if (validGeometry) {
         ABNativeKbPhysicalWidth = physicalW;
         ABNativeKbLogicalWidth = logicalW;
-    } else if (!stale) {
+    } else if (!stale && !pendingScene) {
         ABNativeKbPhysicalWidth = 0;
         ABNativeKbLogicalWidth = 0;
     }
+    if (pendingScene)
+        OMCLogWrite(@"AppBridge",
+            @"[hl33-kb-owner] event=scene-unsettled keep-committed-geometry=1");
     BOOL geometryChanged = !stale &&
         (fabs(prevPhysicalW - ABNativeKbPhysicalWidth) > 1.0 ||
          fabs(prevLogicalW - ABNativeKbLogicalWidth) > 1.0);
-    if (!stale) {
+    if (!stale && !pendingScene) {
         ABKB104SetHostGeometry(orientation>0 && !ABDrawnKb,
             ABNativeKbLogicalWidth,ABNativeKbPhysicalWidth,
             orientation,revision,logicalH,physicalH);
