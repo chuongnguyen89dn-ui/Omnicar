@@ -65,7 +65,7 @@ def main():
             end=min(hi,vm+0x6000)
             if end<=vm: report["missing"].append("bound:"+cls+"."+sel);continue
             ins=disassemble(macho,vm,end)
-            deep=cls.startswith(("CBVoice","CBAI"))
+            deep=cls.startswith(("CBVoice","CBAI","CBBridgedUIAppView"))
             report["methods"].append({"class":cls,"selector":sel,"imp":hex(vm),
                 "next_imp":hex(hi),"bound":hex(end),"instruction_count":len(ins),
                 "selector_refs":[sanitize(x) for x in ins if "SEL_OR_LITERAL" in x][:120],
