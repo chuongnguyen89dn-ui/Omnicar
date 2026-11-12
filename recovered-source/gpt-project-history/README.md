@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL41 ARM64 direct DEB build/signature PASS, device NOT YET proven
+- Branch `feature/duocar-hl41-native-hosted-surface-gpt-20261112`, HEAD `1d954e1d82d03d3e952ef2136cf55f74dd8d7e09`. CI run **43326573111** completed success, artifact **13992952596**. Direct extracted DEB `DuoCar_HL41_NativeHost_arm64.deb` 1,028,764 bytes, SHA-256 `06f55298ad77028668e8d270dc7b6e3a9bfd9a1d77629184bb02132c6f2877ef`; fields `com.chuong.duocar` / `1.0.3-hl41nativehost1` / `iphoneos-arm64`; all 8 actual Mach-O SHA1/SHA256 code page hashes verified. **DEVICE PENDING**, no new on-car proof and no Sileo publish.
+- Exact code deltas, GitHub evidence, artifact download and next steps: [HL41_NATIVE_HOST_20261113.md](HL41_NATIVE_HOST_20261113.md). Fresh chat must re-download artifact ID; do not assume sandbox file persists.
+
 ## 2026-11-13 — HL41 native-host keyboard code committed; CI build started
 - Actual code changes are on isolated branch `feature/duocar-hl41-native-hosted-surface-gpt-20261112` based on HL40 `e7269f`. Native drawn keyboard presenter now registers inside SpringBoard and reuses original hosted CarPlay window/app-area instead of CarPlayApp's extra 640x360 overlay; native UITextField/UITextView inputView prearmed before focus with 160ms close coalescing. Source/project mirrors committed, original hosted ABKeyboard/ABTelex unchanged. **This is a code change, not device pass.**
 - Static source gate PASS on GitHub run **43326573111**, HEAD `1d954e1d82d03d3e952ef2136cf55f74dd8d7e09`; build stage was still in progress at checkpoint. No signed/deb/device result claimed yet. Complete exact commit/build/expected DEB and acceptance: [HL41_NATIVE_HOST_20261113.md](HL41_NATIVE_HOST_20261113.md).
