@@ -18,7 +18,8 @@
 # Triggers: manual (workflow_dispatch) and pushes to the
 # ci-fat-test branch.
 name: build-fat-macos
-# HL36 is workflow_dispatch ONLY; do not add it to push triggers.
+# HL36 one-time user-authorized build: temporary push trigger for this branch.
+# Remove this trigger after CI attempts; restore manual-only for future builds.
 
 permissions:
   contents: write
@@ -42,6 +43,7 @@ on:
       - feature/duocar-hl32-keyboard-voice-20261112
       - feature/duocar-hl33-owner-cleanup-20261112
       - feature/duocar-hl34-keyboard-recovery-20261112
+      - feature/duocar-hl36-native-only-retire-drawn-20261112
 
 jobs:
   build-fat:
