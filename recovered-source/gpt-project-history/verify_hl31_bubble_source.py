@@ -15,6 +15,12 @@ mk=(project/"Makefile").read_text()
 split=(project/"SCPCarSplit.m").read_text()
 hooks=(project/"SCPHooks.m").read_text()
 assert "SCPVoiceBubbleView.m" in mk and "SCPVoiceNative.m" in mk
+# The authorized iPhone path must not discard partial Apple Speech results.
+iphone=(root/"project/OmniCarApp/DCVoiceSession.m").read_text()
+assert (root/"src/App/DCVoiceSession.m").read_bytes() == (root/"project/OmniCarApp/DCVoiceSession.m").read_bytes()
+assert "shouldReportPartialResults=YES" in iphone
+assert "partialRevision==revision" in iphone
+assert 'event=stt-partial' in iphone
 assert "SCPVoiceBubbleView" in native
 assert "static UIButton *DCVoiceButton" not in native
 assert "[UIButton buttonWithType:" not in native

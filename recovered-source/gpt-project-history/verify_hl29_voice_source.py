@@ -39,6 +39,7 @@ assert "Speech" in make_app and "DCVoiceSession.m DCVoiceCommand.m" in make_app
 assert "SFSpeechRecognizer requestAuthorization" in voice
 assert "requestRecordPermission:" in voice
 assert "SFSpeechAudioBufferRecognitionRequest" in voice
+assert "shouldReportPartialResults=YES" in voice
 assert "AVAudioEngine" in voice
 assert "requiresOnDeviceRecognition=YES" in voice
 assert 'voiceAppleOnlineEnabled",@NO' in voice

@@ -32,6 +32,8 @@ static NSNotificationCenter *DCVoiceDistributed(void) {
 @property(nonatomic,assign) NSUInteger generation;
 @property(nonatomic,assign) BOOL listening;
 @property(nonatomic,assign) BOOL ownsAudioSession;
+@property(nonatomic,copy) NSString *lastPartial;
+@property(nonatomic,assign) NSUInteger partialRevision;
 @end
 
 @implementation DCVoiceViewController
@@ -47,6 +49,8 @@ static NSNotificationCenter *DCVoiceDistributed(void) {
 - (void)stopListening {
     ++self.generation; // invalidates stale recognition and timeout callbacks
     self.listening=NO;
+    self.lastPartial=nil;
+    ++self.partialRevision;
     if (self.engine.isRunning) [self.engine stop];
     if (self.engine) {
         @try { [self.engine.inputNode removeTapOnBus:0]; }
@@ -239,7 +243,9 @@ static NSNotificationCenter *DCVoiceDistributed(void) {
         return;
     }
     self.request=[SFSpeechAudioBufferRecognitionRequest new];
-    self.request.shouldReportPartialResults=NO;
+    // Original DuoNavi Apple Speech reports partials; do not wait for
+    // a final result indefinitely while the user is speaking.
+    self.request.shouldReportPartialResults=YES;
     if (recognizer.supportsOnDeviceRecognition)
         self.request.requiresOnDeviceRecognition=YES;
     __weak typeof(self) weakSelf=self;
@@ -264,29 +270,58 @@ static NSNotificationCenter *DCVoiceDistributed(void) {
         resultHandler:^(SFSpeechRecognitionResult *result, NSError *failure) {
         DCVoiceViewController *owner=weakSelf;
         if (!owner || generation!=owner.generation) return;
-        if (result.isFinal && result.bestTranscription.formattedString.length) {
-            NSString *phrase=result.bestTranscription.formattedString;
-            dispatch_async(dispatch_get_main_queue(), ^{
-                DCVoiceViewController *w=weakSelf;
-                if (!w || generation!=w.generation) return;
+        NSString *text=result.bestTranscription.formattedString;
+        BOOL final=result.isFinal;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            DCVoiceViewController *w=weakSelf;
+            if (!w || generation!=w.generation || !w.listening) return;
+            if (text.length) {
+                if (![w.lastPartial isEqualToString:text]) {
+                    w.lastPartial=[text copy];
+                    NSUInteger revision=++w.partialRevision;
+                    NSLog(@"[hl31-iphone-voice] event=stt-partial len=%lu final=%d",
+                        (unsigned long)text.length,(int)final);
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                        (int64_t)(1.6*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+                        if (w.generation==generation && w.listening &&
+                            w.partialRevision==revision && w.lastPartial.length) {
+                            NSString *phrase=[w.lastPartial copy];
+                            [w stopListening];
+                            [w handleTranscript:phrase];
+                        }
+                    });
+                }
+                if (final) {
+                    NSString *phrase=[text copy];
+                    [w stopListening];
+                    [w handleTranscript:phrase];
+                    return;
+                }
+            }
+            if (failure) {
+                NSString *best=[w.lastPartial copy];
+                NSLog(@"[hl31-iphone-voice] event=stt-error domain=%@ code=%ld best=%d",
+                    failure.domain,(long)failure.code,(int)(best.length>0));
                 [w stopListening];
-                [w handleTranscript:phrase];
-            });
-        } else if (failure) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                DCVoiceViewController *w=weakSelf;
-                if (!w || generation!=w.generation) return;
-                [w stopListening];
-                [w display:@"Không nhận dạng được. Chạm micro để thử lại."];
-            });
-        }
+                if (best.length) [w handleTranscript:best];
+                else [w display:@"Không nhận dạng được. Kiểm tra microphone và thử lại."];
+            }
+        });
     }];
+    if (!self.task) {
+        [self stopListening];
+        [self display:@"Không tạo được phiên Apple Speech."];
+        NSLog(@"[hl31-iphone-voice] event=recognition-task-nil");
+        return;
+    }
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(12*NSEC_PER_SEC)),
                    dispatch_get_main_queue(), ^{
         DCVoiceViewController *owner=weakSelf;
         if (!owner || owner.generation!=generation || !owner.listening) return;
+        NSString *best=[owner.lastPartial copy];
         [owner stopListening];
-        [owner display:@"Hết thời gian nghe. Chạm micro để thử lại."];
+        if (best.length) [owner handleTranscript:best];
+        else [owner display:@"Hết thời gian nghe. Chạm micro để thử lại."];
     });
 }
 - (void)handleTranscript:(NSString *)phrase {

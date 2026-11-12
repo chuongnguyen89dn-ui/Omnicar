@@ -68,7 +68,7 @@ assert "SCPVoiceBubbleUpdate(SCPCarSplit *split)" in native
 assert "SCPVoiceBubbleDetach(SCPCarSplit *split)" in native
 assert "SCPVoiceNativeToggle(SCPCarSplit *split)" in native
 assert "SCPVoiceNativeToggle(self)" in bridge
-assert "SCPVoiceDispatchLocalCommand(command)" in bridge
+assert "BOOL SCPVoiceDispatchLocalCommand(NSDictionary *command)" in bridge
 assert "BOOL SCPVoiceExecute(NSDictionary *command)" in bridge
 assert 'voice.capture.state' in bridge
 assert "SCPVoiceHandleRemoteState(note.userInfo)" in bridge
