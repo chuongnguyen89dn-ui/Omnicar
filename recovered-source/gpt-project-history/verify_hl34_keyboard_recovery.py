@@ -49,7 +49,8 @@ for reason in ('@"did-hide"', '@"host-release"', '@"host-close"', '@"host-close-
     assert 'ABKB104RestoreKeyboardWindow('+reason+')' in ab,reason
 assert "KB104KeyboardWindow" in kb and "ABKB104InspectClips" in ab
 assert "KB104UnclipOwnedView" in kb
-assert "if (keyboard && key)" in ab
+assert "BOOL placed=keyboard && key" in ab
+assert "ABKB104PlaceKeyboardWindow(keyboard,key,preflightPlane,when)" in ab
 assert "if (keyboard && key && star)" not in ab
 assert "if (win.isKeyWindow || !key) key=win" in ab
 # The HL33 regression changed a keyboard screen reference HEIGHT into
