@@ -12,13 +12,9 @@
 //     machinery, and schedules fake UIDeviceOrientationDidChange re-posts
 //     at +0.3s / +1.5s / +4.0s (constant array at 0x393F0, __objc_doubleobj
 //     values read verbatim: 0.3, 1.5, 4.0).
-//   * The app reports its OWN orientation wishes back to SpringBoard over
-//     the Darwin channel "appbridge.apporient" (debounced 0.25 s), and its
-//     keyboard focus over "appbridge.keyboard".
-//   * While hosted, the system keyboard is suppressed by giving the first
-//     responder a zero-size blank inputView; the car keyboard (ABKeyboard,
-//     SpringBoard side) sends key actions back over the NSDistributed
-//     "appbridge.key" channel, applied here to the tracked responder.
+//   * The app reports its own orientation wishes over appbridge.apporient.
+//   * HL36: real UIKit owns inputView, keyboard and text insertion. Original
+//     first-responder/BridgeWake/geometry hooks remain; no fake key relay.
 
 #import "AppBridgeB.h"
 #import "ABKeyboardTraits104.h"
@@ -70,7 +66,6 @@ NSInteger ABFPSLimit         = 0;   // 0x3E9B0 (int32)
 __weak id ABCurrentResponder = nil; // 0x3E930
 
 static BOOL ABHooksInstalled = NO;  // 0x3E938 (byte)
-static int ABKeyboardToken = 0;     // 0x3E9E8
 static int ABAppOrientToken = 0;    // 0x3E9E0
 static id ABPendingPublishBlock = nil; // 0x3E9D8 (dispatch_block_t, retained)
 
@@ -86,8 +81,6 @@ static IMP orig_Scene_reqGeometry, orig_VC_setNeedsUpdate, orig_VC_attemptRotati
 // ---------------------------------------------------------------------------
 static void ABPublishAppOrientation(int64_t orientationField); // sub_67FC
 static void ABScheduleAppOrientationPublish(int64_t field);    // sub_6750
-static void ABKeyboardPublish(BOOL shown, id traits);          // sub_6AD4
-static void ABRestoreBlankInputView(id responder);             // [ytz5-k5] marker restore, defined with the FR hooks below
 static NSUInteger ABSupportedOrientationMask(void);            // sub_612C
 static UIWindow *ABKeyWindow(void);                            // sub_61D0
 static NSUInteger ABMaskFromViewController(UIViewController *vc, NSInteger depth); // sub_6498
@@ -550,7 +543,7 @@ static NSInteger BWKbEffective(NSInteger *srcOut, long *ageMsOut) {
 // drawn panel is not used — overrides the GPT drawn-default
 // ruling. The drawn code stays in the tree, unreachable.
 // ===========================================================================
-static BOOL ABDrawnKb = NO; // [hl3] cached drawnKeyboard; NO = native (default + locked); host stamps 0 only
+static const BOOL ABDrawnKb = NO; // [hl36] immutable UIKit-native gate; panel no longer compiled.
 static BOOL ABDrawnKbGateSeen = NO; // [hl2-k6] an explicit drawnKeyboard value has been received
 
 static BOOL ABDrawnKeyboardActive(void) { return ABDrawnKb; }
@@ -600,63 +593,30 @@ static void ABHL8Focus(NSString *event, id responder) {
 }
 
 static void ABDrawnKbNoteFrameInfo(NSDictionary *info) {
+    // Preserve host->app payload compatibility, but never enable drawn UI.
     id v = info[@"drawnKeyboard"];
     if (ABHL8Trace())
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[hl8diag] eye=kb-app ev=mode-recv bundle=%@ "
-             "requested=%@ cached=%d orientation=%@ focus=%d",
+            @"[hl8diag] eye=kb-app ev=mode-recv bundle=%@ requested=%@ "
+             "cached=0 orientation=%@ focus=%d",
             [NSBundle mainBundle].bundleIdentifier ?: @"unknown",
-            v ?: @"missing", (int)ABDrawnKeyboardActive(),
-            info[@"orientation"] ?: @"missing",
+            v ?: @"missing", info[@"orientation"] ?: @"missing",
             (int)(ABCurrentResponder != nil)]);
-    // [hl2-k6] only an explicit NSNumber speaks: absent / mistyped
-    // fields keep the cached mode (which starts at DRAWN).
     if (![v isKindOfClass:NSNumber.class]) return;
-    BOOL drawn = [v boolValue];
-    if (drawn) {
-        // [hl3] hard lock (Nguyen 22:14): a drawn=1 payload never
-        // flips this app to the drawn panel in this build — the
-        // cache stays native whatever the bridge carries.
-        static BOOL hl3DrawnIgnoredLogged;
-        if (!hl3DrawnIgnoredLogged) {
-            hl3DrawnIgnoredLogged = YES;
+    if ([v boolValue]) {
+        static BOOL ignoredLogged;
+        if (!ignoredLogged) {
+            ignoredLogged = YES;
             OMCLogWrite(@"AppBridge",
-                @"[ytz5-k5] hl3: drawnKeyboard=1 bi bo qua — native khoa cung (lenh Nguyen 22:14)");
+                @"[hl36-native-only] drawnKeyboard=1 ignored; no drawn UI linked");
         }
         return;
     }
     if (!ABDrawnKbGateSeen) {
-        // [hl2-k6] marker eye 1 of 3: the app received the gate.
         ABDrawnKbGateSeen = YES;
-        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[ytz5-k5] gate nhan drawnKeyboard=%d (explicit, cached=%d)",
-            drawn ? 1 : 0, ABDrawnKb ? 1 : 0]);
-    }
-    if (drawn == ABDrawnKb) return;
-    BOOL wasDrawn = ABDrawnKb;
-    ABDrawnKb = drawn;
-    if (wasDrawn && !drawn) {
-        // Flip drawn -> native MID-SESSION (contract item 2): hand
-        // the system keyboard back on the live responder — restore
-        // ONLY an inputView this tweak blanked (marker
-        // ABBlankInputViewKey), and clear the marker in the restore.
-        // A responder carrying its own custom inputView was never
-        // blanked, bears no marker, and is never touched.
-        ABRestoreBlankInputView(ABCurrentResponder);
         OMCLogWrite(@"AppBridge",
-            @"[ytz5-k5] cong lat native: phuc hoi inputView theo marker");
+            @"[hl36-native-only] native session accepted; inputView owned by UIKit");
     }
-    if (!wasDrawn && drawn) {
-        // [hl2-k6] marker: the gate flipped native -> drawn. Nothing
-        // is forced (known K5 limit, kept): suppression applies from
-        // the next becomeFirstResponder and the panel from the next
-        // publish; a live native session is left exactly as it is.
-        OMCLogWrite(@"AppBridge",
-            @"[ytz5-k5] cong lat drawn: ap dung tu responder/publish ke tiep");
-    }
-    // Flip native -> drawn: nothing is forced. Suppression applies
-    // from the next becomeFirstResponder and the panel from the
-    // next publish; a live native session is left exactly as it is.
 }
 
 // ===========================================================================
@@ -1286,12 +1246,9 @@ static void ABNativeKbWindowVisible(NSNotification *note) {
 }
 
 // ---- keyboard guard: auxiliary notification evidence (§5.5) ----
-// A show/change-frame counts as "visible" evidence ONLY with a real
-// on-screen frame (origin.y in (0, screen height)); parked frames are
-// ignored. A hide NEVER lowers ACTIVE on its own: the car keyboard
-// lives in SpringBoard behind a blank inputView, so the system
-// notifications may not fire at all in this process — only the
-// first-responder session (ABResponderBecame/Resigned) may do that.
+// UIKit frame notifications are auxiliary; a hide does not lower ACTIVE
+// without a real responder transition. Remote hosted keyboard windows
+// can be invisible to this process, even while UIKit owns inputView.
 static void BWKbFrameNote(NSNotification *note) {
     NSValue *v = note.userInfo[UIKeyboardFrameEndUserInfoKey];
     if (ABHL8Trace())
@@ -2864,50 +2821,13 @@ static void ABOrientationBlock(NSNotification *note) {
 
 }
 
-// ===========================================================================
-// Key receiver block — sub_5908. Registered by the ctor for ABChanKey.
-// Applies one car-keyboard action to the tracked first responder.
-// ===========================================================================
-static void ABKeyBlock(NSNotification *note) {
-    @try {
-        NSDictionary *info = note.userInfo;
-        id responder = ABCurrentResponder;
-        if (!responder || ![responder isFirstResponder]) return;
-        if (![responder conformsToProtocol:@protocol(UITextInput)]) return;
-        NSString *action = info[@"action"];
-        if ([action isEqualToString:@"type"]) {
-            NSInteger del = [info[@"del"] intValue];
-            for (NSInteger i = 0; i < del; i++) [responder deleteBackward];
-            NSString *text = info[@"text"];
-            if ([text isKindOfClass:NSString.class] && text.length > 0)
-                [responder insertText:text];
-        } else if ([action isEqualToString:@"return"]) {
-            if ([responder isKindOfClass:UITextField.class]) {
-                id<UITextFieldDelegate> delegate = [(UITextField *)responder delegate];
-                BOOL proceed = YES;
-                if ([delegate respondsToSelector:@selector(textFieldShouldReturn:)])
-                    proceed = [delegate textFieldShouldReturn:(UITextField *)responder];
-                if (proceed)
-                    [(UIControl *)responder sendActionsForControlEvents:UIControlEventEditingDidEndOnExit]; // 0x80000
-            } else {
-                [responder insertText:@"\n"];
-            }
-        } else if ([action isEqualToString:@"dismiss"]) {
-            [responder resignFirstResponder];
-        }
-    } @catch (NSException *e) {
-        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"%@: phim loi %@",
-                                   [NSBundle mainBundle].bundleIdentifier, e]);
-    }
-}
-
+// [hl36-native-only] Removed synthetic NSDistributed appbridge.key receiver.
+// Native UIKit handles its own text input; no custom text actions accepted.
 void ABInstallInAppObservers(NSString *bundleID) {
     NSDistributedNotificationCenter *center = [NSDistributedNotificationCenter defaultCenter];
     NSOperationQueue *queue = [NSOperationQueue mainQueue];
     [center addObserverForName:ABChanOrientation object:bundleID queue:queue
                     usingBlock:^(NSNotification *n) { ABOrientationBlock(n); }];
-    [center addObserverForName:ABChanKey object:bundleID queue:queue
-                    usingBlock:^(NSNotification *n) { ABKeyBlock(n); }];
     // YT-ZOOM (design-ytzoom §5.1): the lease observer exists ONLY in
     // the YouTube process. A lease may arrive before the first
     // orientation packet; it is only stored until the hooks land.
@@ -2970,47 +2890,10 @@ static void ABAfterDelay(NSTimeInterval seconds) {
 }
 
 // ===========================================================================
-// First-responder hooks (keyboard suppression + channel publish)
+// [hl36-native-only] Preserve UITextField / UITextView responder hooks.
+// The original panel's blank inputView and associated-object marker are
+// retired; no code replaces inputView or suppresses UIKit's keyboard.
 // ===========================================================================
-// sub_698C — before becomeFirstResponder: while hosted, give the responder a
-// blank zero-size inputView so the system keyboard never appears in the app.
-// The marker associated object lives at a unique static address used as
-// the key (the original materialises its own in-image slot, VA 0x3E9E4,
-// PC-relative @0x6a1c–0x6a20, and never dereferences it). [fix-round-3]
-// The absolute VA must not be used as the pointer value in the rebuild;
-// the self-referential form gives the same semantics (a stable,
-// distinct, in-image address, never dereferenced by the runtime).
-static const void *ABBlankInputViewKey = &ABBlankInputViewKey;
-
-// [ytz5-k5] marker restore, shared by ABResponderResigned and the
-// drawn->native flip (ABDrawnKbNoteFrameInfo): give a responder its
-// system keyboard back ONLY if this tweak blanked it — the marker
-// is the ownership proof — and clear the marker as part of the
-// restore. Unmarked responders are never touched.
-static void ABRestoreBlankInputView(id responder) {
-    if (!responder) return;
-    if (objc_getAssociatedObject(responder, ABBlankInputViewKey)) {
-        objc_setAssociatedObject(responder, ABBlankInputViewKey, nil, OBJC_ASSOCIATION_ASSIGN);
-        [responder setInputView:nil]; // restore the real input view
-    }
-}
-
-static void ABSuppressSystemKeyboard(id responder) {
-    if (ABForcedOrientation < 1) return;
-    // [ytz5-k5] native gate, as locked by HL3 (Nguyen 22:14): the
-    // cache is native by default and a drawn payload is ignored,
-    // so this suppression never runs in this build; while native
-    // the system keyboard is left fully alone — no blank
-    // inputView, no marker (contract item 2).
-    if (!ABDrawnKeyboardActive()) return;
-    if (![responder respondsToSelector:@selector(setInputView:)]) return;
-    if ([responder inputView] != nil) return;
-    UIView *blank = [[UIView alloc] initWithFrame:CGRectZero];
-    [responder setInputView:blank];
-    objc_setAssociatedObject(responder, ABBlankInputViewKey, (id)kCFBooleanTrue,
-                             OBJC_ASSOCIATION_ASSIGN); // policy 1 in the original
-}
-
 // sub_6A70 — after a successful becomeFirstResponder while hosted.
 static void ABResponderBecame(id responder) {
     if (ABForcedOrientation < 1) return;
@@ -3023,7 +2906,8 @@ static void ABResponderBecame(id responder) {
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"[ytz5-k5] responder became drawn=%d class=%@",
         ABDrawnKeyboardActive() ? 1 : 0, NSStringFromClass([responder class])]);
-    ABKeyboardPublish(YES, responder);
+    OMCLogWrite(@"AppBridge",
+        @"[hl36-native-only] event=focus owner=UIKit drawnPanel=unlinked");
     BWKbLocalSet(BWKbActive); // BridgeWake kb guard: primary evidence
                               // (§5.5) — the local ACTIVE source of the
                               // effective kb (WO ytz4 K2)
@@ -3041,10 +2925,8 @@ static void ABResponderResigned(id responder) {
     // may still be showing the same keyboard for a new input field.
     OMCLogWrite(@"AppBridge",
         @"[hl33-kb-owner] event=focus-resigned action=observe-only");
-    ABRestoreBlankInputView(responder);
     if (ABCurrentResponder == responder) {
         ABCurrentResponder = nil;
-        ABKeyboardPublish(NO, nil);
         BWKbLocalSet(BWKbInactive); // BridgeWake kb guard: only the
                                     // responder session may lower
                                     // ACTIVE (§5.5)
@@ -3059,7 +2941,6 @@ static void ABResponderResigned(id responder) {
 
 static BOOL ABHook_TFBecome(UITextField *self, SEL _cmd) {
     if (ABForcedOrientation>=1 && !ABDrawnKb) ABKB104InstallIfAvailable();
-    ABSuppressSystemKeyboard(self);
     BOOL ok = ((BOOL (*)(id, SEL))orig_TF_become)(self, _cmd);
     if (ok) ABResponderBecame(self);
     return ok;
@@ -3072,7 +2953,6 @@ static BOOL ABHook_TFResign(UITextField *self, SEL _cmd) {
 static BOOL ABHook_TVBecome(UITextView *self, SEL _cmd) {
     if (self.isEditable && ABForcedOrientation>=1 && !ABDrawnKb)
         ABKB104InstallIfAvailable();
-    if (self.isEditable) ABSuppressSystemKeyboard(self);
     BOOL ok = ((BOOL (*)(id, SEL))orig_TV_become)(self, _cmd);
     if (ok && self.isEditable) ABResponderBecame(self);
     return ok;
@@ -3083,56 +2963,8 @@ static BOOL ABHook_TVResign(UITextView *self, SEL _cmd) {
     return ok;
 }
 
-// ===========================================================================
-// Keyboard channel publisher — sub_6AD4. PROVEN packed format:
-//   state = shown | keyboardType<<1 | returnKeyType<<8 | FNV1a(bundleID)<<24
-// ===========================================================================
-static void ABKeyboardPublish(BOOL shown, id traits) {
-    // [ytz5-k5] native gate (contract item 2), as locked by HL3
-    // (Nguyen 22:14): the cached gate is native by default and a
-    // drawn payload is ignored, so NO panel request is published
-    // in either direction in this build — the Darwin keyboard
-    // channel stays silent for this app and the host panel can
-    // never be summoned. Gating at the publisher's head covers
-    // both call points (Became YES / Resigned NO) at once; the
-    // host dispatch double-checks the gate on its side regardless.
-    if (!ABDrawnKeyboardActive()) {
-        if (ABHL8Trace())
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[hl8diag] eye=kb-app ev=publish-blocked "
-                 "bundle=%@ show=%d reason=native-locked focused=%d",
-                [NSBundle mainBundle].bundleIdentifier ?: @"unknown",
-                (int)shown, (int)(ABCurrentResponder != nil)]);
-        return;
-    }
-    if (ABHL8Trace())
-        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-            @"[hl8diag] eye=kb-app ev=publish-allowed bundle=%@ "
-             "show=%d channel=darwin-keyboard",
-            [NSBundle mainBundle].bundleIdentifier ?: @"unknown",
-            (int)shown]);
-    if (!ABKeyboardToken)
-        notify_register_check(ABNotifyKeyboard, &ABKeyboardToken);
-    uint64_t state = 0;
-    if (shown) {
-        state = 1;
-        if ([traits respondsToSelector:@selector(keyboardType)])
-            state |= (uint64_t)([traits keyboardType] & 0x7F) << 1;
-        if ([traits respondsToSelector:@selector(returnKeyType)])
-            state |= (uint64_t)([traits returnKeyType] & 0xFF) << 8;
-    }
-    state |= (uint64_t)ABBundleHash([NSBundle mainBundle].bundleIdentifier) << 24;
-    notify_set_state(ABKeyboardToken, state);
-    notify_post(ABNotifyKeyboard);
-    // [hl2-k6] marker eye 3 of 3: the panel publish actually went
-    // out on the Darwin keyboard channel (drawn gate active).
-    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[ytz5-k5] publish shown=%d drawn=1", shown ? 1 : 0]);
-    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"ban phim xe: %@ (%@)",
-                               shown ? @"hien" : @"an",
-                               traits ? NSStringFromClass([traits class]) : @"-"]);
-}
-
+// [hl36-native-only] Removed appbridge.keyboard Darwin publisher.
+// Existing kbstate first-responder reports remain the session truth.
 // ===========================================================================
 // Orientation machinery hooks
 // ===========================================================================

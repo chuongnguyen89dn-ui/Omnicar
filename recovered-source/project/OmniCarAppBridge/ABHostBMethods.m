@@ -86,9 +86,9 @@ BOOL ABNativeKeyboardEnabled(void) {
     // marker (appBridgeNativeKeyboardDrawnRestoredHl2, possibly
     // already written to the device by the hl2 build) can pull
     // this build back to drawn; the hl2 migration block is removed
-    // together with the read. The drawn-panel code stays in the
-    // tree, unreachable behind this gate (Nguyen 18:01: keep the
-    // code, lock it by the gate). One log line per process states
+    // together with the read. HL36 keeps the legacy panel code in
+    // archived source only: its UI and Telex are not linked.
+    // One log line per process states
     // the lock and its source, so a session log can never be
     // misread as a pref-driven mode.
     static BOOL abKbHl3LockLogged;

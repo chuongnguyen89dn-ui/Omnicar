@@ -16,7 +16,6 @@
 // consumer functions from its registration blocks before their
 // definitions later in the same file; no header declares them.
 void ABAppOrientDispatch(int token);
-void ABKeyboardDispatch(int token);
 void ABCarPlayChanged(NSNotification *note);
 
 // [integration phase 1] FBScene (FrontBoard) is a private class; the

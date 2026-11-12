@@ -18,7 +18,6 @@
 
 #import "AppBridgeB.h"
 #import "ABHost.h"
-#import "ABKeyboardDecl.h" // [integration phase 1; backported to src in phase 3] full ABKeyboard interface (module B decl, verbatim)
 #import <objc/runtime.h>
 #import <objc/message.h> // [integration phase 1; backported to src in phase 3] declares objc_msgSend used below
 #import <substrate.h> // FIX-ROUND2: ABInstallSpringBoardHooks (below) calls MSHookMessageEx/MSHookFunction from this TU
@@ -299,7 +298,7 @@ static void ABNativeKbHandlePrefsChanged(void) {
     if (native) {
         NSString *kbBundle = abKbLiveBundle;
         if (kbBundle) {
-            [[ABKeyboard shared] hideForApp:nil];
+            // Invalidate legacy panel session metadata, not UIKit windows.
             ABKbSyncNoteEvent(kbBundle, NO);
         }
     }
@@ -379,13 +378,10 @@ void ABSpringBoardReady(id self, SEL _cmd, id application) {
                     usingBlock:^(NSNotification *n) { ABCloseAllBlock(n); }];
     [center addObserverForName:ABChanKnobs object:nil queue:queue
                     usingBlock:^(NSNotification *n) { ABKnobsBlock(n); }];
-    static int apporientToken, keyboardToken; // 0x3EA18 / 0x3EA1C
+    static int apporientToken; // Original apporient transport retained.
     notify_register_dispatch(ABNotifyAppOrient, &apporientToken,
                              dispatch_get_main_queue(),
                              ^(int token) { ABAppOrientDispatch(token); });
-    notify_register_dispatch(ABNotifyKeyboard, &keyboardToken,
-                             dispatch_get_main_queue(),
-                             ^(int token) { ABKeyboardDispatch(token); });
     // [ytz5-k5] native-keyboard gate: watch the shared prefschanged
     // signal (ABYTZoom registration pattern) so a mid-session flip
     // closes a live panel and re-relays drawnKeyboard to the apps.
@@ -434,55 +430,9 @@ void ABAppOrientDispatch(int token) {
                  supportedMask:(NSUInteger)((state >> 8) & 0xFFFF)];
 }
 
-// sub_93B0 — keyboard consumer.
-void ABKeyboardDispatch(int token) {
-    @try {
-        uint64_t state = 0;
-        notify_get_state(token, &state);
-        NSString *bundleID = [[ABHost shared] bundleForHash:(state >> 24)];
-        if (ABHL8Trace())
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[hl8diag] eye=kb-spring ev=darwin-dispatch bundle=%@ "
-                 "show=%d nativeLock=%d drawn=%d carWindow=%d",
-                bundleID ?: @"unknown", (int)((state & 1) != 0),
-                (int)ABNativeKeyboardEnabled(), (int)ABDrawnKeyboardEnabled(),
-                (int)([ABHost shared].carWindow != nil)]);
-        if (!bundleID) {
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"ban phim: khong co o cho hash %llu",
-                                       (unsigned long long)(state >> 24)]);
-            return;
-        }
-        if ((state & 1) == 0) {
-            [[ABKeyboard shared] hideForApp:bundleID];
-            // [ytz4-hb] the session just closed: sync it car-side.
-            // [ytz5-k5] drawn mode only: while native this hide still
-            // runs (it cleans up a stale publish), but NO funnel
-            // event is emitted — a panel event must not carry
-            // input-session truth in native mode (contract item 4).
-            if (ABDrawnKeyboardEnabled()) ABKbSyncNoteEvent(bundleID, NO);
-        } else if (ABDrawnKeyboardEnabled()) {
-            // [hl2] acceptance eye (GPT ruling §5 chain): a show
-            // request honoured in drawn mode — the positive
-            // counterpart of the native-blocked line below.
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[ytz5-k5] dispatch show panel drawn (%@)", bundleID]);
-            [[ABKeyboard shared] showForApp:bundleID
-                               keyboardType:(UIKeyboardType)((state >> 1) & 0x7F)
-                                 returnType:(UIReturnKeyType)((state >> 8) & 0xFF)];
-            // [ytz4-hb] the session just opened: sync it car-side.
-            ABKbSyncNoteEvent(bundleID, YES);
-        } else {
-            // [ytz5-k5] native gate: a show request (a stale publish
-            // from an app that has not yet consumed drawnKeyboard=0)
-            // never shows the panel and never reaches the funnel.
-            OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-                @"[ytz5-k5] dispatch show bi chan o cong native (%@)", bundleID]);
-        }
-    } @catch (NSException *e) {
-        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"ban phim loi %@", e]);
-    }
-}
-
+// [hl36-native-only] Retired drawn-panel Darwin consumer. The original
+// app orientation dispatch and independent kbstate reporting are retained.
+// ===========================================================================
 // ===========================================================================
 // sub_958C — CarPlayIsConnectedDidChange. Determines connection from
 // [AVExternalDevice currentCarPlayExternalDevice] (resolved dynamically,
@@ -506,7 +456,7 @@ void ABCarPlayChanged(NSNotification *note) {
         // [ytz4-hb] the force-hide below closes whichever session is
         // live; report that close before the record is torn down.
         NSString *kbBundle = abKbLiveBundle;
-        [[ABKeyboard shared] hideForApp:nil];
+        // UIKit owns the native keyboard window; discard stale metadata.
         if (kbBundle) ABKbSyncNoteEvent(kbBundle, NO);
         [[ABHost shared] carDisconnected];
     }

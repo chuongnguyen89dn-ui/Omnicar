@@ -20,7 +20,6 @@ NS_ASSUME_NONNULL_BEGIN
 // NSDistributedNotificationCenter, name = channel, object = bundleID of the
 // target app (per-app addressing) unless noted otherwise.
 extern NSString *const ABChanOrientation; // host->app  {orientation, device, fps}
-extern NSString *const ABChanKey;         // host->app  {action, del, text?}
 extern NSString *const ABChanOpen;        // car->host   full frame payload + identifier
 extern NSString *const ABChanFrame;       // car->host   frame/bar/hole/area payload + identifier
 extern NSString *const ABChanShield;      // car->host   {on}
@@ -46,7 +45,6 @@ extern NSString *const ABChanKbSync;      // host->car   {identifier, kbactive, 
 //                   is used on the NSDistributed path, not here)
 //       bits 8..23  supportedInterfaceOrientations mask
 //       bits 24..55 FNV-1a-32(bundleID UTF8) << 24
-extern const char *ABNotifyKeyboard;
 extern const char *ABNotifyAppOrient;
 
 // FNV-1a 32-bit over the bundle ID's UTF8 bytes (offset 0x811C9DC5,
@@ -82,10 +80,8 @@ void ABInstallSpringBoardHooks(void);
 // declared here because ABHostGeometry.m's TU does not include that header.
 void OMCCheckHooks(NSString *tag, NSArray<NSString *> *specs);
 
-// Telex engine (defined C symbol _ABTelexApply @ 0x17538 in the binary;
-// reconstructed in ABTelex.m):
-NSString *ABTelexApply(NSString *word, NSString *keyString);
-
+// [hl36-native-only] ABTelexApply remains in unbuilt legacy source.
+// The system IME implements text composition (including Vietnamese).
 // ---------------------------------------------------------------------------
 // OMC shared-scaffold helpers (defined in the Core component present in
 // every OmniCar dylib; declared here so module B sources are

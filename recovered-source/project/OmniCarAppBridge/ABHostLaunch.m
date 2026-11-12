@@ -251,13 +251,8 @@ void ABPostAppState(NSString *bundleID, NSString *state) {
     if (!pane) return;
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
         @"dong %@%@", bundleID, terminate ? @" (tat han)" : @""]);
-    // [[ABKeyboard shared] hideForApp:bundleID] (ABKeyboard is B's class;
-    // called here via dynamic dispatch exactly as the binary does).
-    id kb = [NSClassFromString(@"ABKeyboard") shared];
-    [kb performSelector:@selector(hideForApp:) withObject:bundleID];
-    // [ytz4-hb] this teardown hide bypasses ABKeyboardDispatch, so
-    // the kb session record would go stale without its own sync:
-    // report the close through the same funnel (ABHostGeometry.m).
+    // [hl36-native-only] No SpringBoard keyboard panel instance exists.
+    // Preserve per-app kb-sync invalidation before tearing down the pane.
     ABKbSyncNoteEvent(bundleID, NO);
     [self teardownPane:pane];
     [self.panes removeObject:pane];

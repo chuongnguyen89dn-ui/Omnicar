@@ -9,7 +9,10 @@ THEOS_PACKAGE_SCHEME = rootless
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = OmniCarAppBridge
-OmniCarAppBridge_FILES = ABChannels.m ABChannelNames.m ABHostLaunch.m ABChromeViews.m ABHostBMethods.m ABHostGeometry.m ABInApp.m ABKeyboardTraits104.m ABKeyboard.m ABTelex.m AppBridgeEntry.m ABPane.m ABMissingSelector.m ABYTZoom.m
+OmniCarAppBridge_FILES = ABChannels.m ABChannelNames.m ABHostLaunch.m ABChromeViews.m ABHostBMethods.m ABHostGeometry.m ABInApp.m ABKeyboardTraits104.m AppBridgeEntry.m ABPane.m ABMissingSelector.m ABYTZoom.m
+# [hl36-native-only] The original ABKeyboard.m/ABKey and ABTelex.m remain
+# under version control as historical reference, but are NOT compiled.
+# Native UIKit is configured by ABKeyboardTraits104.m and responder hooks.
 # Phase 2 file notes:
 # - ABChannelNames.m is module B's ABChannels.m (the channel-name
 #   constants TU), renamed in this project copy only: module A's
