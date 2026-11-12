@@ -1,5 +1,11 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — Truy ngược log native scene và xác nhận bàn phím hệ thống (USER DEVICE OBSERVATION)
+- Đã đọc lịch sử `logs/OmniCar.log` qua 26 commit cùng các bản cũ, bản 07/11 và `logs/DuoCar.log` HL36. Log xác nhận Google Maps/Waze và các app hỗ trợ native đã được gắn bằng `DBApplicationSceneViewController`/CarPlayTemplateUIHost trong ô chia; **không có bằng chứng riêng rằng bàn phím của Google Maps đã gõ thành công**.
+- Nguyen xác nhận trên xe: **tất cả bàn phím của app hệ thống đều hiển thị đúng và resize đúng**. HL36 YouTube hosted lại có `UIRemoteKeyboardWindow=371pt` nhưng `UIKeyboardLayoutStar=495pt` (tràn phải 131,5pt). Cần đối chiếu chủ scene/keyboard geometry + UIKit reflow của hosted, **không sửa bàn phím các app hệ thống**. [Checkpoint truy log native scene và keyboard](NATIVE_CARPLAY_SCENE_LOG_TRACE_20261112.md). Chưa sửa source/build/DEB trong lượt truy log.
+
+
+
 ## 2026-11-12 — HL36: log xe xác nhận cửa sổ bàn phím và keyplane lệch nhau (DEVICE VISUAL FAIL)
 - Đã đọc **log mới nhất** `logs/DuoCar.log` blob `9ead5f9965b1ed4842e7a36f7c60213a02a42be9` từ upload main `b7a115d1` (12/11 15:41 GMT+7), tương ứng PID **YouTube 4013**, SpringBoard 3983, CarPlay 4005, marker `[hl36-native-only]`. 15:35:38.946: `UIRemoteKeyboardWindow` rộng **371 pt**, keyplane `UIKeyboardLayoutStar` rộng **495 pt** và lệch X **7,5 pt**, cạnh phải vượt **131,5 pt** (`rightInsideClip=NO`). 15:35:34.953: cùng width 371 vẫn lệch X 25,5 pt và ra khỏi window. Các host packet 371↔495 cập nhật window **trước** UIKit keyplane/traits → mất phím bên phải giống ảnh xe. Đây là bằng chứng hình học trực tiếp, không phải chỉ đọc code phỏng đoán.
 - **HL36 build/package đã PASS** ở GitHub run `43183267776`/artifact `13926903505`, DEB SHA-256 `673df26cf04cd9dbc93f4d8e8f6eec38a9f695ef1efac1dc6cc823e872608452`, version `1.0.3-hl36nativeonly`; **DEVICE VISUAL FAIL** vì bàn phím cắt mép. Nội dung phím, touch và pixel từng keycap vẫn không có bằng chứng máy đọc; không gọi DEVICE PASS. Không CI/build mới trong lượt kiểm log.
