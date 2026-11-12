@@ -1227,15 +1227,19 @@ static void ABNativeKbObserve(NSString *when) {
         if ([name containsString:@"UIRemoteKeyboardWindow"] && !win.hidden &&
             (!keyboard || keyboard.alpha<win.alpha)) keyboard=win;
         else if (![name containsString:@"TextEffects"] &&
-                 win.isKeyWindow && !win.hidden &&
-                 fabs(win.windowLevel-UIWindowLevelNormal)<0.5) key=win;
+                 !win.hidden && win.alpha>0.01 &&
+                 fabs(win.windowLevel-UIWindowLevelNormal)<0.5) {
+            // Preserve HL32's fallback for a hosted key UIWindow that
+            // has not yet become key during the UIKit focus transition.
+            if (win.isKeyWindow || !key) key=win;
+        }
     }
     UIView *star=keyboard ? ABNativeKbFindLayout(keyboard,0):nil;
     // There is no drawn fallback (host native gate intentionally locked).
     // HL33 removed the only placement path, leaving keyboard in its
     // original off-pane iPhone coordinates. HL34 restores exactly one
     // window-only placement with no retries/keyplane rollback.
-    if (keyboard && key && star)
+    if (keyboard && key)
         ABKB104PlaceKeyboardWindow(keyboard,key,when);
     if (keyboard) ABKB104InspectClips(keyboard);
     CGFloat width=0; UIView *observed=nil;
@@ -1264,7 +1268,9 @@ static void ABNativeKbObserve(NSString *when) {
 static void ABNativeKbBegin(NSString *why) {
     ++ABNativeKbEpoch;
     ABNativeKbObserve(why);
-    // One read-only post-show census; no refit, retry, or window restore.
+    // Observe once after UIKit's first keyplane layout. No frame
+    // retry loop or clip-based rollback: the single geometry owner
+    // may place a real native window only after an authenticated packet.
     NSUInteger epoch=ABNativeKbEpoch;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
         (int64_t)(0.35*NSEC_PER_SEC)),dispatch_get_main_queue(), ^{
