@@ -14,6 +14,6 @@ void ABKB104RestoreClips(NSString *reason);
 void ABKB104InspectClips(UIView *keyboardWindow);
 // One native UIWindow geometry owner; no app-level frame writer/retry.
 BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard, UIWindow *sceneWindow,
-                               NSString *reason);
+                               CGRect keyplaneInWindow, NSString *reason);
 void ABKB104RestoreKeyboardWindow(NSString *reason);
 #endif
