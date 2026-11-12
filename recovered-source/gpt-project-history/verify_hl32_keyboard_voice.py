@@ -61,6 +61,8 @@ assert 'voiceAppleOnlineEnabled' in settings
 assert 'voiceAppleOnlineEnabled' in voice
 assert "event=tts-started" in voice and "AVSpeechSynthesizer" in voice
 assert "DCVoiceParseCommand(text,approved)" in voice
+assert "AVAudioPCMFormatFloat32" in voice
+assert "AVAudioPCMFormatPCMFloat32" not in voice
 assert "event=owner-dispatch" in voice
 assert 'event=owner-ack' in voice
 for blocked in ("TCC.db","--grant-tcc","cboptimize_helper","DuoNaviDashboard.dylib","setuid","INSERT OR REPLACE INTO access"):

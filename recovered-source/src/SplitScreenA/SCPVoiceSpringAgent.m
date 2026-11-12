@@ -345,7 +345,7 @@ static BOOL DCVoiceEnabled(void) {
             if (n==1 || (n%40)==0) {
                 // Input energy telemetry only, never store PCM/transcripts.
                 float rms=-1.f;
-                if (buffer.format.commonFormat==AVAudioPCMFormatPCMFloat32 &&
+                if (buffer.format.commonFormat==AVAudioPCMFormatFloat32 &&
                     buffer.floatChannelData && buffer.floatChannelData[0]) {
                     AVAudioFrameCount count=MIN(buffer.frameLength,(AVAudioFrameCount)512);
                     if (count) {
