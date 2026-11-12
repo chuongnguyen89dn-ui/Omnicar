@@ -43,3 +43,52 @@ Ngày 12/11/2026 (Asia/Ho_Chi_Minh). Nguyen yêu cầu: **gỡ hẳn bàn phím 
 - Đang ở **SOURCE CHANGED + STATIC-CHECKED**, **BUILD PENDING**, **DEVICE PENDING**. Chưa làm: phối hợp Muse về voice/đầu mối source, stage version, chạy CI hợp lệ, lấy trực tiếp DEB và nghiệm thu xe.
 - Để hoàn nguyên hunk HL36: quay về `1cc0820fc7a477c59ccadef1dce4943d1a8a4bd8` (HL35) theo từng file đã sửa; không force-push/ghi đè nhánh người khác; giữ riêng checkpoint lịch sử này.
 - Không lưu token, thông tin TCC riêng tư hoặc dữ liệu gõ.
+
+## 12/11/2026 — cập nhật: build gate HL36 + gỡ giọng nói khỏi DEB
+
+**Yêu cầu mới thay thế giới hạn vòng trước:** Nguyen yêu cầu *chuẩn bị đầy đủ cổng build và kiểm DEB HL36; đảm bảo bàn phím vẽ không được biên dịch, giữ bàn phím hệ thống UIKit, tạm gỡ hẳn phần trợ lý giọng nói khỏi DEB*. Tại mục "Phân công / điểm nối" bên trên, ghi nhận "voice chưa tách" là trạng thái **trước** các commit mới dưới đây, không còn là kết luận source hiện tại. YTZ, picker, geometry, Dock, speed-bubble/tính năng cảnh báo tốc độ giữ nguyên. Không nhầm "trợ lý giọng nói" với `speedBubbleWarnVoice`.
+
+### Chuỗi commit bổ sung — nhánh riêng, không merge main
+
+- Source voice iPhone: `ab837e150aa9188aefe470f8c8ba48b1f5d36be7`.
+- Source voice CarPlay/SpringBoard: `42bd55d9de7aa860f68981a094d7657f365379e1`.
+- Build/DEB/static gates: `07258c876e1a99c4e809a5165d5b7663172d2a44`.
+- Parent source trước tách voice: `9086be880564aa183338122fb82f02224c153fc6`. Code vẫn ở **một repo** `chuongnguyen89dn-ui/Omnicar`, nhánh `feature/duocar-hl36-native-only-retire-drawn-20261112`. Không tạo DEB, không chạy/dispatch CI, không push main, không phát hành Sileo.
+- Branch HEAD đọc trực tiếp sau commit build-gates: `07258c876e1a99c4e809a5165d5b7663172d2a44` (trước commit checkpoint này).
+
+### Hunk source giọng nói — giữ mã tham khảo, không còn liên kết binary
+
+**Ứng dụng iPhone**:
+- `project/OmniCarApp/Makefile`: loại `DCVoiceSession.m` và `DCVoiceCommand.m` khỏi `OmniCar_FILES`; bỏ framework `Speech` (giữ `AVFoundation` cho startup media).
+- `OMCAppDelegate.m`: bỏ observer `voice.request`, mọi đường kích hoạt DCVoice. `OMCNativeSettings.m`: bỏ trang/công tắc trợ lý, lựa chọn ngôn ngữ, chức năng nhấn nói; không sửa các mục Settings, split, startup, bong bóng tốc độ. `Resources/Info.plist`: bỏ `NSMicrophoneUsageDescription` + `NSSpeechRecognitionUsageDescription`; giữ quyền thư viện ảnh.
+- Mirror sang `src/App/` đúng byte (`OMCAppDelegate.m`, `OMCNativeSettings.m`, `Info.plist`).
+
+**CarPlay / SpringBoard**:
+- `project/OmniCarSplitScreen/Makefile`: loại `SCPVoiceBridge.m`, `SCPVoiceBubbleView.m`, `SCPVoiceNative.m`, `SCPVoiceSpringAgent.m`, `../OmniCarApp/DCVoiceCommand.m`; bỏ framework `Speech` nhưng giữ AVFoundation và toàn bộ thành phần split khác.
+- Gỡ callsite và import voice từ `SCPCarSplit.m` (activate, close, invalidation), `SCPHooks.m` (layout, install), `SCPSpringBoardHooks.m` (install agent), `SCPCarSplit+Picker.m` (picker show/hide), `SCPCarSplit+RatioMenu.m` (menu).
+- Các file `src/SplitScreenA/` và `src/SplitScreenB/` được sửa **theo hunk** trên đúng nền từng file. `SCPCarSplit.m` và `SCPHooks.m` có khác biệt include tương đối `../SplitScreenC/` ở src so với project (không phải xung đột chức năng, không copy đè), đã giữ nguyên. Ba cặp file còn lại khớp blob SHA sau sửa. Runtime voice callsites 0/10 tệp dự án+src ở năm TU.
+- Tất cả `DCVoice*.m` và `SCPVoice*.m` vẫn tồn tại trong repo như tư liệu **không biên dịch**; các warning/chức năng bong bóng tốc độ và lời cảnh báo tốc độ vẫn sống.
+
+### Giao ước build và kiểm DEB
+
+- `.github/workflows/build-fat-macos.yml`: HL36 **chỉ workflow_dispatch**, *không nằm trong push trigger*; các gate HL29/HL31 voice và lịch sử keyboard không tương thích được skip đúng HL36; cổng `verify_hl34_keyboard_recovery.py` HL34+HL36 được nối trước build. Nguyên đường `make clean; make package FINALPACKAGE=1 ARCHS="arm64 arm64e"`, kiểm lipo, code signature, ký và upload artifact tư nhân giữ nguyên.
+- Bước chỉ đọc log HL34 run `43166409936` đã thất bại **trước biên dịch** (`re.PatternError: unbalanced parenthesis` ở `analyze_hl34_car_log.py`); branch HL36 sửa regex gốc và đặt `continue-on-error: true` cho diagnostic-only. Vì không dispatch CI, fix này chưa được kiểm trên runner; không nói đã chữa lỗi xây/biên dịch thực.
+- `gpt-project-history/rebrand_duocar.py`, workflow và `verify_duocar_payload.py` cùng định danh chính xác `com.chuong.duocar`, `1.0.3-hl36nativeonly`, kiến trúc `iphoneos-arm64`; artifact dự kiến `duocar-hl36-nativeonly-fat-deb`, file dự kiến `com.chuong.duocar_1.0.3-hl36nativeonly_iphoneos-arm64.deb`. **Đây là tên đích build, không phải file hiện có hoặc link tải.**
+- Bộ kiểm **trên chính DEB tương lai**, không phải code source: xác nhận 8 FAT binaries ký với 2 slice arm64/arm64e, marker `[hl36-native-only]` + các marker native/scene/Logo/Dock hiện có, không tồn tại tên lớp `ABKeyboard`/`ABKey` hoặc ký hiệu `ABTelexApply`/kênh `appbridge.key`-`appbridge.keyboard`, không có `SCPVoiceBubbleView`, `SCPVoiceSpringSession`, các hàm voice install và kênh `voice.capture.*`/`voice.action`/`voice.ack`; app không có controller voice, không link `Speech.framework`, app plist không yêu cầu quyền microphone/nhận dạng giọng nói. Không cấm chung chữ "voice" để không nhầm `speedBubbleWarnVoice`.
+- `verify_hl34_keyboard_recovery.py`: mở rộng kiểm source-only cho Makefile, hooks native/input session, cặp app mirror, absence voice ở tệp thực sự biên dịch, sự tồn tại lời cảnh báo tốc độ và cặp module di sản; không tạo script trùng. Đây là **cổng chưa chạy thực tế trong runner**.
+
+### Kiểm đọc lại GitHub ở lượt này
+
+- 14/14 điều kiện nguồn (ứng dụng iPhone + SplitScreen + AppBridge + Info/plist): **PASS trực tiếp trên blob của nhánh**.
+- 10/10 tệp TU (`project` và `src` của 5 file split) không còn các callsite `SCPVoiceBubbleUpdate/Detach`, `SCPVoiceInstall`, `SCPVoiceSpringInstall`; 2 cặp khác byte **chỉ vì đường include cần thiết**, sau chuẩn hoá include giống nhau.
+- 15/15 điều kiện trực tiếp về workflow/scripts: phiên bản, manual-only, native marker, FAT, code signature, cấm voice và drawn UI: **PASS qua kiểm tra nội dung GitHub**.
+- Lúc kiểm mới nhất danh sách Actions không có run HL36; run HL34 `43166409936` FAILED tại bước diagnostic, HL33 `43160289936` SUCCESS nhưng là binary khác.
+- Không có checkout Theos/macOS tại môi trường GPT; container không truy cập GitHub qua DNS, nên **chưa thể chạy thực tế các script Python trên toàn cây, chưa build/ký và chưa có DEB thật để kiểm binary**. Không có bằng chứng ngoài xe; trạng thái = **SOURCE COMMITTED, DIRECT STATIC CHECKED / BUILD-PENDING / PACKAGE-PENDING / DEVICE-PENDING**.
+
+### Cổng tiếp theo và đường rollback
+
+1. Muse/Nguyen kiểm branch+HEAD, các điểm hunk với nhánh Muse, xác minh điều kiện runner; không gộp đè các file người khác. Kiểm `verify_hl34_keyboard_recovery.py`, xác nhận các gate cũ không mâu thuẫn trong runner, rồi khi được phép chạy **một** build FAT trên branch HL36 đã chọn bằng `workflow_dispatch`. Tránh CI tự chạy trùng.
+2. Kiểm `verify_duocar_payload.py` trực tiếp trên file DEB thật, ghi run ID/artifact ID/version/SHA256/byte size/các slice/chữ ký/marker, kiểm đầu ra binary; nếu thất bại thì giữ build-fail, sửa đúng hunk, không phát hành.
+3. Nguyen test một phiên gộp keyboard trên xe: cả hàng phím, chạm, nhập, thay đổi tỷ lệ, solo/full split, chuyển app, home, reconnect/restart; voice bubble không xuất hiện. Build PASS không phải DEVICE PASS.
+4. Trước khi build nếu cần quay lui riêng đợt tách voice: revert `ab837e15`, `42bd55d9` theo từng hunk và chỉnh lại build-gates `07258c87`. Nếu quay toàn bộ HL36 thì lấy nền HL35 `1cc0820f`; không force-update nhánh Muse/main.
+
