@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL41 on-car VIDEO FAIL: native Apple keyboard remains after drawn hide
+- Nguyen's 19.3s `IMG_8221.mp4`: native drawn keyboard shows across split content, but native/system Apple CarPlay keyboard still appears in right pane when drawn keyboard is hidden. **HL41 does NOT successfully suppress Apple native keyboard.** Code `ABKeyboard.hideTapped` immediately hides drawn panel after requesting remote dismiss, without waiting for native input ACK; `DC40ClientEnd` resets its owned `inputView` to nil, and native prearm hooks only `UITextField/UITextView`. No fresh HL41 runtime log uploaded; current `logs/DuoCar.log` is HL40. Detailed video/source evidence and corrective gates: [HL41_NATIVE_HOST_20261113.md](HL41_NATIVE_HOST_20261113.md). No new code or DEB in this video-analysis turn.
+
 ## 2026-11-13 — HL41 ARM64 direct DEB build/signature PASS, device NOT YET proven
 - Branch `feature/duocar-hl41-native-hosted-surface-gpt-20261112`, HEAD `1d954e1d82d03d3e952ef2136cf55f74dd8d7e09`. CI run **43326573111** completed success, artifact **13992952596**. Direct extracted DEB `DuoCar_HL41_NativeHost_arm64.deb` 1,028,764 bytes, SHA-256 `06f55298ad77028668e8d270dc7b6e3a9bfd9a1d77629184bb02132c6f2877ef`; fields `com.chuong.duocar` / `1.0.3-hl41nativehost1` / `iphoneos-arm64`; all 8 actual Mach-O SHA1/SHA256 code page hashes verified. **DEVICE PENDING**, no new on-car proof and no Sileo publish.
 - Exact code deltas, GitHub evidence, artifact download and next steps: [HL41_NATIVE_HOST_20261113.md](HL41_NATIVE_HOST_20261113.md). Fresh chat must re-download artifact ID; do not assume sandbox file persists.
