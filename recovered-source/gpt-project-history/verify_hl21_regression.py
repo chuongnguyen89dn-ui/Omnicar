@@ -20,7 +20,17 @@ assert keyboard_p == keyboard_s, "HL11 keyboard project/src differ"
 assert "ABNativeKbObserveLayout(" in keyboard_p
 assert "ABNativeKbRestoreLayout" not in keyboard_p
 assert "ABNativeKbFitLayout" not in keyboard_p
-assert "reloadInputViews]" not in keyboard_p
+# Older HL21 rejected unrestricted keyboard reloads. HL37 only permits
+# one coalesced UIKit-owned refresh in the existing hosted keyboard path.
+if "[hl36-kbsync]" in keyboard_p:
+    assert keyboard_p.count("[responder reloadInputViews]") == 1
+    assert "static void ABNativeKbScheduleUIKitReflow" in keyboard_p
+    assert "revision!=ABNativeKbGeometryRevision" in keyboard_p
+    assert "focus!=ABNativeKbFocusSerial" in keyboard_p
+    assert "ABForcedOrientation<1 || ABDrawnKb" in keyboard_p
+    assert keyboard_p.count("reloadInputViews]") == 1
+else:
+    assert "reloadInputViews]" not in keyboard_p
 if "[hl33-kb-owner]" in keyboard_p:
     assert "ABNativeKbFit(" not in keyboard_p
     assert "ABNativeKbRestore(" not in keyboard_p
