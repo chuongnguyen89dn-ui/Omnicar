@@ -18,7 +18,7 @@
 # Triggers: manual (workflow_dispatch) and pushes to the
 # ci-fat-test branch.
 name: build-fat-macos
-# HL36 is workflow_dispatch ONLY; builds are explicit and never pushed automatically.
+# The original HL36 stays manual-only; keyplane-sync branch push is explicitly authorized for one test build.
 
 permissions:
   contents: write
@@ -42,6 +42,7 @@ on:
       - feature/duocar-hl32-keyboard-voice-20261112
       - feature/duocar-hl33-owner-cleanup-20261112
       - feature/duocar-hl34-keyboard-recovery-20261112
+      - feature/duocar-hl36-keyplane-sync-20261112
 
 jobs:
   build-fat:
@@ -61,7 +62,7 @@ jobs:
       # Fail inexpensive source gates before provisioning a new macOS toolchain.
       # Keep the existing downstream checks as an independent post-provision gate.
       - name: HL36 source-only preflight before installing Theos
-        if: github.ref_name == 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        if: startsWith(github.ref_name, 'feature/duocar-hl36-')
         working-directory: recovered-source/gpt-project-history
         run: |
           python3 -m unittest -q test_analyze_hl8_unified_log.py
@@ -131,7 +132,7 @@ jobs:
         run: python3 recovered-source/gpt-project-history/verify_hl21_regression.py
 
       - name: Verify HL24 baseline and HL25 guarded scene/keyboard diagnostics (historical owner)
-        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && github.ref_name != 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-')
         run: |
           python3 recovered-source/gpt-project-history/verify_hl24_keyboard.py
           python3 recovered-source/gpt-project-history/verify_hl25_scene_keyboard.py
@@ -145,23 +146,23 @@ jobs:
         run: python3 recovered-source/gpt-project-history/verify_hl27_settings_respring.py
 
       - name: Verify HL28 keyboard HL11 early-stop and integrated UIKit Settings/Respring (historical owner)
-        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && github.ref_name != 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-')
         run: python3 recovered-source/gpt-project-history/verify_hl28_keyboard_settings.py
 
       - name: Verify HL29 permission-based voice integration (historical builds only)
-        if: github.ref_name != 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        if: !startsWith(github.ref_name, 'feature/duocar-hl36-')
         run: python3 recovered-source/gpt-project-history/verify_hl29_voice_source.py
 
       - name: Verify HL30 keyboard viewport and CarPlay speech bubble source contracts (historical owner)
-        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && github.ref_name != 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-')
         run: python3 recovered-source/gpt-project-history/verify_hl30_keyboard_voice.py
 
       - name: Verify HL31 bubble source (historical builds only)
-        if: github.ref_name != 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        if: !startsWith(github.ref_name, 'feature/duocar-hl36-')
         run: python3 recovered-source/gpt-project-history/verify_hl31_bubble_source.py
 
       - name: Verify HL32 dynamic keyboard traits and PCM-confirmed voice source (historical owner)
-        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && github.ref_name != 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-')
         run: python3 recovered-source/gpt-project-history/verify_hl32_keyboard_voice.py
 
       - name: Verify HL33 no duplicate keyboard writer, independent pass-through bubble, and voice signal gate
@@ -169,11 +170,11 @@ jobs:
         run: python3 recovered-source/gpt-project-history/verify_hl33_owner_cleanup.py
 
       - name: Verify HL34 native keyboard and HL36 voice-free native-only build contracts
-        if: github.ref_name == 'feature/duocar-hl34-keyboard-recovery-20261112' || github.ref_name == 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        if: github.ref_name == 'feature/duocar-hl34-keyboard-recovery-20261112' || startsWith(github.ref_name, 'feature/duocar-hl36-')
         run: python3 recovered-source/gpt-project-history/verify_hl34_keyboard_recovery.py
 
       - name: Compile legacy voice parser (historical builds only)
-        if: github.ref_name != 'feature/duocar-hl36-native-only-retire-drawn-20261112'
+        if: !startsWith(github.ref_name, 'feature/duocar-hl36-')
         run: |
           xcrun clang -fobjc-arc -fmodules -framework Foundation \
             recovered-source/project/OmniCarApp/DCVoiceCommand.m \
@@ -231,9 +232,9 @@ jobs:
 
       - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl36nativeonly_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl36nativeonly"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl37kbsync1"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -247,7 +248,7 @@ jobs:
               fi
               echo "HL8 marker PASS $dylib/$arch"
               if [ "$dylib" = "DuoCarAppBridge" ]; then
-                for marker in '[hl34-keyboard]' '[hl33-kb-owner]' '[hl32-kbtraits]' '[hl24-geometry]' '[hl24-stable]' '[hl25-kb-surface]' '[hl25-kb-ancestors]' '[hl25-kb-windows]' 'probe-interface-abi-matches-NOT-CALLED' '[pinch2] trigger=began toggle-sent dir=0'; do
+                for marker in '[hl36-kbsync]' '[hl34-keyboard]' '[hl33-kb-owner]' '[hl32-kbtraits]' '[hl24-geometry]' '[hl24-stable]' '[hl25-kb-surface]' '[hl25-kb-ancestors]' '[hl25-kb-windows]' 'probe-interface-abi-matches-NOT-CALLED' '[pinch2] trigger=began toggle-sent dir=0'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL36 native keyboard marker $marker missing in $dylib/$arch"
                     exit 1
@@ -277,12 +278,12 @@ jobs:
       - name: Verify exact DuoCar package, app identity, signatures and zero old branding
         run: |
           python3 recovered-source/gpt-project-history/verify_duocar_payload.py \
-            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl36nativeonly_iphoneos-arm64.deb
+            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb
 
       # HL36 is voice-assistant-free and private: do not create a public Release or
       # not publish to Sileo without device acceptance and authorization.
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: duocar-hl36-nativeonly-fat-deb
-          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl36nativeonly_iphoneos-arm64.deb
+          name: duocar-hl37-kbsync1-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb
