@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL42 build/sign PASS: direct short `duocar.deb` (device pending)
+- Feature branch `feature/duocar-hl42-native-resign-gpt-20261113`, HEAD `7ed8a2acdbbfaf38030d1cb2f7dd8589594730e5`; CI run **43330872532** completed SUCCESS, artifact **13994478025**. Exact `com.chuong.duocar` / `1.0.3-hl42resign1` / `iphoneos-arm64` direct DEB **1,028,924 bytes**, SHA-256 `2b9b8aee844500abe37771535d5380de15c519a8acd5da40f2a996d19f8454e0`, extracted into `/mnt/data/duocar.deb` from GitHub carrier ZIP, `dpkg-deb -f/-x` verified. Original hosted YouTube Telex unchanged; native resign hooks/input-plane logging added. **Native system keyboard suppression not device-proven**, new log required. [Exact steps/checkpoint](HL42_HOSTED_NATIVE_KEYBOARD_20261113.md). Do not assume chat sandbox path persists in future turns.
+
 ## 2026-11-13 — HL42 native-only responder teardown; hosted original Telex unchanged
 - HL41 native already had zero-size inputView *before focus* (16/16 prearmed in latest device log) yet Apple CarPlay keyplane remained visible; therefore copying only hosted suppression is NOT enough. Original hosted YouTube uses custom OmniCar `ABKeyboard` and `ABTelexApply` Telex (VI/EN via `appBridgeKeyboardLang`), not an iOS third-party keyboard. HL42 branch `feature/duocar-hl42-native-resign-gpt-20261113` adds hosted-like native `UITextField/UITextView resignFirstResponder` hooks, waits for native focus-end on native hide and observes process-owned keyboard plane/frames without altering hosted keyboard. Source/build mirrors committed. CI **43330872532** source gate PASS, build **in progress** at checkpoint. Device suppression still UNPROVEN. [Details/continuation](HL42_HOSTED_NATIVE_KEYBOARD_20261113.md).
 
