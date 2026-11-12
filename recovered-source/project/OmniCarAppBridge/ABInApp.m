@@ -2899,12 +2899,20 @@ void ABInstallInAppObservers(NSString *bundleID) {
                     usingBlock:^(NSNotification *n) {
                         (void)n;
                         BWResetAll();
+                        // Host close is a semantic lease end even if stale
+                        // orientation packets continue in the app.
+                        ++ABNativeKbEpoch;
+                        ABKB104RestoreClips(@"host-close");
+                        ABKB104SetHostGeometry(NO,0,0,0,0,0,0);
                         if (isYouTube) YZResetAll();
                     }];
     [center addObserverForName:ABChanCloseAll object:nil queue:queue
                     usingBlock:^(NSNotification *n) {
                         (void)n;
                         BWResetAll();
+                        ++ABNativeKbEpoch;
+                        ABKB104RestoreClips(@"host-close-all");
+                        ABKB104SetHostGeometry(NO,0,0,0,0,0,0);
                         if (isYouTube) YZResetAll();
                     }];
 }

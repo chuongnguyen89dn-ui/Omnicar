@@ -13,6 +13,7 @@
 //     exactly one copy of each).
 
 #import "SCPCarSplit.h"
+#import "SCPVoiceNative.h"
 #import "SCPCommon.h" // [phase2; backported to src in phase 3] OMC* declarations used in this TU
 #import "SCPCButton.h" // [phase2; backported to src in phase 3] SCPCButton interface used in this TU
 #import "SCPCarDividerView.h"
@@ -435,6 +436,7 @@ void SCPPrepareRatioMenu(UIView *view) {
         [self.container addSubview:menu];
     }
     self.ratioMenu = menu;
+    SCPVoiceBubbleUpdate(self);
     [self updatePopupShield];
 
     if (window == nil) {
@@ -480,6 +482,8 @@ void SCPPrepareRatioMenu(UIView *view) {
             menu.alpha = 0;
         } completion:^(BOOL finished) {
             [menu removeFromSuperview];
+            SCPCarSplit *showSplit=weakSelf;
+            if (showSplit) SCPVoiceBubbleUpdate(showSplit);
             // INFERRED from the completion block @0x31070: the tray window
             // is hidden once nothing (tray / ratio menu / picker sheet)
             // is using it any more.
