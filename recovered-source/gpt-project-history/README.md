@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL36 keyplane/window sync cho hosted app (SOURCE COMMITTED / DEVICE PENDING)
+- Nguyen xác nhận trên xe **bàn phím các app CarPlay hệ thống hoạt động đúng**. Sửa riêng đồng bộ `UIRemoteKeyboardWindow` ↔ UIKit keyplane của app hosted trên nhánh `feature/duocar-hl36-keyplane-sync-20261112` từ HL36 `fa21883e`: defer viewport khi keyplane còn tràn; dùng `reloadInputViews` có focus/revision/epoch guards; giữ native apps, YTZ/Dock/picker/zoom/voice-off và không hồi sinh drawn keyboard. 3 cặp `project/src` đồng nhất, kiểm connector tĩnh 21/21, **chưa chạy Python/CI/build/DEB, chưa device PASS**. [Checkpoint chuyên đề](HL36_KEYPLANE_SYNC_20261112.md).
+
+
+
 ## 2026-11-10 — HL12 BUILD PASS + SIGNED DEB VERIFIED (GPT tự đóng theo lệnh Nguyen)
 - **Đã đóng/ký/kiểm chính DEB**: `com.anlai.omnicar_1.0.3-hl12dock_iphoneos-arm64.deb` (1,288,178 bytes, SHA256 `eb5bedc061d5bf75b1a77d1e4ea3a2b95b9661cb6fee8bef76c7d94436b33c7e`); ZIP GitHub artifact ID **13752542228**, [CI run 42793083818](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/42793083818) **SUCCESS**. Source build HEAD `fb14c99`, 9 fixture HL8 + FAT arm64/arm64e + ký/HL8–HL12 marker PASS; Python kiểm độc lập trên chính DEB xác nhận 6 dylib/12 slices và LC_CODE_SIGNATURE. **DEVICE PENDING**; Maps trắng khi gõ vẫn chưa sửa. Nguyen giao GPT tự đóng vòng này; không chờ Muse, không Sileo/merge main. [Biên bản và hash](HL12_HOME_DOCK_20261110.md).
 
