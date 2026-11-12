@@ -352,6 +352,7 @@ static void ABKnobsBlock(NSNotification *note);   // sub_9144, below
 // the original at all]
 IMP orig_SBDidFinishLaunching; // 0x3E9F0
 
+extern void DC40NativePresenterStart(void); // [hl41] SpringBoard owns native drawn panel
 void ABSpringBoardReady(id self, SEL _cmd, id application) {
     // sub_7004 verified order (disasm/registrar_7004.txt): the original
     // IMP (loaded from slot 0x3E9F0) is called FIRST, at 0x7028-0x703C,
@@ -363,6 +364,7 @@ void ABSpringBoardReady(id self, SEL _cmd, id application) {
     static BOOL ABRegistrarRegistered;
     if (!ABRegistrarRegistered) {
         ABRegistrarRegistered = YES;
+    DC40NativePresenterStart(); // [hl41] register native focus/ACK on original host
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"SpringBoard ready"]);
     NSDistributedNotificationCenter *center = [NSDistributedNotificationCenter defaultCenter];
     NSOperationQueue *queue = [NSOperationQueue mainQueue];
