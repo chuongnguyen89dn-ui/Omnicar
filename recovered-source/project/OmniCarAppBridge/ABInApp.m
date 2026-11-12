@@ -1228,6 +1228,7 @@ static void ABNativeKbObserve(NSString *when) {
         else if (![name containsString:@"TextEffects"] &&
                  win.isKeyWindow && !win.hidden) key=win;
     }
+    if (keyboard) ABKB104InspectClips(keyboard);
     UIView *star=keyboard ? ABNativeKbFindLayout(keyboard,0):nil;
     CGFloat width=0; UIView *observed=nil;
     BOOL found=ABNativeKbObserveLayout(keyboard,&width,&observed);

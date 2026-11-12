@@ -93,6 +93,8 @@ void ABKB104SetHostGeometry(BOOL hosted, CGFloat logicalWidth,
             @"[hl32-kbtraits] event=host-geometry native=%d physical=%.1f logical=%.1f orientation=%ld rev=%llu",
             (int)valid,(double)physicalWidth,width,(long)orientation,revision]);
     }
+    if (KB104Hosted && !valid)
+        ABKB104RestoreClips(@"geometry-revoked");
     KB104Hosted = valid;
     KB104LogicalW = width;
     KB104PhysicalW = valid ? physicalWidth : 0;
@@ -219,6 +221,14 @@ static void KB104Hook(Class cls, SEL sel, BOOL meta, NSUInteger bit, IMP repl,
              label]);
     }
 }
+static void (*KB104OrigContainerLayout)(id,SEL);
+static void (*KB104OrigHostLayout)(id,SEL);
+static void (*KB104OrigContainerMove)(id,SEL);
+static void (*KB104OrigHostMove)(id,SEL);
+static void KB104ContainerLayout(id,SEL);
+static void KB104HostLayout(id,SEL);
+static void KB104ContainerMove(id,SEL);
+static void KB104HostMove(id,SEL);
 void ABKB104InstallIfAvailable(void) {
     if (!KB104Eligible()) return;
     Class traits=objc_getClass("UIKBScreenTraits");
@@ -287,8 +297,17 @@ static void KB104UnclipOwnedView(UIView *origin) {
     // an unsafe global UIKit clipsToBounds=NO hook.
     for (UIView *v=origin;v && v!=(UIView *)window && depth<18;
          v=v.superview,depth++) {
-        if ([KB104ClipSnapshots objectForKey:v]) continue;
+        NSDictionary *existing=[KB104ClipSnapshots objectForKey:v];
         CALayer *layer=v.layer;
+        if (existing) {
+            // UIKit may reset masks during a new input-mode layout.
+            if (v.clipsToBounds || layer.masksToBounds || layer.mask ||
+                layer.cornerRadius!=0) {
+                v.clipsToBounds=NO;layer.masksToBounds=NO;
+                layer.mask=nil;layer.cornerRadius=0;changed++;
+            }
+            continue;
+        }
         if (!v.clipsToBounds && !layer.masksToBounds &&
             !layer.mask && layer.cornerRadius==0) continue;
         NSDictionary *snapshot=@{
@@ -332,10 +351,6 @@ void ABKB104RestoreClips(NSString *reason) {
         @"[hl33-kb-owner] event=clip-restore reason=%@ restored=%lu skipped=%lu",
         reason,(unsigned long)restored,(unsigned long)skipped]);
 }
-static void (*KB104OrigContainerLayout)(id,SEL);
-static void (*KB104OrigHostLayout)(id,SEL);
-static void (*KB104OrigContainerMove)(id,SEL);
-static void (*KB104OrigHostMove)(id,SEL);
 static void KB104ContainerLayout(id self,SEL cmd) {
     if (KB104OrigContainerLayout) KB104OrigContainerLayout(self,cmd);
     KB104UnclipOwnedView(self);
@@ -351,4 +366,21 @@ static void KB104ContainerMove(id self,SEL cmd) {
 static void KB104HostMove(id self,SEL cmd) {
     if (KB104OrigHostMove) KB104OrigHostMove(self,cmd);
     KB104UnclipOwnedView(self);
+}
+
+// [hl33] The first keyboard layout may precede host geometry; after a
+// real window appears we may un-clip its already-created input-set views
+// without forcing layoutSubviews or touching keyplane/frame.
+static void KB104WalkExisting(UIView *view,NSUInteger depth) {
+    if (!view || depth>22) return;
+    Class container=objc_getClass("UIInputSetContainerView");
+    Class host=objc_getClass("UIInputSetHostView");
+    if ((container && [view isKindOfClass:container]) ||
+        (host && [view isKindOfClass:host]))
+        KB104UnclipOwnedView(view);
+    for (UIView *v in view.subviews) KB104WalkExisting(v,depth+1);
+}
+void ABKB104InspectClips(UIView *window) {
+    if (!KB104Eligible() || !window || !KB104KeyboardWindow(window)) return;
+    KB104WalkExisting(window,0);
 }

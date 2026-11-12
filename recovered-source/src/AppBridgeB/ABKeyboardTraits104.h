@@ -11,4 +11,5 @@ void ABKB104SetHostGeometry(BOOL hosted, CGFloat logicalWidth,
 void ABKB104NoteWindowWidth(CGFloat width);
 void ABKB104InstallIfAvailable(void);
 void ABKB104RestoreClips(NSString *reason);
+void ABKB104InspectClips(UIView *keyboardWindow);
 #endif
