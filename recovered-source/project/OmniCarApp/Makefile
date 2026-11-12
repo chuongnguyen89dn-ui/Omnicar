@@ -8,9 +8,11 @@ THEOS_PACKAGE_SCHEME = rootless
 
 include $(THEOS)/makefiles/common.mk
 
+# [hl36-voice-off] Standalone assistant sources are preserved as historical
+# material only. Do NOT compile DCVoiceSession / DCVoiceCommand or link Speech.
 APPLICATION_NAME = OmniCar
-OmniCar_FILES = main.m OMCAppDelegate.m OMCNativeSettings.m OMCNativeStartup.m DCVoiceSession.m DCVoiceCommand.m
-OmniCar_FRAMEWORKS = UIKit Speech AVFoundation AVKit CoreMedia CoreImage CoreVideo ImageIO CoreGraphics QuartzCore UniformTypeIdentifiers
+OmniCar_FILES = main.m OMCAppDelegate.m OMCNativeSettings.m OMCNativeStartup.m
+OmniCar_FRAMEWORKS = UIKit AVFoundation AVKit CoreMedia CoreImage CoreVideo ImageIO CoreGraphics QuartzCore UniformTypeIdentifiers
 # Reuse the original real Root/Feature schemas and translations. Never copy Prefs Info.plist
 # over the application's APPL Info.plist (historical HL16 regression).
 OmniCar_RESOURCE_FILES = $(filter-out ../OmniCarPrefs/Resources/Info.plist,$(wildcard ../OmniCarPrefs/Resources/*))

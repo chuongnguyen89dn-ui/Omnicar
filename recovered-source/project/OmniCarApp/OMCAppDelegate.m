@@ -2,36 +2,13 @@
 // Preserve OmniCar shortcut deep-link handling in application:openURL:options: below.
 #import "OMCAppDelegate.h"
 #import "OMCNativeSettings.h"
-#import "DCVoiceSession.h"
-#import <math.h>
 
 @implementation OMCAppDelegate
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)options {
     self.window=[[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     [self openSettings];
     [self.window makeKeyAndVisible];
-    // HL29: future CarPlay touch-to-talk route only when this iPhone app
-    // is foreground. Never activate microphone from a background process.
-    Class distributed=NSClassFromString(@"NSDistributedNotificationCenter");
-    if (distributed) {
-        id center=[(id)distributed defaultCenter];
-        __weak typeof(self) weakSelf=self;
-        [center addObserverForName:@"com.anlai.omnicar/voice.request"
-            object:nil queue:NSOperationQueue.mainQueue
-            usingBlock:^(NSNotification *note) {
-                OMCAppDelegate *owner=weakSelf;
-                if (!owner || !DCVoiceIsEnabled() ||
-                    UIApplication.sharedApplication.applicationState!=UIApplicationStateActive)
-                    return;
-                NSString *rid=note.userInfo[@"requestID"];
-                NSNumber *time=note.userInfo[@"time"];
-                if (![rid isKindOfClass:NSString.class] || rid.length!=36 ||
-                    ![time isKindOfClass:NSNumber.class] ||
-                    fabs(NSDate.date.timeIntervalSince1970-time.doubleValue)>8.0)
-                    return;
-                DCVoiceHandleCarRequest(note.userInfo,owner.window.rootViewController);
-            }];
-    }
+    // [hl36-voice-off] No voice IPC listener or microphone on iPhone.
     NSLog(@"[hl26-settings] gate=app-root-launched root=%@",
           NSStringFromClass([self.window.rootViewController class]));
     return YES;
