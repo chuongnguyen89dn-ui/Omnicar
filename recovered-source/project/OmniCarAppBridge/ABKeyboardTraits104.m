@@ -18,6 +18,14 @@ static BOOL KB104Hosted = NO;
 static double KB104LogicalW=0, KB104PhysicalW=0, KB104WindowW=0;
 static double KB104LogicalH=0, KB104PhysicalH=0;
 static NSMapTable<UIView *,NSDictionary *> *KB104ClipSnapshots;
+// HL34: only owner of a hosted native keyboard UIWindow frame.
+// Other hooks configure traits/keyplanes; they must NEVER write window
+// geometry, and layout callback hooks only manage clip/mask.
+static __weak UIWindow *KB104PositionedWindow;
+static CGRect KB104OriginalWindowFrame;
+static CGRect KB104LastPositionedFrame;
+static BOOL KB104HasFrameSnapshot=NO;
+static unsigned long long KB104PositionedRevision=0;
 static NSInteger KB104Orientation = 1;
 static unsigned long long KB104Revision = 0;
 static NSUInteger KB104Hooks = 0;
@@ -93,8 +101,10 @@ void ABKB104SetHostGeometry(BOOL hosted, CGFloat logicalWidth,
             @"[hl32-kbtraits] event=host-geometry native=%d physical=%.1f logical=%.1f orientation=%ld rev=%llu",
             (int)valid,(double)physicalWidth,width,(long)orientation,revision]);
     }
-    if (KB104Hosted && !valid)
+    if (KB104Hosted && !valid) {
+        ABKB104RestoreKeyboardWindow(@"geometry-revoked");
         ABKB104RestoreClips(@"geometry-revoked");
+    }
     KB104Hosted = valid;
     KB104LogicalW = width;
     KB104PhysicalW = valid ? physicalWidth : 0;
@@ -201,12 +211,12 @@ static double KB104Width(id self, SEL cmd) {
 static CGSize KB104Reference(id self, SEL cmd) {
     CGSize original=KB104OrigReference ? KB104OrigReference(self,cmd):CGSizeZero;
     double wanted=KB104ReferenceWidth();
+    // HL33 accidentally overrode keyboardScreenReferenceSize.height with
+    // the SPLIT PANE's height. That value is NOT a keyboard screen height.
+    // DuoNavi 1.0.4 audit did not validate such a setter. Keep UIKit's
+    // original height to preserve keyplane creation and vertical anchor.
     if (KB104ValidWidth(wanted) && isfinite(original.height) &&
-        original.height>0) {
-        original.width=wanted;
-        if (KB104LogicalH>=200 && KB104LogicalH<=1800)
-            original.height=KB104LogicalH;
-    }
+        original.height>0) original.width=wanted;
     return original;
 }
 static void KB104Hook(Class cls, SEL sel, BOOL meta, NSUInteger bit, IMP repl,
@@ -279,6 +289,88 @@ void ABKB104InstallIfAvailable(void) {
             1u<<6,(IMP)KB104ScreenTraits,(IMP *)&KB104OrigScreenTraits,
             3,'v','@',0,@"setScreenTraits:");
     }
+}
+
+static BOOL KB104CloseEnough(CGRect a, CGRect b) {
+    return fabs(a.origin.x-b.origin.x)<2.0 &&
+           fabs(a.origin.y-b.origin.y)<2.0 &&
+           fabs(a.size.width-b.size.width)<2.0 &&
+           fabs(a.size.height-b.size.height)<2.0;
+}
+void ABKB104RestoreKeyboardWindow(NSString *reason) {
+    if (![NSThread isMainThread] || !KB104HasFrameSnapshot) return;
+    UIWindow *win=KB104PositionedWindow;
+    BOOL canRestore=win && CGAffineTransformIsIdentity(win.transform) &&
+        KB104CloseEnough(win.frame,KB104LastPositionedFrame);
+    if (canRestore) win.frame=KB104OriginalWindowFrame;
+    OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl34-keyboard] event=single-owner-release reason=%@ restored=%d "
+         "last=%@ original=%@",
+        reason,(int)canRestore,
+        NSStringFromCGRect(KB104LastPositionedFrame),
+        NSStringFromCGRect(KB104OriginalWindowFrame)]);
+    KB104PositionedWindow=nil;
+    KB104HasFrameSnapshot=NO;
+    KB104PositionedRevision=0;
+}
+BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard,UIWindow *sceneWindow,
+                               NSString *reason) {
+    if (!KB104Eligible() || !keyboard || !sceneWindow ||
+        keyboard==sceneWindow || keyboard.hidden || keyboard.alpha<0.01)
+        return NO;
+    NSString *cn=NSStringFromClass(keyboard.class);
+    if (![cn containsString:@"UIRemoteKeyboardWindow"] ||
+        keyboard.screen!=sceneWindow.screen ||
+        !CGAffineTransformIsIdentity(keyboard.transform) ||
+        !CGAffineTransformIsIdentity(sceneWindow.transform)) return NO;
+    CGRect target=sceneWindow.frame, before=keyboard.frame;
+    CGFloat reference=KB104ReferenceWidth();
+    if (!isfinite(target.origin.x)||!isfinite(target.origin.y)||
+        !isfinite(target.size.width)||!isfinite(target.size.height)||
+        target.size.width<200||target.size.width>1400||
+        target.size.height<200||target.size.height>1400||
+        !KB104ValidWidth(reference)||
+        fabs(target.size.width-reference)>3.0) {
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl34-keyboard] event=viewport-deferred reason=unsettled-scene "
+             "packet=%.1f target=%@ when=%@",
+            reference,NSStringFromCGRect(target),reason]);
+        return NO;
+    }
+    if (KB104PositionedWindow && KB104PositionedWindow!=keyboard)
+        ABKB104RestoreKeyboardWindow(@"keyboard-window-replaced");
+    // Do not modify any custom keyboard window, keyplane, layoutStar,
+    // keyboard.transform or UIWindowScene. A single authenticated
+    // scene key-window frame is the only geometry reference.
+    BOOL changed=!KB104CloseEnough(before,target);
+    if (changed && !KB104HasFrameSnapshot) {
+        KB104PositionedWindow=keyboard;
+        KB104OriginalWindowFrame=before;
+        KB104HasFrameSnapshot=YES;
+    }
+    if (changed) {
+        // If UIKit has moved this window independently after our last
+        // commit, do not race it. Only our original or last frame
+        // authorizes another write for the next committed scene revision.
+        BOOL ours=!KB104HasFrameSnapshot ||
+            KB104CloseEnough(before,KB104OriginalWindowFrame)||
+            KB104CloseEnough(before,KB104LastPositionedFrame);
+        if (!ours) {
+            OMCLogWrite(@"AppBridge",
+                @"[hl34-keyboard] event=viewport-deferred reason=UIKit-moved-window");
+            return NO;
+        }
+        keyboard.frame=target; // THE ONLY keyboard.frame writer in HL34.
+        KB104LastPositionedFrame=target;
+        KB104PositionedRevision=KB104Revision;
+    }
+    OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl34-keyboard] event=native-window-placed when=%@ changed=%d "
+         "packetW=%.1f revision=%llu before=%@ after=%@ "
+         "transform=identity rollbackOnClipFailure=DISABLED rasterTouch=DEVICE-PENDING",
+        reason,(int)changed,reference,KB104Revision,
+        NSStringFromCGRect(before),NSStringFromCGRect(keyboard.frame)]);
+    return YES;
 }
 
 static BOOL KB104KeyboardWindow(UIView *view) {

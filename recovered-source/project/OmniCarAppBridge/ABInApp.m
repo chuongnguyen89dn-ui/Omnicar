@@ -1224,12 +1224,20 @@ static void ABNativeKbObserve(NSString *when) {
     UIWindow *keyboard=nil, *key=nil;
     for (UIWindow *win in windows) {
         NSString *name=NSStringFromClass(win.class);
-        if ([name containsString:@"Keyboard"] && !win.hidden) keyboard=win;
+        if ([name containsString:@"UIRemoteKeyboardWindow"] && !win.hidden &&
+            (!keyboard || keyboard.alpha<win.alpha)) keyboard=win;
         else if (![name containsString:@"TextEffects"] &&
-                 win.isKeyWindow && !win.hidden) key=win;
+                 win.isKeyWindow && !win.hidden &&
+                 fabs(win.windowLevel-UIWindowLevelNormal)<0.5) key=win;
     }
-    if (keyboard) ABKB104InspectClips(keyboard);
     UIView *star=keyboard ? ABNativeKbFindLayout(keyboard,0):nil;
+    // There is no drawn fallback (host native gate intentionally locked).
+    // HL33 removed the only placement path, leaving keyboard in its
+    // original off-pane iPhone coordinates. HL34 restores exactly one
+    // window-only placement with no retries/keyplane rollback.
+    if (keyboard && key && star)
+        ABKB104PlaceKeyboardWindow(keyboard,key,when);
+    if (keyboard) ABKB104InspectClips(keyboard);
     CGFloat width=0; UIView *observed=nil;
     BOOL found=ABNativeKbObserveLayout(keyboard,&width,&observed);
     UIView *plane=observed ? AB27FindKeyplane(observed,0):nil;
@@ -1992,6 +2000,7 @@ static void BWInstallBridgeWake(void) {
     [nc addObserverForName:UIKeyboardDidHideNotification object:nil
                      queue:mq usingBlock:^(__unused NSNotification *n) {
         ++ABNativeKbEpoch;
+        ABKB104RestoreKeyboardWindow(@"did-hide");
         ABKB104RestoreClips(@"did-hide");
         OMCLogWrite(@"AppBridge",
             @"[hl33-kb-owner] event=did-hide action=restore-owned-clips");
@@ -2789,6 +2798,7 @@ static void ABOrientationBlock(NSNotification *note) {
         // Host released the app: restore keyboard geometry before
         // resigning, and invalidate any delayed native-fit attempts.
         ++ABNativeKbEpoch;
+        ABKB104RestoreKeyboardWindow(@"host-release");
         ABKB104RestoreClips(@"host-release");
         ABNativeKbHostEpoch = nil;
         ABNativeKbGeometryRevision = 0;
@@ -2910,6 +2920,7 @@ void ABInstallInAppObservers(NSString *bundleID) {
                         // Host close is a semantic lease end even if stale
                         // orientation packets continue in the app.
                         ++ABNativeKbEpoch;
+                        ABKB104RestoreKeyboardWindow(@"host-close");
                         ABKB104RestoreClips(@"host-close");
                         ABKB104SetHostGeometry(NO,0,0,0,0,0,0);
                         if (isYouTube) YZResetAll();
@@ -2919,6 +2930,7 @@ void ABInstallInAppObservers(NSString *bundleID) {
                         (void)n;
                         BWResetAll();
                         ++ABNativeKbEpoch;
+                        ABKB104RestoreKeyboardWindow(@"host-close-all");
                         ABKB104RestoreClips(@"host-close-all");
                         ABKB104SetHostGeometry(NO,0,0,0,0,0,0);
                         if (isYouTube) YZResetAll();
