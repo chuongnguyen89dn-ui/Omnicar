@@ -21,7 +21,7 @@ static char DCVoiceBubbleAssociation;
 static char DCVoiceWindowAssociation;
 static char DCVoiceWindowHitTargetAssociation;
 static CFTimeInterval DC33BubbleLastLog=0;
-static CGRect DC33BubbleLastBoundary=CGRectNull;
+static CGRect DC33BubbleLastBoundary={{0,0},{0,0}};
 static BOOL DC33BubbleLastVisible=NO;
 static UIWindow *DCVoiceWindow(SCPCarSplit *split) {
     return split ? objc_getAssociatedObject(split,&DCVoiceWindowAssociation):nil;

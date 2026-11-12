@@ -37,8 +37,8 @@ static void DC33MeasureBuffer(AVAudioPCMBuffer *buffer) {
     if (!frames || !channels || channels>16 || frames>16384) return;
     BOOL interleaved=buffer.format.isInterleaved;
     AVAudioCommonFormat common=buffer.format.commonFormat;
-    float **f=(common==AVAudioPCMFormatFloat32)?buffer.floatChannelData:NULL;
-    int16_t **i16=(common==AVAudioPCMFormatInt16)?buffer.int16ChannelData:NULL;
+    float *const *f=(common==AVAudioPCMFormatFloat32)?buffer.floatChannelData:NULL;
+    int16_t *const *i16=(common==AVAudioPCMFormatInt16)?buffer.int16ChannelData:NULL;
     if ((!f && !i16) || (f && !f[0]) || (i16 && !i16[0])) {
         __atomic_fetch_add(&DC33UnsupportedBuffers,1,__ATOMIC_RELAXED);
         return;
