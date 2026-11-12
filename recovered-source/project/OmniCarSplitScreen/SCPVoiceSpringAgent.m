@@ -144,6 +144,7 @@ static BOOL DCVoiceEnabled(void) {
       @"microphone":@"Không truy cập được microphone.",
       @"no-speech":@"Tôi chưa nghe rõ. Vui lòng thử lại.",
       @"no-input-energy":@"Micro xe chưa đưa tiếng nói vào DuoCar. Hãy kiểm tra tuyến âm thanh.",
+      @"weak-input-energy":@"Micro có tín hiệu rất yếu. Vui lòng nói gần micro hơn.",
       @"interrupted":@"Phiên nghe bị gián đoạn.",
       @"unavailable":@"Giọng nói hiện chưa khả dụng.",
       @"disabled":@"Trợ lý giọng nói đang tắt."
@@ -157,6 +158,7 @@ static BOOL DCVoiceEnabled(void) {
       @"microphone":@"Microphone is unavailable.",
       @"no-speech":@"I didn't hear you. Please try again.",
       @"no-input-energy":@"Car microphone input is silent. Check the input route.",
+      @"weak-input-energy":@"Microphone input is very weak. Please speak closer.",
       @"interrupted":@"Listening was interrupted.",
       @"unavailable":@"Speech is currently unavailable.",
       @"disabled":@"Voice assistant is disabled."
@@ -584,10 +586,18 @@ static BOOL DCVoiceEnabled(void) {
                 else {
                     uint64_t samples=__atomic_load_n(&DC33TotalSamples,__ATOMIC_RELAXED);
                     uint64_t strong=__atomic_load_n(&DC33AboveLow,__ATOMIC_RELAXED);
-                    BOOL silent=samples>0 && strong==0 &&
+                    BOOL formatSupported=
                         __atomic_load_n(&DC33UnsupportedBuffers,__ATOMIC_RELAXED)==0;
-                    [self fail:(silent?@"no-input-energy":@"no-speech-timeout")
-                          reply:(silent?@"no-input-energy":@"no-speech")];
+                    uint64_t peak=__atomic_load_n(&DC33MaxPeakMicro,__ATOMIC_RELAXED);
+                    NSString *detail=@"no-speech-timeout";
+                    NSString *answer=@"no-speech";
+                    if (samples>0 && strong==0 && formatSupported) {
+                        // A nonzero sub-threshold signal is NOT proof of
+                        // hardware silence; keep it as a separate outcome.
+                        detail=peak>0?@"weak-input-energy":@"no-input-energy";
+                        answer=detail;
+                    }
+                    [self fail:detail reply:answer];
                 }
             }
         });

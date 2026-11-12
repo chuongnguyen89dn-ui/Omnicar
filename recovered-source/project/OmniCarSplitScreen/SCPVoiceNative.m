@@ -117,6 +117,7 @@ static NSString *DCVoiceSummary(NSString *code) {
       @"on-device-not-supported":@"Ngôn ngữ này chưa hỗ trợ nhận dạng offline.",
       @"no-speech-timeout":@"Không nghe được tiếng nói. Hãy thử lại.",
       @"no-input-energy":@"Tuyến microphone CarPlay chưa đưa âm thanh hữu ích vào DuoCar.",
+      @"weak-input-energy":@"Tín hiệu micro rất yếu, chưa thể nhận dạng lời nói.",
       @"parser-rejected":@"Chưa hiểu lệnh. Hãy nói lại.",
       @"owner-ack-timeout":@"CarPlay không xác nhận đã nhận lệnh.",
       @"command-rejected":@"Lệnh bị từ chối.",
