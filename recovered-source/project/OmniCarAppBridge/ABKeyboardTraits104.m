@@ -353,13 +353,18 @@ BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard,UIWindow *sceneWindow,
     // has recomputed its own key-bearing layout. One authenticated
     // scene key-window frame is the only geometry reference.
     BOOL changed=!KB104CloseEnough(before,target);
-    BOOL fits=KB104PlaneFitsViewport(keyplaneInWindow,target.size.width);
+    BOOL planeKnown=!CGRectIsNull(keyplaneInWindow) &&
+        !CGRectIsEmpty(keyplaneInWindow) &&
+        isfinite(CGRectGetMinX(keyplaneInWindow)) &&
+        isfinite(CGRectGetMaxX(keyplaneInWindow));
+    BOOL fits=planeKnown &&
+        KB104PlaneFitsViewport(keyplaneInWindow,target.size.width);
     BOOL narrowing=before.size.width>target.size.width+1.0;
-    // Prevent a host packet from shrinking the remote keyboard UIWindow
-    // while UIKit's keyplane still has the previous wider geometry.
-    // On an unchanged viewport, an out-of-bounds plane also needs UIKit
-    // relayout. Enlargements cannot clip existing keyplane content.
-    if (!fits && (narrowing || !changed)) {
+    // UIKit may not have CREATED its keyplane when a keyboard window
+    // becomes visible. Allow that initial positioning; there is no
+    // key-bearing plane to clip yet. Once it exists, never shrink the
+    // enclosing window ahead of UIKit's own keyplane reflow.
+    if (planeKnown && !fits && (narrowing || !changed)) {
         OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
             @"[hl36-kbsync] event=viewport-await-uikit rev=%llu when=%@ "
              "old=%@ target=%@ plane=%@ narrowing=%d action=defer",
