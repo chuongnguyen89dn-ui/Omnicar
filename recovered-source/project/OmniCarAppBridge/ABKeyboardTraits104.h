@@ -15,5 +15,9 @@ void ABKB104InspectClips(UIView *keyboardWindow);
 // One native UIWindow geometry owner; no app-level frame writer/retry.
 BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard, UIWindow *sceneWindow,
                                CGRect keyplaneInWindow, NSString *reason);
+// A per-revision, hosted-only UIKit LayoutStar/traits refresh.
+// This never rewrites keycaps or changes native CarPlay template scenes.
+BOOL ABKB104RequestUIKitKeyplaneUpdate(UIWindow *keyboard, UIView *layout,
+                                       NSString *reason);
 void ABKB104RestoreKeyboardWindow(NSString *reason);
 #endif
