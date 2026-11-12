@@ -33,3 +33,14 @@ Bằng chứng **KEYBOARD HL36 (lỗi)**:
 
 ## Trạng thái lưu
 Checkpoint log và xác nhận mới của người dùng. **Không sửa source, không dispatch CI, không build/ký DEB, không merge main, không triển khai Sileo, không device test bởi GPT.**
+
+
+## Bổ sung kiểm source HL36 sau xác nhận của Nguyen
+
+Đã đọc trực tiếp branch `feature/duocar-hl36-native-only-retire-drawn-20261112` bằng GitHub `fetch_file` tại:
+- `recovered-source/project/OmniCarAppBridge/ABKeyboardTraits104.m` (blob `d655090e46bf673cbb7155dbeeba5b4f1217c73b`), đoạn 38–45, 85–115, 126–156, 316–374. `KB104ReferenceWidth()` ưu tiên **logicalWidth của packet**, `KB104WriteTraits()` set `UIKBScreenTraits.keyboardWidth`, nhưng `ABKB104PlaceKeyboardWindow()` **thay `keyboard.frame=sceneWindow.frame` ở dòng 363**. Đây là sự kiện có khả năng làm `UIRemoteKeyboardWindow` đổi width trước khi UIKit keyplane được tái bố trí; HL36 log thực xác nhận một trường hợp window 371 / keyplane 495 tại 15:35:38.946.
+- `recovered-source/project/OmniCarAppBridge/ABInApp.m` (blob `1c32158d428928b159ce10d523b78cda062bf667`), 1176–1205: `ABNativeKbObserve()` gọi `ABKB104PlaceKeyboardWindow(keyboard,key,when)` rồi đo surface. Comment ở đầu nhóm nói “ONLY observes”/“writeFrame=0” **không mô tả đầy đủ tác dụng liên module**: helper được gọi có tác dụng ghi frame. Tránh lấy `writeFrame=0` của chính diagnostic làm bằng chứng writer không hoạt động. Chỉ có **một writer** tìm được trong module traits, không nói là writer thứ hai.
+- `recovered-source/project/OmniCarAppBridge/ABHostGeometry.m` (blob `e7f79a0f9f54d626cc1ed85c336aa7225c556681`), AB24 revision tăng sau sceneBox commit, truyền vào packet; không suy ra UIKit đã relayout keyplane theo cùng revision.
+- **Cơ sở mạnh nhất hiện tại:** gọi setter frame cửa sổ trong helper HL34 có thể tạo trạng thái tạm không đồng bộ với layout UIKit; đây là cơ chế nguồn phù hợp log, **chưa chứng minh nhân quả duy nhất** vì chưa đọc toàn bộ UIKit internal callback hoặc thử bản loại riêng setter. Không được vá bằng cách scale keyplane hoặc tạo bàn phím vẽ.
+
+Không sửa code, không chạy CI, không có DEB/DEVICE PASS từ lượt bổ sung.
