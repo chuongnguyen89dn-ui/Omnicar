@@ -1,0 +1,61 @@
+name: HL31 read-only DuoNavi 1.0.4 voice and keyboard scene audit
+on:
+  push:
+    branches: [feature/duocar-hl31-duonavi-parity-20261112]
+    paths:
+      - ".github/workflows/duocar-hl31-original-readonly.yml"
+      - "recovered-source/gpt-project-history/verify_duonavi104_hl31.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: hl31-original-readonly
+  cancel-in-progress: false
+jobs:
+  exact-original:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original DuoNavi 1.0.4 from archive and extract read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/original" "$RUNNER_TEMP/expanded"
+          curl --fail --location --silent --show-error --retry 4 \
+            "https://raw.githubusercontent.com/chuongnguyen89dn-ui/duoface-debs-/3d791cd4ef8d43ab8a04e26890697b9554c7e49e/historical/dist/com.duonavi.app_1.0.4_iphoneos-arm64.deb" \
+            -o "$RUNNER_TEMP/original/duonavi104.deb"
+          echo "f3f911de5db461d487ce91249aed1bb25d44f076e7ff5fb89e54b658569328dd  $RUNNER_TEMP/original/duonavi104.deb" | sha256sum -c -
+          test "$(dpkg-deb -f "$RUNNER_TEMP/original/duonavi104.deb" Package)" = "com.duonavi.app"
+          dpkg-deb -x "$RUNNER_TEMP/original/duonavi104.deb" "$RUNNER_TEMP/expanded"
+          echo "44fdd4b4df0e3cc277ca69f71129da356f3bd8d6af70e0fde1ef36f266b66d15  $RUNNER_TEMP/expanded/var/jb/Library/MobileSubstrate/DynamicLibraries/DuoNaviDashboard.dylib" | sha256sum -c -
+          echo HL31_ORIGINAL_HASH_PIN_PASS
+      - name: Retrieve pre-existing first-party ARM64 MachO parser
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --break-system-packages capstone==5.0.7
+          git clone --quiet --depth=1 --branch spec-main https://github.com/chuongnguyen89dn-ui/Duoface.git "$RUNNER_TEMP/duoface"
+          mkdir -p "$RUNNER_TEMP/first-party-parser"
+          git -C "$RUNNER_TEMP/duoface" fetch --quiet --no-tags --depth=1 origin feature/visual12-duodash-recovery
+          git -C "$RUNNER_TEMP/duoface" show FETCH_HEAD:migration/full_payload/native_test/audit_native12_carplay_add_app_chain.py > "$RUNNER_TEMP/first-party-parser/audit_native12_carplay_add_app_chain.py"
+          git -C "$RUNNER_TEMP/duoface" show FETCH_HEAD:migration/full_payload/native_test/audit_native12_license_class_xrefs.py > "$RUNNER_TEMP/first-party-parser/audit_native12_license_class_xrefs.py"
+          python3 -m py_compile "$RUNNER_TEMP/first-party-parser/"*.py recovered-source/gpt-project-history/verify_duonavi104_hl31.py
+      - name: Extract targeted ObjC IMP and referenced ARM64 callsites
+        shell: bash
+        run: |
+          set -euo pipefail
+          export NATIVE_PARSER_DIR="$RUNNER_TEMP/first-party-parser"
+          python3 recovered-source/gpt-project-history/verify_duonavi104_hl31.py \
+            "$RUNNER_TEMP/original/duonavi104.deb" \
+            "$RUNNER_TEMP/expanded/var/jb/Library/MobileSubstrate/DynamicLibraries/DuoNaviDashboard.dylib" \
+            "hl31_output/DUONAVI104_VOICE_KEYBOARD_IMP_AUDIT.json"
+          ls -lh hl31_output/
+      - name: Archive non-executable static evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hl31-duonavi104-original-voice-keyboard-readonly
+          path: hl31_output/
+          if-no-files-found: warn
+          retention-days: 30
