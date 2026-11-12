@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL33 owner cleanup đang biên dịch, CHƯA DEVICE PASS
+- Nhánh `feature/duocar-hl33-owner-cleanup-20261112`, HEAD gần nhất `038aa47f` từ HL32 `4f13d1ea`; thay thế các writer frame/rollback cũ bằng scene traits read-only + clip hook có phạm vi, bubble độc lập trên CarPlay pass-through window, sửa audio session/PCM đo nhiều kênh. Source/project mirrors và HL33 source contracts kiểm qua CI, nhưng các build cũ thất bại lỗi `CGRectNull` initializer; bản mới `43160289936` đang biên dịch FAT, **chưa có DEB HL33 đã kiểm**, xe chưa thử. Ghi nhận cụ thể, các lỗi cần kiểm và rollback: [Checkpoint HL33](HL33_IMPLEMENTATION_CHECKPOINT_20261112.md).
+
+
 ## 2026-11-12 — Đánh giá phương án HL33 do Nguyen tải lên (review-only)
 - Đã đọc toàn văn `PHUONG_AN_CHUA_2_LOI_HL33.md` (SHA256 `64d9def955435125826062f2834d48ed01763a4cc40ba59cbc46e81452985f9a`), đối chiếu trực tiếp source HL32, video/log DEVICE FAIL và cửa sổ bubble/tray. Phương án chữa rollback, chẩn đoán energy/route và clipping có cơ sở; còn mâu thuẫn việc cấm ghi frame nhưng vẫn restore frame, teardown R5 còn orientation=1 sau dashboard-invalidated, bubble occupant phải tồn tại trước capture, và các hide-sites tray. Ưu tiên overlay bubble-only để giữ picker; voice CarAudio silent và solo theo tài liệu **chỉ đo**. Chưa sửa source, chưa CI/DEB/TCC. Chi tiết: [HL33 — phản biện phương án chữa 2 lỗi](HL33_PHUONG_AN_CHUA_2_LOI_REVIEW_20261112.md).
 
