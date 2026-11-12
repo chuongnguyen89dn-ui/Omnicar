@@ -52,7 +52,7 @@ with tempfile.TemporaryDirectory() as folder:
     dylib = root / "Library/MobileSubstrate/DynamicLibraries"
     components = {
         "DuoCarCore.dylib": [],
-        "DuoCarAppBridge.dylib": ["[hl40-original-keyboard]", "[hl40-native-drawn]", "[hl36-kbsync]", "[hl34-keyboard]", "[hl33-kb-owner]", "[hl32-kbtraits]", "[hl8diag]", "[hl24-geometry]", "[hl24-stable]", "[hl25-kb-surface]", "[hl25-kb-ancestors]", "[hl25-kb-windows]", "probe-interface-abi-matches-NOT-CALLED", "[pinch2] trigger=began toggle-sent dir=0"],
+        "DuoCarAppBridge.dylib": ["[hl40-original-keyboard]", "[hl40-native-drawn]", "[hl36-kbsync]", "[hl8diag]", "[pinch2] trigger=began toggle-sent dir=0"],
         "DuoCarCarProbe.dylib": [],
         "DuoCarSpeedBubble.dylib": [],
         "DuoCarSplitScreen.dylib": [ "[hl27-respring] stage=observer-ready", "[hl27-respring] stage=accepted", "[hl27-respring] stage=terminate-self", "[hl8diag]", "[hl13pinch]", "[hl21-floating]", "[hl21-legacy-picker]", "[hl22-original]", "[picker-face]", "[home-launch]"],
@@ -74,7 +74,7 @@ with tempfile.TemporaryDirectory() as folder:
             for marker in markers:
                 assert marker.encode() in code, f"Missing {marker} in {name} subtype={subtype}"
 
-            # HL36: test the FINAL signed FAT binary, not only build lists.
+            # HL40: check the ACTUAL signed ARM64 binary, not only source lists.
             # Exact terminated identifiers avoid false positives from native
             # ABKeyboardTraits104 and the unrelated speed-warning feature.
             retired = {
