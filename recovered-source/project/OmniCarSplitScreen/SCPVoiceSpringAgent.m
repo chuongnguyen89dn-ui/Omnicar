@@ -1,7 +1,7 @@
 // HL31: first-party DuoCar voice capture in SpringBoard, separate from the
 // CarPlay bubble/UI. DuoNavi 1.0.4 static evidence: VoiceSessionManager owns
 // VoiceAudioCapture and two STT providers; speech output is separate.
-// User-initiated only. No TCC.db modification, vendor network, stored audio,
+// User-initiated only. No system-permission database writes, vendor network, stored audio,
 // persistent microphone, or source/transcript logging.
 #import "SCPVoiceSpringAgent.h"
 #import "SCPShared.h"
