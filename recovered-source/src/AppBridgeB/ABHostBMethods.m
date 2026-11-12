@@ -604,9 +604,17 @@ static ABBarButton *ABMakeBarButton(NSString *name, NSString *title, UIColor *ti
 // comment (and in ABHost.h) came from. The @80 default object at
 // 0x395A0 was verifier-confirmed earlier and stands.
 - (double)zoom {
+    // [hl38-nozoom-ab] DIAGNOSTIC ONLY: isolate global AppBridge scale
+    // from UIKit keyboard scene/keyplane. Do not touch YouTube's pinch,
+    // SplitScreen picker geometry, or native CarPlay app presentation.
+    // Keep preference synchronization side effects of the original call.
     OMCPrefsSync();
-    double v = [OMCPref(@"appBridgeZoom", @80) doubleValue] / 100.0;
-    return MIN(MAX(v, 0.6), 1.0);
+    static dispatch_once_t logged;
+    dispatch_once(&logged, ^{
+        OMCLogWrite(@"AppBridge",
+            @"[hl38-nozoom-ab] event=appbridge-zoom-bypass z=1.000 original-pref-unmodified");
+    });
+    return 1.0;
 }
 
 // -effectiveOrientation: (0xF364):
