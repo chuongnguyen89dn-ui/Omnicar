@@ -7,7 +7,6 @@
 
 #import "SCPHooks.h"
 #import "SCPShared.h"
-#import "SCPVoiceSpringAgent.h" // [hl31] first-party voice audio agent, SpringBoard only
 #import "SCPPrefs.h"
 #import <objc/message.h>
 #import <notify.h>
@@ -211,7 +210,7 @@ static void Hook_applicationDidFinishLaunching(id self, SEL _cmd, id app) {
     OMCLogWrite(@"SplitScreen",@"[hl27-respring] stage=observer-ready owner=SpringBoard");
     // [hl31] User-tapped CarPlay bubble -> existing SpringBoard observer.
     // No second launch/bootstrap hook, no recording without the tap.
-    SCPVoiceSpringInstall();
+    // [hl36-voice-off] SpringBoard speech capture remains unlinked.
 }
 
 // __init_2 (0x843c) VERIFIED end-to-end. Runs in SpringBoard only; the hook

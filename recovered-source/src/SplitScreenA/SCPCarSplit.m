@@ -26,7 +26,6 @@
 #import "SCPCarSplit+BridgeWake.h" // [wake1] bridgewake recompute/teardown call points (design §1.3)
 #import "SCPPinchController.h" // [pinch1] integration glue: attach/detach (design-pinch §7, 2 lines max)
 #import "SCPFullscreenController.h" // [fs1] glue: shortened restore when the session ends (design-fullscreen-fs1 §4.6)
-#import "SCPVoiceNative.h" // [hl30] CarPlay voice bubble lifecycle
 #import "SCPCarSplit+AutoHide.h" // [autohide] fade payload keys + activity feeds + teardown (design-autohide §5.1)
 #import "../SplitScreenC/SCPHomeApply.h" // [ytz5] SCPLogInjectedIconState (M5 icon instrument points in closeGoingHome:)
 #import "../SplitScreenC/SCPHomeLauncher.h" // [gpt-home] native Home entry is authoritative
@@ -176,7 +175,6 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: bat split CarPlay (%d o)", (int)self.paneCount]);
     [self showTipSoon];
     [self relayoutAnimated:NO];
-    SCPVoiceBubbleUpdate(self); // [hl30] split-owned bubble
     // Entry animation (VERIFIED, remediation: __const slots read directly
     // — scale 0.97 @0x6f090, duration 0.35 @0x6f098, damping 0.9 @0x6f028,
     // initialSpringVelocity 0.3 @0x6f010; block invoke @0x16428 dumped in
@@ -277,7 +275,6 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     SCPHomeLauncherDockSetVisible(NO, @"dashboard-invalidated"); // [hl12dock]
     [self removeAppTab];
     [self removeHomeButton];
-    SCPVoiceBubbleDetach(self); // [hl30] halt voice before dashboard release
     self.autoLaunchDone = NO;
     self.soloHostedBundle = nil;
     [self removePickerSheet];
@@ -1794,7 +1791,6 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         [pane.picker removeFromSuperview];
         pane.picker = nil;
     }
-    SCPVoiceBubbleDetach(self); // [hl30] cancel mic on split close
     self.active = NO;
     SCPHomeLauncherDockSetVisible(NO, @"split-closed"); // [hl12dock]
     [self.pending removeAllObjects];

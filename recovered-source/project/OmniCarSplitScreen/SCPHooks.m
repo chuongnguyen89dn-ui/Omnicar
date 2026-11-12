@@ -20,8 +20,6 @@
 #import "SCPCarSplit+AutoHide.h" // [autohide] ahInstall beside bwInstallOwner (design-autohide §5.1)
 #import "SCPTouchProbe.h" // [fix-w] WO W4 passive sendEvent probe install (measure-only)
 #import "SCPHomeLauncher.h" // [gpt-home] own icon
-#import "SCPVoiceBridge.h" // [hl29] typed voice receiver
-#import "SCPVoiceNative.h" // [hl30] bubble on dashboard
 #import <objc/message.h>
 #import <objc/runtime.h>      // class_copyIvarList / object_getIvar (final closure)
 #import <notify.h>
@@ -403,8 +401,6 @@ static void Hook_RootVC_viewDidLayoutSubviews(id self, SEL _cmd) {
     // external override; a no-op in every other state.
     @try { [[SCPFullscreenController shared] fsDidLayout]; }
     @catch (NSException *ex) { SCPExceptionLog("fs fsDidLayout", ex); }
-    @try { SCPVoiceBubbleUpdate([SCPCarSplit shared]); }
-    @catch (NSException *ex) { SCPExceptionLog("voice bubble layout", ex); }
 }
 
 // sub_6988 VERIFIED: orig, then two delayed main-queue blocks:
@@ -866,8 +862,7 @@ static void SCPInitDashboardHooks(void) {
                     usingBlock:^(NSNotification *n) { SCPBridgeKnobTouchBlock(n); }];
     [center addObserverForName:SCPNoteNativeCommand object:nil queue:mainQueue
                     usingBlock:^(NSNotification *n) { SCPNativeCommandBlock(n); }];
-    // Register on the same CarPlayApp owner as native split commands.
-    SCPVoiceInstall();
+    // [hl36-voice-off] No speech action observer, bubble or microphone hook.
 
     // [wake1] bridgewake owner (design §7.1): this constructor is
     // already gated to CarPlayApp — register the Darwin query/wake/ack

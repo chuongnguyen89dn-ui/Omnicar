@@ -7,7 +7,6 @@
 // addendum" in SplitScreenB_REPORT.md for per-item verdicts and evidence.
 
 #import "SCPCarSplit.h"
-#import "SCPVoiceNative.h"
 #import "SCPCarPane.h"
 #import "SCPCommon.h" // [phase2; backported to src in phase 3] OMC* declarations used in this TU
 #import "SCPCButton.h" // [phase2; backported to src in phase 3] SCPCButton interface used in this TU
@@ -767,7 +766,6 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     if (self.tray != nil && self.tray.superview == host)
         [host bringSubviewToFront:self.tray];
     self.pickerSheet = sheet;
-    SCPVoiceBubbleUpdate(self); // hl33 independent overlay hides for picker
     self.pickerShield = nil;
     self.pickerSheetOverlay = (window != nil);
     [self updatePopupShield];
@@ -977,7 +975,6 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                 [sheet removeFromSuperview];
                 [shield removeFromSuperview];
                 SCPCarSplit *s = weakSelf;
-                if (s) SCPVoiceBubbleUpdate(s); // restore bubble after popup
 
                 if (window != nil && s != nil && s.tray == nil &&
                     s.ratioMenu == nil && s.pickerSheet == nil)
