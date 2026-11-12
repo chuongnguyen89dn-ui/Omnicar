@@ -14,7 +14,7 @@ TARGETS={
 "CBVoiceDirectiveDispatcher":["registerHandler:","handlerForDirective:","canDispatchDirective:","dispatchDirective:completion:"],
 "CBVoiceSceneDispatcher":["dispatchAppWithBundleID:launchURL:targetSlot:completion:"],
 "CBVoiceTransport":["connectWithContext:completion:","sendPCMChunk:","sendTurnEndWithText:","syncCarPlayContextOnce:"],
-"CBAIBubbleView":["willMoveToWindow:","setupGestures","handleTap:","setActivated:animated:","setupCoreBubble","setupAuraPulse"],
+"CBAIBubbleView":["initWithBoundaryBounds:","willMoveToWindow:","setupGestures","handlePan:","handleTap:","snapToNearestEdgeAnimated:","restartIdleTimer","cancelIdleTimer","wakeBubble","dimBubble","updateBoundaryBounds:","pointInside:withEvent:","setActivated:animated:","setVisualState:animated:","updateMascotForVisualState:animated:","setupCoreBubble","setupAuraPulse"],
 "CBBridgedUIAppView":["calculateNativeSizeForSlotRect:","setAppScale:","updateLayout","refreshSceneLayout","updateSceneSettingsFrame"],
 "CBBridgeManager":["renderSizeForBundleID:","supportsInterfaceOrientation:forBundleID:"],
 "CBBridgedSplitApp":["layoutSplitViews"],
@@ -73,6 +73,35 @@ def main():
                 "bounded_arm64_trace":[sanitize(x) for x in ins[:900 if deep else 120]],
                 "trace_truncated":len(ins)>(900 if deep else 120),
                 "not_runtime_proven":True})
+    # Scan for actual owners of the bubble tap/state callbacks. Work only on
+    # verified metadata and bounded static code; no arbitrary vendor injection.
+    owner_needles=("setOnBubbleTapped:","setOnPositionChanged:",
+                   "initWithBoundaryBounds:","setStateDelegate:",
+                   "voiceSessionManager:didChangeState:")
+    report["bubble_owner_candidates"]=[]
+    report["owner_scan_methods"]=0
+    for cls, items in bycls.items():
+        if not re.search(r"Dashboard|Bubble|Voice|Split|CarPlay|Overlay|Root|Main|Home|Hud|HUD", cls, re.I):
+            continue
+        for sel,meta in items.items():
+            vm=int(meta.get("vm") or 0)
+            if not vm: continue
+            # Limit methods to a bounded region, not unverified function tails.
+            pos=bisect.bisect_right(starts,vm)
+            nxt=starts[pos] if pos<len(starts) else vm+0x1800
+            end=min(nxt,vm+0x1800)
+            if end<=vm: continue
+            ins=disassemble(macho,vm,end)
+            report["owner_scan_methods"]+=1
+            matches=[sanitize(t) for t in ins if "SEL_OR_LITERAL" in t and
+                any(needle in t for needle in owner_needles)]
+            if matches:
+                report["bubble_owner_candidates"].append({
+                    "class":cls,"selector":sel,"imp":hex(vm),
+                    "refs":matches[:24],"instruction_count":len(ins),
+                    "not_runtime_proven":True})
+    print("BUBBLE_OWNER_SCAN",report["owner_scan_methods"],
+          "candidates",len(report["bubble_owner_candidates"]))
     assert any(m["class"]=="CBVoiceSessionManager" for m in report["methods"])
     assert any(m["class"]=="CBBridgedUIAppView" for m in report["methods"])
     dest.parent.mkdir(parents=True,exist_ok=True)
