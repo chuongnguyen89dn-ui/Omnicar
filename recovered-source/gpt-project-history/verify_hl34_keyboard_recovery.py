@@ -71,4 +71,45 @@ for forbidden in ("TCC.db","--grant-tcc","cboptimize_helper","setuid"):
 # 1.6 cap, and HL33 lacked any compositor placement in native-only mode.
 assert 744/375>1.6
 assert 7.5+480<=495<7.5+495
-print("HL34_SOURCE_CONTRACT_PASS: singular window owner, retained native gate, no arbitrary ref height; DEVICE-PENDING")
+# HL36: native UIKit is the only built keyboard implementation.
+# Historical ABKeyboard.m and ABTelex.m survive in source for reference,
+# but neither is in the actual Theos compilation units.
+manifest=(project/"OmniCarAppBridge/Makefile").read_text()
+fileline=next(line for line in manifest.splitlines()
+              if line.startswith("OmniCarAppBridge_FILES ="))
+built=set(fileline.partition("=")[2].split())
+assert "ABKeyboardTraits104.m" in built
+assert "ABInApp.m" in built and "ABHostGeometry.m" in built
+assert "ABKeyboard.m" not in built and "ABTelex.m" not in built
+assert (project/"OmniCarAppBridge/ABKeyboard.m").is_file()
+assert (project/"OmniCarAppBridge/ABTelex.m").is_file()
+for legacy in ("ABKeyboard.m", "ABTelex.m"):
+    assert (project/"OmniCarAppBridge"/legacy).read_bytes()==(src/"AppBridgeB"/legacy).read_bytes(),legacy
+for banned in ("ABKeyBlock(", "ABKeyboardPublish(", "ABChanKey",
+               "ABNotifyKeyboard", "ABBlankInputViewKey",
+               "ABSuppressSystemKeyboard(", "ABRestoreBlankInputView("):
+    assert banned not in ab, banned
+for banned in ("ABKeyboardDispatch(", "ABNotifyKeyboard",
+               "[[ABKeyboard shared]"):
+    assert banned not in host, banned
+assert "ABKeyboard" not in (project/"OmniCarAppBridge/ABHostLaunch.m").read_text()
+assert "ABChanKey" not in (project/"OmniCarAppBridge/ABChannelNames.m").read_text()
+assert "ABNotifyKeyboard" not in (project/"OmniCarAppBridge/ABChannelNames.m").read_text()
+assert "ABChanKey" not in (project/"OmniCarAppBridge/AppBridgeB.h").read_text()
+assert "ABTelexApply(" not in (project/"OmniCarAppBridge/AppBridgeB.h").read_text()
+assert "ABKeyboardDispatch(" not in (project/"OmniCarAppBridge/ABIntegrationShims.h").read_text()
+assert "[responder setInputView:" not in ab
+assert "static const BOOL ABDrawnKb = NO" in ab
+assert "[hl36-native-only] drawnKeyboard=1 ignored" in ab
+assert "BWKbStateBecame()" in ab and "BWKbStateResignedDeferred()" in ab
+assert "BWKbLocalSet(BWKbActive)" in ab and "BWKbLocalSet(BWKbInactive)" in ab
+assert "ABKB104PlaceKeyboardWindow(keyboard,key,when)" in ab
+assert "ABKB104InstallIfAvailable()" in ab
+assert 'ABNativeKbBegin(@"focus-became")' in ab
+assert "ABKbSyncNoteEvent(bundleID, NO)" in (project/"OmniCarAppBridge/ABHostLaunch.m").read_text()
+assert "ABNotifyAppOrient" in host
+assert "KB104PositionedWindow" in kb
+assert "keyboard.frame=target" in kb
+assert len(re.findall(r"keyboard\\.frame\\s*=",kb))==1
+print("HL36_NATIVE_ONLY_SOURCE_PASS: drawn UI/key relay unlinked; native UIKit focus, single owner, kbstate and src/project mirrors retained; DEVICE-PENDING")
+
