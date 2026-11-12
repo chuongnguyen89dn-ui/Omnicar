@@ -5,6 +5,7 @@
 // No native keyboard-window geometry or UIKeyboardLayoutStar writes.
 #import "AppBridgeB.h"
 #import "ABKeyboardDecl.h"
+#import "ABHost.h" // [hl41-native-host] original SpringBoard CarPlay surface
 #import <objc/runtime.h>
 #import <math.h>
 #import <stdlib.h>
@@ -243,17 +244,19 @@ static UIWindowScene *DC40PresentationScene(void) {
     return fallback; // Never display over an iPhone-only scene.
 }
 UIWindow *DC40NativeKeyboardHostWindow(void) {
-    if (![[NSBundle mainBundle].bundleIdentifier
-          isEqualToString:@"com.apple.CarPlayApp"]) return nil;
-    return DC40CurrentNonce ? DC40Window : nil;
+    // [hl41-native-host] Native uses the SAME SpringBoard carWindow
+    // and carAppArea as hosted. Never allocate an extra native UIWindow.
+    return nil;
 }
 static void DC40OverlayClose(void) {
+    NSString *formerOwner=DC40CurrentBundle;
     [DC40Queue removeAllObjects];
     DC40CurrentBundle=nil;
     DC40CurrentNonce=0;
     DC40TxSeq=0;
     DC40Retries=0;
-    [[ABKeyboard shared] hideForApp:nil];
+    if (formerOwner.length)
+        [[ABKeyboard shared] hideForApp:formerOwner]; // never close hosted
     // Keep the transparent UIWindow alive for the hide animation.
     // Touches pass through immediately because the nonce is now zero.
 }
@@ -273,7 +276,9 @@ static void DC40Pump(void) {
     DC40LastPost=now;
 }
 BOOL DC40NativeKeyboardRouteKey(NSString *action, NSUInteger del, NSString *text) {
-    if (!DC40CurrentNonce || !DC40CurrentBundle.length) return NO;
+    if (!DC40CurrentNonce || !DC40CurrentBundle.length ||
+        ![[ABKeyboard shared].app isEqualToString:DC40CurrentBundle])
+        return NO; // hosted app still routes over appbridge.key
     if (DC40Queue.count>=128) {
         OMCLogWrite(@"AppBridge",
             @"[hl40-native-drawn] command queue saturated; closed");
@@ -315,21 +320,18 @@ static void DC40PresenterFocus(NSNotification *note) {
             nonce==DC40CurrentNonce) DC40OverlayClose();
         return;
     }
-    UIWindowScene *scene=DC40PresentationScene();
-    if (!scene) return;
-    if (DC40CurrentNonce &&
-        (![bundle isEqualToString:DC40CurrentBundle] ||
-         nonce!=DC40CurrentNonce)) DC40OverlayClose();
-    if (!DC40Window || DC40Window.windowScene!=scene) {
-        [DC40Window setHidden:YES];
-        DC40Window=[[DC40OverlayWindow alloc] initWithWindowScene:scene];
-        DC40Window.backgroundColor=[UIColor clearColor];
-        DC40Window.windowLevel=UIWindowLevelAlert+2.0;
-        DC40Window.rootViewController=[UIViewController new];
-        DC40Window.rootViewController.view.backgroundColor=[UIColor clearColor];
+    // [hl41-native-host] The native client is remote, but presentation
+    // belongs to SpringBoard's original CarPlay surface and app area.
+    UIWindow *host=[ABHost shared].carWindow;
+    CGRect area=[ABHost shared].carAppArea;
+    if (!host || CGRectIsNull(area) || CGRectIsEmpty(area) ||
+        area.size.width < 200 || area.size.height < 200) {
+        OMCLogWrite(@"AppBridge",
+            @"[hl41-native-host] skip: no valid SpringBoard carWindow/appArea");
+        return;
     }
-    DC40Window.frame=scene.coordinateSpace.bounds;
-    DC40Window.hidden=NO; // Do NOT makeKey; native first responder stays remote.
+    if (DC40CurrentNonce &&
+        ![bundle isEqualToString:DC40CurrentBundle]) DC40OverlayClose();
     DC40CurrentBundle=[bundle copy];
     DC40CurrentNonce=nonce;
     DC40TxSeq=0;
@@ -337,10 +339,14 @@ static void DC40PresenterFocus(NSNotification *note) {
     NSInteger kind=[note.userInfo[@"keyboardType"] integerValue];
     NSInteger ret=[note.userInfo[@"returnType"] integerValue];
     [[ABKeyboard shared] showForApp:bundle keyboardType:kind returnType:ret];
-    OMCLogWrite(@"AppBridge",
-        @"[hl40-native-drawn] CarPlayApp presented original ABKeyboard in scene window");
+    OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl41-native-host] SpringBoard panel=%@ carArea=%@ carWindow=%@ nonce=%u",
+        NSStringFromCGRect([ABKeyboard shared].panel.frame),
+        NSStringFromCGRect(area),NSStringFromCGRect(host.bounds),nonce]);
 }
 void DC40NativePresenterStart(void) {
+    if (![[[NSBundle mainBundle] bundleIdentifier]
+          isEqualToString:@"com.apple.springboard"]) return;
     if (DC40PresenterInstalled) return;
     DC40PresenterInstalled=YES;
     NSDistributedNotificationCenter *dc=[NSDistributedNotificationCenter defaultCenter];
@@ -352,5 +358,5 @@ void DC40NativePresenterStart(void) {
     DC40RetryTimer=[NSTimer scheduledTimerWithTimeInterval:0.15 repeats:YES
             block:^(NSTimer *t) { (void)t; DC40Pump(); }];
     OMCLogWrite(@"AppBridge",
-        @"[hl40-native-drawn] CarPlayApp presenter started; no native keyplane writes");
+        @"[hl41-native-host] SpringBoard original-carWindow presenter armed");
 }
