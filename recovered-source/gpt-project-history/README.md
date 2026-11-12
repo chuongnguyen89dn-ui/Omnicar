@@ -1,5 +1,17 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — VERIFIED source: original OmniCar native keyboard is NOT ABKeyboard
+- Nguyen corrected a false generalization: OmniCar 1.0.3 draws **ABKeyboard only for hosted/non-CarPlay-supported apps**, while true CarPlay native apps retain their own UIKit/system keyboard. GPT checked directly against early reconstruction `b4d652ee` (same repository, `recovered-source/src`), with exact file/line evidence:
+  - `AppBridgeB/AppBridgeEntry.m:43-56`: excludes `com.apple.CarPlayApp` and `com.apple.CarPlayTemplateUIHost` from hosted-app observer/hook constructor; native app identity is not alone a complete test, but app-role exclusion is explicit.
+  - `AppBridgeB/ABInApp.m:269-283`: only calls `ABSuppressSystemKeyboard` if `ABForcedOrientation >= 1` (hosted assignment), setting blank `inputView`, with focus publish.
+  - `AppBridgeB/ABInApp.m:286-341`: restores the input view at resign, publishes `appbridge.keyboard` Darwin state from hosted responder; car keyboard input relayed via `appbridge.key`.
+  - `AppBridgeB/ABHostGeometry.m:118-134`: `ABKeyboardDispatch` resolves `bundleForHash:` within existing `ABHost` panes; absent pane => logs and returns, no drawn keyboard.
+  - `AppBridgeB/ABKeyboard.m:276-295`: car-drawn keyboard panel is attached to `[ABHost shared].carWindow`.
+  - `SplitScreenA/SCPShared.m:114-130`: `SCPIsHostedApp` selects appbridge-hosted apps; SplitScreen owns distinct native app presentation path.
+- Consequence: **Do not modify native CarPlay keyboard** when restoring OmniCar 1.0.3 drawn keyboard. Host role must be checked before creating a drawn keyboard. Device observation (Nguyen) confirms native system keyboard works correctly; source establishes isolation/absence of drawn-keyboard route, but does not itself pixel-prove every native keyboard.
+- This turn is only code verification; **no source code edits, CI, build, DEB or vehicle test**. Earlier assistant claim that native apps also use `ABKeyboard` was incorrect and superseded.
+
+
 ## 2026-11-12 — HL39 Offline ARM64 original Zoom diagnostic DEB (no CI/FAT)
 - User changed delivery requirement: **no CI and no FAT**, send a directly downloadable `.deb`. The source-build toolchain Theos/ldid/iOS SDK is NOT installed locally; `curl github.com` failed DNS lookup. So this is an explicit **offline Mach-O binary patch**, NOT a compiler-built original-source DEB. No new GitHub CI was triggered.
 - True original OmniCar 1.0.3 `-[ABHost zoom]` = `OMCPref(@"appBridgeZoom", @80)/100` clamped [0.6,1.0] and HL37 already has the same function. Later YT orientation virtualization is additional, distinct from original zoom. The trial disables one sole YT lease registrar in signed HL37 arm64 AppBridge: `_YZRegisterHostLease` at original arm64 virtual address `0x24224`, replace 4 bytes `080100d0` (`adrp x8`) → `c0035fd6` (`ret`). No more host-issued leases following process restart, so YT answer hooks are inactive. Does NOT remove dormant code or represent byte-identical original OmniCar. Native keyboard, menu, ratio geometry, Dock, pinch, app ID unchanged. No source mutation or branch commit was performed for the offline patch.
