@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL33: thay chủ bàn phím, tách cửa sổ bubble CarPlay, đối chiếu DEB DuoNavi 1.0.4
+- Nguyen yêu cầu **loại bỏ hẳn** các cơ chế bàn phím chồng chéo. Đã tạo nhánh code `feature/duocar-hl33-owner-cleanup-20261112` từ HL32 `4f13d1ea`; source HEAD hiện ghi trong checkpoint `038aa47f`. Đã bỏ `ABNativeKbFit`, ép frame, retry và rollback; nối traits/clip từ IMP đúng gốc DuoNavi; bubble có cửa sổ CarPlay pass-through riêng ở level dưới picker, không còn trong split.container; voice đối chiếu category 0x6e + 48k, đo năng lượng PCM từng channel và không báo nghe giả. Kiểm 8/8 cặp source mirror SHA khớp. CI source gates đã PASS, compile FAT đang chạy/đang sửa lỗi tại checkpoint; **CHƯA DEVICE PASS**, không được coi đã chữa xong tiếng CarAudio và phím solo. Chi tiết, commit chain, CI IDs, rollback và cổng nghiệm thu: [HL33 — owner cleanup + DuoNavi104 audit](HL33_DUONAVI104_OWNER_REPLACEMENT_20261112.md).
+
+
+
 ## 2026-11-12 — HL33 owner cleanup đang biên dịch, CHƯA DEVICE PASS
 - Nhánh `feature/duocar-hl33-owner-cleanup-20261112`, HEAD gần nhất `038aa47f` từ HL32 `4f13d1ea`; thay thế các writer frame/rollback cũ bằng scene traits read-only + clip hook có phạm vi, bubble độc lập trên CarPlay pass-through window, sửa audio session/PCM đo nhiều kênh. Source/project mirrors và HL33 source contracts kiểm qua CI, nhưng các build cũ thất bại lỗi `CGRectNull` initializer; bản mới `43160289936` đang biên dịch FAT, **chưa có DEB HL33 đã kiểm**, xe chưa thử. Ghi nhận cụ thể, các lỗi cần kiểm và rollback: [Checkpoint HL33](HL33_IMPLEMENTATION_CHECKPOINT_20261112.md).
 
