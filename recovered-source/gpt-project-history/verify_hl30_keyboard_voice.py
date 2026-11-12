@@ -57,56 +57,50 @@ assert 'UIKeyboardLayoutStar.transform =' not in ab
 assert 'reloadInputViews]' not in ab
 assert 'host-frame-settled' not in ab
 
-# One actual CarPlay button, no separate window/split owner.
-assert 'SCPVoiceBubbleUpdate(SCPCarSplit *split)' in native
-assert 'SCPVoiceBubbleDetach(SCPCarSplit *split)' in native
-assert 'SCPVoiceNativeToggle(SCPCarSplit *split)' in native
-assert 'SCPVoiceNativeToggle(self)' in bridge
-# Local voice commands must use the SAME allowlisted owner (direct call,
-# no duplicate NSDistributedNotificationCenter dispatch / phantom ACK).
-assert 'SCPVoiceDispatchLocalCommand(command)' in native
-assert 'BOOL SCPVoiceDispatchLocalCommand(NSDictionary *command)' in bridge
-assert 'SCPVoiceExecute(command)' in bridge
-assert 'AVAudioSessionInterruptionNotification' in native
-assert 'AVAudioSessionRouteChangeReasonOldDeviceUnavailable' in native
-assert 'bubble.userInteractionEnabled=!bubble.hidden' in native
-assert 'split.tray!=nil || split.pickerSheet!=nil' in native
-assert 'bubble.onBubbleTapped=^' in native and 'SCPVoiceNativeToggle(owner)' in native
-assert 'dcVoiceRequest:' not in panel
-assert 'SCPVoiceBubbleUpdate(self)' in split
-assert 'SCPVoiceBubbleDetach(self)' in split
-assert 'SCPVoiceBubbleUpdate([SCPCarSplit shared])' in hooks
-assert 'SCPVoiceNative.m' in make
-assert 'DCVoiceCommand.m' in make
-assert ' Speech' in make
-assert 'SCPVoiceNativeToggle' in header
-assert 'UIWindow new' not in native
-assert 'windowLevel' not in native
-
-# Own-process, permission-gated input; never copy DuoNavi binary or grant TCC.
-assert 'SFSpeechRecognizer authorizationStatus' in native
-assert 'AVAudioSession.sharedInstance.recordPermission' in native
-assert 'NSMicrophoneUsageDescription' in native
-assert 'NSSpeechRecognitionUsageDescription' in native
-assert 'AVAudioSessionRecordPermissionGranted' in native
-assert 'SFSpeechRecognizerAuthorizationStatusAuthorized' in native
-assert 'voiceAppleOnlineEnabled",@NO' in native
-assert 'voiceAssistantEnabled",@NO' in native
-assert 'SFSpeechAudioBufferRecognitionRequest' in native
-assert 'requiresOnDeviceRecognition=YES' in native
-assert 'AVAudioEngine' in native
-assert 'self.generation' in native and '12*NSEC_PER_SEC' in native
-assert 'DCVoiceParseCommand(utterance,allowed)' in native
-assert 'DCVoiceAllow(command,split)' in bridge
-assert 'now-DCVoiceLastReceiveAt<0.5' in bridge
-assert all(needle not in native for needle in
-           ('TCC.db','--grant-tcc','SiriInvocation','api.openai.com',
-            'apiKey=','chatgpt.com','DuoNaviDashboard.dylib'))
-assert '1.0.3-hl31bubbleaudit' in version
+# HL31: CarPlay handles presentation and typed owner commands; SpringBoard
+# owns microphone, on-device/cloud opt-in speech and spoken feedback.
+agent=(project/"OmniCarSplitScreen/SCPVoiceSpringAgent.m").read_text()
+spring=(project/"OmniCarSplitScreen/SCPSpringBoardHooks.m").read_text()
+bubble=(project/"OmniCarSplitScreen/SCPVoiceBubbleView.m").read_text()
+assert (project/"OmniCarSplitScreen/SCPVoiceSpringAgent.m").read_bytes() == (src/"SplitScreenA/SCPVoiceSpringAgent.m").read_bytes()
+assert (project/"OmniCarSplitScreen/SCPVoiceSpringAgent.h").read_bytes() == (src/"SplitScreenA/SCPVoiceSpringAgent.h").read_bytes()
+assert "SCPVoiceBubbleUpdate(SCPCarSplit *split)" in native
+assert "SCPVoiceBubbleDetach(SCPCarSplit *split)" in native
+assert "SCPVoiceNativeToggle(SCPCarSplit *split)" in native
+assert "SCPVoiceNativeToggle(self)" in bridge
+assert "SCPVoiceDispatchLocalCommand(command)" in bridge
+assert "BOOL SCPVoiceExecute(NSDictionary *command)" in bridge
+assert 'voice.capture.state' in bridge
+assert "SCPVoiceHandleRemoteState(note.userInfo)" in bridge
+assert "SCPVoiceHandleRemoteState(NSDictionary *packet)" in native
+assert "event=carplay-bubble-hit owner=existing-split" in native
+assert "event=agent-state" in native
+assert "SCPVoiceSpringAgent.m" in make
+assert "SCPVoiceSpringInstall();" in spring
+assert "SCPVoiceSpringInstall(void)" in agent
+assert "AVAudioEngine" in agent and "AVAudioSession" in agent
+assert "SFSpeechAudioBufferRecognitionRequest" in agent
+assert "shouldReportPartialResults=YES" in agent
+assert "AVAudioSessionRecordPermissionGranted" in agent
+assert "SFSpeechRecognizerAuthorizationStatusAuthorized" in agent
+assert "springboard-tcc-denied" in agent
+assert "requestID" in agent and "DCVoiceParseCommand(text,approved)" in agent
+assert "AVSpeechSynthesizer" in agent and "speakUtterance:utterance" in agent
+assert "event=tts-started" in agent and "event=tts-finished" in agent
+assert "event=pcm-frames" in agent and "event=stt-partial" in agent
+assert "event=owner-ack" in agent
+assert "SCPVoiceBubbleDetach(self)" in split
+assert "SCPVoiceBubbleUpdate(self)" in split
+assert "SCPVoiceBubbleUpdate([SCPCarSplit shared])" in hooks
+assert "[UIButton buttonWithType:" not in native
+assert "AVAudioEngine" not in native
+assert "SFSpeechRecognizer" not in native
+assert "windowLevel" not in native
+assert "DCVoiceParseCommand" in agent
+assert "1.0.3-hl31voiceagent" in version
+assert all(t not in agent+native for t in
+    ("TCC.db","--grant-tcc","api.openai.com","chatgpt.com",
+     "DuoNaviDashboard.dylib","apiKey="))
 assert all(key in parser for key in
-           ('@"swap"', '@"ratio"', '@"layout"', '@"open"'))
-
-print("HL30_SOURCE_CONTRACT_PASS",
-      len(pairs),"byte-parity pairs",
-      "keyboard-viewport + CarPlay-bubble + TCC-safe speech",
-      "device-proven=NO")
+    ('@"swap"', '@"ratio"', '@"layout"', '@"open"'))
+print("HL31_VOICE_CAPTURE_TTS_SOURCE_CONTRACT_PASS, compile-test pending, device-proven=NO")

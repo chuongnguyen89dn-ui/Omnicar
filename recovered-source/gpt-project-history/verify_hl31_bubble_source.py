@@ -39,14 +39,15 @@ assert "SCPVoiceBubbleStateSpeaking" in head
 assert "gestureRecognizer:" in bubble and "pointInside:" in bubble
 assert "SCPVoiceNativeToggle(owner)" in native
 assert 'event=carplay-bubble-hit owner=existing-split' in native
-assert 'event=carplay-permission-block' in native
-assert 'event=carplay-audio-started' in native
+assert 'event=agent-state' in native
+assert 'event=bubble-request' in native
+assert 'voice.capture.request' in native
 assert "SCPVoiceBubbleDetach(self)" in split
 assert "SCPVoiceBubbleUpdate(self)" in split
 assert "SCPVoiceBubbleUpdate([SCPCarSplit shared])" in hooks
 assert "split.tray!=nil || split.pickerSheet!=nil" in native
 assert "split.resizing || split.dragGhost!=nil" in native
-assert "SCPVoiceDispatchLocalCommand(command)" in native
+assert "SCPVoiceHandleRemoteState(NSDictionary *packet)" in native
 assert "TCC.db" not in bubble and "TCC.db" not in native
 assert "--grant-tcc" not in native and "--grant-tcc" not in bubble
-print("HL31_BUBBLE_SOURCE_CONTRACT_PASS, device-proven=NO, mic-authorization=BLOCKED")
+print("HL31_BUBBLE_SOURCE_CONTRACT_PASS, device-proven=NO, mic-authorization=TO_BE_MEASURED")

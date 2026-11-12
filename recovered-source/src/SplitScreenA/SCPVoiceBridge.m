@@ -12,6 +12,7 @@
 
 static NSString *const DCVoiceActionName=@"com.anlai.omnicar/voice.action";
 static NSString *const DCVoiceAckName=@"com.anlai.omnicar/voice.ack";
+static NSString *const DCVoiceCaptureStateName=@"com.anlai.omnicar/voice.capture.state";
 static NSString *DCVoiceLastID;
 static NSTimeInterval DCVoiceLastReceiveAt;
 
@@ -130,6 +131,14 @@ void SCPVoiceInstall(void) {
         addObserverForName:DCVoiceActionName object:nil
         queue:NSOperationQueue.mainQueue
         usingBlock:^(NSNotification *note) { SCPVoiceHandle(note); }];
+    [[NSDistributedNotificationCenter defaultCenter]
+        addObserverForName:DCVoiceCaptureStateName object:nil
+        queue:NSOperationQueue.mainQueue
+        usingBlock:^(NSNotification *note) {
+            SCPVoiceHandleRemoteState(note.userInfo);
+        }];
+    OMCLogWrite(@"SplitScreen",
+        @"[hl31-voice] event=carplay-voice-observer-ready owner=existing-split");
     NSLog(@"[hl29-voice] event=carplay-observer-ready");
 }
 

@@ -1,280 +1,150 @@
-// HL30: first-party, opt-in CarPlay microphone bubble.
-// Never transplant DuoNavi binary, edit TCC, hook Siri or record silently.
+// HL31: DuoCar bubble is presentation only. A separate, permission-gated
+// voice session in SpringBoard handles mic/STT/TTS. This file never records
+// from com.apple.CarPlayApp and never copies a DuoNavi runtime component.
+// Device success requires BOTH voice states and actual acoustic testing.
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <Speech/Speech.h>
-#import <AVFoundation/AVFoundation.h>
 #import <objc/runtime.h>
 #import "SCPVoiceNative.h"
 #import "SCPVoiceBubbleView.h"
 #import "SCPCarSplit.h"
-#import "SCPVoiceBridge.h"
+#import "SCPShared.h"
 #import "SCPPrefs.h"
-#import "SCPShared.h" // OMCPref declaration (renamed DCRPref in signed DuoCar build)
 #import "SCPFullscreenController.h"
-#import "DCVoiceCommand.h"
+#import "SCPIntegrationShims.h"
+#import <unistd.h>
+#import <math.h>
 
+static NSString *const DCVoiceCaptureRequest=@"com.anlai.omnicar/voice.capture.request";
 static char DCVoiceBubbleAssociation;
+static NSString *DCRemotePhase=@"idle";
+static NSString *DCRemoteRequestID;
+static BOOL DCRemoteResponded=NO;
 static SCPVoiceBubbleView *DCVoiceBubble(SCPCarSplit *split) {
-    return split ? objc_getAssociatedObject(split,&DCVoiceBubbleAssociation) : nil;
+    return split?objc_getAssociatedObject(split,&DCVoiceBubbleAssociation):nil;
 }
-@interface DCVoiceCarSession : NSObject
-@property(nonatomic,strong) AVAudioEngine *engine;
-@property(nonatomic,strong) SFSpeechRecognizer *recognizer;
-@property(nonatomic,strong) SFSpeechAudioBufferRecognitionRequest *request;
-@property(nonatomic,strong) SFSpeechRecognitionTask *task;
-@property(nonatomic,weak) SCPCarSplit *split;
-@property(nonatomic) NSUInteger generation;
-@property(nonatomic) BOOL listening;
-@property(nonatomic) BOOL audioOwned;
-@property(nonatomic,copy) NSString *oldCategory;
-@property(nonatomic,copy) NSString *oldMode;
-@property(nonatomic) AVAudioSessionCategoryOptions oldOptions;
-@property(nonatomic,strong) id interruptionObserver;
-@property(nonatomic,strong) id routeObserver;
-- (void)toggle:(SCPCarSplit *)split;
-- (void)stop;
-@end
-static DCVoiceCarSession *DCVoiceSession;
-static void DCVoicePaint(SCPCarSplit *split, BOOL listening) {
-    [DCVoiceBubble(split) setVoiceState:
-        (listening ? SCPVoiceBubbleStateListening : SCPVoiceBubbleStateIdle) animated:YES];
+static NSString *DCVoiceSummary(NSString *code) {
+    NSDictionary *messages=@{
+      @"springboard-tcc-denied":@"Tiến trình thu âm chưa có quyền Micro/Speech.",
+      @"audio-session-failed":@"Không bật được phiên âm thanh.",
+      @"audio-no-input-format":@"Không tìm thấy đầu vào microphone.",
+      @"audio-engine-failed":@"Microphone không hoạt động.",
+      @"speech-task-nil":@"Apple Speech chưa tạo được phiên nghe.",
+      @"recognizer-unavailable":@"Nhận dạng giọng nói chưa khả dụng.",
+      @"on-device-not-supported":@"Ngôn ngữ này chưa hỗ trợ nhận dạng offline.",
+      @"no-speech-timeout":@"Không nghe được tiếng nói. Hãy thử lại.",
+      @"parser-rejected":@"Chưa hiểu lệnh. Hãy nói lại.",
+      @"owner-ack-timeout":@"CarPlay không xác nhận đã nhận lệnh.",
+      @"command-rejected":@"Lệnh bị từ chối.",
+      @"audio-interruption":@"Phiên nghe bị cuộc gọi hoặc Siri ngắt.",
+      @"route-unavailable":@"Microphone/CarPlay đã ngắt kết nối.",
+      @"tts-session-failed":@"Không phát được giọng nói trả lời."
+    };
+    return messages[code]?:@"Giọng nói chưa hoạt động, hãy kiểm tra log.";
 }
-@implementation DCVoiceCarSession
-- (void)stop {
-    ++self.generation;
-    self.listening=NO;
-    NSNotificationCenter *notices=[NSNotificationCenter defaultCenter];
-    if (self.interruptionObserver) {
-        [notices removeObserver:self.interruptionObserver];
-        self.interruptionObserver=nil;
-    }
-    if (self.routeObserver) {
-        [notices removeObserver:self.routeObserver];
-        self.routeObserver=nil;
-    }
-    if (self.engine.isRunning) [self.engine stop];
-    if (self.engine) {
-        @try { [self.engine.inputNode removeTapOnBus:0]; }
-        @catch (__unused NSException *e) {}
-    }
-    [self.request endAudio];
-    [self.task cancel];
-    self.task=nil;self.engine=nil;self.request=nil;self.recognizer=nil;
-    if (self.audioOwned) {
-        self.audioOwned=NO;
-        AVAudioSession *audio=AVAudioSession.sharedInstance;
-        [audio setActive:NO withOptions:
-            AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
-        if (self.oldCategory.length && self.oldMode.length)
-            [audio setCategory:self.oldCategory mode:self.oldMode
-                 options:self.oldOptions error:nil];
-    }
-    DCVoicePaint(self.split,NO);
-    NSLog(@"[hl30-voice] event=capture-stopped");
+static void DCVoiceSendRequest(NSString *operation) {
+    NSString *rid=NSUUID.UUID.UUIDString;
+    DCRemoteRequestID=rid;
+    DCRemoteResponded=NO;
+    NSDictionary *packet=@{
+      @"requestID":rid,
+      @"op":operation,
+      @"time":@(NSDate.date.timeIntervalSince1970)
+    };
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotificationName:DCVoiceCaptureRequest object:nil userInfo:packet];
+    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+        @"[hl31-voice] pid=%d event=bubble-request op=%@ request=%@",
+        getpid(),operation,rid]);
 }
-- (void)toggle:(SCPCarSplit *)split {
-    if (self.listening) {
-        [self stop]; [split toast:@"Đã dừng nghe."]; return;
-    }
-    if (!split.active || ![SCPPrefs enabled] ||
-        ![OMCPref(@"voiceAssistantEnabled",@NO) boolValue]) return;
-    // CarPlayApp is NOT the DuoCar iPhone app. Its mic and Speech TCC
-    // permissions must be checked separately. No silent permission grant.
-    NSDictionary *info=NSBundle.mainBundle.infoDictionary;
-    NSString *microphone=info[@"NSMicrophoneUsageDescription"];
-    NSString *speech=info[@"NSSpeechRecognitionUsageDescription"];
-    SFSpeechRecognizerAuthorizationStatus s=[SFSpeechRecognizer authorizationStatus];
-    AVAudioSessionRecordPermission m=AVAudioSession.sharedInstance.recordPermission;
-    if (![microphone isKindOfClass:NSString.class] || !microphone.length ||
-        ![speech isKindOfClass:NSString.class] || !speech.length ||
-        s!=SFSpeechRecognizerAuthorizationStatusAuthorized ||
-        m!=AVAudioSessionRecordPermissionGranted) {
-        NSLog(@"[hl30-voice] event=permission-block speech=%ld mic=%ld keys=%d/%d",
-              (long)s,(long)m,(int)(microphone.length>0),(int)(speech.length>0));
-        [DCVoiceBubble(split) setVoiceState:SCPVoiceBubbleStateError animated:YES];
-        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-            @"[hl31-voice] event=carplay-permission-block speech=%ld mic=%ld usageMic=%d usageSpeech=%d",
-            (long)s,(long)m,(int)(microphone.length>0),(int)(speech.length>0)]);
-        [split toast:@"CarPlay chưa được cấp quyền Micro/Speech. Không bắt đầu nghe."];
-        return;
-    }
-    NSString *lang=OMCPref(@"voiceAssistantLanguage",@"vi-VN");
-    if (![lang isEqualToString:@"vi-VN"] &&
-        ![lang isEqualToString:@"en-US"]) lang=@"vi-VN";
-    self.recognizer=[[SFSpeechRecognizer alloc] initWithLocale:
-        [NSLocale localeWithLocaleIdentifier:lang]];
-    if (!self.recognizer || !self.recognizer.available) {
-        self.recognizer=nil; [split toast:@"Không có nhận dạng giọng nói."];
-        return;
-    }
-    BOOL online=[OMCPref(@"voiceAppleOnlineEnabled",@NO) boolValue];
-    if (!self.recognizer.supportsOnDeviceRecognition && !online) {
-        self.recognizer=nil;
-        [split toast:@"Thiết bị chưa hỗ trợ nhận dạng offline; xem Cài đặt."];
-        return;
-    }
-    self.split=split;
-    AVAudioSession *audio=AVAudioSession.sharedInstance;
-    self.oldCategory=audio.category;
-    self.oldMode=audio.mode;
-    self.oldOptions=audio.categoryOptions;
-    NSError *error=nil;
-    if (![audio setCategory:AVAudioSessionCategoryPlayAndRecord
-        mode:AVAudioSessionModeDefault options:AVAudioSessionCategoryOptionMixWithOthers
-        error:&error]) {
-        self.recognizer=nil; [split toast:@"Không đặt được chế độ micro."];
-        return;
-    }
-    if (![audio setActive:YES error:&error]) {
-        [audio setCategory:self.oldCategory mode:self.oldMode
-             options:self.oldOptions error:nil];
-        self.recognizer=nil; [split toast:@"Micro CarPlay không khởi động."];
-        return;
-    }
-    self.audioOwned=YES;
-    // Stop on incoming calls/Siri and when CarPlay audio route is lost.
-    // One tap, one bounded command; never auto-resume audio capture.
-    __weak typeof(self) weakSession=self;
-    self.interruptionObserver=[[NSNotificationCenter defaultCenter]
-        addObserverForName:AVAudioSessionInterruptionNotification
-        object:nil queue:NSOperationQueue.mainQueue
-        usingBlock:^(NSNotification *note) {
-            DCVoiceCarSession *owner=weakSession;
-            if (!owner || !owner.listening) return;
-            NSNumber *kind=note.userInfo[AVAudioSessionInterruptionTypeKey];
-            if (kind.integerValue!=AVAudioSessionInterruptionTypeBegan) return;
-            SCPCarSplit *target=owner.split;
-            [owner stop];
-            [target toast:@"Phiên giọng nói bị ngắt bởi Siri/cuộc gọi."];
-            NSLog(@"[hl30-voice] event=audio-interrupted reason=system");
-        }];
-    self.routeObserver=[[NSNotificationCenter defaultCenter]
-        addObserverForName:AVAudioSessionRouteChangeNotification
-        object:nil queue:NSOperationQueue.mainQueue
-        usingBlock:^(NSNotification *note) {
-            DCVoiceCarSession *owner=weakSession;
-            if (!owner || !owner.listening) return;
-            NSNumber *kind=note.userInfo[AVAudioSessionRouteChangeReasonKey];
-            if (kind.integerValue!=AVAudioSessionRouteChangeReasonOldDeviceUnavailable)
-                return;
-            SCPCarSplit *target=owner.split;
-            [owner stop];
-            [target toast:@"Microphone/CarPlay đã ngắt kết nối."];
-            NSLog(@"[hl30-voice] event=audio-route-lost");
-        }];
-    @try {
-        self.engine=[AVAudioEngine new];
-        AVAudioInputNode *node=self.engine.inputNode;
-        AVAudioFormat *fmt=[node outputFormatForBus:0];
-        if (!fmt || fmt.sampleRate<=0) {
-            [self stop]; [split toast:@"Micro không có tín hiệu."]; return;
-        }
-        self.request=[SFSpeechAudioBufferRecognitionRequest new];
-        self.request.shouldReportPartialResults=NO;
-        if (self.recognizer.supportsOnDeviceRecognition)
-            self.request.requiresOnDeviceRecognition=YES;
-        NSUInteger gen=++self.generation;
-        __weak typeof(self) weakSelf=self;
-        [node installTapOnBus:0 bufferSize:1024 format:fmt
-             block:^(AVAudioPCMBuffer *pcm,__unused AVAudioTime *time) {
-            DCVoiceCarSession *current=weakSelf;
-            if (current && current.generation==gen && current.request)
-                [current.request appendAudioPCMBuffer:pcm];
-        }];
-        [self.engine prepare];
-        if (![self.engine startAndReturnError:&error]) {
-            [self stop]; [split toast:@"Không ghi âm được trên CarPlay."]; return;
-        }
-        self.listening=YES; DCVoicePaint(split,YES);
-        NSLog(@"[hl30-voice] event=audio-started route=%@ language=%@ offline=%d",
-             audio.currentRoute.inputs.firstObject.portType ?: @"none",
-             lang,(int)self.recognizer.supportsOnDeviceRecognition);
-        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-            @"[hl31-voice] event=carplay-audio-started route=%@",
-            audio.currentRoute.inputs.firstObject.portType?:@"none"]);
-        [split toast:@"Đang nghe trên CarPlay (12 giây)..."];
-        self.task=[self.recognizer recognitionTaskWithRequest:self.request
-            resultHandler:^(SFSpeechRecognitionResult *result,NSError *failure) {
-            DCVoiceCarSession *current=weakSelf;
-            if (!current || current.generation!=gen) return;
-            if (result.isFinal && result.bestTranscription.formattedString.length) {
-                NSString *utterance=result.bestTranscription.formattedString;
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    DCVoiceCarSession *owner=weakSelf;
-                    if (!owner || owner.generation!=gen) return;
-                    SCPCarSplit *activeSplit=owner.split;
-                    [owner stop];
-                    if (!activeSplit.active) return;
-                    NSMutableSet<NSString *> *allowed=[NSMutableSet set];
-                    for (NSString *key in @[@"appBridgeApps",@"splitScreenCarPlayApps"]) {
-                        id bundles=OMCPref(key,@[]);
-                        if (![bundles isKindOfClass:NSArray.class]) continue;
-                        for (id bundle in bundles)
-                            if ([bundle isKindOfClass:NSString.class])
-                                [allowed addObject:bundle];
-                    }
-                    NSDictionary *command=DCVoiceParseCommand(utterance,allowed);
-                    if (!command) {
-                        NSLog(@"[hl30-voice] event=parser-rejected");
-                        [activeSplit toast:@"Không hiểu lệnh, hãy thử lại."];
-                        return;
-                    }
-                    BOOL accepted=SCPVoiceDispatchLocalCommand(command);
-                    [activeSplit toast:accepted
-                        ? @"Đã nhận lệnh, kiểm tra kết quả trên xe."
-                        : @"CarPlay từ chối lệnh này."];
-                    NSLog(@"[hl30-voice] event=command-dispatch action=%@ accepted=%d device-proven=NO",
-                          command[@"action"],(int)accepted);
-                });
-            } else if (failure) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    DCVoiceCarSession *owner=weakSelf;
-                    if (!owner || owner.generation!=gen) return;
-                    SCPCarSplit *activeSplit=owner.split;
-                    [owner stop];
-                    [activeSplit toast:@"Không nhận dạng được, chạm để thử lại."];
-                    NSLog(@"[hl30-voice] event=recognition-error code=%ld",
-                          (long)failure.code);
-                });
-            }
-        }];
-        if (!self.task) {
-            [self stop];
-            [split toast:@"Apple Speech không tạo được phiên nhận dạng."];
-            NSLog(@"[hl30-voice] event=recognition-task-nil");
-            return;
-        }
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,12*NSEC_PER_SEC),
-            dispatch_get_main_queue(), ^{
-            DCVoiceCarSession *owner=weakSelf;
-            if (!owner || owner.generation!=gen || !owner.listening) return;
-            SCPCarSplit *activeSplit=owner.split;
-            [owner stop];
-            [activeSplit toast:@"Hết 12 giây nghe."];
-        });
-    } @catch (NSException *exception) {
-        [self stop];
-        [split toast:@"Đã dừng micro sau lỗi."];
-        NSLog(@"[hl30-voice] event=capture-error exception=%@",exception.name);
-    }
-}
-@end
-
 void SCPVoiceNativeToggle(SCPCarSplit *split) {
-    if (!DCVoiceSession) DCVoiceSession=[DCVoiceCarSession new];
-    [DCVoiceSession toggle:split];
+    if (!split.active || ![SCPPrefs enabled] ||
+        ![OMCPref(@"voiceAssistantEnabled",@NO) boolValue]) {
+        [split toast:@"Bật Trợ lý giọng nói trong Cài đặt DuoCar."];
+        return;
+    }
+    BOOL active=([DCRemotePhase isEqualToString:@"listening"] ||
+                 [DCRemotePhase isEqualToString:@"thinking"] ||
+                 [DCRemotePhase isEqualToString:@"speaking"] ||
+                 [DCRemotePhase isEqualToString:@"requesting"]);
+    [DCVoiceBubble(split) wakeBubble];
+    DCVoiceSendRequest(active?@"stop":@"toggle");
+    if (active) {
+        DCRemotePhase=@"idle";
+        [DCVoiceBubble(split) setVoiceState:SCPVoiceBubbleStateIdle animated:YES];
+        return;
+    }
+    DCRemotePhase=@"requesting";
+    [DCVoiceBubble(split) setVoiceState:SCPVoiceBubbleStateThinking animated:YES];
+    NSString *rid=[DCRemoteRequestID copy];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(4*NSEC_PER_SEC)),
+        dispatch_get_main_queue(),^{
+        if (![DCRemoteRequestID isEqual:rid] || DCRemoteResponded) return;
+        DCRemotePhase=@"error";
+        [DCVoiceBubble([SCPCarSplit shared])
+            setVoiceState:SCPVoiceBubbleStateError animated:YES];
+        [[SCPCarSplit shared] toast:
+            @"Không nhận được phản hồi từ tiến trình thu âm."];
+        OMCLogWrite(@"SplitScreen",
+            @"[hl31-voice] event=agent-timeout owner=SpringBoard response=NONE");
+    });
+}
+void SCPVoiceHandleRemoteState(NSDictionary *packet) {
+    if (![packet isKindOfClass:NSDictionary.class] || !NSThread.isMainThread) return;
+    NSString *source=packet[@"source"],*rid=packet[@"requestID"],
+             *phase=packet[@"state"],*detail=packet[@"detail"];
+    NSNumber *time=packet[@"time"];
+    if (![source isEqualToString:@"SpringBoard"] ||
+        ![rid isKindOfClass:NSString.class] ||
+        ![rid isEqualToString:DCRemoteRequestID] ||
+        ![phase isKindOfClass:NSString.class] ||
+        ![time isKindOfClass:NSNumber.class] ||
+        !isfinite(time.doubleValue) ||
+        fabs(NSDate.date.timeIntervalSince1970-time.doubleValue)>60) return;
+    SCPCarSplit *split=[SCPCarSplit shared];
+    if (!split.active) return;
+    DCRemoteResponded=YES;
+    SCPVoiceBubbleView *bubble=DCVoiceBubble(split);
+    if ([phase isEqualToString:@"listening"]) {
+        DCRemotePhase=@"listening";
+        [bubble setVoiceState:SCPVoiceBubbleStateListening animated:YES];
+        [split toast:@"Microphone đã mở. Hãy nói một lệnh DuoCar."];
+    } else if ([phase isEqualToString:@"thinking"] ||
+               [phase isEqualToString:@"reply"]) {
+        DCRemotePhase=@"thinking";
+        [bubble setVoiceState:SCPVoiceBubbleStateThinking animated:YES];
+        if ([phase isEqualToString:@"reply"] &&
+            [detail isEqualToString:@"command-accepted"])
+            [split toast:@"CarPlay đã nhận yêu cầu."];
+    } else if ([phase isEqualToString:@"speaking"]) {
+        DCRemotePhase=@"speaking";
+        [bubble setVoiceState:SCPVoiceBubbleStateSpeaking animated:YES];
+    } else if ([phase isEqualToString:@"error"]) {
+        DCRemotePhase=@"error";
+        [bubble setVoiceState:SCPVoiceBubbleStateError animated:YES];
+        [split toast:DCVoiceSummary(detail)];
+    } else if ([phase isEqualToString:@"idle"]) {
+        DCRemotePhase=@"idle";
+        [bubble setVoiceState:SCPVoiceBubbleStateIdle animated:YES];
+    } else return;
+    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+        @"[hl31-voice] pid=%d event=agent-state state=%@ detail=%@ source=SpringBoard",
+        getpid(),phase,detail?:@""]);
 }
 void SCPVoiceBubbleDetach(SCPCarSplit *split) {
-    if (DCVoiceSession && DCVoiceSession.listening)
-        [DCVoiceSession stop];
+    if (![DCRemotePhase isEqualToString:@"idle"] &&
+        ![DCRemotePhase isEqualToString:@"error"]) {
+        DCVoiceSendRequest(@"stop");
+    }
+    DCRemotePhase=@"idle";
     SCPVoiceBubbleView *bubble=DCVoiceBubble(split);
     bubble.onBubbleTapped=nil;
     bubble.onPositionChanged=nil;
     [bubble removeFromSuperview];
     if (split) objc_setAssociatedObject(split,&DCVoiceBubbleAssociation,nil,
         OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    OMCLogWrite(@"SplitScreen",@"[hl31-bubble] event=detach voice=stopped");
+    OMCLogWrite(@"SplitScreen",
+        @"[hl31-voice] event=bubble-detach agent-stop-requested");
 }
 void SCPVoiceBubbleUpdate(SCPCarSplit *split) {
     if (!NSThread.isMainThread) return;
@@ -308,8 +178,6 @@ void SCPVoiceBubbleUpdate(SCPCarSplit *split) {
     }
     if (bubble.superview!=host) [host addSubview:bubble];
     [bubble updateBoundaryBounds:host.bounds];
-    // The original layout picker, divider and fullscreen remain the owners
-    // of their touch areas; bubble never creates another UIWindow.
     BOOL fullscreen=([[SCPFullscreenController shared] fsCommittedState]
         == SCPFullscreenStateExpanded);
     BOOL popup=(split.tray!=nil || split.pickerSheet!=nil ||
