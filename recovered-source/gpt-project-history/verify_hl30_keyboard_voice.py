@@ -30,32 +30,60 @@ make=(project/"OmniCarSplitScreen/Makefile").read_text()
 parser=(project/"OmniCarApp/DCVoiceCommand.m").read_text()
 version=(root/"gpt-project-history/rebrand_duocar.py").read_text()
 
-# Reproduce the measured regression CONTRACT rather than trusting a fit log.
-# Log 2026-11-11 21:35 showed visible FB keyboard keyplane wider than its
-# already-fitted UIWindow at 371 -> 495 -> 371, OUTSIDE-CLIP.
-assert '[hl30-kbviewport]' in ab
-assert 'CGAffineTransformMakeScale(scale, scale)' in ab
-assert 'sourceW = UIScreen.mainScreen.bounds.size.width' in ab
-assert 'keyboard.bounds = CGRectMake(0, 0, sourceW, sourceH)' in ab
-assert 'ABNativeKbOriginalTransform' in ab
-assert 'ABNativeKbOriginalBounds' in ab
-assert 'ABNativeKbOriginalCenter' in ab
-assert 'ABNativeKbRestore(@"host-release")' in ab
-assert 'ABNativeKbRestore(@"focus-resigned")' in ab
-assert 'ABNativeKbRestore(@"window-replaced")' in ab
-assert 'ABNativeKbRestore(@"projection-guard")' in ab
-assert 'if (ABNativeKbFit(why, 0))' in ab
-assert 'if (found)' in ab and '++ABNativeKbEpoch;' in ab
-assert 'ABNativeKbObserveLayout' in ab
-assert 'return applied && layoutObserved && planeInsideClip;' in ab
-assert 'planeInsideClip = !CGRectIsNull(planeRect)' in ab
-assert 'ABNativeKbRestore(@"keyplane-timeout-rollback")' in ab
-assert 'fallback=system-native outcome=NOT-PROVEN' in ab
-assert 'AB27FindKeyplane' in ab
-assert 'AB25ProbeKeyboardSurface' in ab
-assert 'UIKeyboardLayoutStar.transform =' not in ab
-assert 'reloadInputViews]' not in ab
-assert 'host-frame-settled' not in ab
+# HL32 replaced the HL30 emergency window transform with the original
+# DuoNavi-derived traits/keyplane owner; test THAT contract instead of
+# demanding that the broken transform still exists.
+if "[hl32-kbtraits]" in ab:
+    traits=(project/"OmniCarAppBridge/ABKeyboardTraits104.m").read_text()
+    assert (project/"OmniCarAppBridge/ABKeyboardTraits104.m").read_bytes()==(src/"AppBridgeB/ABKeyboardTraits104.m").read_bytes()
+    assert 'ABKB104InstallIfAvailable()' in ab
+    assert 'ABKB104SetHostGeometry(' in ab
+    assert 'ABKB104NoteWindowWidth(' in ab
+    assert 'ABKB104RefreshLayout(star)' in ab
+    assert 'CGAffineTransformMakeScale(scale, scale)' not in ab
+    assert 'keyboard.transform = ' not in ab
+    assert 'setKeyboardName:' in traits and 'setKeyplaneName:' in traits
+    assert 'traitsWithScreen:orientation:' in traits
+    assert 'KB104Signature(' in traits and 'KB104Eligible()' in traits
+    assert 'ABNativeKbRestore(@"host-release")' in ab
+    assert 'ABNativeKbRestore(@"focus-resigned")' in ab
+    assert 'ABNativeKbRestore(@"window-replaced")' in ab
+    assert 'if (ABNativeKbFit(why, 0))' in ab
+    assert 'if (found)' in ab and '++ABNativeKbEpoch;' in ab
+    assert 'ABNativeKbObserveLayout' in ab
+    assert 'layoutWidthMatches' in ab and 'planeInsideClip' in ab
+    assert 'AB27FindKeyplane' in ab and 'AB25ProbeKeyboardSurface' in ab
+    assert 'UIKeyboardLayoutStar.transform =' not in ab
+    assert 'reloadInputViews]' not in ab
+    assert 'host-frame-settled' not in ab
+    assert 'fallback=system-native outcome=NOT-PROVEN' in ab
+else:
+    # Reproduce the measured regression CONTRACT rather than trusting a fit log.
+    # Log 2026-11-11 21:35 showed visible FB keyboard keyplane wider than its
+    # already-fitted UIWindow at 371 -> 495 -> 371, OUTSIDE-CLIP.
+    assert '[hl30-kbviewport]' in ab
+    assert 'CGAffineTransformMakeScale(scale, scale)' in ab
+    assert 'sourceW = UIScreen.mainScreen.bounds.size.width' in ab
+    assert 'keyboard.bounds = CGRectMake(0, 0, sourceW, sourceH)' in ab
+    assert 'ABNativeKbOriginalTransform' in ab
+    assert 'ABNativeKbOriginalBounds' in ab
+    assert 'ABNativeKbOriginalCenter' in ab
+    assert 'ABNativeKbRestore(@"host-release")' in ab
+    assert 'ABNativeKbRestore(@"focus-resigned")' in ab
+    assert 'ABNativeKbRestore(@"window-replaced")' in ab
+    assert 'ABNativeKbRestore(@"projection-guard")' in ab
+    assert 'if (ABNativeKbFit(why, 0))' in ab
+    assert 'if (found)' in ab and '++ABNativeKbEpoch;' in ab
+    assert 'ABNativeKbObserveLayout' in ab
+    assert 'return applied && layoutObserved && planeInsideClip;' in ab
+    assert 'planeInsideClip = !CGRectIsNull(planeRect)' in ab
+    assert 'ABNativeKbRestore(@"keyplane-timeout-rollback")' in ab
+    assert 'fallback=system-native outcome=NOT-PROVEN' in ab
+    assert 'AB27FindKeyplane' in ab
+    assert 'AB25ProbeKeyboardSurface' in ab
+    assert 'UIKeyboardLayoutStar.transform =' not in ab
+    assert 'reloadInputViews]' not in ab
+    assert 'host-frame-settled' not in ab
 
 # HL31: CarPlay handles presentation and typed owner commands; SpringBoard
 # owns microphone, on-device/cloud opt-in speech and spoken feedback.
@@ -97,7 +125,7 @@ assert "AVAudioEngine" not in native
 assert "SFSpeechRecognizer" not in native
 assert "windowLevel" not in native
 assert "DCVoiceParseCommand" in agent
-assert "1.0.3-hl31voiceagent" in version
+assert "1.0.3-hl32traitsvoice" in version
 assert all(t not in agent+native for t in
     ("TCC.db","--grant-tcc","api.openai.com","chatgpt.com",
      "DuoNaviDashboard.dylib","apiKey="))
