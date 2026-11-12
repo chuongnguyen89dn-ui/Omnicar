@@ -32,7 +32,7 @@ assert body.count("return 1.0;") == 1
 assert "[hl38-nozoom-ab] event=appbridge-zoom-bypass z=1.000" in body
 assert 'OMCPref(@"appBridgeZoom"' not in body
 assert "OMCPrefsSync();" in body
-assert host.count("CGAffineTransformMakeScale(z, z)") == 1
+assert sum(line.strip() == "appView.transform = CGAffineTransformMakeScale(z, z);" for line in host.splitlines()) == 1
 assert 'CGSizeMake(round(boxSize.width / z), round(boxSize.height / z))' in host
 assert "ABSceneSettingsApply(scene, logical, orient)" in host
 assert "return;" in host.split("if (live) {", 1)[1].split("\n    }", 1)[0]
