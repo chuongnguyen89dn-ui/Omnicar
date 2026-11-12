@@ -17,7 +17,7 @@ def field(name):
     return subprocess.check_output(["dpkg-deb", "-f", str(deb), name], text=True).strip()
 
 fields = [field(k) for k in ("Package", "Version", "Architecture")]
-assert fields == ["com.chuong.duocar", "1.0.3-hl32traitsvoice", "iphoneos-arm64"], fields
+assert fields == ["com.chuong.duocar", "1.0.3-hl33ownerwindowvoice", "iphoneos-arm64"], fields
 control_text=subprocess.check_output(["dpkg-deb","-f",str(deb)],text=True)
 assert "com.anlai.omnicar" not in control_text.lower(), "Old package referenced by dependency metadata"
 assert not any(line.startswith(("Replaces:","Breaks:")) for line in control_text.splitlines()), "Unexpected forced package replacement"
@@ -63,10 +63,10 @@ with tempfile.TemporaryDirectory() as folder:
     dylib = root / "Library/MobileSubstrate/DynamicLibraries"
     components = {
         "DuoCarCore.dylib": [],
-        "DuoCarAppBridge.dylib": ["[hl32-kbtraits]", "[hl28-kbmerge]", "[hl27-keyplane]", "[hl8diag]", "[hl11kb]", "[hl24-keyplane]", "[hl24-geometry]", "[hl24-stable]", "[hl25-kb-surface]", "[hl25-kb-ancestors]", "[hl25-kb-windows]", "[hl25-host-surface]", "[hl25-scene-ref]", "probe-interface-abi-matches-NOT-CALLED", "ev=native-fit", "ev=restore", "[pinch2] trigger=began toggle-sent dir=0"],
+        "DuoCarAppBridge.dylib": ["[hl33-kb-owner]", "[hl32-kbtraits]", "[hl8diag]", "[hl24-geometry]", "[hl24-stable]", "[hl25-kb-surface]", "[hl25-kb-ancestors]", "[hl25-kb-windows]", "probe-interface-abi-matches-NOT-CALLED", "[pinch2] trigger=began toggle-sent dir=0"],
         "DuoCarCarProbe.dylib": [],
         "DuoCarSpeedBubble.dylib": [],
-        "DuoCarSplitScreen.dylib": ["[hl32-voice]", "[hl31-voice-agent]", "[hl31-bubble]", "[hl31-voice]", "[hl30-voice]", "[hl29-voice]", "[hl27-respring] stage=observer-ready", "[hl27-respring] stage=accepted", "[hl27-respring] stage=terminate-self", "[hl8diag]", "[hl13pinch]", "[hl21-floating]", "[hl21-legacy-picker]", "[hl22-original]", "[picker-face]", "[home-launch]"],
+        "DuoCarSplitScreen.dylib": ["[hl33-bubble-window]", "[hl33-voice]", "[hl32-voice]", "[hl31-voice-agent]", "[hl31-bubble]", "[hl31-voice]", "[hl30-voice]", "[hl29-voice]", "[hl27-respring] stage=observer-ready", "[hl27-respring] stage=accepted", "[hl27-respring] stage=terminate-self", "[hl8diag]", "[hl13pinch]", "[hl21-floating]", "[hl21-legacy-picker]", "[hl22-original]", "[picker-face]", "[home-launch]"],
         "DuoCarStartupScreen.dylib": [],
         "DuoCar.app/DuoCar": ["[hl29-voice]", "[hl26-settings] gate=uikit-tab-ready", "[hl26-settings] gate=app-root-launched", "[hl26-settings] page=startup", "[hl27-settings] gate=original-root-cards", "[hl27-respring] stage=request-sent", "[hl27-respring] stage=ack-timeout"],
         "DuoCarPrefs.bundle/DuoCarPrefs": [],

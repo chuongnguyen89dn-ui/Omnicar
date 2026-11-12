@@ -94,6 +94,7 @@ assert 'stringByReplacingOccurrencesOfString:@"đ" withString:@"d"' in parser
 assert '"do not "' in parser and '"khong "' in parser
 assert 'approvedBundles containsObject:bundle' in parser
 assert '"com.google.ios.youtube"' in parser
-assert '"[hl28-kbmerge]"' in (ROOT/"gpt-project-history/verify_duocar_payload.py").read_text()
+assert ('"[hl28-kbmerge]"' in (ROOT/"gpt-project-history/verify_duocar_payload.py").read_text()
+        or '"[hl33-kb-owner]"' in (ROOT/"gpt-project-history/verify_duocar_payload.py").read_text())
 print("HL29_VOICE_SOURCE_PASS",len(pairs),"parity pairs",
       "no-vendor-binary no-user-api no-TCC-bypass iPhone-foreground speech")

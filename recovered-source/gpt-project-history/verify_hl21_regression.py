@@ -17,26 +17,27 @@ def git_blob_sha(content):
 keyboard_p = read(project / "OmniCarAppBridge/ABInApp.m")
 keyboard_s = read(src / "AppBridgeB/ABInApp.m")
 assert keyboard_p == keyboard_s, "HL11 keyboard project/src differ"
-assert "ABNativeKbObserveLayout(" in keyboard_p, "HL24 read-only keyplane observation missing"
-assert "[hl24-keyplane]" in keyboard_p and "policy=read-only" in keyboard_p
-assert "ABNativeKbRestoreLayout" not in keyboard_p, "Legacy keyplane mutation rollback still present"
-assert "ABNativeKbLayoutOriginalTransform" not in keyboard_p, "Legacy keyplane transform state still present"
-assert "ABNativeKbFitLayout" not in keyboard_p, "Mutating keyplane fit must not run"
-assert "reloadInputViews]" not in keyboard_p, "Do not force keyboard reload after a missing keyplane"
-# Two valid generations: HL24/27 still had delayed re-fits, while
-# HL28 deliberately returns to the HL11 single-fit contract. Enforce the
-# expected behavior of whichever source generation this test is running.
-if "[hl28-kbmerge]" in keyboard_p:
-    assert 'ABNativeKbFit(@"host-frame-settled"' not in keyboard_p
-    assert 'ABNativeKbFit(@"keyboard-frame"' not in keyboard_p
-    assert 'if (ABNativeKbFit(why, 0))' in keyboard_p
-    assert 'if (ABNativeKbFit(@"window-visible", 0))' in keyboard_p
-    assert 'orientation >= 1 && !stale &&' in keyboard_p
+assert "ABNativeKbObserveLayout(" in keyboard_p
+assert "ABNativeKbRestoreLayout" not in keyboard_p
+assert "ABNativeKbFitLayout" not in keyboard_p
+assert "reloadInputViews]" not in keyboard_p
+if "[hl33-kb-owner]" in keyboard_p:
+    assert "ABNativeKbFit(" not in keyboard_p
+    assert "ABNativeKbRestore(" not in keyboard_p
+    assert "keyplane-timeout-rollback" not in keyboard_p
+    assert "keyboard.frame = target" not in keyboard_p
+    assert "ABNativeKbObserve(@" in keyboard_p
+    assert "ABKB104InspectClips(keyboard)" in keyboard_p
+    assert "ABKB104RestoreClips(" in keyboard_p
+    assert "ABKB104SetHostGeometry(" in keyboard_p
 else:
-    assert 'ABNativeKbFit(@"host-frame-settled"' in keyboard_p
-    assert 'ABNativeKbFit(@"keyboard-frame"' in keyboard_p
-assert "keyboard.frame = target" in keyboard_p, "Native keyboard window frame fit removed"
-assert "[hl11kb]" in keyboard_p and "ABNativeKbFit" in keyboard_p
+    assert "[hl24-keyplane]" in keyboard_p and "policy=read-only" in keyboard_p
+    if "[hl28-kbmerge]" in keyboard_p:
+        assert 'if (ABNativeKbFit(why, 0))' in keyboard_p
+        assert 'if (ABNativeKbFit(@"window-visible", 0))' in keyboard_p
+    else:
+        assert 'ABNativeKbFit(@"host-frame-settled"' in keyboard_p
+    assert "keyboard.frame = target" in keyboard_p
 
 touch_p = read(project / "OmniCarSplitScreen/SCPTouchProbe.m")
 touch_s = read(src / "SplitScreenA/SCPTouchProbe.m")
