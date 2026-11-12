@@ -7,6 +7,7 @@
 #import "ABKeyboardDecl.h"
 #import "ABHost.h" // [hl41-native-host] original SpringBoard CarPlay surface
 #import <objc/runtime.h>
+#import <substrate.h> // [hl41] pre-focus hooks limited to native CarPlay scene
 #import <math.h>
 #import <stdlib.h>
 
@@ -22,6 +23,8 @@ static uint32_t DC40ClientNonce;
 static uint64_t DC40ClientSeq;
 static BOOL DC40ClientInstalled;
 static NSTimer *DC40ClientScanTimer; // [hl40-native-drawn] first-responder poll fallback
+static __weak UIView *DC41PrearmedResponder; // [hl41] non-owning native first responder
+static UIView *DC41PrearmedBlank; // release on focus transition or failure
 
 static BOOL DC40CarScene(UIWindowScene *scene) {
     if (!scene) return NO;
@@ -70,16 +73,26 @@ static void DC40ClientBegin(id candidate) {
     if (!DC40CarInput(candidate) || ![candidate isFirstResponder]) return;
     if (candidate == DC40Responder && DC40ClientNonce) return;
     if (DC40Responder) DC40ClientEnd(DC40Responder);
-    // Fail closed if a native app already owns a custom input surface:
-    // do not stack a drawn keyboard on top of that surface.
-    if (![candidate respondsToSelector:@selector(setInputView:)] ||
-        [candidate inputView] != nil) return;
-    UIView *blank = [[UIView alloc] initWithFrame:CGRectZero];
-    [candidate setInputView:blank];
-    DC40OwnedBlank = blank;
-    if ([candidate respondsToSelector:@selector(reloadInputViews)])
-        [candidate reloadInputViews];
-    DC40Responder = candidate;
+    // [hl41] Prefer inputView installed BEFORE UIKit begins first-responder
+    // presentation. Late replacement in HL40 triggered end/rebegin churn.
+    if (![candidate respondsToSelector:@selector(setInputView:)]) return;
+    UIView *blank=nil;
+    if (candidate==DC41PrearmedResponder &&
+        [candidate inputView]==DC41PrearmedBlank) {
+        blank=DC41PrearmedBlank;
+        DC41PrearmedResponder=nil;
+        DC41PrearmedBlank=nil;
+    } else {
+        if ([candidate inputView]!=nil) return; // respect custom keyboard owners
+        blank=[[UIView alloc] initWithFrame:CGRectZero];
+        [candidate setInputView:blank];
+        if ([candidate respondsToSelector:@selector(reloadInputViews)])
+            [candidate reloadInputViews];
+        OMCLogWrite(@"AppBridge",
+            @"[hl41-native-key] fallback late focus; native keyplane UNKNOWN");
+    }
+    DC40OwnedBlank=blank;
+    DC40Responder=candidate;
     DC40ClientNonce = arc4random();
     if (!DC40ClientNonce) DC40ClientNonce = 1;
     DC40ClientSeq = 0;
@@ -88,8 +101,11 @@ static void DC40ClientBegin(id candidate) {
     NSUInteger ret = [candidate respondsToSelector:@selector(returnKeyType)]
         ? (NSUInteger)[candidate returnKeyType] : 0;
     DC40FocusPost(YES, type, ret, DC40ClientNonce);
-    OMCLogWrite(@"AppBridge",
-        @"[hl40-native-drawn] CarPlay text focus reported; system inputView replaced");
+    OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl41-native-key] focus nonce=%u prearmed=%d window=%@ responder=%@",
+        DC40ClientNonce, blank!=nil,
+        NSStringFromCGRect(((UIView *)candidate).window.bounds),
+        NSStringFromClass([candidate class])]);
 }
 static void DC40ClientAck(uint64_t seq, uint32_t nonce) {
     [[NSDistributedNotificationCenter defaultCenter]
@@ -133,6 +149,9 @@ static void DC40ClientReceive(NSNotification *note) {
         [DC40Responder resignFirstResponder];
     } else return;
     DC40ClientSeq=seq;
+    OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl41-native-key] delivered nonce=%u seq=%llu action=%@ (no text)",
+        nonce,(unsigned long long)seq,action]);
     DC40ClientAck(seq,nonce);
 }
 // MultiTA-style safety net: native search fields can become the first
@@ -182,10 +201,59 @@ static void DC40ClientScan(void) {
     }
 }
 
+// [hl41] Prearm only UIKit native-CarPlay fields; hosted/phone UIKit
+// remains untouched because DC40CarInput checks the CarPlay scene role.
+static BOOL (*DC41OrigTFBecome)(UITextField *,SEL);
+static BOOL (*DC41OrigTVBecome)(UITextView *,SEL);
+static BOOL DC41PrearmInput(UIView *field) {
+    if (!DC40CarInput(field) ||
+        ![field respondsToSelector:@selector(setInputView:)] ||
+        [(id)field inputView]!=nil) return NO;
+    if (DC41PrearmedResponder && DC41PrearmedResponder!=field) {
+        UIView *prior=DC41PrearmedResponder;
+        if (prior && [(id)prior inputView]==DC41PrearmedBlank)
+            [(id)prior setInputView:nil];
+    }
+    UIView *blank=[[UIView alloc] initWithFrame:CGRectZero];
+    [(id)field setInputView:blank];
+    DC41PrearmedResponder=field;
+    DC41PrearmedBlank=blank;
+    OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl41-native-key] pre-focus inputView class=%@",
+        NSStringFromClass([field class])]);
+    return YES;
+}
+static void DC41PrearmCancel(id field) {
+    if (field!=DC41PrearmedResponder) return;
+    if ([field inputView]==DC41PrearmedBlank)
+        [field setInputView:nil];
+    DC41PrearmedResponder=nil;
+    DC41PrearmedBlank=nil;
+}
+static BOOL DC41TFBecome(UITextField *field,SEL cmd) {
+    BOOL armed=DC41PrearmInput(field);
+    BOOL succeeded=DC41OrigTFBecome(field,cmd);
+    if (succeeded) DC40ClientBegin(field);
+    else if (armed) DC41PrearmCancel(field);
+    return succeeded;
+}
+static BOOL DC41TVBecome(UITextView *field,SEL cmd) {
+    BOOL armed=DC41PrearmInput(field);
+    BOOL succeeded=DC41OrigTVBecome(field,cmd);
+    if (succeeded) DC40ClientBegin(field);
+    else if (armed) DC41PrearmCancel(field);
+    return succeeded;
+}
 void DC40NativeClientStart(NSString *bundle) {
     if (DC40ClientInstalled || !bundle.length) return;
     DC40ClientInstalled=YES;
     DC40ClientBundle=[bundle copy];
+    // Hooks run before system-keyboard presentation and avoid calling
+    // reloadInputViews on a responder which is already editing.
+    MSHookMessageEx(objc_getClass("UITextField"),@selector(becomeFirstResponder),
+        (IMP)DC41TFBecome,(IMP *)&DC41OrigTFBecome);
+    MSHookMessageEx(objc_getClass("UITextView"),@selector(becomeFirstResponder),
+        (IMP)DC41TVBecome,(IMP *)&DC41OrigTVBecome);
     NSNotificationCenter *nc=[NSNotificationCenter defaultCenter];
     NSOperationQueue *q=[NSOperationQueue mainQueue];
     [nc addObserverForName:UITextFieldTextDidBeginEditingNotification object:nil queue:q
@@ -208,21 +276,11 @@ void DC40NativeClientStart(NSString *bundle) {
         @"[hl40-native-drawn] scene-only native responder client installed");
 }
 
-// The window is full-screen but is touch-transparent outside the
-// original ABKeyboard panel, so native split app gestures still pass.
-static uint32_t DC40CurrentNonce; // consulted by touch-through hitTest
-@interface DC40OverlayWindow : UIWindow @end
-@implementation DC40OverlayWindow
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-    UIView *panel=[ABKeyboard shared].panel;
-    if (!DC40CurrentNonce || !panel || panel.superview!=self ||
-        !CGRectContainsPoint(panel.frame,point)) return nil;
-    return [super hitTest:point withEvent:event];
-}
-@end
-
+// [hl41] The old CarPlayApp full-scene DC40OverlayWindow was the source
+// of native panel overlap with the Dock/hosted content; it is removed.
+// The native presenter now uses the ORIGINAL SpringBoard ABHost.carWindow.
+static uint32_t DC40CurrentNonce;
 static BOOL DC40PresenterInstalled;
-static DC40OverlayWindow *DC40Window;
 static NSString *DC40CurrentBundle;
 static uint64_t DC40TxSeq;
 static NSMutableArray<NSDictionary *> *DC40Queue;
@@ -230,19 +288,6 @@ static NSTimer *DC40RetryTimer;
 static NSTimeInterval DC40LastPost;
 static unsigned int DC40Retries;
 
-static UIWindowScene *DC40PresentationScene(void) {
-    UIApplication *app=[UIApplication sharedApplication];
-    UIWindowScene *fallback=nil;
-    for (UIScene *candidate in app.connectedScenes) {
-        if (![candidate isKindOfClass:[UIWindowScene class]]) continue;
-        UIWindowScene *s=(UIWindowScene *)candidate;
-        if (!DC40CarScene(s)) continue;
-        if (s.activationState==UISceneActivationStateForegroundActive) return s;
-        if (!fallback && s.activationState==UISceneActivationStateForegroundInactive)
-            fallback=s;
-    }
-    return fallback; // Never display over an iPhone-only scene.
-}
 UIWindow *DC40NativeKeyboardHostWindow(void) {
     // [hl41-native-host] Native uses the SAME SpringBoard carWindow
     // and carAppArea as hosted. Never allocate an extra native UIWindow.
@@ -257,8 +302,6 @@ static void DC40OverlayClose(void) {
     DC40Retries=0;
     if (formerOwner.length)
         [[ABKeyboard shared] hideForApp:formerOwner]; // never close hosted
-    // Keep the transparent UIWindow alive for the hide animation.
-    // Touches pass through immediately because the nonce is now zero.
 }
 static void DC40Pump(void) {
     if (!DC40CurrentNonce || !DC40Queue.count) return;
@@ -317,7 +360,16 @@ static void DC40PresenterFocus(NSNotification *note) {
     if (!nonce) return;
     if (![note.userInfo[@"active"] boolValue]) {
         if ([bundle isEqualToString:DC40CurrentBundle] &&
-            nonce==DC40CurrentNonce) DC40OverlayClose();
+            nonce==DC40CurrentNonce) {
+            // HL40 had native focus leave/reenter in 5 ms. Coalesce one
+            // handoff before removing panel, with an exact nonce guard.
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+                (int64_t)(0.16*NSEC_PER_SEC)),dispatch_get_main_queue(),^{
+                if (nonce==DC40CurrentNonce &&
+                    [bundle isEqualToString:DC40CurrentBundle])
+                    DC40OverlayClose();
+            });
+        }
         return;
     }
     // [hl41-native-host] The native client is remote, but presentation
@@ -332,10 +384,12 @@ static void DC40PresenterFocus(NSNotification *note) {
     }
     if (DC40CurrentNonce &&
         ![bundle isEqualToString:DC40CurrentBundle]) DC40OverlayClose();
+    if (DC40CurrentNonce!=nonce) {
+        DC40TxSeq=0;
+        DC40Queue=[NSMutableArray array];
+    }
     DC40CurrentBundle=[bundle copy];
     DC40CurrentNonce=nonce;
-    DC40TxSeq=0;
-    DC40Queue=[NSMutableArray array];
     NSInteger kind=[note.userInfo[@"keyboardType"] integerValue];
     NSInteger ret=[note.userInfo[@"returnType"] integerValue];
     [[ABKeyboard shared] showForApp:bundle keyboardType:kind returnType:ret];
@@ -356,7 +410,12 @@ void DC40NativePresenterStart(void) {
     [dc addObserverForName:DC40Ack object:nil queue:q
                 usingBlock:^(NSNotification *n) { DC40PresenterAck(n); }];
     DC40RetryTimer=[NSTimer scheduledTimerWithTimeInterval:0.15 repeats:YES
-            block:^(NSTimer *t) { (void)t; DC40Pump(); }];
+            block:^(NSTimer *t) {
+                (void)t;
+                if (DC40CurrentNonce && ![ABHost shared].carWindow)
+                    DC40OverlayClose();
+                DC40Pump();
+            }];
     OMCLogWrite(@"AppBridge",
         @"[hl41-native-host] SpringBoard original-carWindow presenter armed");
 }
