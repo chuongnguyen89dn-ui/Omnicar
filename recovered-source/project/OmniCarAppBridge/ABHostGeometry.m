@@ -124,14 +124,20 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
         fabs(pane.sceneBox.width - pane.frame.size.width) > 1.0 ||
         fabs(pane.sceneBox.height - pane.frame.size.height) > 1.0)
         physicalW = 0;
+    CGFloat physicalH = pane ? pane.frame.size.height : 0;
+    if (physicalW == 0) physicalH = 0;
     double zoom = [[ABHost shared] zoom];
     CGFloat logicalW = (physicalW > 0 && isfinite(zoom) && zoom > 0.3)
         ? round(physicalW / zoom) : 0;
+    CGFloat logicalH = (physicalH > 0 && isfinite(zoom) && zoom > 0.3)
+        ? round(physicalH / zoom) : 0;
     if (!isfinite(physicalW) || !isfinite(logicalW) ||
-        physicalW < 100 || logicalW < physicalW ||
-        logicalW > physicalW * 2.1) {
-        physicalW = 0;
-        logicalW = 0;
+        physicalW < 100 || physicalW > 1800 ||
+        logicalW < 200 || logicalW > 1800 ||
+        physicalW/logicalW < 0.45 || physicalW/logicalW > 2.1 ||
+        physicalH < 100 || logicalH < 200 || logicalH > 1800) {
+        physicalW = 0; logicalW = 0;
+        physicalH = 0; logicalH = 0;
     }
     // [hl2] the gate value is read once so the payload field and
     // the acceptance log line below can never disagree.
@@ -139,6 +145,8 @@ void ABPostOrientationToApp(NSString *bundleID, NSInteger orientation) {
     NSDictionary *info = @{
         @"kbPhysicalW": @(physicalW),
         @"kbLogicalW": @(logicalW),
+        @"kbPhysicalH": @(physicalH),
+        @"kbLogicalH": @(logicalH),
         @"kbGeometryRevision": @(AB24FrameRevision(bundleID)),
         @"kbHostEpoch": AB24HostEpoch(),
         @"orientation": @(orientation),

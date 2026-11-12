@@ -6,8 +6,9 @@
 // CarPlay host has an authenticated native-keyboard assignment.
 void ABKB104SetHostGeometry(BOOL hosted, CGFloat logicalWidth,
                             CGFloat physicalWidth, NSInteger orientation,
-                            unsigned long long revision);
+                            unsigned long long revision,
+                            CGFloat logicalHeight, CGFloat physicalHeight);
 void ABKB104NoteWindowWidth(CGFloat width);
 void ABKB104InstallIfAvailable(void);
-BOOL ABKB104RefreshLayout(UIView *layout);
+void ABKB104RestoreClips(NSString *reason);
 #endif

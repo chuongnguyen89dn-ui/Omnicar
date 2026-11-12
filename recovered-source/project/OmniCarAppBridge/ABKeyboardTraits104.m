@@ -5,6 +5,7 @@
 #import "ABKeyboardTraits104.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <QuartzCore/QuartzCore.h>
 #import <objc/runtime.h>
 #import <objc/message.h>
 #import <substrate.h>
@@ -14,7 +15,9 @@
 extern void OMCLogWrite(NSString *tag, NSString *message);
 
 static BOOL KB104Hosted = NO;
-static double KB104LogicalW = 0, KB104PhysicalW = 0, KB104WindowW = 0;
+static double KB104LogicalW=0, KB104PhysicalW=0, KB104WindowW=0;
+static double KB104LogicalH=0, KB104PhysicalH=0;
+static NSMapTable<UIView *,NSDictionary *> *KB104ClipSnapshots;
 static NSInteger KB104Orientation = 1;
 static unsigned long long KB104Revision = 0;
 static NSUInteger KB104Hooks = 0;
@@ -30,8 +33,10 @@ static double KB104ReferenceWidth(void) {
     // The actual hosted key UIWindow is already in scene LOGICAL points.
     // Do not scale the same width again by pane zoom or by a phone screen.
     if (!KB104Eligible()) return 0.0;
-    return KB104ValidWidth(KB104WindowW) ? KB104WindowW :
-           KB104ValidWidth(KB104LogicalW) ? KB104LogicalW : 0.0;
+    // One owner: committed host-scene packet. UIWindow is diagnostic
+    // bootstrap only; it MUST NOT supersede a received packet.
+    return KB104ValidWidth(KB104LogicalW) ? KB104LogicalW :
+           KB104ValidWidth(KB104WindowW) ? KB104WindowW : 0.0;
 }
 static BOOL KB104Type(char actual, char expected) {
     if (expected == 'Q') return actual == 'q' || actual == 'i' ||
@@ -69,11 +74,17 @@ static BOOL KB104Signature(Class cls, SEL selector, BOOL meta,
 }
 void ABKB104SetHostGeometry(BOOL hosted, CGFloat logicalWidth,
                             CGFloat physicalWidth, NSInteger orientation,
-                            unsigned long long revision) {
+                            unsigned long long revision,
+                            CGFloat logicalHeight, CGFloat physicalHeight) {
     if (![NSThread isMainThread]) return;
-    BOOL valid = hosted && KB104ValidWidth(logicalWidth) &&
-                 isfinite(physicalWidth) && physicalWidth >= 100 &&
-                 physicalWidth <= logicalWidth;
+    BOOL valid=hosted && KB104ValidWidth(logicalWidth) &&
+        isfinite(physicalWidth) && physicalWidth>=100 &&
+        physicalWidth<=1800 && physicalWidth/logicalWidth>=0.45 &&
+        physicalWidth/logicalWidth<=2.1;
+    BOOL validH=isfinite(logicalHeight) && logicalHeight>=200 &&
+        logicalHeight<=1800 && isfinite(physicalHeight) &&
+        physicalHeight>=100 && physicalHeight/logicalHeight>=0.45 &&
+        physicalHeight/logicalHeight<=2.1;
     double width = valid ? logicalWidth : 0;
     if (valid != KB104Hosted || fabs(width-KB104LogicalW) > 1 ||
         KB104Orientation != orientation) {
@@ -85,13 +96,21 @@ void ABKB104SetHostGeometry(BOOL hosted, CGFloat logicalWidth,
     KB104Hosted = valid;
     KB104LogicalW = width;
     KB104PhysicalW = valid ? physicalWidth : 0;
+    KB104LogicalH = valid && validH ? logicalHeight : 0;
+    KB104PhysicalH = valid && validH ? physicalHeight : 0;
     KB104Orientation = orientation;
     KB104Revision = revision;
 }
 void ABKB104NoteWindowWidth(CGFloat width) {
     if (!KB104Eligible() || !KB104ValidWidth(width)) return;
     // Trusted from the hosted process key UIWindow, not remote CarPlay pixels.
-    if (KB104LogicalW > 0 && width > KB104LogicalW * 1.8) return;
+    if (KB104LogicalW > 0 &&
+        fabs(width-KB104LogicalW)>KB104LogicalW*.65) {
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl33-kb-owner] event=window-bootstrap-ignored actual=%.1f packet=%.1f",
+            (double)width,KB104LogicalW]);
+        return;
+    }
     if (fabs(KB104WindowW-width) > 1) KB104WindowW = width;
 }
 static void KB104WriteTraits(id traits) {
@@ -180,8 +199,12 @@ static double KB104Width(id self, SEL cmd) {
 static CGSize KB104Reference(id self, SEL cmd) {
     CGSize original=KB104OrigReference ? KB104OrigReference(self,cmd):CGSizeZero;
     double wanted=KB104ReferenceWidth();
-    if (KB104ValidWidth(wanted) && isfinite(original.height) && original.height>0)
+    if (KB104ValidWidth(wanted) && isfinite(original.height) &&
+        original.height>0) {
         original.width=wanted;
+        if (KB104LogicalH>=200 && KB104LogicalH<=1800)
+            original.height=KB104LogicalH;
+    }
     return original;
 }
 static void KB104Hook(Class cls, SEL sel, BOOL meta, NSUInteger bit, IMP repl,
@@ -211,6 +234,27 @@ void ABKB104InstallIfAvailable(void) {
             1u<<2,(IMP)KB104Reference,(IMP *)&KB104OrigReference,2,'{',0,0,
             @"keyboardScreenReferenceSize");
     }
+    // Two source-level native UIKit clipping hooks from DuoNavi 1.0.4
+    // disassembly IMP 0x2d2aa8/0x2d2ca0. Install once and act ONLY on the
+    // currently hosted keyboard-window subtree, not other app UI.
+    Class container=objc_getClass("UIInputSetContainerView");
+    Class host=objc_getClass("UIInputSetHostView");
+    if (container) {
+        KB104Hook(container,@selector(layoutSubviews),NO,
+            1u<<7,(IMP)KB104ContainerLayout,(IMP *)&KB104OrigContainerLayout,
+            2,'v',0,0,@"UIInputSetContainerView.layoutSubviews");
+        KB104Hook(container,@selector(didMoveToWindow),NO,
+            1u<<8,(IMP)KB104ContainerMove,(IMP *)&KB104OrigContainerMove,
+            2,'v',0,0,@"UIInputSetContainerView.didMoveToWindow");
+    }
+    if (host) {
+        KB104Hook(host,@selector(layoutSubviews),NO,
+            1u<<9,(IMP)KB104HostLayout,(IMP *)&KB104OrigHostLayout,
+            2,'v',0,0,@"UIInputSetHostView.layoutSubviews");
+        KB104Hook(host,@selector(didMoveToWindow),NO,
+            1u<<10,(IMP)KB104HostMove,(IMP *)&KB104OrigHostMove,
+            2,'v',0,0,@"UIInputSetHostView.didMoveToWindow");
+    }
     if (star) {
         KB104Hook(star,NSSelectorFromString(@"setKeyboardName:"),NO,
             1u<<3,(IMP)KB104Name,(IMP *)&KB104OrigName,3,'v','@',0,
@@ -226,23 +270,85 @@ void ABKB104InstallIfAvailable(void) {
             3,'v','@',0,@"setScreenTraits:");
     }
 }
-BOOL ABKB104RefreshLayout(UIView *layout) {
-    if (!KB104Eligible() || !layout || !KB104ValidWidth(KB104ReferenceWidth()))
-        return NO;
-    Class cls=objc_getClass("UIKeyboardLayoutStar");
-    SEL sel=NSSelectorFromString(@"screenTraits");
-    if (!cls || ![layout isKindOfClass:cls] ||
-        !KB104Signature(cls,sel,NO,2,'@',0,0)) return NO;
-    @try {
-        id traits=((id (*)(id,SEL))objc_msgSend)(layout,sel);
-        if (!traits) return NO;
-        KB104WriteTraits(traits);
-        // Only a settled host geometry calls here. UIKit owns layout/keycaps.
-        [layout setNeedsLayout];
-        return YES;
-    } @catch (NSException *e) {
-        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
-             @"[hl32-kbtraits] event=refresh-failed exception=%@",e.name]);
-        return NO;
+
+static BOOL KB104KeyboardWindow(UIView *view) {
+    UIWindow *window=view.window;
+    NSString *name=window?NSStringFromClass(window.class):@"";
+    return window && [name containsString:@"Keyboard"] &&
+           !window.hidden && window.alpha>0.01;
+}
+static void KB104UnclipOwnedView(UIView *origin) {
+    if (!KB104Eligible() || !origin || !KB104KeyboardWindow(origin)) return;
+    UIWindow *window=origin.window;
+    if (!KB104ClipSnapshots)
+        KB104ClipSnapshots=[NSMapTable weakToStrongObjectsMapTable];
+    NSUInteger depth=0,changed=0;
+    // Keep UIWindow and parent host scene boundaries intact, unlike
+    // an unsafe global UIKit clipsToBounds=NO hook.
+    for (UIView *v=origin;v && v!=(UIView *)window && depth<18;
+         v=v.superview,depth++) {
+        if ([KB104ClipSnapshots objectForKey:v]) continue;
+        CALayer *layer=v.layer;
+        if (!v.clipsToBounds && !layer.masksToBounds &&
+            !layer.mask && layer.cornerRadius==0) continue;
+        NSDictionary *snapshot=@{
+            @"clips":@(v.clipsToBounds),
+            @"masks":@(layer.masksToBounds),
+            @"mask":layer.mask?:NSNull.null,
+            @"radius":@(layer.cornerRadius),
+        };
+        [KB104ClipSnapshots setObject:snapshot forKey:v];
+        v.clipsToBounds=NO;
+        layer.masksToBounds=NO;
+        layer.mask=nil;
+        layer.cornerRadius=0;
+        changed++;
     }
+    if (changed)
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl33-kb-owner] event=unclip-owned count=%lu window=%@ "
+             "clipHostBoundary=UNCHANGED",
+            (unsigned long)changed,NSStringFromClass(window.class)]);
+}
+void ABKB104RestoreClips(NSString *reason) {
+    if (![NSThread isMainThread] || !KB104ClipSnapshots) return;
+    NSUInteger restored=0,skipped=0;
+    NSArray<UIView *> *views=[KB104ClipSnapshots.keyEnumerator allObjects];
+    for (UIView *v in views) {
+        NSDictionary *s=[KB104ClipSnapshots objectForKey:v];
+        if (!s) continue;
+        CALayer *l=v.layer;
+        if (!v.clipsToBounds && !l.masksToBounds && !l.mask &&
+            l.cornerRadius==0) {
+            v.clipsToBounds=[s[@"clips"] boolValue];
+            l.masksToBounds=[s[@"masks"] boolValue];
+            l.mask=s[@"mask"]==NSNull.null?nil:s[@"mask"];
+            l.cornerRadius=[s[@"radius"] doubleValue];
+            restored++;
+        } else skipped++; // UIKit may have changed it for a new mode.
+    }
+    [KB104ClipSnapshots removeAllObjects];
+    OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl33-kb-owner] event=clip-restore reason=%@ restored=%lu skipped=%lu",
+        reason,(unsigned long)restored,(unsigned long)skipped]);
+}
+static void (*KB104OrigContainerLayout)(id,SEL);
+static void (*KB104OrigHostLayout)(id,SEL);
+static void (*KB104OrigContainerMove)(id,SEL);
+static void (*KB104OrigHostMove)(id,SEL);
+static void KB104ContainerLayout(id self,SEL cmd) {
+    if (KB104OrigContainerLayout) KB104OrigContainerLayout(self,cmd);
+    KB104UnclipOwnedView(self);
+}
+static void KB104HostLayout(id self,SEL cmd) {
+    if (KB104OrigHostLayout) KB104OrigHostLayout(self,cmd);
+    KB104UnclipOwnedView(self);
+}
+static void KB104ContainerMove(id self,SEL cmd) {
+    if (KB104OrigContainerMove) KB104OrigContainerMove(self,cmd);
+    KB104UnclipOwnedView(self);
+}
+static void KB104HostMove(id self,SEL cmd) {
+    if (KB104OrigHostMove) KB104OrigHostMove(self,cmd);
+    KB104UnclipOwnedView(self);
 }
