@@ -116,6 +116,65 @@ static void DC40ClientAck(uint64_t seq, uint32_t nonce) {
         postNotificationName:DC40Ack object:DC40ClientBundle
                     userInfo:@{@"nonce":@(nonce),@"seq":@(seq)}];
 }
+// [hl43-native-cancel] Invoke the real UISearchBar cancel control whenever
+// the active CarPlay native first responder belongs to one. This is the
+// programmatic equivalent of the user's successful Cancel button, not a
+// window-level hide and not a substitute for measuring the Apple keyplane.
+static UISearchBar *DC43OwningSearchBar(id candidate) {
+    if (![candidate isKindOfClass:[UIView class]]) return nil;
+    for (UIView *view=(UIView *)candidate; view; view=view.superview) {
+        if ([view isKindOfClass:[UISearchBar class]]) return (UISearchBar *)view;
+    }
+    return nil;
+}
+static UIButton *DC43FindVisibleCancel(UIView *root, NSUInteger depth) {
+    if (!root || depth>20 || root.hidden || root.alpha<0.1) return nil;
+    if ([root isKindOfClass:[UIButton class]]) {
+        UIButton *button=(UIButton *)root;
+        NSString *name=NSStringFromClass([button class]).lowercaseString;
+        NSString *label=(button.accessibilityLabel ?: @"").lowercaseString;
+        NSString *title=([button titleForState:UIControlStateNormal] ?: @"").lowercaseString;
+        BOOL named=[name containsString:@"cancel"] ||
+            [label isEqualToString:@"cancel"] || [label isEqualToString:@"hủy"] ||
+            [label isEqualToString:@"huỷ"] || [title isEqualToString:@"cancel"] ||
+            [title isEqualToString:@"hủy"] || [title isEqualToString:@"huỷ"];
+        if (named && button.enabled && button.window &&
+            (button.allControlEvents & UIControlEventTouchUpInside))
+            return button;
+    }
+    for (UIView *child in root.subviews) {
+        UIButton *button=DC43FindVisibleCancel(child,depth+1);
+        if (button) return button;
+    }
+    return nil;
+}
+static BOOL DC43TriggerRealSearchCancel(id responder) {
+    UISearchBar *bar=DC43OwningSearchBar(responder);
+    if (!bar) {
+        OMCLogWrite(@"AppBridge",
+            @"[hl43-cancel] path=no-owning-searchbar; fallback=resign");
+        return NO;
+    }
+    UIButton *button=DC43FindVisibleCancel(bar,0);
+    if (button) {
+        [button sendActionsForControlEvents:UIControlEventTouchUpInside];
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl43-cancel] path=visible-UISearchBar-cancel control=%@ focused=%d",
+            NSStringFromClass([button class]),[responder isFirstResponder]]);
+        return YES;
+    }
+    id<UISearchBarDelegate> delegate=bar.delegate;
+    if ([delegate respondsToSelector:@selector(searchBarCancelButtonClicked:)]) {
+        [delegate searchBarCancelButtonClicked:bar];
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl43-cancel] path=UISearchBarDelegate focused=%d",
+            [responder isFirstResponder]]);
+        return YES;
+    }
+    OMCLogWrite(@"AppBridge",
+        @"[hl43-cancel] path=no-button-or-delegate; fallback=resign");
+    return NO;
+}
 static void DC40ClientReceive(NSNotification *note) {
     NSDictionary *message=note.userInfo;
     if (!DC40Responder || ![DC40Responder isFirstResponder] ||
@@ -151,13 +210,14 @@ static void DC40ClientReceive(NSNotification *note) {
         }
     } else if ([action isEqualToString:@"dismiss"]) {
         id candidate=DC40Responder;
-        BOOL returned=[candidate resignFirstResponder];
+        BOOL cancelFired=DC43TriggerRealSearchCancel(candidate);
+        BOOL returned=cancelFired ? YES : [candidate resignFirstResponder];
         BOOL focused=[candidate isFirstResponder];
         OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
-            @"[hl42-native-plane] dismiss nonce=%u returned=%d stillFocused=%d windows=%@",
-            nonce,returned,focused,DC42VisibleKeyboardWindows()]);
-        // Do not treat an IPC ACK as proof the UIKit/system keyplane disappeared.
-        // Resign hook will independently end the exact native focus session.
+            @"[hl43-cancel] dismiss nonce=%u cancelFired=%d returned=%d stillFocused=%d windows=%@",
+            nonce,cancelFired,returned,focused,DC42VisibleKeyboardWindows()]);
+        // IPC ACK acknowledges dispatch, not proof the Apple template
+        // keyplane is absent. Track UIKit hide notifications independently.
     } else return;
     DC40ClientSeq=seq;
     OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
