@@ -313,8 +313,17 @@ void ABKB104RestoreKeyboardWindow(NSString *reason) {
     KB104HasFrameSnapshot=NO;
     KB104PositionedRevision=0;
 }
+// UIKit may still have a plane from the preceding pane width.
+// Check its actual key-bearing bounds, not LayoutStar decoration.
+static BOOL KB104PlaneFitsViewport(CGRect plane,CGFloat width) {
+    if (CGRectIsNull(plane) || CGRectIsEmpty(plane) || !isfinite(width))
+        return NO;
+    CGFloat left=CGRectGetMinX(plane),right=CGRectGetMaxX(plane);
+    return isfinite(left) && isfinite(right) &&
+           left>=-1.0 && right<=width+1.0;
+}
 BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard,UIWindow *sceneWindow,
-                               NSString *reason) {
+                               CGRect keyplaneInWindow,NSString *reason) {
     if (!KB104Eligible() || !keyboard || !sceneWindow ||
         keyboard==sceneWindow || keyboard.hidden || keyboard.alpha<0.01)
         return NO;
@@ -340,9 +349,25 @@ BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard,UIWindow *sceneWindow,
     if (KB104PositionedWindow && KB104PositionedWindow!=keyboard)
         ABKB104RestoreKeyboardWindow(@"keyboard-window-replaced");
     // Do not modify any custom keyboard window, keyplane, layoutStar,
-    // keyboard.transform or UIWindowScene. A single authenticated
+    // keyboard.transform or UIWindowScene. Defer narrowing until UIKit
+    // has recomputed its own key-bearing layout. One authenticated
     // scene key-window frame is the only geometry reference.
     BOOL changed=!KB104CloseEnough(before,target);
+    BOOL fits=KB104PlaneFitsViewport(keyplaneInWindow,target.size.width);
+    BOOL narrowing=before.size.width>target.size.width+1.0;
+    // Prevent a host packet from shrinking the remote keyboard UIWindow
+    // while UIKit's keyplane still has the previous wider geometry.
+    // On an unchanged viewport, an out-of-bounds plane also needs UIKit
+    // relayout. Enlargements cannot clip existing keyplane content.
+    if (!fits && (narrowing || !changed)) {
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl36-kbsync] event=viewport-await-uikit rev=%llu when=%@ "
+             "old=%@ target=%@ plane=%@ narrowing=%d action=defer",
+            KB104Revision,reason,NSStringFromCGRect(before),
+            NSStringFromCGRect(target),NSStringFromCGRect(keyplaneInWindow),
+            (int)narrowing]);
+        return NO;
+    }
     if (changed && !KB104HasFrameSnapshot) {
         KB104PositionedWindow=keyboard;
         KB104OriginalWindowFrame=before;
