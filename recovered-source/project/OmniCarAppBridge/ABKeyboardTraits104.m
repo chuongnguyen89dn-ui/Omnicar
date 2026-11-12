@@ -360,18 +360,18 @@ BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard,UIWindow *sceneWindow,
     BOOL fits=planeKnown &&
         KB104PlaneFitsViewport(keyplaneInWindow,target.size.width);
     BOOL narrowing=before.size.width>target.size.width+1.0;
-    // UIKit may not have CREATED its keyplane when a keyboard window
-    // becomes visible. Allow that initial positioning; there is no
-    // key-bearing plane to clip yet. Once it exists, never shrink the
-    // enclosing window ahead of UIKit's own keyplane reflow.
-    if (planeKnown && !fits && (narrowing || !changed)) {
+    // HL37 DEVICE FAIL: waiting for the keyplane BEFORE updating the
+    // viewport deadlocked a 495pt plane inside an old 495pt keyboard scene.
+    // Commit the one authenticated viewport writer; the hosted UIKit
+    // LayoutStar transaction below must then rebuild its own keyplane.
+    if (planeKnown && !fits) {
         OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
-            @"[hl36-kbsync] event=viewport-await-uikit rev=%llu when=%@ "
-             "old=%@ target=%@ plane=%@ narrowing=%d action=defer",
+            @"[hl38-keyplane] event=viewport-stale-plane rev=%llu "
+             "when=%@ old=%@ target=%@ plane=%@ narrowing=%d "
+             "action=commit-one-owner-and-refresh-traits",
             KB104Revision,reason,NSStringFromCGRect(before),
             NSStringFromCGRect(target),NSStringFromCGRect(keyplaneInWindow),
             (int)narrowing]);
-        return NO;
     }
     if (changed && !KB104HasFrameSnapshot) {
         KB104PositionedWindow=keyboard;
@@ -403,6 +403,68 @@ BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard,UIWindow *sceneWindow,
     return YES;
 }
 
+// DuoNavi original binary references LayoutStar's setScreenTraits:,
+// updateKeyplaneName and showKeyboard lifecycle; HL37's public
+// reloadInputViews did not rebuild keyplane on the device. Reapply the
+// already-ABI-probed UIKit traits to LayoutStar in the hosted process.
+// Never set an internal keyplane frame, center, transform or input text.
+static BOOL KB104RefreshInProgress=NO;
+BOOL ABKB104RequestUIKitKeyplaneUpdate(UIWindow *keyboard,UIView *layout,
+                                       NSString *reason) {
+    if (!KB104Eligible() || KB104RefreshInProgress || !keyboard || !layout ||
+        keyboard.hidden || keyboard.alpha<0.01) return NO;
+    Class starClass=objc_getClass("UIKeyboardLayoutStar");
+    Class traitsClass=objc_getClass("UIKBScreenTraits");
+    SEL setter=NSSelectorFromString(@"setScreenTraits:");
+    if (!starClass || !traitsClass || ![layout isKindOfClass:starClass] ||
+        !KB104Signature(starClass,setter,NO,3,'v','@',0)) {
+        OMCLogWrite(@"AppBridge",
+            @"[hl38-keyplane] event=refresh-skip reason=layoutstar-abi");
+        return NO;
+    }
+    id traits=nil;
+    SEL getter=NSSelectorFromString(@"screenTraits");
+    if (KB104Signature(starClass,getter,NO,2,'@',0,0))
+        traits=((id (*)(id,SEL))objc_msgSend)(layout,getter);
+    if (![traits isKindOfClass:traitsClass]) {
+        SEL factory=NSSelectorFromString(@"traitsWithScreen:orientation:");
+        if (KB104Signature(traitsClass,factory,YES,4,'@','@','Q'))
+            traits=((id (*)(id,SEL,id,NSInteger))objc_msgSend)(
+                (id)traitsClass,factory,keyboard.screen,KB104Orientation);
+    }
+    if (![traits isKindOfClass:traitsClass]) {
+        OMCLogWrite(@"AppBridge",
+            @"[hl38-keyplane] event=refresh-skip reason=no-traits");
+        return NO;
+    }
+    BOOL didRefresh=NO;
+    KB104RefreshInProgress=YES;
+    @try {
+        KB104WriteTraits(traits);
+        // Invoke the same guarded UIKit setter already hooked at launch.
+        // Its original implementation owns LayoutStar/keyplane updates.
+        ((void (*)(id,SEL,id))objc_msgSend)(layout,setter,traits);
+        SEL update=NSSelectorFromString(@"updateKeyplaneName");
+        BOOL updateABI=KB104Signature(starClass,update,NO,2,'v',0,0);
+        if (updateABI)
+            ((void (*)(id,SEL))objc_msgSend)(layout,update);
+        [layout setNeedsLayout];
+        if (layout.superview) [layout.superview setNeedsLayout];
+        didRefresh=YES;
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl38-keyplane] event=refresh-request rev=%llu target=%.1f "
+             "method=setScreenTraits updateKeyplane=%d source=%@ "
+             "window=%@",
+            KB104Revision,KB104ReferenceWidth(),(int)updateABI,
+            reason,NSStringFromCGRect(keyboard.frame)]);
+    } @catch (NSException *e) {
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl38-keyplane] event=refresh-exception name=%@",e.name]);
+    } @finally {
+        KB104RefreshInProgress=NO;
+    }
+    return didRefresh;
+}
 static BOOL KB104KeyboardWindow(UIView *view) {
     UIWindow *window=view.window;
     NSString *name=window?NSStringFromClass(window.class):@"";
