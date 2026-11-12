@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL32: DuoNavi 1.0.4 traits/keyplane + PCM-verified voice (SOURCE COMMITTED; CI RERUNNING; DEVICE NOT PROVEN)
+- Trên nhánh `feature/duocar-hl32-keyboard-voice-20261112` từ HL31 đã sửa dynamic `UIKBScreenTraits`/LayoutStar và bỏ window.transform gây lỗi 744/375; voice SpringBoard yêu cầu PCM thật trước khi bong bóng báo listening, giữ user opt-in Apple STT và cổng TCC (KHÔNG tự grant). HEAD `ec98b7be482042c985b1c2cdfb3973511debe9d6`; cặp project/src 5/5 khớp; CI đầu `43147567164` fail test-format cũ đã sửa; run `43147825354` đang chạy, chưa DEVICE PASS. Không merge main/Sileo. [Checkpoint đầy đủ, file/hunk, ABI, test và TCC](HL32_KEYBOARD_TRAITS_VOICE_TCC_20261112.md).
+
 ## 2026-11-12 — HL31: bong bóng CarPlay → SpringBoard capture/STT → Apple TTS (DEB FAT PASS / DEVICE NOT PROVEN)
 - User yêu cầu **nghe lời nói và trả lời bằng tiếng từ bong bóng**; không nhận chỉ trang trí. Đã nghiên cứu thật ARM64 **DuoNavi 1.0.4** gốc (chạm/pan/dim bubble, VoiceSessionManager, AudioCapture, Apple STT partial, Player, SpringBoard TCC helper). Ghi tách bạch static code vs runtime.
 - Nhánh `feature/duocar-hl31-duonavi-parity-20261112`: thêm bubble stateful kéo/hít cạnh/nhớ vị trí; nối `voice.capture.request/state` CarPlay ↔ SpringBoard, agent người dùng chạm mới thu micro, Apple Speech partial → typed parser/owner → TTS phát âm thanh, log đúng PID/route; sửa iPhone partial. **Không nhập binary DuoNavi, không cấp TCC ngầm.** Commit mới nhất kiểm tra `70c7c4870d407a0fca06989a150b2d0fdeb51402`; version `1.0.3-hl31voiceagent`.
