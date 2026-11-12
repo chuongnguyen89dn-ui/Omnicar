@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Read latest HL33 on-car log (diagnostic only, never a build gate)
-        if: github.ref_name == 'feature/duocar-hl34-keyboard-recovery-20261112'
+        if: ${{ github.ref_name == 'feature/duocar-hl34-keyboard-recovery-20261112' }}
         continue-on-error: true
         run: |
           git fetch --no-tags --depth=1 origin main
@@ -62,7 +62,7 @@ jobs:
       # Fail inexpensive source gates before provisioning a new macOS toolchain.
       # Keep the existing downstream checks as an independent post-provision gate.
       - name: HL36 source-only preflight before installing Theos
-        if: startsWith(github.ref_name, 'feature/duocar-hl36-')
+        if: ${{ startsWith(github.ref_name, 'feature/duocar-hl36-') }}
         working-directory: recovered-source/gpt-project-history
         run: |
           python3 -m unittest -q test_analyze_hl8_unified_log.py
@@ -81,7 +81,7 @@ jobs:
           key: hl36-theos-ios16-5-${{ runner.os }}-${{ runner.arch }}-v1
 
       - name: Install Theos
-        if: steps.cache-theos.outputs.cache-hit != 'true'
+        if: ${{ steps.cache-theos.outputs.cache-hit != 'true' }}
         run: |
           git clone --recursive https://github.com/theos/theos.git ~/theos
           # Sparse-checkout just the iPhoneOS 16.5 SDK from theos/sdks.
@@ -132,7 +132,7 @@ jobs:
         run: python3 recovered-source/gpt-project-history/verify_hl21_regression.py
 
       - name: Verify HL24 baseline and HL25 guarded scene/keyboard diagnostics (historical owner)
-        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-')
+        if: ${{ github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-') }}
         run: |
           python3 recovered-source/gpt-project-history/verify_hl24_keyboard.py
           python3 recovered-source/gpt-project-history/verify_hl25_scene_keyboard.py
@@ -146,35 +146,35 @@ jobs:
         run: python3 recovered-source/gpt-project-history/verify_hl27_settings_respring.py
 
       - name: Verify HL28 keyboard HL11 early-stop and integrated UIKit Settings/Respring (historical owner)
-        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-')
+        if: ${{ github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-') }}
         run: python3 recovered-source/gpt-project-history/verify_hl28_keyboard_settings.py
 
       - name: Verify HL29 permission-based voice integration (historical builds only)
-        if: !startsWith(github.ref_name, 'feature/duocar-hl36-')
+        if: ${{ !startsWith(github.ref_name, 'feature/duocar-hl36-') }}
         run: python3 recovered-source/gpt-project-history/verify_hl29_voice_source.py
 
       - name: Verify HL30 keyboard viewport and CarPlay speech bubble source contracts (historical owner)
-        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-')
+        if: ${{ github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-') }}
         run: python3 recovered-source/gpt-project-history/verify_hl30_keyboard_voice.py
 
       - name: Verify HL31 bubble source (historical builds only)
-        if: !startsWith(github.ref_name, 'feature/duocar-hl36-')
+        if: ${{ !startsWith(github.ref_name, 'feature/duocar-hl36-') }}
         run: python3 recovered-source/gpt-project-history/verify_hl31_bubble_source.py
 
       - name: Verify HL32 dynamic keyboard traits and PCM-confirmed voice source (historical owner)
-        if: github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-')
+        if: ${{ github.ref_name != 'feature/duocar-hl33-owner-cleanup-20261112' && github.ref_name != 'feature/duocar-hl34-keyboard-recovery-20261112' && !startsWith(github.ref_name, 'feature/duocar-hl36-') }}
         run: python3 recovered-source/gpt-project-history/verify_hl32_keyboard_voice.py
 
       - name: Verify HL33 no duplicate keyboard writer, independent pass-through bubble, and voice signal gate
-        if: github.ref_name == 'feature/duocar-hl33-owner-cleanup-20261112' || github.ref_name == 'feature/duocar-hl34-keyboard-recovery-20261112'
+        if: ${{ github.ref_name == 'feature/duocar-hl33-owner-cleanup-20261112' || github.ref_name == 'feature/duocar-hl34-keyboard-recovery-20261112' }}
         run: python3 recovered-source/gpt-project-history/verify_hl33_owner_cleanup.py
 
       - name: Verify HL34 native keyboard and HL36 voice-free native-only build contracts
-        if: github.ref_name == 'feature/duocar-hl34-keyboard-recovery-20261112' || startsWith(github.ref_name, 'feature/duocar-hl36-')
+        if: ${{ github.ref_name == 'feature/duocar-hl34-keyboard-recovery-20261112' || startsWith(github.ref_name, 'feature/duocar-hl36-') }}
         run: python3 recovered-source/gpt-project-history/verify_hl34_keyboard_recovery.py
 
       - name: Compile legacy voice parser (historical builds only)
-        if: !startsWith(github.ref_name, 'feature/duocar-hl36-')
+        if: ${{ !startsWith(github.ref_name, 'feature/duocar-hl36-') }}
         run: |
           xcrun clang -fobjc-arc -fmodules -framework Foundation \
             recovered-source/project/OmniCarApp/DCVoiceCommand.m \
