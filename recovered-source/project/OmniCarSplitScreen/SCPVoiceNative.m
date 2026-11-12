@@ -29,6 +29,7 @@ static NSString *DCVoiceSummary(NSString *code) {
       @"audio-session-failed":@"Không bật được phiên âm thanh.",
       @"audio-no-input-format":@"Không tìm thấy đầu vào microphone.",
       @"audio-engine-failed":@"Microphone không hoạt động.",
+      @"no-pcm-frames":@"Không có dữ liệu âm thanh từ microphone. Kiểm tra quyền và đường âm thanh.",
       @"speech-task-nil":@"Apple Speech chưa tạo được phiên nghe.",
       @"recognizer-unavailable":@"Nhận dạng giọng nói chưa khả dụng.",
       @"on-device-not-supported":@"Ngôn ngữ này chưa hỗ trợ nhận dạng offline.",
@@ -105,10 +106,14 @@ void SCPVoiceHandleRemoteState(NSDictionary *packet) {
     if (!split.active) return;
     DCRemoteResponded=YES;
     SCPVoiceBubbleView *bubble=DCVoiceBubble(split);
-    if ([phase isEqualToString:@"listening"]) {
+    if ([phase isEqualToString:@"requesting"]) {
+        DCRemotePhase=@"requesting";
+        [bubble setVoiceState:SCPVoiceBubbleStateThinking animated:YES];
+        [split toast:@"Đang kiểm tra tín hiệu microphone..."];
+    } else if ([phase isEqualToString:@"listening"]) {
         DCRemotePhase=@"listening";
         [bubble setVoiceState:SCPVoiceBubbleStateListening animated:YES];
-        [split toast:@"Microphone đã mở. Hãy nói một lệnh DuoCar."];
+        [split toast:@"Đã nhận tín hiệu microphone. Hãy nói lệnh DuoCar."];
     } else if ([phase isEqualToString:@"thinking"] ||
                [phase isEqualToString:@"reply"]) {
         DCRemotePhase=@"thinking";

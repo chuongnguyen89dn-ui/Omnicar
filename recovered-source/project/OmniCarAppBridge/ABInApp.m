@@ -1217,7 +1217,7 @@ static void ABNativeKbRestore(NSString *reason) {
     if (window && !CGRectEqualToRect(window.frame,ABNativeKbOriginal))
         window.frame=ABNativeKbOriginal;
     OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
-        @"[hl32-kbtraits] event=restore reason=%@ found=%d original=%@",
+        @"[hl32-kbtraits] event=restore ev=restore reason=%@ found=%d original=%@",
         reason,(int)(window!=nil),NSStringFromCGRect(ABNativeKbOriginal)]);
     ABNativeKbWindow=nil;
     ABNativeKbHasOriginal=NO;
@@ -1281,7 +1281,7 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
                 ABNativeKbOriginal=keyboard.frame;
                 ABNativeKbHasOriginal=YES;
             }
-            if (changed) keyboard.frame=target;
+            if (changed) keyboard.frame = target;
             CGRect projected=keyboard.frame;
             applied=fabs(projected.size.width-target.size.width)<2 &&
                     fabs(CGRectGetMaxY(projected)-CGRectGetMaxY(target))<2 &&

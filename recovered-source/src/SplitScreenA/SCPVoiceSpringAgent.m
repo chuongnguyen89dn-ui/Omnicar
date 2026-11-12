@@ -155,7 +155,7 @@ static BOOL DCVoiceEnabled(void) {
     self.currentUtterance=utterance;
     [self sendState:@"speaking" detail:@"tts-started" reply:replyKey];
     OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-        @"[hl31-voice-agent] pid=%d event=tts-started output=%@ speechKey=%@",
+        @"[hl32-voice] pid=%d event=tts-started output=%@ speechKey=%@ acousticResult=DEVICE-PENDING",
         getpid(),audio.currentRoute.outputs.firstObject.portType?:@"none",replyKey]);
     [self.speaker speakUtterance:utterance];
 }
@@ -265,6 +265,10 @@ static BOOL DCVoiceEnabled(void) {
 }
 - (void)startSession {
     if (self.listening) return;
+    if (self.waitingAck.length) {
+        [self sendState:@"thinking" detail:@"owner-ack-pending" reply:@""];
+        return;
+    }
     if (!DCVoiceEnabled()) {
         [self sendState:@"error" detail:@"voice-disabled" reply:@"disabled"];
         [self speakReply:@"disabled"];
@@ -277,6 +281,8 @@ static BOOL DCVoiceEnabled(void) {
         getpid(),(long)speech,(long)mic]);
     if (speech!=SFSpeechRecognizerAuthorizationStatusAuthorized ||
         mic!=AVAudioSessionRecordPermissionGranted) {
+        OMCLogWrite(@"SplitScreen",
+            @"[hl32-voice] event=permission-block owner=SpringBoard action=USER_APPROVAL_REQUIRED noTCCMutation=1");
         [self sendState:@"error" detail:@"springboard-tcc-denied" reply:@"permission"];
         [self speakReply:@"permission"];
         return; // No system-process TCC bypass; not a false listening state.
@@ -320,7 +326,13 @@ static BOOL DCVoiceEnabled(void) {
         }
         self.request=[SFSpeechAudioBufferRecognitionRequest new];
         self.request.shouldReportPartialResults=YES;
-        if (supportsOffline) self.request.requiresOnDeviceRecognition=YES;
+        // Apple online recognition is explicit opt-in in DuoCar UIKit Settings;
+        // on-device mode is mandatory otherwise. No third-party API key.
+        BOOL localOnly=supportsOffline && !allowOnline;
+        self.request.requiresOnDeviceRecognition=localOnly;
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl32-voice] event=recognition-policy locale=%@ onDeviceRequired=%d appleOnlineOptIn=%d",
+            lang,(int)localOnly,(int)allowOnline]);
         NSUInteger generation=++self.generation;
         __weak typeof(self) weakSelf=self;
         DCBuffers=0;
@@ -331,12 +343,27 @@ static BOOL DCVoiceEnabled(void) {
             int32_t n=__sync_add_and_fetch(&DCBuffers,1);
             [owner.request appendAudioPCMBuffer:buffer];
             if (n==1 || (n%40)==0) {
-                // No logging/allocation on the real-time microphone callback.
+                // Input energy telemetry only, never store PCM/transcripts.
+                float rms=-1.f;
+                if (buffer.format.commonFormat==AVAudioPCMFormatPCMFloat32 &&
+                    buffer.floatChannelData && buffer.floatChannelData[0]) {
+                    AVAudioFrameCount count=MIN(buffer.frameLength,(AVAudioFrameCount)512);
+                    if (count) {
+                        double sum=0;
+                        const float *samples=buffer.floatChannelData[0];
+                        for (AVAudioFrameCount i=0;i<count;i++)
+                            sum+=(double)samples[i]*(double)samples[i];
+                        rms=(float)sqrt(sum/(double)count);
+                    }
+                }
+                float level=rms;
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    if (owner.generation!=generation) return;
+                    if (owner.generation!=generation || !owner.listening) return;
                     OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-                        @"[hl31-voice-agent] pid=%d event=pcm-frames count=%d",
-                        getpid(),(int)n]);
+                        @"[hl32-voice] pid=%d event=pcm-frames count=%d rms=%.5f source=actual-input",
+                        getpid(),(int)n,(double)level]);
+                    if (n==1)
+                        [owner sendState:@"listening" detail:@"pcm-confirmed" reply:@""];
                 });
             }
         }];
@@ -350,7 +377,17 @@ static BOOL DCVoiceEnabled(void) {
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
             @"[hl31-voice-agent] pid=%d event=capture-started routeIn=%@ routeOut=%@ rate=%.0f lang=%@ offline=%d",
             getpid(),inputRoute,outputRoute,format.sampleRate,lang,(int)supportsOffline]);
-        [self sendState:@"listening" detail:@"audio-engine-running" reply:@""];
+        // AVAudioEngine.start is NOT microphone proof; a PCM callback is.
+        [self sendState:@"requesting" detail:@"awaiting-first-pcm" reply:@""];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(2*NSEC_PER_SEC)),
+            dispatch_get_main_queue(), ^{
+            if (self.generation==generation && self.listening && DCBuffers==0) {
+                OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+                    @"[hl32-voice] event=no-pcm-frames routeIn=%@ routeOut=%@",
+                    inputRoute,outputRoute]);
+                [self fail:@"no-pcm-frames" reply:@"microphone"];
+            }
+        });
         self.task=[self.recognizer recognitionTaskWithRequest:self.request
             resultHandler:^(SFSpeechRecognitionResult *result,NSError *failure) {
             SCPVoiceSpringSession *owner=weakSelf;
