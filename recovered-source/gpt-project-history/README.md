@@ -1,5 +1,12 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL38 hosted UIKit keyplane lifecycle (SOURCE COMMITTED / DEVICE PENDING)
+- HL37 đã **DEVICE FAIL**: bản `1.0.3-hl37kbsync1` với `reloadInputViews` vẫn giữ keyplane 495pt trên YouTube/TikTok khi pane logical 371/248pt; native CarPlay keyboards theo Nguyen vẫn resize đúng. Log mới 12/11 được đối chiếu PID/revision, không lẫn HL36.
+- Nhánh **riêng** `feature/duocar-hl38-uikit-keyplane-lifecycle-20261112` từ `795801b32`: bỏ deadlock chờ keyplane co trước viewport; vẫn đúng một `keyboard.frame` writer, thêm ABI-guard `UIKeyboardLayoutStar.setScreenTraits:` / `updateKeyplaneName` theo revision/focus, fallback khi thiếu selector; không sửa native, zoom, Dock, YTZ, picker, voice-off. **18/18 kiểm nguồn GitHub PASS**, chưa Python/compiler/CI/DEB/DEVICE PASS. Version build đích `1.0.3-hl38keyplane1`, manual-only, không dispatch.
+- [Checkpoint chuyên đề HL38 — source, hunk, bằng chứng và cổng nghiệm thu](HL38_UIKIT_KEYPLANE_LIFECYCLE_20261112.md).
+
+
+
 ## 2026-11-12 — HL36 keyplane/window sync cho hosted app (SOURCE COMMITTED / DEVICE PENDING)
 - Nguyen xác nhận trên xe **bàn phím các app CarPlay hệ thống hoạt động đúng**. Sửa riêng đồng bộ `UIRemoteKeyboardWindow` ↔ UIKit keyplane của app hosted trên nhánh `feature/duocar-hl36-keyplane-sync-20261112` từ HL36 `fa21883e`: defer viewport khi keyplane còn tràn; dùng `reloadInputViews` có focus/revision/epoch guards; giữ native apps, YTZ/Dock/picker/zoom/voice-off và không hồi sinh drawn keyboard. 3 cặp `project/src` đồng nhất, kiểm connector tĩnh 21/21, **chưa chạy Python/CI/build/DEB, chưa device PASS**. [Checkpoint chuyên đề](HL36_KEYPLANE_SYNC_20261112.md).
 
