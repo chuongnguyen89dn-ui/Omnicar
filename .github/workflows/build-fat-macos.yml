@@ -43,6 +43,7 @@ on:
       - feature/duocar-hl33-owner-cleanup-20261112
       - feature/duocar-hl34-keyboard-recovery-20261112
       - feature/duocar-hl36-keyplane-sync-20261112
+      - feature/duocar-hl36-nozoom-ab-20261112
 
 jobs:
   build-fat:
@@ -70,6 +71,7 @@ jobs:
           python3 verify_hl26_native_settings.py
           python3 verify_hl27_settings_respring.py
           python3 verify_hl34_keyboard_recovery.py
+          python3 verify_hl38_nozoom_isolation.py
 
       # The runner is ephemeral; cache the toolchain after a successful job
       # to avoid cloning Theos and the 16.5 SDK on every subsequent HL36 run.
@@ -232,9 +234,9 @@ jobs:
 
       - name: Verify HL21 legacy picker, removed overlay, HL13 pinch, HL12 Dock, HL11 keyboard
         run: |
-          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb
+          DEB=recovered-source/project/packages/com.chuong.duocar_1.0.3-hl38nozoom1_iphoneos-arm64.deb
           test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
-          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl37kbsync1"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl38nozoom1"
           echo "HL13 package: $(dpkg-deb -f "$DEB" Package Version Architecture)"
           shasum -a 256 "$DEB"
           ROOT=/tmp/fatcheck/var/jb/Library/MobileSubstrate/DynamicLibraries
@@ -248,7 +250,7 @@ jobs:
               fi
               echo "HL8 marker PASS $dylib/$arch"
               if [ "$dylib" = "DuoCarAppBridge" ]; then
-                for marker in '[hl36-kbsync]' '[hl34-keyboard]' '[hl33-kb-owner]' '[hl32-kbtraits]' '[hl24-geometry]' '[hl24-stable]' '[hl25-kb-surface]' '[hl25-kb-ancestors]' '[hl25-kb-windows]' 'probe-interface-abi-matches-NOT-CALLED' '[pinch2] trigger=began toggle-sent dir=0'; do
+                for marker in '[hl38-nozoom-ab]' '[hl36-kbsync]' '[hl34-keyboard]' '[hl33-kb-owner]' '[hl32-kbtraits]' '[hl24-geometry]' '[hl24-stable]' '[hl25-kb-surface]' '[hl25-kb-ancestors]' '[hl25-kb-windows]' 'probe-interface-abi-matches-NOT-CALLED' '[pinch2] trigger=began toggle-sent dir=0'; do
                   if ! strings "$THIN" | grep -F "$marker" >/dev/null; then
                     echo "::error::HL36 native keyboard marker $marker missing in $dylib/$arch"
                     exit 1
@@ -278,12 +280,22 @@ jobs:
       - name: Verify exact DuoCar package, app identity, signatures and zero old branding
         run: |
           python3 recovered-source/gpt-project-history/verify_duocar_payload.py \
-            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb
+            recovered-source/project/packages/com.chuong.duocar_1.0.3-hl38nozoom1_iphoneos-arm64.deb
 
       # HL36 is voice-assistant-free and private: do not create a public Release or
       # not publish to Sileo without device acceptance and authorization.
       - name: Upload the FAT deb
         uses: actions/upload-artifact@v4
         with:
-          name: duocar-hl37-kbsync1-fat-deb
-          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl37kbsync1_iphoneos-arm64.deb
+          name: duocar-hl38-nozoom1-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl38nozoom1_iphoneos-arm64.deb
+
+      # Read-only ORIGINAL OmniCar binary for byte-level forensic diff on this
+      # experimental branch; it is NOT packaged into DuoCar or delivered to cars.
+      - name: Archive original OmniCar 1.0.3 for zoom/picker diff (audit only)
+        if: ${{ github.ref_name == 'feature/duocar-hl36-nozoom-ab-20261112' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-omnicar-1.0.3-reference-audit
+          path: com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
+          if-no-files-found: error
