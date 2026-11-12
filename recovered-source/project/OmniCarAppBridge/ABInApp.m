@@ -1310,7 +1310,7 @@ static BOOL ABNativeKbFit(NSString *when, NSInteger attempt) {
             // call reloadInputViews or resize UIKeyboardLayoutStar itself.
             ABKB104RefreshLayout(star);
             layoutObserved=ABNativeKbObserveLayout(keyboard,
-                &starVisualWidth,&observedStar);
+                &starVisualWidth, &observedStar);
             AB25ProbeKeyboardSurface(keyboard, key, windows, when,
                                      observedStar);
             // The reported HL28 success was a visible WINDOW, not fully

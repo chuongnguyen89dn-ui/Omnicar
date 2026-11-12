@@ -49,6 +49,14 @@ static BOOL KB104Signature(Class cls, SEL selector, BOOL meta,
     char *ret = method_copyReturnType(method);
     BOOL ok = ret && KB104Type(ret[0], result);
     free(ret);
+    if (ok && result == '{') {
+        // A struct return is ABI-compatible only if it is really CGSize.
+        // A CGRect/other UIKit struct would corrupt the returned registers.
+        const char *types=method_getTypeEncoding(method);
+        NSMethodSignature *signature=types
+            ? [NSMethodSignature signatureWithObjCTypes:types] : nil;
+        ok=signature && signature.methodReturnLength==sizeof(CGSize);
+    }
     if (ok && count >= 3) {
         char *arg = method_copyArgumentType(method, 2);
         ok = arg && KB104Type(arg[0], arg2); free(arg);
