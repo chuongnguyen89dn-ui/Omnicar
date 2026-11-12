@@ -3000,6 +3000,8 @@ static void ABResponderBecame(id responder) {
 static void ABResponderResigned(id responder) {
     ABHL8Focus(@"focus-resigned", responder);
     ++ABNativeKbEpoch;
+    ++ABNativeKbReflowTicket; // Cancel stale UIKit reloads after focus ends.
+    ABNativeKbReflowArmed=NO;
     // Do not restore a keyboard frame at responder transition; UIKit
     // may still be showing the same keyboard for a new input field.
     OMCLogWrite(@"AppBridge",
