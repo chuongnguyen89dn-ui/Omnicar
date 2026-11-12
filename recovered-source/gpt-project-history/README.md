@@ -1,9 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
-## 2026-11-12 — HL31: giọng nói thực sự từ bong bóng CarPlay, SpringBoard capture + Apple TTS (SOURCE-COMMITTED, CI RUNNING, DEVICE UNPROVEN)
+## 2026-11-12 — HL31: bong bóng CarPlay → SpringBoard capture/STT → Apple TTS (DEB FAT PASS / DEVICE NOT PROVEN)
 - User yêu cầu **nghe lời nói và trả lời bằng tiếng từ bong bóng**; không nhận chỉ trang trí. Đã nghiên cứu thật ARM64 **DuoNavi 1.0.4** gốc (chạm/pan/dim bubble, VoiceSessionManager, AudioCapture, Apple STT partial, Player, SpringBoard TCC helper). Ghi tách bạch static code vs runtime.
 - Nhánh `feature/duocar-hl31-duonavi-parity-20261112`: thêm bubble stateful kéo/hít cạnh/nhớ vị trí; nối `voice.capture.request/state` CarPlay ↔ SpringBoard, agent người dùng chạm mới thu micro, Apple Speech partial → typed parser/owner → TTS phát âm thanh, log đúng PID/route; sửa iPhone partial. **Không nhập binary DuoNavi, không cấp TCC ngầm.** Commit mới nhất kiểm tra `70c7c4870d407a0fca06989a150b2d0fdeb51402`; version `1.0.3-hl31voiceagent`.
-- Run bubble-only `43138108363` **CI SUCCESS nhưng không có audio agent**. Run voice-agent đầu fail static verifier; CI run `43140397415` sau sửa source test đang chạy. **Chưa DEB cuối, chưa thử xe, không biết SpringBoard có TCC hay đường TTS ra loa xe không**. Không merge main/không Sileo. [Checkpoint cụ thể: từng IMP, file/commit, log gate, cách hoàn nguyên](HL31_DUONAVI_BUBBLE_VOICE_AGENT_20261112.md).
+- **DEB đã build và kiểm độc lập:** run **43140397415 SUCCESS**, artifact **13909612053**, commit **70c7c487**; gói trực tiếp `DuoCar_HL31_1.0.3-hl31voiceagent.deb`, Package `com.chuong.duocar`, version `1.0.3-hl31voiceagent`, **1.399.982 bytes**, SHA256 **`73824c7cbe084a20a18a57ba142481333717d48f625dcc4ceb424d55bbb48f14`**, **8/8 Mach-O FAT arm64/arm64e có dữ liệu ký**, 333 file payload, marker SpringBoard agent/STT/TTS có trong binary, plist inject đúng CarPlayApp+SpringBoard. Chưa thử xe: **TCC SpringBoard / input route / loa CarPlay đều UNKNOWN**, không được tuyên bố nghe/nói thành công. **Bàn phím HL30 zoom/solo còn DEVICE FAIL.** Không merge main/không Sileo. [Checkpoint chi tiết và cổng thử xe](HL31_DUONAVI_BUBBLE_VOICE_AGENT_20261112.md).
 
 
 ## 2026-11-12 — Kiểm chứng lại DuoNavi 1.0.4 trước khi sửa DuoCar HL30 (RESEARCH, NO PATCH)
