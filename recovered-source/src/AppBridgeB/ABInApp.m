@@ -1174,10 +1174,12 @@ static UIView *AB33KeyboardAutomatic(UIView *view, NSUInteger depth) {
     return nil;
 }
 
-// [hl36-kbsync] Keyboard layout stays with UIKit. When a committed
-// hosted-scene revision changes, ask the active UIKit first responder to
-// refresh its input views after the divider settles. Never synthesize text,
-// create a second keyboard, or affect native CarPlay template apps.
+// [hl38-keyplane] Keyboard layout stays with UIKit. HL37 proved that
+// reloadInputViews does not rebuild a visible LayoutStar after a host
+// geometry revision. Use a single signature-guarded UIKit setScreenTraits:
+// request from the original UIKit LayoutStar lifecycle after the divider
+// settles; fail open to reloadInputViews if the selector is unavailable.
+// Never synthesize text or affect native CarPlay template apps.
 static NSUInteger ABNativeKbFocusSerial=0;
 static NSUInteger ABNativeKbReflowTicket=0;
 static BOOL ABNativeKbReflowArmed=NO;
@@ -1210,11 +1212,29 @@ static void ABNativeKbScheduleUIKitReflow(NSString *source) {
             !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
             return;
         UIResponder *responder=(UIResponder *)ABCurrentResponder;
-        [responder reloadInputViews]; // Ask UIKit to own keyplane reflow.
+        // The keyboard is in its own _UIKeyboardWindowScene, distinct
+        // from the hosted application's UIWindowScene. HL37 proved that
+        // reloadInputViews alone never rebuilt its 495pt keyplane.
+        UIWindow *keyboard=nil;
+        for (UIWindow *w in ABNativeKbWindows())
+            if ([NSStringFromClass(w.class) containsString:@"UIRemoteKeyboardWindow"] &&
+                w.screen && !w.hidden && w.alpha>0.01) { keyboard=w; break; }
+        UIView *star=keyboard ? ABNativeKbFindLayout(keyboard,0):nil;
+        BOOL requested=ABKB104RequestUIKitKeyplaneUpdate(
+            keyboard,star,source);
+        if (!requested) [responder reloadInputViews]; // Fail-open fallback.
+        CGRect kbSceneBounds=keyboard && keyboard.windowScene
+            ? keyboard.windowScene.coordinateSpace.bounds:CGRectNull;
         OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
-            @"[hl36-kbsync] event=uikit-reflow-request rev=%llu focus=%lu "
-             "source=%@ action=reloadInputViews-only",
-            revision,(unsigned long)focus,source]);
+            @"[hl38-keyplane] event=scene-layout-request rev=%llu "
+             "focus=%lu source=%@ mode=%@ keyboard=%@ "
+             "keyboardScene=%@ sceneBounds=%@ "
+             "planePresent=%d",
+            revision,(unsigned long)focus,source,
+            requested?@"setScreenTraits":@"reloadInputViews-fallback",
+            keyboard?NSStringFromCGRect(keyboard.frame):@"nil",
+            keyboard.windowScene?NSStringFromClass(keyboard.windowScene.class):@"nil",
+            NSStringFromCGRect(kbSceneBounds),(int)(star!=nil)]);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
             (int64_t)(0.15*NSEC_PER_SEC)),dispatch_get_main_queue(), ^{
             if (ticket==ABNativeKbReflowTicket &&
@@ -2880,9 +2900,10 @@ static void ABOrientationBlock(NSNotification *note) {
         for (id link in [ABDisplayLinks() allObjects]) ABApplyFPSLimit(link);
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"gioi han khung hinh: %d", (int)fps]);
     }
-    // [hl36-kbsync] The host packet is authoritative. Observe the
-    // keyplane and schedule a bounded UIKit-owned refresh after the
-    // last committed geometry change, never scale or edit keycaps.
+    // [hl38-keyplane] The host packet is authoritative. Apply only
+    // the existing single window owner then request a UIKit-owned
+    // LayoutStar/traits refresh once per committed geometry revision.
+    // Never scale/edit keycaps or hook native CarPlay template apps.
     if (orientation >= 1 && !stale &&
         (geometryChanged || orientation != old) &&
         !ABDrawnKb && ABCurrentResponder &&
