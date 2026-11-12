@@ -20,6 +20,7 @@
 // keycap, Telex, layout and preview method is kept byte-for-byte otherwise.
 extern UIWindow *DC40NativeKeyboardHostWindow(void);
 extern BOOL DC40NativeKeyboardRouteKey(NSString *action, NSUInteger del, NSString *text);
+extern BOOL DC42NativeHideWaitForFocusEnd(void); // [hl42] native-only; hosted instant-hide preserved
 
 // OMC scaffold helpers used here (shared component, declared for
 // self-consistency; implementations live in the Core module):
@@ -439,11 +440,13 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
     }
 }
 
-// -hideTapped (0x1D244): send:@"dismiss" del:0 text:nil, then
-// hideForApp:nil (force hide).
+// -hideTapped: original hosted immediate hide is unchanged.
+// Native renderer waits for the owning client's first-responder-end event
+// instead of falsely equating a sent/ACKed dismiss with Apple keyplane hide.
 - (void)hideTapped {
+    BOOL nativeSession=DC42NativeHideWaitForFocusEnd();
     [self send:@"dismiss" del:0 text:nil];
-    [self hideForApp:nil];
+    if (!nativeSession) [self hideForApp:nil];
 }
 
 // -langTapped (0x1C7B8): routes a synthetic lang key through keyTapped::
