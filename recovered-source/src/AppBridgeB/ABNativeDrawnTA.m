@@ -23,6 +23,8 @@ static uint32_t DC40ClientNonce;
 static uint64_t DC40ClientSeq;
 static BOOL DC40ClientInstalled;
 static NSTimer *DC40ClientScanTimer; // [hl40-native-drawn] first-responder poll fallback
+static NSString *DC42VisibleKeyboardWindows(void);
+
 static __weak UIView *DC41PrearmedResponder; // [hl41] non-owning native first responder
 static UIView *DC41PrearmedBlank; // release on focus transition or failure
 
@@ -67,7 +69,9 @@ static void DC40ClientEnd(id candidate) {
         DC40OwnedBlank = nil;
     }
     DC40FocusPost(NO, 0, 0, prior);
-    OMCLogWrite(@"AppBridge", @"[hl40-native-drawn] first responder ended");
+    OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl42-native-plane] responder-ended nonce=%u stillFocused=%d windows=%@",
+        prior,[candidate isFirstResponder],DC42VisibleKeyboardWindows()]);
 }
 static void DC40ClientBegin(id candidate) {
     if (!DC40CarInput(candidate) || ![candidate isFirstResponder]) return;
@@ -146,7 +150,14 @@ static void DC40ClientReceive(NSNotification *note) {
             [input insertText:@"\n"];
         }
     } else if ([action isEqualToString:@"dismiss"]) {
-        [DC40Responder resignFirstResponder];
+        id candidate=DC40Responder;
+        BOOL returned=[candidate resignFirstResponder];
+        BOOL focused=[candidate isFirstResponder];
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl42-native-plane] dismiss nonce=%u returned=%d stillFocused=%d windows=%@",
+            nonce,returned,focused,DC42VisibleKeyboardWindows()]);
+        // Do not treat an IPC ACK as proof the UIKit/system keyplane disappeared.
+        // Resign hook will independently end the exact native focus session.
     } else return;
     DC40ClientSeq=seq;
     OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
@@ -205,6 +216,44 @@ static void DC40ClientScan(void) {
 // remains untouched because DC40CarInput checks the CarPlay scene role.
 static BOOL (*DC41OrigTFBecome)(UITextField *,SEL);
 static BOOL (*DC41OrigTVBecome)(UITextView *,SEL);
+// [hl42] Mirror hosted hooks: end a native session on verified resign,
+// not solely from UIKit editing notifications or a 200ms poll.
+static BOOL (*DC42OrigTFResign)(UITextField *,SEL);
+static BOOL (*DC42OrigTVResign)(UITextView *,SEL);
+static BOOL DC42TFResign(UITextField *field,SEL cmd) {
+    BOOL ok=DC42OrigTFResign(field,cmd);
+    if (ok) DC40ClientEnd(field);
+    return ok;
+}
+static BOOL DC42TVResign(UITextView *field,SEL cmd) {
+    BOOL ok=DC42OrigTVResign(field,cmd);
+    if (ok) DC40ClientEnd(field);
+    return ok;
+}
+// Native UIKit window/keyplane observations only; never mutate windows.
+static NSString *DC42VisibleKeyboardWindows(void) {
+    NSMutableArray<NSString *> *matches=[NSMutableArray array];
+    for (UIScene *candidate in [UIApplication sharedApplication].connectedScenes) {
+        if (![candidate isKindOfClass:[UIWindowScene class]]) continue;
+        UIWindowScene *scene=(UIWindowScene *)candidate;
+        for (UIWindow *w in scene.windows) {
+            NSString *cls=NSStringFromClass([w class]);
+            if (w.hidden || ![cls.lowercaseString containsString:@"keyboard"]) continue;
+            [matches addObject:[NSString stringWithFormat:@"%@ frame=%@ level=%.1f scene=%@",
+                 cls,NSStringFromCGRect(w.frame),(double)w.windowLevel,scene.session.role]];
+        }
+    }
+    return matches.count ? [matches componentsJoinedByString:@"; "] :
+        @"BLIND-no-matching-owned-keyboard-window";
+}
+static void DC42KeyboardStateNote(NSNotification *note) {
+    NSValue *v=note.userInfo[UIKeyboardFrameEndUserInfoKey];
+    CGRect rect=[v isKindOfClass:[NSValue class]] ? [v CGRectValue] : CGRectNull;
+    OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl42-native-plane] note=%@ frame=%@ windows=%@",
+        note.name,NSStringFromCGRect(rect),DC42VisibleKeyboardWindows()]);
+}
+
 static BOOL DC41PrearmInput(UIView *field) {
     if (!DC40CarInput(field) ||
         ![field respondsToSelector:@selector(setInputView:)] ||
@@ -254,8 +303,21 @@ void DC40NativeClientStart(NSString *bundle) {
         (IMP)DC41TFBecome,(IMP *)&DC41OrigTFBecome);
     MSHookMessageEx(objc_getClass("UITextView"),@selector(becomeFirstResponder),
         (IMP)DC41TVBecome,(IMP *)&DC41OrigTVBecome);
+    MSHookMessageEx(objc_getClass("UITextField"),@selector(resignFirstResponder),
+        (IMP)DC42TFResign,(IMP *)&DC42OrigTFResign);
+    MSHookMessageEx(objc_getClass("UITextView"),@selector(resignFirstResponder),
+        (IMP)DC42TVResign,(IMP *)&DC42OrigTVResign);
     NSNotificationCenter *nc=[NSNotificationCenter defaultCenter];
     NSOperationQueue *q=[NSOperationQueue mainQueue];
+    if ([bundle isEqualToString:@"com.apple.CarPlayTemplateUIHost"] ||
+        [bundle isEqualToString:@"com.apple.CarPlayApp"]) {
+        for (NSString *name in @[UIKeyboardWillShowNotification,
+            UIKeyboardDidShowNotification,UIKeyboardWillHideNotification,
+            UIKeyboardDidHideNotification]) {
+            [nc addObserverForName:name object:nil queue:q
+                usingBlock:^(NSNotification *n) { DC42KeyboardStateNote(n); }];
+        }
+    }
     [nc addObserverForName:UITextFieldTextDidBeginEditingNotification object:nil queue:q
                usingBlock:^(NSNotification *n) { DC40ClientBegin(n.object); }];
     [nc addObserverForName:UITextViewTextDidBeginEditingNotification object:nil queue:q
@@ -317,6 +379,13 @@ static void DC40Pump(void) {
     [[NSDistributedNotificationCenter defaultCenter]
         postNotificationName:DC40Command object:DC40CurrentBundle userInfo:head];
     DC40LastPost=now;
+}
+// [hl42] ABKeyboard should wait for authenticated native focus-off before
+// removing its drawn panel. Hosted uses its untouched original instant-hide.
+BOOL DC42NativeHideWaitForFocusEnd(void) {
+    NSString *app=[ABKeyboard shared].app;
+    return DC40CurrentNonce && app.length &&
+        [app isEqualToString:DC40CurrentBundle];
 }
 BOOL DC40NativeKeyboardRouteKey(NSString *action, NSUInteger del, NSString *text) {
     if (!DC40CurrentNonce || !DC40CurrentBundle.length ||
