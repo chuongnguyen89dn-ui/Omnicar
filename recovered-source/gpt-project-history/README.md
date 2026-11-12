@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-12 — HL32 keyboard traits / voice PCM (đã có DEB FAT, DEVICE PENDING)
+- Đã sửa source trên nhánh `feature/duocar-hl32-keyboard-voice-20261112`, HEAD `4f13d1ea`; bỏ scale cửa sổ bàn phím, thêm guard traits/keyplane; voice chỉ xác nhận microphone sau PCM, giữ permission gate SpringBoard, không tự chỉnh TCC. CI run **43148151634 SUCCESS**, artifact **13912822672**; DEB `com.chuong.duocar` version `1.0.3-hl32traitsvoice`, SHA256 **`225c45187401930fbf8684bd52b97d9d875910d8aad04df1d1c837585bdad9a2`**; cấu trúc FAT arm64/arm64e 8/8 signed-data PASS. Chưa có keyboard/voice DEVICE PASS. Chi tiết và rollback: [HL32 — traits/keyplane + voice PCM, CI FAT PASS / xe chưa nghiệm thu](HL32_KEYBOARD_TRAITS_VOICE_PCM_20261112.md).
+
+
 ## 2026-11-12 — HL32: DuoNavi 1.0.4 traits/keyplane + PCM-verified voice (SOURCE COMMITTED; CI RERUNNING; DEVICE NOT PROVEN)
 - Trên nhánh `feature/duocar-hl32-keyboard-voice-20261112` từ HL31 đã sửa dynamic `UIKBScreenTraits`/LayoutStar và bỏ window.transform gây lỗi 744/375; voice SpringBoard yêu cầu PCM thật trước khi bong bóng báo listening, giữ user opt-in Apple STT và cổng TCC (KHÔNG tự grant). HEAD `ec98b7be482042c985b1c2cdfb3973511debe9d6`; cặp project/src 5/5 khớp; CI đầu `43147567164` fail test-format cũ đã sửa; run `43147825354` đang chạy, chưa DEVICE PASS. Không merge main/Sileo. [Checkpoint đầy đủ, file/hunk, ABI, test và TCC](HL32_KEYBOARD_TRAITS_VOICE_TCC_20261112.md).
 
