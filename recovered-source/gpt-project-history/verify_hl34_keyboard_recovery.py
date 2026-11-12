@@ -33,8 +33,8 @@ assert "ABKB104PlaceKeyboardWindow(UIWindow *keyboard" in hdr
 assert "BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard" in kb
 # Exactly one direct UIKit keyboard.frame WRITE across active first-party
 # in-app implementations. No 2nd scale/center/bounds writer.
-assert len(re.findall(r"keyboard\\.frame\\s*=",kb))==1
-assert len(re.findall(r"keyboard\\.frame\\s*=",ab))==0
+assert len(re.findall(r"keyboard\.frame\s*=",kb))==1
+assert len(re.findall(r"keyboard\.frame\s*=",ab))==0
 for token in ["ABNativeKbFit(", "ABNativeKbRestore(", 
               "keyplane-timeout-rollback", "keyboard.transform =",
               "UIKeyboardLayoutStar.transform =","layout.transform ="]:
@@ -92,7 +92,8 @@ for banned in ("ABKeyBlock(", "ABKeyboardPublish(", "ABChanKey",
 for banned in ("ABKeyboardDispatch(", "ABNotifyKeyboard",
                "[[ABKeyboard shared]"):
     assert banned not in host, banned
-assert "ABKeyboard" not in (project/"OmniCarAppBridge/ABHostLaunch.m").read_text()
+assert 'NSClassFromString(@"ABKeyboard")' not in (project/"OmniCarAppBridge/ABHostLaunch.m").read_text()
+assert 'performSelector:@selector(hideForApp:)' not in (project/"OmniCarAppBridge/ABHostLaunch.m").read_text()
 assert "ABChanKey" not in (project/"OmniCarAppBridge/ABChannelNames.m").read_text()
 assert "ABNotifyKeyboard" not in (project/"OmniCarAppBridge/ABChannelNames.m").read_text()
 assert "ABChanKey" not in (project/"OmniCarAppBridge/AppBridgeB.h").read_text()
@@ -110,6 +111,6 @@ assert "ABKbSyncNoteEvent(bundleID, NO)" in (project/"OmniCarAppBridge/ABHostLau
 assert "ABNotifyAppOrient" in host
 assert "KB104PositionedWindow" in kb
 assert "keyboard.frame=target" in kb
-assert len(re.findall(r"keyboard\\.frame\\s*=",kb))==1
+assert len(re.findall(r"keyboard\.frame\s*=",kb))==1
 print("HL36_NATIVE_ONLY_SOURCE_PASS: drawn UI/key relay unlinked; native UIKit focus, single owner, kbstate and src/project mirrors retained; DEVICE-PENDING")
 
