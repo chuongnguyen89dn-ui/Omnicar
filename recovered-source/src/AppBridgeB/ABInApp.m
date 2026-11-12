@@ -1174,9 +1174,62 @@ static UIView *AB33KeyboardAutomatic(UIView *view, NSUInteger depth) {
     return nil;
 }
 
-// [hl33-kb-owner] Diagnostic ONLY. Old ABNativeKbFit/Begin/Restore
-// had three competing geometry writers and rolled back a live keyboard.
-// UIKit now owns window.frame, window.transform and keyplane layout.
+// [hl36-kbsync] Keyboard layout stays with UIKit. When a committed
+// hosted-scene revision changes, ask the active UIKit first responder to
+// refresh its input views after the divider settles. Never synthesize text,
+// create a second keyboard, or affect native CarPlay template apps.
+static NSUInteger ABNativeKbFocusSerial=0;
+static NSUInteger ABNativeKbReflowTicket=0;
+static BOOL ABNativeKbReflowArmed=NO;
+static unsigned long long ABNativeKbLastReflowRevision=0;
+static NSUInteger ABNativeKbLastReflowFocus=0;
+static void ABNativeKbObserve(NSString *when);
+static void ABNativeKbScheduleUIKitReflow(NSString *source) {
+    if (ABForcedOrientation<1 || ABDrawnKb || !ABCurrentResponder ||
+        ![ABCurrentResponder isFirstResponder]) return;
+    unsigned long long revision=ABNativeKbGeometryRevision;
+    NSUInteger focus=ABNativeKbFocusSerial;
+    if (ABNativeKbReflowArmed &&
+        revision==ABNativeKbLastReflowRevision &&
+        focus==ABNativeKbLastReflowFocus) return;
+    ABNativeKbReflowArmed=YES;
+    ABNativeKbLastReflowRevision=revision;
+    ABNativeKbLastReflowFocus=focus;
+    NSUInteger ticket=++ABNativeKbReflowTicket;
+    NSString *hostEpoch=[ABNativeKbHostEpoch copy];
+    // A newer packet replaces the prior pending task. This is NOT an
+    // interval/retry loop: at most one reload per settled revision/focus.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+        (int64_t)(0.18*NSEC_PER_SEC)),dispatch_get_main_queue(), ^{
+        if (ticket!=ABNativeKbReflowTicket ||
+            revision!=ABNativeKbGeometryRevision ||
+            focus!=ABNativeKbFocusSerial ||
+            (hostEpoch.length &&
+                ![hostEpoch isEqualToString:ABNativeKbHostEpoch]) ||
+            ABForcedOrientation<1 || ABDrawnKb ||
+            !ABCurrentResponder || ![ABCurrentResponder isFirstResponder])
+            return;
+        UIResponder *responder=(UIResponder *)ABCurrentResponder;
+        [responder reloadInputViews]; // Ask UIKit to own keyplane reflow.
+        OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+            @"[hl36-kbsync] event=uikit-reflow-request rev=%llu focus=%lu "
+             "source=%@ action=reloadInputViews-only",
+            revision,(unsigned long)focus,source]);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
+            (int64_t)(0.15*NSEC_PER_SEC)),dispatch_get_main_queue(), ^{
+            if (ticket==ABNativeKbReflowTicket &&
+                revision==ABNativeKbGeometryRevision &&
+                focus==ABNativeKbFocusSerial &&
+                ABForcedOrientation>=1 && !ABDrawnKb &&
+                ABCurrentResponder && [ABCurrentResponder isFirstResponder])
+                ABNativeKbObserve(@"post-uikit-reflow");
+        });
+    });
+}
+
+// [hl33-kb-owner] The only viewport writer remains in
+// ABKeyboardTraits104. Observe UIKit and defer narrowing if a previous
+// keyplane is still wider than the new hosted app scene.
 static void ABNativeKbObserve(NSString *when) {
     if (ABForcedOrientation<1 || ABDrawnKb ||
         !ABCurrentResponder || ![ABCurrentResponder isFirstResponder]) return;
@@ -1195,16 +1248,16 @@ static void ABNativeKbObserve(NSString *when) {
         }
     }
     UIView *star=keyboard ? ABNativeKbFindLayout(keyboard,0):nil;
-    // There is no drawn fallback (host native gate intentionally locked).
-    // HL33 removed the only placement path, leaving keyboard in its
-    // original off-pane iPhone coordinates. HL34 restores exactly one
-    // window-only placement with no retries/keyplane rollback.
-    if (keyboard && key)
-        ABKB104PlaceKeyboardWindow(keyboard,key,when);
+    UIView *plane=star ? AB27FindKeyplane(star,0):nil;
+    CGRect preflightPlane=plane && keyboard
+        ? [plane convertRect:plane.bounds toView:keyboard]:CGRectNull;
+    // Check the actual UIKit keyplane BEFORE changing window.frame.
+    // This is still one viewport owner; no keyplane or transform setter.
+    BOOL placed=keyboard && key
+        ? ABKB104PlaceKeyboardWindow(keyboard,key,preflightPlane,when):NO;
     if (keyboard) ABKB104InspectClips(keyboard);
     CGFloat width=0; UIView *observed=nil;
     BOOL found=ABNativeKbObserveLayout(keyboard,&width,&observed);
-    UIView *plane=observed ? AB27FindKeyplane(observed,0):nil;
     UIView *actual=observed ? AB33KeyboardAutomatic(observed,0):nil;
     CGRect planeRect=plane && keyboard
         ? [plane convertRect:plane.bounds toView:keyboard]:CGRectNull;
@@ -1224,6 +1277,16 @@ static void ABNativeKbObserve(NSString *when) {
         keyboard?NSStringFromCGRect(keyboard.frame):@"nil",
         ABNativeKbLogicalWidth,ABNativeKbPhysicalWidth,width,
         NSStringFromCGRect(planeRect),NSStringFromCGRect(actualRect),(int)found]);
+    // Even an unchanged 371pt window can clip a 371pt keyplane if
+    // UIKit has left it centered at x=25.5pt (HL36 on-car evidence).
+    BOOL projectedOutside=plane && keyboard &&
+        (!isfinite(CGRectGetMinX(planeRect)) ||
+         CGRectGetMinX(planeRect)<-1.0 ||
+         CGRectGetMaxX(planeRect)>CGRectGetWidth(keyboard.bounds)+1.0);
+    if (keyboard && key && (!placed || projectedOutside) &&
+        ([when isEqualToString:@"host-packet"] ||
+         [when isEqualToString:@"post-show-observe"]))
+        ABNativeKbScheduleUIKitReflow(when);
 }
 static void ABNativeKbBegin(NSString *why) {
     ++ABNativeKbEpoch;
@@ -1963,6 +2026,8 @@ static void BWInstallBridgeWake(void) {
     [nc addObserverForName:UIKeyboardDidHideNotification object:nil
                      queue:mq usingBlock:^(__unused NSNotification *n) {
         ++ABNativeKbEpoch;
+        ++ABNativeKbReflowTicket;
+        ABNativeKbReflowArmed=NO;
         ABKB104RestoreKeyboardWindow(@"did-hide");
         ABKB104RestoreClips(@"did-hide");
         OMCLogWrite(@"AppBridge",
@@ -2710,6 +2775,8 @@ static void ABOrientationBlock(NSNotification *note) {
     if (epochChanged) {
         ABNativeKbHostEpoch = [hostEpoch copy];
         ABNativeKbGeometryRevision = 0;
+        ++ABNativeKbReflowTicket;
+        ABNativeKbReflowArmed=NO;
     }
     BOOL stale = hostEpoch.length && !epochChanged &&
         revision < ABNativeKbGeometryRevision;
@@ -2761,6 +2828,8 @@ static void ABOrientationBlock(NSNotification *note) {
         // Host released the app: restore keyboard geometry before
         // resigning, and invalidate any delayed native-fit attempts.
         ++ABNativeKbEpoch;
+        ++ABNativeKbReflowTicket;
+        ABNativeKbReflowArmed=NO;
         ABKB104RestoreKeyboardWindow(@"host-release");
         ABKB104RestoreClips(@"host-release");
         ABNativeKbHostEpoch = nil;
@@ -2811,13 +2880,18 @@ static void ABOrientationBlock(NSNotification *note) {
         for (id link in [ABDisplayLinks() allObjects]) ABApplyFPSLimit(link);
         OMCLogWrite(@"AppBridge", [NSString stringWithFormat:@"gioi han khung hinh: %d", (int)fps]);
     }
-    // [hl33-kb-owner] The host packet is authoritative. On geometry
-    // updates take ONE read-only census; never reframe UIKit windows.
+    // [hl36-kbsync] The host packet is authoritative. Observe the
+    // keyplane and schedule a bounded UIKit-owned refresh after the
+    // last committed geometry change, never scale or edit keycaps.
     if (orientation >= 1 && !stale &&
         (geometryChanged || orientation != old) &&
         !ABDrawnKb && ABCurrentResponder &&
         [ABCurrentResponder isFirstResponder])
         ABNativeKbObserve(@"host-packet");
+    if (orientation>=1 && !stale && !pendingScene &&
+        geometryChanged && !ABDrawnKb &&
+        ABCurrentResponder && [ABCurrentResponder isFirstResponder])
+        ABNativeKbScheduleUIKitReflow(@"host-geometry");
 
 }
 
@@ -2846,6 +2920,8 @@ void ABInstallInAppObservers(NSString *bundleID) {
                         // Host close is a semantic lease end even if stale
                         // orientation packets continue in the app.
                         ++ABNativeKbEpoch;
+                        ++ABNativeKbReflowTicket;
+                        ABNativeKbReflowArmed=NO;
                         ABKB104RestoreKeyboardWindow(@"host-close");
                         ABKB104RestoreClips(@"host-close");
                         ABKB104SetHostGeometry(NO,0,0,0,0,0,0);
@@ -2856,6 +2932,8 @@ void ABInstallInAppObservers(NSString *bundleID) {
                         (void)n;
                         BWResetAll();
                         ++ABNativeKbEpoch;
+                        ++ABNativeKbReflowTicket;
+                        ABNativeKbReflowArmed=NO;
                         ABKB104RestoreKeyboardWindow(@"host-close-all");
                         ABKB104RestoreClips(@"host-close-all");
                         ABKB104SetHostGeometry(NO,0,0,0,0,0,0);
@@ -2897,6 +2975,7 @@ static void ABAfterDelay(NSTimeInterval seconds) {
 // sub_6A70 — after a successful becomeFirstResponder while hosted.
 static void ABResponderBecame(id responder) {
     if (ABForcedOrientation < 1) return;
+    ++ABNativeKbFocusSerial;
     if (!ABDrawnKb) ABKB104InstallIfAvailable();
     ABCurrentResponder = responder;
     ABHL8Focus(@"focus-became", responder);
