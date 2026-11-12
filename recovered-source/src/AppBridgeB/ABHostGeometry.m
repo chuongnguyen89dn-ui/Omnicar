@@ -337,6 +337,7 @@ static void ABNativeKbPrefsChangedCallback(CFNotificationCenterRef center,
 //   A local NSNotificationCenter observer for
 //   "CarPlayIsConnectedDidChange" -> block sub_958C.
 // ===========================================================================
+void ABKeyboardDispatch(int token); // [hl40] declared before SpringBoard registrar
 static void ABFrameBlock(NSNotification *note);   // sub_8274, below
 static void ABShieldBlock(NSNotification *note);  // sub_8C7C, below
 static void ABOpenBlock(NSNotification *note);    // sub_783C, below

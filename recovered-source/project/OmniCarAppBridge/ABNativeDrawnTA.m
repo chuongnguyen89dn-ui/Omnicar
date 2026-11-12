@@ -9,6 +9,8 @@
 #import <math.h>
 #import <stdlib.h>
 
+extern NSInteger ABForcedOrientation; // original ABInApp.m hosted-assignment state
+
 static NSString *const DC40Focus = @"com.anlai.omnicar/nativekb.focus.v1";
 static NSString *const DC40Command = @"com.anlai.omnicar/nativekb.command.v1";
 static NSString *const DC40Ack = @"com.anlai.omnicar/nativekb.ack.v1";

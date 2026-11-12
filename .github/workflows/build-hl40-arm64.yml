@@ -1,0 +1,92 @@
+name: "DuoCar HL40 single-arm64 signed DEB"
+permissions:
+  contents: read
+on:
+  push:
+    branches:
+      - feature/duocar-hl40-drawn-all-20261112
+  workflow_dispatch:
+
+jobs:
+  hl40-arm64:
+    runs-on: macos-15
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert HL40 source and original keyboard UI
+        run: |
+          python3 recovered-source/gpt-project-history/verify_hl40_drawn_all.py
+          python3 recovered-source/gpt-project-history/verify_hl26_native_settings.py
+          python3 recovered-source/gpt-project-history/verify_hl27_settings_respring.py
+      - name: Restore Theos and iPhoneOS SDK from project cache
+        id: cache-theos
+        uses: actions/cache@v4
+        with:
+          path: ~/theos
+          key: hl36-theos-ios16-5-${{ runner.os }}-${{ runner.arch }}-v1
+      - name: Install Theos and iPhoneOS SDK if uncached
+        if: steps.cache-theos.outputs.cache-hit != 'true'
+        run: |
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git ~/theos-sdks
+          git -C ~/theos-sdks sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p ~/theos/sdks
+          cp -R ~/theos-sdks/iPhoneOS16.5.sdk ~/theos/sdks/
+          ls -la ~/theos/sdks/
+      - name: Install signing and Debian tools
+        run: |
+          brew list ldid >/dev/null 2>&1 || brew install ldid
+          brew list dpkg >/dev/null 2>&1 || brew install dpkg
+          command -v ldid
+          command -v dpkg-deb
+      - name: Remove Linux-only linker flag in disposable checkout
+        run: |
+          find recovered-source/project -type f -name Makefile -print0 |
+            xargs -0 grep -l -- '-fuse-ld=lld' | while IFS= read -r f; do
+              sed -i '' 's/-fuse-ld=lld//g' "$f"
+            done
+      - name: Rebrand existing build tree and compile one arm64 architecture
+        shell: bash
+        env:
+          ARCHS: arm64
+          THEOS_PACKAGE_SCHEME: rootless
+        run: |
+          set -euo pipefail
+          export THEOS="$HOME/theos"
+          python3 recovered-source/gpt-project-history/rebrand_duocar.py
+          cd recovered-source/project
+          make clean ARCHS=arm64
+          make package FINALPACKAGE=1 ARCHS=arm64 2>&1 | tee /tmp/hl40-build.log
+          ls -lh packages/
+      - name: Verify real signed package, architecture and keyboard markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEB="recovered-source/project/packages/com.chuong.duocar_1.0.3-hl40drawall1_iphoneos-arm64.deb"
+          test -s "$DEB"
+          test "$(dpkg-deb -f "$DEB" Package)" = "com.chuong.duocar"
+          test "$(dpkg-deb -f "$DEB" Version)" = "1.0.3-hl40drawall1"
+          test "$(dpkg-deb -f "$DEB" Architecture)" = "iphoneos-arm64"
+          rm -rf /tmp/hl40-payload
+          mkdir -p /tmp/hl40-payload
+          dpkg-deb -x "$DEB" /tmp/hl40-payload
+          for b in /tmp/hl40-payload/var/jb/Library/MobileSubstrate/DynamicLibraries/DuoCar*.dylib; do
+            lipo -info "$b"
+            lipo -info "$b" | grep -q 'Non-fat file'
+          done
+          python3 recovered-source/gpt-project-history/verify_duocar_payload.py "$DEB"
+          shasum -a 256 "$DEB"
+      - name: Upload direct installable arm64 DEB
+        uses: actions/upload-artifact@v4
+        with:
+          name: duocar-hl40drawall1-arm64-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl40drawall1_iphoneos-arm64.deb
+          if-no-files-found: error
+          retention-days: 7
+      - name: Preserve compiler output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: duocar-hl40-diagnostics
+          path: /tmp/hl40-build.log
+          if-no-files-found: ignore
