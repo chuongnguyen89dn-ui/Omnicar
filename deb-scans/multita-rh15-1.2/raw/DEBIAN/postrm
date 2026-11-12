@@ -1,0 +1,29 @@
+#!/bin/sh
+# Dọn dấu vết của các bản trước (log và cờ gỡ lỗi): chỉ xoá đúng tên tệp do chính các bản MultiTA/ConnectTA/TAEQ từng tạo ra.
+clean_old_traces() {
+    for F in MultiTA-beta.log MultiTA-beta.log.1 MultiTA-beta-template.log MultiTA-beta-template.log.1 MultiTA-autosplit.log \
+             TAMapMerged-host.log ConnectTA.txt ConnectTA-admission.txt TAEQ-carplay-probe.log MultiTA-debug-touch Bubble-on; do
+        rm -f "/var/mobile/$F" 2>/dev/null
+    done
+    if command -v find >/dev/null 2>&1 && [ -d /var/mobile/Containers ]; then
+        find /var/mobile/Containers -maxdepth 6 \( -name ConnectTA-client.txt -o -name TAMapMerged-google.log \
+             -o -name BubbleDebug.txt -o -name BubbleCtor.txt \) -delete 2>/dev/null
+    fi
+}
+clean_old_traces
+case "$1" in
+  remove|purge)
+    INSTALL_PREFIX=/var/jb
+    if command -v jbroot >/dev/null 2>&1; then INSTALL_PREFIX=""; fi
+    for NAME in com.sushibta.multita.autosplit-agent com.sushibta.multita.license-standalone; do
+        PLIST="$INSTALL_PREFIX/Library/LaunchDaemons/$NAME.plist"
+        if command -v launchctl >/dev/null 2>&1 && [ -f "$PLIST" ]; then
+            launchctl unload "$PLIST" >/dev/null 2>&1 || true
+        fi
+        rm -f "$PLIST"
+    done
+    # Khoá thiết bị và lease nằm trong Keychain và /var/mobile/Library/TAstoreLicense: KHÔNG xoá khi gỡ/nâng cấp, để cài lại không mất.
+    ;;
+esac
+# The user's non-secret Auto Split choices survive upgrades/reinstalls.
+exit 0

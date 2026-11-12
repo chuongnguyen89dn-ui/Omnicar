@@ -1,0 +1,12 @@
+#!/bin/sh
+INSTALL_PREFIX=/var/jb
+if command -v jbroot >/dev/null 2>&1; then INSTALL_PREFIX=""; fi
+PLIST="$INSTALL_PREFIX/Library/LaunchDaemons/com.sushibta.multita.autosplit-agent.plist"
+if command -v launchctl >/dev/null 2>&1 && [ -f "$PLIST" ]; then
+    launchctl unload "$PLIST" >/dev/null 2>&1 || true
+fi
+LPLIST="$INSTALL_PREFIX/Library/LaunchDaemons/com.sushibta.multita.license-standalone.plist"
+if command -v launchctl >/dev/null 2>&1 && [ -f "$LPLIST" ]; then
+    launchctl unload "$LPLIST" >/dev/null 2>&1 || true
+fi
+exit 0

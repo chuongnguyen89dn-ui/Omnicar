@@ -1,0 +1,124 @@
+#!/bin/sh
+# Dọn dấu vết của các bản trước (log và cờ gỡ lỗi): chỉ xoá đúng tên tệp do chính các bản MultiTA/ConnectTA/TAEQ từng tạo ra.
+clean_old_traces() {
+    for F in MultiTA-beta.log MultiTA-beta.log.1 MultiTA-beta-template.log MultiTA-beta-template.log.1 MultiTA-autosplit.log \
+             TAMapMerged-host.log ConnectTA.txt ConnectTA-admission.txt TAEQ-carplay-probe.log MultiTA-debug-touch Bubble-on; do
+        rm -f "/var/mobile/$F" 2>/dev/null
+    done
+    if command -v find >/dev/null 2>&1 && [ -d /var/mobile/Containers ]; then
+        find /var/mobile/Containers -maxdepth 6 \( -name ConnectTA-client.txt -o -name TAMapMerged-google.log \
+             -o -name BubbleDebug.txt -o -name BubbleCtor.txt \) -delete 2>/dev/null
+    fi
+}
+clean_old_traces
+# RootHide/rootless: refresh the iPhone icon, register the license authority and load the persistent Auto Split
+# preference writer.
+INSTALL_PREFIX=/var/jb
+if command -v jbroot >/dev/null 2>&1; then INSTALL_PREFIX=""; fi
+APP="$INSTALL_PREFIX/Applications/MultiTAVoice.app"
+for U in uicache /var/jb/usr/bin/uicache /usr/bin/uicache; do
+    if command -v "$U" >/dev/null 2>&1 || [ -x "$U" ]; then
+        if [ -d "$APP" ]; then "$U" -p "$APP" >/dev/null 2>&1 && break; fi
+        "$U" -a >/dev/null 2>&1 && break
+    fi
+done
+# ---- Authority bản quyền (TAStandaloneLicense): chủ duy nhất của khoá thiết bị, lease và admission.sock ----
+# KHÔNG BAO GIỜ đụng Keychain hay lease hiện có. Đăng ký daemon thất bại = cài đặt hỏng (dpkg phải báo), nên mã thoát
+# cuối cùng của script mang LICENSE_RC. `launchctl load` lỗi tức thời thì không tính là hỏng: plist đã được cài đúng và launchd
+# sẽ nạp ở lần khởi động sau.
+LICENSE_RC=0
+LDIR="$INSTALL_PREFIX/Library/LaunchDaemons"
+LICENSE_TARGET="$LDIR/com.sushibta.multita.license-standalone.plist"
+LICENSE_CANDIDATE="$LDIR/.License.candidate.plist"
+if ! mkdir -p "$LDIR"; then echo "License: cannot create LaunchDaemons directory"; LICENSE_RC=1; fi
+# Thư mục socket riêng (0700, thuộc mobile). Nếu su không có thì daemon tự tạo khi chạy với uid 501.
+if command -v su >/dev/null 2>&1; then
+    su mobile -c 'mkdir -p /var/mobile/Library/TAstoreLicense && chmod 700 /var/mobile/Library/TAstoreLicense' >/dev/null 2>&1 || echo "License: private directory will be created by the service"
+fi
+if [ ! -x "$INSTALL_PREFIX/usr/libexec/TAStandaloneLicense" ]; then
+    echo "License: standalone executable missing"
+    LICENSE_RC=1
+elif [ "$LICENSE_RC" -eq 0 ]; then
+    # Render XML trực tiếp: bản đóng gói RootHide có thể chuyển plist mẫu sang bplist nên không sed/grep trên mẫu.
+    cat > "$LICENSE_CANDIDATE" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>Label</key><string>com.sushibta.multita.license-standalone</string>
+<key>ProgramArguments</key><array><string>$INSTALL_PREFIX/usr/libexec/TAStandaloneLicense</string></array>
+<key>UserName</key><string>mobile</string><key>GroupName</key><string>mobile</string>
+<key>RunAtLoad</key><true/><key>KeepAlive</key><true/>
+<key>ThrottleInterval</key><integer>15</integer>
+<key>ProcessType</key><string>Background</string>
+</dict></plist>
+EOF
+    if ! grep -q '<key>ProgramArguments</key>' "$LICENSE_CANDIDATE" || grep -q '@JBROOT@' "$LICENSE_CANDIDATE"; then
+        echo "License: generated plist failed basic validation"
+        rm -f "$LICENSE_CANDIDATE"; LICENSE_RC=1
+    elif ! chown root:wheel "$LICENSE_CANDIDATE" || ! chmod 0644 "$LICENSE_CANDIDATE" || ! mv -f "$LICENSE_CANDIDATE" "$LICENSE_TARGET"; then
+        echo "License: failed to install LaunchDaemon plist"
+        rm -f "$LICENSE_CANDIDATE"; LICENSE_RC=1
+    elif command -v launchctl >/dev/null 2>&1; then
+        launchctl unload "$LICENSE_TARGET" >/dev/null 2>&1 || true
+        if launchctl load -w "$LICENSE_TARGET"; then echo "License: service load requested"
+        else echo "License: launchctl load failed; the service starts after the next boot"; fi
+    fi
+fi
+if [ "$LICENSE_RC" -ne 0 ]; then echo "License: service registration failed; treating the install as broken so dpkg reports it."; fi
+TOOL="$INSTALL_PREFIX/usr/libexec/TAAutoSplitAgent"
+TEMPLATE="$INSTALL_PREFIX/usr/share/multita/autosplit-agent.plist"
+PLIST="$INSTALL_PREFIX/Library/LaunchDaemons/com.sushibta.multita.autosplit-agent.plist"
+if [ ! -x "$TOOL" ] || [ ! -f "$TEMPLATE" ]; then
+    echo "AutoSplit: agent or template missing; app remains available for diagnostics."
+    exit "$LICENSE_RC"
+fi
+if ! command -v plutil >/dev/null 2>&1; then
+    echo "AutoSplit: plutil unavailable; cannot install agent."
+    exit "$LICENSE_RC"
+fi
+mkdir -p "$INSTALL_PREFIX/Library/LaunchDaemons" || exit 1
+XML_SOURCE="$PLIST.source.xml"
+RENDERED="$PLIST.new"
+trap 'rm -f "$XML_SOURCE" "$RENDERED"' EXIT
+cp -f "$TEMPLATE" "$XML_SOURCE" || exit 1
+if ! plutil -convert xml1 "$XML_SOURCE" || ! grep -q '<plist' "$XML_SOURCE"; then
+    echo "AutoSplit: launch template conversion failed"
+    exit 1
+fi
+sed "s|@JBROOT@|$INSTALL_PREFIX|g" "$XML_SOURCE" > "$RENDERED" || exit 1
+if ! plutil -convert xml1 "$RENDERED" || ! grep -q '<dict>' "$RENDERED"; then
+    echo "AutoSplit: invalid launchd plist"
+    exit 1
+fi
+chown root:wheel "$RENDERED" || exit 1
+chmod 0644 "$RENDERED" || exit 1
+mv -f "$RENDERED" "$PLIST" || exit 1
+if command -v launchctl >/dev/null 2>&1; then
+    launchctl unload "$PLIST" >/dev/null 2>&1 || true
+    if launchctl load -w "$PLIST"; then
+        echo "AutoSplit: agent load requested; open MultiTA on iPhone to confirm."
+    else
+        echo "AutoSplit: launchctl load failed; do not claim Auto Split works yet."
+    fi
+fi
+# carplayd keeps both admission hooks and a verified-code consumer loaded.
+# Replacing its dylibs/manifests on disk does not replace the running image.
+# Restart this consumer after successful configuration; SpringBoard is left
+# to the package manager's normal respring action.
+if [ "$LICENSE_RC" -eq 0 ]; then
+    if command -v killall >/dev/null 2>&1; then
+        killall -TERM carplayd >/dev/null 2>&1 || true
+    fi
+    if command -v launchctl >/dev/null 2>&1 && command -v awk >/dev/null 2>&1; then
+        CT_HOST_PID="$(launchctl list 2>/dev/null | awk '$3=="com.apple.CarPlayApp" {print $1; exit}')"
+        case "$CT_HOST_PID" in
+            ''|*[!0-9]*|0|1) : ;;
+            *) if kill -TERM "$CT_HOST_PID" 2>/dev/null; then
+                   echo "ConnectTA: CarPlay host reload requested"
+               else
+                   echo "ConnectTA: close and reconnect CarPlay to reload the host"
+               fi ;;
+        esac
+    fi
+fi
+exit "$LICENSE_RC"
