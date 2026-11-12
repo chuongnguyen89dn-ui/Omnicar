@@ -28,7 +28,7 @@ agent=(project/"OmniCarSplitScreen/SCPVoiceSpringAgent.m").read_text()
 # Preexisting forced native mode must not silently disable BOTH owners.
 assert "return YES;" in mode[mode.index("BOOL ABNativeKeyboardEnabled"):mode.index("BOOL ABDrawnKeyboardEnabled")]
 assert "return !ABNativeKeyboardEnabled()" in mode
-assert "ABKB104PlaceKeyboardWindow(keyboard,key,when)" in ab
+assert "ABKB104PlaceKeyboardWindow(keyboard,key,preflightPlane,when)" in ab
 assert "ABKB104PlaceKeyboardWindow(UIWindow *keyboard" in hdr
 assert "BOOL ABKB104PlaceKeyboardWindow(UIWindow *keyboard" in kb
 # Exactly one direct UIKit keyboard.frame WRITE across active first-party
@@ -104,13 +104,37 @@ assert "static const BOOL ABDrawnKb = NO" in ab
 assert "[hl36-native-only] drawnKeyboard=1 ignored" in ab
 assert "BWKbStateBecame()" in ab and "BWKbStateResignedDeferred()" in ab
 assert "BWKbLocalSet(BWKbActive)" in ab and "BWKbLocalSet(BWKbInactive)" in ab
-assert "ABKB104PlaceKeyboardWindow(keyboard,key,when)" in ab
+assert "ABKB104PlaceKeyboardWindow(keyboard,key,preflightPlane,when)" in ab
 assert "ABKB104InstallIfAvailable()" in ab
 assert 'ABNativeKbBegin(@"focus-became")' in ab
 assert "ABKbSyncNoteEvent(bundleID, NO)" in (project/"OmniCarAppBridge/ABHostLaunch.m").read_text()
 assert "ABNotifyAppOrient" in host
 assert "KB104PositionedWindow" in kb
 assert "keyboard.frame=target" in kb
+# HL36: actual native UIKit keyplane must be compatible with the hosted
+# remote keyboard window BEFORE a narrower scene revision is applied.
+assert "CGRect keyplaneInWindow" in hdr
+assert "CGRect keyplaneInWindow" in kb
+assert "KB104PlaneFitsViewport" in kb
+assert "planeKnown && !fits && (narrowing || !changed)" in kb
+assert "ABNativeKbScheduleUIKitReflow" in ab
+assert "[responder reloadInputViews]" in ab
+assert "ABNativeKbReflowTicket" in ab
+assert "revision!=ABNativeKbGeometryRevision" in ab
+assert "focus!=ABNativeKbFocusSerial" in ab
+assert 'ABNativeKbObserve(@"post-uikit-reflow")' in ab
+assert '"[hl36-kbsync] event=viewport-await-uikit' in kb
+assert '"[hl36-kbsync] event=uikit-reflow-request' in ab
+assert "keyboard.transform=" not in kb+ab
+assert "UIKeyboardLayoutStar.transform=" not in kb+ab
+# Independent HL36 on-car specimens: matching WIDTH alone does not
+# imply fit, because the keyplane can still have a positive x origin.
+assert 25.5+371 > 371+1
+assert 7.5+495 > 371+1
+assert 25.5+371 <= 495+1
+# Missing keyplane on window-visible is not a shrink failure; allow
+# UIKit's first viewport placement while the keyplane is being built.
+assert "if (planeKnown && !fits && (narrowing || !changed))" in kb
 assert len(re.findall(r"keyboard\.frame\s*=",kb))==1
 # HL36: voice code is retained ONLY in source; the package must never
 # compile assistant capture, UI, bubble, or typed command parser.
