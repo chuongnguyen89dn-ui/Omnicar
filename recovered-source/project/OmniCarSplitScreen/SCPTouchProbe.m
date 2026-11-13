@@ -61,6 +61,7 @@
 #import "SCPCarSplit+AutoHide.h" // [fix-np] ahNoteActivity: (F1 entry)
 #import "SCPCarSplit+BridgeWake.h" // [gpt-hl6-host-pinch] mode owner
 #import "SCPPinchController.h" // [gpt-hl6-host-pinch] existing FS adapter
+#import "../OmniCarPinchCommon/DCPinchDirection.h" // [hl53] shared pure-C two-finger direction
 #import "SCPCarPane.h"
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -705,80 +706,14 @@ static void SCPHostPinchEvaluate(SCPCarSplit *split,
                 NSStringFromCGPoint([b[@"start"] CGPointValue]),
                 a[@"slot"], b[@"slot"], (int)split.active]);
 
-        // [gpt-hl7-pair-toggle] HL7 car: 17/17 real physical two-finger
-        // pairs; 16/17 chains had no Moved callback. HL4's proven
-        // in-app recognizer toggled at pair formation. Reuse its
-        // pair-at-Began law on the CarPlay host's SAME fullscreen
-        // adapter. This toggles the entire OmniCar split, not a
-        // YouTube video. One transaction maximum for each pair.
-        //
-        // Pref bridgewake.carHostPinchPairToggle=NO falls back to the
-        // movement/terminal detector without changing the FS engine.
-        id pairPref = OMCPref(@"bridgewake.carHostPinchPairToggle", nil);
-        BOOL pairToggle = pairPref ? [pairPref boolValue] : YES;
-        if (pairToggle) {
-            id<SCPFullscreenControlling> adapter =
-                [SCPPinchController shared].adapter;
-            SCPFullscreenState state = adapter.currentState;
-            if (SCPHL8TraceEnabled())
-                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                    @"[hl8diag] eye=pinch ev=fs-gate pair=%llu adapter=%@ "
-                     "state=%ld active=%d popup=%d frame=%@",
-                    (unsigned long long)sHL8CurrentPair,
-                    adapter ? NSStringFromClass([(id)adapter class]) : @"nil",
-                    (long)state, (int)split.active,
-                    (int)SCPHostPinchPopupBusy(split),
-                    NSStringFromCGRect(split.container.frame)]);
-            if (state != SCPFullscreenStateSplit &&
-                state != SCPFullscreenStateExpanded) {
-                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                    @"[car-pinch] pair-began-reject state=%ld",
-                    (long)state]);
-                sHostPinchPairFired = YES;
-                return;
-            }
-            BOOL expand = (state == SCPFullscreenStateSplit);
-            uint64_t hl8RequestID = sHL8CurrentPair;
-            sHostPinchPairFired = YES;
+        // [hl53-pinch] Never fire on pair Began. A two-finger tap,
+        // stationary hold or same-direction slide is not pinch.
+        // Evaluate ONLY actual distance change on Moved/Ended below.
+        // Preserve hosted same-pane ownership and the one FS adapter.
+        if (SCPHL8TraceEnabled())
             OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                @"[car-pinch] request dir=%@ state=%ld source=pair-began d0=%.1f",
-                expand ? @"expand" : @"restore", (long)state, (double)d]);
-            if (SCPHL8TraceEnabled())
-                OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                    @"[hl8diag] eye=pinch ev=fs-request pair=%llu "
-                     "dir=%@ adapter=%@ state=%ld",
-                    (unsigned long long)hl8RequestID,
-                    expand ? @"expand" : @"restore",
-                    adapter ? NSStringFromClass([(id)adapter class]) : @"nil",
-                    (long)state]);
-            if (expand) {
-                [adapter requestExpandWithCompletion:^(BOOL applied) {
-                    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                        @"[car-pinch] expand applied=%d newState=%ld source=pair-began",
-                        (int)applied, (long)adapter.currentState]);
-                    if (SCPHL8TraceEnabled())
-                        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                            @"[hl8diag] eye=pinch ev=fs-result pair=%llu dir=expand "
-                             "applied=%d state=%ld container=%@",
-                            (unsigned long long)hl8RequestID, (int)applied,
-                            (long)adapter.currentState,
-                            NSStringFromCGRect([SCPCarSplit shared].container.frame)]);
-                }];
-            } else {
-                [adapter requestRestoreWithCompletion:^(BOOL applied) {
-                    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                        @"[car-pinch] restore applied=%d newState=%ld source=pair-began",
-                        (int)applied, (long)adapter.currentState]);
-                    if (SCPHL8TraceEnabled())
-                        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                            @"[hl8diag] eye=pinch ev=fs-result pair=%llu dir=restore "
-                             "applied=%d state=%ld container=%@",
-                            (unsigned long long)hl8RequestID, (int)applied,
-                            (long)adapter.currentState,
-                            NSStringFromCGRect([SCPCarSplit shared].container.frame)]);
-                }];
-            }
-        }
+                @"[hl53-pinch] owner=car phase=pair-formed pair=%llu d0=%.1f awaiting-direction=1",
+                (unsigned long long)sHL8CurrentPair, (double)d]);
         return;
     }
     if (sHostPinchPairFired || !contacts[sHostPinchKey1] ||
@@ -806,11 +741,18 @@ static void SCPHostPinchEvaluate(SCPCarSplit *split,
             (long)[b[@"moves"] integerValue],
             NSStringFromCGPoint(p1), NSStringFromCGPoint(p2)]);
     }
-    if (delta < 12.0 || drift > 0.6 * delta + 10.0) return;
     CGFloat ratio = d / sHostPinchStartDistance;
-    BOOL outward = ratio >= 1.10;
-    BOOL inward = ratio <= 0.90;
-    if (!outward && !inward) return;
+    // The exact direction test is shared with the hosted-app relay.
+    // DISTANCE grows -> expand, shrinks -> restore, no movement -> NONE.
+    DCPinchDirection direction = DCPinchDirectionForMotion(
+        sHostPinchStartDistance,d,drift);
+    if (direction == DCPinchNone) return;
+    BOOL outward = direction == DCPinchOut;
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[hl53-pinch] owner=car phase=direction pair=%llu dir=%@ d0=%.1f d1=%.1f ratio=%.3f delta=%.1f drift=%.1f",
+        (unsigned long long)sHL8CurrentPair,outward?@"out":@"in",
+        (double)sHostPinchStartDistance,(double)d,(double)ratio,
+        (double)delta,(double)drift]);
     // Real direction is known from two independent contacts. A wrong
     // direction never toggles: pinch OUT expands, pinch IN restores.
     id<SCPFullscreenControlling> adapter = [SCPPinchController shared].adapter;
