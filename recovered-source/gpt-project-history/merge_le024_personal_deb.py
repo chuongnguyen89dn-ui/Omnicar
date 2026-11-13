@@ -64,19 +64,25 @@ def update_control(path, version, installed_kib):
             "Wrong base package")
     require("Architecture: iphoneos-arm64" in lines,
             "Wrong architecture")
-    keep, conflicts, replaces = [], [], []
+    keep, conflicts, replaces, depends = [], [], [], []
     for line in lines:
         key, colon, value = line.partition(":")
         if colon and not line[:1].isspace() and key in (
-                "Version", "Installed-Size", "Conflicts", "Replaces"):
+                "Version", "Installed-Size", "Conflicts", "Replaces", "Depends"):
             if key == "Conflicts":
                 conflicts.extend(x.strip() for x in value.split(",") if x.strip())
             if key == "Replaces":
                 replaces.extend(x.strip() for x in value.split(",") if x.strip())
+            if key == "Depends":
+                depends.extend(x.strip() for x in value.split(",") if x.strip())
             continue
         keep.append(line)
     keep.extend([f"Version: {version}",
                  f"Installed-Size: {installed_kib}"])
+    # Original Le 0.2.4 explicitly supports iOS 15..26, not iOS 27.
+    if "firmware (<< 27.0)" not in depends:
+        depends.append("firmware (<< 27.0)")
+    keep.append("Depends: " + ", ".join(depends))
     # A standalone Le package must not own the same dylib paths simultaneously.
     keep.append("Conflicts: " + ", ".join(sorted(set(conflicts+["dev.bechou.le"]))))
     keep.append("Replaces: " + ", ".join(sorted(set(replaces+["dev.bechou.le"]))))
