@@ -12,13 +12,15 @@
 #import <notify.h>
 #import <math.h>
 #import <stdlib.h>
+#import <string.h>
 #import "../OmniCarLeTraffic/DCLTrafficCore.h"
 #import "DCLLeConfigBridge.h"
 
 static NSString *const DCLDomain=@"com.chuong.duocar";
 static id (*originalContent)(id,SEL,id);
 static void (*originalOverlayPlace)(id,SEL);
-static void (*originalCastPlace)(id,SEL,id);
+// Original arm64 selector type: v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16
+static void (*originalCastPlace)(id,SEL,CGRect);
 static BOOL installedContent=NO, installedOverlay=NO, installedCast=NO;
 static BOOL dragging=NO, applying=NO, hasStored=NO;
 static DCLTrafficPoint stored={0.5,0.5};
@@ -153,8 +155,8 @@ static void newOverlayPlace(id o,SEL sel) {
     if(originalOverlayPlace)originalOverlayPlace(o,sel);
     enforce(o);
 }
-static void newCastPlace(id o,SEL sel,id value) {
-    if(originalCastPlace)originalCastPlace(o,sel,value);
+static void newCastPlace(id o,SEL sel,CGRect frame) {
+    if(originalCastPlace)originalCastPlace(o,sel,frame);
     enforce(o);
 }
 static id newContent(id cls,SEL sel,id snapshot) {
@@ -178,6 +180,14 @@ static BOOL installOne(Class cls,SEL selector,IMP newIMP,IMP *old,
     Method m=instance?class_getInstanceMethod(cls,selector):
                        class_getClassMethod(cls,selector);
     if(!m||method_getNumberOfArguments(m)!=args)return NO;
+    if(instance && selector==@selector(place:)) {
+        // Verified vendor LeBubble Mach-O: CGRect, NOT an id object.
+        const char *encoding=method_getTypeEncoding(m);
+        if(!encoding || !strstr(encoding,"{CGRect=")) {
+            NSLog(@"[le024-ext] place: ABI mismatch (%s)",encoding?: "null");
+            return NO;
+        }
+    }
     char ret[16]={0};
     method_getReturnType(m,ret,sizeof(ret));
     if(instance ? ret[0]!='v' : ret[0]!='@')return NO;

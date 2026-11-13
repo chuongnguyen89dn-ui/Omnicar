@@ -23,6 +23,13 @@ first=["DuoCarCore","DuoCarAppBridge","DuoCarCarProbe",
        "DuoCarSplitScreen","DuoCarStartupScreen","DCLLeExtension"]
 vendor=["LeBubble","LeSupervisor","LeGoogleRelay","LeGuidanceRelay",
         "LeGofaSource","LeWazeSource","LeGoogleSource","LeSourceShown","LeGoogleMaps"]
+def has_marker(data, marker):
+    # Objective-C @"..." string literals are frequently emitted UTF-16LE,
+    # while NSLog C-format strings are UTF-8. Test both representations.
+    if isinstance(marker, bytes):
+        marker=marker.decode("utf-8")
+    return marker.encode("utf-8") in data or marker.encode("utf-16-le") in data
+
 def verify_fat(path):
     contents=path.read_bytes()
     assert contents[:4]==bytes.fromhex("cafebabe"),path
@@ -63,16 +70,16 @@ with tempfile.TemporaryDirectory(prefix="duocar49-verify-") as t:
         assert b"    \x00" in data,("LeBubble GPS unit patch missing",sub)
     extended=verify_fat(libs/"DCLLeExtension.dylib")
     for sub,data in extended.items():
-        assert b"[le024-ext]" in data
-        assert b"[le024-config]" in data
+        assert has_marker(data,"[le024-ext]")
+        assert has_marker(data,"[le024-config]")
     car=verify_fat(libs/"DuoCarSplitScreen.dylib")
     for sub,data in car.items():
-        assert b"[hl49-opaque]" in data
-        assert b"[vitals] native-dock-attached" in data
-        assert b"[hl49-window-ab]" in data
+        assert has_marker(data,"[hl49-opaque]")
+        assert has_marker(data,"[vitals] native-dock-attached")
+        assert has_marker(data,"[hl49-window-ab]")
     app=jb/"Applications/DuoCar.app/DuoCar"
     verify_fat(app)
-    assert b"[le024-prefs]" in app.read_bytes()
+    assert has_marker(app.read_bytes(),"[le024-prefs]")
     pref=jb/"Library/PreferenceBundles/DuoCarPrefs.bundle/DuoCarPrefs"
     verify_fat(pref)
     assert b"DCRSpeedBubbleController" not in pref.read_bytes()
