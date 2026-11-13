@@ -29,7 +29,6 @@
 #import "SCPCarSplit+AutoHide.h" // [autohide] fade payload keys + activity feeds + teardown (design-autohide §5.1)
 #import "SCPHomeApply.h" // [ytz5] SCPLogInjectedIconState (M5 icon instrument points in closeGoingHome:)
 #import "SCPHomeLauncher.h" // [gpt-home] native Home entry is authoritative
-#import "SCPDeviceVitalsHUD.h" // [duocar-vitals] noninteractive, rail-only metric display
 
 static id SCPGuarded(id obj, NSString *selName) {
     SEL sel = NSSelectorFromString(selName);
@@ -132,30 +131,6 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     return YES;
 }
 
-// [duocar-vitals] The existing dockClusterInParent: deliberately undoes
-// the native Dock's translation for launcher placement. That geometry is
-// NOT its current on-screen frame. Sample actual Dock coordinates instead.
-static CGRect SCPVitalsLiveDockFrame(UIView *parent) {
-    if (!parent || !parent.window) return CGRectNull;
-    id root = SCPDashboardRootViewController();
-    id dockVC = SCPGuarded(root, @"appDockViewController");
-    UIView *dock = SCPGuarded(dockVC, @"view");
-    if (!dock || !dock.window || dock.hidden || dock.alpha <= 0.01)
-        return CGRectNull;
-    UIScreen *screen = parent.window.screen;
-    if (!screen || screen != dock.window.screen) return CGRectNull;
-    CGRect screenRect = [dock convertRect:dock.bounds
-                        toCoordinateSpace:screen.coordinateSpace];
-    return [parent convertRect:screenRect fromCoordinateSpace:screen.coordinateSpace];
-}
-
-static CGRect SCPVitalsLauncherFrame(SCPCarSplit *owner, UIView *parent) {
-    UIView *button = owner.homeButton;
-    if (!button || !button.superview || !button.window || !parent.window ||
-        button.window.screen != parent.window.screen) return CGRectNull;
-    return [parent convertRect:button.bounds fromView:button];
-}
-
 // -activateWithCount: (0x15cdc) VERIFIED (control flow read end-to-end,
 // remediation re-check rem_activateWithCount.txt + rem_suppressReopen_*).
 - (BOOL)activateWithCount:(NSInteger)count {
@@ -200,13 +175,6 @@ static CGRect SCPVitalsLauncherFrame(SCPCarSplit *owner, UIView *parent) {
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:@"CarSplit: bat split CarPlay (%d o)", (int)self.paneCount]);
     [self showTipSoon];
     [self relayoutAnimated:NO];
-    // [duocar-vitals] attach only when the real Dock/usable-rail geometry exists.
-    UIView *vitalsParent = self.container.superview;
-    if (vitalsParent) [[SCPDeviceVitalsHUD shared] showForParent:vitalsParent
-        appArea:[self appAreaInParent:vitalsParent]
-        dockFrame:SCPVitalsLiveDockFrame(vitalsParent)
-        homeFrame:self.homeGlyph
-        launcherFrame:SCPVitalsLauncherFrame(self, vitalsParent)];
     // Entry animation (VERIFIED, remediation: __const slots read directly
     // — scale 0.97 @0x6f090, duration 0.35 @0x6f098, damping 0.9 @0x6f028,
     // initialSpringVelocity 0.3 @0x6f010; block invoke @0x16428 dumped in
@@ -268,9 +236,9 @@ static CGRect SCPVitalsLauncherFrame(SCPCarSplit *owner, UIView *parent) {
 // The original calls refreshAppTab on NO active branch.
 - (void)rootDidLayout {
     [self publishBusy];
-    if (!self.active) { [[SCPDeviceVitalsHUD shared] stop]; [self refreshAppTab]; return; }
+    if (!self.active) { [self refreshAppTab]; return; }
     UIView *parent = self.container.superview;
-    if (!parent) { [[SCPDeviceVitalsHUD shared] stop]; return; }
+    if (!parent) return;
     [self refreshHomeButton];
     CGRect area = [self appAreaInParent:parent];
     if (!CGRectEqualToRect(area, self.container.frame)) {
@@ -279,12 +247,6 @@ static CGRect SCPVitalsLauncherFrame(SCPCarSplit *owner, UIView *parent) {
         self.container.frame = area;
         [self relayoutAnimated:NO];
     }
-    // Measure the *post-relayout* live Dock transform and current launcher.
-    [[SCPDeviceVitalsHUD shared] showForParent:parent
-        appArea:[self appAreaInParent:parent]
-        dockFrame:SCPVitalsLiveDockFrame(parent)
-        homeFrame:self.homeGlyph
-        launcherFrame:SCPVitalsLauncherFrame(self, parent)];
 }
 
 // -baseViewControllerPresented (0x214b8) VERIFIED (remediation,
@@ -310,7 +272,6 @@ static CGRect SCPVitalsLauncherFrame(SCPCarSplit *owner, UIView *parent) {
 // (0x22958 w2=#-1), NOT 0 — both restored; the previous body dropped
 // the three clears and used dragTarget = 0.
 - (void)dashboardInvalidated {
-    [[SCPDeviceVitalsHUD shared] stop]; // [duocar-vitals] no stale HUD after disconnect
     SCPHomeLauncherDockSetVisible(NO, @"dashboard-invalidated"); // [hl12dock]
     [self removeAppTab];
     [self removeHomeButton];
@@ -1808,7 +1769,6 @@ static CGRect SCPVitalsLauncherFrame(SCPCarSplit *owner, UIView *parent) {
     // paint registry. The destination mode owns what follows: a
     // hosted-solo target re-suspends AFTER this cleanup (see
     // soloBundle:). Idempotent.
-    [[SCPDeviceVitalsHUD shared] stop]; // [duocar-vitals] detach on split close
     [self ahCloseCleanup];
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"CarSplit: tat split (goHome=%d) src=%@", goHome, src]);
