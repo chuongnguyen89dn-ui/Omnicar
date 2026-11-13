@@ -133,6 +133,34 @@ static NSString *OMCRowName(NSDictionary *r) {
     NSString *key=r[@"label"];
     return key.length?OMCNativeLocalized(key):@"";
 }
+
+static NSInteger OMCLeOffsetClamp(NSInteger value) {
+    return MAX(-5, MIN(5, value));
+}
+static NSString *OMCLeOffsetDisplay(NSInteger value) {
+    NSInteger n=OMCLeOffsetClamp(value);
+    return [NSString stringWithFormat:@"%@%ld", n>0?@"+":@"", (long)n];
+}
+static NSString *OMCLeOptionDisplay(NSString *key, id value) {
+    if (!value) return @"";
+    if (![key hasPrefix:@"leTraffic"]) return [value description];
+    NSString *choice=[value description];
+    NSDictionary<NSString *,NSDictionary<NSString *,NSString *> *> *names=@{
+        @"leTrafficSource":@{@"vietmap-live":@"VietMap Live", @"gofa":@"GOFA", @"waze":@"Waze"},
+        @"leTrafficPresentation":@{@"maps-home":@"Maps + bubble", @"maps-only":@"Maps only",
+                                 @"bubble-only":@"Bubble only", @"except-dashboard":@"Except Dashboard"},
+        @"leTrafficArrangement":@{@"corner":@"Corner", @"side":@"Side",
+                                @"strip":@"Strip", @"compact":@"Compact"},
+        @"leTrafficBackground":@{@"asphalt":@"Asphalt", @"paint":@"Paint",
+                               @"glass":@"Glass", @"haze":@"Haze", @"bare":@"Bare"},
+        @"leTrafficMapsStyle":@{@"halo":@"Lề (Halo)", @"classic":@"Classic"},
+        @"leTrafficMapsPhoneLayout":@{@"auto":@"Auto", @"horizontal":@"Horizontal",
+                                    @"vertical":@"Vertical"},
+        @"leTrafficMapsOverspeedMode":@{@"off":@"Off", @"map":@"Google Maps",
+                                       @"carplay":@"CarPlay"}
+    };
+    return names[key][choice] ?: choice;
+}
 static NSDictionary *OMCRow(NSString *label,NSString *type,NSString *key,id def,NSArray *choices) {
     NSMutableDictionary *r=[@{@"label":label?:@"",@"type":type?:@"link"} mutableCopy];
     if (key) r[@"key"]=key;
@@ -489,26 +517,91 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(@"APPS",@"homeapps",nil,nil,nil),
             OMCRow(OMCText(@"Khôi phục bố cục Home",@"Reset Home layout"),@"resethome",nil,nil,nil)])
     ];
+    // [le024-migration] Old SpeedBubble controls are retired: keep the entry,
+    // replace the page with a namespaced Le traffic configuration contract.
+    // The new Le presenter/source module must consume these keys when ready.
     if (self.kind==3) return @[
-        OMCSection(@"SPEEDBUBBLE",@[
-            OMCRow(@"SPEEDBUBBLE_ENABLE",@"switch",@"speedBubbleEnabled",@YES,nil),
-            OMCRow(@"SPEEDBUBBLE_SHOW_APP_ICON",@"switch",@"speedBubbleShowAppIcon",@YES,nil),
-            OMCRow(OMCText(@"Kiểu hiển thị",@"Appearance"),@"number",@"speedBubbleLook",@0,@[@0,@1,@2,@3,@4,@5,@6,@7,@8]),
-            OMCRow(OMCText(@"Nguồn tốc độ",@"Speed source"),@"number",@"speedBubbleSource",@0,@[@0,@1,@2,@3]),
-            OMCRow(OMCText(@"Màu sắc",@"Color"),@"number",@"speedBubbleColor",@0,@[@0,@1,@2,@3,@4,@5,@6]),
-            OMCSliderRow(OMCText(@"Kích thước xe (%)",@"Car size (%)"),@"speedBubbleSizeCar",100,60,220),
-            OMCSliderRow(OMCText(@"Kích thước điện thoại (%)",@"Phone size (%)"),@"speedBubbleSizePhone",100,60,220),
-            OMCRow(@"SPEEDBUBBLE_RESET_LAYOUT",@"resetbubble",nil,nil,nil)]),
-        OMCSection(OMCText(@"Cảnh báo",@"Alerts"),@[
-            OMCRow(OMCText(@"Chế độ cảnh báo",@"Warning mode"),@"number",@"speedBubbleWarnMode",@3,@[@0,@1,@2,@3]),
-            OMCRow(OMCText(@"Hiệu ứng cảnh báo",@"Warning effect"),@"number",@"speedBubbleWarnFx",@0,@[@0,@1,@2,@3]),
-            OMCSliderRow(OMCText(@"Ngưỡng cảnh báo",@"Over-limit threshold"),@"speedBubbleWarnOver",5,-10,10),
-            OMCRow(OMCText(@"Âm cảnh báo",@"Warning sound"),@"number",@"speedBubbleWarnSound",@0,@[@0,@1]),
-            OMCRow(OMCText(@"Tiếng cảnh báo",@"Warning tone"),@"number",@"speedBubbleWarnTone",@0,@[@0,@1,@2,@3,@4,@5]),
-            OMCRow(OMCText(@"Lời nhắc",@"Warning voice"),@"number",@"speedBubbleWarnVoice",@0,@[@0,@1,@2,@3,@4,@5,@6,@7,@8]),
-            OMCRow(OMCText(@"Tùy chỉnh lời nhắc",@"Custom warning text"),@"text",@"speedBubbleWarnVoiceText",@"",nil)]),
-        OMCSection(OMCText(@"Kiểm tra",@"Testing"),@[
-            OMCRow(OMCText(@"Xem thử trên xe",@"Try on car"),@"demo",nil,nil,nil)])
+        OMCSection(OMCText(@"Bong bóng giao thông Lề", @"Le traffic bubble"), @[
+            OMCRow(OMCText(@"Bật bong bóng giao thông", @"Enable traffic bubble"),
+                   @"switch", @"leTrafficEnabled", @YES, nil),
+            OMCRow(OMCText(@"Nguồn dữ liệu", @"Traffic source"),
+                   @"number", @"leTrafficSource", @"vietmap-live",
+                   @[@"vietmap-live", @"gofa", @"waze"]),
+            OMCRow(OMCText(@"Tự đánh thức ứng dụng nguồn", @"Wake source app"),
+                   @"switch", @"leTrafficWakeSource", @NO, nil),
+            OMCRow(OMCText(@"Tự đóng nguồn khi ngắt CarPlay", @"Close source on disconnect"),
+                   @"switch", @"leTrafficCloseSource", @NO, nil),
+            OMCRow(OMCText(@"Cách hiện trên CarPlay", @"CarPlay presentation"),
+                   @"number", @"leTrafficPresentation", @"maps-home",
+                   @[@"maps-home", @"maps-only", @"bubble-only", @"except-dashboard"])
+        ]),
+        OMCSection(OMCText(@"Hiệu chỉnh tốc độ GPS", @"GPS speed calibration"), @[
+            // Signed integer, -5..+5, controlled by single-step -/+ buttons.
+            // Correction occurs AFTER source speed conversion to km/h,
+            // BEFORE speed display and overspeed comparison; never alter limit/GPS.
+            OMCRow(OMCText(@"Cộng / trừ tốc độ", @"Speed adjustment"),
+                   @"leGpsStepper", @"leTrafficGpsOffsetKph", @0, nil)
+        ]),
+        OMCSection(OMCText(@"Bong bóng nổi", @"Floating bubble"), @[
+            OMCRow(OMCText(@"Hiện khi CarPlay toàn màn", @"Show in CarPlay fullscreen"),
+                   @"switch", @"leTrafficFullEnabled", @YES, nil),
+            OMCRow(OMCText(@"Hiện trên iPhone", @"Show on iPhone"),
+                   @"switch", @"leTrafficPhoneEnabled", @NO, nil),
+            OMCRow(OMCText(@"Kéo tự do trên màn hình", @"Free drag anywhere"),
+                   @"switch", @"leTrafficFreeDrag", @YES, nil),
+            OMCRow(OMCText(@"Bố cục", @"Arrangement"),
+                   @"number", @"leTrafficArrangement", @"corner",
+                   @[@"corner", @"side", @"strip", @"compact"]),
+            OMCRow(OMCText(@"Kiểu nền", @"Background"),
+                   @"number", @"leTrafficBackground", @"asphalt",
+                   @[@"asphalt", @"paint", @"glass", @"haze", @"bare"]),
+            OMCSliderRow(OMCText(@"Độ đậm nền (%)", @"Background opacity (%)"),
+                         @"leTrafficBackgroundOpacityPercent", 85, 0, 100),
+            OMCSliderRow(OMCText(@"Kích thước (%)", @"Bubble size (%)"),
+                         @"leTrafficScalePercent", 100, 50, 200),
+            OMCRow(OMCText(@"Nhấp nháy khi vượt tốc", @"Overspeed blink"),
+                   @"switch", @"leTrafficOverspeedBlink", @YES, nil)
+        ]),
+        OMCSection(OMCText(@"Thành phần bong bóng", @"Bubble modules"), @[
+            OMCRow(OMCText(@"Số tốc độ", @"Speed number"), @"switch",
+                   @"leTrafficModuleSpeed", @YES, nil),
+            OMCRow(OMCText(@"Biển giới hạn", @"Speed limit sign"), @"switch",
+                   @"leTrafficModuleLimit", @YES, nil),
+            OMCRow(OMCText(@"Icon nguồn", @"Source icon"), @"switch",
+                   @"leTrafficModuleSource", @YES, nil),
+            OMCRow(OMCText(@"Làn đường", @"Lane guidance"), @"switch",
+                   @"leTrafficModuleLanes", @YES, nil),
+            OMCRow(OMCText(@"Biển báo sắp tới", @"Upcoming signs"), @"switch",
+                   @"leTrafficModuleUpcoming", @YES, nil)
+        ]),
+        OMCSection(OMCText(@"Thẻ trong Google Maps", @"Google Maps card"), @[
+            OMCRow(OMCText(@"Hiện khi Maps toàn màn CarPlay", @"Show in fullscreen Maps"),
+                   @"switch", @"leTrafficMapsFullEnabled", @YES, nil),
+            OMCRow(OMCText(@"Hiện trong Dashboard", @"Show in Dashboard"),
+                   @"switch", @"leTrafficMapsDashboardEnabled", @YES, nil),
+            OMCRow(OMCText(@"Hiện trong Maps trên iPhone", @"Show in iPhone Maps"),
+                   @"switch", @"leTrafficMapsPhoneEnabled", @NO, nil),
+            OMCRow(OMCText(@"Kiểu thẻ", @"Card style"),
+                   @"number", @"leTrafficMapsStyle", @"halo", @[@"halo", @"classic"]),
+            OMCRow(OMCText(@"Góc thẻ toàn màn", @"Fullscreen card corner"),
+                   @"number", @"leTrafficMapsFullPosition", @"top-right",
+                   @[@"top-left", @"top-right", @"bottom-left", @"bottom-right"]),
+            OMCRow(OMCText(@"Góc thẻ Dashboard", @"Dashboard card corner"),
+                   @"number", @"leTrafficMapsDashboardPosition", @"top-right",
+                   @[@"top-left", @"top-right", @"bottom-left", @"bottom-right"]),
+            OMCRow(OMCText(@"Bố cục thẻ điện thoại", @"Phone card layout"),
+                   @"number", @"leTrafficMapsPhoneLayout", @"auto",
+                   @[@"auto", @"horizontal", @"vertical"]),
+            OMCSliderRow(OMCText(@"Cỡ thẻ toàn màn (%)", @"Fullscreen card size (%)"),
+                         @"leTrafficMapsFullScalePercent", 100, 50, 200),
+            OMCSliderRow(OMCText(@"Cỡ thẻ Dashboard (%)", @"Dashboard card size (%)"),
+                         @"leTrafficMapsDashboardScalePercent", 100, 50, 200),
+            OMCSliderRow(OMCText(@"Cỡ thẻ iPhone (%)", @"Phone card size (%)"),
+                         @"leTrafficMapsPhoneScalePercent", 100, 50, 200),
+            OMCRow(OMCText(@"Vệt sáng vượt tốc", @"Overspeed glow"),
+                   @"number", @"leTrafficMapsOverspeedMode", @"map",
+                   @[@"off", @"map", @"carplay"])
+        ])
     ];
     id raw=OMCNativePref(@"carProfiles",@{});
     NSDictionary *profiles=[raw isKindOfClass:NSDictionary.class]?raw:@{};
@@ -628,17 +721,40 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         [slider addTarget:self action:@selector(omcSliderDone:) forControlEvents:
             UIControlEventTouchUpInside|UIControlEventTouchUpOutside];
         cell.accessoryView=slider;cell.accessoryType=UITableViewCellAccessoryNone;
+    } else if ([type isEqualToString:@"leGpsStepper"]) {
+        // [le024-gps] -5..+5 whole km/h. A stepper tap is exactly one unit.
+        NSInteger offset=OMCLeOffsetClamp([OMCNativePref(key,@0) integerValue]);
+        UIView *controls=[[UIView alloc] initWithFrame:CGRectMake(0,0,155,38)];
+        UILabel *reading=[[UILabel alloc] initWithFrame:CGRectMake(0,0,51,38)];
+        reading.font=[UIFont monospacedDigitSystemFontOfSize:15 weight:UIFontWeightSemibold];
+        reading.textAlignment=NSTextAlignmentRight;
+        reading.text=OMCLeOffsetDisplay(offset);
+        UIStepper *control=[[UIStepper alloc] initWithFrame:CGRectMake(57,3,95,32)];
+        control.minimumValue=-5;
+        control.maximumValue=5;
+        control.stepValue=1;
+        control.wraps=NO;
+        control.continuous=NO;
+        control.value=offset;
+        control.accessibilityLabel=OMCRowName(r);
+        objc_setAssociatedObject(control,@selector(omcLeGpsOffsetChanged:),
+                                 reading,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [control addTarget:self action:@selector(omcLeGpsOffsetChanged:)
+          forControlEvents:UIControlEventValueChanged];
+        [controls addSubview:reading];
+        [controls addSubview:control];
+        cell.accessoryView=controls;cell.accessoryType=UITableViewCellAccessoryNone;
     } else if ([type isEqualToString:@"number"] || [type isEqualToString:@"text"] ||
                [type isEqualToString:@"pickapp"] || [type isEqualToString:@"favorite"]) {
         id value=OMCNativePref(key,[type isEqualToString:@"favorite"]?nil:r[@"default"]);
-        cell.detailTextLabel.text=value?[value description]:OMCText(@"Chưa chọn",@"Not set");
+        cell.detailTextLabel.text=value?OMCLeOptionDisplay(key,value):OMCText(@"Chưa chọn",@"Not set");
     } else if ([type isEqualToString:@"car"]) {
         cell.detailTextLabel.text=[OMCNativePref(@"carProfileCurrent",@"") isEqual:key]
             ?@"✓":@"";
     } else if (self.kind==0) {
         NSString *featureKey=nil;
         if([type isEqualToString:@"startup"])featureKey=@"startupScreenEnabled";
-        else if([type isEqualToString:@"bubble"])featureKey=@"speedBubbleEnabled";
+        else if([type isEqualToString:@"bubble"])featureKey=@"leTrafficEnabled";
         else if([type isEqualToString:@"split"])featureKey=@"splitScreenEnabled";
         if(featureKey.length) {
             cell.detailTextLabel.text=OMCNativeLocalized(
@@ -652,6 +768,21 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     if (!OMCNativeSetPref(key,@(s.on))) {
         s.on=!s.on; OMCAlert(self,OMCText(@"Không lưu được cấu hình.",@"Could not save settings."));
     }
+}
+// [le024-gps] Preference is stored in DuoCar's own CFPreferences domain;
+// the future Le runtime consumer must read the SAME key and apply to speed,
+// not to GPS coordinates or posted speed limit.
+- (void)omcLeGpsOffsetChanged:(UIStepper *)sender {
+    UILabel *label=objc_getAssociatedObject(sender,@selector(omcLeGpsOffsetChanged:));
+    NSInteger proposed=OMCLeOffsetClamp((NSInteger)lround(sender.value));
+    if (!OMCNativeSetPref(@"leTrafficGpsOffsetKph",@(proposed))) {
+        proposed=OMCLeOffsetClamp([OMCNativePref(@"leTrafficGpsOffsetKph",@0) integerValue]);
+        sender.value=proposed;
+        OMCAlert(self,OMCText(@"Không lưu được hiệu chỉnh GPS.",@"Unable to save GPS adjustment."));
+    }
+    label.text=OMCLeOffsetDisplay(proposed);
+    UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification,label.text);
+    NSLog(@"[le024-gps] pref offset=%ld", (long)proposed);
 }
 - (void)omcSliderDone:(UISlider *)slider {
     NSDictionary *r=objc_getAssociatedObject(slider,@selector(omcSliderDone:));
@@ -673,7 +804,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     UIAlertController *a=[UIAlertController alertControllerWithTitle:OMCRowName(r)
         message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     for (id v in values) {
-        NSString *name=[v description];
+        NSString *name=OMCLeOptionDisplay(key,v);
         if ([key isEqualToString:@"speedBubbleLook"]||
             [key isEqualToString:@"speedBubbleColor"]||
             [key isEqualToString:@"speedBubbleSource"]) {
