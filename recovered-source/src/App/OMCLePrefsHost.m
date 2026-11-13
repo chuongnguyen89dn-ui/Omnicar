@@ -100,6 +100,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
 @property(nonatomic,strong) NSTimer *deadline;
 @property(nonatomic) BOOL bridgeFailed;
 @property(nonatomic,strong) UILabel *message;
+@property(nonatomic) BOOL extrasOnly; // [hl52] never present vendor facsimile as original
 @end
 
 @implementation DCLLeConfigPage
@@ -113,7 +114,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title=@"Lề • Bong bóng tốc độ";
+    self.title=self.extrasOnly?@"DuoCar • Tùy chỉnh Lề":@"Lề • Tương thích";
     self.tableView.backgroundColor=UIColor.systemGroupedBackgroundColor;
     UILabel *status=[[UILabel alloc]initWithFrame:CGRectMake(0,0,320,52)];
     status.textAlignment=NSTextAlignmentCenter;
@@ -136,8 +137,13 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
         status.text=@"Không tạo được kênh Lề. Các cài đặt chưa được thay đổi.";
         return;
     }
-    for(NSUInteger n=0;n<DCLCount;n++)
-        [self.queue addObject:@{@"key":@(n),@"read":@YES,@"value":@0}];
+    if(self.extrasOnly) {
+        for(NSNumber *key in @[@27,@28])
+            [self.queue addObject:@{@"key":key,@"read":@YES,@"value":@0}];
+    } else {
+        for(NSUInteger n=0;n<DCLCount;n++)
+            [self.queue addObject:@{@"key":@(n),@"read":@YES,@"value":@0}];
+    }
     [self nextRequest];
 }
 - (void)dealloc {
@@ -146,6 +152,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
     if(self.ackToken>=0)notify_cancel(self.ackToken);
 }
 - (NSArray<NSArray<NSNumber *> *> *)groups {
+    if(self.extrasOnly) return @[@[@27,@28]];
     return @[
      @[@0,@1,@2,@3],
      @[@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@29,@28],
@@ -153,6 +160,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
      @[@27]];
 }
 - (NSArray<NSString *> *)titles {
+    if(self.extrasOnly) return @[@"Tùy chỉnh DuoCar (không thuộc Lề gốc)"];
     return @[@"Nguồn dữ liệu", @"Bong bóng nổi và cảnh báo",
              @"Thẻ trong Google Maps", @"Tốc độ thực xe đang chạy"];
 }
@@ -167,6 +175,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
 }
 - (NSString *)tableView:(UITableView *)table titleForFooterInSection:(NSInteger)section {
     (void)table;
+    if(self.extrasOnly)return @"GPS ±5 chỉ áp dụng tốc độ xe đang chạy; kéo tự do X/Y là tính năng bổ sung của DuoCar, không nằm trong giao diện Lề gốc.";
     if(section==3)return @"Chỉ cộng/trừ vào số GPS đang chạy, không đổi biển giới hạn. 0 là không hiệu chỉnh.";
     if(section==1)return @"Lề giữ cơ chế biển báo, làn đường, cảnh báo và nguồn hiện có. Kéo bong bóng tới mọi vị trí an toàn.";
     return nil;
@@ -366,9 +375,9 @@ BOOL OMCLeOriginalPreferencesAvailable(void) {
     return NO;
 }
 UIViewController *OMCLeCompatiblePreferencesController(void) {
-    DCLLeConfigPage *fallback=[[DCLLeConfigPage alloc] init];
-    fallback.title=@"DuoCar • Cấu hình bổ sung";
-    return fallback;
+    DCLLeConfigPage *extras=[[DCLLeConfigPage alloc] init];
+    extras.extrasOnly=YES;
+    return extras;
 }
 UIViewController *OMCLeOriginalPreferencesController(void) {
     // Loading the vendor bundle is intentionally deferred until user taps
@@ -403,10 +412,25 @@ UIViewController *OMCLeOriginalPreferencesController(void) {
                   exception.name,exception.reason);
         }
     }
-    // Explicitly distinguish compatibility fallback if original cannot
-    // load; do not silently label a handwritten page as the vendor UI.
-    NSLog(@"[hl52-le-original] ORIGINAL UNAVAILABLE; compatibility only");
-    DCLLeConfigPage *page=[[DCLLeConfigPage alloc] init];
-    page.title=@"Lề • Chưa nạp bản gốc";
+    // If vendor UI fails, report it. Never claim the handwritten 29-row
+    // bridge UI is the authentic LePrefs page.
+    NSLog(@"[hl52-le-original] ORIGINAL UNAVAILABLE; not impersonating LePrefs");
+    UIViewController *page=[UIViewController new];
+    page.title=@"Chưa mở được Lề gốc";
+    page.view.backgroundColor=UIColor.systemGroupedBackgroundColor;
+    UILabel *message=[UILabel new];
+    message.translatesAutoresizingMaskIntoConstraints=NO;
+    message.numberOfLines=0;
+    message.textAlignment=NSTextAlignmentCenter;
+    message.textColor=UIColor.secondaryLabelColor;
+    message.text=@"Không thể tải LePrefs.bundle nguyên bản trong DuoCar. "
+                 @"Không thay thế bằng giao diện mô phỏng. "
+                 @"Vui lòng kiểm tra log [hl52-le-original].";
+    [page.view addSubview:message];
+    [NSLayoutConstraint activateConstraints:@[
+       [message.leadingAnchor constraintEqualToAnchor:page.view.leadingAnchor constant:20],
+       [message.trailingAnchor constraintEqualToAnchor:page.view.trailingAnchor constant:-20],
+       [message.centerYAnchor constraintEqualToAnchor:page.view.centerYAnchor]
+    ]];
     return page;
 }
