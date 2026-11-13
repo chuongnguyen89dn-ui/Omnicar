@@ -22,7 +22,7 @@ for a,b in PAIRS:
     assert (P/a).read_bytes()==(S/b).read_bytes(),(a,b)
 def text(name):return (P/name).read_text()
 def sha(raw):return hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest()
-telex=text("ABTelex.m") if "text" in globals() else (P/"ABTelex.m").read_text()
+telex=(P/"ABTelex.m").read_text()
 assert sha((P/"ABTelex.m").read_bytes())!="50e132bd8cda2372ee5a264903cb8c821f2e3991"
 assert 'NSString *ABTelexApply(NSString *word, NSString *keyString)' in telex
 assert 'ABTTonePosition(' in telex
