@@ -355,5 +355,6 @@ BOOL OMCLeOriginalPreferencesAvailable(void) {
 UIViewController *OMCLeOriginalPreferencesController(void) {
     // Show the in-app, ACKed configuration rather than load the vendor's
     // global-file writer into a sandbox where it cannot persist settings.
+    NSLog(@"[le024-prefs] opening ACKed configuration owned by SpringBoard");
     return [[DCLLeConfigPage alloc] init];
 }
