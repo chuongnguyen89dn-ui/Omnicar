@@ -145,12 +145,22 @@ static void SCPVitalsBlock(NSMutableArray<NSValue *> *blocked,
     CGRect grown=CGRectInset(rect,-pad,-pad);
     [blocked addObject:[NSValue valueWithCGRect:grown]];
 }
+// Explicit screen coordinate conversion is necessary because CarPlay
+// split and the stock Dock can belong to DIFFERENT native UIWindows.
+static CGRect SCPVitalsConvert(UIView *source,UIView *dest,CGRect rect) {
+    if(!source || !dest || !source.window || !dest.window ||
+       source.window.screen!=dest.window.screen)return CGRectNull;
+    UIScreen *screen=source.window.screen;
+    CGRect screenRect=[source convertRect:rect toCoordinateSpace:screen.coordinateSpace];
+    if(!SCPVitalsFiniteRect(screenRect))return CGRectNull;
+    return [dest convertRect:screenRect fromCoordinateSpace:screen.coordinateSpace];
+}
 static BOOL SCPVitalsCandidateVisible(UIView *host,UIView *parent,CGRect rect) {
     if(!host || !parent || !host.window || !parent.window ||
        host.window.screen!=parent.window.screen)return NO;
     for(UIView *v=host;v;v=v.superview) {
         if(v.clipsToBounds) {
-            CGRect local=[v convertRect:rect fromView:parent];
+            CGRect local=SCPVitalsConvert(parent,v,rect);
             if(!SCPVitalsFiniteRect(local) ||
                !CGRectContainsRect(CGRectInset(v.bounds,-0.5,-0.5),local))
                 return NO;
@@ -215,7 +225,7 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
             NSMutableArray<NSValue *> *iconControls=[NSMutableArray array];
             SCPVitalsCollectControls(dock,dock,ignore,iconControls,0);
             for(NSValue *item in iconControls) {
-                CGRect screenRect=[parent convertRect:item.CGRectValue fromView:dock];
+                CGRect screenRect=SCPVitalsConvert(dock,parent,item.CGRectValue);
                 SCPVitalsBlock(blocked,screenRect,rail,2.0);
             }
             // Protect a real status-bar view if its frame is a compact
@@ -235,7 +245,7 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
             UIView *status=statusVC && [statusVC respondsToSelector:@selector(view)]
                 ? ((UIView*(*)(id,SEL))objc_msgSend)(statusVC,@selector(view)) : nil;
             if(status && status.window && status.window.screen==parent.window.screen) {
-                CGRect rect=[parent convertRect:status.bounds fromView:status];
+                CGRect rect=SCPVitalsConvert(status,parent,status.bounds);
                 if(SCPVitalsFiniteRect(rect) &&
                    rect.size.width<=root.size.width*0.6 &&
                    rect.size.height<=root.size.height*0.5)
@@ -259,7 +269,7 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
                     if(horizontalOut)*horizontalOut=horizontal;
                     if(compactOut)*compactOut=(pass==1);
                     if(hostOut)*hostOut=host;
-                    return [host convertRect:candidate fromView:parent];
+                    return SCPVitalsConvert(parent,host,candidate);
                 }
             }
         }
@@ -282,7 +292,7 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
         OMCLogWrite(@"SplitScreen",@"[hl50-dock] MISSING native Dock UIView; no fallback to app/root UIWindow");
         [self stop];return;
     }
-    CGRect observed=[dock convertRect:dock.bounds toView:parent];
+    CGRect observed=SCPVitalsConvert(dock,parent,dock.bounds);
     // The native Dock VC is not always the tight Dock view. A full-screen
     // view with the same window must NEVER become a fake Dock host.
     if(!SCPVitalsFiniteRect(observed) ||
@@ -348,7 +358,7 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
     OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
         @"[hl51-dock] IN NATIVE DOCK SUBTREE host=%@ frame=%@ screenFrame=%@ iconCluster=%@ compact=%d blockers=%lu clips=%d window=%@ level=%.0f app=%@",
         NSStringFromClass(nativeHost.class),NSStringFromCGRect(frame),
-        NSStringFromCGRect([parent convertRect:frame fromView:nativeHost]),
+        NSStringFromCGRect(SCPVitalsConvert(nativeHost,parent,frame)),
         NSStringFromCGRect(observed),(int)compact,(unsigned long)blocked,
         (int)nativeHost.clipsToBounds,NSStringFromClass(nativeHost.window.class),
         nativeHost.window.windowLevel,NSStringFromCGRect(appArea)]);
