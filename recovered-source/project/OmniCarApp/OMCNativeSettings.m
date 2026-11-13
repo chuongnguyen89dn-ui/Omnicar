@@ -445,8 +445,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
              OMCRow(OMCText(@"Hiện pin, nhiệt trên Dock CarPlay",@"Show battery and heat on CarPlay Dock"),
                     @"switch",@"duocarVitalsEnabled",@YES,nil),
              OMCRow(OMCText(@"Bong bóng giờ, pin, nhiệt khi toàn màn hình",@"Fullscreen time, battery & heat bubble"),
-                    @"switch",@"duocarFullscreenVitalsEnabled",@YES,nil)]),
-         OMCSection(OMCNativeLocalized(@"SUPPORT_GROUP"),@[
+                    @"switch",@"duocarFullscreenVitalsEnabled",@YES,nil)])];
+        [sections addObject:OMCSection(OMCNativeLocalized(@"SUPPORT_GROUP"),@[
             OMCRow(@"ONB_SHOW_AGAIN",@"guide",nil,nil,nil),
             OMCRow(@"WN_ROW",@"whatsnew",nil,nil,nil)])];
         [sections addObject:OMCSection(OMCNativeLocalized(@"DEV_GROUP"),@[
