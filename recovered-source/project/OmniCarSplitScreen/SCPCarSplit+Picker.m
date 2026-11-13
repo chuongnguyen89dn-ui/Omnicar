@@ -20,6 +20,7 @@ extern void SCPMissingSelector(id object, NSString *selectorName);
 // App icon lookup (static helper @0xdec8; name INFERRED — shared with Drag).
 extern UIImage *SCPAppIconForBundle(NSString *bundleID);
 extern void SCPDispatchAfter(double delaySeconds, void (^block)(void)); // 0x12efc (A)
+extern BOOL SCPVCIsHosted(id vc); // [hl45-layer] classifier from SCPShared
 // Dashboard root view controller getter @0x12658 (A; name INFERRED).
 extern UIViewController *SCPDashboardRootViewController(void);
 
@@ -92,6 +93,54 @@ static void SCPApplyAccent(UIView *view, BOOL on) {
 // single [picker-measure] line in showPickerForSlot: (alpha, hidden,
 // superview class, frame, background colour as r,g,b,a — "?" when the
 // colour cannot be read as RGB, e.g. a pattern/dynamic colour).
+
+// [hl45-layer] Observation only: no changes to original picker/cover/scene UI.
+static unsigned long long DCHL45Seq=0;
+static NSString *DCHL45View(UIView *v) {
+    if (!v) return @"nil";
+    UIView *parent=v.superview;
+    NSUInteger idx=parent ? [parent.subviews indexOfObject:v] : NSNotFound;
+    UIWindow *win=v.window;
+    return [NSString stringWithFormat:
+        @"%p:%@ fr=%@ a=%.2f hidden=%d parent=%p z=%ld/%lu win=%p level=%.1f",
+        (__bridge void *)v, NSStringFromClass(v.class), NSStringFromCGRect(v.frame),
+        (double)v.alpha, (int)v.hidden, (__bridge void *)parent,
+        idx==NSNotFound ? -1L : (long)idx,
+        (unsigned long)(parent ? parent.subviews.count : 0),
+        (__bridge void *)win, win ? (double)win.windowLevel : -1.0];
+}
+// Linked by the Divider TU, called only at UI action boundaries.
+void DCHL45OverlayTrace(SCPCarSplit *split, NSString *event,
+                        SCPCarPane *pane, UIView *old) {
+    if (!split) return;
+    if (![NSThread isMainThread]) {
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[hl45-layer] ev=%@ result=BLIND off-main",event]);
+        return;
+    }
+    @try {
+        UIViewController *vc=pane.vc;
+        BOOL hosted=vc ? SCPVCIsHosted(vc) : NO;
+        UIView *nativeView=(vc && [vc isViewLoaded]) ? vc.view : nil;
+        UIWindow *win=split.trayWindow;
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl45-layer] seq=%llu ev=%@ t=%.3f slot=%d app=%@ mode=%@ resizing=%d sceneSize=%@ pane=%p paneView{%@} host{%@} vcView{%@} cover{%@} picker{%@} loader{%@} sheet{%@} old{%@} trayWin=%p trayLevel=%.1f trayHidden=%d",
+            ++DCHL45Seq,event,CACurrentMediaTime(),pane ? pane.slot : -1,
+            pane.bundleID ?: @"(none)",
+            !vc ? @"EMPTY" : (hosted ? @"HOSTED" : @"NATIVE"),
+            (int)split.resizing,NSStringFromCGSize(pane ? pane.sceneSize : CGSizeZero),
+            (__bridge void *)pane,DCHL45View(pane.view),
+            DCHL45View(pane.host),DCHL45View(nativeView),
+            DCHL45View(pane.cover),DCHL45View(pane.picker),
+            DCHL45View(pane.loader),DCHL45View(split.pickerSheet),
+            DCHL45View(old),(__bridge void *)win,
+            win ? (double)win.windowLevel : -1.0,win ? (int)win.hidden : -1]);
+    } @catch(NSException *exception) {
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl45-layer] ev=%@ result=EXCEPTION name=%@",event,exception.name]);
+    }
+}
+
 static NSString *SCPViewMeasureDesc(UIView *view) {
     if (view == nil) return @"nil";
     CGFloat r = 0, g = 0, b = 0, a = 0;
@@ -230,16 +279,23 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         [pane.view bringSubviewToFront:pane.handle];
     cover.alpha = 0;
     [UIView animateWithDuration:0.12 animations:^{ cover.alpha = 1; }];
+    DCHL45OverlayTrace(self,@"cover-added",pane,cover);
 }
 
 - (void)removeCoverFromPane:(SCPCarPane *)pane {                          // 0x2a668 VERIFIED
     UIView *cover = pane.cover;
     if (cover == nil) return;
+    DCHL45OverlayTrace(self,@"cover-remove-request",pane,cover);
     pane.cover = nil;
+    __weak SCPCarSplit *hl45Split=self;
+    __weak SCPCarPane *hl45Pane=pane;
     [UIView animateWithDuration:0.22
         animations:^{ cover.alpha = 0; }              // VERIFIED (CLOSURE-2): invoke
                                                       // @0x2a7a4 = [cover setAlpha:0]
-        completion:^(BOOL finished) { [cover removeFromSuperview]; }];   // invoke @0x2a7b0 VERIFIED
+        completion:^(BOOL finished) {
+            [cover removeFromSuperview];
+            DCHL45OverlayTrace(hl45Split,@"cover-remove-complete",hl45Pane,cover);
+        }]; // invoke @0x2a7b0 VERIFIED
 }
 
 // MARK: - Per-slot picker (empty-slot placeholder)
@@ -324,17 +380,24 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     picker.alpha = 0;                                                    // @0x31824
     [UIView animateWithDuration:0.25                                     // @0x3186c; block @0x31954 sets alpha = 1
                      animations:^{ picker.alpha = 1; }];
+    DCHL45OverlayTrace(self,@"picker-presented",pane,picker);
     [self refreshPickerSheetSoon];                                       // @0x3187c
 }
 
 - (void)removePickerFromPane:(SCPCarPane *)pane {                         // 0x313ac VERIFIED
     UIView *picker = pane.picker;
     if (picker == nil) return;
+    DCHL45OverlayTrace(self,@"picker-remove-request",pane,picker);
     pane.picker = nil;
+    __weak SCPCarSplit *hl45Split=self;
+    __weak SCPCarPane *hl45Pane=pane;
     [UIView animateWithDuration:0.15
         animations:^{ picker.alpha = 0; }              // VERIFIED (CLOSURE-2): invoke
                                                        // @0x3151c = [picker setAlpha:0]
-        completion:^(BOOL finished) { [picker removeFromSuperview]; }];  // @0x31528 VERIFIED
+        completion:^(BOOL finished) {
+            [picker removeFromSuperview];
+            DCHL45OverlayTrace(hl45Split,@"picker-remove-complete",hl45Pane,picker);
+        }]; // @0x31528 VERIFIED
     [self refreshPickerSheetSoon];
 }
 
