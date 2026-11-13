@@ -1759,6 +1759,10 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         self.closeSource = nil;
         return;
     }
+    // [fs-vitals] Closing the split is a fullscreen session end even
+    // without dashboard invalidation. Reuse the existing abbreviated
+    // controller restore; it also detaches the status bubble immediately.
+    [[SCPFullscreenController shared] fsSessionDidEnd];
     // [ytz5] M5 measurement point T1: before ANY cleanup or detach.
     SCPLogInjectedIconState(@"before-close", src);
     // [ytz5] M1 cleanup (CHANGE_MAP_YTZ5 M1): IMMEDIATELY after the
