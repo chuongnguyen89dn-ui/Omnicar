@@ -5,6 +5,8 @@
 #import <Foundation/Foundation.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <notify.h>
+#import <math.h>
+#import <stdint.h>
 
 static const char *DCLReq="com.chuong.duocar/le024.cfg";
 static const char *DCLAck="com.chuong.duocar/le024.ack";
@@ -21,7 +23,7 @@ static NSArray<NSString *> *DCLKeys(void) {
     @"fullPosition", @"dashboardPosition", @"phonePosition",
     @"fullScale", @"dashboardScale", @"phoneScale", @"phoneLayout",
     @"overspeed.mode", @"phoneXPercent", @"phoneYPercent",
-    @"leTrafficGpsOffsetKph", @"leTrafficFreeDrag"
+    @"leTrafficGpsOffsetKph", @"leTrafficFreeDrag", @"moduleOrder"
   ];});return a;
 }
 static NSArray<NSString *> *DCLChoices(NSUInteger key) {
@@ -52,6 +54,7 @@ static id DCLDecode(NSUInteger key, NSUInteger raw) {
     if(DCLIsPercent(key)) return raw<=100?@((double)raw/100.0):nil;
     if(key==13) return raw<=31?@(raw):nil;
     if(key==27) return raw<=10?@((NSInteger)raw-5):nil;
+    if(key==29) return raw<120?@(raw):nil;
     return nil;
 }
 static NSUInteger DCLEncode(NSUInteger key,id obj) {
@@ -64,6 +67,7 @@ static NSUInteger DCLEncode(NSUInteger key,id obj) {
     if(DCLIsPercent(key))return (NSUInteger)MAX(0,MIN(100,lround([obj doubleValue]*100)));
     if(key==13)return [obj unsignedIntegerValue]&31;
     if(key==27)return (NSUInteger)MAX(0,MIN(10,[obj integerValue]+5));
+    if(key==29)return (NSUInteger)MAX(0,MIN(119,[obj integerValue]));
     return 0;
 }
 static NSArray *DCLModules(void){return @[@"speed",@"limit",@"source",@"lanes",@"upcoming"];}
@@ -90,6 +94,40 @@ static id DCLModuleArray(NSNumber *mask,id old) {
             [out addObject:all[n]];
     return out;
 }
+
+static NSInteger DCLModuleOrderRank(id array) {
+    NSArray *names=DCLModules();
+    NSMutableArray *rest=[NSMutableArray arrayWithArray:names];
+    NSInteger rank=0;
+    for(NSString *element in names) { (void)element; }
+    if(![array isKindOfClass:NSArray.class])return 0;
+    for(NSUInteger i=0;i<5;i++) {
+        NSString *name=(i<[(NSArray *)array count])?array[i]:nil;
+        NSUInteger pos=[rest indexOfObject:name];
+        if(pos==NSNotFound)return 0;
+        NSInteger fact=1;
+        for(NSInteger k=2;k<(NSInteger)(5-i);k++)fact*=k;
+        rank+=(NSInteger)pos*fact;
+        [rest removeObjectAtIndex:pos];
+    }
+    return rank;
+}
+static NSArray *DCLModuleOrderArray(NSInteger rank,id previous) {
+    NSArray *names=DCLModules();
+    NSMutableArray *rest=[names mutableCopy],*out=[NSMutableArray array];
+    for(NSInteger remaining=5;remaining>=1;remaining--){
+        NSInteger fact=1;for(NSInteger k=2;k<remaining;k++)fact*=k;
+        NSInteger pos=rank/fact;
+        pos=MAX(0,MIN((NSInteger)rest.count-1,pos));
+        [out addObject:rest[(NSUInteger)pos]];
+        [rest removeObjectAtIndex:(NSUInteger)pos];rank%=fact;
+    }
+    // preserve any extra vendor-defined pieces instead of destroying them.
+    if([previous isKindOfClass:NSArray.class])for(id entry in previous)
+        if(![out containsObject:entry])[out addObject:entry];
+    return out;
+}
+
 static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
     if(key>=DCLKeys().count)return nil;
     if(key==27||key==28) {
@@ -101,7 +139,7 @@ static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
         return CFBridgingRelease(CFPreferencesCopyAppValue(
                  (__bridge CFStringRef)DCLKeys()[key],domain)) ?: (key==27?@0:@YES);
     }
-    BOOL isLayout=(key<=2 || (key>=8 && key<=13));
+    BOOL isLayout=(key<=2 || (key>=8 && key<=13) || key==29);
     if(!isLayout) {
         NSString *keyName=DCLKeys()[key];
         if(key>=14 && key<=16) keyName=@[@"fullEnabled",@"dashboardEnabled",@"phoneEnabled"][key-14];
@@ -125,9 +163,10 @@ static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
     NSMutableDictionary *bubble=[doc[@"bubble"] isKindOfClass:NSDictionary.class]
                           ?[doc[@"bubble"] mutableCopy]:[NSMutableDictionary dictionary];
     NSString *keyName=DCLKeys()[key];
-    if(key==13) keyName=@"modules";
+    if(key==13 || key==29) keyName=@"modules";
     id oldValue=(key>=8)?bubble[keyName]:doc[keyName];
     if(key==13) oldValue=DCLModuleMask(oldValue);
+    if(key==29) oldValue=@(DCLModuleOrderRank(oldValue));
     if(!write) {
         if(oldValue)return oldValue;
         if(key==0)return @"vietmap-live";
@@ -139,6 +178,7 @@ static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
         return @NO;
     }
     if(key==13)value=DCLModuleArray(value,bubble[@"modules"]);
+    if(key==29)value=DCLModuleOrderArray([value integerValue],bubble[@"modules"]);
     if(key>=8){bubble[keyName]=value;doc[@"bubble"]=bubble;}
     else doc[keyName]=value;
     if(!doc[@"schemaVersion"])doc[@"schemaVersion"]=@1;
@@ -147,7 +187,8 @@ static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
     if(!output || ![output writeToFile:DCLHome options:NSDataWritingAtomic error:error])return nil;
     NSData *after=[NSData dataWithContentsOfFile:DCLHome];
     if(![after isEqualToData:output])return nil;
-    return key==13?DCLModuleMask(bubble[@"modules"]):value;
+    return key==13?DCLModuleMask(bubble[@"modules"]):
+           (key==29?@(DCLModuleOrderRank(bubble[@"modules"])):value);
 }
 static void DCLHandle(uint64_t raw,int ackToken) {
     if((raw>>48)!=0x4c45)return;
