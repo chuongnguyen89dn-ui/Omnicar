@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL52: original LePrefs + Dock pin/nhiệt trong suốt, bong bóng Lề drag chưa đạt
+- DuoCar51 DEVICE: menu không đen (Nguyen xác nhận qua ảnh); pin/nhiệt có hiện nhưng đè giờ; Lề vẫn bám lề, Lề settings chưa nguyên bản. HL52 source branch `feature/duocar-hl52-leoriginal-dock-freepos-20261113`: `OMCLePrefsHost` nạp thực `CWTrafficBubblePrefsController` từ LePrefs.bundle, `SPEEDBUBBLE` mở thẳng gốc, trang extras riêng; HUD native Dock không nền, chỉ tìm dưới 3 icon, giữ giờ/Home; **kéo tự do vẫn chưa sửa, chưa có log HL51 mới**. Chưa CI/DEB/DEVICE PASS. [Hồ sơ HL52](HL52_LE_ORIGINAL_DOCK_LAYOUT_20261113.md).
+
+
 ## 2026-11-13 — DuoCar51: BUILD/ARTIFACT PASS, DEVICE PENDING (zoom hoãn)
 - CI [43408145791](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/43408145791) job 131827503274 **SUCCESS**; source `5d201b7`; artifact **DuoCar51** ID `14027424331`, DEB `1.0.3-le0244`, SHA256 `5698fd781567af4fbfe1f8d7bddff0145137629a1408308951539b06dcaf76f3` (2.343.864 bytes), đã tải và giao thẳng người dùng. Chỉ sửa menu + native Dock rail, bubble giữ nguyên; **pinch/zoom không sửa**. Checkpoint: [HL51_MENU_DOCK_PINCH_RECOVERY_20261113.md](HL51_MENU_DOCK_PINCH_RECOVERY_20261113.md). CI PASS != DEVICE PASS, không merge/main/Sileo.
 
