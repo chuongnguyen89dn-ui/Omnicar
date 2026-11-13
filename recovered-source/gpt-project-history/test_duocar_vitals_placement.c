@@ -127,6 +127,77 @@ int main(void) {
             assert(visible.frame.y >= root.y + top);
         }
     }
-    puts("PASS: 12 rail cases + 25,000 rail checks; 9 fullscreen cases + 25,000 fullscreen checks");
+    // HL31 gesture semantics adapted to a fullscreen information pill:
+    // bounded free travel while dragging, side snap only when released,
+    // normalized-Y persistence and safe-inset clamping.
+    SCPVitalsSafeInsets safe={20,10,12,10};
+    screen=(SCPVitalsRect){0,0,640,360};
+    SCPVitalsPoint pos=SCPVitalsBubbleEdgeCenter(screen,safe,258,38,9,0,0.0);
+    assert(pos.x==492 && pos.y==48);
+    pos=SCPVitalsBubbleEdgeCenter(screen,safe,258,38,9,1,1.0);
+    assert(pos.x==148 && pos.y==320);
+    pos=SCPVitalsBubbleEdgeCenter(screen,safe,258,38,9,0,0.5);
+    assert(pos.x==492 && pos.y==184);
+    assert(SCPVitalsBubbleNearestLeft(screen,319.9));
+    assert(!SCPVitalsBubbleNearestLeft(screen,320.0));
+    pos=SCPVitalsBubbleBoundCenter(screen,safe,258,38,9,
+                                   (SCPVitalsPoint){-400,999});
+    assert(pos.x==148 && pos.y==320);
+    pos=SCPVitalsBubbleBoundCenter(screen,safe,258,38,9,
+                                   (SCPVitalsPoint){280,140});
+    assert(pos.x==280 && pos.y==140);
+    assert(SCPVitalsBubbleRelativeY(screen,safe,258,38,9,184)==0.5);
+    assert(SCPVitalsBubbleRelativeY(screen,safe,258,38,9,-400)==0.0);
+    assert(SCPVitalsBubbleRelativeY(screen,safe,258,38,9,1000)==1.0);
+    pos=SCPVitalsBubbleEdgeCenter((SCPVitalsRect){0,0,200,360},
+                                  safe,258,38,9,1,0.5);
+    assert(!isfinite(pos.x) && !isfinite(pos.y));
+    pos=SCPVitalsBubbleBoundCenter(screen,
+                                  (SCPVitalsSafeInsets){NAN,0,0,0},
+                                  258,38,9,(SCPVitalsPoint){100,100});
+    assert(!isfinite(pos.x) && !isfinite(pos.y));
+    // 25,000 reproducible randomized CarPlay bounds/insets/drags; this
+    // exercise is geometry only, not actual UIKit touch routing.
+    for(int n=0;n<25000;n++){
+        seed=seed*1664525u+1013904223u;
+        double w=210.0+(double)(seed%1000u);
+        seed=seed*1664525u+1013904223u;
+        double h=60.0+(double)(seed%700u);
+        seed=seed*1664525u+1013904223u;
+        double ox=(double)((int)(seed%180u)-90);
+        seed=seed*1664525u+1013904223u;
+        double oy=(double)((int)(seed%80u)-40);
+        seed=seed*1664525u+1013904223u;
+        SCPVitalsSafeInsets s={(double)(seed%110u),(double)((seed>>8)%100u),
+                                (double)((seed>>16)%80u),(double)((seed>>24)%80u)};
+        SCPVitalsRect box={ox,oy,w,h};
+        seed=seed*1664525u+1013904223u;
+        double pillW=198.0+(double)(seed%61u);
+        seed=seed*1664525u+1013904223u;
+        double fy=(double)(seed%1001u)/1000.0;
+        SCPVitalsPoint right=SCPVitalsBubbleEdgeCenter(box,s,pillW,38,9,0,fy);
+        SCPVitalsPoint left=SCPVitalsBubbleEdgeCenter(box,s,pillW,38,9,1,fy);
+        SCPVitalsPoint center=SCPVitalsBubbleBoundCenter(
+            box,s,pillW,38,9,
+            (SCPVitalsPoint){box.x-500,box.y+box.h+500});
+        int valid=isfinite(left.x) && isfinite(left.y);
+        assert(valid==(isfinite(right.x) && isfinite(right.y)));
+        assert(valid==(isfinite(center.x) && isfinite(center.y)));
+        if(valid){
+            double minX=box.x+s.left+9+pillW/2;
+            double maxX=box.x+box.w-s.right-9-pillW/2;
+            double minY=box.y+s.top+9+19;
+            double maxY=box.y+box.h-s.bottom-9-19;
+            assert(left.x==minX && right.x==maxX);
+            assert(left.y>=minY && left.y<=maxY);
+            assert(right.y>=minY && right.y<=maxY);
+            assert(center.x>=minX && center.x<=maxX);
+            assert(center.y>=minY && center.y<=maxY);
+            double normalized=SCPVitalsBubbleRelativeY(box,s,pillW,38,9,left.y);
+            assert(normalized>=0.0 && normalized<=1.0);
+            assert(fabs(normalized-fy)<1e-9 || maxY==minY);
+        }
+    }
+    puts("PASS: 12 rail cases + 25,000 rail; 9 fullscreen cases + 25,000 fullscreen; 12 drag cases + 25,000 drag");
     return 0;
 }
