@@ -20,4 +20,11 @@ typedef struct {
     int railIndex;  // 0 left, 1 right, 2 top, 3 bottom
 } SCPVitalsLayoutResult;
 SCPVitalsLayoutResult SCPVitalsPlace(SCPVitalsLayoutInput input);
+
+// Fullscreen bubble: place only in confirmed, full-host presentation.
+// Returns valid=0 otherwise; the old Dock rail layout is not used here.
+SCPVitalsLayoutResult SCPVitalsFullscreenBubblePlace(SCPVitalsRect parentBounds,
+                                                    double safeTop,
+                                                    double safeRight,
+                                                    int fullscreenConfirmed);
 #endif
