@@ -132,39 +132,6 @@
                            body:L(@"ONB_P2_BODY") extra:nil note:L(@"ONB_P2_NOTE")];
 }
 
-- (UIView *)speedPage {
-    UIStackView *row = [UIStackView new];
-    row.axis = UILayoutConstraintAxisHorizontal;
-    row.alignment = UIStackViewAlignmentCenter;
-    row.spacing = 12;
-    row.layoutMarginsRelativeArrangement = YES;
-    row.directionalLayoutMargins = NSDirectionalEdgeInsetsMake(14, 16, 14, 16);
-    row.backgroundColor = OMCCardColor();
-    row.layer.cornerRadius = 16;
-    row.layer.cornerCurve = kCACornerCurveContinuous;
-    // VERIFIED nil color: in -speedPage the binary loads mov x1, #0
-    // @0x13474 immediately before bl _OMCIcon @0x13478
-    // (x0 = @"speedometer" @0x1346c).
-    UIImageView *icon = [[UIImageView alloc] initWithImage:OMCIcon(@"speedometer", nil)];
-    [icon setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
-    [row addArrangedSubview:icon];
-    UILabel *label = [self labelWithFont:[UIFont preferredFontForTextStyle:UIFontTextStyleBody]
-                                   color:[UIColor labelColor] alignment:NSTextAlignmentLeft];
-    label.text = L(@"ONB_P3_SWITCH");
-    [row addArrangedSubview:label];
-    UISwitch *sw = [UISwitch new];
-    sw.onTintColor = OMCSwitchColor();
-    id raw = CFBridgingRelease(CFPreferencesCopyAppValue(CFSTR("speedBubbleEnabled"),
-                                                          CFSTR("com.anlai.omnicar")));
-    sw.on = raw ? [raw boolValue] : YES;   // [INFERRED default]
-    [sw setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
-    [sw setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
-    [sw addTarget:self action:@selector(speedBubbleToggled:) forControlEvents:UIControlEventValueChanged];
-    [row addArrangedSubview:sw];
-    return [self pageWithSymbol:@"speedometer" title:L(@"ONB_P3_TITLE")
-                           body:L(@"ONB_P3_BODY") extra:row note:L(@"ONB_P3_NOTE")];
-}
-
 - (UIView *)tipsPage {
     return [self pageWithSymbol:@"lifepreserver" title:L(@"ONB_P4_TITLE")
                            body:L(@"ONB_P4_BODY") extra:nil note:L(@"ONB_P4_NOTE")];
@@ -176,8 +143,8 @@
     self.view.backgroundColor = OMCBackgroundColor();
     self.view.tintColor = OMCAccentColor();
 
-    NSArray *pages = @[[self welcomePage], [self splitPage],
-                       [self speedPage], [self tipsPage]];
+    // Old SpeedBubble setup is retired. Keep welcome/split/tips only.
+    NSArray *pages = @[[self welcomePage], [self splitPage], [self tipsPage]];
     self.pageCount = (NSInteger)pages.count;
 
     self.pager = [UIScrollView new];
@@ -316,14 +283,6 @@
         [vc performSelector:@selector(setSpecifier:) withObject:spec];
     }
     [self.navigationController pushViewController:vc animated:YES];
-}
-
-- (void)speedBubbleToggled:(UISwitch *)sender {
-    CFPreferencesSetAppValue(CFSTR("speedBubbleEnabled"),
-                             (__bridge CFNumberRef)@(sender.isOn),
-                             CFSTR("com.anlai.omnicar"));
-    CFPreferencesAppSynchronize(CFSTR("com.anlai.omnicar"));
-    notify_post("com.anlai.omnicar/prefschanged");
 }
 
 - (void)finish {

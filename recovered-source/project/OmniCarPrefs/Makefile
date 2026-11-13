@@ -9,7 +9,7 @@ THEOS_PACKAGE_SCHEME = rootless
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = OmniCarPrefs
-OmniCarPrefs_FILES = OMCCommon.m OMCAppBridgeAppsController.m OMCCarProfilesController.m OMCCardPage.m OMCCells.m OMCFeatureListController.m OMCHSPreview.m OMCHeaderCard.m OMCHomeScreenController.m OMCOnboardingController.m OMCRootListController.m OMCSSStyleTileCell.m OMCSpeedBubbleController.m OMCSplitPreview.m OMCSplitScreenAppPickerController.m OMCSplitScreenController.m OMCStartupScreenController.m OMCWhatsNewController.m SPPBubbleView.m SPPGlassView.m SPPIconView.m SPPSignView.m SPPSoundDelegate.m SSCanvasView.m SSFade.m SSGauge.m SSLinkTarget.m SSStartupView.m
+OmniCarPrefs_FILES = OMCCommon.m OMCAppBridgeAppsController.m OMCCarProfilesController.m OMCCardPage.m OMCCells.m OMCFeatureListController.m OMCHSPreview.m OMCHeaderCard.m OMCHomeScreenController.m OMCOnboardingController.m OMCRootListController.m OMCSSStyleTileCell.m OMCSplitPreview.m OMCSplitScreenAppPickerController.m OMCSplitScreenController.m OMCStartupScreenController.m OMCWhatsNewController.m SSCanvasView.m SSFade.m SSGauge.m SSLinkTarget.m SSStartupView.m
 OmniCarPrefs_INSTALL_PATH = /Library/PreferenceBundles
 OmniCarPrefs_FRAMEWORKS = UIKit
 # Phase 1 integration: the reconstructed sources use AVFoundation

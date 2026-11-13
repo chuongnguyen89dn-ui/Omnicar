@@ -170,21 +170,6 @@ void OMCLogWrite(NSString *tag, NSString *msg);
 void OMCLogWriteSync(NSString *tag, NSString *msg);
 
 // ---------------------------------------------------------------------------
-// Speed Bubble voice helpers (C functions used by SPPBubbleView)
-// ---------------------------------------------------------------------------
-/// Voice modes 3..7 are the "fun" lines. [VERIFIED: _SPPVoiceIsFun, 16 bytes]
-BOOL SPPVoiceIsFun(NSInteger mode);
-/// Spoken warning template for a voice mode (0/default = serious over-limit
-/// line; 1 = "limit is {L}"; 2 = "please slow down"; 3..7 = jokes), via OMCTr.
-/// [VERIFIED: _SPPVoiceTemplate switch]
-NSString *SPPVoiceTemplate(NSInteger mode);
-/// A custom line wins; if empty, the mode template is used. {L} is then
-/// substituted with the limit and the result trimmed. [VERIFIED: _SPPVoiceLine]
-NSString *SPPVoiceLine(NSString *customLine, NSInteger mode, NSInteger limit);
-void SPPSpeak(NSString *text);                   // [VERIFIED: _SPPSpeak]
-void SPPPlayTone(NSInteger index);               // [VERIFIED: _SPPPlayTone]
-
-// ---------------------------------------------------------------------------
 // Startup Screen weather helpers (C functions used by SSStartupView)
 // ---------------------------------------------------------------------------
 /// Day period by hour: 5-10 -> 0, 11-16 -> 1, 17-20 -> 2, else 3.
