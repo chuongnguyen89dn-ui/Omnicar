@@ -7,6 +7,7 @@
 #import "SCPFullscreenController.h" // [hl47] hide dock HUD in fullscreen
 #import <CoreGraphics/CoreGraphics.h>
 #import <math.h>
+#import <objc/message.h>
 
 @interface SCPDeviceVitalsHUD ()
 @property(nonatomic,weak) UIView *host;
@@ -91,6 +92,22 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
     }
 }
 
+// [hl49-dock] In HL48 the badge was put in tabParent, which can be under
+// Dashboard's own Dock UIWindow. Resolve the actual native Dock presentation
+// surface rather than relying on the split container's z-order.
+static UIWindow *SCPVitalsNativeDockWindow(UIView *parent) {
+    id root=SCPDashboardRootViewController();
+    SEL sel=NSSelectorFromString(@"appDockViewController");
+    if (!root || ![root respondsToSelector:sel]) return nil;
+    id dockVC=((id(*)(id,SEL))objc_msgSend)(root,sel);
+    if (!dockVC || ![dockVC respondsToSelector:@selector(view)]) return nil;
+    UIView *dock=((UIView *(*)(id,SEL))objc_msgSend)(dockVC,@selector(view));
+    if (![dock isKindOfClass:UIView.class] || !dock.window ||
+        !parent.window || dock.window.screen!=parent.window.screen ||
+        dock.isHidden || dock.alpha<=0.01) return nil;
+    return dock.window;
+}
+
 - (void)showForParent:(UIView *)parent
              appArea:(CGRect)appArea
            dockFrame:(CGRect)dock
@@ -128,8 +145,29 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
     }
     self.noSpaceLogged = NO;
     BOOL horizontal = result.horizontal != 0;
-    CGRect frame = CGRectMake(result.frame.x,result.frame.y,result.frame.w,result.frame.h);
-    if (!self.panel || self.panel.superview != parent) {
+    CGRect railFrame = CGRectMake(result.frame.x,result.frame.y,
+                                   result.frame.w,result.frame.h);
+    UIWindow *dockWindow=SCPVitalsNativeDockWindow(parent);
+    if (!dockWindow) {
+        OMCLogWrite(@"SplitScreen",@"[vitals] dock-window-absent: no badge attached");
+        [self stop];return;
+    }
+    // Match both windows through the external screen coordinate space. A
+    // UIKit view in tabParent can render BELOW the native Dock UIWindow.
+    UIScreen *screen=parent.window.screen;
+    CGRect onScreen=[parent convertRect:railFrame
+                    toCoordinateSpace:screen.coordinateSpace];
+    CGRect frame=[dockWindow convertRect:onScreen
+                    fromCoordinateSpace:screen.coordinateSpace];
+    if (!SCPVitalsFiniteRect(frame) ||
+        !CGRectContainsRect(CGRectInset(dockWindow.bounds,-0.5,-0.5),frame)) {
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[vitals] dock-window-frame-invalid window=%@ rail=%@ proposed=%@",
+            NSStringFromCGRect(dockWindow.bounds),NSStringFromCGRect(railFrame),
+            NSStringFromCGRect(frame)]);
+        [self stop];return;
+    }
+    if (!self.panel || self.panel.superview != dockWindow) {
         [self stop]; // resets timer when the external display/session changes
         UIView *panel = [[UIView alloc] initWithFrame:frame];
         panel.backgroundColor = [UIColor colorWithWhite:0 alpha:0.72];
@@ -144,19 +182,22 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
         label.adjustsFontSizeToFitWidth = YES;
         label.minimumScaleFactor = horizontal?0.74:0.65;
         [panel addSubview:label];
-        [parent addSubview:panel];
-        self.host = parent;
+        [dockWindow addSubview:panel];
+        self.host = dockWindow;
         self.panel = panel;
         self.label = label;
         self.horizontal = horizontal;
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[vitals] car HUD attached frame=%@ app=%@ dock=%@",
-            NSStringFromCGRect(frame), NSStringFromCGRect(appArea), NSStringFromCGRect(dock)]);
+            @"[vitals] native-dock-attached frame=%@ level=%.0f window=%@ app=%@ dock=%@",
+            NSStringFromCGRect(frame),dockWindow.windowLevel,
+            NSStringFromClass(dockWindow.class),NSStringFromCGRect(appArea),
+            NSStringFromCGRect(dock)]);
         [self refresh];
         self.timer = [NSTimer timerWithTimeInterval:12.0 target:self
             selector:@selector(refresh) userInfo:nil repeats:YES];
         [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
     } else {
+        [dockWindow bringSubviewToFront:self.panel];
         // Update only our own panel. Geometry is recalculated every root layout.
         BOOL changedOrientation = self.horizontal != horizontal;
         self.horizontal = horizontal;
