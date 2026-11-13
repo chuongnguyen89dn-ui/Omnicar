@@ -499,7 +499,17 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     [picker addGestureRecognizer:tap];
     [pane.view addSubview:picker];                                       // @0x317b0-0x317c8
     [pane.view bringSubviewToFront:pane.handle];                         // @0x317e8-0x31804
-    [self relayoutAnimated:YES];                                         // @0x31818
+    // A picker changes NO pane geometry. Do not force a remote hosted
+    // FBScene resize on menu-open: it can black out an otherwise live pane.
+    // Native/empty slots keep the exact baseline relayout path.
+    BOOL keepHostedSurface=(pane.vc && SCPVCIsHosted(pane.vc) &&
+        [OMCPref(@"duocarHL50PreserveHostedSceneOnMenu",@YES) boolValue]);
+    if(keepHostedSurface) {
+        picker.frame=pane.view.bounds;
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl50-menu] NO-RELAYER hosted slot=%d host=%p scene=%p picker=%@",
+            pane.slot,pane.host,pane.vc.view,NSStringFromCGRect(picker.frame)]);
+    } else [self relayoutAnimated:YES];
     picker.alpha = 0;                                                    // @0x31824
     [UIView animateWithDuration:0.25                                     // @0x3186c; block @0x31954 sets alpha = 1
                      animations:^{ picker.alpha = 1; }];
@@ -1007,7 +1017,9 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
             pane.host.window?NSStringFromClass(pane.host.window.class):@"nil",
             (int)pane.host.hidden,(double)pane.host.alpha]);
     }
-    if (window == nil) [self pushHostFramesLive:NO];
+    // Keep the same scene and pixels through the menu transaction.
+    if(window==nil && !(hl49SameWindow && pane.vc && SCPVCIsHosted(pane.vc)))
+        [self pushHostFramesLive:NO];
     OMCLogWrite(@"SplitScreen",
         [NSString stringWithFormat:@"CarSplit: popup chon %ld app cho o %d (%s, %d o cho)",
             (long)count, pane.slot, window != nil ? "cua so rieng" : "container",
