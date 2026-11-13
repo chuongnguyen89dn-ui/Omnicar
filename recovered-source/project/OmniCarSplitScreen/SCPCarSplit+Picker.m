@@ -276,6 +276,25 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // cover starts at alpha 0 and fades in over 0.12 s (block
     // @0x2a65c). Only the handle is raised above the cover; the
     // original has no bar bring-to-front here.
+    // [hl46-bypass] A/B trial, enabled only for a real native scene VC.
+    // Do NOT allocate an icon cover for native during divider/pane drag.
+    // If a previous drag left a cover alive, remove that exact view now;
+    // the old removeCoverFromPane: and endResize cleanup remain nil-safe.
+    BOOL hl46NativeCover = (pane.vc != nil && !SCPVCIsHosted(pane.vc) &&
+        [OMCPref(@"duocarHL46NativeCoverOff", @YES) boolValue]);
+    if (hl46NativeCover) {
+        UIView *oldCover = pane.cover;
+        if (oldCover) {
+            pane.cover = nil;
+            [oldCover.layer removeAllAnimations];
+            [oldCover removeFromSuperview];
+        }
+        DCHL45OverlayTrace(self,@"hl46-cover-suppressed",pane,oldCover);
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl46-bypass] cover OFF slot=%d bundle=%@ mode=NATIVE hadCover=%d",
+            pane.slot,pane.bundleID ?: @"(none)",oldCover != nil]);
+        return;
+    }
     if (pane.cover != nil || pane.vc == nil) return;
     UIView *cover = [[UIView alloc] initWithFrame:pane.view.bounds];
     cover.autoresizingMask = 0x12;
@@ -331,6 +350,10 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     [self removeLoaderFromPane:pane animated:NO];
     // Keep this state for existing diagnostics, never for the face opacity.
     BOOL hasContent = (pane.vc != nil || [self slotOccupied:pane.slot]);
+    // [hl46-bypass] Only a live native (not hosted) VC gets transparent
+    // picker presentation. Empty-slot + hosted picker behavior stays original.
+    BOOL hl46NativePicker = (pane.vc != nil && !SCPVCIsHosted(pane.vc) &&
+        [OMCPref(@"duocarHL46NativePickerClear", @YES) boolValue]);
     // [hl22-original] The original DEB uses an opaque pane placeholder
     // for both occupied and empty panes. It protects the content beneath
     // while the picker is active; do not opt into the HL5 transparent fix.
@@ -347,7 +370,25 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                                                green:0.9411764705882353
                                                 blue:0.984313725490196
                                                alpha:1.0]; // original @0x315ec..0x31624
-    OMCLogWrite(@"SplitScreen", @"[hl22-original] picker-pane-opacity=1.0");   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
+    if (hl46NativePicker) {
+        // The original placeholder remains attached and tappable so
+        // pickerPaneTapped:, the sheet, Cancel and selection still work.
+        // Only its full-pane opaque fill is disabled for native content.
+        picker.backgroundColor = UIColor.clearColor;
+        // A stale resize cover would otherwise still hide the image.
+        UIView *oldCover = pane.cover;
+        if (oldCover) {
+            pane.cover = nil;
+            [oldCover.layer removeAllAnimations];
+            [oldCover removeFromSuperview];
+            DCHL45OverlayTrace(self,@"hl46-cover-detached-at-picker",pane,oldCover);
+        }
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl46-bypass] picker CLEAR slot=%d bundle=%@ mode=NATIVE coverRemoved=%d",
+            pane.slot,pane.bundleID ?: @"(none)",oldCover != nil]);
+    } else {
+        OMCLogWrite(@"SplitScreen", @"[hl22-original] picker-pane-opacity=1.0");
+    }   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
     // [hl2-split P6] THE single picker measurement line (2026-11-09):
     // the ytz5hl1 car log proved hasContent=1 on both real opens while
     // the pane still showed white, and the source audit could NOT
@@ -391,6 +432,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     label.font = [UIFont systemFontOfSize:40 weight:UIFontWeightLight];
     label.textAlignment = NSTextAlignmentCenter;
     label.autoresizingMask = 0x12;
+    if (hl46NativePicker) label.hidden = YES; // content stays visible
     [picker addSubview:label];
     UITapGestureRecognizer *tap =
         [[UITapGestureRecognizer alloc] initWithTarget:self
