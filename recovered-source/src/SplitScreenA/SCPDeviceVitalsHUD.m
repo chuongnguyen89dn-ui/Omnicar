@@ -3,6 +3,7 @@
 #import "SCPDeviceVitalsHUD.h"
 #import "OMCDeviceVitals.h"
 #import "SCPShared.h"
+#import "SCPVitalsPlacement.h"
 #import <CoreGraphics/CoreGraphics.h>
 #import <math.h>
 
@@ -23,47 +24,15 @@
     return instance;
 }
 
+// Untrusted UIKit geometry is converted only after validating that both
+// Dock and app occupy the same actual CarPlay parent coordinate space.
 static BOOL SCPVitalsFiniteRect(CGRect r) {
     return !CGRectIsNull(r) && !CGRectIsInfinite(r) && !CGRectIsEmpty(r) &&
         isfinite(r.origin.x) && isfinite(r.origin.y) &&
         isfinite(r.size.width) && isfinite(r.size.height);
 }
-
-// The candidate is contained COMPLETELY in the space outside the app area,
-// and must not intersect the existing native Dock's actual frame. A dock
-// filling the entire rail intentionally results in NO on-car HUD.
-static CGRect SCPVitalsRailPlacement(CGRect rail, CGRect dock, BOOL vertical) {
-    if (!SCPVitalsFiniteRect(rail) || !SCPVitalsFiniteRect(dock) ||
-        !CGRectIntersectsRect(rail, dock)) return CGRectNull;
-    const CGFloat margin = 7.0, separation = 8.0;
-    CGRect frame = CGRectNull;
-    if (vertical) {
-        const CGFloat w = MIN(rail.size.width - 2 * margin, 65.0), h = 49.0;
-        if (w < 39.0 || rail.size.height < h + 2 * margin) return CGRectNull;
-        CGFloat x = floor(CGRectGetMidX(rail) - w / 2.0);
-        CGFloat bottomY = MAX(CGRectGetMinY(rail) + margin,
-                              CGRectGetMaxY(dock) + separation);
-        CGFloat topY = MIN(CGRectGetMaxY(rail) - margin - h,
-                          CGRectGetMinY(dock) - separation - h);
-        if (bottomY + h <= CGRectGetMaxY(rail) - margin)
-            frame = CGRectMake(x, bottomY, w, h);
-        else if (topY >= CGRectGetMinY(rail) + margin)
-            frame = CGRectMake(x, topY, w, h);
-    } else {
-        const CGFloat w = 128.0, h = MIN(rail.size.height - 2 * margin, 27.0);
-        if (h < 22.0 || rail.size.width < w + 2 * margin) return CGRectNull;
-        CGFloat y = floor(CGRectGetMidY(rail) - h / 2.0);
-        CGFloat rightX = MAX(CGRectGetMinX(rail) + margin,
-                             CGRectGetMaxX(dock) + separation);
-        CGFloat leftX = MIN(CGRectGetMaxX(rail) - margin - w,
-                            CGRectGetMinX(dock) - separation - w);
-        if (rightX + w <= CGRectGetMaxX(rail) - margin)
-            frame = CGRectMake(rightX, y, w, h);
-        else if (leftX >= CGRectGetMinX(rail) + margin)
-            frame = CGRectMake(leftX, y, w, h);
-    }
-    return SCPVitalsFiniteRect(frame) && !CGRectIntersectsRect(frame, dock)
-        ? frame : CGRectNull;
+static SCPVitalsRect SCPVitalsToRect(CGRect r) {
+    return (SCPVitalsRect){r.origin.x,r.origin.y,r.size.width,r.size.height};
 }
 
 - (void)stop {
@@ -81,7 +50,7 @@ static CGRect SCPVitalsRailPlacement(CGRect rail, CGRect dock, BOOL vertical) {
 
 - (void)refresh {
     if (!self.panel || !self.host.window) { [self stop]; return; }
-    if (![OMCPref(@"duocarVitalsEnabled", @YES) boolValue]) { [self stop]; return; }
+    if (![OMCPref(@"duocarVitalsEnabled", @NO) boolValue]) { [self stop]; return; }
 
     NSDictionary *sample = OMCDeviceVitalsSample();
     NSNumber *battery = [sample[@"batteryPercent"] isKindOfClass:NSNumber.class]
@@ -114,54 +83,43 @@ static CGRect SCPVitalsRailPlacement(CGRect rail, CGRect dock, BOOL vertical) {
     }
 }
 
-- (void)showForParent:(UIView *)parent appArea:(CGRect)appArea dockFrame:(CGRect)dock {
+- (void)showForParent:(UIView *)parent
+             appArea:(CGRect)appArea
+           dockFrame:(CGRect)dock
+           homeFrame:(CGRect)home
+       launcherFrame:(CGRect)launcher {
     if (![NSThread isMainThread]) return;
     if (!parent || !parent.window ||
-        ![OMCPref(@"duocarVitalsEnabled", @YES) boolValue] ||
+        ![OMCPref(@"duocarVitalsEnabled", @NO) boolValue] ||
         !SCPVitalsFiniteRect(parent.bounds) ||
         !SCPVitalsFiniteRect(appArea) ||
         !SCPVitalsFiniteRect(dock)) {
         [self stop]; return;
     }
 
-    // All four Dock orientations are considered. The native Dock must
-    // actually intersect the corresponding rail (not just occupy a guessed
-    // fixed-width margin). Only empty rail space can carry the badge.
-    CGRect bounds = parent.bounds;
-    CGRect area = CGRectIntersection(bounds, appArea);
-    if (!SCPVitalsFiniteRect(area)) { [self stop]; return; }
-    CGRect rails[4] = {
-        CGRectMake(CGRectGetMinX(bounds), CGRectGetMinY(bounds),
-                   MAX(0, CGRectGetMinX(area) - CGRectGetMinX(bounds)), bounds.size.height),
-        CGRectMake(CGRectGetMaxX(area), CGRectGetMinY(bounds),
-                   MAX(0, CGRectGetMaxX(bounds) - CGRectGetMaxX(area)), bounds.size.height),
-        CGRectMake(CGRectGetMinX(bounds), CGRectGetMinY(bounds),
-                   bounds.size.width, MAX(0, CGRectGetMinY(area) - CGRectGetMinY(bounds))),
-        CGRectMake(CGRectGetMinX(bounds), CGRectGetMaxY(area),
-                   bounds.size.width, MAX(0, CGRectGetMaxY(bounds) - CGRectGetMaxY(area)))
-    };
-    CGRect location = CGRectNull;
-    BOOL horizontal = NO;
-    for (NSInteger i = 0; i < 4; ++i) {
-        CGRect candidate = SCPVitalsRailPlacement(rails[i], dock, i < 2);
-        if (SCPVitalsFiniteRect(candidate)) {
-            location = candidate;
-            horizontal = i >= 2;
-            break;
-        }
-    }
-    if (!SCPVitalsFiniteRect(location)) { [self stop]; return; }
+    // The host tests the same C routine. Do not assume that the native
+    // Dock is unshifted, or that the whole rail is available for a badge.
+    SCPVitalsLayoutInput in = {0};
+    in.root = SCPVitalsToRect(parent.bounds);
+    in.app = SCPVitalsToRect(appArea);
+    in.dock = SCPVitalsToRect(dock);
+    if (SCPVitalsFiniteRect(home)) in.exclusions[in.exclusionCount++] = SCPVitalsToRect(home);
+    if (SCPVitalsFiniteRect(launcher)) in.exclusions[in.exclusionCount++] = SCPVitalsToRect(launcher);
+    SCPVitalsLayoutResult result = SCPVitalsPlace(in);
+    if (!result.valid) { [self stop]; return; }
+    BOOL horizontal = result.horizontal != 0;
+    CGRect frame = CGRectMake(result.frame.x,result.frame.y,result.frame.w,result.frame.h);
     if (!self.panel || self.panel.superview != parent) {
-        [self stop]; // also invalidates the prior session timer
-        UIView *panel = [[UIView alloc] initWithFrame:location];
+        [self stop]; // resets timer when the external display/session changes
+        UIView *panel = [[UIView alloc] initWithFrame:frame];
         panel.backgroundColor = [UIColor colorWithWhite:0 alpha:0.72];
         panel.layer.cornerRadius = 8.0;
         panel.clipsToBounds = YES;
-        panel.userInteractionEnabled = NO; // never block native Dock touches
+        panel.userInteractionEnabled = NO; // do NOT intercept native Dock touches
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectInset(panel.bounds, 2, 1)];
         label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         label.numberOfLines = horizontal ? 1 : 2;
-        label.font = [UIFont systemFontOfSize:horizontal ? 10.0 : 10.0 weight:UIFontWeightSemibold];
+        label.font = [UIFont systemFontOfSize:10.0 weight:UIFontWeightSemibold];
         label.textAlignment = NSTextAlignmentCenter;
         label.adjustsFontSizeToFitWidth = YES;
         label.minimumScaleFactor = 0.74;
@@ -176,10 +134,13 @@ static CGRect SCPVitalsRailPlacement(CGRect rail, CGRect dock, BOOL vertical) {
             selector:@selector(refresh) userInfo:nil repeats:YES];
         [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
     } else {
+        // Update only our own panel. Geometry is recalculated every root layout.
+        BOOL changedOrientation = self.horizontal != horizontal;
         self.horizontal = horizontal;
         self.label.numberOfLines = horizontal ? 1 : 2;
-        self.panel.frame = location;
-        // Only its own panel moves. No native Dock, icon, picker or pane mutation.
+        self.panel.frame = frame;
+        if (changedOrientation) [self refresh];
     }
 }
+
 @end
