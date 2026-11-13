@@ -4,7 +4,9 @@
 #include <math.h>
 #include <stdio.h>
 #include "../../project/OmniCarPinchCommon/DCPinchDirection.h"
+static unsigned long testedCases;
 static void expect(double start,double end,double drift,DCPinchDirection want) {
+    testedCases++;
     DCPinchDirection got=DCPinchDirectionForMotion(start,end,drift);
     if(got!=want) {
         fprintf(stderr,"pinch case d0=%.2f d1=%.2f drift=%.2f got=%d want=%d\n",
@@ -86,6 +88,7 @@ int main(void) {
                      bx+18*ux-27*uy,by+18*uy+27*ux,
                      DCPinchNone);
     }
-    printf("HL53_DIRECTIONAL_PINCH_MATH_PASS 2540 cases (360 degrees, finger order, one stationary finger, pan)\n");
+    assert(testedCases==2540);
+    printf("HL53_DIRECTIONAL_PINCH_MATH_PASS %lu cases (360 degrees, finger order, one stationary finger, pan)\n",testedCases);
     return 0;
 }
