@@ -4,6 +4,7 @@
 #import "OMCDeviceVitals.h"
 #import "SCPShared.h"
 #import "SCPVitalsPlacement.h"
+#import "SCPFullscreenController.h" // [hl47] hide dock HUD in fullscreen
 #import <CoreGraphics/CoreGraphics.h>
 #import <math.h>
 
@@ -52,7 +53,7 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
 
 - (void)refresh {
     if (!self.panel || !self.host.window) { [self stop]; return; }
-    if (![OMCPref(@"duocarVitalsEnabled", @NO) boolValue]) { [self stop]; return; }
+    if (![OMCPref(@"duocarVitalsEnabled", @YES) boolValue]) { [self stop]; return; }
 
     NSDictionary *sample = OMCDeviceVitalsSample();
     NSNumber *battery = [sample[@"batteryPercent"] isKindOfClass:NSNumber.class]
@@ -97,10 +98,11 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
        launcherFrame:(CGRect)launcher {
     if (![NSThread isMainThread]) return;
     if (!parent || !parent.window ||
-        ![OMCPref(@"duocarVitalsEnabled", @NO) boolValue] ||
+        ![OMCPref(@"duocarVitalsEnabled", @YES) boolValue] ||
         !SCPVitalsFiniteRect(parent.bounds) ||
         !SCPVitalsFiniteRect(appArea) ||
-        !SCPVitalsFiniteRect(dock)) {
+        !SCPVitalsFiniteRect(dock) ||
+        [[SCPFullscreenController shared] fsCommittedState] == SCPFullscreenStateExpanded) {
         [self stop]; return;
     }
 
