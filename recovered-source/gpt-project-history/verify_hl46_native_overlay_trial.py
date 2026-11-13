@@ -31,10 +31,15 @@ assert '[oldCover removeFromSuperview]' in cover
 assert 'if (hl46NativePicker)' in picker
 assert 'picker.backgroundColor = UIColor.clearColor;' in picker
 assert 'if (hl46NativePicker) label.hidden = YES;' in picker
-assert 'BOOL removeNativeCover = (oldCover != nil &&' in picker
+assert 'BOOL hl46NativeCoverAtPicker = (pane.vc != nil &&' in picker
+assert '!SCPVCIsHosted(pane.vc)' in picker
 assert '[OMCPref(@"duocarHL46NativeCoverOff", @YES) boolValue]' in picker
+assert 'BOOL removeNativeCover = hl46NativeCoverAtPicker && oldCover != nil;' in picker
 assert 'if (removeNativeCover)' in picker
 assert 'coverRetained=%d' in picker
+assert 'picker OPAQUE native cover-only removed' in picker
+assert picker.index('if (removeNativeCover)') < picker.index(
+    'if (hl46NativePicker) {')
 assert picker.index('if (removeNativeCover)') < picker.index(
     'DCHL45OverlayTrace(self,@"hl46-cover-detached-at-picker"')
 # The policy matrix must always yield independently selectable
