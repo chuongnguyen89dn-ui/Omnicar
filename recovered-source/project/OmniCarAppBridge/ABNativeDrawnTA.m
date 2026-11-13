@@ -24,6 +24,7 @@ static uint64_t DC40ClientSeq;
 static BOOL DC40ClientInstalled;
 static NSTimer *DC40ClientScanTimer; // [hl40-native-drawn] first-responder poll fallback
 static NSString *DC42VisibleKeyboardWindows(void);
+static UISearchBar *DC43OwningSearchBar(id candidate); // [hl43] one controller-owned Cancel path
 
 static __weak UIView *DC41PrearmedResponder; // [hl41] non-owning native first responder
 static UIView *DC41PrearmedBlank; // release on focus transition or failure
@@ -203,19 +204,23 @@ static void DC40ClientReceive(NSNotification *note) {
                 [delegate textFieldShouldReturn:field];
             if (allowed) {
                 [field sendActionsForControlEvents:UIControlEventEditingDidEndOnExit];
-                [field resignFirstResponder];
+                if ([field isFirstResponder]) [field resignFirstResponder];
             }
+            OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+                @"[hl43-cancel] search-complete nonce=%u allowed=%d focused=%d searchBar=%d",
+                nonce,allowed,[field isFirstResponder],DC43OwningSearchBar(field)!=nil]);
         } else {
             [input insertText:@"\n"];
         }
     } else if ([action isEqualToString:@"dismiss"]) {
         id candidate=DC40Responder;
-        BOOL cancelFired=DC43TriggerRealSearchCancel(candidate);
-        BOOL returned=cancelFired ? YES : [candidate resignFirstResponder];
+        BOOL cancelInvoked=DC43TriggerRealSearchCancel(candidate);
+        BOOL resignCalled=!cancelInvoked;
+        BOOL resignReturned=resignCalled ? [candidate resignFirstResponder] : NO;
         BOOL focused=[candidate isFirstResponder];
         OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
-            @"[hl43-cancel] dismiss nonce=%u cancelFired=%d returned=%d stillFocused=%d windows=%@",
-            nonce,cancelFired,returned,focused,DC42VisibleKeyboardWindows()]);
+            @"[hl43-cancel] dismiss nonce=%u cancelInvoked=%d resignCalled=%d resignReturned=%d stillFocused=%d windows=%@",
+            nonce,cancelInvoked,resignCalled,resignReturned,focused,DC42VisibleKeyboardWindows()]);
         // IPC ACK acknowledges dispatch, not proof the Apple template
         // keyplane is absent. Track UIKit hide notifications independently.
     } else return;
@@ -281,7 +286,20 @@ static BOOL (*DC41OrigTVBecome)(UITextView *,SEL);
 static BOOL (*DC42OrigTFResign)(UITextField *,SEL);
 static BOOL (*DC42OrigTVResign)(UITextView *,SEL);
 static BOOL DC42TFResign(UITextField *field,SEL cmd) {
+    BOOL owns=(field==DC40Responder && DC40CarInput(field));
+    // [hl43] Compare the *actual* user Cancel / Search-completed stack
+    // against remote DuoCar dismiss; log no text or typed characters.
+    NSString *source=nil;
+    if (owns) {
+        NSArray<NSString *> *stack=[NSThread callStackSymbols];
+        source=[[stack subarrayWithRange:NSMakeRange(0,MIN((NSUInteger)8,stack.count))]
+                componentsJoinedByString:@" | "];
+    }
     BOOL ok=DC42OrigTFResign(field,cmd);
+    if (owns) OMCLogWrite(@"AppBridge",[NSString stringWithFormat:
+        @"[hl43-cancel] real-resign ok=%d stillFocused=%d searchBar=%d stack=%@",
+        ok,[field isFirstResponder],DC43OwningSearchBar(field)!=nil,
+        source ?: @"BLIND"]);
     if (ok) DC40ClientEnd(field);
     return ok;
 }
