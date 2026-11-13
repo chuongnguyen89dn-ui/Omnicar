@@ -127,6 +127,14 @@ assert "SCPHostPinchObserve" in host
 assert "BWPinchMode" in ab
 assert "SCPFullscreenAdapter" in (project/"OmniCarSplitScreen/SCPPinchController.m").read_text()
 assert (root/"gpt-project-history/tests/test_hl53_pinch_direction.c").is_file()
+angles=(root/"gpt-project-history/tests/test_hl53_pinch_direction.c").read_text()
+assert "for(int k=0;k<360;k++)" in angles,"all 360 degrees required"
+assert "hypot(bx-ax,by-ay)" in angles and "hypot(nextBx-nextAx,nextBy-nextAy)" in angles
+assert "assert(testedCases==2540);" in angles,"test count must be measured, not guessed"
+assert "DCPinchOut" in angles and "DCPinchIn" in angles
+assert "ax,ay,cx+80*ux,cy+80*uy,DCPinchOut" in angles
+assert "ax,ay,cx+20*ux,cy+20*uy,DCPinchIn" in angles
+assert "DCPinchNone" in angles # non-zoom parallel pan and static taps
 assert (root/"gpt-project-history/test_hl53_pinch_direction.sh").is_file()
 assert "[hl51-dock] NO SAFE RAIL" in hud
 assert "statusBarViewController" in hud and "_statusBarViewController" in hud
