@@ -509,6 +509,9 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
             @"[hl50-menu] NO-RELAYER hosted slot=%d host=%p scene=%p picker=%@",
             pane.slot,pane.host,pane.vc.view,NSStringFromCGRect(picker.frame)]);
+        // Post the nonzero hosted rect before the menu animates; its
+        // subsequent renewal must also preserve this frame.
+        [self sendHostFrameForPane:pane live:NO];
     } else [self relayoutAnimated:YES];
     picker.alpha = 0;                                                    // @0x31824
     [UIView animateWithDuration:0.25                                     // @0x3186c; block @0x31954 sets alpha = 1
@@ -559,6 +562,11 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
         !owner.pickerSheetPane.vc ||
         !SCPVCIsHosted(owner.pickerSheetPane.vc) ||
         owner.tray || owner.ratioMenu || owner.dragGhost)
+        return NO;
+    // [hl51-menu] Restore the original elevated menu window for
+    // hosted occupied panes, above the logo and hosted scene.
+    // Keep a pref override for exact A/B rollback if necessary.
+    if ([OMCPref(@"duocarHL51RestoreOriginalMenuWindow", @YES) boolValue])
         return NO;
     return [OMCPref(@"duocarHL49HostedSameWindowPicker",@YES) boolValue];
 }
@@ -662,6 +670,11 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     UIView *oldShield = self.pickerShield;
     BOOL hl49SameWindow = SCPHL49SameWindowPicker(self);
     UIWindow *window = hl49SameWindow ? nil : [self trayWindowForParent:self.container];
+    if (pane.vc && SCPVCIsHosted(pane.vc))
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl51-menu] sheetHost=%@ trayLevel=%.0f slot=%d",
+            window ? @"ORIGINAL-TRAY" : @"SPLIT-CONTAINER",
+            window ? window.windowLevel : -1.0, pane.slot]);
     OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
         @"[hl49-window-ab] mode=%@ slot=%d bundle=%@ vc=%@ trayExisting=%@",
         hl49SameWindow?@"SAME-CONTAINER":@"ORIGINAL-SEPARATE",
@@ -748,7 +761,12 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     // white 0.92 view; a transparent pane.picker alone cannot make this
     // top-level sheet expose hosted video. This face is independent of
     // the picker gestures/Choose/Cancel subviews below and is A/B reversible.
-    BOOL hl49LiveUnderSheet = (pane != nil &&
+    // [hl51-menu] Restore the original picker face, not the HL49
+    // translucent no-blur experiment which exposed the logo below.
+    BOOL hl51OriginalHostedFace = (pane.vc &&
+        SCPVCIsHosted(pane.vc) &&
+        [OMCPref(@"duocarHL51RestoreOriginalMenuWindow", @YES) boolValue]);
+    BOOL hl49LiveUnderSheet = (!hl51OriginalHostedFace && pane != nil &&
         (pane.vc != nil || pane.bundleID.length>0) &&
         [OMCPref(@"duocarHL49LiveUnderSheet",@YES) boolValue]);
     UIVisualEffectView *effectView = hl49LiveUnderSheet

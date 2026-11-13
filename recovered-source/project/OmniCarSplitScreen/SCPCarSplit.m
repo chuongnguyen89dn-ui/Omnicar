@@ -2277,12 +2277,19 @@ static CGRect SCPHL47LauncherFrame(SCPCarSplit *split, UIView *parent) {
 // sheet / ratio menu overlays — the ratio menu cuts a 6 pt-inflated hole).
 - (CGRect)hostFrameForPane:(SCPCarPane *)pane {
     if (!self.active || !pane.vc) return CGRectZero;
-    if (pane.picker) return CGRectZero;
+    // [hl51-menu] DuoCar50 sent a 0x0 frame when a clear hosted picker
+    // opened; the remote video vanished UNDER the independent pane logo.
+    // Keep the scene frame strictly for the occupied hosted picker.
+    // Native/empty panes, tray, ratio and modal exclusions remain intact.
+    BOOL keepHostedImage = SCPVCIsHosted(pane.vc) && pane.picker != nil &&
+        [OMCPref(@"duocarHL51KeepHostedImageDuringPicker", @YES) boolValue];
+    if (pane.picker && !keepHostedImage) return CGRectZero;
     if (pane.view.alpha < 0.5) return CGRectZero;
     if (pane.view.bounds.size.width < 20.0) return CGRectZero;
     if (!pane.view.window) return CGRectZero;
     if (self.tray && !self.trayOverlay) return CGRectZero;
-    if (self.pickerSheet && !self.pickerSheetOverlay) return CGRectZero;
+    if (self.pickerSheet && !self.pickerSheetOverlay &&
+        !(keepHostedImage && self.pickerSheetPane == pane)) return CGRectZero;
     if (self.ratioMenu && !self.ratioOverlay) {
         CGRect hole = CGRectInset(self.ratioMenu.frame, -6.0, -6.0);
         if (CGRectIntersectsRect(hole, pane.view.frame)) return CGRectZero;
