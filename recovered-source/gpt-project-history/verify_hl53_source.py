@@ -240,6 +240,9 @@ signed_guard=(root/"gpt-project-history/verify_duocar53.py").read_text()
 assert 'has_marker(app.read_bytes(),"[hl52-le-original] ORIGINAL LOADED")' in signed_guard
 assert 'has_marker(app.read_bytes(),"CWTrafficBubblePrefsController")' in signed_guard
 assert 'has_marker(app.read_bytes(),"[le024-prefs]")' not in signed_guard
+merge_fixture=(root/"gpt-project-history/tests/test_le024_merge.py").read_text()
+assert 'fixture-program-[hl52-le-original] ORIGINAL LOADED CWTrafficBubblePrefsController' in merge_fixture
+assert "legacy-host.deb" in merge_fixture and "authentic LePrefs.bundle loader" in merge_fixture
 
 # No changes to the already proven fullscreen *engine*. The Dock and
 # Le integrations were changed instead. Record exact baseline hashes in CI.
