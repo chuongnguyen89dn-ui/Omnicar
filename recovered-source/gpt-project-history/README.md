@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — DuoCar53 1.0.3-le0246: FAT signed, delivered; DEVICE PENDING
+- Build cuối [CI #43523818233](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/43523818233), **SUCCESS** từ commit `7423e284917a73b3ed24251660980e1b563357d6`: `HL53_SOURCE_GATE_PASS` 15 mirrors, test pinch 360°/2540 ca PASS, build+ký DuoCar/Lề arm64+arm64e, merge, verify vendor, `DUOCAR53_FINAL_FAT_PASS`. Artifact `DuoCar53` ID `14083488733`, DEB trực tiếp `dc53.deb` 2.344.324 B, package `com.chuong.duocar`, version `1.0.3-le0246`, SHA-256 `aa1f620a3e2c84d011f5663401eec347927d25f0ebd21ced2ad8e8acded26c8b`; ZIP được kiểm toàn vẹn, trích đúng 1 DEB. **DEVICE PENDING**: cần Nguyen test zoom OUT→fullscreen, IN→split, Dock pin/nhiệt, Lề gốc, kéo bong bóng, menu trên xe. Không merge main/Sileo. [Checkpoint HL53](HL53_DIRECTIONAL_PINCH_ALL_ANGLES_20261114.md).
+
+
 ## 2026-11-14 — DuoCar53 1.0.3-le0246 SIGNED FAT PASS, DEVICE PENDING
 - Nguyen đã ra lệnh build. CI SUCCESS [43523818233](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/43523818233), job `132224488839`, **build commit `7423e284917a73b3ed24251660980e1b563357d6`**. Artifact **DuoCar53** ID `14083488733`, đúng một `DuoCar53.deb` size **2.344.324 bytes**, **SHA-256 `aa1f620a3e2c84d011f5663401eec347927d25f0ebd21ced2ad8e8acded26c8b`**, Version `1.0.3-le0246`, Package `com.chuong.duocar`. CI validated source 15 mirrors, pinch 2540 cases, vendor Le 0.2.4 identical, two signed slices arm64+arm64e and final FAT. Đã download và **giao trực tiếp `sandbox:/mnt/data/DuoCar53.deb`**; không có xe nên **DEVICE PENDING**, không phát biểu zoom/Le/Dock/menu hoàn tất runtime. Workflow trở lại manual-only; không merge/main/Sileo. Lịch sử 4 CI attempt lỗi và sửa root-cause [checkpoint HL53](HL53_DIRECTIONAL_PINCH_ALL_ANGLES_20261114.md).
 
