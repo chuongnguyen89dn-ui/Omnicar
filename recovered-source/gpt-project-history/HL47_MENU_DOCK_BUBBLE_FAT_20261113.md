@@ -78,3 +78,6 @@ Next actions: commit HL47-specific CI FAT workflow; observe run status/logs; if 
 
 ### Next work / ownership
 User installs the linked standalone DEB and records same-version/PID logs, timestamp, native+hosted menu/drag, Dock/free-rail and fullscreen bubble video. Diagnose actual image/scene/window evidence before modifying any protected native scene/keyboard/Zoom/YTZ/AutoHide code. No background monitoring or CI jobs are running on GPT after this turn.
+
+## 2026-11-13 — Giao lại DEB bằng tên ngắn
+- Nguyen phản hồi tên tệp DEB quá dài gây lỗi/khó tải trên iPhone. Không đổi package ID/Version/architecture/bytes và KHÔNG build lại. Đã sao chép trực tiếp tệp được xác nhận trong runtime từ `/mnt/data/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb` sang `/mnt/data/DuoCar47.deb` (tên file ngắn); `cmp` trùng, SHA-256 vẫn `69076bdb77e9984da0c119feb5b92e6337c033f8fb37d1f724205098428d5848`; `dpkg-deb -f` xác nhận Package `com.chuong.duocar`, Version `1.0.3-hl47menudockfat1`, Architecture `iphoneos-arm64`. File giao người dùng là bản DEB không ZIP. Chỉ thay đổi tên file download, không chứng minh lỗi cài đặt thiết bị đã hết. Nếu Sileo còn lỗi, cần đúng thông báo lỗi để chẩn đoán từ DEB gốc.
