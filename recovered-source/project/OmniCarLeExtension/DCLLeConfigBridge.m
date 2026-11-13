@@ -71,61 +71,132 @@ static NSUInteger DCLEncode(NSUInteger key,id obj) {
     return 0;
 }
 static NSArray *DCLModules(void){return @[@"speed",@"limit",@"source",@"lanes",@"upcoming"];}
+// Vendor LePrefs 0.2.4 saves bubble.modules as five {id,enabled}
+// dictionaries, never as an array of NSString. Previous DuoCar49 code
+// wrote strings and could corrupt the renderer's expected state.
+static NSString *DCLModuleID(id item) {
+    if([item isKindOfClass:NSString.class])return item;
+    if([item isKindOfClass:NSDictionary.class] &&
+       [item[@"id"] isKindOfClass:NSString.class])return item[@"id"];
+    return nil;
+}
 static NSNumber *DCLModuleMask(id val) {
     if(![val isKindOfClass:NSArray.class])return @(31);
-    unsigned mask=0;
+    NSUInteger mask=0;
     NSArray *all=DCLModules();
-    for(NSString *item in (NSArray *)val) {
-        NSUInteger n=[all indexOfObject:item];
-        if(n!=NSNotFound) mask |= (1u<<n);
+    for(id item in (NSArray *)val) {
+        NSString *identifier=DCLModuleID(item);
+        NSUInteger index=[all indexOfObject:identifier?:@""];
+        if(index==NSNotFound)continue;
+        BOOL enabled=[item isKindOfClass:NSDictionary.class]
+                      ?[item[@"enabled"] boolValue]:YES;
+        if(enabled)mask|=1u<<index;
     }
     return @(mask);
 }
-static id DCLModuleArray(NSNumber *mask,id old) {
-    NSArray *all=DCLModules();
+static NSArray *DCLNormalizedModules(id old) {
+    NSArray *known=DCLModules();
     NSMutableArray *out=[NSMutableArray array];
-    if([old isKindOfClass:NSArray.class])for(NSString *item in old) {
-        NSUInteger n=[all indexOfObject:item];
-        if(n!=NSNotFound && ((mask.unsignedIntValue>>n)&1) && ![out containsObject:item])
-            [out addObject:item];
+    NSMutableSet *seen=[NSMutableSet set];
+    if([old isKindOfClass:NSArray.class])for(id item in (NSArray *)old) {
+        NSString *identifier=DCLModuleID(item);
+        if(!identifier || [seen containsObject:identifier])continue;
+        [seen addObject:identifier];
+        if([item isKindOfClass:NSDictionary.class]) {
+            NSMutableDictionary *entry=[item mutableCopy];
+            if(!entry[@"enabled"])entry[@"enabled"]=@YES;
+            [out addObject:entry];
+        } else {
+            [out addObject:@{@"id":identifier,@"enabled":@YES}];
+        }
     }
-    for(NSUInteger n=0;n<all.count;n++)
-        if(((mask.unsignedIntValue>>n)&1) && ![out containsObject:all[n]])
-            [out addObject:all[n]];
+    for(NSString *identifier in known)if(![seen containsObject:identifier])
+        [out addObject:@{@"id":identifier,@"enabled":@YES}];
     return out;
 }
-
-static NSInteger DCLModuleOrderRank(id array) {
-    NSArray *names=DCLModules();
-    NSMutableArray *rest=[NSMutableArray arrayWithArray:names];
-    NSInteger rank=0;
-    for(NSString *element in names) { (void)element; }
-    if(![array isKindOfClass:NSArray.class])return 0;
-    for(NSUInteger i=0;i<5;i++) {
-        NSString *name=(i<[(NSArray *)array count])?array[i]:nil;
-        NSUInteger pos=[rest indexOfObject:name];
-        if(pos==NSNotFound)return 0;
+static id DCLModuleArray(NSNumber *mask,id original) {
+    NSArray *originalEntries=DCLNormalizedModules(original);
+    NSMutableArray *out=[NSMutableArray arrayWithCapacity:originalEntries.count];
+    NSMutableSet *seen=[NSMutableSet set];
+    NSArray *known=DCLModules();
+    for(NSDictionary *entry in originalEntries) {
+        NSString *identifier=DCLModuleID(entry);
+        NSMutableDictionary *copy=[entry mutableCopy];
+        NSUInteger index=[known indexOfObject:identifier?:@""];
+        if(index!=NSNotFound) {
+            copy[@"enabled"]=@((mask.unsignedIntValue>>index)&1u);
+            [seen addObject:identifier];
+        }
+        [out addObject:copy];
+    }
+    // Vendor requires at least one visible module; reject empty mask.
+    return [seen count] && (mask.unsignedIntValue&31u)==0 ? nil :out;
+}
+static NSInteger DCLModuleOrderRank(id original) {
+    NSArray *known=DCLModules();
+    NSArray *items=DCLNormalizedModules(original);
+    NSMutableArray *remaining=[known mutableCopy];
+    NSInteger rank=0,index=0;
+    for(id entry in items) {
+        NSString *identifier=DCLModuleID(entry);
+        NSUInteger found=[remaining indexOfObject:identifier?:@""];
+        if(found==NSNotFound)continue;
         NSInteger fact=1;
-        for(NSInteger k=2;k<(NSInteger)(5-i);k++)fact*=k;
-        rank+=(NSInteger)pos*fact;
-        [rest removeObjectAtIndex:pos];
+        for(NSInteger k=2;k<(NSInteger)(5-index);k++)fact*=k;
+        rank+=found*fact;[remaining removeObjectAtIndex:found];
+        if(++index==5)break;
     }
-    return rank;
+    return index==5?rank:0;
 }
-static NSArray *DCLModuleOrderArray(NSInteger rank,id previous) {
-    NSArray *names=DCLModules();
-    NSMutableArray *rest=[names mutableCopy],*out=[NSMutableArray array];
-    for(NSInteger remaining=5;remaining>=1;remaining--){
-        NSInteger fact=1;for(NSInteger k=2;k<remaining;k++)fact*=k;
-        NSInteger pos=rank/fact;
-        pos=MAX(0,MIN((NSInteger)rest.count-1,pos));
-        [out addObject:rest[(NSUInteger)pos]];
-        [rest removeObjectAtIndex:(NSUInteger)pos];rank%=fact;
+static NSArray *DCLModuleOrderArray(NSInteger rank,id original) {
+    NSMutableArray *order=[DCLModules() mutableCopy];
+    NSMutableArray *desired=[NSMutableArray arrayWithCapacity:5];
+    for(NSInteger left=5;left>=1;left--) {
+        NSInteger fact=1;for(NSInteger k=2;k<left;k++)fact*=k;
+        NSInteger index=MAX(0,MIN((NSInteger)order.count-1,rank/fact));
+        [desired addObject:order[(NSUInteger)index]];
+        [order removeObjectAtIndex:(NSUInteger)index];rank%=fact;
     }
-    // preserve any extra vendor-defined pieces instead of destroying them.
-    if([previous isKindOfClass:NSArray.class])for(id entry in previous)
-        if(![out containsObject:entry])[out addObject:entry];
-    return out;
+    NSArray *source=DCLNormalizedModules(original);
+    NSMutableArray *result=[NSMutableArray arrayWithCapacity:source.count];
+    for(NSString *identifier in desired)
+        for(NSDictionary *entry in source)
+            if([DCLModuleID(entry) isEqualToString:identifier])
+                [result addObject:entry];
+    // Preserve future vendor modules and unknown metadata.
+    for(NSDictionary *entry in source)
+        if(![desired containsObject:DCLModuleID(entry)])
+            [result addObject:entry];
+    return result;
+}
+static BOOL DCLMigrateMalformedVendorModules(void) {
+    NSData *old=[NSData dataWithContentsOfFile:DCLHome];
+    if(!old)return YES;
+    NSDictionary *doc=[NSJSONSerialization JSONObjectWithData:old options:0 error:nil];
+    if(![doc isKindOfClass:NSDictionary.class] ||
+       ![doc[@"bubble"] isKindOfClass:NSDictionary.class])return YES;
+    id oldModules=doc[@"bubble"][@"modules"];
+    if(![oldModules isKindOfClass:NSArray.class])return YES;
+    BOOL broken=NO;
+    for(id value in (NSArray *)oldModules)
+        if([value isKindOfClass:NSString.class]){broken=YES;break;}
+    if(!broken)return YES;
+    NSMutableDictionary *fixedDoc=[doc mutableCopy];
+    NSMutableDictionary *fixedBubble=[doc[@"bubble"] mutableCopy];
+    fixedBubble[@"modules"]=DCLNormalizedModules(oldModules);
+    fixedDoc[@"bubble"]=fixedBubble;
+    // Keep a byte-for-byte backup of any known-malformed version.
+    NSString *backup=[DCLHome stringByAppendingString:@".duocar49-broken.bak"];
+    if(![NSFileManager.defaultManager fileExistsAtPath:backup] &&
+       ![old writeToFile:backup options:NSDataWritingAtomic error:nil])return NO;
+    NSData *newData=[NSJSONSerialization dataWithJSONObject:fixedDoc
+                                          options:0 error:nil];
+    if(!newData ||
+       ![newData writeToFile:DCLHome options:NSDataWritingAtomic error:nil])
+        return NO;
+    notify_post("dev.bechou.le.bubble.layout-changed");
+    NSLog(@"[le024-config] repaired malformed modules from HL49; backup=%@",backup);
+    return YES;
 }
 
 static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
@@ -177,7 +248,10 @@ static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
         if(key==12)return @YES;
         return @NO;
     }
-    if(key==13)value=DCLModuleArray(value,bubble[@"modules"]);
+    if(key==13) {
+        value=DCLModuleArray(value,bubble[@"modules"]);
+        if(!value)return nil;
+    }
     if(key==29)value=DCLModuleOrderArray([value integerValue],bubble[@"modules"]);
     if(key>=8){bubble[keyName]=value;doc[@"bubble"]=bubble;}
     else doc[keyName]=value;
@@ -232,6 +306,8 @@ void DCLLeConfigStartBridge(void) {
                uint64_t state=0;
                if(notify_get_state(token,&state)==NOTIFY_STATUS_OK)DCLHandle(state,ack);
              });
+        if(!DCLMigrateMalformedVendorModules())
+            NSLog(@"[le024-config] repair blocked: preserving original file");
         NSLog(@"[le024-config] bridge start result=%d ack=%d",result,ack);
     });
 }
