@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL45 chọn hướng 1, quét GPU nhiệt độ/Dock DuoNavi, KHÔNG BUILD
+- Nguyen chọn **hướng điều tra native scene/compositor sau khi chứng minh lớp che gốc đã tháo**; đây là hướng ưu tiên, không phải root cause đã đo. **Không build HL45 đợt này**, không dispatch CI, không tạo DEB hay sửa runtime. Đã đọc báo cáo ARM64 của **DuoNavi 1.0.4 gốc** (chỉ phần cửa sổ/Dock) và disassembly **DuoFace Native12** (nhiệt độ thiết bị, CPU, pin, RAM, timer 12s/5s), tách biệt với package thử 1.0.3-12 có tên DuoFace. Chưa chứng minh có cảm biến **GPU °C** riêng; Native12 đọc IOKit battery/temperature/NVMe hoặc fallback thermalState thành số Celsius cố định. Dock monitor dùng frame động theo tọa độ Dock; chưa có x/y, parent window, z-order hay kết quả GPU của **DuoNavi 1.0.4 nguyên bản**. Code HL45 vẫn ở `3a385c02`. [Bằng chứng, SHA, phương pháp quét và phần còn chặn](HL45_DUONAVI_THERMAL_DOCK_REFERENCE_20261113.md).
+
 ## 2026-11-13 — HL45 continuation: settled-opacity evidence added; NO BUILD/DEVICE PASS
 - Feature branch `feature/duocar-hl45-native-visual-probe-20261113` HEAD **`3a385c02f121eb6dcc6cf54ad1150ed3531ff1e6`**; src/project Picker mirrors and static verifier updated (no scene/overlay/UI behavior change). Captures presentation-layer opacity and 0.18s cover, 0.32s picker, 0.60s sheet settled samples beyond pre-animation values. Github readback and inline static guard PASS; standalone `verify_hl45_original_layer_probe.py` has **not run** (no checkout/iOS SDK). CI/DEB/DEVICE all **NOT RUN**. Older HL45 checkpoint HEAD `746ad66f` remains historical. [Full source commits, readback, and exact next log/device gate](HL45_NATIVE_VISUAL_LAYER_PROBE_20261113.md).
 
