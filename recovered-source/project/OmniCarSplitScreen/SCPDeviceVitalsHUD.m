@@ -97,119 +97,148 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
     }
 }
 
-// [hl49-dock] In HL48 the badge was put in tabParent, which can be under
-// Dashboard's own Dock UIWindow. Resolve the actual native Dock presentation
-// surface rather than relying on the split container's z-order.
-static UIWindow *SCPVitalsNativeDockWindow(UIView *parent) {
+// [hl50-dock] Native Dock own view and child icons are the only trusted
+// reference. The former HL49 added a panel to dock.window and placed it
+// OUTSIDE the Dock rectangle. It could float at top-left and obscure pinch.
+// Do not open/move any UIWindow. Only an inert view inside the native Dock.
+static UIView *SCPVitalsNativeDockView(UIView *parent) {
     id root=SCPDashboardRootViewController();
     SEL sel=NSSelectorFromString(@"appDockViewController");
-    if (!root || ![root respondsToSelector:sel]) return nil;
-    id dockVC=((id(*)(id,SEL))objc_msgSend)(root,sel);
-    if (!dockVC || ![dockVC respondsToSelector:@selector(view)]) return nil;
-    UIView *dock=((UIView *(*)(id,SEL))objc_msgSend)(dockVC,@selector(view));
-    if (![dock isKindOfClass:UIView.class] || !dock.window ||
-        !parent.window || dock.window.screen!=parent.window.screen ||
-        dock.isHidden || dock.alpha<=0.01) return nil;
-    return dock.window;
+    if(!root || ![root respondsToSelector:sel])return nil;
+    id vc=((id(*)(id,SEL))objc_msgSend)(root,sel);
+    if(!vc || ![vc respondsToSelector:@selector(view)])return nil;
+    UIView *dock=((UIView *(*)(id,SEL))objc_msgSend)(vc,@selector(view));
+    if(![dock isKindOfClass:UIView.class] || !dock.window || !parent.window ||
+       dock.window.screen != parent.window.screen ||
+       dock.hidden || dock.alpha <=0.01)return nil;
+    return dock;
 }
-
+static void SCPVitalsCollectControls(UIView *view,UIView *dock,UIView *ignore,
+                                    NSMutableArray<NSValue *> *rects,
+                                    NSUInteger depth) {
+    if(!view || depth>7)return;
+    for(UIView *sub in view.subviews) {
+        if(sub==ignore || sub.hidden || sub.alpha<=0.03)continue;
+        CGRect rect=[sub convertRect:sub.bounds toView:dock];
+        rect=CGRectIntersection(rect,dock.bounds);
+        if(CGRectIsNull(rect) || CGRectIsEmpty(rect))continue;
+        BOOL interactive=([sub isKindOfClass:UIControl.class] ||
+            sub.gestureRecognizers.count>0 ||
+            ((sub.accessibilityTraits & UIAccessibilityTraitButton)!=0));
+        if(interactive && rect.size.width>12 && rect.size.height>12 &&
+           rect.size.height < dock.bounds.size.height*0.80)
+            [rects addObject:[NSValue valueWithCGRect:CGRectInset(rect,-3,-3)]];
+        if(depth<7)SCPVitalsCollectControls(sub,dock,ignore,rects,depth+1);
+    }
+}
+static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
+                               CGRect home,CGRect launcher,BOOL *horizontal) {
+    CGRect bounds=dock.bounds;
+    if(!SCPVitalsFiniteRect(bounds))return CGRectNull;
+    BOOL isHorizontal=bounds.size.width>bounds.size.height*1.5;
+    if(horizontal)*horizontal=isHorizontal;
+    CGFloat margin=3.0;
+    CGFloat width=isHorizontal?112.0:MIN(39.0,bounds.size.width-2*margin);
+    CGFloat height=isHorizontal?27.0:44.0;
+    if(width<35 || (isHorizontal && width>bounds.size.width-6) ||
+       height>bounds.size.height-6)return CGRectNull;
+    NSMutableArray<NSValue *> *blocked=[NSMutableArray array];
+    SCPVitalsCollectControls(dock,dock,ignore,blocked,0);
+    for(NSValue *v in @[[NSValue valueWithCGRect:home],
+                        [NSValue valueWithCGRect:launcher]]) {
+        CGRect external=v.CGRectValue;
+        if(!SCPVitalsFiniteRect(external))continue;
+        CGRect location=[dock convertRect:external fromView:parent];
+        location=CGRectIntersection(bounds,location);
+        if(!CGRectIsNull(location) && !CGRectIsEmpty(location))
+            [blocked addObject:[NSValue valueWithCGRect:CGRectInset(location,-4,-4)]];
+    }
+    UIEdgeInsets safe=dock.safeAreaInsets;
+    CGFloat left=MAX(3,safe.left+2),top=MAX(3,safe.top+2);
+    CGFloat right=bounds.size.width-MAX(3,safe.right+2);
+    CGFloat bottom=bounds.size.height-MAX(3,safe.bottom+2);
+    // Walk the real Dock itself from the end that contains its status
+    // gap. Refuse occupied locations; never place in app pane's rail.
+    CGFloat maxY=bottom-height,maxX=right-width;
+    if(maxY<top||maxX<left)return CGRectNull;
+    NSUInteger trials=0;
+    for(CGFloat y=top;y<=maxY+0.2;y+=2.0) {
+        for(CGFloat x=left;x<=maxX+0.2;x+=isHorizontal?3.0:2.0) {
+            CGRect frame=CGRectMake(x,y,width,height);
+            BOOL collision=NO;
+            for(NSValue *v in blocked)
+                if(CGRectIntersectsRect(frame,v.CGRectValue)) {
+                    collision=YES;break;
+                }
+            if(!collision)return frame;
+            if(++trials>=25000)return CGRectNull;
+        }
+    }
+    return CGRectNull;
+}
 - (void)showForParent:(UIView *)parent
              appArea:(CGRect)appArea
-           dockFrame:(CGRect)dock
+           dockFrame:(CGRect)dockFrame
            homeFrame:(CGRect)home
        launcherFrame:(CGRect)launcher {
     if (![NSThread isMainThread]) return;
-    if (!parent || !parent.window ||
-        ![OMCPref(@"duocarVitalsEnabled", @YES) boolValue] ||
-        !SCPVitalsFiniteRect(parent.bounds) ||
-        !SCPVitalsFiniteRect(appArea) ||
-        !SCPVitalsFiniteRect(dock) ||
-        [[SCPFullscreenController shared] fsCommittedState] == SCPFullscreenStateExpanded) {
-        [self stop]; return;
-    }
-
-    // The host tests the same C routine. Do not assume that the native
-    // Dock is unshifted, or that the whole rail is available for a badge.
-    SCPVitalsLayoutInput in = {0};
-    in.root = SCPVitalsToRect(parent.bounds);
-    in.app = SCPVitalsToRect(appArea);
-    in.dock = SCPVitalsToRect(dock);
-    if (SCPVitalsFiniteRect(home)) in.exclusions[in.exclusionCount++] = SCPVitalsToRect(home);
-    if (SCPVitalsFiniteRect(launcher)) in.exclusions[in.exclusionCount++] = SCPVitalsToRect(launcher);
-    SCPVitalsLayoutResult result = SCPVitalsPlace(in);
-    if (!result.valid) {
-        if (!self.noSpaceLogged) {
-            self.noSpaceLogged = YES;
-            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-                @"[vitals] rail-no-room root=%@ app=%@ dock=%@ home=%@ launcher=%@",
-                NSStringFromCGRect(parent.bounds), NSStringFromCGRect(appArea),
-                NSStringFromCGRect(dock), NSStringFromCGRect(home),
-                NSStringFromCGRect(launcher)]);
-        }
-        [self stop]; return;
-    }
-    self.noSpaceLogged = NO;
-    BOOL horizontal = result.horizontal != 0;
-    CGRect railFrame = CGRectMake(result.frame.x,result.frame.y,
-                                   result.frame.w,result.frame.h);
-    UIWindow *dockWindow=SCPVitalsNativeDockWindow(parent);
-    if (!dockWindow) {
-        OMCLogWrite(@"SplitScreen",@"[vitals] dock-window-absent: no badge attached");
+    if(!parent || !parent.window ||
+       ![OMCPref(@"duocarVitalsEnabled",@YES) boolValue] ||
+       [[SCPFullscreenController shared] fsCommittedState]==SCPFullscreenStateExpanded) {
         [self stop];return;
     }
-    // Match both windows through the external screen coordinate space. A
-    // UIKit view in tabParent can render BELOW the native Dock UIWindow.
-    UIScreen *screen=parent.window.screen;
-    CGRect onScreen=[parent convertRect:railFrame
-                    toCoordinateSpace:screen.coordinateSpace];
-    CGRect frame=[dockWindow convertRect:onScreen
-                    fromCoordinateSpace:screen.coordinateSpace];
-    if (!SCPVitalsFiniteRect(frame) ||
-        !CGRectContainsRect(CGRectInset(dockWindow.bounds,-0.5,-0.5),frame)) {
-        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-            @"[vitals] dock-window-frame-invalid window=%@ rail=%@ proposed=%@",
-            NSStringFromCGRect(dockWindow.bounds),NSStringFromCGRect(railFrame),
-            NSStringFromCGRect(frame)]);
+    UIView *dock=SCPVitalsNativeDockView(parent);
+    if(!dock) {
+        OMCLogWrite(@"SplitScreen",@"[hl50-dock] MISSING native Dock UIView; no fallback to app/root UIWindow");
         [self stop];return;
     }
-    if (!self.panel || self.panel.superview != dockWindow) {
-        [self stop]; // resets timer when the external display/session changes
-        UIView *panel = [[UIView alloc] initWithFrame:frame];
-        panel.backgroundColor = [UIColor colorWithWhite:0 alpha:0.72];
-        panel.layer.cornerRadius = 8.0;
-        panel.clipsToBounds = YES;
-        panel.userInteractionEnabled = NO; // do NOT intercept native Dock touches
-        UILabel *label = [[UILabel alloc] initWithFrame:CGRectInset(panel.bounds, 2, 1)];
-        label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        label.numberOfLines = horizontal ? 1 : 2;
-        label.font = [UIFont systemFontOfSize:horizontal?10.0:9.0 weight:UIFontWeightSemibold];
-        label.textAlignment = NSTextAlignmentCenter;
-        label.adjustsFontSizeToFitWidth = YES;
-        label.minimumScaleFactor = horizontal?0.74:0.65;
+    BOOL horizontal=NO;
+    CGRect frame=SCPVitalsDockSlot(dock,self.panel,parent,home,launcher,&horizontal);
+    if(!SCPVitalsFiniteRect(frame)) {
+        if(!self.noSpaceLogged)OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+           @"[hl50-dock] NO FREE SLOT dock=%@ host=%@ passedDock=%@ items=%lu",
+           NSStringFromCGRect(dock.bounds),NSStringFromClass(dock.class),
+           NSStringFromCGRect(dockFrame),(unsigned long)dock.subviews.count]);
+        self.noSpaceLogged=YES;
+        [self stop];return;
+    }
+    self.noSpaceLogged=NO;
+    if(!self.panel || self.panel.superview!=dock) {
+        [self stop];
+        UIView *panel=[[UIView alloc]initWithFrame:frame];
+        panel.backgroundColor=[UIColor colorWithWhite:0 alpha:0.28];
+        panel.layer.cornerRadius=6.0;
+        panel.clipsToBounds=YES;
+        panel.userInteractionEnabled=NO; // fullscreen gestures remain untouched
+        UILabel *label=[[UILabel alloc]initWithFrame:CGRectInset(panel.bounds,1,1)];
+        label.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        label.numberOfLines=horizontal?1:2;
+        label.font=[UIFont systemFontOfSize:horizontal?10.0:9.0 weight:UIFontWeightSemibold];
+        label.textAlignment=NSTextAlignmentCenter;
+        label.adjustsFontSizeToFitWidth=YES;
+        label.minimumScaleFactor=horizontal?0.74:0.65;
         [panel addSubview:label];
-        [dockWindow addSubview:panel];
-        self.host = dockWindow;
-        self.panel = panel;
-        self.label = label;
-        self.horizontal = horizontal;
-        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[vitals] native-dock-attached frame=%@ level=%.0f window=%@ app=%@ dock=%@",
-            NSStringFromCGRect(frame),dockWindow.windowLevel,
-            NSStringFromClass(dockWindow.class),NSStringFromCGRect(appArea),
-            NSStringFromCGRect(dock)]);
+        [dock addSubview:panel];
+        self.host=dock;self.panel=panel;self.label=label;
+        self.horizontal=horizontal;
         [self refresh];
-        self.timer = [NSTimer timerWithTimeInterval:12.0 target:self
-            selector:@selector(refresh) userInfo:nil repeats:YES];
+        self.timer=[NSTimer timerWithTimeInterval:12.0 target:self
+                selector:@selector(refresh) userInfo:nil repeats:YES];
         [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
     } else {
-        [dockWindow bringSubviewToFront:self.panel];
-        // Update only our own panel. Geometry is recalculated every root layout.
-        BOOL changedOrientation = self.horizontal != horizontal;
-        self.horizontal = horizontal;
-        self.label.numberOfLines = horizontal ? 1 : 2;
-        self.panel.frame = frame;
-        if (changedOrientation) [self refresh];
+        self.panel.frame=frame;
+        if(self.horizontal!=horizontal) {
+            self.horizontal=horizontal;
+            self.label.numberOfLines=horizontal?1:2;
+            [self refresh];
+        }
+        [dock bringSubviewToFront:self.panel];
     }
+    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+        @"[hl50-dock] IN NATIVE DOCK view=%@ frame=%@ dock=%@ window=%@ level=%.0f app=%@",
+        NSStringFromClass(dock.class),NSStringFromCGRect(frame),
+        NSStringFromCGRect(dock.bounds),NSStringFromClass(dock.window.class),
+        dock.window.windowLevel,NSStringFromCGRect(appArea)]);
 }
 
 @end
