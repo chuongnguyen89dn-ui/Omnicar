@@ -17,6 +17,8 @@
 #import "SCPCarSplit+AutoHide.h" // [autohide] knob-touch feed + drag-end feed (design-autohide §3.2/§5.1)
 
 extern void SCPDispatchAfter(double delaySeconds, void (^block)(void)); // 0x12efc (A, SCPShared)
+// [hl45-layer] read-only event-boundary probe implemented in Picker.m
+extern void DCHL45OverlayTrace(SCPCarSplit *split, NSString *event, SCPCarPane *pane, UIView *old);
 
 // SCPSetKnobActive / SCPLayerNamed live in SCPCarDividerView.m (module B).
 void SCPSetKnobActive(UIView *knob, BOOL active);                       // 0xeb20
@@ -56,19 +58,27 @@ static int    sStackDragKind; // 0x8816c
 - (void)beginResize {                                                   // 0x2c128
     if (self.resizing) return;
     self.resizing = YES;
-    for (SCPCarPane *pane in self.slots)
+    for (SCPCarPane *pane in self.slots) {
+        DCHL45OverlayTrace(self,@"resize-begin-pre-cover",pane,pane.cover);
         [self addCoverToPane:pane];
+    }
 }
 
 - (void)endResize {                                                     // 0x2c25c
     if (!self.resizing) return;
     self.resizing = NO;
+    for (SCPCarPane *pane in self.slots)
+        DCHL45OverlayTrace(self,@"resize-end-released",pane,pane.cover);
     [self ahNoteActivity:AHSourceDragEnd]; // [autohide] §4.2: the clock runs from the release, not from the drag's last Began (additive line; original body untouched)
     [self pushHostFramesLive:NO];
     NSArray<SCPCarPane *> *panes = [self.slots copy];
     __weak SCPCarSplit *weakSelf = self;
     SCPDispatchAfter(0.45, ^{
         SCPCarSplit *s = weakSelf;
+        if (s != nil) {
+            for (SCPCarPane *pane in panes)
+                DCHL45OverlayTrace(s,s.resizing ? @"resize-cleanup-deferred" : @"resize-cleanup-start",pane,pane.cover);
+        }
         if (s != nil && !s.resizing) {
             [s markDismissSlot:-1];
             for (SCPCarPane *pane in panes)
