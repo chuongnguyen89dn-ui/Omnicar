@@ -207,6 +207,10 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
     };
     // Prefer the rail actually containing the stock Dock icon cluster.
     // This is not a spare 'fourth app' slot.
+    // [hl52-dock] The status clock is at the TOP of the CarPlay Dock.
+    // Scan BELOW the three recent apps first, never starting at top y=3.
+    // If the gap is too short, use the compact battery-only fallback
+    // instead of covering the native clock or Home button.
     for(int pass=0;pass<2;pass++) { // normal battery+temperature then compact battery
         for(int k=0;k<4;k++) {
             CGRect rail=rails[k];
@@ -215,7 +219,7 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
             BOOL horizontal=k>=2;
             CGFloat width=horizontal?MIN(116.0,rail.size.width-6.0)
                                     :MIN(39.0,rail.size.width-6.0);
-            CGFloat height=horizontal?(pass?22.0:29.0):(pass?23.0:43.0);
+            CGFloat height=horizontal?(pass?22.0:28.0):(pass?21.0:29.0);
             if(width<(horizontal?70.0:35.0) ||
                height>rail.size.height-6.0)continue;
             NSMutableArray<NSValue *> *blocked=[NSMutableArray array];
@@ -254,7 +258,12 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
             if(obstacleCount)*obstacleCount=blocked.count;
             CGFloat maxX=CGRectGetMaxX(rail)-width-3.0;
             CGFloat maxY=CGRectGetMaxY(rail)-height-3.0;
-            for(CGFloat y=CGRectGetMinY(rail)+3.0;y<=maxY+0.1;y+=2.0) {
+            // Only the LOWER free gap of a side-rail Dock may receive
+            // vitals, never the top native status-clock strip. In the
+            // verified 427x240 layout this starts below icon y=175.5.
+            CGFloat startY=CGRectGetMinY(rail)+3.0;
+            if(!horizontal) startY=MAX(startY,CGRectGetMaxY(cluster)+7.0);
+            for(CGFloat y=startY;y<=maxY+0.1;y+=2.0) {
                 for(CGFloat x=CGRectGetMinX(rail)+3.0;x<=maxX+0.1;x+=2.0) {
                     CGRect candidate=CGRectMake(x,y,width,height);
                     BOOL occupied=NO;
@@ -326,15 +335,22 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
     if(!self.panel || self.panel.superview!=nativeHost) {
         [self stop];
         UIView *panel=[[UIView alloc]initWithFrame:frame];
-        panel.backgroundColor=[UIColor colorWithWhite:0 alpha:0.28];
-        panel.layer.cornerRadius=6.0;
-        panel.clipsToBounds=YES;
+        // [hl52-dock] Native status text directly on Dock: no blurred,
+        // grey, translucent or opaque container behind clock/pin/heat.
+        panel.backgroundColor=UIColor.clearColor;
+        panel.layer.cornerRadius=0.0;
+        panel.clipsToBounds=NO;
         panel.userInteractionEnabled=NO; // fullscreen gestures remain untouched
         UILabel *label=[[UILabel alloc]initWithFrame:CGRectInset(panel.bounds,1,1)];
         label.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         label.numberOfLines=(horizontal || compact)?1:2;
         label.font=[UIFont systemFontOfSize:compact?10.0:(horizontal?10.0:9.0) weight:UIFontWeightSemibold];
         label.textAlignment=NSTextAlignmentCenter;
+        label.backgroundColor=UIColor.clearColor;
+        // Small text shadow retains legibility on the stock dark Dock
+        // without any filled rectangle or second overlay/window.
+        label.shadowColor=[UIColor colorWithWhite:0 alpha:0.50];
+        label.shadowOffset=CGSizeMake(0,0.5);
         label.adjustsFontSizeToFitWidth=YES;
         label.minimumScaleFactor=horizontal?0.74:0.65;
         [panel addSubview:label];
