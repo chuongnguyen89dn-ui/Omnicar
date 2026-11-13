@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL51: DuoCar50 DEVICE FAIL, menu/Dock source fixes, pinch pending
+- Điểm tiếp nối: [HL51_MENU_DOCK_PINCH_20261113.md](HL51_MENU_DOCK_PINCH_20261113.md). Source commits `15475c0` menu hosted image/old tray, `7c591d2` Dock rail outside 3 app icons; **NOT BUILT; pinch still NOT FIXED; DEVICE FAIL of HL50**, bubble remains successful per Nguyen. No main merge/Sileo.
+
+
 ## 2026-11-13 — HL51: giữ ảnh hosted dưới menu, pin/nhiệt ngoài cụm 3 icon, pinch theo HL8
 - **DuoCar50 DEVICE FAIL** theo Nguyen: menu hosted còn đen/lộ logo ở nền, pin không hiện Dock, zoom pinch không bung/thu; bong bóng Lề đã trở lại. Log `CarPlay:9447` 16:19–16:21 cho thấy menu gửi frame 0×0, Dock chỉ quét 45×111 của cụm ba icon, và HL13 đang chia pinch cho in-app (không có pair).
 - **HL51 SOURCE-COMMITTED, STATIC QA; CHƯA BUILD/DEB/DEVICE PASS**: nhánh `feature/duocar-hl51-gesture-dock-menu-20261113` từ HL50, sửa giữ khung hosted và trả bảng chọn về cửa sổ menu riêng, dò toàn rail Dock với tránh status/Home/icon, trả quyền pinch duy nhất về host theo đường HL8 từng đạt 33/33. Không sửa core fullscreen, keyboard, YTZ5 migration hay Lề đang hoạt động. Đối chiếu 11/11 cặp project/src và 4 file protected giống HL50. Có `verify_hl51_source.py`, `verify_duocar51.py` và workflow FAT **chỉ thủ công, chưa chạy** `.github/workflows/build-hl51-gesture-dock-menu-fat.yml`.
