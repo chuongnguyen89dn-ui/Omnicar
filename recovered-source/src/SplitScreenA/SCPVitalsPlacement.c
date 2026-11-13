@@ -40,9 +40,9 @@ SCPVitalsLayoutResult SCPVitalsPlace(SCPVitalsLayoutInput in) {
     for (size_t j=0;j<in.exclusionCount;j++) obstacles[j+1]=in.exclusions[j];
     // [hl48-dock] Real HL47 CarPlay rail measured 45pt on 640x360
     // (PID7658); 6pt margins demanded 51pt and ALWAYS rejected it.
-    // Use 3pt margins + 39pt vertical badge, still avoid native dock,
-    // Home, launcher and all supplied exclusions by padded collision.
-    const double margin=3.0, gap=3.0;
+    // Use 3pt outer margins for the 45pt rail; retain the original 5pt
+    // obstacle clearance for native Dock, Home, launcher and other UI.
+    const double margin=3.0, gap=5.0;
     for (int railIndex=0;railIndex<4;railIndex++) {
         SCPVitalsRect rail=rails[railIndex];
         if (!ok(rail) || !intersects(rail,in.dock)) continue;
