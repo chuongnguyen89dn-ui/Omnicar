@@ -23,6 +23,7 @@
 #import "SCPCarSplit+BridgeWake.h" // bwSetExpandedActive:forBundle: (§4.10)
 #import "SCPShared.h"               // SCPDispatchAfter
 #import "SCPCommon.h"               // OMCLogWrite
+#import "SCPFullscreenVitalsBubble.h" // [fs-vitals] display only, controller owns fullscreen
 #import <notify.h>                  // [fs-diag] prefs listener
 
 #pragma mark - File statics (thresholds copied from the reference source)
@@ -200,6 +201,14 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
 }
 
 - (void)fsFireStateDidChange:(SCPFullscreenState)state {
+    // The settled fullscreen owner is the ONLY source of visibility.
+    // Do not replace the adapter's existing stateDidChange subscriber.
+    if (state == SCPFullscreenStateExpanded) {
+        UIView *parent = [SCPCarSplit shared].container.superview;
+        [[SCPFullscreenVitalsBubble shared] showForConfirmedFullscreenInParent:parent];
+    } else {
+        [[SCPFullscreenVitalsBubble shared] stop];
+    }
     if (_fsStateDidChange) _fsStateDidChange(state);
 }
 
@@ -455,6 +464,7 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
 /// system to a measurable pre-command state; completion was already
 /// answered NO by the caller.
 - (void)fsRollbackWithProvenance:(NSString *)prov {
+    [[SCPFullscreenVitalsBubble shared] stop]; // no bubble on unconfirmed expand
     SCPCarSplit *split = [SCPCarSplit shared];
     _expandedFlag = NO;
     UIView *parent = _snapParent;
@@ -517,6 +527,7 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     }
     uint64_t txn = ++_txnCounter;
     _currentTxn = txn;
+    [[SCPFullscreenVitalsBubble shared] stop]; // remove BEFORE restoring stock Dock/chrome
     _phase = SCPFSPhaseRestoring;
     // Flag down FIRST (§4.5 step 2): the area consultation returns the
     // native area from here on; clips restored while parent lives.
@@ -595,6 +606,7 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
 /// the reference setActive: teardown (§1.3).
 - (void)fsSessionDidEnd {
     FSOnMain(^{
+        [[SCPFullscreenVitalsBubble shared] stop]; // teardown always wins
         BOOL wasSettledExpanded = (_phase == SCPFSPhaseExpanded ||
                                    _phase == SCPFSPhaseRestoring);
         if (_phase == SCPFSPhaseSplit && !_expandedFlag && !_snapParent &&
@@ -654,6 +666,7 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     // hidden; the Home button is forced back down after layout.
     [self fsChromeSweepAndHide];
     [self fsAssertHomeButtonHidden];
+    [[SCPFullscreenVitalsBubble shared] showForConfirmedFullscreenInParent:split.container.superview];
 }
 
 @end
