@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — Lề 0.2.4 traffic migration + hiệu chỉnh tốc độ GPS của xe
+- Theo yêu cầu Nguyen, thay toàn bộ runtime SpeedBubble cũ bằng tính năng bong bóng giao thông Lề 0.2.4; giữ lại entry Cài đặt > Bong bóng tốc độ trong **DuoCar UIKit** để làm giao diện cấu hình mới. Đặc biệt `leTrafficGpsOffsetKph` -5..+5 bước 1 hiệu chỉnh **tốc độ GPS xe đang đi**, tuyệt đối không đổi tốc độ giới hạn hay tốc độ tối đa ứng dụng. Bong bóng GPS chỉ hiện số, kéo tự do như bong bóng giờ-pin-nhiệt; Lề còn nguyên biển báo, làn đường, thẻ Google Maps và nguồn VietMap/GOFA/Waze.
+- Nhánh `feature/duocar-le024-full-20261113` từ HL47, đã bỏ target cũ khỏi aggregate Makefile, thay trang cấu hình với UIStepper ± và đồng bộ src/project; **mới UI+build-graph, CHƯA có runtime Lề, CHƯA nối consumer offset, CHƯA build hay device-pass**. [Checkpoint LE024_DUOCAR_MIGRATION_20261113.md](LE024_DUOCAR_MIGRATION_20261113.md). Đừng nhầm số GPS đã hiệu chỉnh với posted speed limit.
+
+
 ## 2026-11-12 — HL40 restored original ABKeyboard for hosted + MultiTA-style native drawn bridge (SOURCE ONLY)
 - Nguyen explicitly superseded the hosted/native split from 18:xx: **both hosted unsupported apps AND native CarPlay apps must display a drawn keyboard**. This does not mean original OmniCar already drew for native. The native extension is NEW; its presenter runs in CarPlayApp and its client in the actual first-responder process, with distinct focus/command/ACK channels. Do not present as original binary behavior or claim device PASS without testing.
 - Original OmniCar 1.0.3 `ABKeyboard.m`, `ABTelex.m` and `appbridge.keyboard`/`appbridge.key` are restored for hosted; the keyboard's original painting/layout/Telex is preserved with four tiny native adapter hunks (host window, send path, declaration, layout area). Reverse those four adapters against original `ABKeyboard.m` and byte compare is exact.
