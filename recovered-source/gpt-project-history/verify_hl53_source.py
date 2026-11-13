@@ -105,7 +105,7 @@ assert "BOOL correct = (outward && state == SCPFullscreenStateSplit)" in host
 assert "(inward && state == SCPFullscreenStateExpanded)" in host
 assert "if (sHostPinchPairFired" in host
 assert "SCPHostPinchPopupBusy" in host
-assert "[self bwHostedPinchFallbackEnabled]" in host
+assert "[split bwHostedPinchFallbackEnabled]" in host
 assert "void SCPHostPinchObserve" in host
 assert 'ABPinchRelayFire(_abGid,direction,_abStartDistance,d,drift)' in ab
 assert '[self abEvaluatePairWithPhase:@"moved"]' in ab
