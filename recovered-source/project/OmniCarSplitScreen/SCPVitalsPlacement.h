@@ -27,4 +27,20 @@ SCPVitalsLayoutResult SCPVitalsFullscreenBubblePlace(SCPVitalsRect parentBounds,
                                                     double safeTop,
                                                     double safeRight,
                                                     int fullscreenConfirmed);
+
+// Single fullscreen bubble interaction geometry (no UIKit dependency).
+// Point coordinates and safe insets are in one CarPlay overlay window.
+typedef struct { double x, y; } SCPVitalsPoint;
+typedef struct { double top, right, bottom, left; } SCPVitalsSafeInsets;
+// An invalid/too-small bounds returns {NAN,NAN}, never a spill outside screen.
+SCPVitalsPoint SCPVitalsBubbleBoundCenter(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    SCPVitalsPoint proposed);
+SCPVitalsPoint SCPVitalsBubbleEdgeCenter(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    int leftEdge, double normalizedY);
+double SCPVitalsBubbleRelativeY(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    double centerY);
+int SCPVitalsBubbleNearestLeft(SCPVitalsRect bounds, double centerX);
 #endif
