@@ -1,0 +1,51 @@
+name: "HL50 audit input: original OmniCar + Le DEBs + exact source"
+permissions:
+  contents: read
+on:
+  push:
+    branches:
+      - feature/duocar-hl48-device-regression-20261113
+    paths:
+      - ".github/workflows/hl50-forensic-original-binaries.yml"
+  workflow_dispatch:
+
+jobs:
+  reference-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout branch sources exactly
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read original binary references from main only
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: pristine-main
+          persist-credentials: false
+      - name: Verify inputs, archive current source for review without building
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s pristine-main/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
+          test -s pristine-main/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb
+          echo "d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  pristine-main/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb" | sha256sum -c -
+          echo "98a234f404987d5958bc80a19e0ed62d34ca2b39d4ef6e798bfd3314e2cb4770  pristine-main/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb" | sha256sum -c -
+          mkdir -p forensic/original forensic/current forensic/docs
+          cp pristine-main/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb forensic/original/OmniCarOriginal1.0.3.deb
+          cp pristine-main/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb forensic/original/LeOriginal0.2.4.deb
+          cp -a recovered-source/project forensic/current/project
+          cp -a recovered-source/src forensic/current/src
+          cp -a recovered-source/gpt-project-history forensic/docs/gpt-project-history
+          cp -a pristine-main/deb-scans/le-0.2.4 forensic/docs/le-scan
+          printf 'Source commit %s\n' "$(git rev-parse HEAD)" > forensic/COMMIT.txt
+          tar -czf HL50-reference-sources.tar.gz forensic
+          ls -lh HL50-reference-sources.tar.gz
+      - name: Upload exact local forensic source/DEBs, private test only
+        uses: actions/upload-artifact@v4
+        with:
+          name: HL50SourceReference
+          path: HL50-reference-sources.tar.gz
+          retention-days: 2
+          if-no-files-found: error
