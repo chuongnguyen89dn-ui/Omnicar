@@ -19,6 +19,8 @@
 #import "AppBridgeB.h"
 #import "ABKeyboardTraits104.h"
 #import "BridgeWakePack.h"
+#import "../OmniCarPinchCommon/DCPinchDirection.h" // [hl53] physical scale direction
+#import <math.h>
 #import "ABYTLease.h"
 #import <objc/runtime.h>
 #import <substrate.h>
@@ -1583,7 +1585,8 @@ static uint64_t BWPinchReportSeq = 0;  // per-source monotone; first fire = 1
                                        // (same discipline as BWKbReportSeq)
 static NSUInteger BWPinchGidCounter = 0; // gesture id source; ++ per formed pair
 
-// Relay ONE toggle command for a formed pair, fired at Began.
+// [hl53-pinch] Relay ONE directional command only AFTER actual measured
+// two-finger motion, never the old bare toggle on second-finger Began.
 // [hl4] The payload asserts NO direction: dir = 0 is a bare
 // toggle and the OWNER flips SCPFullscreenAdapter by its real
 // currentState (SPLIT -> expand, EXPANDED -> restore). That is
@@ -1610,7 +1613,9 @@ static NSUInteger BWPinchGidCounter = 0; // gesture id source; ++ per formed pai
 // (Coordinator alignment fix at hl2 integration — the first cut
 // stamped uptime and every relay would have been rejected as
 // stale.)
-static void ABPinchRelayFire(NSUInteger gid) {
+static void ABPinchRelayFire(NSUInteger gid,DCPinchDirection direction,
+                             CGFloat d0,CGFloat d1,CGFloat drift) {
+    if (direction != DCPinchOut && direction != DCPinchIn) return;
     BWPinchReportSeq++;
     NSDictionary *info = @{
         @"hash":    @(BWOwnHash28()),
@@ -1618,7 +1623,7 @@ static void ABPinchRelayFire(NSUInteger gid) {
         @"session": @(BWKbSession()),
         @"seq":     @(BWPinchReportSeq),
         @"gid":     @(gid),
-        @"dir":     @(0),
+        @"dir":     @((NSInteger)direction),
         @"t":       @([[NSDate date] timeIntervalSince1970]),
     };
     [[NSDistributedNotificationCenter defaultCenter]
@@ -1626,10 +1631,11 @@ static void ABPinchRelayFire(NSUInteger gid) {
                       object:[NSBundle mainBundle].bundleIdentifier
                     userInfo:info];
     OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
-        @"[pinch2] trigger=began toggle-sent dir=0 seq=%llu gid=%lu "
-         "gen=%lu stateSeq=%lu",
-        (unsigned long long)BWPinchReportSeq, (unsigned long)gid,
-        (unsigned long)BWGen, (unsigned long)BWStateSeq]);
+        @"[hl53-pinch] owner=inapp phase=relay dir=%@ d0=%.1f d1=%.1f ratio=%.3f drift=%.1f seq=%llu gid=%lu gen=%lu stateSeq=%lu",
+        direction==DCPinchOut?@"out":@"in",
+        (double)d0,(double)d1,(double)(d1/MAX(d0,0.01)),(double)drift,
+        (unsigned long long)BWPinchReportSeq,(unsigned long)gid,
+        (unsigned long)BWGen,(unsigned long)BWStateSeq]);
 }
 
 @interface ABPinchGestureRecognizer : UIGestureRecognizer
@@ -1639,6 +1645,10 @@ static void ABPinchRelayFire(NSUInteger gid) {
 @property (nonatomic) BOOL abFired;
 @property (nonatomic) NSUInteger abGid;
 @property (nonatomic) uint32_t abStateSeq; // state packet seq at formation (log only)
+@property (nonatomic, strong) UITouch *abTouch1;
+@property (nonatomic, strong) UITouch *abTouch2;
+@property (nonatomic) CGFloat abStartDistance;
+@property (nonatomic) CGPoint abStartMidpoint;
 @end
 
 @implementation ABPinchGestureRecognizer
@@ -1663,6 +1673,9 @@ static void ABPinchRelayFire(NSUInteger gid) {
     _abFired = NO;
     _abGid = 0;
     _abStateSeq = 0;
+    _abTouch1 = nil; _abTouch2 = nil;
+    _abStartDistance = 0;
+    _abStartMidpoint = CGPointZero;
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
@@ -1718,42 +1731,66 @@ static void ABPinchRelayFire(NSUInteger gid) {
         if (t.window && self.view && t.window != self.view) continue;
         [_abTouches addObject:t];
     }
-    if (_abPairFormed || _abConcluded) {
-        // The pair fires in the same touchesBegan that forms it
-        // (below), so by the time any further finger lands the
-        // toggle is already sent and the recognizer has Ended:
-        // extra fingers change nothing, and -reset clears the
-        // book when every touch lifts.
+    // [hl53-pinch] A real pair must MOVE; simply adding a second finger
+    // never changes fullscreen or cancels the hosted app's touch chain.
+    if (_abConcluded) return;
+    if (_abTouches.count > 2) {
+        _abConcluded=YES;
+        OMCLogWrite(@"AppBridge", @"[hl53-pinch] owner=inapp phase=drop reason=three-fingers");
         return;
     }
-    if (_abTouches.count != 2) return;
-    // [hl4] FIRE AT BEGAN — the second finger landing IS the
-    // whole decision (builds 21-35 law). No arbitration reads
-    // anything here: Began makes UIKit cancel the touches
-    // already delivered to the app's views, the relay posts a
-    // bare toggle (dir=0), and Ended makes UIKit reset the
-    // book so a fresh two-finger formation may toggle again.
-    _abPairFormed = YES;
-    _abGid = ++BWPinchGidCounter;
-    _abStateSeq = BWStateSeq;
-    _abFired = YES;
-    _abConcluded = YES;
-    self.state = UIGestureRecognizerStateBegan;
-    ABPinchRelayFire(_abGid);
-    self.state = UIGestureRecognizerStateEnded;
+    if (_abPairFormed || _abTouches.count != 2) return;
+    NSArray<UITouch *> *pair=_abTouches.allObjects;
+    _abTouch1=pair[0]; _abTouch2=pair[1];
+    CGPoint p1=[_abTouch1 locationInView:self.view];
+    CGPoint p2=[_abTouch2 locationInView:self.view];
+    _abStartDistance=hypot(p2.x-p1.x,p2.y-p1.y);
+    _abStartMidpoint=CGPointMake((p1.x+p2.x)*0.5,(p1.y+p2.y)*0.5);
+    _abPairFormed=YES;
+    _abGid=++BWPinchGidCounter;
+    _abStateSeq=BWStateSeq;
+    _abFired=NO;
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl53-pinch] owner=inapp phase=pair-formed gid=%lu d0=%.1f stateSeq=%u waiting-for-movement=1",
+        (unsigned long)_abGid,(double)_abStartDistance,(unsigned)_abStateSeq]);
 }
-
-// -touchesMoved is intentionally NOT overridden: firing happens
-// at pair formation in touchesBegan (see the activation law at
-// the head of this section). The hl2 threshold engine that lived
-// here — ratio-cross + mid-drift fire gate evaluated from Moved,
-// with direction read off which cross tripped — was deleted in
-// hl3, and the hl2/hl3 pair-arbitration function that gated
-// formation was deleted in hl4: no movement of the pair and no
-// state snapshot is consulted anywhere in this recognizer.
+- (void)abEvaluatePairWithPhase:(NSString *)phase {
+    if (!_abPairFormed || _abConcluded || _abFired ||
+        _abTouches.count != 2 || !_abTouch1 || !_abTouch2 || !self.view)
+        return;
+    CGPoint p1=[_abTouch1 locationInView:self.view];
+    CGPoint p2=[_abTouch2 locationInView:self.view];
+    CGFloat d=hypot(p2.x-p1.x,p2.y-p1.y);
+    CGPoint mid=CGPointMake((p1.x+p2.x)*0.5,(p1.y+p2.y)*0.5);
+    CGFloat drift=hypot(mid.x-_abStartMidpoint.x,
+                        mid.y-_abStartMidpoint.y);
+    DCPinchDirection direction=DCPinchDirectionForMotion(
+        _abStartDistance,d,drift);
+    if (direction == DCPinchNone) return;
+    _abConcluded=YES;_abFired=YES;
+    OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+        @"[hl53-pinch] owner=inapp phase=threshold source=%@ gid=%lu dir=%@ d0=%.1f d1=%.1f drift=%.1f",
+        phase,(unsigned long)_abGid,direction==DCPinchOut?@"out":@"in",
+        (double)_abStartDistance,(double)d,(double)drift]);
+    // UIKit cancels app touches ONLY once the physical direction is
+    // proven; the existing CarPlay fullscreen adapter owns the effect.
+    self.state=UIGestureRecognizerStateBegan;
+    ABPinchRelayFire(_abGid,direction,_abStartDistance,d,drift);
+    self.state=UIGestureRecognizerStateEnded;
+}
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    (void)touches; (void)event;
+    [self abEvaluatePairWithPhase:@"moved"];
+}
 
 - (void)abTouchesFinished:(NSSet<UITouch *> *)touches cancelled:(BOOL)cancelled {
     for (UITouch *t in touches) [_abTouches removeObject:t];
+    if (_abPairFormed && !_abFired && _abTouches.count < 2) {
+        _abConcluded=YES; // do not pair a new touch with a remaining old finger
+        OMCLogWrite(@"AppBridge", [NSString stringWithFormat:
+            @"[hl53-pinch] owner=inapp phase=ended-without-direction gid=%lu cancelled=%d",
+            (unsigned long)_abGid,(int)cancelled]);
+    }
     if (_abTouches.count > 0) return;
     if (self.state == UIGestureRecognizerStateBegan ||
         self.state == UIGestureRecognizerStateChanged) {
@@ -1773,6 +1810,10 @@ static void ABPinchRelayFire(NSUInteger gid) {
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    (void)event;
+    // Real terminal positions may show movement even if intermediate
+    // UIKit Moved callbacks were suppressed by the CarPlay host.
+    [self abEvaluatePairWithPhase:@"ended"];
     [self abTouchesFinished:touches cancelled:NO];
 }
 
