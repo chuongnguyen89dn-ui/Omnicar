@@ -385,6 +385,11 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         [oldCover removeFromSuperview];
         DCHL45OverlayTrace(self,@"hl46-cover-detached-at-picker",pane,oldCover);
     }
+    // [le024-HL48] Same-device PID7658 demonstrated the hosted pane whiteout
+    // is THIS full-pane lavender picker, not pickerSheet or the native compositor.
+    // Keep empty slots opaque, and retain all gesture/Cancel/Choose owners.
+    BOOL hl48HostedPicker = (pane.vc != nil && SCPVCIsHosted(pane.vc) &&
+        [OMCPref(@"duocarHL48HostedPickerClear",@YES) boolValue]);
     if (hl46NativePicker) {
         // The original picker remains attached/tappable for its sheet,
         // Cancel and Choose. Only its native full-pane face goes clear.
@@ -393,6 +398,13 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
             @"[hl46-bypass] picker CLEAR slot=%d bundle=%@ mode=NATIVE coverRemoved=%d coverRetained=%d",
             pane.slot,pane.bundleID ?: @"(none)",(int)removeNativeCover,
             (int)(oldCover != nil && !removeNativeCover)]);
+    } else if (hl48HostedPicker) {
+        // Preserve all UI and hit targets; only the HOSTED filled-pane face
+        // goes transparent so its live video is still visible under menu.
+        picker.backgroundColor = UIColor.clearColor;
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl48-hosted-picker] CLEAR slot=%d bundle=%@ hasContent=%d coverRemoved=%d",
+            pane.slot,pane.bundleID?:@"(none)",(int)hasContent,(int)removeNativeCover]);
     } else {
         OMCLogWrite(@"SplitScreen", @"[hl22-original] picker-pane-opacity=1.0");
         if (removeNativeCover)
@@ -443,7 +455,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     label.font = [UIFont systemFontOfSize:40 weight:UIFontWeightLight];
     label.textAlignment = NSTextAlignmentCenter;
     label.autoresizingMask = 0x12;
-    if (hl46NativePicker) label.hidden = YES; // content stays visible
+    if (hl46NativePicker || hl48HostedPicker) label.hidden = YES; // live pane stays visible
     [picker addSubview:label];
     UITapGestureRecognizer *tap =
         [[UITapGestureRecognizer alloc] initWithTarget:self

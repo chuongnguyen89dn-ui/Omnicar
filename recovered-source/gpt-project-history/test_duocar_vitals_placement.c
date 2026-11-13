@@ -60,6 +60,25 @@ int main(void) {
     in.app=(SCPVitalsRect){54,0,586,360};
     in.exclusionCount=5;check(in,0,0);
 
+    // [hl48-dock] Reproduce exact CarPlay:7658 45pt Dock rail shape:
+    // upper and lower native launcher regions excluded explicitly.
+    SCPVitalsLayoutInput real={0};
+    real.root=(SCPVitalsRect){0,0,640,360};
+    real.app=(SCPVitalsRect){45,0,595,360};
+    real.dock=(SCPVitalsRect){0,124.6667,45,111.0};
+    real.exclusions[0]=(SCPVitalsRect){0,0,45,45};
+    real.exclusions[1]=(SCPVitalsRect){0,315,45,45};
+    real.exclusionCount=2;
+    check(real,1,0);
+    SCPVitalsLayoutResult live=SCPVitalsPlace(real);
+    assert(live.frame.w>=36.0 && live.frame.w<=45.0);
+    assert(!overlaps(live.frame,real.dock));
+    assert(!overlaps(live.frame,real.exclusions[0]));
+    assert(!overlaps(live.frame,real.exclusions[1]));
+    // If safe gaps are blocked, still reject instead of covering stock UI.
+    real.exclusions[0]=(SCPVitalsRect){0,0,45,125};
+    real.exclusions[1]=(SCPVitalsRect){0,235,45,125};
+    check(real,0,0);
     // 25,000 property checks. This does not prove CarPlay native geometry,
     // but proves that every valid result avoids the supplied obstacles.
     unsigned seed=0x1234beef;
@@ -198,6 +217,6 @@ int main(void) {
             assert(fabs(normalized-fy)<1e-9 || maxY==minY);
         }
     }
-    puts("PASS: 12 rail cases + 25,000 rail; 9 fullscreen cases + 25,000 fullscreen; 12 drag cases + 25,000 drag");
+    puts("PASS: 14 rail cases + 25,000 rail; 9 fullscreen cases + 25,000 fullscreen; 12 drag cases + 25,000 drag");
     return 0;
 }

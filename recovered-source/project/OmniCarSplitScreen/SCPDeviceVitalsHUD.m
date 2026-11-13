@@ -139,10 +139,10 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectInset(panel.bounds, 2, 1)];
         label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         label.numberOfLines = horizontal ? 1 : 2;
-        label.font = [UIFont systemFontOfSize:10.0 weight:UIFontWeightSemibold];
+        label.font = [UIFont systemFontOfSize:horizontal?10.0:9.0 weight:UIFontWeightSemibold];
         label.textAlignment = NSTextAlignmentCenter;
         label.adjustsFontSizeToFitWidth = YES;
-        label.minimumScaleFactor = 0.74;
+        label.minimumScaleFactor = horizontal?0.74:0.65;
         [panel addSubview:label];
         [parent addSubview:panel];
         self.host = parent;

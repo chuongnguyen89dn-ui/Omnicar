@@ -38,14 +38,18 @@ SCPVitalsLayoutResult SCPVitalsPlace(SCPVitalsLayoutInput in) {
     SCPVitalsRect obstacles[1+SCP_VITALS_MAX_EXCLUSIONS];
     obstacles[0] = in.dock;
     for (size_t j=0;j<in.exclusionCount;j++) obstacles[j+1]=in.exclusions[j];
-    const double margin=6.0, gap=5.0;
+    // [hl48-dock] Real HL47 CarPlay rail measured 45pt on 640x360
+    // (PID7658); 6pt margins demanded 51pt and ALWAYS rejected it.
+    // Use 3pt margins + 39pt vertical badge, still avoid native dock,
+    // Home, launcher and all supplied exclusions by padded collision.
+    const double margin=3.0, gap=3.0;
     for (int railIndex=0;railIndex<4;railIndex++) {
         SCPVitalsRect rail=rails[railIndex];
         if (!ok(rail) || !intersects(rail,in.dock)) continue;
         int horizontal=railIndex>=2;
-        double badgeW=horizontal?124.0:fmin(rail.w-2*margin,64.0);
+        double badgeW=horizontal?124.0:fmin(rail.w-2*margin,43.0);
         double badgeH=horizontal?fmin(rail.h-2*margin,26.0):43.0;
-        if (badgeW < (horizontal?105.0:39.0) || badgeH < (horizontal?22.0:40.0)) continue;
+        if (badgeW < (horizontal?105.0:36.0) || badgeH < (horizontal?22.0:40.0)) continue;
         double shortStart=horizontal ? rail.y+(rail.h-badgeH)/2.0
                                      : rail.x+(rail.w-badgeW)/2.0;
         double start=horizontal ? rail.x+margin : rail.y+margin;
