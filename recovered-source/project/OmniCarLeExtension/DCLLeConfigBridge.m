@@ -210,7 +210,10 @@ static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
         return CFBridgingRelease(CFPreferencesCopyAppValue(
                  (__bridge CFStringRef)DCLKeys()[key],domain)) ?: (key==27?@0:@YES);
     }
-    BOOL isLayout=(key<=2 || (key>=8 && key<=13) || key==29);
+    // LePrefs original stores Root/Bubble preferences through its layout
+    // store; only the Google Maps card-specific keys (14..26) belong to
+    // CFPreferences dev.bechou.le.gmaps. DuoCar49 misrouted 3..7 there.
+    BOOL isLayout=(key<=13 || key==29);
     if(!isLayout) {
         NSString *keyName=DCLKeys()[key];
         if(key>=14 && key<=16) keyName=@[@"fullEnabled",@"dashboardEnabled",@"phoneEnabled"][key-14];
@@ -241,6 +244,9 @@ static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
     if(!write) {
         if(oldValue)return oldValue;
         if(key==0)return @"vietmap-live";
+        if(key==3)return @"maps-home";
+        if(key==4 || key==5)return @YES;
+        if(key==7)return @"halo";
         if(key==8)return @"corner";
         if(key==9)return @"asphalt";
         if(key==10)return @0.85;
