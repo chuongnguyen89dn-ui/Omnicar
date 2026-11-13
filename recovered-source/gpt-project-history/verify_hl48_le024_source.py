@@ -30,6 +30,15 @@ assert "picker.backgroundColor = UIColor.clearColor;" in picker
 assert "if (hl46NativePicker || hl49OccupiedPicker || hl48HostedPicker) label.hidden = YES" in picker
 assert "duocarHL49OccupiedPickerClear" in picker
 assert "duocarHL49LiveUnderSheet" in picker
+assert "duocarHL49HostedSameWindowPicker" in picker
+assert "BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner)" in picker
+assert "UIWindow *window = hl49SameWindow ? nil" in picker
+assert '[hl49-window-ab] mode=%@' in picker
+chrome=(project/"OmniCarSplitScreen/SCPCarSplit+Chrome.m").read_text()
+assert "extern BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner);" in chrome
+assert "popupShield=SAME-PARENT" in chrome
+assert 'duocarHL49LiveUnderSheet",@NO' in picker
+assert 'duocarHL49OccupiedPickerClear",@NO' in picker
 assert "initWithEffect:nil" in picker
 assert "[hl49-sheet] NO-BLUR" in picker
 assert "[hl49-pane] CLEAR" in picker

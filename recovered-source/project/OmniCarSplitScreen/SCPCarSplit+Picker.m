@@ -393,7 +393,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // [hl49-menu] Do not depend only on SCPHostedAppVC class while an
     // occupied phone scene is transitioning. Empty slots stay unchanged.
     BOOL hl49OccupiedPicker = (hasContent && (pane.vc || pane.bundleID.length>0) &&
-        [OMCPref(@"duocarHL49OccupiedPickerClear",@YES) boolValue]);
+        [OMCPref(@"duocarHL49OccupiedPickerClear",@NO) boolValue]);
     if (hl46NativePicker) {
         // The original picker remains attached/tappable for its sheet,
         // Cancel and Choose. Only its native full-pane face goes clear.
@@ -514,6 +514,20 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     }
 }
 
+// [hl49-black] A/B: CarPlay hosted surface and top-level tray window are
+// different UIWindow instances in earlier HL47 logs. Reproduce the native
+// same-window fallback for HOSTED app picker only, never for native/empty
+// slots or while other tray/ratio/ghost content owns the overlay window.
+// Disable duocarHL49HostedSameWindowPicker to restore the original path.
+BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
+    if (!owner || !owner.active || !owner.pickerSheetPane ||
+        !owner.pickerSheetPane.vc ||
+        !SCPVCIsHosted(owner.pickerSheetPane.vc) ||
+        owner.tray || owner.ratioMenu || owner.dragGhost)
+        return NO;
+    return [OMCPref(@"duocarHL49HostedSameWindowPicker",@YES) boolValue];
+}
+
 // MARK: - Picker sheet
 
 - (void)refreshPickerSheetSoon {                                         // 0x30100 (approx.)
@@ -611,7 +625,14 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     SCPickerMeasurePreBundle = [pane.bundleID copy];
     UIView *oldSheet = self.pickerSheet;
     UIView *oldShield = self.pickerShield;
-    UIWindow *window = [self trayWindowForParent:self.container];
+    BOOL hl49SameWindow = SCPHL49SameWindowPicker(self);
+    UIWindow *window = hl49SameWindow ? nil : [self trayWindowForParent:self.container];
+    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+        @"[hl49-window-ab] mode=%@ slot=%d bundle=%@ vc=%@ trayExisting=%@",
+        hl49SameWindow?@"SAME-CONTAINER":@"ORIGINAL-SEPARATE",
+        pane.slot,pane.bundleID?:@"(none)",
+        pane.vc?NSStringFromClass(pane.vc.class):@"nil",
+        self.trayWindow?NSStringFromClass(self.trayWindow.class):@"nil"]);
     CGRect area;
     UIView *host;
     if (window != nil) {
@@ -691,7 +712,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // the picker gestures/Choose/Cancel subviews below and is A/B reversible.
     BOOL hl49LiveUnderSheet = (pane != nil &&
         (pane.vc != nil || pane.bundleID.length>0) &&
-        [OMCPref(@"duocarHL49LiveUnderSheet",@YES) boolValue]);
+        [OMCPref(@"duocarHL49LiveUnderSheet",@NO) boolValue]);
     UIVisualEffectView *effectView = hl49LiveUnderSheet
         ? [[UIVisualEffectView alloc] initWithEffect:nil]
         : SCPKnobFaceView();

@@ -383,6 +383,12 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
     }
 }
 
+// The picker presentation A/B is owned by SCPCarSplit+Picker.m;
+// the touch shield must follow the SAME hosting decision. If a hosted
+// sheet lives inside the original container, avoid creating a second
+// UIRootSceneWindow solely for the 2% transparent shield.
+extern BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner);
+
 // MARK: - Popup bookkeeping
 
 - (BOOL)panelOpen {                                                      // 0x26394 (approx.)
@@ -430,8 +436,18 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
         return;
     }
     UIView *parent = self.tabParent;
-    UIWindow *window = [self trayWindowForParent:parent];
+    BOOL hl49SameWindow = SCPHL49SameWindowPicker(self);
+    UIWindow *window = hl49SameWindow ? nil : [self trayWindowForParent:parent];
     UIView *host = window != nil ? (UIView *)window : parent;
+    if (hl49SameWindow) {
+        // An idle cached overlay must not sit over a live hosted surface.
+        // Never hide an overlay that still owns a tray/ratio/ghost/toast.
+        UIWindow *cached=self.trayWindow;
+        if (cached && !self.tray && !self.ratioMenu && !self.dragGhost &&
+            [cached viewWithTag:0x5c9b]==nil)
+            cached.hidden=YES;
+        OMCLogWrite(@"SplitScreen",@"[hl49-window-ab] popupShield=SAME-PARENT");
+    }
     SCPCTouchWatch *shield = (SCPCTouchWatch *)self.popupShield; // [phase2; backported to src in phase 3] property is UIView* in metadata; the stored view is the touch watch
     if (shield == nil || shield.superview != host) {
         [shield removeFromSuperview];
