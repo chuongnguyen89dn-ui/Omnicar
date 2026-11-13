@@ -1,0 +1,158 @@
+name: "DuoCar48 - Le 0.2.4 + hosted menu + Dock vitals signed FAT"
+permissions:
+  contents: read
+on:
+  push:
+    branches:
+      - feature/duocar-le024-full-20261113
+    paths:
+      - ".github/workflows/build-hl48-le024-fat.yml"
+      - "recovered-source/project/**"
+      - "recovered-source/src/**"
+      - "recovered-source/gpt-project-history/verify_hl48_le024_source.py"
+      - "recovered-source/gpt-project-history/verify_hl48_le024_payload.py"
+      - "recovered-source/gpt-project-history/merge_le024_personal_deb.py"
+      - "recovered-source/gpt-project-history/tests/test_le024_merge.py"
+  workflow_dispatch:
+
+jobs:
+  one-deb-fat:
+    runs-on: macos-15
+    timeout-minutes: 70
+    steps:
+      - name: Checkout exact DuoCar code revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Checkout exact Lề 0.2.4 binary from repository main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: le-original
+          persist-credentials: false
+
+      - name: Source and portable geometry regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/verify_hl48_le024_source.py
+          python3 recovered-source/gpt-project-history/verify_hl47_combined.py
+          python3 recovered-source/gpt-project-history/verify_hl43_shared_telex.py
+          sh recovered-source/gpt-project-history/test_le_traffic_core.sh
+
+      - name: Verify original Lề 0.2.4 input bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          LE=le-original/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb
+          test -s "$LE"
+          echo "98a234f404987d5958bc80a19e0ed62d34ca2b39d4ef6e798bfd3314e2cb4770  $LE" | shasum -a 256 -c -
+
+      - name: Restore Theos and SDK cache from proven HL47 workflow
+        uses: actions/cache@v4
+        id: cache-theos
+        with:
+          path: ~/theos
+          key: hl36-theos-ios16-5-${{ runner.os }}-${{ runner.arch }}-v1
+
+      - name: Install Theos and iPhoneOS16.5 SDK if uncached
+        if: steps.cache-theos.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$HOME/theos-sdks"
+          git -C "$HOME/theos-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$HOME/theos/sdks"
+          cp -R "$HOME/theos-sdks/iPhoneOS16.5.sdk" "$HOME/theos/sdks/"
+
+      - name: Install signing and Debian packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew list ldid >/dev/null 2>&1 || brew install ldid
+          brew list dpkg >/dev/null 2>&1 || brew install dpkg
+          command -v ldid
+          command -v dpkg-deb
+          command -v lipo
+          command -v clang
+
+      - name: Test one-DEB merger against synthetic packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/tests/test_le024_merge.py
+
+      - name: Strip Linux linker option from disposable macOS checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          find recovered-source/project -type f -name Makefile -print0 |
+            xargs -0 grep -l -- '-fuse-ld=lld' | while IFS= read -r file; do
+              sed -i '' 's/-fuse-ld=lld//g' "$file"
+            done
+
+      - name: Rebrand and sign DuoCar base FAT (menu and Dock fixes)
+        shell: bash
+        env:
+          ARCHS: "arm64 arm64e"
+          THEOS_PACKAGE_SCHEME: rootless
+        run: |
+          set -euo pipefail
+          export THEOS="$HOME/theos"
+          python3 recovered-source/gpt-project-history/rebrand_duocar_hl47.py
+          cd recovered-source/project
+          make clean ARCHS="arm64 arm64e"
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/duocar48-base.log
+          test -s packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb
+
+      - name: Sign Lề extension FAT (speed + drag)
+        shell: bash
+        env:
+          ARCHS: "arm64 arm64e"
+          THEOS_PACKAGE_SCHEME: rootless
+        run: |
+          set -euo pipefail
+          export THEOS="$HOME/theos"
+          cd recovered-source/project/OmniCarLeExtension
+          make clean ARCHS="arm64 arm64e"
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/duocar48-ext.log
+          test -s packages/com.chuong.duocar.leextension_0.1.0_iphoneos-arm64.deb
+
+      - name: Merge original Le, DuoCar, extension into ONE signed FAT DEB
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          python3 recovered-source/gpt-project-history/merge_le024_personal_deb.py \
+            --duocar recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb \
+            --le le-original/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb \
+            --extension recovered-source/project/OmniCarLeExtension/packages/com.chuong.duocar.leextension_0.1.0_iphoneos-arm64.deb \
+            --output dist/DuoCar48.deb --personal-use --version 1.0.3-le0241
+
+      - name: Verify actual combined DEB signed FAT payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/verify_hl48_le024_payload.py dist/DuoCar48.deb
+          dpkg-deb -f dist/DuoCar48.deb
+          shasum -a 256 dist/DuoCar48.deb
+
+      - name: Upload ONE short-named DEB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuoCar48
+          path: dist/DuoCar48.deb
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Preserve build errors for diagnosis only
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuoCar48-build-errors
+          path: |
+            /tmp/duocar48-base.log
+            /tmp/duocar48-ext.log
+          if-no-files-found: ignore
