@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL43 signed direct `duocar.deb`: shared Telex test PASS, device pending
+- Feature branch `feature/duocar-hl43-native-cancel-telex-20261113`, HEAD `b392ef600941fc2faf7f5da6c092d0096dbd3e32`, CI **43335678064** success. Actual macOS Objective-C `ABTelexApply` + old-word/replace tests **28,208 checks PASS**, native UISearchBar Cancel and immediate hide code isolated; source/build mirrors validated. GitHub artifact **13997945034**, short direct `duocar.deb`, `com.chuong.duocar` `1.0.3-hl43telex1` `iphoneos-arm64`, 1,029,986 bytes, SHA-256 `d87be7ab09d00138d16e2aca765255d648f55054324a75a84cf44e1d3a4e519e`, verified dpkg-deb -f/-x and thin arm64 binary. **DEVICE PENDING** for accents on car and native Apple keyboard; no claim to suppress native Apple keyplane. [Exact checkpoint](HL43_SHARED_TELEX_20261113.md). Download alias not durable across chats; use artifact ID to recover.
+
 ## 2026-11-13 — HL43 repair shared Telex, restore drawn hide, trace native Cancel
 - Isolated branch `feature/duocar-hl43-native-cancel-telex-20261113` from HL42 `7ed8a2ac`. **One shared `ABTelexApply`** corrected for hosted + native (no competing Telex engines); preserves same `ABKeyboard` key UI and UTF-16 composition, adds real macOS Foundation word/replacement tests. Removed HL42 native hide lock: keyboard can always hide immediately; native Cancel/Return origin now instrumented, no concealment of Apple keyboard. New version target `1.0.3-hl43telex1`. Source gate PASS; first macOS test compiled, but test comparison nil/nil was wrong and fixed. New CI run `43335678064` in progress at checkpoint; no new signed DEB or DEVICE PASS claimed. [Details and recovery](HL43_SHARED_TELEX_20261113.md).
 
