@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL45 continuation: settled-opacity evidence added; NO BUILD/DEVICE PASS
+- Feature branch `feature/duocar-hl45-native-visual-probe-20261113` HEAD **`3a385c02f121eb6dcc6cf54ad1150ed3531ff1e6`**; src/project Picker mirrors and static verifier updated (no scene/overlay/UI behavior change). Captures presentation-layer opacity and 0.18s cover, 0.32s picker, 0.60s sheet settled samples beyond pre-animation values. Github readback and inline static guard PASS; standalone `verify_hl45_original_layer_probe.py` has **not run** (no checkout/iOS SDK). CI/DEB/DEVICE all **NOT RUN**. Older HL45 checkpoint HEAD `746ad66f` remains historical. [Full source commits, readback, and exact next log/device gate](HL45_NATIVE_VISUAL_LAYER_PROBE_20261113.md).
+
 ## 2026-11-13 — HL45 original native visual-layer trace SOURCE-COMMITTED; not built
 - Branch `feature/duocar-hl45-native-visual-probe-20261113` from HL44 `44b737d`, HEAD **`746ad66f60e23f7b6ee5bb98a6d5a1a492f56fa9`**. Only four Picker/Divider ObjC files (two exact src/project pairs) and `verify_hl45_original_layer_probe.py` changed. Read-only `[hl45-layer]` logs original cover/picker/sheet/loader create/remove and divider begin/release/0.45s cleanup (bundle, slot, mode native/hosted, view frame, alpha, hidden, parent z/window level, time and sequence); original 1.0.3 opacity/cover design, animation/scene policy, keyboard, Zoom, Home/Dock unchanged. GitHub compare + src/build matching and inline static marker checks PASS; standalone Python verifier **committed but not run**. **No CI/DEB/device test**. Full SHA, proof, rollback and matching-log steps: [HL45_NATIVE_VISUAL_LAYER_PROBE_20261113.md](HL45_NATIVE_VISUAL_LAYER_PROBE_20261113.md).
 
