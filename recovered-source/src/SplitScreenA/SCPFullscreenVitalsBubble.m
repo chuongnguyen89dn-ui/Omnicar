@@ -31,7 +31,7 @@
 }
 - (instancetype)init {
     if ((self = [super init])) {
-        NSNotificationCenter *center = NSNotificationCenter.defaultCenter;
+        NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(systemClockChanged:)
                       name:NSSystemTimeZoneDidChangeNotification object:nil];
         [center addObserver:self selector:@selector(systemClockChanged:)
@@ -78,7 +78,7 @@
     self.lastSampleTime = 0;
 }
 - (void)tick {
-    if (!self.pill || !self.parent.window ||
+    if (!self.pill || !self.parent.window || self.parent.window.hidden ||
         [[SCPFullscreenController shared] fsCommittedState] != SCPFullscreenStateExpanded ||
         ![OMCPref(@"duocarFullscreenVitalsEnabled", @YES) boolValue]) {
         [self stop];
@@ -113,7 +113,8 @@
 - (void)showForConfirmedFullscreenInParent:(UIView *)parent {
     if (![NSThread isMainThread]) return;
     SCPCarSplit *split = [SCPCarSplit shared];
-    if (!parent || !parent.window || !split.active ||
+    if (!parent || !parent.window || parent.window.hidden || parent.hidden ||
+        parent.alpha <= 0.01 || !split.active ||
         split.container.superview != parent ||
         [[SCPFullscreenController shared] fsCommittedState] != SCPFullscreenStateExpanded ||
         ![OMCPref(@"duocarFullscreenVitalsEnabled", @YES) boolValue]) {
@@ -182,7 +183,9 @@
             target:self selector:@selector(tick) userInfo:nil repeats:YES];
         [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
         OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-            @"[fs-vitals] bubble attached frame=%@ time=system-local",NSStringFromCGRect(frame)]);
+            @"[fs-vitals] bubble attached frame=%@ window=%@ windowHidden=%d windowLevel=%.1f time=system-local",
+            NSStringFromCGRect(frame),NSStringFromClass(parent.window.class),
+            (int)parent.window.hidden,(double)parent.window.windowLevel]);
     } else {
         self.pill.frame = frame;
         // A root relayout could lift the split after the badge was attached.
