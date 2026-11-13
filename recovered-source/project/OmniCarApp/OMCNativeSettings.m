@@ -135,13 +135,6 @@ static NSString *OMCRowName(NSDictionary *r) {
     return key.length?OMCNativeLocalized(key):@"";
 }
 
-static NSInteger OMCLeOffsetClamp(NSInteger value) {
-    return MAX(-5, MIN(5, value));
-}
-static NSString *OMCLeOffsetDisplay(NSInteger value) {
-    NSInteger n=OMCLeOffsetClamp(value);
-    return [NSString stringWithFormat:@"%@%ld", n>0?@"+":@"", (long)n];
-}
 static NSString *OMCLeOptionDisplay(NSString *key, id value) {
     if (!value) return @"";
     if (![key hasPrefix:@"leTraffic"]) return [value description];
@@ -514,17 +507,13 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(@"APPS",@"homeapps",nil,nil,nil),
             OMCRow(OMCText(@"Khôi phục bố cục Home",@"Reset Home layout"),@"resethome",nil,nil,nil)])
     ];
-    // The actual vendor preference UI owns every original Lề setting.
-    // Do not show disconnected DuoCar copies of source/lanes/alerts switches.
+    // Original Lề settings are read/written by the ACKed CarPlay/SpringBoard
+    // bridge. GPS stepper is ONLY on that page, never a sandbox-only duplicate.
     if (self.kind==3) return @[
-        OMCSection(OMCText(@"Lề 0.2.4", @"Le 0.2.4"), @[
-            OMCRow(OMCText(@"Cài đặt đầy đủ của Lề", @"Full original Le settings"),
+        OMCSection(OMCText(@"Bong bóng tốc độ Lề", @"Lề traffic bubble"), @[
+            OMCRow(OMCText(@"Cài đặt nguồn, giao thông và GPS (±5)",
+                           @"Traffic, source and GPS settings"),
                    @"leOriginal", nil, nil, nil)
-        ]),
-        OMCSection(OMCText(@"DuoCar · hiệu chỉnh GPS", @"DuoCar · GPS calibration"), @[
-            // The extension changes the CURRENT vehicle speed, never road limit.
-            OMCRow(OMCText(@"Điều chỉnh tốc độ xe (±5)", @"Vehicle speed correction (±5)"),
-                   @"leGpsStepper", @"leTrafficGpsOffsetKph", @0, nil)
         ])
     ];
     id raw=OMCNativePref(@"carProfiles",@{});
@@ -645,29 +634,6 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         [slider addTarget:self action:@selector(omcSliderDone:) forControlEvents:
             UIControlEventTouchUpInside|UIControlEventTouchUpOutside];
         cell.accessoryView=slider;cell.accessoryType=UITableViewCellAccessoryNone;
-    } else if ([type isEqualToString:@"leGpsStepper"]) {
-        // [le024-gps] -5..+5 whole km/h. A stepper tap is exactly one unit.
-        NSInteger offset=OMCLeOffsetClamp([OMCNativePref(key,@0) integerValue]);
-        UIView *controls=[[UIView alloc] initWithFrame:CGRectMake(0,0,155,38)];
-        UILabel *reading=[[UILabel alloc] initWithFrame:CGRectMake(0,0,51,38)];
-        reading.font=[UIFont monospacedDigitSystemFontOfSize:15 weight:UIFontWeightSemibold];
-        reading.textAlignment=NSTextAlignmentRight;
-        reading.text=OMCLeOffsetDisplay(offset);
-        UIStepper *control=[[UIStepper alloc] initWithFrame:CGRectMake(57,3,95,32)];
-        control.minimumValue=-5;
-        control.maximumValue=5;
-        control.stepValue=1;
-        control.wraps=NO;
-        control.continuous=NO;
-        control.value=offset;
-        control.accessibilityLabel=OMCRowName(r);
-        objc_setAssociatedObject(control,@selector(omcLeGpsOffsetChanged:),
-                                 reading,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        [control addTarget:self action:@selector(omcLeGpsOffsetChanged:)
-          forControlEvents:UIControlEventValueChanged];
-        [controls addSubview:reading];
-        [controls addSubview:control];
-        cell.accessoryView=controls;cell.accessoryType=UITableViewCellAccessoryNone;
     } else if ([type isEqualToString:@"number"] || [type isEqualToString:@"text"] ||
                [type isEqualToString:@"pickapp"] || [type isEqualToString:@"favorite"]) {
         id value=OMCNativePref(key,[type isEqualToString:@"favorite"]?nil:r[@"default"]);
@@ -694,21 +660,6 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     if (!OMCNativeSetPref(key,@(s.on))) {
         s.on=!s.on; OMCAlert(self,OMCText(@"Không lưu được cấu hình.",@"Could not save settings."));
     }
-}
-// [le024-gps] Preference is stored in DuoCar's own CFPreferences domain;
-// the future Le runtime consumer must read the SAME key and apply to speed,
-// not to GPS coordinates or posted speed limit.
-- (void)omcLeGpsOffsetChanged:(UIStepper *)sender {
-    UILabel *label=objc_getAssociatedObject(sender,@selector(omcLeGpsOffsetChanged:));
-    NSInteger proposed=OMCLeOffsetClamp((NSInteger)lround(sender.value));
-    if (!OMCNativeSetPref(@"leTrafficGpsOffsetKph",@(proposed))) {
-        proposed=OMCLeOffsetClamp([OMCNativePref(@"leTrafficGpsOffsetKph",@0) integerValue]);
-        sender.value=proposed;
-        OMCAlert(self,OMCText(@"Không lưu được hiệu chỉnh GPS.",@"Unable to save GPS adjustment."));
-    }
-    label.text=OMCLeOffsetDisplay(proposed);
-    UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification,label.text);
-    NSLog(@"[le024-gps] pref offset=%ld", (long)proposed);
 }
 - (void)omcSliderDone:(UISlider *)slider {
     NSDictionary *r=objc_getAssociatedObject(slider,@selector(omcSliderDone:));
