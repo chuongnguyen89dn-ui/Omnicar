@@ -53,7 +53,7 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
 }
 
 - (void)refresh {
-    if (!self.panel || !self.host.window) { [self stop]; return; }
+    if (!self.panel || !self.panel.window) { [self stop]; return; }
     if (![OMCPref(@"duocarVitalsEnabled", @YES) boolValue]) { [self stop]; return; }
 
     NSDictionary *sample = OMCDeviceVitalsSample();
@@ -71,7 +71,12 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
     if (self.horizontal) {
         self.label.text = [NSString stringWithFormat:@"🔋 %@   🌡 %@", batteryText, heatText];
     } else {
-        self.label.text = [NSString stringWithFormat:@"🔋 %@\n🌡 %@", batteryText, heatText];
+        // A real 45pt CarPlay Dock rail has at most 39pt for the badge.
+        // Old spaced ~XX°C rows required >50pt and scaled down invisibly.
+        NSString *compactTemp = temp ?
+           [NSString stringWithFormat:@"%.0f°",temp.doubleValue] : @"--";
+        self.label.text = [NSString stringWithFormat:@"🔋%@\n🌡%@",
+                          batteryText,compactTemp];
     }
     self.panel.accessibilityLabel = [NSString stringWithFormat:
         @"Pin iPhone %@; nhiệt %@; nguồn %@. Không phải cảm biến GPU.",
