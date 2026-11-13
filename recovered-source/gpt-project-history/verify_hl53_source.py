@@ -230,6 +230,16 @@ assert "SUBPROJECTS += OmniCarSpeedBubble" not in (project/"Makefile").read_text
 assert "DCLLeConfigBridge.m" in (project/"OmniCarLeExtension/Makefile").read_text()
 assert (root/"gpt-project-history/strip_speedbubble_assets.py").is_file()
 assert (root/"gpt-project-history/patch_le024_speed_unit.py").is_file()
+# HL53 merge must check the authentic Lề root, not an obsolete HL51
+# compatibility marker. Reject an unsound test-gate bypass at source QA.
+merge_guard=(root/"gpt-project-history/merge_le024_personal_deb.py").read_text()
+assert 'has_marker(app_bytes,"[hl52-le-original] ORIGINAL LOADED")' in merge_guard
+assert 'has_marker(app_bytes,"CWTrafficBubblePrefsController")' in merge_guard
+assert 'b"[le024-prefs]" in app.read_bytes()' not in merge_guard
+signed_guard=(root/"gpt-project-history/verify_duocar53.py").read_text()
+assert 'has_marker(app.read_bytes(),"[hl52-le-original] ORIGINAL LOADED")' in signed_guard
+assert 'has_marker(app.read_bytes(),"CWTrafficBubblePrefsController")' in signed_guard
+assert 'has_marker(app.read_bytes(),"[le024-prefs]")' not in signed_guard
 
 # No changes to the already proven fullscreen *engine*. The Dock and
 # Le integrations were changed instead. Record exact baseline hashes in CI.

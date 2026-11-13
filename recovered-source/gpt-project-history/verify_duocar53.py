@@ -118,7 +118,8 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
 
     app=jb/"Applications/DuoCar.app/DuoCar"
     verify_fat(app)
-    assert has_marker(app.read_bytes(),"[le024-prefs]")
+    # HL52 replaced the old compatibility page; the merge and final
+    # gates BOTH require its actual signed vendor class loader.
     assert has_marker(app.read_bytes(),"[hl52-le-original] ORIGINAL LOADED"),"real Lề root not linked"
     assert has_marker(app.read_bytes(),"CWTrafficBubblePrefsController"),"vendor principal missing"
     assert has_marker(app.read_bytes(),"DuoCar • Tùy chỉnh Lề"),"extras page absent"

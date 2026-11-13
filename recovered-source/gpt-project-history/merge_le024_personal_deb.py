@@ -36,6 +36,11 @@ def require(condition, message):
     if not condition:
         raise RuntimeError(message)
 
+def has_marker(data: bytes, marker: str) -> bool:
+    # Objective-C NSString constants may be emitted as UTF-8 or UTF-16LE.
+    # Keep the merge gate as strict as the final signed FAT verifier.
+    return marker.encode("utf-8") in data or marker.encode("utf-16-le") in data
+
 def field(deb, key):
     return cmd("dpkg-deb", "-f", str(deb), key)
 
@@ -114,8 +119,15 @@ def merge(duo, le, extension, output, le_sha, version):
         subprocess.run(["dpkg-deb", "-e", str(duo),
                         str(base/"DEBIAN")], check=True)
         app = jb(base, "Applications/DuoCar.app/DuoCar")
-        require(app.is_file() and b"[le024-prefs]" in app.read_bytes(),
-                "DuoCar must be recompiled with the original LePrefs host")
+        require(app.is_file(), "Missing signed DuoCar app binary")
+        app_bytes=app.read_bytes()
+        # [hl53] The actual HL52 vendor loader superseded the old
+        # '[le024-prefs]' compatibility marker. Require BOTH the new
+        # real-controller load path and exact vendor principal class,
+        # not a weak historical string or bypassed merge check.
+        require(has_marker(app_bytes,"[hl52-le-original] ORIGINAL LOADED")
+                and has_marker(app_bytes,"CWTrafficBubblePrefsController"),
+                "DuoCar must include signed authentic LePrefs.bundle loader")
         libs = jb(vendor, "Library/MobileSubstrate/DynamicLibraries")
         ext_libs = jb(addon, "Library/MobileSubstrate/DynamicLibraries")
         for name in LE_NAMES:
