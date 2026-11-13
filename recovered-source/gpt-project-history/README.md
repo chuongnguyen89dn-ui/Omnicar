@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — Zoom đang hoạt động nhưng nhận 2 chạm = TOGGLE, chưa nhận hướng
+- Nguyen cập nhật **zoom đang hoạt động** trên bản hiện tại nhưng cử chỉ không phân biệt chụm/xòe; yêu cầu **chụm hai ngón = vào fullscreen**, **xòe hai ngón = thoát fullscreen/về chia đôi**. Đã đọc trực tiếp `ABInApp.m`, `SCPTouchProbe.m`, `SCPCarSplit+BridgeWake.m`, `SCPPinchController.m`: đường hosted gửi `dir=0` tại ngón thứ hai Began; đường host mặc định `carHostPinchPairToggle=YES` kích hoạt theo trạng thái trước khi xét di chuyển. Nhánh directional phụ hiện tại lại map OUT→expand và IN→restore (ngược yêu cầu); phải đổi **cả hai nhánh** trong đợt zoom riêng, không tạo bộ fullscreen thứ hai. **Chỉ phân tích/thiết kế, KHÔNG sửa zoom vào HL52; chưa build/CI, chưa test xe**. [Hồ sơ truy mã và hướng sửa](HL52_ZOOM_DIRECTION_AUDIT_20261114.md).
+
+
 ## 2026-11-13 — HL52 tiếp tục: Lề free XY theo native window, chờ build/test
 - Source `feature/duocar-hl52-leoriginal-dock-freepos-20261113`: commit `013799a` sửa Lề free XY theo kích thước màn CarPlay, di chuyển chính `CWTrafficWindow` khi là native window nhỏ, giữ gốc `-panned:`/ABI và lưu X/Y; đã đọc binary LeBubble từ DEB DuoCar51. `42758ae` / `ce19acd` kiểm tra source/final signed binary HL52; `f6f6cc` chuẩn bị workflow `build-hl52-original-leprefs-dock-free-xy-fat.yml` chỉ chạy thủ công. QA connector: 8 cặp project/src SHA trùng, 4 file menu/zoom/bridge không đổi. Trang Lề gốc và HUD trong suốt dưới icon từ các commit HL52 trước giữ nguyên. **SOURCE QA ONLY — chưa build DEB, chưa chạy iPhone; Lề còn bám lề ở bản DuoCar51 đang cài, chưa tuyên bố hết lỗi.** Zoom vẫn hoãn. [Checkpoint + bằng chứng](HL52_LE_ORIGINAL_DOCK_LAYOUT_20261113.md).
 
