@@ -51,9 +51,9 @@ assert (root/"gpt-project-history/test_duocar_vitals_placement.c").is_file()
 settings=(project/"OmniCarApp/OMCNativeSettings.m").read_text()
 assert 'OMCRow(@"SPEEDBUBBLE",@"bubble"' in settings
 assert "OMCLeOriginalPreferencesController()" in settings
+app=(project/"OmniCarApp/OMCLePrefsHost.m").read_text()
 assert "leTrafficGpsOffsetKph" in app
 assert "leGpsStepper" not in settings
-app=(project/"OmniCarApp/OMCLePrefsHost.m").read_text()
 assert "notify_register_dispatch(DCLLeAck" in app
 assert "notify_set_state(self.sendToken" in app
 assert "DCLLeConfigPage" in app
