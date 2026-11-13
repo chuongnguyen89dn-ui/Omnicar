@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL46 thử tạm tắt hai lớp che native; chờ test, hoàn nguyên nếu không cải thiện
+- Nguyen chỉ đạo tạm **tắt lớp nghi ngờ** thay vì tiếp tục chỉ đo: **native** `pane.picker` đổi nền thành trong suốt (giữ picker tap/sheet/Cancel/chọn app và ẩn dấu "+"); **native** `pane.cover` không tạo logo khi kéo (gỡ cover tồn nếu có). Hosted và ô trống giữ đúng gốc, không sửa scene push/keyboard/YTZ/AutoHide/Home/Dock/Zoom. Đã lưu ở nhánh biệt lập `feature/duocar-hl46-native-overlay-bypass-20261113` từ HL45 `3a385c02`, source HEAD trước docs `06854432`. Hai pref thử nghiệm `duocarHL46NativeCoverOff` và `duocarHL46NativePickerClear` mặc định YES, có thể OFF hoặc không merge branch để hoàn nguyên. Log HL45 giữ nguyên, thêm `[hl46-bypass]`; tách riêng hypothesis che khỏi native scene/compositor sustain.
+- Chỉ hai file Picker.m src/project được sửa và một verifier chuyên đề được thêm, GitHub diff/đọc lại so khớp SHA; **chưa chạy verifier trong checkout đầy đủ, chưa biên dịch, chưa build DEB/CI, chưa device test**. Không tuyên bố đã chữa lỗi. Nếu image vẫn mất khi bypass, ưu tiên khôi phục HL45 và đo scene/compositor, không tắt thêm lớp gốc tùy tiện. [Hồ sơ chi tiết HL46 và hoàn nguyên](https://github.com/chuongnguyen89dn-ui/Omnicar/blob/feature/duocar-hl46-native-overlay-bypass-20261113/recovered-source/gpt-project-history/HL46_NATIVE_OVERLAY_BYPASS_TRIAL_20261113.md).
+
+
 
 ## 2026-11-13 — Bong bóng giờ·pin·nhiệt fullscreen: kế thừa kéo/hít cạnh HL31 + cửa sổ xuyên chạm HL33, KHÔNG MỜ / CHỜ BUILD
 - Nguyen yêu cầu bong bóng trạng thái **luôn rõ, không tự giảm alpha hay tự ẩn khi fullscreen**, kéo được trên vùng an toàn toàn màn hình, thả tự hít cạnh và nhớ vị trí; không fullscreen giữ nguyên native Dock/giờ, không badge riêng. Nghiên cứu trực tiếp các module Voice cũ HL31/HL33, chỉ tái sử dụng thiết kế pan/persist/pass-through; **không mang Voice/mic/TCC trở lại**. Quy tắc cũ “không UIWindow” được thay thế có chủ đích chỉ đối với cửa sổ CarPlay xuyên chạm, vì bubble bên trong split từng bị app hosted che.
