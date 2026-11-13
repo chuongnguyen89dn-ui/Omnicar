@@ -12,10 +12,11 @@ TWEAK_NAME = OmniCarSplitScreen
 # Phase 2: full A+B+C merge (see logs/phase2-splitscreen.md).
 # [hl36-voice-off] Voice assistant UI, split command receiver and capture
 # agent are retained in source for history, but excluded from build.
-OmniCarSplitScreen_FILES = SCPCarSplit.m SCPHooks.m SCPPrefs.m SCPShared.m SCPSmallClasses.m SCPSpringBoardHooks.m SCPPerfTelemetry.m SCPSessionCore.m SCPCButton.m SCPCTouchWatch.m SCPCarDividerView.m SCPCarSplit+Chrome.m SCPCarSplit+BridgeWake.m SCPCarSplit+AutoHide.m SCPPinchController.m SCPFullscreenController.m SCPFullscreenAdapter.m SCPTouchProbe.m SCPCarSplit+Divider.m SCPCarSplit+Drag.m SCPCarSplit+Layout.m SCPCarSplit+Panel.m SCPCarSplit+Picker.m SCPCarSplit+RatioMenu.m SCPCarSplit+Zoom.m SCPCarSplit+Relayout.m SCPCarSplitView.m SCPCarTabView.m SCPHomeWallView.m SCPAppIcons.m SCPHomeLauncher.m SCPCarApps.m SCPDiagDump.m SCPHomeApply.m SCPHomeHooks.m SCPHomeSettings.m SCPHomeVisibility.m SCPLibRoot.m
-OmniCarSplitScreen_FRAMEWORKS = UIKit Foundation QuartzCore AVFoundation CoreGraphics
+OmniCarSplitScreen_FILES = SCPCarSplit.m SCPHooks.m SCPPrefs.m SCPShared.m SCPSmallClasses.m SCPSpringBoardHooks.m SCPPerfTelemetry.m SCPSessionCore.m SCPCButton.m SCPCTouchWatch.m SCPCarDividerView.m SCPCarSplit+Chrome.m SCPCarSplit+BridgeWake.m SCPCarSplit+AutoHide.m SCPPinchController.m SCPFullscreenController.m SCPFullscreenAdapter.m SCPTouchProbe.m SCPCarSplit+Divider.m SCPCarSplit+Drag.m SCPCarSplit+Layout.m SCPCarSplit+Panel.m SCPCarSplit+Picker.m SCPCarSplit+RatioMenu.m SCPCarSplit+Zoom.m SCPCarSplit+Relayout.m SCPCarSplitView.m SCPCarTabView.m SCPHomeWallView.m SCPAppIcons.m SCPHomeLauncher.m SCPCarApps.m SCPDiagDump.m SCPHomeApply.m SCPHomeHooks.m SCPHomeSettings.m SCPHomeVisibility.m SCPLibRoot.m SCPDeviceVitalsHUD.m ../OMCCommon/OMCDeviceVitals.m
+OmniCarSplitScreen_FRAMEWORKS = UIKit Foundation QuartzCore AVFoundation CoreGraphics IOKit
 OmniCarSplitScreen_CFLAGS = -fobjc-arc
 OmniCarSplitScreen_CFLAGS += -I../OmniCarApp
+OmniCarSplitScreen_CFLAGS += -I../OMCCommon # [duocar-vitals] shared read-only sampler
 OmniCarSplitScreen_CFLAGS += -DOMC_MODULE_NAME='"SplitScreen"'
 # G5 (rem4): the original binary carries the perf/session cluster ONCE;
 # SCPPerfTelemetry.m + SCPSessionCore.m are this target's single instance,
