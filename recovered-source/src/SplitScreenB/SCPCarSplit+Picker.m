@@ -782,12 +782,18 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     self.pickerSheetOverlay = (window != nil);
     [self updatePopupShield];
     [self publishBusy];
+    DCHL45OverlayTrace(self,@"sheet-new-attached",pane,oldSheet);
 
     // Entrance: cross-fade from an old sheet, spring up otherwise.
     if (oldSheet != nil) {
+        __weak SCPCarSplit *hl45Owner=self;
+        __weak SCPCarPane *hl45Pane=pane;
         [UIView animateWithDuration:0.15
             animations:^{ oldSheet.alpha = 0; }
-            completion:^(BOOL finished) { [oldSheet removeFromSuperview]; }];
+            completion:^(BOOL finished) {
+                [oldSheet removeFromSuperview];
+                DCHL45OverlayTrace(hl45Owner,@"sheet-old-removed",hl45Pane,oldSheet);
+            }];
     }
     sheet.alpha = 0;
     sheet.transform = (oldSheet != nil)
@@ -963,6 +969,8 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     NSInteger measureSlot = SCPickerMeasureSlot;
     NSString *measurePreBundle = SCPickerMeasurePreBundle;
     BOOL overlay = self.pickerSheetOverlay;
+    if (sheet) DCHL45OverlayTrace(self,@"sheet-remove-request",
+        measureSlot>=0 && measureSlot<(NSInteger)self.slots.count ? self.slots[(NSUInteger)measureSlot] : nil,sheet);
     self.pickerSheet = nil;
     self.pickerShield = nil;
     self.pickerSheetKey = nil;
@@ -987,6 +995,8 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                 [sheet removeFromSuperview];
                 [shield removeFromSuperview];
                 SCPCarSplit *s = weakSelf;
+                if (s) DCHL45OverlayTrace(s,@"sheet-remove-complete",
+                    measureSlot>=0 && measureSlot<(NSInteger)s.slots.count ? s.slots[(NSUInteger)measureSlot] : nil,sheet);
 
                 if (window != nil && s != nil && s.tray == nil &&
                     s.ratioMenu == nil && s.pickerSheet == nil)
@@ -1547,6 +1557,7 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
     [pane.view bringSubviewToFront:pane.handle];
     [pane.view bringSubviewToFront:pane.bar];
     pane.loader = loader;
+    DCHL45OverlayTrace(self,@"loader-added",pane,loader);
 
     UIButton *cancel = SCPMakeIconButton(SCPSymbolImage(@"close", 16.0),
                                          self, @selector(loaderCancelTapped:), 32.0);
@@ -1597,8 +1608,11 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
 
 - (void)removeLoaderFromPane:(SCPCarPane *)pane animated:(BOOL)animated {  // 0x2bbb4 VERIFIED
     UIView *loader = pane.loader;
+    if (loader) DCHL45OverlayTrace(self,@"loader-remove-request",pane,loader);
     pane.loader = nil;
     if (loader == nil) return;
+    __weak SCPCarSplit *hl45Owner=self;
+    __weak SCPCarPane *hl45Pane=pane;
     if (animated) {
         // VERIFIED (CLOSURE-2; disasm/rem2_removeLoaderFromPane.txt): the
         // card is the loader's tag-78 subview; its "pulse" animation (set
@@ -1614,9 +1628,13 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
                 loader.alpha = 0;
                 card.transform = CGAffineTransformMakeScale(1.25, 1.25);
             }
-            completion:^(BOOL finished) { [loader removeFromSuperview]; }];
+            completion:^(BOOL finished) {
+                [loader removeFromSuperview];
+                DCHL45OverlayTrace(hl45Owner,@"loader-remove-complete",hl45Pane,loader);
+            }];
     } else {
         [loader removeFromSuperview];
+        DCHL45OverlayTrace(self,@"loader-remove-complete",pane,loader);
     }
 }
 
