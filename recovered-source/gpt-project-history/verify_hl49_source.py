@@ -52,7 +52,7 @@ settings=(project/"OmniCarApp/OMCNativeSettings.m").read_text()
 assert 'OMCRow(@"SPEEDBUBBLE",@"bubble"' in settings
 assert "OMCLeOriginalPreferencesController()" in settings
 app=(project/"OmniCarApp/OMCLePrefsHost.m").read_text()
-assert "leTrafficGpsOffsetKph" in app
+assert "Hiệu chỉnh tốc độ GPS thực" in app
 assert "leGpsStepper" not in settings
 assert "notify_register_dispatch(DCLLeAck" in app
 assert "notify_set_state(self.sendToken" in app
@@ -69,6 +69,7 @@ assert 'dev.bechou.le.bubble/layout-v1.json' in bridge
 assert "CFPreferencesAppSynchronize" in bridge
 assert "dev.bechou.le.bubble.layout-changed" in bridge
 assert "DCLModuleOrderArray" in bridge
+assert "leTrafficGpsOffsetKph" in bridge
 assert "(raw>>48)!=0x4c45" in bridge
 assert "DCLLeConfigStartBridge" in bridge
 ext=(project/"OmniCarLeExtension/DCLLeExtension.m").read_text()
