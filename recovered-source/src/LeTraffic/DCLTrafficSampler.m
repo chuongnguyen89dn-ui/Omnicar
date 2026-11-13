@@ -30,6 +30,13 @@ static const char *DCLLeLimit = "dev.bechou.le.gmaps.limit";
     BOOL _hasPreviousReading;
 }
 
+- (instancetype)init {
+    if ((self = [super init])) {
+        for (NSUInteger i=0;i<4;i++) _token[i]=-1;
+    }
+    return self;
+}
+
 static int DCLTrafficCorrection(void) {
     CFStringRef domain = (__bridge CFStringRef)DCLTrafficPrefsDomain;
     CFPreferencesAppSynchronize(domain);
@@ -72,7 +79,7 @@ static int DCLTrafficCorrection(void) {
 - (void)stop {
     [self.timer invalidate]; self.timer = nil;
     for (NSUInteger i=0;i<4;i++) {
-        if (_token[i] >= 0 && _initialized[i]) notify_cancel(_token[i]);
+        if (_token[i] >= 0) notify_cancel(_token[i]);
         _token[i] = -1;
         _initialized[i] = NO;
         _changedAt[i] = 0;
@@ -119,7 +126,13 @@ static int DCLTrafficCorrection(void) {
     }
     DCLTrafficReading reading = DCLTrafficComputeReading(
         hasSpeed, speed, hasLimit, limit, DCLTrafficCorrection());
-    if (_hasPreviousReading && memcmp(&_previousReading, &reading, sizeof(reading)) == 0 &&
+    if (_hasPreviousReading &&
+        _previousReading.hasSpeed == reading.hasSpeed &&
+        _previousReading.rawSpeedKph == reading.rawSpeedKph &&
+        _previousReading.correctedSpeedKph == reading.correctedSpeedKph &&
+        _previousReading.hasLimit == reading.hasLimit &&
+        _previousReading.postedLimitKph == reading.postedLimitKph &&
+        _previousReading.overspeed == reading.overspeed &&
         [_previousProvider isEqualToString:provider]) return;
     _previousReading = reading;
     _previousProvider = provider;
