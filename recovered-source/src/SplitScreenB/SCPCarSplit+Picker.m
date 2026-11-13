@@ -376,17 +376,24 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
         // pickerPaneTapped:, the sheet, Cancel and selection still work.
         // Only its full-pane opaque fill is disabled for native content.
         picker.backgroundColor = UIColor.clearColor;
-        // A stale resize cover would otherwise still hide the image.
+        // The two A/B switches MUST remain independent. An old cover is
+        // stripped only if its own cover-off switch is ON. With that switch
+        // OFF, preserve the original cover even when picker is clear; this
+        // exposes which layer hides native pixels instead of contaminating
+        // the picker-only experiment.
         UIView *oldCover = pane.cover;
-        if (oldCover) {
+        BOOL removeNativeCover = (oldCover != nil &&
+            [OMCPref(@"duocarHL46NativeCoverOff", @YES) boolValue]);
+        if (removeNativeCover) {
             pane.cover = nil;
             [oldCover.layer removeAllAnimations];
             [oldCover removeFromSuperview];
             DCHL45OverlayTrace(self,@"hl46-cover-detached-at-picker",pane,oldCover);
         }
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-            @"[hl46-bypass] picker CLEAR slot=%d bundle=%@ mode=NATIVE coverRemoved=%d",
-            pane.slot,pane.bundleID ?: @"(none)",oldCover != nil]);
+            @"[hl46-bypass] picker CLEAR slot=%d bundle=%@ mode=NATIVE coverRemoved=%d coverRetained=%d",
+            pane.slot,pane.bundleID ?: @"(none)",(int)removeNativeCover,
+            (int)(oldCover != nil && !removeNativeCover)]);
     } else {
         OMCLogWrite(@"SplitScreen", @"[hl22-original] picker-pane-opacity=1.0");
     }   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
