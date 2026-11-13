@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL50: phục hồi lỗi DuoCar49 DEVICE FAIL
+- Mốc phục hồi: [HL50_DEVICE_RUNTIME_RECOVERY_20261113.md](HL50_DEVICE_RUNTIME_RECOVERY_20261113.md). Test xe xác nhận DuoCar49 **DEVICE FAIL**: mất zoom fullscreen, menu đen, Lề không dữ liệu/không kéo, pin–nhiệt sai vị trí. Đã kiểm **hai DEB gốc** qua CI forensic 43395844302; đã sửa đường panned gốc, schema Lề `{id,enabled}`, Dock native view và menu hosted trên nhánh `feature/duocar-hl50-restore-runtime-20261113`.
+- CI DuoCar50 ký một DEB FAT: run [43398566381](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/43398566381) — **đang chạy tại lúc ghi**; KHÔNG được coi DEVICE PASS nếu chỉ build thành công. Cảnh báo đỏ 39°C để đợt sau. Không merge main, không publish Sileo.
+
 ## 2026-11-13 — DuoCar49: sửa hồi quy HL48, BUILD/ARTIFACT PASS, DEVICE PENDING
 - Nguyen đã DEVICE FAIL DuoCar48: picker đen, Dock không có pin/nhiệt, Lề còn km/h và hít lề, Cài đặt không lưu, SpeedBubble cũ chưa loại đủ. Nhánh `feature/duocar-hl48-device-regression-20261113`, build source `5d1347408904eaf934b629dc07810eff759e1880` sửa đúng vị trí `picker.opaque=NO`, đưa HUD vào Dock UIWindow, bridge ACKed lưu Lề qua SpringBoard, hook kéo owner Lề, bỏ chuỗi km/h trên LeBubble FAT và loại mã/tài nguyên SpeedBubble cũ (giữ một row cấu hình DuoCar).
 - **CI BUILD PASS** run [43392091835](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/43392091835), artifact `DuoCar49` ID `14020779162`; bản DEB đã tải và kiểm trực tiếp: Package `com.chuong.duocar`, version `1.0.3-le0242`, **2.331.264 bytes**, SHA-256 `839730f7d2562fe8da2f21d972d6a7be2debbdc7b8da289f7878dc0ae26fa42b`. Đã xác minh 18 Mach-O có arm64/arm64e + code signatures, 9 Le vendor dylib, menu/Dock markers, không có SpeedBubble files. **Còn chờ Nguyen nghiệm thu xe**, không khẳng định runtime/icon/picker đã hoạt động. Không có overlay nhiệt 39°C ở bản này.
