@@ -209,7 +209,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
     }
     self.pill.alpha = 1.0; // NO idle-dim/AutoHide lease; fullscreen-only gate
     self.timeLabel.text = [[self systemClockFormatter] stringFromDate:[NSDate date]];
-    NSTimeInterval now = NSDate.date.timeIntervalSince1970;
+    NSTimeInterval now = [NSDate date].timeIntervalSince1970;
     if (!self.lastSample || now - self.lastSampleTime >= 12.0 ||
         now < self.lastSampleTime) {
         self.lastSample = OMCDeviceVitalsSample();
@@ -263,12 +263,17 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
     SCPVitalsLayoutResult initial = SCPVitalsFullscreenBubblePlace(
         r,safe.top,safe.right,1);
     if (!initial.valid) return NO;
+    // Do not reject a physically usable window just because its LEFT safe
+    // inset was not represented by the older top-right C placement API.
+    double usableWidth = r.w - safe.left - safe.right - 2.0*DCFVMargin;
+    double width = fmin(initial.frame.w,usableWidth);
+    if (!isfinite(width) || width < 198.0) return NO;
     SCPVitalsPoint fit = SCPVitalsBubbleEdgeCenter(
-        r,safe,initial.frame.w,initial.frame.h,DCFVMargin,NO,0.0);
+        r,safe,width,initial.frame.h,DCFVMargin,NO,0.0);
     if (!isfinite(fit.x) || !isfinite(fit.y)) return NO;
     self.dragBounds = r;
     self.dragSafe = safe;
-    if (sizeOut) *sizeOut = CGSizeMake(initial.frame.w,initial.frame.h);
+    if (sizeOut) *sizeOut = CGSizeMake(width,initial.frame.h);
     return YES;
 }
 - (CGPoint)boundedCenter:(CGPoint)point {
@@ -368,7 +373,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
     if (created) {
         UIView *pill = [[UIView alloc] initWithFrame:
             CGRectMake(0,0,size.width,size.height)];
-        pill.backgroundColor = [UIColor colorWithWhite:0.07 alpha:0.75];
+        pill.backgroundColor = [UIColor colorWithWhite:0.07 alpha:0.96];
         pill.layer.cornerRadius = 19.0;
         pill.layer.borderWidth = 0.5;
         pill.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.22].CGColor;
