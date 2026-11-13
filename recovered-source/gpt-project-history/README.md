@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — Lề 0.2.4 nguyên gói, tích hợp qua DuoCar (source staging)
+- Nguyen yêu cầu dùng nguyên bộ binary vendor Lề 0.2.4 thay vì viết lại feature. Source nhánh `feature/duocar-le024-full-20261113` đã nối Cài đặt Lề gốc vào DuoCar UIKit (`OMCLePrefsHost`), giữ stepper GPS -5..+5 và soạn extension ABI-guarded sửa speedText + kéo X/Y. Bộ trộn ba input DEB ký sẵn thành **một `duocar.deb` cá nhân** giữ nguyên 9 Le dylib, LePrefs + fonts và loại old SpeedBubble, kiểm SHA vendor và firmware <27; có fixture test. **Source chưa được build iOS, extension chưa nghiệm thu, DEB thật chưa được trộn do connector không tải được raw file .deb và container DNS không tới GitHub.** Không có single-DEB final hay device PASS.
+- Điểm khôi phục đầy đủ: [LE024_DUOCAR_MIGRATION_20261113.md](LE024_DUOCAR_MIGRATION_20261113.md). Lệnh gói/test: [LE024_ONE_DEB_PERSONAL_BUILD.md](LE024_ONE_DEB_PERSONAL_BUILD.md). Chưa xác minh quyền phân phối mã vendor; chỉ dùng thử cá nhân.
+
+
 ## 2026-11-13 — Lề 0.2.4 traffic migration + hiệu chỉnh tốc độ GPS của xe
 - Theo yêu cầu Nguyen, thay toàn bộ runtime SpeedBubble cũ bằng tính năng bong bóng giao thông Lề 0.2.4; giữ lại entry Cài đặt > Bong bóng tốc độ trong **DuoCar UIKit** để làm giao diện cấu hình mới. Đặc biệt `leTrafficGpsOffsetKph` -5..+5 bước 1 hiệu chỉnh **tốc độ GPS xe đang đi**, tuyệt đối không đổi tốc độ giới hạn hay tốc độ tối đa ứng dụng. Bong bóng GPS chỉ hiện số, kéo tự do như bong bóng giờ-pin-nhiệt; Lề còn nguyên biển báo, làn đường, thẻ Google Maps và nguồn VietMap/GOFA/Waze.
 - Nhánh `feature/duocar-le024-full-20261113` từ HL47, đã bỏ target cũ khỏi aggregate Makefile, thay trang cấu hình với UIStepper ± và đồng bộ src/project; **mới UI+build-graph, CHƯA có runtime Lề, CHƯA nối consumer offset, CHƯA build hay device-pass**. [Checkpoint LE024_DUOCAR_MIGRATION_20261113.md](LE024_DUOCAR_MIGRATION_20261113.md). Đừng nhầm số GPS đã hiệu chỉnh với posted speed limit.
