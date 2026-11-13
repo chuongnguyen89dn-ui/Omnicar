@@ -24,6 +24,7 @@
 #import "SCPShared.h"               // SCPDispatchAfter
 #import "SCPCommon.h"               // OMCLogWrite
 #import "SCPFullscreenVitalsBubble.h" // [fs-vitals] display only, controller owns fullscreen
+#import "SCPDeviceVitalsHUD.h" // [hl47] split-only Dock metric surface
 #import <notify.h>                  // [fs-diag] prefs listener
 
 #pragma mark - File statics (thresholds copied from the reference source)
@@ -204,12 +205,15 @@ typedef NS_ENUM(NSInteger, SCPFSPhase) {
     // The settled fullscreen owner is the ONLY source of visibility.
     // Do not replace the adapter's existing stateDidChange subscriber.
     if (state == SCPFullscreenStateExpanded) {
+        [[SCPDeviceVitalsHUD shared] stop]; // [hl47] no simultaneous dock HUD
         UIView *parent = [SCPCarSplit shared].container.superview;
         [[SCPFullscreenVitalsBubble shared] showForConfirmedFullscreenInParent:parent];
     } else {
         [[SCPFullscreenVitalsBubble shared] stop];
     }
     if (_fsStateDidChange) _fsStateDidChange(state);
+    if (state == SCPFullscreenStateSplit && [SCPCarSplit shared].active)
+        [[SCPCarSplit shared] rootDidLayout]; // restore Dock metric after fullscreen
 }
 
 - (void)fsClearSnapshot {
