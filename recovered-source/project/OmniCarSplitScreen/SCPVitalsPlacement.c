@@ -74,3 +74,35 @@ SCPVitalsLayoutResult SCPVitalsPlace(SCPVitalsLayoutInput in) {
     }
     return none;
 }
+
+// Standalone fullscreen pill in the parent's own coordinates, away from the
+// upper/outer edge. It is NOT a Dock rail badge. A caller must pass a trusted
+// fullscreen state (not merely a pinch begin or an inferred hidden icon).
+SCPVitalsLayoutResult SCPVitalsFullscreenBubblePlace(SCPVitalsRect root,
+                                                    double safeTop,
+                                                    double safeRight,
+                                                    int fullscreenConfirmed) {
+    SCPVitalsLayoutResult none = {0};
+    if (!fullscreenConfirmed || !ok(root) ||
+        !isfinite(safeTop) || !isfinite(safeRight) ||
+        safeTop < 0.0 || safeRight < 0.0) return none;
+    const double margin = 9.0;
+    const double height = 38.0;
+    double available = root.w - 2.0 * margin - safeRight;
+    if (available < 198.0 || root.h - safeTop < height + 2.0*margin)
+        return none;
+    double width = fmin(258.0,available);
+    SCPVitalsRect r = {
+        root.x + root.w - safeRight - margin - width,
+        root.y + safeTop + margin,
+        width,
+        height
+    };
+    if (!inside(r,root)) return none;
+    SCPVitalsLayoutResult result = {0};
+    result.frame = r;
+    result.valid = 1;
+    result.horizontal = 1;
+    result.railIndex = -1; // no native dock rail is used in fullscreen
+    return result;
+}
