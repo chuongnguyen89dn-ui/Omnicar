@@ -27,6 +27,7 @@ for a,b in pairs:
 picker=(project/"OmniCarSplitScreen/SCPCarSplit+Picker.m").read_text()
 chrome=(project/"OmniCarSplitScreen/SCPCarSplit+Chrome.m").read_text()
 assert "picker.opaque = NO" in picker and "picker.layer.opaque = NO" in picker
+assert picker.index('}   // VERIFIED @0x315ec-0x3160c') < picker.index('// [hl49-opaque] A clear')
 assert "sheet.opaque = NO" in picker and "effectView.opaque = NO" in picker
 assert "duocarHL49HostedSameWindowPicker" in picker
 assert "duocarHL49HostedSameWindowPicker\",@NO" in picker

@@ -422,6 +422,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
             OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
                 @"[hl46-bypass] picker OPAQUE native cover-only removed slot=%d bundle=%@",
                 pane.slot,pane.bundleID ?: @"(none)"]);
+    }   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
     // [hl49-opaque] A clear background is NOT sufficient if UIView/layer
     // still declare themselves opaque. This view is installed over the
     // entire pane above host. Keep it hit-testable for existing menu taps.
@@ -433,7 +434,6 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
             pane.slot,(int)picker.isOpaque,(int)picker.layer.isOpaque,
             SCPMeasureBgRaw(picker.backgroundColor)]);
     }
-    }   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
     // [hl2-split P6] THE single picker measurement line (2026-11-09):
     // the ytz5hl1 car log proved hasContent=1 on both real opens while
     // the pane still showed white, and the source audit could NOT
