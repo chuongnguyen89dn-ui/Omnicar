@@ -16,9 +16,15 @@ def field(key):
     return subprocess.check_output(["dpkg-deb", "-f", str(deb), key], text=True).strip()
 assert [field(k) for k in ("Package","Version","Architecture")] == [
     "com.chuong.duocar",version,"iphoneos-arm64"]
-meta = subprocess.check_output(["dpkg-deb","-f",str(deb)],text=True).lower()
-assert "com.anlai.omnicar" not in meta
-assert "replaces:" not in meta and "breaks:" not in meta
+meta = subprocess.check_output(["dpkg-deb","-f",str(deb)],text=True)
+assert "com.anlai.omnicar" not in meta.lower()
+# Match CONTROL FIELD HEADERS only. Free-text descriptions may mention
+# words like "Breaks:" or "Replaces:" without forcing package removal.
+headers=[line for line in meta.splitlines() if line and not line[0].isspace()]
+print("HL47_CONTROL_HEADERS", [line.partition(":")[0] for line in headers])
+for line in headers:
+    assert not line.startswith(("Replaces:","Breaks:")), (
+        "Unexpected forced package metadata",line)
 
 def signed_thin(data, name, arch):
     assert data[:4] == bytes.fromhex("cffaedfe"), (name,arch,"not MachO64")
