@@ -106,3 +106,63 @@ SCPVitalsLayoutResult SCPVitalsFullscreenBubblePlace(SCPVitalsRect root,
     result.railIndex = -1; // no native dock rail is used in fullscreen
     return result;
 }
+
+// First-party geometry for a draggable fullscreen bubble. Full width/height
+// of the CarPlay window are usable, with only safe insets + a small margin.
+static int bubbleRange(SCPVitalsRect bounds, SCPVitalsSafeInsets safe,
+                       double width, double height, double margin,
+                       double *minX, double *maxX,
+                       double *minY, double *maxY) {
+    if (!ok(bounds) || !isfinite(width) || !isfinite(height) ||
+        !isfinite(margin) || width <= 0 || height <= 0 || margin < 0 ||
+        !isfinite(safe.top) || !isfinite(safe.right) ||
+        !isfinite(safe.bottom) || !isfinite(safe.left) ||
+        safe.top < 0 || safe.right < 0 || safe.bottom < 0 || safe.left < 0)
+        return 0;
+    *minX = bounds.x + safe.left + margin + width * 0.5;
+    *maxX = bounds.x + bounds.w - safe.right - margin - width * 0.5;
+    *minY = bounds.y + safe.top + margin + height * 0.5;
+    *maxY = bounds.y + bounds.h - safe.bottom - margin - height * 0.5;
+    return isfinite(*minX) && isfinite(*maxX) &&
+           isfinite(*minY) && isfinite(*maxY) &&
+           *minX <= *maxX && *minY <= *maxY;
+}
+static double bubbleClamp(double x, double lower, double upper) {
+    if (!isfinite(x)) return lower;
+    return fmin(upper, fmax(lower, x));
+}
+SCPVitalsPoint SCPVitalsBubbleBoundCenter(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    SCPVitalsPoint proposed) {
+    double minX, maxX, minY, maxY;
+    if (!bubbleRange(bounds,safe,width,height,margin,
+                     &minX,&maxX,&minY,&maxY))
+        return (SCPVitalsPoint){NAN,NAN};
+    return (SCPVitalsPoint){bubbleClamp(proposed.x,minX,maxX),
+                             bubbleClamp(proposed.y,minY,maxY)};
+}
+SCPVitalsPoint SCPVitalsBubbleEdgeCenter(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    int leftEdge, double normalizedY) {
+    double minX, maxX, minY, maxY;
+    if (!bubbleRange(bounds,safe,width,height,margin,
+                     &minX,&maxX,&minY,&maxY))
+        return (SCPVitalsPoint){NAN,NAN};
+    double t = bubbleClamp(normalizedY,0.0,1.0);
+    return (SCPVitalsPoint){leftEdge ? minX : maxX,
+                             minY+t*(maxY-minY)};
+}
+double SCPVitalsBubbleRelativeY(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    double centerY) {
+    double minX, maxX, minY, maxY;
+    if (!bubbleRange(bounds,safe,width,height,margin,
+                     &minX,&maxX,&minY,&maxY))
+        return NAN;
+    if (maxY==minY) return 0.5;
+    return bubbleClamp((centerY-minY)/(maxY-minY),0.0,1.0);
+}
+int SCPVitalsBubbleNearestLeft(SCPVitalsRect bounds, double centerX) {
+    return ok(bounds) && isfinite(centerX) &&
+           centerX < bounds.x + bounds.w * 0.5;
+}
