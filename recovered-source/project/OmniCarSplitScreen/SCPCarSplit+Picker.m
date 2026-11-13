@@ -393,7 +393,21 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // [hl49-menu] Do not depend only on SCPHostedAppVC class while an
     // occupied phone scene is transitioning. Empty slots stay unchanged.
     BOOL hl49OccupiedPicker = (hasContent && (pane.vc || pane.bundleID.length>0) &&
-        [OMCPref(@"duocarHL49OccupiedPickerClear",@NO) boolValue]);
+        [OMCPref(@"duocarHL49OccupiedPickerClear",@YES) boolValue]);
+    // [hl50-menu] A stale resize cover lives ABOVE pane.host and blocks the
+    // live app even when picker background is clear. Only detach it at
+    // explicit menu opening for an occupied pane; original resize cleanup
+    // remains intact. Never change scene owners or native feed.
+    if (hasContent && (hl48HostedPicker || hl49OccupiedPicker) && pane.cover) {
+        UIView *cover=pane.cover; pane.cover=nil;
+        [cover.layer removeAllAnimations];
+        [cover removeFromSuperview];
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl50-picker-cover] DETACHED slot=%d bundle=%@ cover=%p host=%p vc=%@",
+            pane.slot,pane.bundleID?:@"(none)",cover,pane.host,
+            pane.vc?NSStringFromClass(pane.vc.class):@"nil"]);
+    }
+
     if (hl46NativePicker) {
         // The original picker remains attached/tappable for its sheet,
         // Cancel and Choose. Only its native full-pane face goes clear.
@@ -536,7 +550,7 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
         !SCPVCIsHosted(owner.pickerSheetPane.vc) ||
         owner.tray || owner.ratioMenu || owner.dragGhost)
         return NO;
-    return [OMCPref(@"duocarHL49HostedSameWindowPicker",@NO) boolValue];
+    return [OMCPref(@"duocarHL49HostedSameWindowPicker",@YES) boolValue];
 }
 
 // MARK: - Picker sheet
@@ -726,7 +740,7 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     // the picker gestures/Choose/Cancel subviews below and is A/B reversible.
     BOOL hl49LiveUnderSheet = (pane != nil &&
         (pane.vc != nil || pane.bundleID.length>0) &&
-        [OMCPref(@"duocarHL49LiveUnderSheet",@NO) boolValue]);
+        [OMCPref(@"duocarHL49LiveUnderSheet",@YES) boolValue]);
     UIVisualEffectView *effectView = hl49LiveUnderSheet
         ? [[UIVisualEffectView alloc] initWithEffect:nil]
         : SCPKnobFaceView();
@@ -737,7 +751,7 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     if (hl49LiveUnderSheet) {
         // A slightly translucent face keeps menu controls readable without
         // the compositing blur/mesh masking the live app's image.
-        effectView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.18];
+        effectView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.32];
         effectView.contentView.backgroundColor = UIColor.clearColor;
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
             @"[hl49-sheet] NO-BLUR slot=%d bundle=%@ vc=%@ host=%@ win=%@ level=%.1f",
@@ -985,6 +999,14 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
                          } completion:nil];
     }
 
+    if (window == nil && pane.vc && SCPVCIsHosted(pane.vc)) {
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl50-menu] SAME WINDOW hosted slot=%d sceneWindow=%@ host=%@ hostWin=%@ hostHidden=%d hostAlpha=%.2f",
+            pane.slot,NSStringFromClass(self.container.window.class),
+            NSStringFromClass(pane.host.class),
+            pane.host.window?NSStringFromClass(pane.host.window.class):@"nil",
+            (int)pane.host.hidden,(double)pane.host.alpha]);
+    }
     if (window == nil) [self pushHostFramesLive:NO];
     OMCLogWrite(@"SplitScreen",
         [NSString stringWithFormat:@"CarSplit: popup chon %ld app cho o %d (%s, %d o cho)",
