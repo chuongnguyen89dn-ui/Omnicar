@@ -62,12 +62,25 @@ assert "SCPFullscreenBubblePlace" not in fs
 assert "SCPVitalsFullscreenBubblePlace" in bubble
 assert "SCPFullscreenStateExpanded" in bubble
 assert "parent convertRect:parent.window.bounds fromView:parent.window" in bubble
-assert "userInteractionEnabled = NO" in bubble
+assert "userInteractionEnabled = YES" in bubble
+assert "DCFVPassHitTest" in bubble and "isDescendantOfView:bubble" in bubble
+assert "UIRootSceneWindow" in bubble and "initWithDisplayConfiguration:" in bubble
+assert "window.windowLevel = UIWindowLevelStatusBar + 64.0" in bubble
+assert "SCPVitalsBubbleBoundCenter" in bubble and "SCPVitalsBubbleEdgeCenter" in bubble
+assert "SCPVitalsBubbleRelativeY" in bubble and "SCPVitalsBubbleNearestLeft" in bubble
+assert "UIPanGestureRecognizer" in bubble and "pan.maximumNumberOfTouches = 1" in bubble
+assert "drag snap edge=" in bubble and "DCFVEdgeKey" in bubble and "DCFVYKey" in bubble
+assert "self.pill.alpha = 1.0" in bubble
+assert "self.overlayWindow.hidden = YES" in bubble and "sourceWindow != host" in bubble
+assert "idleTimer" not in bubble and "dimBubble" not in bubble
+assert "userInteractionEnabled = NO" not in bubble
+assert "SCPVoiceBubbleView" not in bubble and "SCPVoiceNative" not in bubble
+assert "SCPDeviceVitalsHUD" not in bubble and "SCPFullscreenVitalsBubble.m" in make_split
 assert "NSDateFormatterShortStyle" in bubble
 assert "NSSystemTimeZoneDidChangeNotification" in bubble
 assert "NSCurrentLocaleDidChangeNotification" in bubble
 assert "UIApplicationSignificantTimeChangeNotification" in bubble
-assert 'OMCPref(@"duocarFullscreenVitalsEnabled", @YES)' in bubble
+assert 'OMCPref(@"duocarFullscreenVitalsEnabled",@YES)' in bubble
 assert "@\"duocarFullscreenVitalsEnabled\",@YES" in settings
 assert '@"duocarVitalsEnabled",@NO' not in settings
 assert "SCPVitalsFullscreenBubblePlace" in layout
@@ -79,7 +92,7 @@ assert "OMCDeviceVitalsController.m" in make_app
 assert "IOKitLib.h" not in sampler and "dlsym" in sampler
 assert "temperatureUnitsVerified" in sampler and "gpuTemperatureVerified" in sampler
 assert " IOKit" not in make_split and " IOKit" not in make_app
-print("FS_VITALS_SOURCE_MIRRORS_GATE_PASS",len(PAIRS))
+print("FS_VITALS_DRAG_PASS_THROUGH_SOURCE_GATE_PASS",len(PAIRS))
 
 cc=os.environ.get("CC","clang")
 test=ROOT/"gpt-project-history/test_duocar_vitals_placement.c"
@@ -92,4 +105,4 @@ with tempfile.TemporaryDirectory(prefix="fs-vitals-") as tmp:
           "-lm","-o",str(binary)]
     subprocess.run(args,cwd=ROOT,check=True)
     subprocess.run([str(binary)],cwd=ROOT,check=True)
-print("FS_VITALS_FULLSCREEN_GEOMETRY_TEST_PASS")
+print("FS_VITALS_FULLSCREEN_DRAG_GEOMETRY_TEST_PASS")
