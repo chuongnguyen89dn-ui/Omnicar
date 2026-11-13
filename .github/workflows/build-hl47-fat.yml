@@ -1,0 +1,98 @@
+name: "DuoCar HL47 menu Dock bubble single-arm64+arm64e signed FAT DEB"
+permissions:
+  contents: read
+on:
+  push:
+    branches:
+      - feature/duocar-hl47-menu-dock-bubble-fat-20261113
+    paths:
+      - ".github/workflows/build-hl47-fat.yml"
+      - "recovered-source/project/**"
+      - "recovered-source/src/**"
+      - "recovered-source/gpt-project-history/verify_hl47_combined.py"
+      - "recovered-source/gpt-project-history/rebrand_duocar_hl47.py"
+      - "recovered-source/gpt-project-history/verify_hl47_payload_fat.py"
+  workflow_dispatch:
+
+jobs:
+  hl43-arm64:
+    runs-on: macos-15
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify HL47 integrated native menu, Dock HUD, fullscreen bubble and geometry
+        run: |
+          python3 recovered-source/gpt-project-history/verify_hl47_combined.py
+          python3 recovered-source/gpt-project-history/verify_hl43_shared_telex.py
+          python3 recovered-source/gpt-project-history/verify_hl26_native_settings.py
+          python3 recovered-source/gpt-project-history/verify_hl27_settings_respring.py
+      - name: Compile and exercise ACTUAL shared Telex implementation on macOS
+        shell: bash
+        run: |
+          set -euo pipefail
+          clang -fobjc-arc -Wall -Wextra -Werror -framework Foundation \
+            recovered-source/project/OmniCarAppBridge/ABTelex.m \
+            recovered-source/gpt-project-history/hl43_telex_tests.m \
+            -o /tmp/hl43-telex-tests
+          /tmp/hl43-telex-tests
+      - name: Restore Theos and iPhoneOS SDK from project cache
+        id: cache-theos
+        uses: actions/cache@v4
+        with:
+          path: ~/theos
+          key: hl36-theos-ios16-5-${{ runner.os }}-${{ runner.arch }}-v1
+      - name: Install Theos and iPhoneOS SDK if uncached
+        if: steps.cache-theos.outputs.cache-hit != 'true'
+        run: |
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git ~/theos-sdks
+          git -C ~/theos-sdks sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p ~/theos/sdks
+          cp -R ~/theos-sdks/iPhoneOS16.5.sdk ~/theos/sdks/
+          ls -la ~/theos/sdks/
+      - name: Install signing and Debian tools
+        run: |
+          brew list ldid >/dev/null 2>&1 || brew install ldid
+          brew list dpkg >/dev/null 2>&1 || brew install dpkg
+          command -v ldid
+          command -v dpkg-deb
+      - name: Remove Linux-only linker flag in disposable checkout
+        run: |
+          find recovered-source/project -type f -name Makefile -print0 |
+            xargs -0 grep -l -- '-fuse-ld=lld' | while IFS= read -r f; do
+              sed -i '' 's/-fuse-ld=lld//g' "$f"
+            done
+      - name: Rebrand integrated build and compile exactly two real FAT slices
+        shell: bash
+        env:
+          ARCHS: "arm64 arm64e"
+          THEOS_PACKAGE_SCHEME: rootless
+        run: |
+          set -euo pipefail
+          export THEOS="$HOME/theos"
+          python3 recovered-source/gpt-project-history/rebrand_duocar_hl47.py
+          cd recovered-source/project
+          make clean ARCHS="arm64 arm64e"
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/hl43-build.log
+          ls -lh packages/
+      - name: Verify the ACTUAL FAT signed DEB, exact version and two slices in all eight Mach-O files
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEB="recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb"
+          python3 recovered-source/gpt-project-history/verify_hl47_payload_fat.py "$DEB"
+          shasum -a 256 "$DEB"
+      - name: Upload ONE signed dual-architecture FAT DEB
+        uses: actions/upload-artifact@v4
+        with:
+          name: duocar-hl47-menu-dock-bubble-fat-deb
+          path: recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb
+          if-no-files-found: error
+          retention-days: 7
+      - name: Preserve compiler output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: duocar-hl47-fat-diagnostics
+          path: /tmp/hl43-build.log
+          if-no-files-found: ignore
