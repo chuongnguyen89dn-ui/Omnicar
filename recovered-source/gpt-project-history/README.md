@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL54 bổ sung: giữ cặp mép + kéo X/Y tự do; cần master ON/OFF Lề thật
+- Nguyen yêu cầu **hai chế độ đồng thời**: kéo giữa màn đứng yên, đưa sát mép thì cặp mép như Lề gốc; hiện `freePan` END ghi đè vị trí `-panned:` gốc và `margin=6` ngăn flush mép. Đồng thời phải có **công tắc ON/OFF bong bóng Lề hoạt động**, không chỉ bật/tắt hình giả: `bubbleEnabled` có trong `layout-v1.json` và bridge extras nhưng UI gốc chưa lưu được, cần owner broker + kiểm đường live visibility vendor. Không sửa `traffic-bubble-state-v1.json` khi chưa chứng minh ý nghĩa, không đụng pinch/menu/Dock/keyboard. **DESIGN/BINARY AUDIT; CHƯA SỬA SOURCE/CHƯA BUILD/CHƯA DEVICE PASS**. [Chi tiết HL54](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
+
 ## 2026-11-14 — HL54: 'cài đặt cũ' là lỗi lưu Lề gốc, KHÔNG chứng minh trùng gói
 - Nguyen test DuoCar53 `1.0.3-le0246` (ảnh iPhone và CarPlay): **LePrefs gốc hiển thị nhưng báo `Không lưu được / Bubble vẫn dùng cài đặt cũ`**; đây là giá trị cấu hình trước đó được giữ vì save fail, **không phải** phát hiện hai bản Lề. DEB `com.chuong.duocar` khai báo Conflicts/Replaces `dev.bechou.le`, nhưng chưa kiểm dpkg/file dư trên máy nên không kết luận chắc không tồn dư. Trực tiếp trích final DEB/binary LePrefs, writer `CWStoreTrafficBubbleLayout→CWWriteOwnedStateFile` có kiểm owner `st_uid==geteuid`, mkdir/open/fsync/rename; DuoCar gọi UI gốc trong app sandbox trong khi cầu nối ghi owner ở SpringBoard chỉ dành cho trang extras, **chưa route save gốc**. Bubble dưới YouTube còn chưa biết owner/window layer cụ thể; cần log PID/scene. HL54 mới **điều tra, chưa vá code, chưa build/CI**. [Hồ sơ chứng cứ](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
 
