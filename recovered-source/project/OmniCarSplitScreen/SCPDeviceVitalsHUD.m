@@ -15,6 +15,7 @@
 @property(nonatomic,strong) UILabel *label;
 @property(nonatomic,strong) NSTimer *timer;
 @property(nonatomic) BOOL horizontal;
+@property(nonatomic) BOOL compactBattery;
 @property(nonatomic) BOOL noSpaceLogged;
 @end
 
@@ -65,7 +66,11 @@ static BOOL SCPVitalsFiniteRect(CGRect r) {
         : OMCDeviceVitalsThermalDescription(sample[@"thermalState"]);
     NSString *kind = sample[@"temperatureKind"];
     // A leading tilde indicates decoded temperature scale is not device-calibrated.
-    if (self.horizontal) {
+    if (self.compactBattery) {
+        // [hl51-dock] Collapsed native Dock monitor keeps the battery
+        // readable when the remaining rail is too short for two rows.
+        self.label.text = [NSString stringWithFormat:@"🔋%@",batteryText];
+    } else if (self.horizontal) {
         self.label.text = [NSString stringWithFormat:@"🔋 %@   🌡 %@", batteryText, heatText];
     } else {
         // A real 45pt CarPlay Dock rail has at most 39pt for the badge.
@@ -128,47 +133,127 @@ static void SCPVitalsCollectControls(UIView *view,UIView *dock,UIView *ignore,
         if(depth<7)SCPVitalsCollectControls(sub,dock,ignore,rects,depth+1);
     }
 }
-static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
-                               CGRect home,CGRect launcher,BOOL *horizontal) {
-    CGRect bounds=dock.bounds;
-    if(!SCPVitalsFiniteRect(bounds))return CGRectNull;
-    BOOL isHorizontal=bounds.size.width>bounds.size.height*1.5;
-    if(horizontal)*horizontal=isHorizontal;
-    CGFloat margin=3.0;
-    CGFloat width=isHorizontal?112.0:MIN(39.0,bounds.size.width-2*margin);
-    CGFloat height=isHorizontal?27.0:44.0;
-    if(width<35 || (isHorizontal && width>bounds.size.width-6) ||
-       height>bounds.size.height-6)return CGRectNull;
-    NSMutableArray<NSValue *> *blocked=[NSMutableArray array];
-    SCPVitalsCollectControls(dock,dock,ignore,blocked,0);
-    for(NSValue *v in @[[NSValue valueWithCGRect:home],
-                        [NSValue valueWithCGRect:launcher]]) {
-        CGRect external=v.CGRectValue;
-        if(!SCPVitalsFiniteRect(external))continue;
-        CGRect location=[dock convertRect:external fromView:parent];
-        location=CGRectIntersection(bounds,location);
-        if(!CGRectIsNull(location) && !CGRectIsEmpty(location))
-            [blocked addObject:[NSValue valueWithCGRect:CGRectInset(location,-4,-4)]];
+// [hl51-dock] A DBAppDockViewController.view bounds rect is the compact
+// THREE-APP-ICON CLUSTER (45x111 on Nguyen's 427x240 CarPlay display), NOT
+// the whole Dock rail. Do not search only inside it. Scan the actual free
+// left/right/top/bottom rail in common parent coordinates, excluding the
+// measured icon cluster, Home/launcher, status and native control children.
+// Then convert the chosen frame into the genuine native Dock subtree.
+static void SCPVitalsBlock(NSMutableArray<NSValue *> *blocked,
+                           CGRect rect, CGRect rail,CGFloat pad) {
+    if(!SCPVitalsFiniteRect(rect) || !CGRectIntersectsRect(rect,rail))return;
+    CGRect grown=CGRectInset(rect,-pad,-pad);
+    [blocked addObject:[NSValue valueWithCGRect:grown]];
+}
+static BOOL SCPVitalsCandidateVisible(UIView *host,UIView *parent,CGRect rect) {
+    if(!host || !parent || !host.window || !parent.window ||
+       host.window.screen!=parent.window.screen)return NO;
+    for(UIView *v=host;v;v=v.superview) {
+        if(v.clipsToBounds) {
+            CGRect local=[v convertRect:rect fromView:parent];
+            if(!SCPVitalsFiniteRect(local) ||
+               !CGRectContainsRect(CGRectInset(v.bounds,-0.5,-0.5),local))
+                return NO;
+        }
+        if(v==host.window)break;
     }
-    UIEdgeInsets safe=dock.safeAreaInsets;
-    CGFloat left=MAX(3,safe.left+2),top=MAX(3,safe.top+2);
-    CGFloat right=bounds.size.width-MAX(3,safe.right+2);
-    CGFloat bottom=bounds.size.height-MAX(3,safe.bottom+2);
-    // Walk the real Dock itself from the end that contains its status
-    // gap. Refuse occupied locations; never place in app pane's rail.
-    CGFloat maxY=bottom-height,maxX=right-width;
-    if(maxY<top||maxX<left)return CGRectNull;
-    NSUInteger trials=0;
-    for(CGFloat y=top;y<=maxY+0.2;y+=2.0) {
-        for(CGFloat x=left;x<=maxX+0.2;x+=isHorizontal?3.0:2.0) {
-            CGRect frame=CGRectMake(x,y,width,height);
-            BOOL collision=NO;
-            for(NSValue *v in blocked)
-                if(CGRectIntersectsRect(frame,v.CGRectValue)) {
-                    collision=YES;break;
+    return YES;
+}
+static UIView *SCPVitalsNativeHostForTarget(UIView *dock,UIView *parent,CGRect target) {
+    if(SCPVitalsCandidateVisible(dock,parent,target))return dock;
+    // Some native Dock variants clip their tight icon-cluster UIView.
+    // An immediate native Dock parent may own the outside-cluster rail.
+    // Never create a new window or attach a badge to the split pane.
+    UIView *nativeParent=dock.superview;
+    if(nativeParent && nativeParent!=dock && nativeParent.window==dock.window &&
+       SCPVitalsCandidateVisible(nativeParent,parent,target))
+        return nativeParent;
+    return nil;
+}
+static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
+        CGRect appArea,CGRect cluster,CGRect home,CGRect launcher,
+        UIView **hostOut,BOOL *horizontalOut,BOOL *compactOut,
+        NSUInteger *obstacleCount) {
+    if(hostOut)*hostOut=nil;
+    if(horizontalOut)*horizontalOut=NO;
+    if(compactOut)*compactOut=NO;
+    if(obstacleCount)*obstacleCount=0;
+    CGRect root=parent.bounds;
+    if(!SCPVitalsFiniteRect(root) || !SCPVitalsFiniteRect(appArea) ||
+       !SCPVitalsFiniteRect(cluster))return CGRectNull;
+    CGRect overlap=CGRectIntersection(root,appArea);
+    if(!SCPVitalsFiniteRect(overlap) ||
+       fabs(overlap.size.width-appArea.size.width)>1.0 ||
+       fabs(overlap.size.height-appArea.size.height)>1.0)return CGRectNull;
+    CGFloat left=CGRectGetMinX(appArea)-CGRectGetMinX(root);
+    CGFloat right=CGRectGetMaxX(root)-CGRectGetMaxX(appArea);
+    CGFloat top=CGRectGetMinY(appArea)-CGRectGetMinY(root);
+    CGFloat bottom=CGRectGetMaxY(root)-CGRectGetMaxY(appArea);
+    CGRect rails[4]={
+        CGRectMake(CGRectGetMinX(root),CGRectGetMinY(root),left,root.size.height),
+        CGRectMake(CGRectGetMaxX(appArea),CGRectGetMinY(root),right,root.size.height),
+        CGRectMake(CGRectGetMinX(root),CGRectGetMinY(root),root.size.width,top),
+        CGRectMake(CGRectGetMinX(root),CGRectGetMaxY(appArea),root.size.width,bottom)
+    };
+    // Prefer the rail actually containing the stock Dock icon cluster.
+    // This is not a spare 'fourth app' slot.
+    for(int pass=0;pass<2;pass++) { // normal battery+temperature then compact battery
+        for(int k=0;k<4;k++) {
+            CGRect rail=rails[k];
+            if(!SCPVitalsFiniteRect(rail) ||
+               !CGRectIntersectsRect(cluster,rail))continue;
+            BOOL horizontal=k>=2;
+            CGFloat width=horizontal?MIN(116.0,rail.size.width-6.0)
+                                    :MIN(39.0,rail.size.width-6.0);
+            CGFloat height=horizontal?(pass?22.0:29.0):(pass?23.0:43.0);
+            if(width<(horizontal?70.0:35.0) ||
+               height>rail.size.height-6.0)continue;
+            NSMutableArray<NSValue *> *blocked=[NSMutableArray array];
+            SCPVitalsBlock(blocked,cluster,rail,4.0);
+            SCPVitalsBlock(blocked,home,rail,4.0);
+            SCPVitalsBlock(blocked,launcher,rail,4.0);
+            NSMutableArray<NSValue *> *iconControls=[NSMutableArray array];
+            SCPVitalsCollectControls(dock,dock,ignore,iconControls,0);
+            for(NSValue *item in iconControls) {
+                CGRect screenRect=[parent convertRect:item.CGRectValue fromView:dock];
+                SCPVitalsBlock(blocked,screenRect,rail,2.0);
+            }
+            // Protect a real status-bar view if its frame is a compact
+            // control, not a full-screen UIWindow backing surface.
+            id dashboard=SCPDashboardRootViewController();
+            SEL s=NSSelectorFromString(@"statusBarViewController");
+            id statusVC=(dashboard && [dashboard respondsToSelector:s])
+                ? ((id(*)(id,SEL))objc_msgSend)(dashboard,s) : nil;
+            UIView *status=statusVC && [statusVC respondsToSelector:@selector(view)]
+                ? ((UIView*(*)(id,SEL))objc_msgSend)(statusVC,@selector(view)) : nil;
+            if(status && status.window && status.window.screen==parent.window.screen) {
+                CGRect rect=[parent convertRect:status.bounds fromView:status];
+                if(SCPVitalsFiniteRect(rect) &&
+                   rect.size.width<=root.size.width*0.6 &&
+                   rect.size.height<=root.size.height*0.5)
+                    SCPVitalsBlock(blocked,rect,rail,3.0);
+            }
+            if(obstacleCount)*obstacleCount=blocked.count;
+            CGFloat maxX=CGRectGetMaxX(rail)-width-3.0;
+            CGFloat maxY=CGRectGetMaxY(rail)-height-3.0;
+            for(CGFloat y=CGRectGetMinY(rail)+3.0;y<=maxY+0.1;y+=2.0) {
+                for(CGFloat x=CGRectGetMinX(rail)+3.0;x<=maxX+0.1;x+=2.0) {
+                    CGRect candidate=CGRectMake(x,y,width,height);
+                    BOOL occupied=NO;
+                    for(NSValue *v in blocked) {
+                        if(CGRectIntersectsRect(candidate,v.CGRectValue)){
+                            occupied=YES;break;
+                        }
+                    }
+                    if(occupied || CGRectIntersectsRect(candidate,appArea))continue;
+                    UIView *host=SCPVitalsNativeHostForTarget(dock,parent,candidate);
+                    if(!host)continue;
+                    if(horizontalOut)*horizontalOut=horizontal;
+                    if(compactOut)*compactOut=(pass==1);
+                    if(hostOut)*hostOut=host;
+                    return [host convertRect:candidate fromView:parent];
                 }
-            if(!collision)return frame;
-            if(++trials>=25000)return CGRectNull;
+            }
         }
     }
     return CGRectNull;
@@ -203,18 +288,24 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
             NSStringFromCGRect(observed),NSStringFromCGRect(dockFrame)]);
         [self stop];return;
     }
-    BOOL horizontal=NO;
-    CGRect frame=SCPVitalsDockSlot(dock,self.panel,parent,home,launcher,&horizontal);
-    if(!SCPVitalsFiniteRect(frame)) {
+    BOOL horizontal=NO,compact=NO;
+    NSUInteger blocked=0;
+    UIView *nativeHost=nil;
+    CGRect frame=SCPVitalsDockSlot(dock,self.panel,parent,appArea,observed,
+                                  home,launcher,&nativeHost,&horizontal,
+                                  &compact,&blocked);
+    if(!SCPVitalsFiniteRect(frame) || !nativeHost) {
         if(!self.noSpaceLogged)OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-           @"[hl50-dock] NO FREE SLOT dock=%@ host=%@ passedDock=%@ items=%lu",
-           NSStringFromCGRect(dock.bounds),NSStringFromClass(dock.class),
-           NSStringFromCGRect(dockFrame),(unsigned long)dock.subviews.count]);
+           @"[hl51-dock] NO SAFE RAIL screen=%@ app=%@ icons=%@ home=%@ launcher=%@ blockers=%lu clips=%d nativeSuperview=%@",
+           NSStringFromCGRect(parent.bounds),NSStringFromCGRect(appArea),
+           NSStringFromCGRect(observed),NSStringFromCGRect(home),
+           NSStringFromCGRect(launcher),(unsigned long)blocked,
+           (int)dock.clipsToBounds,NSStringFromClass(dock.superview.class)]);
         self.noSpaceLogged=YES;
         [self stop];return;
     }
     self.noSpaceLogged=NO;
-    if(!self.panel || self.panel.superview!=dock) {
+    if(!self.panel || self.panel.superview!=nativeHost) {
         [self stop];
         UIView *panel=[[UIView alloc]initWithFrame:frame];
         panel.backgroundColor=[UIColor colorWithWhite:0 alpha:0.28];
@@ -223,33 +314,36 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
         panel.userInteractionEnabled=NO; // fullscreen gestures remain untouched
         UILabel *label=[[UILabel alloc]initWithFrame:CGRectInset(panel.bounds,1,1)];
         label.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-        label.numberOfLines=horizontal?1:2;
-        label.font=[UIFont systemFontOfSize:horizontal?10.0:9.0 weight:UIFontWeightSemibold];
+        label.numberOfLines=(horizontal || compact)?1:2;
+        label.font=[UIFont systemFontOfSize:compact?10.0:(horizontal?10.0:9.0) weight:UIFontWeightSemibold];
         label.textAlignment=NSTextAlignmentCenter;
         label.adjustsFontSizeToFitWidth=YES;
         label.minimumScaleFactor=horizontal?0.74:0.65;
         [panel addSubview:label];
-        [dock addSubview:panel];
-        self.host=dock;self.panel=panel;self.label=label;
-        self.horizontal=horizontal;
+        [nativeHost addSubview:panel];
+        self.host=nativeHost;self.panel=panel;self.label=label;
+        self.horizontal=horizontal;self.compactBattery=compact;
         [self refresh];
         self.timer=[NSTimer timerWithTimeInterval:12.0 target:self
                 selector:@selector(refresh) userInfo:nil repeats:YES];
         [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
     } else {
         self.panel.frame=frame;
-        if(self.horizontal!=horizontal) {
-            self.horizontal=horizontal;
-            self.label.numberOfLines=horizontal?1:2;
+        if(self.horizontal!=horizontal || self.compactBattery!=compact) {
+            self.horizontal=horizontal;self.compactBattery=compact;
+            self.label.numberOfLines=(horizontal || compact)?1:2;
+            self.label.font=[UIFont systemFontOfSize:compact?10.0:(horizontal?10.0:9.0) weight:UIFontWeightSemibold];
             [self refresh];
         }
-        [dock bringSubviewToFront:self.panel];
+        [nativeHost bringSubviewToFront:self.panel];
     }
     OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-        @"[hl50-dock] IN NATIVE DOCK view=%@ frame=%@ dock=%@ window=%@ level=%.0f app=%@",
-        NSStringFromClass(dock.class),NSStringFromCGRect(frame),
-        NSStringFromCGRect(dock.bounds),NSStringFromClass(dock.window.class),
-        dock.window.windowLevel,NSStringFromCGRect(appArea)]);
+        @"[hl51-dock] IN NATIVE DOCK SUBTREE host=%@ frame=%@ screenFrame=%@ iconCluster=%@ compact=%d blockers=%lu clips=%d window=%@ level=%.0f app=%@",
+        NSStringFromClass(nativeHost.class),NSStringFromCGRect(frame),
+        NSStringFromCGRect([parent convertRect:frame fromView:nativeHost]),
+        NSStringFromCGRect(observed),(int)compact,(unsigned long)blocked,
+        (int)nativeHost.clipsToBounds,NSStringFromClass(nativeHost.window.class),
+        nativeHost.window.windowLevel,NSStringFromCGRect(appArea)]);
 }
 
 @end
