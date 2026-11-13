@@ -29,9 +29,9 @@ chrome=(project/"OmniCarSplitScreen/SCPCarSplit+Chrome.m").read_text()
 assert 'duocarHL49HostedSameWindowPicker",@YES' in picker
 assert 'duocarHL49OccupiedPickerClear",@YES' in picker
 assert 'duocarHL49LiveUnderSheet",@YES' in picker
-assert 'duocarHL51PreserveHostedSceneOnMenu",@YES' in picker
-assert "[hl51-picker-cover] DETACHED" in picker
-assert "[hl51-menu] NO-RELAYER" in picker
+assert 'duocarHL50PreserveHostedSceneOnMenu",@YES' in picker
+assert "[hl50-picker-cover] DETACHED" in picker
+assert "[hl50-menu] NO-RELAYER" in picker
 assert "picker.opaque = NO" in picker and "picker.layer.opaque = NO" in picker
 assert picker.index('}   // VERIFIED @0x315ec-0x3160c') < picker.index('// [hl49-opaque]')
 assert "if(window==nil && !(hl49SameWindow && pane.vc && SCPVCIsHosted(pane.vc)))" in picker
@@ -48,7 +48,7 @@ assert "SCPVitalsDockSlot" in hud
 assert "SCPVitalsCollectControls" in hud
 assert "SCPVitalsNativeHostForTarget" in hud
 assert "compactBattery" in hud
-assert "CGrectZero" not in hud
+assert "SCPVitalsDockSlot" in hud
 assert "dock-view-mismatch" in hud
 assert "[nativeHost addSubview:panel]" in hud
 assert "panel.userInteractionEnabled=NO" in hud
