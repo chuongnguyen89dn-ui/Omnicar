@@ -15,7 +15,9 @@ SUBPROJECTS += OmniCarApp
 SUBPROJECTS += OmniCarCore
 SUBPROJECTS += OmniCarAppBridge
 SUBPROJECTS += OmniCarCarProbe
-SUBPROJECTS += OmniCarSpeedBubble
+# [le024-migration] Old OmniCarSpeedBubble runtime intentionally excluded.
+# Historical source remains under OmniCarSpeedBubble/ for forensic rollback only.
+# The replacement traffic feature will own the single runtime when integrated.
 SUBPROJECTS += OmniCarSplitScreen
 SUBPROJECTS += OmniCarStartupScreen
 SUBPROJECTS += OmniCarPrefs
