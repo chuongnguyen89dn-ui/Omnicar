@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL52 tiếp tục: Lề free XY theo native window, chờ build/test
+- Source `feature/duocar-hl52-leoriginal-dock-freepos-20261113`: commit `013799a` sửa Lề free XY theo kích thước màn CarPlay, di chuyển chính `CWTrafficWindow` khi là native window nhỏ, giữ gốc `-panned:`/ABI và lưu X/Y; đã đọc binary LeBubble từ DEB DuoCar51. `42758ae` / `ce19acd` kiểm tra source/final signed binary HL52; `f6f6cc` chuẩn bị workflow `build-hl52-original-leprefs-dock-free-xy-fat.yml` chỉ chạy thủ công. QA connector: 8 cặp project/src SHA trùng, 4 file menu/zoom/bridge không đổi. Trang Lề gốc và HUD trong suốt dưới icon từ các commit HL52 trước giữ nguyên. **SOURCE QA ONLY — chưa build DEB, chưa chạy iPhone; Lề còn bám lề ở bản DuoCar51 đang cài, chưa tuyên bố hết lỗi.** Zoom vẫn hoãn. [Checkpoint + bằng chứng](HL52_LE_ORIGINAL_DOCK_LAYOUT_20261113.md).
+
+
 ## 2026-11-13 — HL52: original LePrefs + Dock pin/nhiệt trong suốt, bong bóng Lề drag chưa đạt
 - DuoCar51 DEVICE: menu không đen (Nguyen xác nhận qua ảnh); pin/nhiệt có hiện nhưng đè giờ; Lề vẫn bám lề, Lề settings chưa nguyên bản. HL52 source branch `feature/duocar-hl52-leoriginal-dock-freepos-20261113`: `OMCLePrefsHost` nạp thực `CWTrafficBubblePrefsController` từ LePrefs.bundle, `SPEEDBUBBLE` mở thẳng gốc, trang extras riêng; HUD native Dock không nền, chỉ tìm dưới 3 icon, giữ giờ/Home; **kéo tự do vẫn chưa sửa, chưa có log HL51 mới**. Chưa CI/DEB/DEVICE PASS. [Hồ sơ HL52](HL52_LE_ORIGINAL_DOCK_LAYOUT_20261113.md).
 
