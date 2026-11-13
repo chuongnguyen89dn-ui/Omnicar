@@ -29,7 +29,7 @@ def fixture(folder, pkg, version, role, collision=False):
     if role=="duocar":
         app=root/"var/jb/Applications/DuoCar.app/DuoCar"
         app.parent.mkdir(parents=True)
-        app.write_bytes(b"fixture-program-[le024-prefs]")
+        app.write_bytes(b"fixture-program-[hl52-le-original] ORIGINAL LOADED CWTrafficBubblePrefsController")
         (libs/"DuoCarSpeedBubble.dylib").write_bytes(b"old-runtime")
     elif role=="le":
         for name in merger.LE_NAMES:
@@ -92,6 +92,22 @@ def main():
         assert "Conflicts: dev.bechou.le" in control
         assert "Replaces: dev.bechou.le" in control
         assert "firmware (<< 27.0)" in control
+        # The previously accepted compatibility-only marker must now
+        # be rejected: a signed package must contain the actual vendor
+        # root loader class, not the old hand-written Lề table.
+        old_version=fixture(root/"compat-only","com.chuong.duocar",
+                            "1.0.3-hl47","duocar")
+        legacy_app=root/"compat-only/root_com_chuong_duocar/var/jb/Applications/DuoCar.app/DuoCar"
+        # Fixture's .deb was already created; repack a DELIBERATE bad
+        # compatibility-only version and make sure merger rejects it.
+        legacy_app.write_bytes(b"fixture-program-[le024-prefs]")
+        wrong_root=root/"compat-only/root_com_chuong_duocar"
+        subprocess.run(["dpkg-deb","-b","--root-owner-group",
+                        str(wrong_root),str(old_version)],
+                       check=True,stdout=subprocess.DEVNULL)
+        must_reject(lambda:merger.merge(old_version,le,ext,
+                     root/"legacy-host.deb",sha,"1.0.3-le0241"),
+                    "authentic LePrefs.bundle loader")
         must_reject(lambda:merger.merge(duo,le,ext,root/"wrong-sha.deb",
                                      "00"*32,"1.0.3-le0241"),"SHA256 mismatch")
         invalid=fixture(root,"wrong.extension","0.1","extension")
