@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL43 repair shared Telex, restore drawn hide, trace native Cancel
+- Isolated branch `feature/duocar-hl43-native-cancel-telex-20261113` from HL42 `7ed8a2ac`. **One shared `ABTelexApply`** corrected for hosted + native (no competing Telex engines); preserves same `ABKeyboard` key UI and UTF-16 composition, adds real macOS Foundation word/replacement tests. Removed HL42 native hide lock: keyboard can always hide immediately; native Cancel/Return origin now instrumented, no concealment of Apple keyboard. New version target `1.0.3-hl43telex1`. Source gate PASS; first macOS test compiled, but test comparison nil/nil was wrong and fixed. New CI run `43335678064` in progress at checkpoint; no new signed DEB or DEVICE PASS claimed. [Details and recovery](HL43_SHARED_TELEX_20261113.md).
+
 ## 2026-11-13 — HL42 build/sign PASS: direct short `duocar.deb` (device pending)
 - Feature branch `feature/duocar-hl42-native-resign-gpt-20261113`, HEAD `7ed8a2acdbbfaf38030d1cb2f7dd8589594730e5`; CI run **43330872532** completed SUCCESS, artifact **13994478025**. Exact `com.chuong.duocar` / `1.0.3-hl42resign1` / `iphoneos-arm64` direct DEB **1,028,924 bytes**, SHA-256 `2b9b8aee844500abe37771535d5380de15c519a8acd5da40f2a996d19f8454e0`, extracted into `/mnt/data/duocar.deb` from GitHub carrier ZIP, `dpkg-deb -f/-x` verified. Original hosted YouTube Telex unchanged; native resign hooks/input-plane logging added. **Native system keyboard suppression not device-proven**, new log required. [Exact steps/checkpoint](HL42_HOSTED_NATIVE_KEYBOARD_20261113.md). Do not assume chat sandbox path persists in future turns.
 
