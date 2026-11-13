@@ -67,3 +67,14 @@ Nguyen requests accurate DuoNavi ORIGINAL 1.0.4 info: where and how many places 
 - See branch \`feature/duocar-hl47-menu-dock-bubble-fat-20261113\` checkpoint \`recovered-source/gpt-project-history/HL47_MENU_DOCK_BUBBLE_FAT_20261113.md\` for the corrected **HOSTED-only opaque picker** root cause; unrelated to original-vendor Dock architecture.
 
 Status: original DuoNavi provenance and its Dock safe-inset geometry VERIFIED; vendor battery/temperature item locations/count/fullness fallback UNVERIFIED; no new source or CI.
+
+
+## 2026-11-13 — Đã phá chặn: giải mã nguyên bản DuoNavi Dashboard, xác nhận 4 item Dock
+
+**Đính chính kết luận lịch sử phía trên (giữ nguyên để đối chiếu):** lần đầu đã lấy trực tiếp DEB DuoNavi 1.0.4 thực qua GitHub Actions job **131703218570** / run **43369977928**, artifact **14012166136** (không build DuoCar), xác thực DEB SHA-256 `f3f911de5db461d487ce91249aed1bb25d44f076e7ff5fb89e54b658569328dd`, trích `DuoNaviDashboard.dylib` SHA-256 `44fdd4b4df0e3cc277ca69f71129da356f3bd8d6af70e0fde1ef36f266b66d15`, dùng llvm-objdump ARM64 để giải mã class và hàm thật. Trước đây đánh giá "không xác minh được số lượng vị trí" chỉ đúng tại thời điểm chưa có byte executable.
+
+- Vendor **gốc** có `CBDockSystemMonitorView` chứa **4 item** `_battItem/_tempItem/_cpuItem/_ramItem`. Chế độ thu gọn **chỉ pin**; chế độ mở rộng hiện cả 4, thay đổi bố cục theo `W>60` (1 hàng), `W<=60 && H>=45` (1 cột), `W<=60 && H<45` (2×2). `handleTapGesture:` đổi `showAll` và ghi `CBDashboardSettings.dockSystemMonitorShowAll`.
+- Widget có **một site tạo instance** ARM64 và gắn làm subview của **`appDockViewController.view`**, không dùng dải trống ngoài Dock như HL47. Mã hook đọc Home, các nút Dock, Status Bar, tính frame động, có `CGRectIntersectsRect` + log `LayoutSafety` để tránh đè Dock; không đủ chỗ thì có nhánh **`CGRectZero`**. Chưa phát hiện một widget dự phòng độc lập khác khi Dock đầy. Bố trí tự thích ứng và đường đổi vị trí **có**, nhưng **không đảm bảo luôn hiện khi Dock quá đầy**.
+- Nhiệt từ IOKit `AppleSmartBattery.Temperature` hoặc `AppleTemperatureSensor`/`AppleEmbeddedNVMeTemperatureSensor`, fallback `NSProcessInfo.thermalState`; không chứng minh nhiệt GPU chính xác.
+- Hồ sơ chi tiết có địa chỉ ARM64/xrefs, kích thước, branch, hash, artifact và test: [DUONAVI104_DOCK_BINARY_FORENSIC_20261113.md](https://github.com/chuongnguyen89dn-ui/Omnicar/blob/analysis/duonavi104-real-binary-dock-20261113/recovered-source/gpt-project-history/DUONAVI104_DOCK_BINARY_FORENSIC_20261113.md). Phân biệt **một nơi gắn widget** với **bốn mục bên trong**. Chỉ xác minh STATIC, không có runtime DuoNavi tại xe trong lượt này.
+- Đồng thời HL47 hosted whiteout root cause vẫn là **nền đục pane.picker ở SCPHostedAppVC**, không phải native; vẫn NO SOURCE PATCH/NO DEB.
