@@ -221,9 +221,17 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
             // Protect a real status-bar view if its frame is a compact
             // control, not a full-screen UIWindow backing surface.
             id dashboard=SCPDashboardRootViewController();
-            SEL s=NSSelectorFromString(@"statusBarViewController");
-            id statusVC=(dashboard && [dashboard respondsToSelector:s])
-                ? ((id(*)(id,SEL))objc_msgSend)(dashboard,s) : nil;
+            id statusVC=nil;
+            // DuoNavi 1.0.4 resolves both public-ish and private Dock
+            // status-bar controller selectors. Use only guarded reads.
+            for(NSString *name in @[@"statusBarViewController",
+                                    @"_statusBarViewController"]) {
+                SEL s=NSSelectorFromString(name);
+                if(dashboard && [dashboard respondsToSelector:s]) {
+                    statusVC=((id(*)(id,SEL))objc_msgSend)(dashboard,s);
+                    if(statusVC)break;
+                }
+            }
             UIView *status=statusVC && [statusVC respondsToSelector:@selector(view)]
                 ? ((UIView*(*)(id,SEL))objc_msgSend)(statusVC,@selector(view)) : nil;
             if(status && status.window && status.window.screen==parent.window.screen) {
