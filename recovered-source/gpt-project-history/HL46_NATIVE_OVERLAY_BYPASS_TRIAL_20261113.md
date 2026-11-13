@@ -46,3 +46,26 @@ Kiểm gồm mirror parity, original event contracts, no broad native/hosted con
 4. Nếu thành công, trước khi hợp nhất mã cần kiểm giữ split/dock, resize, picker, lifecycle, reconnect/restart. Cả hai giả thuyết đều chưa thể kết luận DEVICE PASS nếu thiếu video và đúng binary.
 
 Trạng thái checkpoint: **SOURCE PATCHED / GITHUB CONFIRMED / STATIC CONTRACT PASS / NO BUILD / DEVICE PENDING**.
+
+
+## 2026-11-13 -- REVIEW BEFORE BUILD: fixed A/B bug, pending risks
+
+New user request: carefully review today's unbuilt changes. GitHub source read included HL44/HL45/HL46 Picker/Panel/Divider/Drag, SCPShared, old and new verifiers, standalone Vitals branch and workflow; NO Apple SDK, compile, CI dispatch or device test.
+
+### Confirmed and fixed bug: two trial switches were not independent
+Originally showPickerForSlot removed pane.cover unconditionally when native picker-clear was enabled, even when the native cover-off pref was disabled. That contaminated any picker-only experiment. Fixed on THIS HL46 branch in both Picker.m files: only remove an existing oldCover if OMCPref("duocarHL46NativeCoverOff", @YES) is YES. The new diagnostic includes coverRetained, and the two controls now have separate semantics.
+Project commit b305994ff3f205dcc873689e85d5d0b23faee876; src mirror commit d1a0ebf9da54e4535034587a4a19c463df4360b8; Git blob both f75939ac41bbe0e9f77f05520dff456cc4188d62.
+Policy matrix for an occupied native pane: pickerClear=0,coverOff=0 => original/original; (1,0) => transparent picker, existing cover retained; (0,1) => original opaque picker, resize cover suppressed; (1,1) => both visually bypassed. Empty and SCPHostedAppVC panes always use the original paths. No new view owner or scene engine.
+Updated existing HL46 independent verifier script with explicit cover-removal guard, coverRetained log and the four policy combinations, commit 12b341da6501e03241ce9244754a27923d122ecf, blob 0d835f611dff3ebe1cbc5ee478f3a9b393e7fdac. Script still NOT executed in full checkout, tests are connector code checks only.
+
+### Deep checks and precise unresolved risks
+- Panel.paneChoose calls showPickerForSlot and refreshPickerSheetSoon. HL46 retains original picker view, its pickerPaneTapped gesture, the sheet with mesh face, Cancel/Choose and the other original lifecycles. A transparent overlay still intercepts native touches; preserving video is NOT equivalent to allowing live native interaction behind picker.
+- Divider.beginResize still calls addCoverToPane for each slot; HL46 native-VC guard suppresses creation. Divider.endResize's delayed 0.45s cleanup/removeCoverFromPane is nil-safe. Drag.m's pane.cover.alpha sends are nil-safe too; pane dragGhost is a different original icon surface, which must be distinguished from resize cover in a car video.
+- Divider's relayoutAnimated:NO pushScenes:NO remains unchanged while dragging. Native scene dimensions may stay stale or show stretched/frozen pixels despite removing cover; this hypothesis cannot be resolved statically and scene push policy was deliberately not changed without runtime data.
+- Native-only classification uses pane.vc != nil and SCPVCIsHosted (isKindOfClass:SCPHostedAppVC). Pending/non-adopted native sessions lack the VC and are deliberately not bypassed; test must report mode and scene state. Original opaque loader exists on launch; showPickerForSlot calls removeLoaderFromPane before presenting picker.
+- HL45 historical source checker enforces read-only changes and exact five-file diff vs HL44, thus MUST run on HL45, NOT unchanged on a HL46 experiment intentionally changing visuals. HL46's own verifier checks its source delta. If combining branches for final DEB, a dedicated integration gate is required; do not silently skip the older test.
+- Existing .github/workflows/build-fat-macos.yml on both unbuilt branches still hardcodes HL37 version/deb names 1.0.3-hl37kbsync1 and historical gates; does NOT yet build a correct integrated HL46+vitals artifact as-is. Muse/build owner must reconcile workflow/version/artifact path/gates and HEAD before the authorized future one-DEB build.
+- Vitals branch and HL46 are sibling feature branches from HL45. Neither contains the other's patch. Main is documentation-only; no code merge or device build. The test on car must use one exact-generation version/PID and video, not mix old HL42/HL43 logs.
+
+### Status and decision gate
+Source bug fixed and GitHub committed; actual Objective-C compilation, native visual touch, hosted regression, bubble window behavior, GPU/sensor accuracy and CarPlay test all PENDING. No CI, DEB, Sileo or deployment this round. If bypass does not improve native picture or causes touch regression, revert this HL46 experiment to its unchanged baseline commit 3a385c02f121eb6dcc6cf54ad1150ed3531ff1e6, then investigate scene/compositor sustain using HL45 logs rather than deleting more original layers.
