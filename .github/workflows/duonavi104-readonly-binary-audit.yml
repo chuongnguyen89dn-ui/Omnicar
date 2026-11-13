@@ -1,0 +1,60 @@
+name: "Read-only DuoNavi 1.0.4 original binary Dock sensor audit"
+on:
+  push:
+    branches:
+      - analysis/duonavi104-real-binary-dock-20261113
+    paths:
+      - ".github/workflows/duonavi104-readonly-binary-audit.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  vendor-readonly-extract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout audit branch (do not compile DuoCar)
+        uses: actions/checkout@v4
+        with:
+          path: "audit"
+      - name: Checkout original DuoNavi public source-of-bytes
+        uses: actions/checkout@v4
+        with:
+          repository: "chuongnguyen89dn-ui/Duoface"
+          ref: "feature/duoface-exact-payload-migration"
+          path: "vendor"
+          sparse-checkout: |
+            dist
+          sparse-checkout-cone-mode: true
+      - name: Validate exact original DEB and extract genuine dashboard binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEB="vendor/dist/com.duonavi.app_1.0.4_iphoneos-arm64.deb"
+          EXPECTED="f3f911de5db461d487ce91249aed1bb25d44f076e7ff5fb89e54b658569328dd"
+          test -s "$DEB"
+          ACTUAL="$(sha256sum "$DEB" | awk '{print $1}')"
+          test "$ACTUAL" = "$EXPECTED"
+          test "$(dpkg-deb -f "$DEB" Package)" = "com.duonavi.app"
+          mkdir -p extracted vendor-evidence
+          dpkg-deb -x "$DEB" extracted
+          DASH="$(find extracted -type f -name 'DuoNaviDashboard.dylib' -print -quit)"
+          test -n "$DASH"
+          cp "$DASH" vendor-evidence/DuoNaviDashboard.dylib
+          dpkg-deb -f "$DEB" > vendor-evidence/control.txt
+          find extracted -type f -printf '%p %s bytes\n' | sort > vendor-evidence/tree.txt
+          sha256sum "$DEB" "$DASH" > vendor-evidence/hashes.txt
+          file "$DASH" > vendor-evidence/file.txt
+          strings -a -n 4 "$DASH" > vendor-evidence/strings.txt
+          wc -l vendor-evidence/strings.txt
+          grep -Ein 'battery|temperature|thermal|metric|monitor|dock|statusbar|gpu|cpu|charging|showall|collapsed|expanded|overflow|fallback' vendor-evidence/strings.txt | head -n 400 > vendor-evidence/sensor-candidate-strings.txt || true
+          echo "VENDOR_DEB_SHA_PASS=$ACTUAL"
+          echo "VENDOR_DASHBOARD_SHA=$(sha256sum "$DASH" | awk '{print $1}')"
+      - name: Upload ephemeral ORIGINAL dashboard binary and full evidence for local read-only disassembly
+        uses: actions/upload-artifact@v4
+        with:
+          name: duonavi104-original-dashboard-forensic-readonly
+          path: vendor-evidence/
+          if-no-files-found: error
+          compression-level: 6
+          retention-days: 1
