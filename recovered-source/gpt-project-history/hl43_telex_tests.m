@@ -14,7 +14,8 @@ static void Fail(NSString *name, NSString *actual, NSString *expected) {
 }
 static void Check(NSString *label, NSString *actual, NSString *expected) {
     checks++;
-    if (![actual isEqualToString:expected]) Fail(label,actual ?: @"(nil)",expected ?: @"(nil)");
+    if (actual != expected && ![actual isEqualToString:expected])
+        Fail(label,actual ?: @"(nil)",expected ?: @"(nil)");
 }
 static NSString *TypeLikeABKeyboard(NSString *keys, BOOL vietnamese) {
     NSMutableString *word=[NSMutableString string], *text=[NSMutableString string];
