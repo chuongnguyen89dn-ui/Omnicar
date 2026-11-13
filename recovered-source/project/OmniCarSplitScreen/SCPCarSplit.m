@@ -1759,10 +1759,6 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         self.closeSource = nil;
         return;
     }
-    // [fs-vitals] Closing the split is a fullscreen session end even
-    // without dashboard invalidation. Reuse the existing abbreviated
-    // controller restore; it also detaches the status bubble immediately.
-    [[SCPFullscreenController shared] fsSessionDidEnd];
     // [ytz5] M5 measurement point T1: before ANY cleanup or detach.
     SCPLogInjectedIconState(@"before-close", src);
     // [ytz5] M1 cleanup (CHANGE_MAP_YTZ5 M1): IMMEDIATELY after the
@@ -1774,6 +1770,9 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     // hosted-solo target re-suspends AFTER this cleanup (see
     // soloBundle:). Idempotent.
     [self ahCloseCleanup];
+    // [fs-vitals] After the existing YTZ before-close measurement and
+    // AutoHide cleanup, restore FS chrome and detach the clock bubble.
+    [[SCPFullscreenController shared] fsSessionDidEnd];
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"CarSplit: tat split (goHome=%d) src=%@", goHome, src]);
     for (SCPCarPane *pane in [self allPanes]) // [scenevis] snapshot at the exit-home point, before any detach
