@@ -189,6 +189,20 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
         OMCLogWrite(@"SplitScreen",@"[hl50-dock] MISSING native Dock UIView; no fallback to app/root UIWindow");
         [self stop];return;
     }
+    CGRect observed=[dock convertRect:dock.bounds toView:parent];
+    // The native Dock VC is not always the tight Dock view. A full-screen
+    // view with the same window must NEVER become a fake Dock host.
+    if(!SCPVitalsFiniteRect(observed) ||
+       !SCPVitalsFiniteRect(dockFrame) ||
+       fabs(CGRectGetMinX(observed)-CGRectGetMinX(dockFrame))>3.0 ||
+       fabs(CGRectGetMinY(observed)-CGRectGetMinY(dockFrame))>3.0 ||
+       fabs(CGRectGetWidth(observed)-CGRectGetWidth(dockFrame))>3.0 ||
+       fabs(CGRectGetHeight(observed)-CGRectGetHeight(dockFrame))>3.0) {
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl50-dock] dock-view-mismatch observed=%@ measured=%@; REFUSE fallback",
+            NSStringFromCGRect(observed),NSStringFromCGRect(dockFrame)]);
+        [self stop];return;
+    }
     BOOL horizontal=NO;
     CGRect frame=SCPVitalsDockSlot(dock,self.panel,parent,home,launcher,&horizontal);
     if(!SCPVitalsFiniteRect(frame)) {
