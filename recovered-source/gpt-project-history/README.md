@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — DuoCar53 1.0.3-le0246 SIGNED FAT PASS, DEVICE PENDING
+- Nguyen đã ra lệnh build. CI SUCCESS [43523818233](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/43523818233), job `132224488839`, **build commit `7423e284917a73b3ed24251660980e1b563357d6`**. Artifact **DuoCar53** ID `14083488733`, đúng một `DuoCar53.deb` size **2.344.324 bytes**, **SHA-256 `aa1f620a3e2c84d011f5663401eec347927d25f0ebd21ced2ad8e8acded26c8b`**, Version `1.0.3-le0246`, Package `com.chuong.duocar`. CI validated source 15 mirrors, pinch 2540 cases, vendor Le 0.2.4 identical, two signed slices arm64+arm64e and final FAT. Đã download và **giao trực tiếp `sandbox:/mnt/data/DuoCar53.deb`**; không có xe nên **DEVICE PENDING**, không phát biểu zoom/Le/Dock/menu hoàn tất runtime. Workflow trở lại manual-only; không merge/main/Sileo. Lịch sử 4 CI attempt lỗi và sửa root-cause [checkpoint HL53](HL53_DIRECTIONAL_PINCH_ALL_ANGLES_20261114.md).
+
+
 ## 2026-11-14 — HL53: xòe/chụm mọi góc, 2540 ca toán PASS (source)
 - **Lệnh mới của Nguyen yêu cầu SỬA zoom**, thay vì chỉ ghi hồ sơ hoặc hoãn: xòe hai ngón **ở mọi hướng/tư thế** = phóng to fullscreen; chụm mọi hướng = thu nhỏ về split; chỉ đặt hai ngón không toggle. Nhánh độc lập `feature/duocar-hl53-directional-pinch-20261114` từ HL52 HEAD `997a453e`, code commits `574e2157` shared Euclidean direction, `2340804` CarPlay host, `3528207` hosted ABInApp, `d458f3b` reject legacy dir=0 owner. Một fullscreen adapter duy nhất; menu, Dock, Lề, fullscreen engine không sửa. Test 360 góc nguyên × 7 ca + 20 biên = **2.540 ca pure C PASS thực chạy với `cc -std=c11 -Wall -Wextra -Werror -pedantic`**; test assert đếm thật, không dùng số PASS ước lượng; gate `verify_hl53_source.py` có bảo vệ. **CHƯA build DEB/CI/device test**; chưa có chứng cứ từ xe. [Checkpoint HL53](HL53_DIRECTIONAL_PINCH_ALL_ANGLES_20261114.md). Lệnh "HL52 hoãn zoom" chỉ áp dụng cho HL52, không áp dụng HL53.
 
