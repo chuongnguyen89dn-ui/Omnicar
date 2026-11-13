@@ -60,8 +60,8 @@ assert "[hl51-dock] IN NATIVE DOCK SUBTREE" in hud
 assert "[SCPFullscreenController shared] fsCommittedState" in hud
 
 # [hl51] Source-only regression gates. These assert the old 0x0 menu
-# geometry, the tight 45x111 icon-only Dock search, and double pinch
-# ownership are not reintroduced. Device pixels still require Nguyen.
+# geometry and the tight 45x111 icon-only Dock search are not
+# reintroduced. Pinch stays byte-for-byte HL50; device pixels need Nguyen.
 core=(project/"OmniCarSplitScreen/SCPCarSplit.m").read_text()
 src_core=(src/"SplitScreenA/SCPCarSplit.m").read_text()
 def frame_body(s):
@@ -77,16 +77,26 @@ assert "if (pane.picker) return CGRectZero;" not in frame
 assert "duocarHL51RestoreOriginalMenuWindow" in picker
 assert 'return [OMCPref(@"duocarHL49HostedSameWindowPicker",@YES) boolValue];' in picker
 
+# Nguyen's 2026-11-13 explicit scope change: NO zoom/pinch fix
+# in DuoCar51. Validate byte-exact Git blob identities against DuoCar50;
+# do NOT require an unproven exclusive HL8 route from earlier HL51 work.
+def git_blob_sha(p):
+    data=p.read_bytes()
+    return hashlib.sha1(b"blob "+str(len(data)).encode()+b"\\0"+data).hexdigest()
+unchanged_pinch_sources={
+    project/"OmniCarSplitScreen/SCPCarSplit+BridgeWake.m":"ae224b57daab6bc4e2f021d6541c87f8e418b8e4",
+    src/"SplitScreenA/SCPCarSplit+BridgeWake.m":"b3391020e044fe949d52ff33941b4b7a3c184507",
+    project/"OmniCarSplitScreen/SCPTouchProbe.m":"e75823f0bcd5fc79d58215d39059f4edac45bba8",
+    project/"OmniCarAppBridge/ABInApp.m":"c09a9fab823f1bf55d7d3fc82162f91a1a7dd195",
+}
+for path,expected in unchanged_pinch_sources.items():
+    assert git_blob_sha(path)==expected,("zoom source changed",str(path))
 bw=(project/"OmniCarSplitScreen/SCPCarSplit+BridgeWake.m").read_text()
 bw_src=(src/"SplitScreenA/SCPCarSplit+BridgeWake.m").read_text()
-assert "[hl51-pinch] carHost=" in bw
-assert "duocarHL51RestoreHL8HostPinch" in bw
-assert "bwHostedPinchFallback = historicFallback && !(bwCarHostPinchEnabled && hl51HostOnly);" in bw
-assert "bwPinchMode = p ? MIN(MAX([p integerValue], 0), 2) : BWModeOff;" in bw
-for needle in ("duocarHL51RestoreHL8HostPinch",
-               "bwHostedPinchFallback = historicFallback && !(bwCarHostPinchEnabled && hl51HostOnly);",
-               "[hl51-pinch] carHost="):
-    assert needle in bw_src,"bridgewake mirror missing "+needle
+for item in (bw,bw_src):
+    assert "duocarHL51RestoreHL8HostPinch" not in item
+    assert "[hl51-pinch]" not in item
+    assert "bwHostedPinchFallback = fallback ? [fallback boolValue] : YES;" in item
 assert "BWPinchMode" in (project/"OmniCarAppBridge/ABInApp.m").read_text()
 assert "SCPHostPinchObserve" in (project/"OmniCarSplitScreen/SCPTouchProbe.m").read_text()
 assert "[hl51-dock] NO SAFE RAIL" in hud
@@ -154,4 +164,4 @@ for file,expected in protected.items():
     actual=hashlib.sha256(p.read_bytes()).hexdigest()
     assert actual==expected,(file,"fullscreen source was altered",actual,expected)
     print("HL51_PROTECTED_FULLSCREEN",file,actual)
-print("HL51_SOURCE_GATE_PASS",len(pairs),"exact byte mirrors; hosted frame, native dock rail, exclusive HL8 pinch; fullscreen engine hashes unchanged")
+print("HL51_SOURCE_GATE_PASS",len(pairs),"exact byte mirrors; hosted frame, native Dock rail; zoom/pinch deferred byte-identical to DuoCar50; fullscreen engine hashes unchanged")

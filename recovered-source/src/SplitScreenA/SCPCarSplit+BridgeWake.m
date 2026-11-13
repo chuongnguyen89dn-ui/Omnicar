@@ -1136,19 +1136,9 @@ static void BWEmitDrain(void) {
     id ch = OMCPref(@"bridgewake.carHostPinch", nil);
     bwCarHostPinchEnabled = ch ? [ch boolValue] : YES;
     id fallback = OMCPref(@"bridgewake.hostedPinchFallback", nil);
-    BOOL historicFallback = fallback ? [fallback boolValue] : YES;
-    // [hl51-pinch] HL8 host-only route achieved 33/33 device expand/restore.
-    // HL13 changed hosted same-pane ownership to the app; HL50 measured
-    // no complete in-app pairs. Restore EXCLUSIVE HL8 host ownership.
-    // Keep YTZ5 pinchMode OFF migration; explicit A/B pref allows rollback.
-    BOOL hl51HostOnly = [OMCPref(@"duocarHL51RestoreHL8HostPinch", @YES) boolValue];
-    bwHostedPinchFallback = historicFallback && !(bwCarHostPinchEnabled && hl51HostOnly);
+    bwHostedPinchFallback = fallback ? [fallback boolValue] : YES;
     NSInteger emittedPinch = (bwCarHostPinchEnabled && !bwHostedPinchFallback)
         ? BWModeOff : bwPinchInAppMode;
-    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-        @"[hl51-pinch] carHost=%d hl8Exclusive=%d historicalFallback=%d effectiveFallback=%d packetPinch=%ld legacyPinch=%ld",
-        (int)bwCarHostPinchEnabled,(int)hl51HostOnly,(int)historicFallback,
-        (int)bwHostedPinchFallback,(long)emittedPinch,(long)bwPinchMode]);
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[hl13pinch] route=split-hosted-owners host=%d hostedFallback=%d emittedPinch=%ld",
         (int)bwCarHostPinchEnabled, (int)bwHostedPinchFallback,

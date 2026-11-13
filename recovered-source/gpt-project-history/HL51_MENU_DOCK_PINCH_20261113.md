@@ -1,5 +1,12 @@
 # HL51 — DuoCar50 DEVICE FAIL: menu / Dock / pinch (2026-11-13)
 
+## 2026-11-13 — QUYẾT ĐỊNH MỚI: HL51 KHÔNG SỬA ZOOM (ưu tiên hơn mục cũ)
+- Nguyen yêu cầu **chưa xử lý zoom trong bản HL51**. Phạm vi phát hành DuoCar51 chỉ gồm menu hosted (không đen, không lộ logo) và pin/nhiệt trên Dock (ngoài ba ô app), giữ bong bóng Lề và toàn bộ chức năng khác.
+- Hủy đưa thử nghiệm route pinch HL8 exclusive vào bản này: hoàn nguyên đúng hunk `SCPCarSplit+BridgeWake.m` ở `project/OmniCarSplitScreen` và `src/SplitScreenA` về blob HL50 tương ứng `ae224b57daab6bc4e74bea658e648a689344d5fec79` / `b3391020e044fe949d52ff33941b4b7a3c184507`. Không đụng `SCPTouchProbe.m`, `ABInApp.m`, `SCPPinchController.m` hay `SCPFullscreenController.m`.
+- Đổi `verify_hl51_source.py`: cấm marker `[hl51-pinch]`, pin nguồn pinch bằng Git blob SHA HL50; `verify_duocar51.py` kiểm HL13 route cũ, không đòi marker HL8-exclusive; workflow HL51 chỉ đổi tên/mô tả, vẫn `workflow_dispatch` thủ công, CHƯA chạy CI.
+- **Zoom vẫn FAIL theo test DuoCar50 và chưa được sửa**; tuyệt đối không ghi BUILD PASS hay DEVICE PASS cho zoom. Sửa zoom là công việc *đợt sau*, sau khi giao bản menu + Dock. Các chẩn đoán pinch cũ bên dưới giữ lại như lịch sử, **không còn là cổng bắt buộc của HL51**.
+- Trạng thái: source/verification scope change; **CHƯA BUILD, CHƯA DEB, CHƯA TEST XE**. Không merge main, không deploy, không Sileo.
+
 ## User verdict / scope
 - Tested exact DuoCar50 `1.0.3-le0243`, signed FAT from workflow run 43398566381, artifact 14023643354, DEB SHA256 `aca585fdd3fea80556aa7d94388b451c88fc58f9f59b61076e2b4ebcb5cd2793`.
 - Nguyen: menu STILL BLACK; pressing menu reveals its underlying split pane logo (must revert prior/original picker appearance); battery absent from Dock although original DuoNavi sits OUTSIDE the three-app-icon slots; two-finger fullscreen zoom completely inoperative (not merely failed restore); fullscreen status/vitals bubble has returned and must be preserved.

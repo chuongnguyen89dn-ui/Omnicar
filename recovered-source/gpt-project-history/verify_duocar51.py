@@ -89,7 +89,10 @@ with tempfile.TemporaryDirectory(prefix="duocar51-verify-") as t:
         assert has_marker(data,"[fs-vitals]"),"working fullscreen vitals bubble missing"
         assert has_marker(data,"[hl50-menu]"),"scene-preserve path absent"
         assert has_marker(data,"[hl51-menu] sheetHost="),"restored original menu owner missing"
-        assert has_marker(data,"[hl51-pinch] carHost="),"exclusive HL8 host pinch routing missing"
+        # HL51 explicitly defers zoom; restore HL50 ownership and verify
+        # the old route is present, not a new untested HL8-only override.
+        assert has_marker(data,"[hl13pinch] route=split-hosted-owners"),"HL50 pinch route missing"
+        assert not has_marker(data,"[hl51-pinch]"),"deferred pinch patch leaked into build"
         assert has_marker(data,"[hl51-dock] NO SAFE RAIL"),"native free-rail check missing"
 
     app=jb/"Applications/DuoCar.app/DuoCar"

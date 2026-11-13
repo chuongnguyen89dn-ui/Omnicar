@@ -1,4 +1,11 @@
 # HL51 — DEVICE FAIL DuoCar50: giữ ảnh menu, pin/nhiệt trên rail Dock, phục hồi đường pinch HL8
+
+## UPDATE 2026-11-13 — LỆNH SAU CỦA NGUYEN: LOẠI ZOOM KHỎI BẢN HL51
+**Mục này thay thế phạm vi pinch HL8 phía dưới; các dòng/commit về pinch bên dưới chỉ là lịch sử thử nghiệm, không còn trong source phát hành HL51.**
+- Giữ toàn bộ sửa menu và Dock; bong bóng Lề vẫn phải hoạt động.
+- Hoàn nguyên hai file `SCPCarSplit+BridgeWake.m` project/src riêng từng hunk về chính xác bytes của DuoCar50. Không đổi host detector hoặc fullscreen. Zoom vẫn lỗi tại HL50 và **không được tuyên bố là sửa**.
+- Điều chỉnh source gate, final artifact gate và tên workflow thành **menu + Dock (zoom hoãn)**, không lấy HL8 33/33 của bản cũ làm chứng cứ cho HL51.
+- Chưa compile/build CI, chưa ký DEB, chưa nghiệm thu xe; workflow vẫn chỉ gọi thủ công.
 Ngày 2026-11-13 (Asia/Bangkok). **SOURCE CHANGED / SOURCE QA STATIC; KHÔNG CÓ DEB HL51, KHÔNG BUILD, CHƯA DEVICE PASS.**
 
 ## Phạm vi / ranh giới

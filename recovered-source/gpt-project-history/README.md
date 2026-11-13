@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — CẬP NHẬT PHẠM VI HL51: HOÃN ZOOM
+- **Yêu cầu mới nhất từ Nguyen:** chưa xử lý pinch/zoom trong DuoCar51. Giữ sửa menu quay về bản trước và widget pin/nhiệt ngoài ba icon Dock. Bỏ thay đổi HL8-exclusive khỏi source HL51, phục hồi BridgeWake project/src đúng blob HL50; verifier/CI gate phải kiểm zoom code nguyên trạng, không thử sửa. **Zoom ở DuoCar50 DEVICE FAIL và sẽ xử lý sau**, không báo HL51 zoom PASS.
+- Chi tiết và checkpoint: [HL51_MENU_DOCK_PINCH_20261113.md](HL51_MENU_DOCK_PINCH_20261113.md) / [HL51_MENU_DOCK_PINCH_RECOVERY_20261113.md](HL51_MENU_DOCK_PINCH_RECOVERY_20261113.md). **Chưa build hoặc test xe**, không CI dispatch, main merge hay Sileo.
+
 ## 2026-11-13 — HL51: DuoCar50 DEVICE FAIL, menu/Dock source fixes, pinch pending
 - Điểm tiếp nối: [HL51_MENU_DOCK_PINCH_20261113.md](HL51_MENU_DOCK_PINCH_20261113.md). Source commits `15475c0` menu hosted image/old tray, `7c591d2` Dock rail outside 3 app icons; **NOT BUILT; pinch still NOT FIXED; DEVICE FAIL of HL50**, bubble remains successful per Nguyen. No main merge/Sileo.
 
