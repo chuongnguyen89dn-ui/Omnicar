@@ -24,6 +24,8 @@ divider=(PROJECT/"SCPCarSplit+Divider.m").read_text()
 for token in (
     "void DCHL45OverlayTrace(",
     "[hl45-layer]",
+    "presentationLayer", "bgA=%.2f", "winHidden=%d",
+    '@"cover-fade-settled"', '@"picker-fade-settled"', '@"sheet-fade-settled"',
     '@"cover-added"', '@"cover-remove-request"', '@"cover-remove-complete"',
     '@"picker-presented"', '@"picker-remove-request"', '@"picker-remove-complete"',
     '@"sheet-new-attached"', '@"sheet-old-removed"',
@@ -46,7 +48,7 @@ for token in (
 for token in ("SCPDispatchAfter(0.45,", "[self relayoutAnimated:NO pushScenes:NO]",
               "[s removeCoverFromPane:pane]"):
     assert token in divider, f"Original divider path missing: {token}"
-# No UI object created by the read-only trace helper.
+# No UI object created by the read-only trace helper; delayed callbacks only sample UIKit.
 trace=picker.split("// [hl45-layer] Observation only:",1)[1].split(
     "static NSString *SCPViewMeasureDesc(",1)[0]
 for disallowed in ("alloc] init", "addSubview:", "insertSubview:",
