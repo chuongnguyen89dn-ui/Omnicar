@@ -37,6 +37,12 @@ for s in (split,src_split):
     assert "SCPDeviceVitalsHUD" not in s, "Non-fullscreen Dock HUD still attached"
     assert "SCPVitalsLiveDockFrame" not in s
     assert "SCPVitalsLauncherFrame" not in s
+    assert "SCPFullscreenVitalsBubble" not in s, "split path must not own fullscreen bubble"
+    close=s.split("- (void)closeGoingHome:(BOOL)goHome {",1)[1].split("- (void)homePressedDuringSplit:",1)[0]
+    # Muse-owned YTZ/AutoHide checkpoints must remain before the new FS teardown.
+    assert close.index('SCPLogInjectedIconState(@"before-close", src)') < close.index("[self ahCloseCleanup];")
+    assert close.index("[self ahCloseCleanup];") < close.index("[[SCPFullscreenController shared] fsSessionDidEnd];")
+    assert close.index("[[SCPFullscreenController shared] fsSessionDidEnd];") < close.index("[self hostCloseAll];")
 fs=(PROJECT/"OmniCarSplitScreen/SCPFullscreenController.m").read_text()
 bubble=(PROJECT/"OmniCarSplitScreen/SCPFullscreenVitalsBubble.m").read_text()
 settings=(PROJECT/"OmniCarApp/OMCNativeSettings.m").read_text()
