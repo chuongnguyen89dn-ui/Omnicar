@@ -74,6 +74,9 @@ with tempfile.TemporaryDirectory(prefix="duocar49-verify-") as t:
         assert has_marker(data,"[le024-config]")
     car=verify_fat(libs/"DuoCarSplitScreen.dylib")
     for sub,data in car.items():
+        for candidate in ("[hl49-opaque]","[hl48-hosted-picker]","[hl49-pane]",
+                          "[hl49-window-ab]","[vitals] native-dock-attached"):
+            print("HL49_MARKER_DIAG",hex(sub),candidate,has_marker(data,candidate),flush=True)
         assert has_marker(data,"[hl49-opaque]")
         assert has_marker(data,"[vitals] native-dock-attached")
         assert has_marker(data,"[hl49-window-ab]")

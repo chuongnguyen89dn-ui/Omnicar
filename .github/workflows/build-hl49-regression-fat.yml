@@ -156,6 +156,15 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Preserve rejected final DEB for exact forensic inspection
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuoCar49-failed-binary
+          path: dist/DuoCar49.deb
+          if-no-files-found: ignore
+          retention-days: 3
+
       - name: Preserve error logs when failed
         if: failure()
         uses: actions/upload-artifact@v4
