@@ -1,6 +1,7 @@
 // HL26: UIKit-owned iPhone settings. Do not instantiate Settings.app Preferences controllers.
 // All values use the same domain/key/notify contract as OmniCarPrefs and the CarPlay owner.
 #import "OMCNativeSettings.h"
+#import "OMCDeviceVitalsController.h" // [duocar-vitals] standalone detail page
 #import <CoreFoundation/CoreFoundation.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
@@ -439,7 +440,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(@"PROFILES",@"profiles",nil,nil,nil)])];
         // [hl36-voice-off] Speech assistant is temporarily absent from DuoCar.
         // Keep startup/speed-bubble/split/settings sections unchanged.
-        [sections addObject:OMCSection(OMCNativeLocalized(@"SUPPORT_GROUP"),@[
+        [sections addObject:OMCSection(OMCText(@"Thiết bị",@"Device"),@[
+             OMCRow(OMCText(@"Pin và nhiệt độ",@"Battery & temperature"),@"vitals",nil,nil,nil)]),
+         OMCSection(OMCNativeLocalized(@"SUPPORT_GROUP"),@[
             OMCRow(@"ONB_SHOW_AGAIN",@"guide",nil,nil,nil),
             OMCRow(@"WN_ROW",@"whatsnew",nil,nil,nil)])];
         [sections addObject:OMCSection(OMCNativeLocalized(@"DEV_GROUP"),@[
@@ -1082,6 +1085,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     }
     if ([type isEqualToString:@"apps"]) {
         [self.navigationController pushViewController:[OMCNativeAppsPage new] animated:YES];return;
+    }
+    if ([type isEqualToString:@"vitals"]) {
+        [self.navigationController pushViewController:OMCDeviceVitalsController() animated:YES];return;
     }
     if ([type isEqualToString:@"split"]) {
         [self.navigationController pushViewController:[[OMCNativeSimplePage alloc] initWithKind:1] animated:YES];return;
