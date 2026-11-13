@@ -748,6 +748,7 @@ static void SCPHostPinchEvaluate(SCPCarSplit *split,
         sHostPinchStartDistance,d,drift);
     if (direction == DCPinchNone) return;
     BOOL outward = direction == DCPinchOut;
+    BOOL inward = direction == DCPinchIn; // [hl53] used by state gate below
     OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
         @"[hl53-pinch] owner=car phase=direction pair=%llu dir=%@ d0=%.1f d1=%.1f ratio=%.3f delta=%.1f drift=%.1f",
         (unsigned long long)sHL8CurrentPair,outward?@"out":@"in",
