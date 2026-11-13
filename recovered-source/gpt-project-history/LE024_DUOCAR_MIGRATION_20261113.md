@@ -1,0 +1,25 @@
+# DuoCar + Lề 0.2.4 — checkpoint 2026-11-13
+
+## Yêu cầu hiện hành (Nguyen chốt)
+- Tích hợp **đầy đủ chức năng giao thông của Lề 0.2.4** vào DuoCar (bong bóng, VietMap Live/GOFA/Waze, biển báo, làn đường, cảnh báo, thẻ Maps, prefs/chẩn đoán, hành vi source khi dùng CarPlay), không chỉ mượn hiệu ứng.
+- **Bỏ runtime SpeedBubble cũ** trước khi đưa bản mới vào, nhưng **giữ mục Cài đặt > Bong bóng tốc độ** trong UIKit DuoCar, thay nội dung bằng cài đặt Lề. Không gộp nhầm bong bóng giao thông với bong bóng giờ/pin/nhiệt fullscreen DuoCar; latter phải giữ.
+- Cải tiến riêng: bong bóng giao thông kéo/thả **tự do trong toàn vùng an toàn** và nhớ vị trí sau đổi app/CarPlay reconnect; không tự buộc neo góc như Lề gốc. Đối với **CON SỐ tốc độ đang chạy** trên bong bóng GPS, chỉ hiện số (vd 63), **không hiện hậu tố km/h**; giữ các ký hiệu đơn vị hợp lý ở cảnh báo hay lời đọc khác.
+- **GPS SPEED là tốc độ xe thực đang chạy, KHÔNG phải biển giới hạn tốc độ và KHÔNG phải tốc độ tối đa mặc định của app.** Nguồn Lề báo speed từ VietMap/GOFA/Waze. Hiệu chỉnh riêng giá trị speed thực đã được nguồn xuất và chuẩn hoá đơn vị: offset nguyên [-5,+5] km/h, UI +/- mỗi lần nhấn 1 đơn vị, mặc định 0, lưu prefs. Ví dụ speed nguồn 60 + offset 3 -> bong bóng 63, posted limit 80 -> **vẫn 80**. Không sửa tọa độ GPS, limit, max, provider payload hay cấu hình limit. Cảnh báo vượt tốc dùng speed đã hiệu chỉnh so với limit thật. Không có speed sample thì không được tự tạo giá trị. Cần phân biệt source speed (có thể app chuẩn hoá từ GPS) với limit ở các kênh IPC.
+- Cảnh báo đỏ nhiệt icon >=39°C là một hạng mục khác; không nằm trong thay đổi GPS này.
+
+## Bằng chứng đã đọc
+- Repository: `chuongnguyen89dn-ui/Omnicar`, cây source build `recovered-source/`; nhánh cách ly **`feature/duocar-le024-full-20261113`**, tạo từ `feature/duocar-hl47-menu-dock-bubble-fat-20261113` HEAD `905ddaae1920dedacffefa673dc384e7f027183d`; không merge main.
+- Bộ scan tại `deb-scans/le-0.2.4/`: `HO_SO.md`, `A_HIEN_THI_RELAY.md`, `B_NGUON_GOFA_WAZE.md`, `C_NGUON_VIETMAP_GMAPS.md`, `D_PREFS_GOI.md`, `KIEM_KE_MACHO.md`, `strings/`. File DEB gốc hiện có trên GitHub (1,677,842 bytes theo metadata), nhưng GitHub connector không cấp bytes binary để tự giải mã lại tại lượt này. Dữ liệu speed và limit Lề ở các **kênh riêng** theo tài liệu B §6.2–6.4; thông số speed km/h là sample, limit là mẫu độc lập. Không có bằng chứng đã tích hợp runtime 10 Mach-O.
+- Source DuoCar SpeedBubble cũ: `recovered-source/project/OmniCarSpeedBubble` có reader nguồn, renderer 9 style, prefs. Trong `SPPBubble.m`, khi `_carBusy` (split) thì runtime tự ẩn; không được đưa đường này vào presenter Lề. Cửa sổ fullscreen giờ-pin-nhiệt dùng chủ riêng.
+
+## Source thực tế đã thay đổi và đã readback qua GitHub
+1. Commit `76a86c91c044e37e1f7d696620b46ebe96379d21`: `recovered-source/project/Makefile` **loại `SUBPROJECTS += OmniCarSpeedBubble` khỏi build graph**, giữ code lịch sử trong repository. Đây là disable target tại build, KHÔNG phải đã xoá hết payload/cache cài cũ trên thiết bị.
+2. Commit `1e7ed0eaea039c99b4d1c60a19af62aca6380a7a`: `recovered-source/project/OmniCarApp/OMCNativeSettings.m` giữ entry "SPEEDBUBBLE", thay page kind==3 bởi nhóm cài đặt `leTraffic*` cho nguồn/presentation, wake/close source, bubble, 5 modules, Maps card. Thay status root bằng `leTrafficEnabled`. Thêm `leGpsStepper`: `UIStepper` range -5..+5, step=1, key `leTrafficGpsOffsetKph`, hiển thị dấu +/- rõ, ghi CFPreferences của DuoCar và Darwin prefschanged.
+3. Commit `1ae14bc398444773c605ad9ac4676200d7f6d1aa`: đồng bộ `recovered-source/src/App/OMCNativeSettings.m` theo project; đã xác minh **cả hai có cùng blob SHA `322ce49704fb97b63daadd226031f32363505edd`**.
+
+## Giới hạn & điểm tiếp nối
+- Mới **UI + Build graph**; **chưa có module Lề runtime hoặc source/consumer đọc `leTrafficGpsOffsetKph`**, chưa chuyển vendor LePrefs sang UIKit hoàn chỉnh; các rows mới KHÔNG được gọi là chức năng đã hoạt động. Chưa bảo đảm mọi nguồn Lề, biển báo/làn, renderer, diagnoser hay kéo tự do trong binary build. Chưa biên dịch ObjC, chưa test, **chưa build DEB**, chưa chạy CI, không ký/publish Sileo, không DEVICE PASS.
+- Build workflow HL47 vẫn nhắm nhánh HL47; không tự dispatch CI. `rebrand_duocar_hl47.py` sẽ đổi tên khi build. Phải sửa/bổ sung verifier & build workflow cách ly khi runtime mới thật sự hoàn tất.
+- **Bản quyền:** chỉ có SIL OFL của font Saira; giấy phép hoặc quyền tái phân phối tweak Lề nguyên bộ vẫn chưa được xác nhận. Không nhúng/giao binary vendor khi chưa có quyền.
+- Tiếp theo: (a) phát triển interface speed/limit/alerts/lanes có phân biệt raw speed, corrected speed, posted limit; (b) xây consumer/presenter Lề riêng với tự do kéo + persist X/Y và hit-test pass-through, không dùng SpeedBubble cũ; (c) nối prefs tách biệt/Maps cards/supervisor/guidance, kiểm build mirror src/project; (d) test static, compile, gói FAT DEB một lần sau khi kiểm đúng workflow + quyền; (e) Nguyen nghiệm thu thiết bị.
+- Khôi phục source: xoá/không merge nhánh `feature/duocar-le024-full-20261113`; baseline HL47 có đúng source tại SHA `905ddaae1920dedacffefa673dc384e7f027183d`. Không revert/force-push baseline.
