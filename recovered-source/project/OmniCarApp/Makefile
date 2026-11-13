@@ -12,7 +12,7 @@ include $(THEOS)/makefiles/common.mk
 # material only. Do NOT compile DCVoiceSession / DCVoiceCommand or link Speech.
 APPLICATION_NAME = OmniCar
 OmniCar_FILES = main.m OMCAppDelegate.m OMCNativeSettings.m OMCNativeStartup.m OMCDeviceVitalsController.m ../OMCCommon/OMCDeviceVitals.m
-OmniCar_FRAMEWORKS = UIKit AVFoundation AVKit CoreMedia CoreImage CoreVideo ImageIO CoreGraphics QuartzCore UniformTypeIdentifiers IOKit
+OmniCar_FRAMEWORKS = UIKit AVFoundation AVKit CoreMedia CoreImage CoreVideo ImageIO CoreGraphics QuartzCore UniformTypeIdentifiers
 # Reuse the original real Root/Feature schemas and translations. Never copy Prefs Info.plist
 # over the application's APPL Info.plist (historical HL16 regression).
 OmniCar_RESOURCE_FILES = $(filter-out ../OmniCarPrefs/Resources/Info.plist,$(wildcard ../OmniCarPrefs/Resources/*))
