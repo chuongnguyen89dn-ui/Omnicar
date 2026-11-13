@@ -85,6 +85,48 @@ int main(void) {
             assert(!overlaps(got.frame,f.exclusions[0]));
         }
     }
-    puts("PASS: 12 exact layout assertions + 25,000 deterministic property checks");
+    // [fs-vitals] Clock pill is forbidden unless a FULLSCREEN SETTLE is confirmed.
+    SCPVitalsRect screen={0,0,640,360};
+    SCPVitalsLayoutResult bubble=SCPVitalsFullscreenBubblePlace(screen,0,0,0);
+    assert(!bubble.valid);
+    bubble=SCPVitalsFullscreenBubblePlace(screen,0,0,1);
+    assert(bubble.valid && bubble.railIndex==-1 && bubble.horizontal);
+    assert(inside(bubble.frame,screen));
+    assert(bubble.frame.w==258.0 && bubble.frame.h==38.0);
+    assert(bubble.frame.x==373.0 && bubble.frame.y==9.0);
+    screen=(SCPVitalsRect){-45,0,640,360};
+    bubble=SCPVitalsFullscreenBubblePlace(screen,20,35,1);
+    assert(bubble.valid && bubble.frame.x==293.0 && bubble.frame.y==29.0);
+    assert(inside(bubble.frame,screen));
+    assert(!SCPVitalsFullscreenBubblePlace((SCPVitalsRect){0,0,210,80},0,0,1).valid);
+    assert(!SCPVitalsFullscreenBubblePlace((SCPVitalsRect){0,0,640,360},330,0,1).valid);
+    assert(!SCPVitalsFullscreenBubblePlace((SCPVitalsRect){0,0,640,360},0,630,1).valid);
+    assert(!SCPVitalsFullscreenBubblePlace((SCPVitalsRect){0,0,640,360},-1,0,1).valid);
+    assert(!SCPVitalsFullscreenBubblePlace((SCPVitalsRect){0,0,640,360},NAN,0,1).valid);
+    assert(!SCPVitalsFullscreenBubblePlace((SCPVitalsRect){0,0,NAN,360},0,0,1).valid);
+    // Deterministic fuzz of window origins, display sizes and safe insets.
+    for(int n=0;n<25000;n++){
+        seed=seed*1664525u+1013904223u;
+        double width=160.0+(double)(seed%1100u);
+        seed=seed*1664525u+1013904223u;
+        double height=40.0+(double)(seed%480u);
+        seed=seed*1664525u+1013904223u;
+        double origin=(double)((int)(seed%140u)-70);
+        seed=seed*1664525u+1013904223u;
+        double top=(double)(seed%130u);
+        seed=seed*1664525u+1013904223u;
+        double right=(double)(seed%160u);
+        SCPVitalsRect root={origin,0,width,height};
+        SCPVitalsLayoutResult visible=SCPVitalsFullscreenBubblePlace(root,top,right,1);
+        SCPVitalsLayoutResult hidden=SCPVitalsFullscreenBubblePlace(root,top,right,0);
+        assert(!hidden.valid);
+        if(visible.valid){
+            assert(inside(visible.frame,root));
+            assert(visible.frame.w >= 198.0 && visible.frame.h == 38.0);
+            assert(visible.frame.x + visible.frame.w <= root.x + root.w-right);
+            assert(visible.frame.y >= root.y + top);
+        }
+    }
+    puts("PASS: 12 rail cases + 25,000 rail checks; 10 fullscreen cases + 25,000 fullscreen checks");
     return 0;
 }
