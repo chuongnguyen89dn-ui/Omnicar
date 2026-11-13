@@ -1,6 +1,9 @@
-// DuoCar's private, personal-use extension for an unmodified Le 0.2.4.
-// Only hook exact vendor classes when their ABI is present. EXPERIMENTAL;
-// car/SDK testing is still required; no vendor code is copied here.
+// DuoCar personal Lề extension. The original Le 0.2.4 renderer, data
+// collectors, limit, signs, lanes, Maps card and supervisor remain intact.
+// Verified Mach-O methods used here: CWTrafficBubbleContent
+// +contentWithSnapshot:, CWTrafficOverlayController -place/-panned:,
+// CWCastBubbleController -place:/-panned:, both bubble/window accessors.
+// This module does not alter posted speed limits or the vendor relay.
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <CoreFoundation/CoreFoundation.h>
@@ -10,249 +13,239 @@
 #import <math.h>
 #import <stdlib.h>
 #import "../OmniCarLeTraffic/DCLTrafficCore.h"
+#import "DCLLeConfigBridge.h"
 
 static NSString *const DCLDomain=@"com.chuong.duocar";
-static id (*origContent)(id,SEL,id);
-static void (*origFrame)(id,SEL,CGRect);
-static void (*origCenter)(id,SEL,CGPoint);
-static void (*origMoved)(id,SEL);
-static BOOL factoryInstalled=NO, viewInstalled=NO, applying=NO, dragging=NO;
-static BOOL hasStored=NO;
+static id (*originalContent)(id,SEL,id);
+static void (*originalOverlayPlace)(id,SEL);
+static void (*originalCastPlace)(id,SEL,id);
+static BOOL installedContent=NO, installedOverlay=NO, installedCast=NO;
+static BOOL dragging=NO, applying=NO, hasStored=NO;
 static DCLTrafficPoint stored={0.5,0.5};
-static char gestureMark;
+static __weak UIView *dragTarget;
+static __weak id dragOwner;
 
 static id pref(NSString *key) {
     CFStringRef domain=(__bridge CFStringRef)DCLDomain;
     CFPreferencesAppSynchronize(domain);
-    return CFBridgingRelease(CFPreferencesCopyAppValue((__bridge CFStringRef)key,domain));
+    return CFBridgingRelease(CFPreferencesCopyAppValue(
+                     (__bridge CFStringRef)key,domain));
 }
-static int offset(void) {
-    id number=pref(@"leTrafficGpsOffsetKph");
-    return DCLTrafficClampGpsOffset([number respondsToSelector:@selector(integerValue)]
-                                      ? (int)[number integerValue] : 0);
+static BOOL enabledDrag(void) {
+    id v=pref(@"leTrafficFreeDrag");
+    return v?[v boolValue]:YES;
 }
-static void loadXY(void) {
-    id x=pref(@"leTrafficPositionX"), y=pref(@"leTrafficPositionY");
-    if ([x isKindOfClass:NSNumber.class] && [y isKindOfClass:NSNumber.class] &&
-        isfinite([x doubleValue]) && isfinite([y doubleValue])) {
+static int gpsOffset(void) {
+    id n=pref(@"leTrafficGpsOffsetKph");
+    return DCLTrafficClampGpsOffset([n respondsToSelector:@selector(integerValue)]
+        ?(int)[n integerValue]:0);
+}
+static void loadStored(void) {
+    id x=pref(@"leTrafficPositionX"),y=pref(@"leTrafficPositionY");
+    if([x isKindOfClass:NSNumber.class]&&[y isKindOfClass:NSNumber.class]&&
+       isfinite([x doubleValue])&&isfinite([y doubleValue])) {
         stored=(DCLTrafficPoint){fmax(0,fmin(1,[x doubleValue])),
                                  fmax(0,fmin(1,[y doubleValue]))};
         hasStored=YES;
     }
 }
-static void saveXY(DCLTrafficPoint point) {
-    if (!isfinite(point.x) || !isfinite(point.y)) return;
-    stored=point;hasStored=YES;
+static void saveStored(DCLTrafficPoint p) {
+    if(!isfinite(p.x)||!isfinite(p.y))return;
+    stored=p;hasStored=YES;
     CFStringRef domain=(__bridge CFStringRef)DCLDomain;
-    CFPreferencesSetAppValue(CFSTR("leTrafficPositionX"),
-                             (__bridge CFPropertyListRef)@(point.x),domain);
-    CFPreferencesSetAppValue(CFSTR("leTrafficPositionY"),
-                             (__bridge CFPropertyListRef)@(point.y),domain);
-    CFPreferencesAppSynchronize(domain);
-    notify_post("com.chuong.duocar/prefschanged");
+    CFPreferencesSetAppValue(CFSTR("leTrafficPositionX"),(__bridge CFPropertyListRef)@(p.x),domain);
+    CFPreferencesSetAppValue(CFSTR("leTrafficPositionY"),(__bridge CFPropertyListRef)@(p.y),domain);
+    BOOL ok=CFPreferencesAppSynchronize(domain);
+    NSLog(@"[le024-ext] saveXY %.3f %.3f success=%d",p.x,p.y,ok);
 }
-static BOOL getNumber(NSString *text,NSInteger *value) {
-    if (![text isKindOfClass:NSString.class] || !text.length || !value) return NO;
-    static NSRegularExpression *regex;
-    static dispatch_once_t once;
-    dispatch_once(&once,^{regex=[NSRegularExpression
-        regularExpressionWithPattern:@"[0-9]+" options:0 error:nil];});
-    NSArray *all=[regex matchesInString:text options:0
-                                  range:NSMakeRange(0,text.length)];
-    if (all.count!=1) return NO;
-    NSRange range=[(NSTextCheckingResult *)all.firstObject range];
-    NSInteger n=[[text substringWithRange:range] integerValue];
-    if (n<0 || n>400) return NO;
-    *value=n;return YES;
+static UIView *bubble(id owner) {
+    SEL sel=@selector(bubble);
+    if(!owner || ![owner respondsToSelector:sel])return nil;
+    id v=((id(*)(id,SEL))objc_msgSend)(owner,sel);
+    return [v isKindOfClass:UIView.class]?(UIView *)v:nil;
 }
-// Keep original Le producer, relay, signal, model and renderer. Only adjust
-// the moving speed *text* of the completed model; leave limit and all other
-// source fields intact. Units remain meaningful for voice/accessibility.
-// This does NOT prove the renderer has no separately painted km/h suffix.
-static id contentWithSnapshot(id cls,SEL cmd,id snapshot) {
-    id value=origContent?origContent(cls,cmd,snapshot):nil;
-    if (!value || ![value respondsToSelector:@selector(speedText)] ||
-        ![value respondsToSelector:@selector(setSpeedText:)]) return value;
-    NSString *text=((id(*)(id,SEL))objc_msgSend)(value,@selector(speedText));
-    NSInteger raw;
-    if (!getNumber(text,&raw)) return value;
-    NSInteger adjusted=MAX(0,MIN(400,raw+offset()));
-    ((void(*)(id,SEL,id))objc_msgSend)(value,@selector(setSpeedText:),
-        [NSString stringWithFormat:@"%ld",(long)adjusted]);
-    // Never guess Le's speedState / overspeedExcess ABI. Preserve the
-    // original native warnings, limits, road signs and spoken guidance.
-    // The calibrated value currently affects the visible moving-speed number
-    // ONLY. Before any calibrated alert change, reverse/verify vendor logic.
-    return value;
-}
-static BOOL geometry(UIView *bubble,DCLTrafficRect *bounds,DCLTrafficInsets *safe) {
-    if (!bubble.window || !bubble.superview) return NO;
-    UIWindow *window=bubble.window;
-    CGRect r=window.bounds;
-    if (r.size.width<200 || r.size.height<150) return NO;
-    if (bubble.superview!=window && bubble.superview.clipsToBounds &&
-        (bubble.superview.bounds.size.width<r.size.width-10 ||
-         bubble.superview.bounds.size.height<r.size.height-10)) return NO;
-    UIEdgeInsets insets=window.safeAreaInsets;
-    *bounds=(DCLTrafficRect){r.origin.x,r.origin.y,r.size.width,r.size.height};
-    *safe=(DCLTrafficInsets){MAX(0,insets.top),MAX(0,insets.right),
-                             MAX(0,insets.bottom),MAX(0,insets.left)};
+static BOOL geometry(UIView *view,DCLTrafficRect *r,DCLTrafficInsets *safe) {
+    if(!view||!view.window||!view.superview)return NO;
+    UIWindow *win=view.window;
+    CGRect bounds=win.bounds;
+    if(bounds.size.width<200||bounds.size.height<150)return NO;
+    UIEdgeInsets edge=win.safeAreaInsets;
+    *r=(DCLTrafficRect){bounds.origin.x,bounds.origin.y,bounds.size.width,bounds.size.height};
+    *safe=(DCLTrafficInsets){MAX(0,edge.top),MAX(0,edge.right),
+                              MAX(0,edge.bottom),MAX(0,edge.left)};
     return YES;
 }
-static void applyXY(UIView *bubble) {
-    if (!hasStored || applying || dragging ||
-        ![(pref(@"leTrafficFreeDrag")?:@YES) boolValue]) return;
-    DCLTrafficRect screen;DCLTrafficInsets safe;
-    if (!geometry(bubble,&screen,&safe)) return;
-    DCLTrafficPoint point;
-    if (!DCLTrafficRestoreCenter(screen,safe,bubble.bounds.size.width,
-        bubble.bounds.size.height,9.0,stored,&point)) return;
-    CGPoint actual=[bubble.superview convertPoint:CGPointMake(point.x,point.y)
-                                        fromView:bubble.window];
-    if (hypot(actual.x-bubble.center.x,actual.y-bubble.center.y)<0.8) return;
+static void applyCenter(UIView *view,DCLTrafficPoint normalized) {
+    if(!view || applying)return;
+    DCLTrafficRect rect;DCLTrafficInsets safe;
+    if(!geometry(view,&rect,&safe))return;
+    DCLTrafficPoint center;
+    if(!DCLTrafficRestoreCenter(rect,safe,view.bounds.size.width,
+                                view.bounds.size.height,6.0,normalized,&center))return;
+    CGPoint wanted=[view.superview convertPoint:CGPointMake(center.x,center.y)
+                                      fromView:view.window];
+    if(hypot(wanted.x-view.center.x,wanted.y-view.center.y)<0.5)return;
     applying=YES;
-    if (origCenter) origCenter(bubble,@selector(setCenter:),actual);
+    view.center=wanted;
     applying=NO;
 }
-@interface DCLLePan : NSObject <UIGestureRecognizerDelegate>
-+ (instancetype)shared;
-- (void)drag:(UIPanGestureRecognizer *)recognizer;
-@end
-@implementation DCLLePan
-+ (instancetype)shared {static DCLLePan *one;static dispatch_once_t once;
-    dispatch_once(&once,^{one=[DCLLePan new];});return one;}
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)a
- shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)other {
-    (void)a;(void)other;return YES;
+static void enforce(id owner) {
+    if(!enabledDrag()||!hasStored)return;
+    UIView *view=bubble(owner);
+    if(!view || (dragging && dragOwner==owner))return;
+    applyCenter(view,stored);
 }
-- (void)drag:(UIPanGestureRecognizer *)g {
-    UIView *v=g.view;
-    if (!v.superview || ![(pref(@"leTrafficFreeDrag")?:@YES) boolValue]) return;
-    DCLTrafficRect screen;DCLTrafficInsets safe;
-    if (!geometry(v,&screen,&safe)) return;
-    if (g.state==UIGestureRecognizerStateBegan) dragging=YES;
-    if (g.state==UIGestureRecognizerStateChanged) {
-        CGPoint delta=[g translationInView:v.superview];
-        CGPoint p=CGPointMake(v.center.x+delta.x,v.center.y+delta.y);
-        CGPoint w=[v.superview convertPoint:p toView:v.window];
-        DCLTrafficPoint bounded;
-        if (DCLTrafficClampCenter(screen,safe,v.bounds.size.width,
-            v.bounds.size.height,9.0,(DCLTrafficPoint){w.x,w.y},&bounded)) {
-            v.center=[v.superview convertPoint:CGPointMake(bounded.x,bounded.y)
-                                     fromView:v.window];
-        }
-        [g setTranslation:CGPointZero inView:v.superview];
+static BOOL normalize(UIView *view,DCLTrafficPoint *result) {
+    if(!view||!result)return NO;
+    DCLTrafficRect rect;DCLTrafficInsets safe;
+    if(!geometry(view,&rect,&safe))return NO;
+    CGPoint p=[view.superview convertPoint:view.center toView:view.window];
+    return DCLTrafficNormalizeCenter(rect,safe,view.bounds.size.width,
+                                     view.bounds.size.height,6.0,
+                                     (DCLTrafficPoint){p.x,p.y},result);
+}
+static void freePan(id owner,SEL sel,UIPanGestureRecognizer *gesture) {
+    (void)sel;
+    if(!enabledDrag()||![gesture isKindOfClass:UIPanGestureRecognizer.class])return;
+    UIView *view=bubble(owner);
+    if(!view || !view.window || !view.superview) {
+        NSLog(@"[le024-ext] pan BLIND: no bubble view");
+        return;
     }
-    if (g.state==UIGestureRecognizerStateEnded ||
-        g.state==UIGestureRecognizerStateCancelled ||
-        g.state==UIGestureRecognizerStateFailed) {
-        CGPoint w=[v.superview convertPoint:v.center toView:v.window];
-        DCLTrafficPoint normalized;
-        if (DCLTrafficNormalizeCenter(screen,safe,v.bounds.size.width,
-            v.bounds.size.height,9.0,(DCLTrafficPoint){w.x,w.y},&normalized)) {
-            saveXY(normalized);
-            NSLog(@"[le024-ext] free-drag x=%.3f y=%.3f",normalized.x,normalized.y);
+    UIGestureRecognizerState state=gesture.state;
+    if(state==UIGestureRecognizerStateBegan) {
+        dragging=YES;dragOwner=owner;dragTarget=view;
+        [gesture setTranslation:CGPointZero inView:view.superview];
+        NSLog(@"[le024-ext] drag begin view=%@ frame=%@",NSStringFromClass(view.class),
+              NSStringFromCGRect(view.frame));
+    }
+    if(state==UIGestureRecognizerStateChanged) {
+        if(dragTarget!=view)return;
+        CGPoint delta=[gesture translationInView:view.superview];
+        CGPoint proposed=CGPointMake(view.center.x+delta.x,view.center.y+delta.y);
+        CGPoint raw=[view.superview convertPoint:proposed toView:view.window];
+        DCLTrafficRect rect;DCLTrafficInsets safe;
+        if(geometry(view,&rect,&safe)) {
+            DCLTrafficPoint bounded;
+            if(DCLTrafficClampCenter(rect,safe,view.bounds.size.width,
+                view.bounds.size.height,6.0,(DCLTrafficPoint){raw.x,raw.y},&bounded)) {
+                applying=YES;
+                view.center=[view.superview convertPoint:
+                    CGPointMake(bounded.x,bounded.y) fromView:view.window];
+                applying=NO;
+                if(normalize(view,&stored)) hasStored=YES;
+            }
         }
-        dragging=NO;
-        applyXY(v);
+        [gesture setTranslation:CGPointZero inView:view.superview];
+    }
+    if(state==UIGestureRecognizerStateEnded ||
+       state==UIGestureRecognizerStateCancelled ||
+       state==UIGestureRecognizerStateFailed) {
+        DCLTrafficPoint point;
+        if(normalize(view,&point))saveStored(point);
+        dragging=NO;dragOwner=nil;dragTarget=nil;
+        NSLog(@"[le024-ext] drag end center=%@",NSStringFromCGPoint(view.center));
     }
 }
-@end
-static void attachPan(UIView *view) {
-    if (!view.window || objc_getAssociatedObject(view,&gestureMark)) return;
-    UIPanGestureRecognizer *pan=[[UIPanGestureRecognizer alloc]
-                  initWithTarget:[DCLLePan shared] action:@selector(drag:)];
-    pan.delegate=[DCLLePan shared];
-    pan.maximumNumberOfTouches=1;pan.cancelsTouchesInView=NO;
-    [view addGestureRecognizer:pan];
-    objc_setAssociatedObject(view,&gestureMark,pan,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    NSLog(@"[le024-ext] pan attached");
+static void newOverlayPan(id o,SEL sel,UIPanGestureRecognizer *g) { freePan(o,sel,g); }
+static void newCastPan(id o,SEL sel,UIPanGestureRecognizer *g) { freePan(o,sel,g); }
+static void newOverlayPlace(id o,SEL sel) {
+    if(originalOverlayPlace)originalOverlayPlace(o,sel);
+    enforce(o);
 }
-static void customFrame(id obj,SEL cmd,CGRect frame) {
-    origFrame(obj,cmd,frame);
-    if (!applying) {attachPan(obj);applyXY(obj);}
+static void newCastPlace(id o,SEL sel,id value) {
+    if(originalCastPlace)originalCastPlace(o,sel,value);
+    enforce(o);
 }
-static void customCenter(id obj,SEL cmd,CGPoint center) {
-    origCenter(obj,cmd,center);
-    if (!applying) {attachPan(obj);applyXY(obj);}
+static id newContent(id cls,SEL sel,id snapshot) {
+    id object=originalContent?originalContent(cls,sel,snapshot):nil;
+    if(!object||![object respondsToSelector:@selector(speedText)]||
+       ![object respondsToSelector:@selector(setSpeedText:)])return object;
+    id value=((id(*)(id,SEL))objc_msgSend)(object,@selector(speedText));
+    if(![value isKindOfClass:NSString.class])return object;
+    NSScanner *scanner=[NSScanner scannerWithString:value];
+    NSInteger current=0;
+    if(![scanner scanInteger:&current] || !scanner.isAtEnd ||
+       current<0 || current>400)return object;
+    NSInteger adjusted=MAX(0,MIN(400,current+gpsOffset()));
+    ((void(*)(id,SEL,id))objc_msgSend)(object,@selector(setSpeedText:),
+            [NSString stringWithFormat:@"%ld",(long)adjusted]);
+    return object;
 }
-static void customMove(id obj,SEL cmd) {
-    origMoved(obj,cmd);
-    if (!applying) {attachPan(obj);applyXY(obj);}
-}
-static BOOL hookInstance(Class cls,SEL selector,IMP newIMP,IMP *oldIMP) {
-    Method m=class_getInstanceMethod(cls,selector);
-    if (!m || method_getNumberOfArguments(m)!=
-              (selector==@selector(didMoveToWindow)?2:3)) return NO;
-    // Prevent a half-completed three-selector installation from re-swizzling
-    // a method to itself on the next timer tick (which would recurse).
-    if (*oldIMP) return YES;
+static BOOL installOne(Class cls,SEL selector,IMP newIMP,IMP *old,
+                        BOOL instance,unsigned args) {
+    if(!cls||!old||*old)return *old!=NULL;
+    Method m=instance?class_getInstanceMethod(cls,selector):
+                       class_getClassMethod(cls,selector);
+    if(!m||method_getNumberOfArguments(m)!=args)return NO;
+    char ret[16]={0};
+    method_getReturnType(m,ret,sizeof(ret));
+    if(instance ? ret[0]!='v' : ret[0]!='@')return NO;
+    Class target=instance?cls:object_getClass(cls);
     IMP previous=method_getImplementation(m);
-    if (!previous || previous==newIMP) return NO;
-    *oldIMP=previous;
-    if (!class_addMethod(cls,selector,newIMP,method_getTypeEncoding(m))) {
-        IMP replaced=method_setImplementation(m,newIMP);
-        if (replaced!=previous) {
-            if (replaced) method_setImplementation(m,replaced);
-            *oldIMP=NULL;
-            return NO;
-        }
+    if(!previous||previous==newIMP)return NO;
+    if(class_addMethod(target,selector,newIMP,method_getTypeEncoding(m))) {
+        *old=previous;return YES;
     }
-    return YES;
+    IMP replaced=method_setImplementation(m,newIMP);
+    if(replaced!=previous) {
+        if(replaced)method_setImplementation(m,replaced);
+        return NO;
+    }
+    *old=previous;return YES;
 }
 static void install(void) {
-    if (!factoryInstalled) {
-        Class klass=NSClassFromString(@"CWTrafficBubbleContent");
-        Method m=klass?class_getClassMethod(klass,@selector(contentWithSnapshot:)):NULL;
-        if (m && method_getNumberOfArguments(m)==3) {
-            char *type=method_copyReturnType(m);
-            if (type && type[0]=='@') {
-                origContent=(void *)method_getImplementation(m);
-                Class meta=object_getClass(klass);
-                if (!class_addMethod(meta,@selector(contentWithSnapshot:),
-                    (IMP)contentWithSnapshot,method_getTypeEncoding(m)))
-                    method_setImplementation(m,(IMP)contentWithSnapshot);
-                factoryInstalled=YES;
-                NSLog(@"[le024-ext] factory hooked");
-            }
-            if (type) free(type);
-        }
+    if(!installedContent) {
+        Class content=NSClassFromString(@"CWTrafficBubbleContent");
+        installedContent=installOne(content,@selector(contentWithSnapshot:),
+             (IMP)newContent,(IMP *)&originalContent,NO,3);
+        if(installedContent) NSLog(@"[le024-ext] factory hooked");
     }
-    if (!viewInstalled) {
-        Class klass=NSClassFromString(@"CWTrafficBubbleView");
-        if (klass && [klass isSubclassOfClass:UIView.class] &&
-            class_getInstanceMethod(klass,@selector(setFrame:)) &&
-            class_getInstanceMethod(klass,@selector(setCenter:)) &&
-            class_getInstanceMethod(klass,@selector(didMoveToWindow))) {
-            BOOL a=hookInstance(klass,@selector(setFrame:),
-                                (IMP)customFrame,(IMP *)&origFrame);
-            BOOL c=hookInstance(klass,@selector(setCenter:),
-                                (IMP)customCenter,(IMP *)&origCenter);
-            BOOL w=hookInstance(klass,@selector(didMoveToWindow),
-                                (IMP)customMove,(IMP *)&origMoved);
-            viewInstalled=a&&c&&w;
-            NSLog(@"[le024-ext] view hook frame=%d center=%d move=%d",a,c,w);
-        }
+    if(!installedOverlay) {
+        Class cls=NSClassFromString(@"CWTrafficOverlayController");
+        BOOL ok=cls && [cls instancesRespondToSelector:@selector(bubble)];
+        ok = ok && installOne(cls,@selector(place),
+              (IMP)newOverlayPlace,(IMP *)&originalOverlayPlace,YES,2);
+        // The native controller already has the working pan recognizer.
+        // Override its FINAL snap-to-corner handler instead of adding
+        // a second competing pan onto CWTrafficBubbleView.
+        static void (*origOverlayPan)(id,SEL,id);
+        ok = ok && installOne(cls,@selector(panned:),
+              (IMP)newOverlayPan,(IMP *)&origOverlayPan,YES,3);
+        installedOverlay=ok;
+        if(ok)NSLog(@"[le024-ext] overlay place/panned installed");
+    }
+    if(!installedCast) {
+        Class cls=NSClassFromString(@"CWCastBubbleController");
+        BOOL ok=cls && [cls instancesRespondToSelector:@selector(bubble)];
+        ok=ok && installOne(cls,@selector(place:),
+             (IMP)newCastPlace,(IMP *)&originalCastPlace,YES,3);
+        static void (*origCastPan)(id,SEL,id);
+        ok=ok && installOne(cls,@selector(panned:),
+             (IMP)newCastPan,(IMP *)&origCastPan,YES,3);
+        installedCast=ok;
+        if(ok)NSLog(@"[le024-ext] cast place/panned installed");
     }
 }
 __attribute__((constructor)) static void DCLLeBootstrap(void) {
     NSString *bundle=NSBundle.mainBundle.bundleIdentifier;
-    if (![bundle isEqualToString:@"com.apple.CarPlayApp"] &&
-        ![bundle isEqualToString:@"com.apple.springboard"]) return;
+    BOOL car=[bundle isEqualToString:@"com.apple.CarPlayApp"];
+    BOOL springboard=[bundle isEqualToString:@"com.apple.springboard"];
+    if(!car&&!springboard)return;
     dispatch_async(dispatch_get_main_queue(),^{
-        loadXY();
+        if(springboard)DCLLeConfigStartBridge();
+        loadStored();
         install();
-        // Le and DuoCar injection order is not stable across restarts.
-        __block NSUInteger attempts=0;
+        __block NSUInteger tries=0;
         NSTimer *timer=[NSTimer timerWithTimeInterval:1 repeats:YES
-          block:^(NSTimer *tick){
+         block:^(NSTimer *t) {
             install();
-            if ((factoryInstalled && viewInstalled) || ++attempts>=90) {
-                if (attempts>=90)
-                    NSLog(@"[le024-ext] BLIND: original classes not installed");
-                [tick invalidate];
+            BOOL done=installedContent && (car?installedOverlay:installedCast);
+            if(done||++tries>=120){
+                if(!done)NSLog(@"[le024-ext] BLIND: class/selector not installed");
+                [t invalidate];
             }
-        }];
+         }];
         [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
     });
 }
