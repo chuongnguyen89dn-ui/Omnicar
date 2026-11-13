@@ -1,6 +1,7 @@
 // HL26: UIKit-owned iPhone settings. Do not instantiate Settings.app Preferences controllers.
 // All values use the same domain/key/notify contract as OmniCarPrefs and the CarPlay owner.
 #import "OMCNativeSettings.h"
+#import "OMCLePrefsHost.h" // [le024] actual vendor UI, no disconnected mirror
 #import "OMCDeviceVitalsController.h" // [duocar-vitals] standalone detail page
 #import <CoreFoundation/CoreFoundation.h>
 #import <objc/message.h>
@@ -517,90 +518,17 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(@"APPS",@"homeapps",nil,nil,nil),
             OMCRow(OMCText(@"Khôi phục bố cục Home",@"Reset Home layout"),@"resethome",nil,nil,nil)])
     ];
-    // [le024-migration] Old SpeedBubble controls are retired: keep the entry,
-    // replace the page with a namespaced Le traffic configuration contract.
-    // The new Le presenter/source module must consume these keys when ready.
+    // The actual vendor preference UI owns every original Lề setting.
+    // Do not show disconnected DuoCar copies of source/lanes/alerts switches.
     if (self.kind==3) return @[
-        OMCSection(OMCText(@"Bong bóng giao thông Lề", @"Le traffic bubble"), @[
-            OMCRow(OMCText(@"Bật bong bóng giao thông", @"Enable traffic bubble"),
-                   @"switch", @"leTrafficEnabled", @YES, nil),
-            OMCRow(OMCText(@"Nguồn dữ liệu", @"Traffic source"),
-                   @"number", @"leTrafficSource", @"vietmap-live",
-                   @[@"vietmap-live", @"gofa", @"waze"]),
-            OMCRow(OMCText(@"Tự đánh thức ứng dụng nguồn", @"Wake source app"),
-                   @"switch", @"leTrafficWakeSource", @NO, nil),
-            OMCRow(OMCText(@"Tự đóng nguồn khi ngắt CarPlay", @"Close source on disconnect"),
-                   @"switch", @"leTrafficCloseSource", @NO, nil),
-            OMCRow(OMCText(@"Cách hiện trên CarPlay", @"CarPlay presentation"),
-                   @"number", @"leTrafficPresentation", @"maps-home",
-                   @[@"maps-home", @"maps-only", @"bubble-only", @"except-dashboard"])
+        OMCSection(OMCText(@"Lề 0.2.4", @"Le 0.2.4"), @[
+            OMCRow(OMCText(@"Cài đặt đầy đủ của Lề", @"Full original Le settings"),
+                   @"leOriginal", nil, nil, nil)
         ]),
-        OMCSection(OMCText(@"Hiệu chỉnh tốc độ GPS", @"GPS speed calibration"), @[
-            // Signed integer, -5..+5, controlled by single-step -/+ buttons.
-            // Correction occurs AFTER source speed conversion to km/h,
-            // BEFORE speed display and overspeed comparison; never alter limit/GPS.
-            OMCRow(OMCText(@"Cộng / trừ tốc độ", @"Speed adjustment"),
+        OMCSection(OMCText(@"DuoCar · hiệu chỉnh GPS", @"DuoCar · GPS calibration"), @[
+            // The extension changes the CURRENT vehicle speed, never road limit.
+            OMCRow(OMCText(@"Điều chỉnh tốc độ xe (±5)", @"Vehicle speed correction (±5)"),
                    @"leGpsStepper", @"leTrafficGpsOffsetKph", @0, nil)
-        ]),
-        OMCSection(OMCText(@"Bong bóng nổi", @"Floating bubble"), @[
-            OMCRow(OMCText(@"Hiện khi CarPlay toàn màn", @"Show in CarPlay fullscreen"),
-                   @"switch", @"leTrafficFullEnabled", @YES, nil),
-            OMCRow(OMCText(@"Hiện trên iPhone", @"Show on iPhone"),
-                   @"switch", @"leTrafficPhoneEnabled", @NO, nil),
-            OMCRow(OMCText(@"Kéo tự do trên màn hình", @"Free drag anywhere"),
-                   @"switch", @"leTrafficFreeDrag", @YES, nil),
-            OMCRow(OMCText(@"Bố cục", @"Arrangement"),
-                   @"number", @"leTrafficArrangement", @"corner",
-                   @[@"corner", @"side", @"strip", @"compact"]),
-            OMCRow(OMCText(@"Kiểu nền", @"Background"),
-                   @"number", @"leTrafficBackground", @"asphalt",
-                   @[@"asphalt", @"paint", @"glass", @"haze", @"bare"]),
-            OMCSliderRow(OMCText(@"Độ đậm nền (%)", @"Background opacity (%)"),
-                         @"leTrafficBackgroundOpacityPercent", 85, 0, 100),
-            OMCSliderRow(OMCText(@"Kích thước (%)", @"Bubble size (%)"),
-                         @"leTrafficScalePercent", 100, 50, 200),
-            OMCRow(OMCText(@"Nhấp nháy khi vượt tốc", @"Overspeed blink"),
-                   @"switch", @"leTrafficOverspeedBlink", @YES, nil)
-        ]),
-        OMCSection(OMCText(@"Thành phần bong bóng", @"Bubble modules"), @[
-            OMCRow(OMCText(@"Số tốc độ", @"Speed number"), @"switch",
-                   @"leTrafficModuleSpeed", @YES, nil),
-            OMCRow(OMCText(@"Biển giới hạn", @"Speed limit sign"), @"switch",
-                   @"leTrafficModuleLimit", @YES, nil),
-            OMCRow(OMCText(@"Icon nguồn", @"Source icon"), @"switch",
-                   @"leTrafficModuleSource", @YES, nil),
-            OMCRow(OMCText(@"Làn đường", @"Lane guidance"), @"switch",
-                   @"leTrafficModuleLanes", @YES, nil),
-            OMCRow(OMCText(@"Biển báo sắp tới", @"Upcoming signs"), @"switch",
-                   @"leTrafficModuleUpcoming", @YES, nil)
-        ]),
-        OMCSection(OMCText(@"Thẻ trong Google Maps", @"Google Maps card"), @[
-            OMCRow(OMCText(@"Hiện khi Maps toàn màn CarPlay", @"Show in fullscreen Maps"),
-                   @"switch", @"leTrafficMapsFullEnabled", @YES, nil),
-            OMCRow(OMCText(@"Hiện trong Dashboard", @"Show in Dashboard"),
-                   @"switch", @"leTrafficMapsDashboardEnabled", @YES, nil),
-            OMCRow(OMCText(@"Hiện trong Maps trên iPhone", @"Show in iPhone Maps"),
-                   @"switch", @"leTrafficMapsPhoneEnabled", @NO, nil),
-            OMCRow(OMCText(@"Kiểu thẻ", @"Card style"),
-                   @"number", @"leTrafficMapsStyle", @"halo", @[@"halo", @"classic"]),
-            OMCRow(OMCText(@"Góc thẻ toàn màn", @"Fullscreen card corner"),
-                   @"number", @"leTrafficMapsFullPosition", @"top-right",
-                   @[@"top-left", @"top-right", @"bottom-left", @"bottom-right"]),
-            OMCRow(OMCText(@"Góc thẻ Dashboard", @"Dashboard card corner"),
-                   @"number", @"leTrafficMapsDashboardPosition", @"top-right",
-                   @[@"top-left", @"top-right", @"bottom-left", @"bottom-right"]),
-            OMCRow(OMCText(@"Bố cục thẻ điện thoại", @"Phone card layout"),
-                   @"number", @"leTrafficMapsPhoneLayout", @"auto",
-                   @[@"auto", @"horizontal", @"vertical"]),
-            OMCSliderRow(OMCText(@"Cỡ thẻ toàn màn (%)", @"Fullscreen card size (%)"),
-                         @"leTrafficMapsFullScalePercent", 100, 50, 200),
-            OMCSliderRow(OMCText(@"Cỡ thẻ Dashboard (%)", @"Dashboard card size (%)"),
-                         @"leTrafficMapsDashboardScalePercent", 100, 50, 200),
-            OMCSliderRow(OMCText(@"Cỡ thẻ iPhone (%)", @"Phone card size (%)"),
-                         @"leTrafficMapsPhoneScalePercent", 100, 50, 200),
-            OMCRow(OMCText(@"Vệt sáng vượt tốc", @"Overspeed glow"),
-                   @"number", @"leTrafficMapsOverspeedMode", @"map",
-                   @[@"off", @"map", @"carplay"])
         ])
     ];
     id raw=OMCNativePref(@"carProfiles",@{});
@@ -754,7 +682,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     } else if (self.kind==0) {
         NSString *featureKey=nil;
         if([type isEqualToString:@"startup"])featureKey=@"startupScreenEnabled";
-        else if([type isEqualToString:@"bubble"])featureKey=@"leTrafficEnabled";
+        else if([type isEqualToString:@"bubble"]) {
+            cell.detailTextLabel.text=OMCLeOriginalPreferencesAvailable()?@"Lề 0.2.4":OMCText(@"Chưa nạp Lề", @"Le unavailable");
+        }
         else if([type isEqualToString:@"split"])featureKey=@"splitScreenEnabled";
         if(featureKey.length) {
             cell.detailTextLabel.text=OMCNativeLocalized(
@@ -1232,6 +1162,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     }
     if ([type isEqualToString:@"bubble"]) {
         [self.navigationController pushViewController:[[OMCNativeSimplePage alloc] initWithKind:3] animated:YES];return;
+    }
+    if ([type isEqualToString:@"leOriginal"]) {
+        [self.navigationController pushViewController:OMCLeOriginalPreferencesController() animated:YES];return;
     }
     if ([type isEqualToString:@"home"]) {
         [self.navigationController pushViewController:[[OMCNativeSimplePage alloc] initWithKind:2] animated:YES];return;

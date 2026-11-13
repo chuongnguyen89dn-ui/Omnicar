@@ -69,7 +69,7 @@ UIViewController *OMCLeOriginalPreferencesController(void) {
     label.numberOfLines=0;
     label.textAlignment=NSTextAlignmentCenter;
     label.textColor=UIColor.secondaryLabelColor;
-    label.text=@"Không nạp được giao diện Lề gốc.\\nKiểm tra LePrefs.bundle và thư viện phụ thuộc.\\nCài đặt Lề chưa được thay đổi.";
+    label.text=@"Không nạp được giao diện Lề gốc.\nKiểm tra LePrefs.bundle và thư viện phụ thuộc.\nCài đặt Lề chưa được thay đổi.";
     [fallback.view addSubview:label];
     [NSLayoutConstraint activateConstraints:@[
         [label.leadingAnchor constraintEqualToAnchor:fallback.view.leadingAnchor constant:25],
