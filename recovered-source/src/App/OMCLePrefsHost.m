@@ -5,6 +5,8 @@
 #import "OMCLePrefsHost.h"
 #import <UIKit/UIKit.h>
 #import <notify.h>
+#import <math.h>
+#import <stdint.h>
 
 static const char *const DCLLeReq="com.chuong.duocar/le024.cfg";
 static const char *const DCLLeAck="com.chuong.duocar/le024.ack";
