@@ -13,6 +13,7 @@
 @property(nonatomic,strong) UILabel *label;
 @property(nonatomic,strong) NSTimer *timer;
 @property(nonatomic) BOOL horizontal;
+@property(nonatomic) BOOL noSpaceLogged;
 @end
 
 @implementation SCPDeviceVitalsHUD
@@ -40,6 +41,7 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
         dispatch_async(dispatch_get_main_queue(), ^{ [self stop]; });
         return;
     }
+    if (self.panel) OMCLogWrite(@"SplitScreen", @"[vitals] car HUD detached");
     [self.timer invalidate];
     self.timer = nil;
     [self.panel removeFromSuperview];
@@ -72,6 +74,11 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
     self.panel.accessibilityLabel = [NSString stringWithFormat:
         @"Pin iPhone %@; nhiệt %@; nguồn %@. Không phải cảm biến GPU.",
         batteryText, heatText, sample[@"temperatureSource"]];
+    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+        @"[vitals] battery=%@ charging=%@ tempC=%@ kind=%@ source=%@ thermal=%@ unitsVerified=%@",
+        battery ?: @"unknown", sample[@"batteryState"],
+        temp ?: @"unknown", sample[@"temperatureKind"], sample[@"temperatureSource"],
+        sample[@"thermalState"], sample[@"temperatureUnitsVerified"]]);
     if (temp) {
         self.label.textColor = [kind isEqualToString:@"battery"]
             ? UIColor.whiteColor : [UIColor colorWithRed:1 green:0.91 blue:0.65 alpha:1];
@@ -106,7 +113,18 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
     if (SCPVitalsFiniteRect(home)) in.exclusions[in.exclusionCount++] = SCPVitalsToRect(home);
     if (SCPVitalsFiniteRect(launcher)) in.exclusions[in.exclusionCount++] = SCPVitalsToRect(launcher);
     SCPVitalsLayoutResult result = SCPVitalsPlace(in);
-    if (!result.valid) { [self stop]; return; }
+    if (!result.valid) {
+        if (!self.noSpaceLogged) {
+            self.noSpaceLogged = YES;
+            OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+                @"[vitals] rail-no-room root=%@ app=%@ dock=%@ home=%@ launcher=%@",
+                NSStringFromCGRect(parent.bounds), NSStringFromCGRect(appArea),
+                NSStringFromCGRect(dock), NSStringFromCGRect(home),
+                NSStringFromCGRect(launcher)]);
+        }
+        [self stop]; return;
+    }
+    self.noSpaceLogged = NO;
     BOOL horizontal = result.horizontal != 0;
     CGRect frame = CGRectMake(result.frame.x,result.frame.y,result.frame.w,result.frame.h);
     if (!self.panel || self.panel.superview != parent) {
@@ -129,6 +147,9 @@ static SCPVitalsRect SCPVitalsToRect(CGRect r) {
         self.panel = panel;
         self.label = label;
         self.horizontal = horizontal;
+        OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
+            @"[vitals] car HUD attached frame=%@ app=%@ dock=%@",
+            NSStringFromCGRect(frame), NSStringFromCGRect(appArea), NSStringFromCGRect(dock)]);
         [self refresh];
         self.timer = [NSTimer timerWithTimeInterval:12.0 target:self
             selector:@selector(refresh) userInfo:nil repeats:YES];
