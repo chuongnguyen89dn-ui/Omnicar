@@ -27,7 +27,12 @@ picker=(project/"OmniCarSplitScreen/SCPCarSplit+Picker.m").read_text()
 assert "BOOL hl48HostedPicker = (pane.vc != nil && SCPVCIsHosted(pane.vc)" in picker
 assert "duocarHL48HostedPickerClear" in picker
 assert "picker.backgroundColor = UIColor.clearColor;" in picker
-assert "if (hl46NativePicker || hl48HostedPicker) label.hidden = YES" in picker
+assert "if (hl46NativePicker || hl49OccupiedPicker || hl48HostedPicker) label.hidden = YES" in picker
+assert "duocarHL49OccupiedPickerClear" in picker
+assert "duocarHL49LiveUnderSheet" in picker
+assert "initWithEffect:nil" in picker
+assert "[hl49-sheet] NO-BLUR" in picker
+assert "[hl49-pane] CLEAR" in picker
 assert "SCPApplyMeshBackdrop(effectView);" in picker # original chooser preserved
 assert "action:@selector(pickerPaneTapped:)" in picker
 assert "if (hl46NativePicker)" in picker

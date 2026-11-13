@@ -390,6 +390,10 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // Keep empty slots opaque, and retain all gesture/Cancel/Choose owners.
     BOOL hl48HostedPicker = (pane.vc != nil && SCPVCIsHosted(pane.vc) &&
         [OMCPref(@"duocarHL48HostedPickerClear",@YES) boolValue]);
+    // [hl49-menu] Do not depend only on SCPHostedAppVC class while an
+    // occupied phone scene is transitioning. Empty slots stay unchanged.
+    BOOL hl49OccupiedPicker = (hasContent && (pane.vc || pane.bundleID.length>0) &&
+        [OMCPref(@"duocarHL49OccupiedPickerClear",@YES) boolValue]);
     if (hl46NativePicker) {
         // The original picker remains attached/tappable for its sheet,
         // Cancel and Choose. Only its native full-pane face goes clear.
@@ -398,13 +402,20 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
             @"[hl46-bypass] picker CLEAR slot=%d bundle=%@ mode=NATIVE coverRemoved=%d coverRetained=%d",
             pane.slot,pane.bundleID ?: @"(none)",(int)removeNativeCover,
             (int)(oldCover != nil && !removeNativeCover)]);
-    } else if (hl48HostedPicker) {
-        // Preserve all UI and hit targets; only the HOSTED filled-pane face
-        // goes transparent so its live video is still visible under menu.
+    } else if (hl49OccupiedPicker || hl48HostedPicker) {
+        // [hl49-menu] Only change the image-occluding background. Keep the
+        // picker tap recognizer, pane handle, sheet owner and cancellation.
         picker.backgroundColor = UIColor.clearColor;
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-            @"[hl48-hosted-picker] CLEAR slot=%d bundle=%@ hasContent=%d coverRemoved=%d",
-            pane.slot,pane.bundleID?:@"(none)",(int)hasContent,(int)removeNativeCover]);
+            @"[hl49-pane] CLEAR slot=%d bundle=%@ vc=%@ classifierHosted=%d hasContent=%d cover=%@",
+            pane.slot,pane.bundleID?:@"(none)",
+            pane.vc ? NSStringFromClass(pane.vc.class) : @"nil",
+            pane.vc ? (int)SCPVCIsHosted(pane.vc) : -1,
+            (int)hasContent,SCPViewMeasureDesc(pane.cover)]);
+        if (hl48HostedPicker)
+            OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+                @"[hl48-hosted-picker] CLEAR slot=%d bundle=%@ hasContent=%d coverRemoved=%d",
+                pane.slot,pane.bundleID?:@"(none)",(int)hasContent,(int)removeNativeCover]);
     } else {
         OMCLogWrite(@"SplitScreen", @"[hl22-original] picker-pane-opacity=1.0");
         if (removeNativeCover)
@@ -455,7 +466,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     label.font = [UIFont systemFontOfSize:40 weight:UIFontWeightLight];
     label.textAlignment = NSTextAlignmentCenter;
     label.autoresizingMask = 0x12;
-    if (hl46NativePicker || hl48HostedPicker) label.hidden = YES; // live pane stays visible
+    if (hl46NativePicker || hl49OccupiedPicker || hl48HostedPicker) label.hidden = YES; // preserve underlying content
     [picker addSubview:label];
     UITapGestureRecognizer *tap =
         [[UITapGestureRecognizer alloc] initWithTarget:self
@@ -674,10 +685,32 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     sheet.layer.shadowRadius = 24;
     sheet.layer.shadowOffset = CGSizeMake(0, 8);
 
-    UIVisualEffectView *effectView = SCPKnobFaceView(); // [phase2; backported to src in phase 3] name unified
+    // [hl49-menu] The ORIGINAL sheet face is a blur or an opaque-lite
+    // white 0.92 view; a transparent pane.picker alone cannot make this
+    // top-level sheet expose hosted video. This face is independent of
+    // the picker gestures/Choose/Cancel subviews below and is A/B reversible.
+    BOOL hl49LiveUnderSheet = (pane != nil &&
+        (pane.vc != nil || pane.bundleID.length>0) &&
+        [OMCPref(@"duocarHL49LiveUnderSheet",@YES) boolValue]);
+    UIVisualEffectView *effectView = hl49LiveUnderSheet
+        ? [[UIVisualEffectView alloc] initWithEffect:nil]
+        : SCPKnobFaceView();
     effectView.frame = sheet.bounds;
-    // [hl44-original] Direct original DEB picker face: no HL5 clear/mesh switch.
-    SCPApplyMeshBackdrop(effectView);
+    if (hl49LiveUnderSheet) {
+        // A slightly translucent face keeps menu controls readable without
+        // the compositing blur/mesh masking the live app's image.
+        effectView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.18];
+        effectView.contentView.backgroundColor = UIColor.clearColor;
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl49-sheet] NO-BLUR slot=%d bundle=%@ vc=%@ host=%@ win=%@ level=%.1f",
+            pane.slot,pane.bundleID?:@"(none)",
+            pane.vc ? NSStringFromClass(pane.vc.class) : @"nil",
+            NSStringFromClass(host.class),window?NSStringFromClass(window.class):@"nil",
+            window ? window.windowLevel : -1.0]);
+    } else {
+        // Preserve exact original sheet face when reverting the A/B toggle.
+        SCPApplyMeshBackdrop(effectView);
+    }
     effectView.layer.cornerRadius = 24;
     effectView.layer.cornerCurve = kCACornerCurveContinuous;
     effectView.clipsToBounds = YES;
