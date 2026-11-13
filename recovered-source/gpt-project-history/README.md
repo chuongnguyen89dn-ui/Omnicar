@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — HL51: giữ ảnh hosted dưới menu, pin/nhiệt ngoài cụm 3 icon, pinch theo HL8
+- **DuoCar50 DEVICE FAIL** theo Nguyen: menu hosted còn đen/lộ logo ở nền, pin không hiện Dock, zoom pinch không bung/thu; bong bóng Lề đã trở lại. Log `CarPlay:9447` 16:19–16:21 cho thấy menu gửi frame 0×0, Dock chỉ quét 45×111 của cụm ba icon, và HL13 đang chia pinch cho in-app (không có pair).
+- **HL51 SOURCE-COMMITTED, STATIC QA; CHƯA BUILD/DEB/DEVICE PASS**: nhánh `feature/duocar-hl51-gesture-dock-menu-20261113` từ HL50, sửa giữ khung hosted và trả bảng chọn về cửa sổ menu riêng, dò toàn rail Dock với tránh status/Home/icon, trả quyền pinch duy nhất về host theo đường HL8 từng đạt 33/33. Không sửa core fullscreen, keyboard, YTZ5 migration hay Lề đang hoạt động. Đối chiếu 11/11 cặp project/src và 4 file protected giống HL50. Có `verify_hl51_source.py`, `verify_duocar51.py` và workflow FAT **chỉ thủ công, chưa chạy** `.github/workflows/build-hl51-gesture-dock-menu-fat.yml`.
+- [Checkpoint/đường sửa/hoàn nguyên HL51](HL51_MENU_DOCK_PINCH_RECOVERY_20261113.md). Cần compile và ký **DuoCar51.deb** rồi Nguyen test cùng log/version mới; CI xanh không chứng minh menu/zoom/Dock hiện đúng trên xe.
+
 ## 2026-11-13 — HL50: phục hồi lỗi DuoCar49 DEVICE FAIL
 - Mốc phục hồi: [HL50_DEVICE_RUNTIME_RECOVERY_20261113.md](HL50_DEVICE_RUNTIME_RECOVERY_20261113.md). Test xe xác nhận DuoCar49 **DEVICE FAIL**: mất zoom fullscreen, menu đen, Lề không dữ liệu/không kéo, pin–nhiệt sai vị trí. Đã kiểm **hai DEB gốc** qua CI forensic 43395844302; đã sửa đường panned gốc, schema Lề `{id,enabled}`, Dock native view và menu hosted trên nhánh `feature/duocar-hl50-restore-runtime-20261113`.
 - CI DuoCar50 ký một DEB FAT: run [43398566381](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/43398566381) — **BUILD/ARTIFACT PASS**; artifact 14023643354; DuoCar50.deb SHA256 aca585fdd3fea80556aa7d94388b451c88fc58f9f59b61076e2b4ebcb5cd2793; **DEVICE PENDING**. Cảnh báo đỏ 39°C để đợt sau. Không merge main, không publish Sileo.
