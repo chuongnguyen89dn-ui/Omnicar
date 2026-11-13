@@ -31,7 +31,28 @@ assert '[oldCover removeFromSuperview]' in cover
 assert 'if (hl46NativePicker)' in picker
 assert 'picker.backgroundColor = UIColor.clearColor;' in picker
 assert 'if (hl46NativePicker) label.hidden = YES;' in picker
-assert 'DCHL45OverlayTrace(self,@"hl46-cover-detached-at-picker"' in picker
+assert 'BOOL removeNativeCover = (oldCover != nil &&' in picker
+assert '[OMCPref(@"duocarHL46NativeCoverOff", @YES) boolValue]' in picker
+assert 'if (removeNativeCover)' in picker
+assert 'coverRetained=%d' in picker
+assert picker.index('if (removeNativeCover)') < picker.index(
+    'DCHL45OverlayTrace(self,@"hl46-cover-detached-at-picker"')
+# The policy matrix must always yield independently selectable
+# picker-clear/cover-suppress for native, never modifying hosted/empty.
+def policy(has_vc, hosted, picker_switch, cover_switch):
+    native = has_vc and not hosted
+    return (native and picker_switch, native and cover_switch)
+for has_vc, hosted in ((False, False), (False, True), (True, True)):
+    for picker_switch in (False, True):
+        for cover_switch in (False, True):
+            assert policy(has_vc,hosted,picker_switch,cover_switch) == (False,False)
+for picker_switch in (False, True):
+    for cover_switch in (False, True):
+        assert policy(True,False,picker_switch,cover_switch) == (
+            picker_switch,cover_switch)
+# Old HL45 read-only verifier must NOT be run unmodified on HL46:
+# it intentionally restricts the diff to five HL45 files from HL44,
+# while HL46 legitimately adds its own checker and two runtime changes.
 
 # Original interaction and diagnose/cleanup must survive.
 for token in (
