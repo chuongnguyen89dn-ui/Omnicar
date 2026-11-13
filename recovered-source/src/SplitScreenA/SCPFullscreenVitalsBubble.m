@@ -120,14 +120,18 @@
         [self stop];
         return;
     }
-    CGRect bounds = parent.bounds;
-    if (CGRectIsNull(bounds) || CGRectIsInfinite(bounds) ||
-        CGRectIsEmpty(bounds) || !isfinite(bounds.size.width) ||
+    // Use exactly the fullscreen owner's full-window region in parent
+    // coordinates. Parent.bounds may still exclude the native Dock rail.
+    // The fullscreen controller unclips this parent before confirmation.
+    CGRect bounds = [parent convertRect:parent.window.bounds fromView:parent.window];
+    if (parent.clipsToBounds || CGRectIsNull(bounds) || CGRectIsInfinite(bounds) ||
+        CGRectIsEmpty(bounds) || !isfinite(bounds.origin.x) ||
+        !isfinite(bounds.origin.y) || !isfinite(bounds.size.width) ||
         !isfinite(bounds.size.height)) {
         [self stop];
         return;
     }
-    UIEdgeInsets safe = parent.safeAreaInsets;
+    UIEdgeInsets safe = parent.window.safeAreaInsets;
     SCPVitalsRect root = {bounds.origin.x,bounds.origin.y,bounds.size.width,bounds.size.height};
     SCPVitalsLayoutResult result = SCPVitalsFullscreenBubblePlace(
         root, MAX(0.0,safe.top),MAX(0.0,safe.right),1);
