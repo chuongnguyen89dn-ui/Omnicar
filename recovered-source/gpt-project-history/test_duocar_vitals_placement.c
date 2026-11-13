@@ -127,6 +127,6 @@ int main(void) {
             assert(visible.frame.y >= root.y + top);
         }
     }
-    puts("PASS: 12 rail cases + 25,000 rail checks; 10 fullscreen cases + 25,000 fullscreen checks");
+    puts("PASS: 12 rail cases + 25,000 rail checks; 9 fullscreen cases + 25,000 fullscreen checks");
     return 0;
 }
