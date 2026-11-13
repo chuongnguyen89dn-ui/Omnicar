@@ -101,6 +101,8 @@ assert "bridgewake.carHostPinchPairToggle" not in host
 assert "source=pair-began" not in host
 assert "[hl53-pinch] owner=car phase=pair-formed" in host
 assert "[hl53-pinch] owner=car phase=direction" in host
+assert "BOOL outward = direction == DCPinchOut;" in host
+assert "BOOL inward = direction == DCPinchIn;" in host
 assert "BOOL correct = (outward && state == SCPFullscreenStateSplit)" in host
 assert "(inward && state == SCPFullscreenStateExpanded)" in host
 assert "if (sHostPinchPairFired" in host
