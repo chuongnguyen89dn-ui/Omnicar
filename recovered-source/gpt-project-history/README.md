@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL53: xòe/chụm mọi góc, 2540 ca toán PASS (source)
+- **Lệnh mới của Nguyen yêu cầu SỬA zoom**, thay vì chỉ ghi hồ sơ hoặc hoãn: xòe hai ngón **ở mọi hướng/tư thế** = phóng to fullscreen; chụm mọi hướng = thu nhỏ về split; chỉ đặt hai ngón không toggle. Nhánh độc lập `feature/duocar-hl53-directional-pinch-20261114` từ HL52 HEAD `997a453e`, code commits `574e2157` shared Euclidean direction, `2340804` CarPlay host, `3528207` hosted ABInApp, `d458f3b` reject legacy dir=0 owner. Một fullscreen adapter duy nhất; menu, Dock, Lề, fullscreen engine không sửa. Test 360 góc nguyên × 7 ca + 20 biên = **2.540 ca pure C PASS thực chạy với `cc -std=c11 -Wall -Wextra -Werror -pedantic`**; test assert đếm thật, không dùng số PASS ước lượng; gate `verify_hl53_source.py` có bảo vệ. **CHƯA build DEB/CI/device test**; chưa có chứng cứ từ xe. [Checkpoint HL53](HL53_DIRECTIONAL_PINCH_ALL_ANGLES_20261114.md). Lệnh "HL52 hoãn zoom" chỉ áp dụng cho HL52, không áp dụng HL53.
+
+
 ## 2026-11-14 — ĐÍNH CHÍNH QUY TẮC PINCH: XÒE = FULLSCREEN, CHỤM = SPLIT
 - Nguyen đính chính GPT đã đảo chiều. **XÒE 2 ngón (OUT, khoảng cách tăng) → phóng to, vào fullscreen, ẩn Dock; CHỤM 2 ngón (IN, khoảng cách giảm) → thu nhỏ, về chia đôi, hiện Dock**. Hai ngón chỉ đặt xuống KHÔNG được toggle. Branch directional hiện tại ở `SCPTouchProbe.m` và `SCPPinchController.m` đã map đúng; lỗi nằm ở hai đường mặc định fire bare toggle ngay khi nhận đủ 2 ngón (`SCPTouchProbe.m` và `ABInApp.m`). **BỎ yêu cầu đảo chiều đã ghi ở 2026-11-14 ngay phía dưới; giữ lại chỉ làm lịch sử sai.** Chưa sửa zoom trong HL52, chưa build/CI, không thay đổi source. [Đính chính và đối chiếu mã](HL52_ZOOM_DIRECTION_AUDIT_20261114.md).
 
