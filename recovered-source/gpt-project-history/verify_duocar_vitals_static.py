@@ -61,7 +61,9 @@ assert "fsChromeSetHidden:YES" in fs and "fsChromeSetHidden:NO" in fs
 assert "SCPFullscreenBubblePlace" not in fs
 assert "SCPVitalsFullscreenBubblePlace" in bubble
 assert "SCPFullscreenStateExpanded" in bubble
-assert "parent convertRect:parent.window.bounds fromView:parent.window" in bubble
+assert "overlay convertRect:host.bounds fromWindow:host" in bubble
+assert "CGRectIntersection(mapped,overlay.bounds)" in bubble
+assert "self.overlayWindow.screen != host.screen" in bubble
 assert "userInteractionEnabled = YES" in bubble
 assert "DCFVPassHitTest" in bubble and "isDescendantOfView:bubble" in bubble
 assert "UIRootSceneWindow" in bubble and "initWithDisplayConfiguration:" in bubble
