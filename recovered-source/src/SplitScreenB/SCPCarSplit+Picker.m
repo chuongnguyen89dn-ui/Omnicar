@@ -355,8 +355,9 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     BOOL hl46NativePicker = (pane.vc != nil && !SCPVCIsHosted(pane.vc) &&
         [OMCPref(@"duocarHL46NativePickerClear", @YES) boolValue]);
     // [hl22-original] The original DEB uses an opaque pane placeholder
-    // for both occupied and empty panes. It protects the content beneath
-    // while the picker is active; do not opt into the HL5 transparent fix.
+    // for both occupied and empty panes. Keep that as the reference/default.
+    // [hl46-bypass] Only the explicitly guarded native trial below changes
+    // the occupied-native face; the original picker event flow is preserved.
     UIView *picker = [[UIView alloc] init];
     pane.picker = picker;                                                // @0x315c0 setPicker: precedes styling
     // Dump @0x315cc-0x315e4: the picker frame is (0, 0, slotSize) — the
