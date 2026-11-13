@@ -82,7 +82,7 @@ assert 'return [OMCPref(@"duocarHL49HostedSameWindowPicker",@YES) boolValue];' i
 # do NOT require an unproven exclusive HL8 route from earlier HL51 work.
 def git_blob_sha(p):
     data=p.read_bytes()
-    return hashlib.sha1(b"blob "+str(len(data)).encode()+b"\\0"+data).hexdigest()
+    return hashlib.sha1(b"blob "+str(len(data)).encode()+b"\0"+data).hexdigest()
 unchanged_pinch_sources={
     project/"OmniCarSplitScreen/SCPCarSplit+BridgeWake.m":"ae224b57daab6bc4e2f021d6541c87f8e418b8e4",
     src/"SplitScreenA/SCPCarSplit+BridgeWake.m":"b3391020e044fe949d52ff33941b4b7a3c184507",
