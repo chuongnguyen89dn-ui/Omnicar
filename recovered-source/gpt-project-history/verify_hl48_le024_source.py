@@ -45,7 +45,7 @@ assert "SUBPROJECTS += OmniCarSpeedBubble" not in aggregate
 assert "SUBPROJECTS += OmniCarLeTraffic" not in aggregate # prototype not shipped
 assert "SUBPROJECTS += OmniCarLeExtension" not in aggregate # separate signed input
 settings=(project/"OmniCarApp/OMCNativeSettings.m").read_text()
-assert '@"SPEEDBUBBLE", @"bubble"' in settings
+assert 'OMCRow(@"SPEEDBUBBLE",@"bubble"' in settings
 assert '@"leGpsStepper", @"leTrafficGpsOffsetKph"' in settings
 assert 'control.minimumValue=-5;' in settings and 'control.maximumValue=5;' in settings
 assert "OMCLeOriginalPreferencesController()" in settings
