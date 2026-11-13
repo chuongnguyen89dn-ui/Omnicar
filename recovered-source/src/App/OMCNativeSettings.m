@@ -453,6 +453,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         [sections addObject:OMCSection(OMCNativeLocalized(@"FEATURES_GROUP"),@[
             OMCRow(@"STARTUPSCREEN",@"startup",nil,nil,nil),
             OMCRow(@"SPEEDBUBBLE",@"bubble",nil,nil,nil),
+            OMCRow(OMCText(@"Tùy chỉnh riêng DuoCar cho Lề",
+                            @"DuoCar extras for Lề"),
+                    @"leCompat",nil,nil,nil),
             OMCRow(@"SPLITSCREEN",@"split",nil,nil,nil)])];
         [sections addObject:OMCSection(@"",@[
             OMCRow(@"PROFILES",@"profiles",nil,nil,nil)])];
@@ -1111,7 +1114,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         [self.navigationController pushViewController:OMCNativeStartupController() animated:YES];return;
     }
     if ([type isEqualToString:@"bubble"]) {
-        [self.navigationController pushViewController:[[OMCNativeSimplePage alloc] initWithKind:3] animated:YES];return;
+        // [hl52-le-original] Open LePrefs 0.2.4 original root on first tap;
+        // do not route users through DuoCar's handwritten table.
+        [self.navigationController pushViewController:OMCLeOriginalPreferencesController() animated:YES];return;
     }
     if ([type isEqualToString:@"leOriginal"]) {
         [self.navigationController pushViewController:OMCLeOriginalPreferencesController() animated:YES];return;
