@@ -1,30 +1,57 @@
 // DuoCar first-party battery and temperature sampler (no vendor runtime code).
 #import "OMCDeviceVitals.h"
 #import <UIKit/UIKit.h>
-#import <IOKit/IOKitLib.h>
+#import <mach/mach.h>
+#import <dlfcn.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <math.h>
 
-// IOServiceMatching allocates the match dictionary, consumed by IOKit.
-// MACH_PORT_NULL is the IOKit default master port for this read-only lookup.
-static io_service_t OMCVitalsService(const char *name) {
-    CFMutableDictionaryRef matching = IOServiceMatching(name);
-    if (!matching) return IO_OBJECT_NULL;
-    return IOServiceGetMatchingService(MACH_PORT_NULL, matching);
+// IOKit is private on iOS. Dynamically resolve read-only exports so the
+// ordinary iPhoneOS SDK does not need a private IOKit header/link stub.
+// All functions must resolve before a lookup; denial means no reading.
+typedef mach_port_t OMCVitalsServiceID;
+typedef CFMutableDictionaryRef (*OMCVitalsMatchingFn)(const char *);
+typedef OMCVitalsServiceID (*OMCVitalsGetServiceFn)(mach_port_t, CFDictionaryRef);
+typedef CFTypeRef (*OMCVitalsGetPropertyFn)(OMCVitalsServiceID, CFStringRef, CFAllocatorRef, uint32_t);
+typedef kern_return_t (*OMCVitalsReleaseFn)(OMCVitalsServiceID);
+typedef struct {
+    OMCVitalsMatchingFn match;
+    OMCVitalsGetServiceFn service;
+    OMCVitalsGetPropertyFn property;
+    OMCVitalsReleaseFn release;
+} OMCVitalsIOKit;
+
+static const OMCVitalsIOKit *OMCVitalsIOKitAPI(void) {
+    static OMCVitalsIOKit api;
+    static BOOL ready;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        void *lib = dlopen("/System/Library/Frameworks/IOKit.framework/IOKit",
+                           RTLD_NOW | RTLD_LOCAL);
+        if (!lib) lib = dlopen("/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit",
+                               RTLD_NOW | RTLD_LOCAL);
+        if (!lib) return;
+        api.match = (OMCVitalsMatchingFn)dlsym(lib, "IOServiceMatching");
+        api.service = (OMCVitalsGetServiceFn)dlsym(lib, "IOServiceGetMatchingService");
+        api.property = (OMCVitalsGetPropertyFn)dlsym(lib, "IORegistryEntryCreateCFProperty");
+        api.release = (OMCVitalsReleaseFn)dlsym(lib, "IOObjectRelease");
+        ready = api.match && api.service && api.property && api.release;
+        if (!ready) dlclose(lib);
+        // Keep a complete valid library open for the process lifetime.
+    });
+    return ready ? &api : NULL;
 }
 
-static BOOL OMCVitalsReadNumber(io_service_t service, CFStringRef key, double *out) {
-    if (!service || !out) return NO;
-    CFTypeRef raw = IORegistryEntryCreateCFProperty(service, key, kCFAllocatorDefault, 0);
+static BOOL OMCVitalsReadNumber(const OMCVitalsIOKit *api,
+                               OMCVitalsServiceID service, CFStringRef key,
+                               double *out) {
+    if (!api || !service || !out) return NO;
+    CFTypeRef raw = api->property(service, key, kCFAllocatorDefault, 0);
     if (!raw) return NO;
-    BOOL valid = NO;
     double n = 0;
-    if (CFGetTypeID(raw) == CFNumberGetTypeID() &&
-        CFNumberGetValue((CFNumberRef)raw, kCFNumberDoubleType, &n) &&
-        isfinite(n)) {
-        *out = n;
-        valid = YES;
-    }
+    BOOL valid = CFGetTypeID(raw) == CFNumberGetTypeID() &&
+        CFNumberGetValue((CFNumberRef)raw, kCFNumberDoubleType, &n) && isfinite(n);
+    if (valid) *out = n;
     CFRelease(raw);
     return valid;
 }
@@ -75,14 +102,18 @@ NSDictionary<NSString *, id> *OMCDeviceVitalsSample(void) {
     NSNumber *temperature = nil;
     NSString *temperatureKind = @"unavailable";
     NSString *temperatureSource = @"none";
+    const OMCVitalsIOKit *api = OMCVitalsIOKitAPI();
     const char *services[] = {"AppleSmartBattery", "AppleTemperatureSensor"};
-    for (NSUInteger index = 0; index < 2 && !temperature; ++index) {
-        io_service_t service = OMCVitalsService(services[index]);
+    for (NSUInteger index = 0; api && index < 2 && !temperature; ++index) {
+        CFMutableDictionaryRef match = api->match(services[index]);
+        if (!match) continue;
+        // IOServiceGetMatchingService consumes the matching dictionary.
+        OMCVitalsServiceID service = api->service(MACH_PORT_NULL, match);
         if (!service) continue;
         double raw = 0, value = 0;
-        BOOL valid = OMCVitalsReadNumber(service, CFSTR("Temperature"), &raw) &&
+        BOOL valid = OMCVitalsReadNumber(api, service, CFSTR("Temperature"), &raw) &&
             OMCVitalsDecodeTemperature(raw, &value);
-        IOObjectRelease(service);
+        api->release(service);
         if (valid) {
             temperature = @(value);
             temperatureKind = index == 0 ? @"battery" : @"device-unspecified";
