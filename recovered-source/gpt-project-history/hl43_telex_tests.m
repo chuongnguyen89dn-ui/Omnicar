@@ -2,6 +2,8 @@
 // the exact delete-old-word/insert-new-word sequence ABKeyboard.typeCharacter
 // uses for BOTH hosted and native. No duplicate/mock Telex implementation.
 #import <Foundation/Foundation.h>
+#include <stdio.h>
+#include <stdlib.h>
 NSString *ABTelexApply(NSString *word, NSString *keyString);
 
 static NSUInteger checks=0;
