@@ -50,12 +50,12 @@ int main(void) {
     expect(100,120,NAN,DCPinchNone);
     expect(100,120,-1,DCPinchNone);
     expect(0,20,0,DCPinchNone);
-    // Test the full 360 degrees: left/right, up/down, diagonals and
-    // rotations of the physical CarPlay display. Identical rules apply
-    // when two finger identities are swapped.
+    // Test every integer degree (0...359) including vertical, diagonal,
+    // upside-down and arbitrary rotation, not just horizontal motion.
+    // Reversed touch identity must not change the result.
     const double pi=acos(-1.0);
-    for(int k=0;k<8;k++) {
-        double a=(double)k*pi/4.0;
+    for(int k=0;k<360;k++) {
+        double a=(double)k*pi/180.0;
         double ux=cos(a),uy=sin(a);
         double cx=213.5,cy=120.0;
         double ax=cx-50*ux,ay=cy-50*uy;
@@ -74,12 +74,18 @@ int main(void) {
         expectPoints(bx,by,ax,ay,
                      cx+30*ux,cy+30*uy,cx-30*ux,cy-30*uy,
                      DCPinchIn);
+        // Either finger can stay still while its partner moves along
+        // ANY physical angle relative to the CarPlay screen.
+        expectPoints(ax,ay,bx,by,
+                     ax,ay,cx+80*ux,cy+80*uy,DCPinchOut);
+        expectPoints(ax,ay,bx,by,
+                     ax,ay,cx+20*ux,cy+20*uy,DCPinchIn);
         // Parallel two-finger pan, at any angle, is NOT pinch.
         expectPoints(ax,ay,bx,by,
                      ax+18*ux-27*uy,ay+18*uy+27*ux,
                      bx+18*ux-27*uy,by+18*uy+27*ux,
                      DCPinchNone);
     }
-    printf("HL53_DIRECTIONAL_PINCH_MATH_PASS 60 cases incl all 8 compass directions, swapped fingers and parallel slides\n");
+    printf("HL53_DIRECTIONAL_PINCH_MATH_PASS 2540 cases (360 degrees, finger order, one stationary finger, pan)\n");
     return 0;
 }
