@@ -79,24 +79,10 @@ static id contentWithSnapshot(id cls,SEL cmd,id snapshot) {
     NSInteger adjusted=MAX(0,MIN(400,raw+offset()));
     ((void(*)(id,SEL,id))objc_msgSend)(value,@selector(setSpeedText:),
         [NSString stringWithFormat:@"%ld",(long)adjusted]);
-    if (offset()!=0 &&
-        [value respondsToSelector:@selector(limit)] &&
-        [value respondsToSelector:@selector(speedState)] &&
-        [value respondsToSelector:@selector(setSpeedState:)] &&
-        [value respondsToSelector:@selector(setOverspeedExcess:)]) {
-        id limit=((id(*)(id,SEL))objc_msgSend)(value,@selector(limit));
-        NSInteger state=((NSInteger(*)(id,SEL))objc_msgSend)(value,@selector(speedState));
-        if ([limit isKindOfClass:NSNumber.class] && [limit integerValue]>0 &&
-            [limit integerValue]<=400 && state>=0 && state<=2) {
-            NSInteger difference=adjusted-[limit integerValue];
-            // Candidate mapping 0=normal, 1=near, 2=over: device validation
-            // required before final acceptance of adjusted overspeed alerts.
-            ((void(*)(id,SEL,NSInteger))objc_msgSend)(value,@selector(setSpeedState:),
-                difference>0?2:(difference>=-5?1:0));
-            ((void(*)(id,SEL,NSInteger))objc_msgSend)(value,@selector(setOverspeedExcess:),
-                MAX(0,difference));
-        }
-    }
+    // Never guess Le's speedState / overspeedExcess ABI. Preserve the
+    // original native warnings, limits, road signs and spoken guidance.
+    // The calibrated value currently affects the visible moving-speed number
+    // ONLY. Before any calibrated alert change, reverse/verify vendor logic.
     return value;
 }
 static BOOL geometry(UIView *bubble,DCLTrafficRect *bounds,DCLTrafficInsets *safe) {
@@ -198,9 +184,20 @@ static BOOL hookInstance(Class cls,SEL selector,IMP newIMP,IMP *oldIMP) {
     Method m=class_getInstanceMethod(cls,selector);
     if (!m || method_getNumberOfArguments(m)!=
               (selector==@selector(didMoveToWindow)?2:3)) return NO;
-    *oldIMP=method_getImplementation(m);
-    if (!class_addMethod(cls,selector,newIMP,method_getTypeEncoding(m)))
-        method_setImplementation(m,newIMP);
+    // Prevent a half-completed three-selector installation from re-swizzling
+    // a method to itself on the next timer tick (which would recurse).
+    if (*oldIMP) return YES;
+    IMP previous=method_getImplementation(m);
+    if (!previous || previous==newIMP) return NO;
+    *oldIMP=previous;
+    if (!class_addMethod(cls,selector,newIMP,method_getTypeEncoding(m))) {
+        IMP replaced=method_setImplementation(m,newIMP);
+        if (replaced!=previous) {
+            if (replaced) method_setImplementation(m,replaced);
+            *oldIMP=NULL;
+            return NO;
+        }
+    }
     return YES;
 }
 static void install(void) {
