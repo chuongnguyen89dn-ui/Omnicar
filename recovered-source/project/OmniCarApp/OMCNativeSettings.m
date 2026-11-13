@@ -442,8 +442,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         // Keep startup/speed-bubble/split/settings sections unchanged.
         [sections addObject:OMCSection(OMCText(@"Thiết bị",@"Device"),@[
              OMCRow(OMCText(@"Pin và nhiệt độ",@"Battery & temperature"),@"vitals",nil,nil,nil),
-             OMCRow(OMCText(@"Hiện trên Dock CarPlay",@"Show on CarPlay Dock"),
-                    @"switch",@"duocarVitalsEnabled",@NO,nil)]),
+             OMCRow(OMCText(@"Bong bóng giờ, pin, nhiệt khi toàn màn hình",@"Fullscreen time, battery & heat bubble"),
+                    @"switch",@"duocarFullscreenVitalsEnabled",@YES,nil)]),
          OMCSection(OMCNativeLocalized(@"SUPPORT_GROUP"),@[
             OMCRow(@"ONB_SHOW_AGAIN",@"guide",nil,nil,nil),
             OMCRow(@"WN_ROW",@"whatsnew",nil,nil,nil)])];
