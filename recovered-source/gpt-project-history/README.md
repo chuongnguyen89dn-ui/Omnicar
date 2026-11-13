@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-13 — DuoCar51: BUILD/ARTIFACT PASS, DEVICE PENDING (zoom hoãn)
+- CI [43408145791](https://github.com/chuongnguyen89dn-ui/Omnicar/actions/runs/43408145791) job 131827503274 **SUCCESS**; source `5d201b7`; artifact **DuoCar51** ID `14027424331`, DEB `1.0.3-le0244`, SHA256 `5698fd781567af4fbfe1f8d7bddff0145137629a1408308951539b06dcaf76f3` (2.343.864 bytes), đã tải và giao thẳng người dùng. Chỉ sửa menu + native Dock rail, bubble giữ nguyên; **pinch/zoom không sửa**. Checkpoint: [HL51_MENU_DOCK_PINCH_RECOVERY_20261113.md](HL51_MENU_DOCK_PINCH_RECOVERY_20261113.md). CI PASS != DEVICE PASS, không merge/main/Sileo.
+
+
 ## 2026-11-13 — CẬP NHẬT PHẠM VI HL51: HOÃN ZOOM
 - **Yêu cầu mới nhất từ Nguyen:** chưa xử lý pinch/zoom trong DuoCar51. Giữ sửa menu quay về bản trước và widget pin/nhiệt ngoài ba icon Dock. Bỏ thay đổi HL8-exclusive khỏi source HL51, phục hồi BridgeWake project/src đúng blob HL50; verifier/CI gate phải kiểm zoom code nguyên trạng, không thử sửa. **Zoom ở DuoCar50 DEVICE FAIL và sẽ xử lý sau**, không báo HL51 zoom PASS.
 - Chi tiết và checkpoint: [HL51_MENU_DOCK_PINCH_20261113.md](HL51_MENU_DOCK_PINCH_20261113.md) / [HL51_MENU_DOCK_PINCH_RECOVERY_20261113.md](HL51_MENU_DOCK_PINCH_RECOVERY_20261113.md). **Chưa build hoặc test xe**, không CI dispatch, main merge hay Sileo.
