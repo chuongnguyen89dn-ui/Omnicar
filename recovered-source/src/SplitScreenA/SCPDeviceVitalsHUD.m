@@ -34,9 +34,6 @@ static BOOL SCPVitalsFiniteRect(CGRect r) {
         isfinite(r.origin.x) && isfinite(r.origin.y) &&
         isfinite(r.size.width) && isfinite(r.size.height);
 }
-static SCPVitalsRect SCPVitalsToRect(CGRect r) {
-    return (SCPVitalsRect){r.origin.x,r.origin.y,r.size.width,r.size.height};
-}
 
 - (void)stop {
     if (![NSThread isMainThread]) {
