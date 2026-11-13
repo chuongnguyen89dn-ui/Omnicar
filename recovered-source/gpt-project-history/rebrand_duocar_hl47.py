@@ -120,7 +120,8 @@ def rewrite_file(path: Path):
 PROJECT_MODULES = (
     "OMCCommon", "OmniCarApp", "OmniCarCore", "OmniCarAppBridge",
     "OmniCarCarProbe", "OmniCarSpeedBubble", "OmniCarSplitScreen",
-    "OmniCarStartupScreen", "OmniCarPrefs", "layout",
+    "OmniCarStartupScreen", "OmniCarPrefs", "OmniCarPinchCommon",
+    "layout",
 )
 ACTIVE_SRC_EXT = {".m", ".mm", ".h", ".c", ".cpp", ".cc", ".hpp", ".mk", ".plist", ".strings"}
 ACTIVE_SRC_FILES = {"Makefile"}
@@ -144,6 +145,13 @@ def path_sources():
 def rename_build_paths():
     # Rename the same scope as path_sources, including packaging layout.
     roots = [PROJECT/name for name in PROJECT_MODULES]
+    # [hl53] New standalone shared C header has its own src mirror
+    # directory. Its *directory* must also be renamed by the same
+    # existing algorithm, not just the file content; otherwise the
+    # rebrand guard rejects the stale /src/OmniCarPinchCommon/ path.
+    shared = SOURCE/"OmniCarPinchCommon"
+    if shared.is_dir():
+        roots.append(shared)
     for folder in SOURCE.iterdir():
         if folder.is_dir() and (folder/"Resources").is_dir():
             roots.append(folder/"Resources")
