@@ -1,5 +1,13 @@
 # Kiểm tra cử chỉ zoom 2 ngón của DuoCar51 / HL52 — 2026-11-14
 
+
+## ĐÍNH CHÍNH 2026-11-14 — Quy tắc zoom đúng: XÒE = PHÓNG TO, CHỤM = THU NHỎ
+- **Quyết định mới nhất từ Nguyen có ưu tiên, thay thế hoàn toàn hướng sai trong các mục cũ ở file này:** **xòe hai ngón (distance tăng / pinch OUT) trong SPLIT → PHÓNG TO / fullscreen (ẩn dock)**; **chụm hai ngón (distance giảm / pinch IN) trong FULLSCREEN → THU NHỎ / về SPLIT (khôi phục dock)**. Hai ngón chỉ chạm mà không kéo, hoặc kéo sai hướng so với trạng thái hiện tại → không đổi giao diện. Đây là cùng quy ước zoom ảnh iPhone; trong phần phát biểu trước GPT đã đảo ngược và nhận sai.
+- **Chứng cứ code** (đã đọc trực tiếp): nhánh direction của `SCPTouchProbe.m` (`ratio >= 1.10` OUT + SPLIT→expand; `ratio <= 0.90` IN + EXPANDED→restore) và `SCPPinchController.m` hiện đã map **ĐÚNG** hướng này. **Không sửa/đảo ánh xạ direction đang đúng.** Chỉ có các đường BARE TOGGLE đang sai hành vi: `SCPTouchProbe.m` `bridgewake.carHostPinchPairToggle` mặc định YES (fire tại khi cặp hình thành), `ABInApp.m` `ABPinchRelayFire` gửi `dir=0` ngay `touchesBegan` của ngón thứ hai (không quan sát Moved); owner BridgeWake chọn expand/restore theo state. Đây là hai đường cần xem xét trong **đợt zoom riêng** sau, giữ chung một `SCPFullscreenController`.
+- Hồ sơ hướng ngược phía dưới (`OUT→restore`, `IN→expand`) là **lịch sử phân tích sai đã bị đính chính**, không được dùng làm yêu cầu kỹ thuật hay test gate. Mọi đề xuất sửa để đảo nhánh directional cũ đều bị hủy.
+- Theo phân công đã chốt, **KHÔNG sửa zoom trong HL52**, không có source change/CI/build ở lượt đính chính; runtime của DuoCar51/HL52 chưa được thử lại cho hướng mới.
+
+
 ## Yêu cầu cập nhật từ Nguyen
 - Người dùng báo **zoom hiện vẫn hoạt động** trên bản đang cài, sửa lại ghi nhận thực tế cũ "zoom không hoạt động" (kết quả cũ thuộc phiên/trường hợp khác; **không xoá lịch sử**). Bản DEB gần nhất đã bàn giao là DuoCar51 `1.0.3-le0244`, SHA256 `5698fd781567af4fbfe1f8d7bddff0145137629a1408308951539b06dcaf76f3`; do chưa có DEB HL52, nhận định máy đang chạy 51 là suy luận, không xác minh thiết bị/version lúc hỏi này.
 - Người dùng muốn **phân biệt chiều di chuyển thực của 2 ngón** thay vì chỉ có đủ hai ngón là toggle. Theo lời người dùng về hướng: kéo hai ngón ra xa = "zoom out" (trở về chế độ chia đôi); chụm hai ngón lại = "zoom in" (vào fullscreen). Ngữ nghĩa này được dùng cho CHUYỂN ĐỔI bố cục DuoCar, không khẳng định nó giống quy ước zoom ảnh iPhone.
