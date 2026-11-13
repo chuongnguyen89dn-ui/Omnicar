@@ -101,13 +101,21 @@ static NSString *DCHL45View(UIView *v) {
     UIView *parent=v.superview;
     NSUInteger idx=parent ? [parent.subviews indexOfObject:v] : NSNotFound;
     UIWindow *win=v.window;
+    // UIView.alpha is the model value; during a fade it may differ from pixels.
+    CALayer *liveLayer = v.layer.presentationLayer;
+    CGFloat bgR=0, bgG=0, bgB=0, bgA=-1;
+    if (v.backgroundColor &&
+        ![v.backgroundColor getRed:&bgR green:&bgG blue:&bgB alpha:&bgA])
+        bgA = -1; // unknown color opacity is NOT opaque
     return [NSString stringWithFormat:
-        @"%p:%@ fr=%@ a=%.2f hidden=%d parent=%p z=%ld/%lu win=%p level=%.1f",
+        @"%p:%@ fr=%@ a=%.2f pres=%.2f bgA=%.2f hidden=%d parent=%p z=%ld/%lu win=%p level=%.1f winHidden=%d",
         (__bridge void *)v, NSStringFromClass(v.class), NSStringFromCGRect(v.frame),
-        (double)v.alpha, (int)v.hidden, (__bridge void *)parent,
+        (double)v.alpha, (double)(liveLayer ? liveLayer.opacity : v.layer.opacity),
+        (double)bgA, (int)v.hidden, (__bridge void *)parent,
         idx==NSNotFound ? -1L : (long)idx,
         (unsigned long)(parent ? parent.subviews.count : 0),
-        (__bridge void *)win, win ? (double)win.windowLevel : -1.0];
+        (__bridge void *)win, win ? (double)win.windowLevel : -1.0,
+        win ? (int)win.hidden : -1];
 }
 // Linked by the Divider TU, called only at UI action boundaries.
 void DCHL45OverlayTrace(SCPCarSplit *split, NSString *event,
@@ -139,6 +147,19 @@ void DCHL45OverlayTrace(SCPCarSplit *split, NSString *event,
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
             @"[hl45-layer] ev=%@ result=EXCEPTION name=%@",event,exception.name]);
     }
+}
+
+
+// Observation-only samples of original fades; weak refs prevent retaining views.
+static void DCHL45ScheduleTrace(SCPCarSplit *split, NSString *event,
+                                SCPCarPane *pane, UIView *observed, double delay) {
+    __weak SCPCarSplit *owner = split;
+    __weak SCPCarPane *target = pane;
+    __weak UIView *old = observed;
+    SCPDispatchAfter(delay, ^{
+        SCPCarSplit *s = owner;
+        if (s) DCHL45OverlayTrace(s, event, target, old);
+    });
 }
 
 static NSString *SCPViewMeasureDesc(UIView *view) {
@@ -280,6 +301,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     cover.alpha = 0;
     [UIView animateWithDuration:0.12 animations:^{ cover.alpha = 1; }];
     DCHL45OverlayTrace(self,@"cover-added",pane,cover);
+    DCHL45ScheduleTrace(self,@"cover-fade-settled",pane,cover,0.18);
 }
 
 - (void)removeCoverFromPane:(SCPCarPane *)pane {                          // 0x2a668 VERIFIED
@@ -381,6 +403,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     [UIView animateWithDuration:0.25                                     // @0x3186c; block @0x31954 sets alpha = 1
                      animations:^{ picker.alpha = 1; }];
     DCHL45OverlayTrace(self,@"picker-presented",pane,picker);
+    DCHL45ScheduleTrace(self,@"picker-fade-settled",pane,picker,0.32);
     [self refreshPickerSheetSoon];                                       // @0x3187c
 }
 
@@ -783,6 +806,7 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     [self updatePopupShield];
     [self publishBusy];
     DCHL45OverlayTrace(self,@"sheet-new-attached",pane,oldSheet);
+    DCHL45ScheduleTrace(self,@"sheet-fade-settled",pane,sheet,0.60);
 
     // Entrance: cross-fade from an old sheet, spring up otherwise.
     if (oldSheet != nil) {
