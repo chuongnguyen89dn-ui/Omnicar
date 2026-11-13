@@ -108,25 +108,37 @@ static BOOL normalize(UIView *view,DCLTrafficPoint *result) {
                                      view.bounds.size.height,6.0,
                                      (DCLTrafficPoint){p.x,p.y},result);
 }
-static void freePan(id owner,SEL sel,UIPanGestureRecognizer *gesture) {
-    (void)sel;
-    if(!enabledDrag()||![gesture isKindOfClass:UIPanGestureRecognizer.class])return;
+// IMPORTANT: never steal Lề's native pan recognizer or suppress its state
+// machine. Its original -panned: moves an actual CWTrafficWindow and
+// maintains hit-testing. We only apply free XY to its *final* bubble view.
+static char DCLDragDeltaKey;
+static void freePan(id owner,UIPanGestureRecognizer *gesture) {
+    if(!enabledDrag() || ![gesture isKindOfClass:UIPanGestureRecognizer.class])
+        return; // original vendor pan ALWAYS ran before this addon
     UIView *view=bubble(owner);
-    if(!view || !view.window || !view.superview) {
-        NSLog(@"[le024-ext] pan BLIND: no bubble view");
+    if(!view || !view.window || !view.superview ||
+       !gesture.view || !gesture.view.window ||
+       gesture.view.window.screen!=view.window.screen) {
+        NSLog(@"[le024-ext] free XY BLIND owner=%@ bubble=%@ touchView=%@",
+              NSStringFromClass([owner class]),view,gesture.view);
         return;
     }
     UIGestureRecognizerState state=gesture.state;
+    CGPoint touch=[gesture locationInView:view.superview];
+    if(!isfinite(touch.x)||!isfinite(touch.y))return;
     if(state==UIGestureRecognizerStateBegan) {
         dragging=YES;dragOwner=owner;dragTarget=view;
-        [gesture setTranslation:CGPointZero inView:view.superview];
-        NSLog(@"[le024-ext] drag begin view=%@ frame=%@",NSStringFromClass(view.class),
-              NSStringFromCGRect(view.frame));
-    }
-    if(state==UIGestureRecognizerStateChanged) {
-        if(dragTarget!=view)return;
-        CGPoint delta=[gesture translationInView:view.superview];
-        CGPoint proposed=CGPointMake(view.center.x+delta.x,view.center.y+delta.y);
+        CGPoint offset=CGPointMake(view.center.x-touch.x,view.center.y-touch.y);
+        objc_setAssociatedObject(owner,&DCLDragDeltaKey,
+             [NSValue valueWithCGPoint:offset],OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        NSLog(@"[le024-ext] vendor pan began; free XY view=%@ window=%@",
+              NSStringFromClass(view.class),NSStringFromClass(view.window.class));
+    } else if(state==UIGestureRecognizerStateChanged) {
+        if(dragOwner!=owner || dragTarget!=view)return;
+        NSValue *saved=objc_getAssociatedObject(owner,&DCLDragDeltaKey);
+        if(![saved isKindOfClass:NSValue.class])return;
+        CGPoint offset=saved.CGPointValue;
+        CGPoint proposed=CGPointMake(touch.x+offset.x,touch.y+offset.y);
         CGPoint raw=[view.superview convertPoint:proposed toView:view.window];
         DCLTrafficRect rect;DCLTrafficInsets safe;
         if(geometry(view,&rect,&safe)) {
@@ -137,33 +149,32 @@ static void freePan(id owner,SEL sel,UIPanGestureRecognizer *gesture) {
                 view.center=[view.superview convertPoint:
                     CGPointMake(bounded.x,bounded.y) fromView:view.window];
                 applying=NO;
-                if(normalize(view,&stored)) hasStored=YES;
+                DCLTrafficPoint normalized;
+                if(normalize(view,&normalized)){stored=normalized;hasStored=YES;}
             }
         }
-        [gesture setTranslation:CGPointZero inView:view.superview];
-    }
-    if(state==UIGestureRecognizerStateEnded ||
-       state==UIGestureRecognizerStateCancelled ||
-       state==UIGestureRecognizerStateFailed) {
-        DCLTrafficPoint point;
-        if(normalize(view,&point))saveStored(point);
+    } else if(state==UIGestureRecognizerStateEnded ||
+              state==UIGestureRecognizerStateCancelled ||
+              state==UIGestureRecognizerStateFailed) {
+        // Original handler may snap after changed. Restore our last
+        // verified free-space coordinate only after the vendor completed.
+        if(dragOwner==owner && hasStored) {
+            applyCenter(view,stored);
+            saveStored(stored);
+            NSLog(@"[le024-ext] free XY complete center=%@",NSStringFromCGPoint(view.center));
+        }
         dragging=NO;dragOwner=nil;dragTarget=nil;
-        NSLog(@"[le024-ext] drag end center=%@",NSStringFromCGPoint(view.center));
+        objc_setAssociatedObject(owner,&DCLDragDeltaKey,nil,OBJC_ASSOCIATION_ASSIGN);
     }
 }
 static void newOverlayPan(id o,SEL sel,UIPanGestureRecognizer *g) {
-    if(!enabledDrag()) {
-        if(originalOverlayPan)originalOverlayPan(o,sel,g);
-        return;
-    }
-    freePan(o,sel,g);
+    // Always call the original vendor implementation exactly once.
+    if(originalOverlayPan)originalOverlayPan(o,sel,g);
+    freePan(o,g);
 }
 static void newCastPan(id o,SEL sel,UIPanGestureRecognizer *g) {
-    if(!enabledDrag()) {
-        if(originalCastPan)originalCastPan(o,sel,g);
-        return;
-    }
-    freePan(o,sel,g);
+    if(originalCastPan)originalCastPan(o,sel,g);
+    freePan(o,g);
 }
 static void newOverlayPlace(id o,SEL sel) {
     if(originalOverlayPlace)originalOverlayPlace(o,sel);
