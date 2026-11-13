@@ -29,6 +29,7 @@
 #import "SCPCarSplit+AutoHide.h" // [autohide] fade payload keys + activity feeds + teardown (design-autohide §5.1)
 #import "SCPHomeApply.h" // [ytz5] SCPLogInjectedIconState (M5 icon instrument points in closeGoingHome:)
 #import "SCPHomeLauncher.h" // [gpt-home] native Home entry is authoritative
+#import "SCPDeviceVitalsHUD.h" // [hl47] Dock metrics only outside fullscreen
 
 static id SCPGuarded(id obj, NSString *selName) {
     SEL sel = NSSelectorFromString(selName);
@@ -131,6 +132,29 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
     return YES;
 }
 
+// [hl47] Read the translated native Dock frame in the *parent's* coordinates.
+// The stock dockClusterInParent: intentionally undoes the launcher shift;
+// that pre-shift frame is unsafe for actual onscreen collision testing.
+static CGRect SCPHL47LiveDockFrame(UIView *parent) {
+    if (!parent || !parent.window) return CGRectNull;
+    id root = SCPDashboardRootViewController();
+    id dockVC = SCPGuarded(root, @"appDockViewController");
+    UIView *dock = SCPGuarded(dockVC, @"view");
+    if (!dock || !dock.window || dock.hidden || dock.alpha <= 0.01)
+        return CGRectNull;
+    UIScreen *screen = parent.window.screen;
+    if (!screen || dock.window.screen != screen) return CGRectNull;
+    CGRect rect = [dock convertRect:dock.bounds
+                     toCoordinateSpace:screen.coordinateSpace];
+    return [parent convertRect:rect fromCoordinateSpace:screen.coordinateSpace];
+}
+static CGRect SCPHL47LauncherFrame(SCPCarSplit *split, UIView *parent) {
+    UIView *button = split.homeButton;
+    if (!button || !button.window || !parent.window ||
+        button.window.screen != parent.window.screen) return CGRectNull;
+    return [parent convertRect:button.bounds fromView:button];
+}
+
 // -activateWithCount: (0x15cdc) VERIFIED (control flow read end-to-end,
 // remediation re-check rem_activateWithCount.txt + rem_suppressReopen_*).
 - (BOOL)activateWithCount:(NSInteger)count {
@@ -188,6 +212,8 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
           } completion:nil];
     if (reopenBundle) [self openApp:reopenBundle slot:0];
     SCPHomeLauncherDockSetVisible(YES, @"split-activated"); // [hl12dock]
+    // First Dock sample is triggered by the same existing root layout owner.
+    [self rootDidLayout]; // [hl47] safe geometry gate declines if no free rail
     return YES;
 }
 
@@ -236,9 +262,13 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
 // The original calls refreshAppTab on NO active branch.
 - (void)rootDidLayout {
     [self publishBusy];
-    if (!self.active) { [self refreshAppTab]; return; }
+    if (!self.active) {
+        [[SCPDeviceVitalsHUD shared] stop];
+        [self refreshAppTab];
+        return;
+    }
     UIView *parent = self.container.superview;
-    if (!parent) return;
+    if (!parent) { [[SCPDeviceVitalsHUD shared] stop]; return; }
     [self refreshHomeButton];
     CGRect area = [self appAreaInParent:parent];
     if (!CGRectEqualToRect(area, self.container.frame)) {
@@ -247,6 +277,13 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
         self.container.frame = area;
         [self relayoutAnimated:NO];
     }
+    // Recompute safe free Dock rail after the original resize/layout.
+    // This does NOT move stock Dock icons or intercept native touches.
+    [[SCPDeviceVitalsHUD shared] showForParent:parent
+        appArea:[self appAreaInParent:parent]
+        dockFrame:SCPHL47LiveDockFrame(parent)
+        homeFrame:self.homeGlyph
+        launcherFrame:SCPHL47LauncherFrame(self,parent)];
 }
 
 // -baseViewControllerPresented (0x214b8) VERIFIED (remediation,
@@ -272,6 +309,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
 // (0x22958 w2=#-1), NOT 0 — both restored; the previous body dropped
 // the three clears and used dragTarget = 0.
 - (void)dashboardInvalidated {
+    [[SCPDeviceVitalsHUD shared] stop]; // [hl47] prevent stale Dock HUD on reconnect
     SCPHomeLauncherDockSetVisible(NO, @"dashboard-invalidated"); // [hl12dock]
     [self removeAppTab];
     [self removeHomeButton];
@@ -1748,6 +1786,7 @@ static void SCPSceneVisLog(NSString *event, SCPCarPane *pane,
 }
 
 - (void)closeGoingHome:(BOOL)goHome {
+    [[SCPDeviceVitalsHUD shared] stop]; // [hl47] split close hides Dock badge
     // [ytz5] M5 src=: the source stamped by the call site (nil reads
     // as "unknown"); it is reset to nil (unknown) before returning,
     // on BOTH paths — the !active early return logs it too, instead
