@@ -371,31 +371,34 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
                                                green:0.9411764705882353
                                                 blue:0.984313725490196
                                                alpha:1.0]; // original @0x315ec..0x31624
+    // [hl46-audit2] Cover removal is controlled by CoverOff, regardless
+    // of whether the picker face is opaque. Both A/B toggles must work
+    // independently, including a stale cover during a pane transition.
+    BOOL hl46NativeCoverAtPicker = (pane.vc != nil &&
+        !SCPVCIsHosted(pane.vc) &&
+        [OMCPref(@"duocarHL46NativeCoverOff", @YES) boolValue]);
+    UIView *oldCover = pane.cover;
+    BOOL removeNativeCover = hl46NativeCoverAtPicker && oldCover != nil;
+    if (removeNativeCover) {
+        pane.cover = nil;
+        [oldCover.layer removeAllAnimations];
+        [oldCover removeFromSuperview];
+        DCHL45OverlayTrace(self,@"hl46-cover-detached-at-picker",pane,oldCover);
+    }
     if (hl46NativePicker) {
-        // The original placeholder remains attached and tappable so
-        // pickerPaneTapped:, the sheet, Cancel and selection still work.
-        // Only its full-pane opaque fill is disabled for native content.
+        // The original picker remains attached/tappable for its sheet,
+        // Cancel and Choose. Only its native full-pane face goes clear.
         picker.backgroundColor = UIColor.clearColor;
-        // The two A/B switches MUST remain independent. An old cover is
-        // stripped only if its own cover-off switch is ON. With that switch
-        // OFF, preserve the original cover even when picker is clear; this
-        // exposes which layer hides native pixels instead of contaminating
-        // the picker-only experiment.
-        UIView *oldCover = pane.cover;
-        BOOL removeNativeCover = (oldCover != nil &&
-            [OMCPref(@"duocarHL46NativeCoverOff", @YES) boolValue]);
-        if (removeNativeCover) {
-            pane.cover = nil;
-            [oldCover.layer removeAllAnimations];
-            [oldCover removeFromSuperview];
-            DCHL45OverlayTrace(self,@"hl46-cover-detached-at-picker",pane,oldCover);
-        }
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
             @"[hl46-bypass] picker CLEAR slot=%d bundle=%@ mode=NATIVE coverRemoved=%d coverRetained=%d",
             pane.slot,pane.bundleID ?: @"(none)",(int)removeNativeCover,
             (int)(oldCover != nil && !removeNativeCover)]);
     } else {
         OMCLogWrite(@"SplitScreen", @"[hl22-original] picker-pane-opacity=1.0");
+        if (removeNativeCover)
+            OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+                @"[hl46-bypass] picker OPAQUE native cover-only removed slot=%d bundle=%@",
+                pane.slot,pane.bundleID ?: @"(none)"]);
     }   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
     // [hl2-split P6] THE single picker measurement line (2026-11-09):
     // the ytz5hl1 car log proved hasContent=1 on both real opens while
