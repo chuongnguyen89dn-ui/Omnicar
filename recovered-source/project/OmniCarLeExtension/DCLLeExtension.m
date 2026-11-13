@@ -21,6 +21,8 @@ static id (*originalContent)(id,SEL,id);
 static void (*originalOverlayPlace)(id,SEL);
 // Original arm64 selector type: v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16
 static void (*originalCastPlace)(id,SEL,CGRect);
+static void (*originalOverlayPan)(id,SEL,id);
+static void (*originalCastPan)(id,SEL,id);
 static BOOL installedContent=NO, installedOverlay=NO, installedCast=NO;
 static BOOL dragging=NO, applying=NO, hasStored=NO;
 static DCLTrafficPoint stored={0.5,0.5};
@@ -149,8 +151,20 @@ static void freePan(id owner,SEL sel,UIPanGestureRecognizer *gesture) {
         NSLog(@"[le024-ext] drag end center=%@",NSStringFromCGPoint(view.center));
     }
 }
-static void newOverlayPan(id o,SEL sel,UIPanGestureRecognizer *g) { freePan(o,sel,g); }
-static void newCastPan(id o,SEL sel,UIPanGestureRecognizer *g) { freePan(o,sel,g); }
+static void newOverlayPan(id o,SEL sel,UIPanGestureRecognizer *g) {
+    if(!enabledDrag()) {
+        if(originalOverlayPan)originalOverlayPan(o,sel,g);
+        return;
+    }
+    freePan(o,sel,g);
+}
+static void newCastPan(id o,SEL sel,UIPanGestureRecognizer *g) {
+    if(!enabledDrag()) {
+        if(originalCastPan)originalCastPan(o,sel,g);
+        return;
+    }
+    freePan(o,sel,g);
+}
 static void newOverlayPlace(id o,SEL sel) {
     if(originalOverlayPlace)originalOverlayPlace(o,sel);
     enforce(o);
@@ -219,9 +233,8 @@ static void install(void) {
         // The native controller already has the working pan recognizer.
         // Override its FINAL snap-to-corner handler instead of adding
         // a second competing pan onto CWTrafficBubbleView.
-        static void (*origOverlayPan)(id,SEL,id);
         ok = ok && installOne(cls,@selector(panned:),
-              (IMP)newOverlayPan,(IMP *)&origOverlayPan,YES,3);
+              (IMP)newOverlayPan,(IMP *)&originalOverlayPan,YES,3);
         installedOverlay=ok;
         if(ok)NSLog(@"[le024-ext] overlay place/panned installed");
     }
@@ -230,9 +243,8 @@ static void install(void) {
         BOOL ok=cls && [cls instancesRespondToSelector:@selector(bubble)];
         ok=ok && installOne(cls,@selector(place:),
              (IMP)newCastPlace,(IMP *)&originalCastPlace,YES,3);
-        static void (*origCastPan)(id,SEL,id);
         ok=ok && installOne(cls,@selector(panned:),
-             (IMP)newCastPan,(IMP *)&origCastPan,YES,3);
+             (IMP)newCastPan,(IMP *)&originalCastPan,YES,3);
         installedCast=ok;
         if(ok)NSLog(@"[le024-ext] cast place/panned installed");
     }

@@ -78,6 +78,9 @@ assert 'DCLLeConfigStartBridge()' in ext
 assert 'CWTrafficOverlayController' in ext and 'CWCastBubbleController' in ext
 assert "newOverlayPan" in ext and "newCastPan" in ext
 assert "newOverlayPlace" in ext and "newCastPlace" in ext
+assert 'static void (*originalCastPlace)(id,SEL,CGRect);' in ext
+assert 'static void newCastPlace(id o,SEL sel,CGRect frame)' in ext
+assert 'originalOverlayPan(o,sel,g)' in ext and 'originalCastPan(o,sel,g)' in ext
 assert "DCLTrafficNormalizeCenter" in ext
 assert "DCLTrafficRestoreCenter" in ext
 assert "setSpeedState:" not in ext
