@@ -169,10 +169,6 @@ static NSDictionary *OMCRow(NSString *label,NSString *type,NSString *key,id def,
     if (choices) r[@"choices"]=choices;
     return r;
 }
-static NSDictionary *OMCSliderRow(NSString *label,NSString *key,NSInteger fallback,NSInteger minimum,NSInteger maximum) {
-    NSMutableDictionary *row=[OMCRow(label,@"slider",key,@(fallback),nil) mutableCopy];
-    row[@"min"]=@(minimum);row[@"max"]=@(maximum);return row;
-}
 static NSDictionary *OMCSection(NSString *header, NSArray *rows) {
     return @{@"header":header?:@"",@"rows":rows?:@[]};
 }
