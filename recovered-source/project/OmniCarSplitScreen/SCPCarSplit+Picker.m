@@ -525,59 +525,8 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
 
     UIVisualEffectView *effectView = SCPKnobFaceView(); // [phase2; backported to src in phase 3] name unified
     effectView.frame = sheet.bounds;
-    // [hl5-picker] GPT verdict HL4->HL5, ruling 1: the convicted cover
-    // (29.26) is THIS sheet's backdrop face — the blur effect (in
-    // Lite, a white 0.92 background instead) plus the mesh image
-    // SCPApplyMeshBackdrop inserts paint an opaque 542x242 slab over
-    // ~61% of each pane while the picker is up, hiding the very app
-    // the user is picking away from. When the sheet's frame overlaps
-    // any LIVE hosted pane, build the sheet's face TRANSPARENT at
-    // this creation point only: no effect, no face background, no
-    // mesh. The factory and the mesh helper stay untouched for every
-    // other caller; sheet alpha / z-order / parent window / shield /
-    // animation / hit-test are unchanged, and the sheet's content
-    // (grid, side column, cancel) lives in contentView and stays
-    // fully visible and tappable. Rollback gate: pref
-    // splitScreenPickerSheetClearFaceOff = YES restores the original
-    // face unconditionally.
-    BOOL faceClear = NO;
-    NSInteger hostedUnderSheet = 0;
-    if (![SCPPrefs pickerSheetClearFaceOff]) {
-        for (SCPCarPane *p in [self allPanes]) {
-            if (!p.host || !SCPIsBridgedPhoneApp(p.bundleID) ||
-                (!p.vc && ![self slotOccupied:p.slot])) continue;
-            CGRect paneRect = window
-                ? [p.host convertRect:p.host.bounds toView:nil]
-                : [p.host convertRect:p.host.bounds toView:self.container];
-            if (CGRectIntersectsRect(sheet.frame, paneRect))
-                hostedUnderSheet++;
-        }
-        // [hl21-legacy-picker] Restore the original opaque/blurred picker face:
-        // hosted content underneath is intentionally covered. Count overlap
-        // only for diagnostics; never change the face to transparent.
-        // faceClear stays NO for all panes and sizes.
-    }
-    OMCLogWrite(@"SplitScreen", @"[hl21-legacy-picker] ev=opaque-tray-face");
-    BOOL meshPresent = NO;
-    if (faceClear) {
-        effectView.effect = nil;
-        effectView.backgroundColor = UIColor.clearColor;
-        effectView.contentView.backgroundColor = UIColor.clearColor;
-        // Keep only the hairline edge the mesh helper used to add, so
-        // the sheet still reads as a card floating over the live panes.
-        effectView.layer.borderWidth = 1;
-        effectView.layer.borderColor =
-            [UIColor colorWithWhite:1 alpha:0.85].CGColor;
-    } else {
-        SCPApplyMeshBackdrop(effectView);
-        meshPresent = YES;
-    }
-    OMCLogWrite(@"SplitScreen", [NSString stringWithFormat:
-        @"[picker-face] mode=%@ targetSlot=%d hostedUnderSheet=%ld "
-        @"effectClass=%@ effectNil=%d meshPresent=%d",
-        faceClear ? @"clear" : @"original", pane.slot,
-        (long)hostedUnderSheet, NSStringFromClass(effectView.class),
-        effectView.effect == nil ? 1 : 0, meshPresent ? 1 : 0]);
+    // [hl44-original] Direct original DEB picker face: no HL5 clear/mesh switch.
+    SCPApplyMeshBackdrop(effectView);
     effectView.layer.cornerRadius = 24;
     effectView.layer.cornerCurve = kCACornerCurveContinuous;
     effectView.clipsToBounds = YES;
