@@ -1,0 +1,23 @@
+// Independent, host-testable layout logic for the CarPlay vitals badge.
+// All inputs are expressed in the same parent-view coordinate system.
+#ifndef SCP_VITALS_PLACEMENT_H
+#define SCP_VITALS_PLACEMENT_H
+#include <stddef.h>
+#define SCP_VITALS_MAX_EXCLUSIONS 4
+
+typedef struct { double x, y, w, h; } SCPVitalsRect;
+typedef struct {
+    SCPVitalsRect root;
+    SCPVitalsRect app;
+    SCPVitalsRect dock;
+    SCPVitalsRect exclusions[SCP_VITALS_MAX_EXCLUSIONS];
+    size_t exclusionCount;
+} SCPVitalsLayoutInput;
+typedef struct {
+    SCPVitalsRect frame;
+    int valid;
+    int horizontal;
+    int railIndex;  // 0 left, 1 right, 2 top, 3 bottom
+} SCPVitalsLayoutResult;
+SCPVitalsLayoutResult SCPVitalsPlace(SCPVitalsLayoutInput input);
+#endif
