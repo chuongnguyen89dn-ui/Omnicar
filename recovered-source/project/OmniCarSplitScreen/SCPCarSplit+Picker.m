@@ -422,6 +422,17 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
             OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
                 @"[hl46-bypass] picker OPAQUE native cover-only removed slot=%d bundle=%@",
                 pane.slot,pane.bundleID ?: @"(none)"]);
+    // [hl49-opaque] A clear background is NOT sufficient if UIView/layer
+    // still declare themselves opaque. This view is installed over the
+    // entire pane above host. Keep it hit-testable for existing menu taps.
+    if (hl46NativePicker || hl49OccupiedPicker || hl48HostedPicker) {
+        picker.opaque = NO;
+        picker.layer.opaque = NO;
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl49-opaque] picker slot=%d opaque=%d layerOpaque=%d bg=%@",
+            pane.slot,(int)picker.isOpaque,(int)picker.layer.isOpaque,
+            SCPMeasureBgRaw(picker.backgroundColor)]);
+    }
     }   // VERIFIED @0x315ec-0x3160c (was labelled INFERRED — values were right)
     // [hl2-split P6] THE single picker measurement line (2026-11-09):
     // the ytz5hl1 car log proved hasContent=1 on both real opens while
@@ -525,7 +536,7 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
         !SCPVCIsHosted(owner.pickerSheetPane.vc) ||
         owner.tray || owner.ratioMenu || owner.dragGhost)
         return NO;
-    return [OMCPref(@"duocarHL49HostedSameWindowPicker",@YES) boolValue];
+    return [OMCPref(@"duocarHL49HostedSameWindowPicker",@NO) boolValue];
 }
 
 // MARK: - Picker sheet
@@ -696,6 +707,9 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     UIView *sheet = [[UIView alloc] initWithFrame:CGRectMake(
         CGRectGetMidX(area) - (sheetW + 150.0) * 0.5,
         CGRectGetMidY(area) - sheetH * 0.5, sheetW + 150.0, sheetH)];
+    // Sheet itself has no solid fill; do not mark the whole rect opaque.
+    sheet.opaque = NO;
+    sheet.layer.opaque = NO;
     sheet.layer.cornerRadius = 24;
     sheet.layer.cornerCurve = kCACornerCurveContinuous;
     sheet.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
@@ -716,6 +730,9 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     UIVisualEffectView *effectView = hl49LiveUnderSheet
         ? [[UIVisualEffectView alloc] initWithEffect:nil]
         : SCPKnobFaceView();
+    // Picker face (blur or translucent trial) must be composited normally.
+    effectView.opaque = NO;
+    effectView.layer.opaque = NO;
     effectView.frame = sheet.bounds;
     if (hl49LiveUnderSheet) {
         // A slightly translucent face keeps menu controls readable without

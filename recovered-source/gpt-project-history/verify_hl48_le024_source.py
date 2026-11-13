@@ -31,6 +31,12 @@ assert "if (hl46NativePicker || hl49OccupiedPicker || hl48HostedPicker) label.hi
 assert "duocarHL49OccupiedPickerClear" in picker
 assert "duocarHL49LiveUnderSheet" in picker
 assert "duocarHL49HostedSameWindowPicker" in picker
+assert 'duocarHL49HostedSameWindowPicker",@NO' in picker
+assert "[hl49-opaque] picker" in picker
+assert "picker.opaque = NO" in picker
+assert "picker.layer.opaque = NO" in picker
+assert "sheet.opaque = NO" in picker
+assert "effectView.opaque = NO" in picker
 assert "BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner)" in picker
 assert "UIWindow *window = hl49SameWindow ? nil" in picker
 assert '[hl49-window-ab] mode=%@' in picker
