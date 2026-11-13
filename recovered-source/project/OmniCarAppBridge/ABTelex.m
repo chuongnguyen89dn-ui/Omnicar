@@ -79,10 +79,10 @@ static NSUInteger ABTTonePosition(NSString *word) {
     ABTFind([word characterAtIndex:last],&f1,NULL,NULL);
     // In unmodified diphthongs ai/ao/au/ay/ei/eo/oi/ou/uy,
     // accent the nucleus rather than the final glide.
-    if ((f1==5 || f1==9 || f1==11 ||
-         (f1==6 && (f0==0 || f0==3))) &&
-        !(f0==9 && f1==11 && first==last))
-        return first;
+    if (f1==5 || f1==9 || f1==11 ||
+        (f1==6 && (f0==0 || f0==3)) ||
+        (f0==6 && (f1==0 || f1==3)))
+        return first; // modern tone placement: hòa, khỏe, chào
     return last;
 }
 
