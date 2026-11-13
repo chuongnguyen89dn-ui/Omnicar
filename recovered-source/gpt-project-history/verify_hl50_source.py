@@ -99,10 +99,17 @@ assert (root/"gpt-project-history/patch_le024_speed_unit.py").is_file()
 
 # No changes to the already proven fullscreen *engine*. The Dock and
 # Le integrations were changed instead. Record exact baseline hashes in CI.
-protected=("SCPPinchController.m", "SCPFullscreenController.m",
-           "SCPFullscreenVitalsBubble.m","SCPCarSplit+Relayout.m")
-for file in protected:
+# SHA-256 pinned to source exactly as verified on HL49 -> HL48: no
+# edit to either the pinch engine or existing working fullscreen bubble.
+protected={
+ "SCPPinchController.m":"a5e94145bb8fc56abc37140faac06ece7933b7d76bf46bb0eaa75c9e04e63d18",
+ "SCPFullscreenController.m":"62a0703aefd8f41c416bc684ebcfd8dd2ce72f239cea5dcb212fa5dea1fc3932",
+ "SCPFullscreenVitalsBubble.m":"0e45da1e5307717eb108464855d1690f21e109b78340d0e0757b79e69d038ff7",
+ "SCPCarSplit+Relayout.m":"831391349790159f91a3e19387c8b412da3b017585f39ba86465117c43274bc0",
+}
+for file,expected in protected.items():
     p=project/"OmniCarSplitScreen"/file
-    assert p.exists()
-    print("HL50_PROTECTED_FULLSCREEN",file,hashlib.sha256(p.read_bytes()).hexdigest())
+    actual=hashlib.sha256(p.read_bytes()).hexdigest()
+    assert actual==expected,(file,"fullscreen source was altered",actual,expected)
+    print("HL50_PROTECTED_FULLSCREEN",file,actual)
 print("HL50_SOURCE_GATE_PASS",len(pairs),"mirrored component pairs; zoom-owned files untouched")
