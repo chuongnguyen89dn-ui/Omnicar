@@ -348,15 +348,65 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
 }
 @end
 
+// [hl52-le-original] Use the actual LePrefs 0.2.4 root controller and
+// original CWLeRootPage / CWLeFloatingPage / CWLeMapsPage / Diagnostics,
+// rather than claiming a flat, handwritten DCLLeConfigPage is "original".
+// LePrefs stays a separate signed bundle in the personal one-DEB payload;
+// never copy or rebuild the vendor's UI/renderer into DuoCar.
+static NSArray<NSString *> *DCLLeOriginalBundlePaths(void) {
+    return @[@"/var/jb/Library/PreferenceBundles/LePrefs.bundle",
+             @"/Library/PreferenceBundles/LePrefs.bundle"];
+}
 BOOL OMCLeOriginalPreferencesAvailable(void) {
-    return [[NSFileManager defaultManager] fileExistsAtPath:
-       @"/var/jb/Library/PreferenceBundles/LePrefs.bundle/LePrefs"] ||
-       [[NSFileManager defaultManager] fileExistsAtPath:
-       @"/Library/PreferenceBundles/LePrefs.bundle/LePrefs"];
+    for (NSString *path in DCLLeOriginalBundlePaths()) {
+        NSString *binary=[path stringByAppendingPathComponent:@"LePrefs"];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:binary])
+            return YES;
+    }
+    return NO;
+}
+UIViewController *OMCLeCompatiblePreferencesController(void) {
+    DCLLeConfigPage *fallback=[[DCLLeConfigPage alloc] init];
+    fallback.title=@"DuoCar • Cấu hình bổ sung";
+    return fallback;
 }
 UIViewController *OMCLeOriginalPreferencesController(void) {
-    // Show the in-app, ACKed configuration rather than load the vendor's
-    // global-file writer into a sandbox where it cannot persist settings.
-    NSLog(@"[le024-prefs] opening ACKed configuration owned by SpringBoard");
-    return [[DCLLeConfigPage alloc] init];
+    // Loading the vendor bundle is intentionally deferred until user taps
+    // its original settings item, and guarded against an absent/broken DEB.
+    for (NSString *path in DCLLeOriginalBundlePaths()) {
+        NSBundle *bundle=[NSBundle bundleWithPath:path];
+        if (!bundle ||
+            ![bundle.bundleIdentifier isEqualToString:
+              @"dev.bechou.le.bubble.preferences"])continue;
+        NSString *binary=[path stringByAppendingPathComponent:@"LePrefs"];
+        if (![[NSFileManager defaultManager] fileExistsAtPath:binary])continue;
+        NSError *error=nil;
+        @try {
+            BOOL loaded=bundle.isLoaded || [bundle loadAndReturnError:&error];
+            if (!loaded) {
+                NSLog(@"[hl52-le-original] LOAD FAILED path=%@ error=%@",path,error);
+                continue;
+            }
+            Class cls=bundle.principalClass;
+            if (!cls) cls=NSClassFromString(@"CWTrafficBubblePrefsController");
+            if (!cls || ![cls isSubclassOfClass:UIViewController.class]) {
+                NSLog(@"[hl52-le-original] BAD PRINCIPAL class=%@",cls);
+                continue;
+            }
+            UIViewController *page=[[cls alloc] init];
+            if (![page isKindOfClass:UIViewController.class])continue;
+            NSLog(@"[hl52-le-original] ORIGINAL LOADED bundle=%@ class=%@",
+                  bundle.bundleIdentifier,NSStringFromClass(cls));
+            return page; // Actual vendor controller, not a DuoCar facsimile
+        } @catch(NSException *exception) {
+            NSLog(@"[hl52-le-original] EXCEPTION %@: %@",
+                  exception.name,exception.reason);
+        }
+    }
+    // Explicitly distinguish compatibility fallback if original cannot
+    // load; do not silently label a handwritten page as the vendor UI.
+    NSLog(@"[hl52-le-original] ORIGINAL UNAVAILABLE; compatibility only");
+    DCLLeConfigPage *page=[[DCLLeConfigPage alloc] init];
+    page.title=@"Lề • Chưa nạp bản gốc";
+    return page;
 }

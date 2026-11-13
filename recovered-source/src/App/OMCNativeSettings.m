@@ -507,13 +507,16 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(@"APPS",@"homeapps",nil,nil,nil),
             OMCRow(OMCText(@"Khôi phục bố cục Home",@"Reset Home layout"),@"resethome",nil,nil,nil)])
     ];
-    // Original Lề settings are read/written by the ACKed CarPlay/SpringBoard
-    // bridge. GPS stepper is ONLY on that page, never a sandbox-only duplicate.
+    // [hl52-le-original] The primary entry invokes LePrefs.bundle's own
+    // signed root UI; extra DuoCar-only switches remain a separate page.
     if (self.kind==3) return @[
-        OMCSection(OMCText(@"Bong bóng tốc độ Lề", @"Lề traffic bubble"), @[
-            OMCRow(OMCText(@"Cài đặt nguồn, giao thông và GPS (±5)",
-                           @"Traffic, source and GPS settings"),
-                   @"leOriginal", nil, nil, nil)
+        OMCSection(OMCText(@"Lề 0.2.4", @"Lề 0.2.4"), @[
+            OMCRow(OMCText(@"Cài đặt Lề (giao diện gốc)",
+                           @"Original Lề settings"),
+                   @"leOriginal", nil, nil, nil),
+            OMCRow(OMCText(@"Tùy chỉnh thêm: GPS ±5, kéo tự do",
+                           @"DuoCar extras: GPS ±5, free drag"),
+                   @"leCompat", nil, nil, nil)
         ])
     ];
     id raw=OMCNativePref(@"carProfiles",@{});
@@ -1112,6 +1115,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     }
     if ([type isEqualToString:@"leOriginal"]) {
         [self.navigationController pushViewController:OMCLeOriginalPreferencesController() animated:YES];return;
+    }
+    if ([type isEqualToString:@"leCompat"]) {
+        [self.navigationController pushViewController:OMCLeCompatiblePreferencesController() animated:YES];return;
     }
     if ([type isEqualToString:@"home"]) {
         [self.navigationController pushViewController:[[OMCNativeSimplePage alloc] initWithKind:2] animated:YES];return;

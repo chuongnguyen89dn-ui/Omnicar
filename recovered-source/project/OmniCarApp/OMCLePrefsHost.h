@@ -4,4 +4,5 @@
 // UIKit settings navigation hierarchy. No private code is redistributed
 // by this bridge; the vendor bundle must be present in the install payload.
 FOUNDATION_EXPORT UIViewController *OMCLeOriginalPreferencesController(void);
+FOUNDATION_EXPORT UIViewController *OMCLeCompatiblePreferencesController(void);
 FOUNDATION_EXPORT BOOL OMCLeOriginalPreferencesAvailable(void);
