@@ -100,7 +100,7 @@ jobs:
           cd recovered-source/project
           make clean ARCHS=arm64
           make package FINALPACKAGE=1 ARCHS=arm64 2>&1 | tee /tmp/dc59-base.log
-          test -s packages/com.chuong.duocar_1.0.3-hl47menudocksingle-arch1_iphoneos-arm64.deb
+          test -s packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb
 
       - name: Compile signed optional 2-function Lề companion ARM64
         shell: bash
@@ -115,13 +115,13 @@ jobs:
           make package FINALPACKAGE=1 ARCHS=arm64 2>&1 | tee /tmp/dc59-companion.log
           test -s packages/com.chuong.duocar.leextension_0.2.0_iphoneos-arm64.deb
 
-      - name: Package ONE DC58 without Le vendor, fonts, bundle or conflicts
+      - name: Package ONE DC59CL without Le vendor, fonts, bundle or conflicts
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p dist
           python3 recovered-source/gpt-project-history/merge_external_le_only.py \
-            --duocar recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudocksingle-arch1_iphoneos-arm64.deb \
+            --duocar recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb \
             --extension recovered-source/project/OmniCarLeExtension/packages/com.chuong.duocar.leextension_0.2.0_iphoneos-arm64.deb \
             --output dist/DC59CL.deb --version 1.0.4-hl59cl1
 
