@@ -6,14 +6,22 @@
 #include <stdint.h>
 int main(void) {
     int checks = 0;
-    for (int offset = -8; offset <= 8; ++offset) {
+    for (int offset = -15; offset <= 15; ++offset) {
         int c = DCLTrafficClampGpsOffset(offset);
-        assert(c >= -5 && c <= 5);
-        assert(c == (offset < -5 ? -5 : (offset > 5 ? 5 : offset)));
+        assert(c >= -10 && c <= 10);
+        assert(c == (offset < -10 ? -10 : (offset > 10 ? 10 : offset)));
         ++checks;
     }
     DCLTrafficReading r = DCLTrafficComputeReading(1,60,1,80,3);
     assert(r.correctedSpeedKph == 63 && r.postedLimitKph == 80 && !r.overspeed);++checks;
+    r = DCLTrafficComputeReading(1,60,1,80,10);
+    assert(r.correctedSpeedKph == 70 && r.postedLimitKph == 80 && !r.overspeed);++checks;
+    r = DCLTrafficComputeReading(1,60,1,80,-10);
+    assert(r.correctedSpeedKph == 50 && r.postedLimitKph == 80 && !r.overspeed);++checks;
+    r = DCLTrafficComputeReading(1,398,1,400,20);
+    assert(r.correctedSpeedKph == 400 && r.postedLimitKph == 400);++checks;
+    r = DCLTrafficComputeReading(1,1,1,30,-20);
+    assert(r.correctedSpeedKph == 0 && r.postedLimitKph == 30);++checks;
     r = DCLTrafficComputeReading(1,60,1,80,-2);
     assert(r.correctedSpeedKph == 58 && r.postedLimitKph == 80);++checks;
     r = DCLTrafficComputeReading(1,81,1,80,-2);
