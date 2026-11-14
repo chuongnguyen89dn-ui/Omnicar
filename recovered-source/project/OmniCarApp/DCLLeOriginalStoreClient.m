@@ -20,7 +20,7 @@ static BOOL DCLWaitReply(int req,int ack,uint8_t op,uint16_t seq,uint16_t nonce,
     uint64_t command=DCLLeFrame(DCL_LE_MAGIC_REQ,op,seq,payload);
     if(notify_set_state(req,command)!=NOTIFY_STATUS_OK ||
        notify_post(DCL_LE_RAW_REQ)!=NOTIFY_STATUS_OK)return NO;
-    double limit=DCLNow()+((op==DCL_LE_FINISH)?1.5:0.4);
+    double limit=DCLNow()+((op==DCL_LE_FINISH || op==DCL_LE_READ_END)?1.5:0.4);
     if(limit>deadline)limit=deadline;
     while(DCLNow()<limit) {
         uint64_t frame=0;
@@ -95,8 +95,128 @@ static BOOL DCLLeStoreHook(id directory,id name,id data) {
     NSLog(@"[hl54-store] original layout write intercepted bytes=%lu globalDir=%d",
           (unsigned long)[(NSData *)data length],
           [dir isEqualToString:@"/var/mobile/Library/Preferences/dev.bechou.le.bubble"]);
-    return DCLBrokerWrite(data);
+    BOOL committed=DCLBrokerWrite(data);
+    if(!committed)return NO;
+    // Keep the app-private mirror used by the authentic LePrefs reader
+    // synchronized only AFTER SpringBoard has committed canonical JSON.
+    // Original hook trampoline writes this app-owned file, not global.
+    BOOL mirrored=DCLVendorWriter?DCLVendorWriter(directory,name,data):NO;
+    NSLog(@"[hl56-config-source] vendor save canonical=1 appMirror=%d bytes=%lu",
+          mirrored,(unsigned long)[(NSData *)data length]);
+    return mirrored;
 }
+static BOOL DCLVerifiedVendorFile(NSString *path);
+// [hl56-config-source] Read canonical mobile-owned layout from SpringBoard.
+// Each frame is read-only, owner checked and nonce/sequence/CRC verified.
+// NEVER fall back to a private stale Lề file or default VietMap silently.
+BOOL DCLLeFetchCanonicalLayout(NSData **result) {
+    if(result)*result=nil;
+    if(!result)return NO;
+    int req=-1,ack=-1,info=-1,word=-1,crcToken=-1;
+    BOOL ok=NO;
+    const char *names[]={DCL_LE_RAW_REQ,DCL_LE_RAW_ACK,DCL_LE_RAW_INFO,
+                         DCL_LE_RAW_WORD,DCL_LE_RAW_CRC};
+    int *tokens[]={&req,&ack,&info,&word,&crcToken};
+    for(int i=0;i<5;i++) {
+        if(notify_register_check(names[i],tokens[i])!=NOTIFY_STATUS_OK)
+            goto finish;
+    }
+    uint16_t nonce=(uint16_t)(arc4random_uniform(65535)+1);
+    uint16_t status=0;
+    uint16_t seq=1;
+    double deadline=DCLNow()+16.0;
+    if(!DCLWaitReply(req,ack,DCL_LE_READ_BEGIN,seq,nonce,nonce,
+                     deadline,&status)) {
+        NSLog(@"[hl56-config-source] canonical read BEGIN failed status=%u",status);
+        goto finish;
+    }
+    uint64_t infoWord=0;
+    if(notify_get_state(info,&infoWord)!=NOTIFY_STATUS_OK ||
+       (uint16_t)(infoWord>>16)!=nonce)goto finish;
+    NSUInteger length=(uint16_t)infoWord;
+    if(length<2 || length>DCL_LE_RAW_LIMIT)goto finish;
+    NSMutableData *bytes=[NSMutableData dataWithLength:length];
+    for(NSUInteger offset=0;offset<length;offset+=4) {
+        seq++;
+        if(!DCLWaitReply(req,ack,DCL_LE_READ_DATA,seq,nonce,
+                 ((uint32_t)nonce<<16)|(uint32_t)(offset/4),
+                 deadline,&status)) {
+            NSLog(@"[hl56-config-source] canonical read DATA failed at=%lu status=%u",
+                  (unsigned long)offset,status);
+            goto finish;
+        }
+        uint64_t packed=0;
+        if(notify_get_state(word,&packed)!=NOTIFY_STATUS_OK)goto finish;
+        DCLLeUnword((uint32_t)packed,
+                    (uint8_t *)bytes.mutableBytes+offset,
+                    MIN((NSUInteger)4,length-offset));
+    }
+    seq++;
+    if(!DCLWaitReply(req,ack,DCL_LE_READ_END,seq,nonce,
+                     ((uint32_t)nonce<<16),deadline,&status))goto finish;
+    uint64_t checksum=0;
+    if(notify_get_state(crcToken,&checksum)!=NOTIFY_STATUS_OK ||
+       (uint32_t)checksum!=DCLLeCRC32(bytes.bytes,length)){
+        NSLog(@"[hl56-config-source] canonical CRC mismatch");
+        goto finish;
+    }
+    NSDictionary *layout=[NSJSONSerialization JSONObjectWithData:bytes
+                                             options:0 error:nil];
+    if(![layout isKindOfClass:NSDictionary.class] || !layout.count)goto finish;
+    *result=bytes;ok=YES;
+    NSLog(@"[hl56-config-source] canonical fetch OK bytes=%lu source=%@",
+          (unsigned long)length,layout[@"source"]);
+finish:
+    for(int i=0;i<5;i++)if(*tokens[i]>=0)notify_cancel(*tokens[i]);
+    if(!ok)NSLog(@"[hl56-config-source] NO CANONICAL DATA: no fallback to stale/default");
+    return ok;
+}
+// Mirror exact canonical file into the app's own LePrefs read domain.
+// The vendor Mach-O proves CWReadStoredTrafficBubbleLayout calls
+// NSHomeDirectory(), lstat(owner), open and read; this is NOT the global
+// /var/mobile file used by CarPlay/SpringBoard.
+BOOL DCLLeHydrateAppLayout(NSString *binaryPath, NSData *canonical) {
+    if(![canonical isKindOfClass:NSData.class] || canonical.length<2 ||
+       canonical.length>DCL_LE_RAW_LIMIT || ![binaryPath isKindOfClass:NSString.class])
+        return NO;
+    if(!DCLVerifiedVendorFile(binaryPath)) {
+        NSLog(@"[hl56-config-source] hydrate refused: vendor SHA mismatch");
+        return NO;
+    }
+    NSString *home=NSHomeDirectory();
+    if(!home.length)return NO;
+    NSString *dir=[home stringByAppendingPathComponent:
+        @"Library/Preferences/dev.bechou.le.bubble"];
+    NSString *local=[dir stringByAppendingPathComponent:@"layout-v1.json"];
+    NSString *canonicalFile=@"/var/mobile/Library/Preferences/dev.bechou.le.bubble/layout-v1.json";
+    if([local isEqualToString:canonicalFile]) {
+        NSData *now=[NSData dataWithContentsOfFile:local];
+        return [now isEqualToData:canonical];
+    }
+    void *handle=dlopen(binaryPath.fileSystemRepresentation,RTLD_NOW|RTLD_NOLOAD);
+    if(!handle)return NO;
+    BOOL (*writer)(id,id,id)=(BOOL (*)(id,id,id))dlsym(handle,"CWWriteOwnedStateFile");
+    if(!writer)return NO;
+    NSFileManager *fm=[NSFileManager defaultManager];
+    NSString *backup=[local stringByAppendingString:@".duocar56-prehydration.bak"];
+    if([fm fileExistsAtPath:local] && ![fm fileExistsAtPath:backup]){
+        NSError *backupError=nil;
+        if(![fm copyItemAtPath:local toPath:backup error:&backupError]){
+            NSLog(@"[hl56-config-source] preserving older local data failed: %@",
+                  backupError);
+            return NO;
+        }
+    }
+    BOOL saved=writer(dir,@"layout-v1.json",canonical);
+    NSData *readback=saved?[NSData dataWithContentsOfFile:local]:nil;
+    BOOL good=saved && [canonical isEqualToData:readback];
+    NSLog(@"[hl56-config-source] app mirror hydrate=%d bytes=%lu originalSource=%@",
+          good,(unsigned long)canonical.length,
+          [[NSJSONSerialization JSONObjectWithData:canonical options:0 error:nil]
+             objectForKey:@"source"]);
+    return good;
+}
+
 static BOOL DCLVerifiedVendorFile(NSString *path) {
     NSData *binary=[NSData dataWithContentsOfFile:path options:NSDataReadingMappedIfSafe error:nil];
     if(!binary || binary.length==0)return NO;
