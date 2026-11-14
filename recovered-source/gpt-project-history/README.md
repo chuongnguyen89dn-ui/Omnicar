@@ -1,3 +1,7 @@
+## 2026-11-14 — GPT CHỈ DẪN CODE MUSE + KHÓA TOÀN BỘ UI CHÍNH DUOCAR V3
+- [Bản đồ từng hàm chuyển bar ngang sang vòng tròn](APEX_V3_P4_MUSE_REAL_CODE_ROUTE_20261114.md): call chain native/hosted/Home, 5 handler thật, nơi cần hunk protected, fallback & R0–R5.
+- [Master toàn bộ UI chính, 23 màn/112 ID](APEX_V3_P4_MAIN_UI_SCOPE_AND_GATES_20261114.md): radial chỉ một nhánh; CarPlay + iPhone + picker/ratio/keyplane/startup cũng phải redesign, G1 chi tiết và source phải được nghiệm thu riêng.
+
 ## 2026-11-14 — G1 VÒNG TRÒN 5 LỆNH THẬT → giao Muse triển khai G2 có giới hạn
 - **[Spec+handoff R0–R5](APEX_V3_P4_G1_RADIAL_5_ACTIONS_MUSE_20261114.md)**: 5 sector đúng 5 action gốc, action-first→thẻ Ô1/Ô2→handler, popup/vòng không là ảnh giả; fullscreen ẩn logo/dock + pinch-in restore, source/guards/10 ca QA và các blocker đã khai báo.
 - **[Bản vẽ vòng + chọn ô](APEX_V3_P4_G1_RADIAL_WHEEL_20261114.svg)** và **[5 luồng chức năng](APEX_V3_P4_G1_RADIAL_5_FLOWS_20261114.svg)**: vector review source, không phải runtime/device screenshot; logo D dùng asset gốc không vẽ lại. Muse nhận việc trên Issue #1; không CI/DEB/merge/publish trước các cổng thực tế.
