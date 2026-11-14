@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL61 giao diện cảnh báo nhiệt và rà Muse UI
+- Cảnh báo nhiệt chia/fullscreen có **viền đỏ nhấp nháy trong suốt**, chính giữa chỉ hiện **“LÀM MÁT THIẾT BỊ CỦA BẠN”**. Không chữ mô phỏng, không nhiệt độ/nguồn trên cảnh báo; giữ gate 37°C và công tắc thử. Không đụng Lề DC59CL. [Checkpoint](HL58_EXTERNAL_LE_OPTIONAL_DETACH_20261114.md).
+- Đã kiểm báo cáo UI/UX Muse tại nhánh `audit/duocar-ui-full-audit-20261114` commit `94859141`. [Đánh giá GPT](DUOCAR_UI_AUDIT_GPT_REVIEW_20261114.txt): 5 nhóm nội dung có báo cáo, 17 khoảng trống U1–U17, chỉ điều tra DC58, không phải mã UI mới.
+
+
 
 ## 2026-11-14 — DC58 FAT thành công: tháo toàn bộ Lề gốc khỏi DuoCar, giữ GPS±10 và ON/OFF optional
 - **DEB cuối** \`DC58.deb 1.0.4-hl58\`, build run **43553319919 SUCCESS**, artifact **14096254418**, SHA256 \`7b22f302fba395ce858112d378dacb6b217f7dbc04d21595bd3920374735ce56\`, **1,257,484 bytes**. Đã kiểm **trực tiếp**: 297 file, 8 binary FAT/16 signed slices, KHÔNG có 9 Lề dylibs/LePrefs/font/vendor, KHÔNG còn \`Conflicts\`/\`Replaces\`/\`Depends\` với \`dev.bechou.le\`. Ứng dụng + shim DuoCar 2 chức năng chỉ giữ GPS ±10 và công tắc bong bóng; không can thiệp drag/windowLevel. **Cài độc lập 2 gói hợp lệ về manifest, nhưng 2 chức năng nối với Lề riêng CHƯA DEVICE PASS**. Cài DC58 thay DC57 trước, rồi Lề gốc riêng, respring; giữ JSON Waze người dùng. Workflow restored manual-only. [HL58 checkpoint](HL58_EXTERNAL_LE_OPTIONAL_DETACH_20261114.md).

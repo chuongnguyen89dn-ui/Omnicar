@@ -4,7 +4,8 @@
 #import "OMCDeviceVitals.h"
 #import "SCPShared.h"
 #import "SCPVitalsPlacement.h"
-#import "SCPThermalAlarm.h" // [hl55] 39C threshold + hysteresis
+#import "SCPThermalAlarm.h" // [hl60] continuous 37C gate
+#import "SCPThermalEdgeWarning.h" // [hl61] shared edge warning
 #import "SCPFullscreenController.h" // [hl47] hide dock HUD in fullscreen
 #import <CoreGraphics/CoreGraphics.h>
 #import <math.h>
@@ -39,7 +40,7 @@
 
 // [hl55-thermal] Independent split-mode alert uses a CarPlay display
 // root window and PASS-THROUGH hit-test. The fullscreen branch uses the
-// existing clock bubble window and its own 39C alert instead.
+// existing clock bubble window with the same edge warning.
 - (instancetype)init {
     if((self=[super init])) {
         _thermalGate=(SCPThermalAlarmState){0};
@@ -64,23 +65,12 @@ static UIView *SCPRedAlertHitTest(UIWindow *window,SEL cmd,CGPoint point,UIEvent
     self.thermalWarningWindow.hidden=YES;
     self.thermalWarningWindow=nil;
 }
-- (void)showThermalWarningInParent:(UIView *)parent temperature:(double)degrees
-                        simulated:(BOOL)simulated source:(NSString *)source {
-    UIWindow *host=parent.window;
-    UIScreen *screen=host.screen;
-    if(!screen || !isfinite(degrees))return;
+- (void)showThermalWarningInParent:(UIView *)parent {
+    UIScreen *screen=parent.window.screen;
+    if(!screen)return;
     if(self.thermalWarningWindow && self.thermalWarningWindow.screen!=screen)
         [self hideThermalWarning];
-    NSString *caption=simulated?@"GIẢ LẬP — KHÔNG PHẢI NHIỆT THẬT":
-        [source isEqualToString:@"battery"]?@"NHIỆT PIN (THAM KHẢO)":
-                                          @"CẢM BIẾN (THAM KHẢO)";
-    NSString *message=[NSString stringWithFormat:
-        @"⚠️ CẢNH BÁO NHIỆT ĐỘ\n%@ ~%.1f°C\nNgưỡng 37°C",caption,degrees];
-    if(self.thermalWarningWindow) {
-        UILabel *current=(UILabel *)[self.thermalWarningWindow viewWithTag:3717];
-        current.text=message;
-        return;
-    }
+    if(self.thermalWarningWindow)return;
     id config=nil;
     SEL displaySel=NSSelectorFromString(@"displayConfiguration");
     if([screen respondsToSelector:displaySel])
@@ -120,25 +110,10 @@ static UIView *SCPRedAlertHitTest(UIWindow *window,SEL cmd,CGPoint point,UIEvent
     win.windowLevel=UIWindowLevelStatusBar+64.5;
     win.backgroundColor=UIColor.clearColor;
     win.userInteractionEnabled=NO;
-    UIView *curtain=[[UIView alloc] initWithFrame:win.bounds];
-    curtain.backgroundColor=[UIColor colorWithRed:0.87 green:0.03 blue:0.07 alpha:0.87];
-    curtain.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-    curtain.userInteractionEnabled=NO;
-    UILabel *text=[[UILabel alloc] initWithFrame:CGRectInset(curtain.bounds,20,16)];
-    text.font=[UIFont boldSystemFontOfSize:26];
-    text.textColor=UIColor.whiteColor;
-    text.textAlignment=NSTextAlignmentCenter;
-    text.numberOfLines=0;
-    text.adjustsFontSizeToFitWidth=YES;
-    text.minimumScaleFactor=0.7;
-    text.userInteractionEnabled=NO;
-    text.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-    text.tag=3717;
-    text.text=message;
-    [curtain addSubview:text];[win addSubview:curtain];
+    UIView *edgeWarning=SCPThermalEdgeWarningCreate(win.bounds);
+    [win addSubview:edgeWarning];
     self.thermalWarningWindow=win;win.hidden=NO;
-    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-       @"[hl60-thermal] split SHOW persistent 37C pass-through %.2f",degrees]);
+    OMCLogWrite(@"SplitScreen",@"[hl61-thermal-ui] split EDGE_GLOW_SHOW pass-through");
 }
 
 - (void)checkThermalNow {
@@ -163,9 +138,7 @@ static UIView *SCPRedAlertHitTest(UIWindow *window,SEL cmd,CGPoint point,UIEvent
             active,simulated,temp?:@"unavailable",
             sample[@"temperatureSource"]?:@"unknown"]);
     if(active)
-        [self showThermalWarningInParent:parent
-            temperature:simulated?37.0:temp.doubleValue
-            simulated:simulated source:sample[@"temperatureKind"]];
+        [self showThermalWarningInParent:parent];
     else
         [self hideThermalWarning];
 }

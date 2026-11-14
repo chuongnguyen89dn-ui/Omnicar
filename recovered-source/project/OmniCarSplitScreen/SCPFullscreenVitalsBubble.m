@@ -1,11 +1,12 @@
 // HL57: passive single-row clock/battery/heat at the TOP-LEFT of CarPlay
 // fullscreen. NO bubble background or gestures. Keep the historical class
 // name because SCPFullscreenController owns this existing lifecycle.
-// The two-sample 39C whole-display warning stays independent.
+// The continuous 37C edge warning stays independent.
 #import "SCPFullscreenVitalsBubble.h"
 #import "SCPFullscreenController.h"
 #import "SCPCarSplit.h"
-#import "SCPThermalAlarm.h" // [hl55-thermal] 39C two-sample gate
+#import "SCPThermalAlarm.h" // [hl60] continuous 37C gate
+#import "SCPThermalEdgeWarning.h" // [hl61] shared edge warning
 #import "OMCDeviceVitals.h"
 #import "SCPCommon.h"
 #import "SCPShared.h"
@@ -193,10 +194,10 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         ([OMCPref(@"duocarFullscreenVitalsEnabled",@YES) boolValue] ||
          [OMCPref(@"duocarThermalTest37Enabled",@NO) boolValue]);
 }
-// [hl57-status] Preserve the original full-screen 39C warning visuals.
+// [hl61-thermal-ui] Fullscreen shows an edge glow, never a red screen fill.
 // Neither the full-screen curtain nor the top-left status intercepts touches;
 // the same passive CarPlay window always returns nil in hitTest:.
-// HL60: persistent warning at raw 37C+, or during explicitly labelled test.
+// HL60: persistent warning at raw 37C+ or while test switch is ON.
 // Original CarPlay overlay remains pass-through for all taps and gestures.
 - (void)updateThermalWarningWithSample:(NSDictionary *)sample now:(NSTimeInterval)now {
     if(!self.overlayWindow || !self.statusView)return;
@@ -220,38 +221,11 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         return;
     }
     if(!self.thermalCurtain) {
-        UIView *curtain=[[UIView alloc]initWithFrame:self.overlayWindow.bounds];
-        curtain.autoresizingMask=UIViewAutoresizingFlexibleWidth|
-                                UIViewAutoresizingFlexibleHeight;
-        curtain.backgroundColor=[UIColor colorWithRed:0.84 green:0.03
-                                              blue:0.08 alpha:0.87];
-        curtain.userInteractionEnabled=NO;
-        curtain.accessibilityElementsHidden=YES;
-        UILabel *message=[[UILabel alloc]initWithFrame:
-            CGRectInset(curtain.bounds,24.0,20.0)];
-        message.autoresizingMask=UIViewAutoresizingFlexibleWidth|
-                                  UIViewAutoresizingFlexibleHeight;
-        message.font=[UIFont boldSystemFontOfSize:26.0];
-        message.textColor=UIColor.whiteColor;
-        message.numberOfLines=0;
-        message.textAlignment=NSTextAlignmentCenter;
-        message.adjustsFontSizeToFitWidth=YES;
-        message.minimumScaleFactor=0.70;
-        message.tag=3955;
-        message.userInteractionEnabled=NO;
-        [curtain addSubview:message];
-        [self.overlayWindow addSubview:curtain];
-        self.thermalCurtain=curtain;
-        OMCLogWrite(@"SplitScreen",@"[hl60-thermal] fullscreen SHOW persistent pass-through");
+        UIView *edgeWarning=SCPThermalEdgeWarningCreate(self.overlayWindow.bounds);
+        [self.overlayWindow addSubview:edgeWarning];
+        self.thermalCurtain=edgeWarning;
+        OMCLogWrite(@"SplitScreen",@"[hl61-thermal-ui] fullscreen EDGE_GLOW_SHOW pass-through");
     }
-    NSString *kind=sample[@"temperatureKind"];
-    NSString *caption=simulated?@"GIẢ LẬP — KHÔNG PHẢI NHIỆT THẬT":
-        [kind isEqualToString:@"battery"]?@"NHIỆT PIN (THAM KHẢO)":
-                                          @"CẢM BIẾN (THAM KHẢO)";
-    UILabel *label=(UILabel *)[self.thermalCurtain viewWithTag:3955];
-    label.text=[NSString stringWithFormat:
-        @"⚠️ CẢNH BÁO NHIỆT ĐỘ\n%@ ~%.1f°C\nNgưỡng 37°C",
-        caption,simulated?37.0:temp.doubleValue];
     self.thermalCurtain.frame=self.overlayWindow.bounds;
     [self.overlayWindow bringSubviewToFront:self.thermalCurtain];
     [self.overlayWindow bringSubviewToFront:self.statusView];

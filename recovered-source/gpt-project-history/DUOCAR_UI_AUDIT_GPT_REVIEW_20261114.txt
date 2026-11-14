@@ -1,0 +1,22 @@
+ĐỐI CHIẾU HỒ SƠ KIỂM KÊ UI/UX DUOCAR DO MUSE THỰC HIỆN — GPT
+Ngày: 2026-11-14. Repository: chuongnguyen89dn-ui/Omnicar, cây thi công recovered-source/.
+Nguồn Muse: nhánh audit/duocar-ui-full-audit-20261114, commit 94859141bae1d442ccf3397870e6308a5bf0938b.
+Chỉ thị: recovered-source/gpt-project-history/DUOCAR_UI_AUDIT_YEU_CAU_20261114.txt.
+Báo cáo: recovered-source/gpt-project-history/DUOCAR_UI_FULL_AUDIT_20261114.txt (1298 dòng).
+URL: https://github.com/chuongnguyen89dn-ui/Omnicar/blob/audit/duocar-ui-full-audit-20261114/recovered-source/gpt-project-history/DUOCAR_UI_FULL_AUDIT_20261114.txt
+
+KẾT LUẬN: MUSE ĐÃ KIỂM KÊ/GHI BÁO CÁO; CHƯA THIẾT KẾ HAY THI CÔNG UI MỚI.
+Commit Muse thêm 2 TXT và sửa liên kết README, không thay source giao diện.
+5 YÊU CẦU BẮT BUỘC ĐỐI CHIẾU:
+1. Đầy đủ UIKit động, ảnh, icon, lớp phủ, menu, cài đặt, native/hosted: ĐÃ QUÉT PHẦN LỚN; còn các điểm chưa chứng minh U5, U6, U9, U13, U14.
+2. Map file/class/method/dòng và luồng màn hình → chức năng: ĐÃ CÓ Mục 1/2/5; CHƯA HOÀN TOÀN (U5, U9, U16).
+3. So bản gốc OmniCar với DuoCar: ĐÃ CÓ Mục 3; còn lệch build commit vs tip U4.
+4. Phân loại thiết kế vs cấm sửa: ĐÃ CÓ Mục 4 (14 tự do, 12 có điều kiện, 14 cấm, 3 không áp dụng).
+5. Bản đồ màn hình đủ để khởi đầu thiết kế: ĐÃ CÓ Mục 5; CHƯA CÓ mockup, định mức thị giác mới hay code UI mới.
+
+MỨC THIẾU CẦN NÊU RÕ: 17 mục chưa xác minh U1–U17 trong Mục 6; đáng chú ý bàn phím (U3), file pref/speedbubble (U6), đường nối (U7/U8), picker (U11), .strings (U14), code bắc cầu (U16), binary gốc (U17).
+MỐC AUDIT LỖI THỜI: chỉ DC58 v1.0.4-hl58, không có chức năng nâng lớp Lề DC59CL (Nguyen device-pass) hay cảnh báo liên tục 37°C DC60CL; không thể gọi là QA của UI hiện hành.
+
+PHẦN GPT SỬA CỤ THỂ LẦN NÀY:
+Cùng component SCPThermalEdgeWarning.h dùng UIKit tự viết vẽ viền đỏ nhấp nháy, trong suốt giữa màn hình, câu duy nhất 'LÀM MÁT THIẾT BỊ CỦA BẠN'. Cả split/fullscreen reuse view, không sao chép source của Lề. Chỉ đổi presentation; các cửa sổ đã có và hitTest xuyên chạm, gate nhiệt 37°C, công tắc thử, bong bóng Lề độc lập, pinch/keyboard/menu/Dock đều giữ nguyên.
+Đây là kiểm tra dựa trên source và tài liệu; hiệu ứng thực tế trên xe phải được Nguyen nghiệm thu riêng. Không tự merge nhánh Muse.
