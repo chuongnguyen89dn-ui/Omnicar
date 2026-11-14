@@ -191,6 +191,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 @property(nonatomic) NSInteger kind; // 0 general, 1 split, 2 Home, 3 Bubble, 4 profiles, 5 device (phan cua 0), 6 customize (phan con lai cua 0)
 @property(nonatomic,strong) NSArray<NSDictionary *> *sections;
 @property(nonatomic,strong) UISwitch *masterSwitch;
+@property(nonatomic,strong) UILabel *layoutPreviewLabel; // APEX review: refresh nhan app ghim khi quay lai tab
 @property(nonatomic,strong) UILabel *masterStatus;
 - (instancetype)initWithKind:(NSInteger)kind;
 @end
@@ -576,6 +577,11 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         OMCSection(OMCNativeLocalized(@"PROFILES_CARS"),cars)
     ];
 }
+- (NSString *)omcPinnedCaptionText {
+    NSString *pinned=OMCNativePref(@"splitScreenPinnedApp",@"");
+    return pinned.length?[NSString stringWithFormat:OMCText(@"Minh họa — App ghim: %@",@"Illustration — Pinned app: %@"),pinned]
+                         :OMCText(@"Minh họa — Chưa ghim app, chọn ở mục Ghim app bên dưới",@"Illustration — No pinned app yet, pick one below");
+}
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView.backgroundColor=OMCApexSurfaceRoot();
@@ -598,10 +604,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         UILabel *cap=[[UILabel alloc] initWithFrame:CGRectMake(16,62,W-32,18)];
         cap.font=[UIFont systemFontOfSize:12];
         cap.textColor=OMCApexTextSecondary();
-        NSString *pinned=OMCNativePref(@"splitScreenPinnedApp",@"");
-        cap.text=pinned.length?[NSString stringWithFormat:OMCText(@"App ghim: %@",@"Pinned app: %@"),pinned]
-                             :OMCText(@"Chưa ghim app — chọn ở mục Ghim app bên dưới",@"No pinned app yet — pick one below");
+        cap.text=[self omcPinnedCaptionText];
         [pv addSubview:cap];
+        self.layoutPreviewLabel=cap;
         self.tableView.tableHeaderView=pv;
     }
     if (self.kind!=0 && self.kind!=6)return; // APEX D5-B: the master o tab Tuy chinh
@@ -678,6 +683,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         OMCNativeLocalized(keys[MAX(0,MIN(self.kind,4))]);
     self.sections=[self makeSections];
     [self.tableView reloadData];
+    if (self.kind==1 && self.layoutPreviewLabel)
+        self.layoutPreviewLabel.text=[self omcPinnedCaptionText]; // GPT review: tranh nhan app ghim stale
     [self refreshMasterCard];
     NSLog(@"[hl26-settings] page=%ld sections=%lu",(long)self.kind,(unsigned long)self.sections.count);
 }
