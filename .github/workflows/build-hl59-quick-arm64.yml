@@ -29,7 +29,6 @@ jobs:
           python3 recovered-source/gpt-project-history/verify_hl58_external_source.py
           cmp recovered-source/project/OmniCarLeExtension/DCLLeExtension.m recovered-source/src/LeExtension/DCLLeExtension.m
           grep -Fq '[hl59-layer]' recovered-source/project/OmniCarLeExtension/DCLLeExtension.m
-          dpkg --compare-versions 1.0.4-hl59cl1 gt 1.0.4-hl58
           python3 recovered-source/gpt-project-history/verify_duocar_vitals_static.py
           python3 recovered-source/gpt-project-history/verify_hl43_shared_telex.py
           sh recovered-source/gpt-project-history/test_hl53_pinch_direction.sh
@@ -65,6 +64,7 @@ jobs:
           brew list dpkg >/dev/null 2>&1 || brew install dpkg
           command -v ldid
           command -v dpkg-deb
+          dpkg --compare-versions 1.0.4-hl59cl1 gt 1.0.4-hl58
           command -v lipo
 
       - name: Reject vendor payload in synthetic DuoCar packages
@@ -145,7 +145,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: DC58-rejected
+          name: DC59CL-build-diagnostics
           path: |
             dist/DC59CL.deb
             /tmp/dc59-base.log
