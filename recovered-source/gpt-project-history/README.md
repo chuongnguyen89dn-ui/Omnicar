@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL58: tách Lề gốc khỏi DuoCar, chỉ giữ GPS ±10 + bật/tắt (Lề cài riêng)
+- Nguyen yêu cầu hoàn nguyên Lề embedded vì hosted overlay vẫn lỗi. Source: xoá 9 vendor Le dylibs, LePrefs và fonts khỏi quy trình merge; bỏ Conflicts/Replaces `dev.bechou.le`, app chỉ còn hai điều khiển có ACK, optional extension chỉ can thiệp số speedText và mask/unmask bubble Lề, không chạm pan/windowLevel/scene, iOS bundle vẫn có thể cài không cần vendor. Package `dev.bechou.le 0.2.4` theo scan main không xung đột tên gói DuoCar; tương thích metadata ≠ đã test runtime. Target `DC58.deb` `1.0.4-hl58` (tăng version qua DC57). No build yet at this checkpoint. [Hồ sơ HL58](HL58_EXTERNAL_LE_OPTIONAL_DETACH_20261114.md).
+
+
 
 ## 2026-11-14 — DC57 FAT DEB built, binary independently verified; CI stale HL55 marker
 - One **\`DC57.deb\` v\`1.0.3-le0249\`**, 2,380,020 bytes, SHA256 \`665d567ee05f3a9e18b0dbfc31bd50b00666750069a9a490c0395717a6131c51\`, source commit \`dfd53193\`, run \`43550513176\`, artifact \`14096090713\` archived as \`DC57-failed-binary\`. App/ext build, merge, source tests, vendor re-sign all PASS; CI overall **failure** due legacy \`[hl55-vendor-save]\` verifier, corrected to shipped \`[hl56-config-source]\` without re-build. Exact DEB independently verified 18 FAT binaries, 36 nonempty signatures, 10 Lề vendor Mach-O without \`km/h\`, fixed passive top-left status, native menu sheet markers, owner/LePrefs/zoom/Dock. Manual-only workflow restored. **Device test pending.** [HL57 full checkpoint](HL57_FULLSCREEN_STATIC_STATUS_AND_NATIVE_MENU_20261114.md).
