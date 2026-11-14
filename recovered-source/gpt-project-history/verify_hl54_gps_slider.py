@@ -40,6 +40,8 @@ assert 'if (requested > 10) return 10;' in core
 assert '@"Tùy chỉnh thêm: GPS ±10, kéo tự do"' in settings
 assert "DCLLeConfigPage *extras" in app
 assert "extras.extrasOnly=YES;" in app
+assert "if(self.extrasOnly) return @[@[@4],@[@27,@28]];" in app
+assert "for(NSNumber *key in @[@4,@27,@28])" in app
 assert "bundle.principalClass" in app
 assert "CWTrafficBubblePrefsController" in app
 # The existing speed compensation changes only speedText; not the vendor
