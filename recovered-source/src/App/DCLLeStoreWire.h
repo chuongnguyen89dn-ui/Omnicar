@@ -4,10 +4,14 @@
 #include <stddef.h>
 #define DCL_LE_RAW_REQ "com.chuong.duocar/le024.raw.v1"
 #define DCL_LE_RAW_ACK "com.chuong.duocar/le024.raw.ack.v1"
+#define DCL_LE_RAW_INFO "com.chuong.duocar/le024.raw.info.v1"
+#define DCL_LE_RAW_WORD "com.chuong.duocar/le024.raw.word.v1"
+#define DCL_LE_RAW_CRC  "com.chuong.duocar/le024.raw.crc.v1"
 #define DCL_LE_RAW_LIMIT 16384u
 #define DCL_LE_MAGIC_REQ 0xd4u
 #define DCL_LE_MAGIC_ACK 0xa4u
-enum { DCL_LE_BEGIN=1, DCL_LE_DATA=2, DCL_LE_FINISH=3, DCL_LE_CANCEL=4 };
+enum { DCL_LE_BEGIN=1, DCL_LE_DATA=2, DCL_LE_FINISH=3, DCL_LE_CANCEL=4,
+       DCL_LE_READ_BEGIN=5, DCL_LE_READ_DATA=6, DCL_LE_READ_END=7 };
 enum { DCL_LE_OK=0, DCL_LE_BUSY=1, DCL_LE_SEQUENCE=2, DCL_LE_SIZE=3,
        DCL_LE_CHECKSUM=4, DCL_LE_JSON=5, DCL_LE_OWNER=6,
        DCL_LE_IO=7, DCL_LE_EXPIRED=8 };

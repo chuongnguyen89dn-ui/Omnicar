@@ -41,14 +41,23 @@ int main(void){
     fd=open(target,O_RDONLY);assert(fd>=0);memset(buf,0,sizeof(buf));
     n=read(fd,buf,sizeof(buf));close(fd);
     assert(n==(ssize_t)sizeof(v2)-1 && memcmp(buf,v2,n)==0);
+    // Read canonical bytes; never return fabricated default source.
+    uint8_t retrieved[512]={0};size_t actual=0;
+    assert(DCLLeReadState(dir,"layout-v1.json",retrieved,sizeof(retrieved),&actual,&stage,&err));
+    assert(stage==0 && actual==sizeof(v2)-1 && memcmp(retrieved,v2,actual)==0);
+    assert(!DCLLeReadState(dir,"other.json",retrieved,sizeof(retrieved),&actual,&stage,&err));
+    assert(!DCLLeReadState(dir,"layout-v1.json",retrieved,4,&actual,&stage,&err));
+    assert(actual==0);
     // Rejected malicious filename, unsafe mode, and symbolic directory.
     assert(!DCLLeWriteStateAtomically(dir,"other.json",v1,sizeof(v1)-1,&stage,&err));
     assert(chmod(dir,0777)==0);
     assert(!DCLLeWriteStateAtomically(dir,"layout-v1.json",v1,sizeof(v1)-1,&stage,&err));
+    assert(!DCLLeReadState(dir,"layout-v1.json",retrieved,sizeof(retrieved),&actual,&stage,&err));
     assert(chmod(dir,0700)==0);
     char linkPath[256];snprintf(linkPath,sizeof(linkPath),"%s/symlink",base);
     assert(symlink(dir,linkPath)==0);
     assert(!DCLLeWriteStateAtomically(linkPath,"layout-v1.json",v1,sizeof(v1)-1,&stage,&err));
+    assert(!DCLLeReadState(linkPath,"layout-v1.json",retrieved,sizeof(retrieved),&actual,&stage,&err));
     // The old file is still original after all failed writes.
     fd=open(target,O_RDONLY);assert(fd>=0);memset(buf,0,sizeof(buf));
     n=read(fd,buf,sizeof(buf));close(fd);assert(n==(ssize_t)sizeof(v2)-1 && memcmp(buf,v2,n)==0);

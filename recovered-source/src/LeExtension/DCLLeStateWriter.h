@@ -8,4 +8,9 @@
 int DCLLeWriteStateAtomically(const char *directory,const char *name,
                               const uint8_t *bytes,size_t count,
                               int *stage,int *savedErrno);
+// Secure exact-file reader for the canonical mobile-owned Lề JSON.
+// No arbitrary filename, no symlinks and no destructive migration.
+int DCLLeReadState(const char *directory,const char *name,
+                   uint8_t *bytes,size_t capacity,size_t *length,
+                   int *stage,int *savedErrno);
 #endif

@@ -120,3 +120,57 @@ failed:
     if(savedErrno)*savedErrno=err?err:EIO;
     return 0;
 }
+
+// [hl56-settings] Secure read of the same canonical state that the
+// original Lề renderer consumes. A missing/foreign file is NOT defaults.
+int DCLLeReadState(const char *directory,const char *name,
+                   uint8_t *bytes,size_t capacity,size_t *length,
+                   int *stage,int *savedErrno) {
+    int phase=1,err=0,dirfd=-1,fd=-1;
+    struct stat st;
+    size_t done=0;
+    if(stage)*stage=phase;
+    if(savedErrno)*savedErrno=0;
+    if(length)*length=0;
+    if(!directory || !name || strcmp(name,"layout-v1.json")!=0 ||
+       !bytes || !length || capacity<2 || capacity>DCL_LE_RAW_LIMIT) {
+        err=EINVAL;goto failed;
+    }
+    phase=2;
+    if(lstat(directory,&st)!=0){err=errno;goto failed;}
+    if(!DCLCheckOwner(&st,1)){err=EPERM;goto failed;}
+    dirfd=open(directory,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    if(dirfd<0){err=errno;goto failed;}
+    if(fstat(dirfd,&st)!=0 || !DCLCheckOwner(&st,1)){err=EPERM;goto failed;}
+    phase=3;
+    if(fstatat(dirfd,name,&st,AT_SYMLINK_NOFOLLOW)!=0){err=errno;goto failed;}
+    if(!DCLCheckOwner(&st,0)){err=EPERM;goto failed;}
+    if(st.st_size<2 || (unsigned long long)st.st_size>capacity) {
+        err=EFBIG;goto failed;
+    }
+    fd=openat(dirfd,name,O_RDONLY|O_NOFOLLOW|O_CLOEXEC);
+    if(fd<0){err=errno;goto failed;}
+    if(fstat(fd,&st)!=0 || !DCLCheckOwner(&st,0) ||
+       st.st_size<2 || (unsigned long long)st.st_size>capacity) {
+        err=EPERM;goto failed;
+    }
+    phase=4;
+    while(done<(size_t)st.st_size) {
+        ssize_t n=read(fd,bytes+done,(size_t)st.st_size-done);
+        if(n<0 && errno==EINTR)continue;
+        if(n<=0){err=n<0?errno:EIO;goto failed;}
+        done+=(size_t)n;
+    }
+    if(close(fd)!=0){fd=-1;err=errno;goto failed;}
+    fd=-1;
+    close(dirfd);
+    *length=done;
+    if(stage)*stage=0;
+    return 1;
+failed:
+    if(fd>=0)close(fd);
+    if(dirfd>=0)close(dirfd);
+    if(stage)*stage=phase;
+    if(savedErrno)*savedErrno=err?err:EIO;
+    return 0;
+}
