@@ -177,17 +177,17 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
         CAGradientLayer *gradient = [CAGradientLayer layer];
         self.accent = gradient;
         gradient.colors = @[
-            (id)[UIColor colorWithRed:0.6078431372549019 green:0.5294117647058824
-                                 blue:0.9725490196078431 alpha:1.0].CGColor,
-            (id)[UIColor colorWithRed:0.36470588235294116 green:0.7058823529411765
-                                 blue:0.9647058823529412 alpha:1.0].CGColor];
+            (id)[UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824
+                                 blue:0.9568627450980392 alpha:1.0].CGColor,
+            (id)[UIColor colorWithRed:0.12941176470588237 green:0.5607843137254902
+                                 blue:0.6666666666666666 alpha:1.0].CGColor]; // APEX #79EDF4 -> #218FAA
         gradient.startPoint = CGPointMake(0, 0);
         gradient.endPoint = CGPointMake(1, 1);
         gradient.cornerRadius = 7;
         [self.layer insertSublayer:gradient atIndex:0];
         self.layer.shadowColor =
-            [UIColor colorWithRed:0.6078431372549019 green:0.5294117647058824
-                             blue:0.9725490196078431 alpha:1.0].CGColor;
+            [UIColor colorWithRed:0.18 green:0.65
+                             blue:0.73 alpha:1.0].CGColor; // APEX teal glow
         self.layer.shadowOpacity = 0.4f;   // float @0x2B3F8
         self.layer.shadowRadius = 6;
         self.layer.shadowOffset = CGSizeMake(0, 3);
@@ -197,7 +197,7 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
         self.backgroundColor = [UIColor clearColor];
         self.tintColor = [UIColor whiteColor];
     } else {
-        self.backgroundColor = on ? [UIColor colorWithRed:1 green:1 blue:1 alpha:1]
+        self.backgroundColor = on ? [UIColor colorWithRed:0.9176470588235294 green:0.9647058823529412 blue:0.984313725490196 alpha:1] // APEX Ice
                                   : self.restColor;
         self.tintColor = self.restTint;
     }
@@ -487,8 +487,7 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
 - (void)buildPanel {
     UIView *panel = [UIView new];
     panel.backgroundColor = [UIColor clearColor];
-    panel.layer.shadowColor = [UIColor colorWithRed:110.0 / 255.0 green:100.0 / 255.0
-                                                blue:200.0 / 255.0 alpha:1.0].CGColor;
+    panel.layer.shadowColor = [UIColor blackColor].CGColor;
     panel.layer.shadowOpacity = 0.3f; // float at 0x2B388
     panel.layer.shadowRadius = 20;
     panel.layer.shadowOffset = CGSizeMake(0, 6);
@@ -505,36 +504,38 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
     glass.layer.cornerRadius = 20;
     glass.layer.cornerCurve = kCACornerCurveContinuous;
     glass.layer.borderWidth = 1;
-    glass.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.85].CGColor; // alpha at 0x2B258
+    glass.layer.borderColor = [UIColor colorWithRed:53.0 / 255.0 green:81.0 / 255.0 blue:95.0 / 255.0 alpha:0.85].CGColor; // APEX stroke
     glass.clipsToBounds = YES;
     glass.userInteractionEnabled = NO;
     [panel addSubview:glass];
     self.glass = glass;
 
     UIView *field = [UIView new];
-    field.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.85];
+    field.backgroundColor = [UIColor colorWithRed:27.0 / 255.0 green:42.0 / 255.0 blue:52.0 / 255.0 alpha:0.85]; // APEX surface.1
     field.layer.cornerRadius = 12;
     field.layer.cornerCurve = kCACornerCurveContinuous;
     field.layer.borderWidth = 1;
-    field.layer.borderColor = [UIColor whiteColor].CGColor;
+    field.layer.borderColor = [UIColor colorWithRed:53.0 / 255.0 green:81.0 / 255.0 blue:95.0 / 255.0 alpha:1.0].CGColor; // APEX stroke
     [panel addSubview:field];
     self.field = field;
 
     UILabel *preview = [UILabel new];
     preview.font = [UIFont systemFontOfSize:13 weight:UIFontWeightMedium];
+    preview.textColor = [UIColor colorWithRed:234.0 / 255.0 green:246.0 / 255.0
+                                         blue:251.0 / 255.0 alpha:1.0]; // APEX Ice
     preview.lineBreakMode = NSLineBreakByTruncatingHead; // 3
     [field addSubview:preview];
     self.preview = preview;
 
     UIButton *langButton = [UIButton buttonWithType:0];
     langButton.titleLabel.font = [UIFont systemFontOfSize:10.5 weight:UIFontWeightSemibold];
-    [langButton setTitleColor:[UIColor colorWithRed:74.0 / 255.0 green:79.0 / 255.0
-                                                blue:128.0 / 255.0 alpha:1.0]
-                     forState:0];
+    [langButton setTitleColor:[UIColor colorWithRed:234.0 / 255.0 green:246.0 / 255.0
+                                                blue:251.0 / 255.0 alpha:1.0]
+                     forState:0]; // APEX Ice
     langButton.layer.borderWidth = 1;
-    langButton.layer.borderColor = [[UIColor colorWithRed:74.0 / 255.0 green:79.0 / 255.0
-                                                      blue:128.0 / 255.0 alpha:1.0]
-        colorWithAlphaComponent:0.25].CGColor;
+    langButton.layer.borderColor = [[UIColor colorWithRed:53.0 / 255.0 green:81.0 / 255.0
+                                                      blue:95.0 / 255.0 alpha:1.0]
+        colorWithAlphaComponent:0.6].CGColor; // APEX stroke
     langButton.layer.cornerRadius = 6;
     [langButton addTarget:self action:@selector(langTapped)
          forControlEvents:UIControlEventTouchUpInside]; // 0x40
@@ -546,8 +547,8 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
         withConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:16
                                                                            weight:UIImageSymbolWeightMedium]] // 5
                 forState:0];
-    hideButton.tintColor = [UIColor colorWithRed:74.0 / 255.0 green:79.0 / 255.0
-                                            blue:128.0 / 255.0 alpha:1.0];
+    hideButton.tintColor = [UIColor colorWithRed:234.0 / 255.0 green:246.0 / 255.0
+                                            blue:251.0 / 255.0 alpha:1.0]; // APEX Ice
     [hideButton addTarget:self action:@selector(hideTapped)
          forControlEvents:UIControlEventTouchUpInside];
     [panel addSubview:hideButton];
@@ -718,15 +719,15 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
     }
     if (!self.bubble) {
         UILabel *bubble = [UILabel new];
-        bubble.backgroundColor = [UIColor whiteColor];
-        bubble.textColor = [UIColor colorWithRed:74.0 / 255.0 green:79.0 / 255.0
-                                            blue:128.0 / 255.0 alpha:1.0];
+        bubble.backgroundColor = [UIColor colorWithRed:35.0 / 255.0 green:54.0 / 255.0
+                                              blue:64.0 / 255.0 alpha:1.0]; // APEX surface.2
+        bubble.textColor = [UIColor colorWithRed:234.0 / 255.0 green:246.0 / 255.0
+                                            blue:251.0 / 255.0 alpha:1.0]; // APEX Ice
         bubble.textAlignment = NSTextAlignmentCenter; // 1
         bubble.layer.cornerRadius = 9;
         bubble.layer.cornerCurve = kCACornerCurveContinuous;
         bubble.layer.masksToBounds = NO;
-        bubble.layer.shadowColor = [UIColor colorWithRed:110.0 / 255.0 green:100.0 / 255.0
-                                                    blue:200.0 / 255.0 alpha:1.0].CGColor;
+        bubble.layer.shadowColor = [UIColor blackColor].CGColor;
         bubble.layer.shadowOpacity = 0.3f; // float at 0x2B388
         bubble.layer.shadowRadius = 9;
         bubble.layer.shadowOffset = CGSizeMake(0, 6);
@@ -796,20 +797,20 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
     BOOL special = (command == nil) || isSpace || isRet;
     BOOL punct = (command == nil) &&
         ([value isEqualToString:@","] || [value isEqualToString:@"."]);
-    key.restColor = [UIColor colorWithRed:1 green:1 blue:1
-                                    alpha:((special && !punct) ? 0.9 : 0.5)];
+    key.restColor = (special && !punct)
+        ? [UIColor colorWithRed:44.0 / 255.0 green:66.0 / 255.0 blue:77.0 / 255.0 alpha:0.95]
+        : [UIColor colorWithRed:35.0 / 255.0 green:54.0 / 255.0 blue:64.0 / 255.0 alpha:0.9]; // APEX graphite keys
     if (isRet) key.lit = YES;
     else if ([command isEqualToString:@"shift"]) key.lit = self.shift;
     else key.lit = NO;
-    key.restTint = [UIColor colorWithRed:74.0 / 255.0 green:79.0 / 255.0
-                                    blue:128.0 / 255.0 alpha:1.0];
+    key.restTint = [UIColor colorWithRed:234.0 / 255.0 green:246.0 / 255.0
+                                    blue:251.0 / 255.0 alpha:1.0]; // APEX Ice
     if (!key.lit) {
         key.layer.cornerRadius = 7;
         key.layer.cornerCurve = kCACornerCurveContinuous;
         key.layer.borderWidth = (!special || punct) ? 1.0 : 0.0;
-        key.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.9].CGColor;
-        key.layer.shadowColor = [UIColor colorWithRed:110.0 / 255.0 green:100.0 / 255.0
-                                                  blue:200.0 / 255.0 alpha:1.0].CGColor;
+        key.layer.borderColor = [UIColor colorWithRed:53.0 / 255.0 green:81.0 / 255.0 blue:95.0 / 255.0 alpha:0.9].CGColor; // APEX stroke
+        key.layer.shadowColor = [UIColor blackColor].CGColor;
         key.layer.shadowOpacity = 0.18f; // float at 0x2B400
         key.layer.shadowRadius = 1;
         key.layer.shadowOffset = CGSizeMake(0, 1);
@@ -823,8 +824,8 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
         [key setTitle:label forState:0];
     }
     if (isSpace) {
-        [key setTitleColor:[UIColor colorWithRed:74.0 / 255.0 green:79.0 / 255.0
-                                            blue:128.0 / 255.0 alpha:0.55] // alpha at 0x2B2D0
+        [key setTitleColor:[UIColor colorWithRed:147.0 / 255.0 green:170.0 / 255.0
+                                            blue:184.0 / 255.0 alpha:0.8] // APEX secondary
                   forState:0];
     } else if (key.lit) {
         [key setTitleColor:[UIColor whiteColor] forState:0];
