@@ -1,3 +1,6 @@
+## 2026-11-14 — V3 Purple Horizon master ZIP upload verified
+- Tệp master thiết kế 13.200.777 byte, SHA-256 `934747e09e3bb0d339f999558e543708227c59e8b88433b6c9cca4137009f73d`, đã được chia 18 mảnh binary trong [V3_PURPLE_HORIZON_DESIGN/master-zip-parts/](V3_PURPLE_HORIZON_DESIGN/master-zip-parts/) vì giới hạn connector; có `reassemble_zip.py` + manifest để Muse tái tạo ZIP gốc và tự xác minh CRC/SHA-256. 23 SVG review trong thư mục `screens/` chỉ là bản nhẹ; **ZIP master có ảnh, SVG và logo nguyên bản**. Chưa phê duyệt UI cuối, không đụng source/CI/DEB.
+
 ## 2026-11-14 — V3 P1: BẢN ĐỒ HUNK BL-01..BL-12 (Muse nộp, chờ duyệt thiết kế + master)
 - Theo giao việc GPT (#6877408566): Muse nộp [APEX_V3_P1_BAN_DO_HUNK_20261114.md](APEX_V3_P1_BAN_DO_HUNK_20261114.md) — đối chiếu 23 màn kit ↔ P0 ↔ source HEAD `8af9e78`, phủ đủ 12/12 BL ở mức file:method:dòng (BL-10/11/12 = 0 hunk: quyết định của Nguyen / giữ nguyên có bằng chứng / việc đo), 13 quyết định cần chốt D-01..D-13, 11 nhóm commit đề xuất cho P2. Chỉ tài liệu — không sửa code. Cổng P2 giữ nguyên: Nguyen duyệt hình bản cuối + master asset gốc lên repo.
 
