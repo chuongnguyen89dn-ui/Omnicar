@@ -286,17 +286,17 @@ NSArray *SSSampleHudItems(NSString *carName) {
         case 5:  return SSColors(0x020308, 0x06070D);
         case 6:  return SSColors(0x020309, 0x070A19);   // 0x020308|1 in binary
         case 7:  return SSColors(0x01050C, 0x04121E);
-        case 8:  return SSColors(0x0C1A33, 0x1F3A66);
-        case 9:  return SSColors(0xEEF0FB, 0xF4F5FB);
+        case 8:  return SSColors(0x0A141C, 0x16242F); // APEX graphite
+        case 9:  return SSColors(0xE8EEF2, 0xF2F5F7); // APEX sang trung tinh
         default: break;
     }
     // Styles 2/3/10/11 key off the occasion.
     switch (self.occasion) {
         case 1:  return SSColors(0x5A0006, 0xA30F0F);
-        case 2:  return SSColors(0x1B0B3A, 0x3B1A78);
+        case 2:  return SSColors(0x0A1218, 0x1B2A34); // APEX graphite
         case 3:  return SSColors(0x04121F, 0x0B1D4A);
-        case 4:  return SSColors(0x0A0A24, 0x1D1446);
-        default: return SSColors(0x020924, 0x0B1D4A);   // 0x020308 + 0x71C in binary
+        case 4:  return SSColors(0x081018, 0x14202B); // APEX graphite
+        default: return SSColors(0x060B10, 0x101820);   // APEX mac dinh graphite (ban goc 0x020924, 0x0B1D4A)
     }
 }
 

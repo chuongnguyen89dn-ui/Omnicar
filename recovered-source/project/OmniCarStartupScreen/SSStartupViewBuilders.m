@@ -695,9 +695,9 @@ static NSArray *SSDefaultHudItems(NSString *carName) {
     disc.masksToBounds = YES;
     disc.startPoint = CGPointMake(0.5, 0.5);
     disc.endPoint = CGPointMake(1, 0.5);
-    disc.colors = @[(id)[UIColor colorWithRed:0.47058823529411764 green:0.8627450980392157 blue:1 alpha:0].CGColor,
-                    (id)[UIColor colorWithRed:0.47058823529411764 green:0.8627450980392157 blue:1 alpha:0].CGColor,
-                    (id)[UIColor colorWithRed:0.47058823529411764 green:0.8627450980392157 blue:1 alpha:0.45].CGColor];
+    disc.colors = @[(id)[UIColor colorWithRed:0.3803921568627451 green:0.8509803921568627 blue:0.9490196078431372 alpha:0].CGColor,
+                    (id)[UIColor colorWithRed:0.3803921568627451 green:0.8509803921568627 blue:0.9490196078431372 alpha:0].CGColor,
+                    (id)[UIColor colorWithRed:0.3803921568627451 green:0.8509803921568627 blue:0.9490196078431372 alpha:0.45].CGColor];
     disc.locations = @[@0, @0.88, @1];   // constant array @0x355d8
     [hostLayer addSublayer:disc];
     _flash = disc;
@@ -942,8 +942,8 @@ static NSArray *SSDefaultHudItems(NSString *carName) {
     logoView.contentMode = UIViewContentModeScaleAspectFit;   // 1
     logoView.bounds = CGRectMake(0, 0, 300 * _k, 300 * _k);
     logoView.center = CGPointMake(_ox + 560 * _k, _oy + 300 * _k);
-    logoView.layer.shadowColor = [UIColor colorWithRed:0.35294117647058826 green:0.3137254901960784
-                                                  blue:0.6666666666666666 alpha:1].CGColor;
+    logoView.layer.shadowColor = [UIColor colorWithRed:0.18 green:0.65
+                                                  blue:0.73 alpha:1].CGColor; // APEX teal
     logoView.layer.shadowOpacity = 0.35f;                     // float @0x29434
     logoView.layer.shadowRadius = 26 * _k;
     logoView.layer.shadowOffset = CGSizeMake(0, 14 * _k);
@@ -969,10 +969,10 @@ static NSArray *SSDefaultHudItems(NSString *carName) {
                                                                   ceil(fit.width), ceil(fit.height))];
     CAGradientLayer *gradient = [CAGradientLayer layer];
     gradient.frame = container.bounds;
-    gradient.colors = @[(id)[UIColor colorWithRed:0.43529411764705883 green:0.3607843137254902
-                                             blue:0.9647058823529412 alpha:1].CGColor,
-                        (id)[UIColor colorWithRed:0.23137254901960785 green:0.611764705882353
-                                             blue:0.9411764705882353 alpha:1].CGColor];
+    gradient.colors = @[(id)[UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824
+                                             blue:0.9568627450980392 alpha:1].CGColor,
+                        (id)[UIColor colorWithRed:0.12941176470588237 green:0.5607843137254902
+                                             blue:0.6666666666666666 alpha:1].CGColor]; // APEX #79EDF4 -> #218FAA
     gradient.startPoint = CGPointMake(0, 0.5);
     gradient.endPoint = CGPointMake(1, 0.5);
     [container.layer addSublayer:gradient];
@@ -1004,10 +1004,10 @@ static NSArray *SSDefaultHudItems(NSString *carName) {
     CAGradientLayer *sweep = [CAGradientLayer layer];
     sweep.frame = CGRectMake(0, 0, pillW * 0.4, pillH);
     sweep.cornerRadius = pillH * 0.5;
-    sweep.colors = @[(id)[UIColor colorWithRed:0.5450980392156862 green:0.48627450980392156
-                                          blue:1 alpha:1].CGColor,
-                     (id)[UIColor colorWithRed:0.85 green:0.7215686274509804
-                                          blue:1 alpha:1].CGColor];
+    sweep.colors = @[(id)[UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824
+                                          blue:0.9568627450980392 alpha:1].CGColor,
+                     (id)[UIColor colorWithRed:0.7019607843137254 green:0.9568627450980392
+                                          blue:0.984313725490196 alpha:1].CGColor]; // APEX cyan sang
     sweep.startPoint = CGPointMake(0, 0.5);
     sweep.endPoint = CGPointMake(1, 0.5);
     [pill.layer addSublayer:sweep];
