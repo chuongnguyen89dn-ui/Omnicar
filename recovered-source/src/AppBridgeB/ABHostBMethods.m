@@ -359,22 +359,12 @@ static void ABApplyAccent(UIView *view, BOOL on) {
     for (CALayer *layer in view.layer.sublayers)
         if ([layer.name isEqualToString:@"omcAccent"]) { accent = (CAGradientLayer *)layer; break; }
     if (on) {
-        if (!accent) {
-            accent = [CAGradientLayer layer];
-            accent.name = @"omcAccent";
-            accent.colors = @[
-                (id)[UIColor colorWithRed:121.0/255.0 green:237.0/255.0 blue:244.0/255.0 alpha:1].CGColor,
-                (id)[UIColor colorWithRed:33.0/255.0 green:143.0/255.0 blue:170.0/255.0 alpha:1].CGColor]; // APEX #79EDF4 -> #218FAA
-            accent.startPoint = CGPointMake(0, 0);
-            accent.endPoint = CGPointMake(1, 1);
-            accent.frame = view.bounds;
-            accent.cornerRadius = view.layer.cornerRadius;
-            [view.layer insertSublayer:accent atIndex:0];
-        }
+        // V3 BL-06f: tay nam khong doi theo trang thai (SVG 13) — khong chen
+        // gradient accent nua, chi giu nen handle trong suot khi bar hien.
         view.backgroundColor = [UIColor clearColor];
     } else {
         [accent removeFromSuperlayer];
-        view.backgroundColor = [UIColor colorWithWhite:1 alpha:0.35];
+        view.backgroundColor = [UIColor colorWithRed:0.106 green:0.067 blue:0.220 alpha:1]; // V3 #1B1138
     }
     for (UIView *sub in view.subviews)
         sub.backgroundColor = on ? [UIColor whiteColor]
@@ -496,10 +486,12 @@ static void ABSetBarButtonContent(UIButton *button, NSString *name, NSString *ti
             [path stroke];                                       // @0x16B90
             [fill fill];                                         // @0x16B94
         }];
-        image = [drawn imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        image = [drawn imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]; // V3 BL-07A: template nhu native
         cache[name] = image;
     }
-    [(UIImageView *)[button viewWithTag:7302] setImage:image];
+    UIImageView *iconView = (UIImageView *)[button viewWithTag:7302];
+    iconView.tintColor = button.tintColor; // V3 BL-07A: gan tint truc tiep, khong phu thuoc ke thua
+    [iconView setImage:image];
     button.accessibilityLabel = title;
 }
 
@@ -1169,8 +1161,8 @@ static UIImage *ABApexGraphiteSkinImage(void) {
             CGContextRef c = ctx.CGContext;
             CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
             CGGradientRef g = CGGradientCreateWithColors(cs,
-                (CFArrayRef)@[(id)[UIColor colorWithRed:0.0392156862745098 green:0.07058823529411765 blue:0.09411764705882353 alpha:1].CGColor,
-                              (id)[UIColor colorWithRed:0.13725490196078433 green:0.21176470588235294 blue:0.25098039215686274 alpha:1].CGColor],
+                (CFArrayRef)@[(id)[UIColor colorWithRed:0.063 green:0.035 blue:0.137 alpha:1].CGColor,
+                              (id)[UIColor colorWithRed:0.106 green:0.067 blue:0.220 alpha:1].CGColor], // V3 #100923 -> #1B1138
                 (CGFloat[]){0, 1});
             CGColorSpaceRelease(cs);
             CGContextDrawLinearGradient(c, g, CGPointMake(0, 0), CGPointMake(64, 64), 0);
@@ -1181,8 +1173,8 @@ static UIImage *ABApexGraphiteSkinImage(void) {
 }
 
 - (UIView *)buildBarForPane:(ABPane *)pane {
-    UIColor *tint = [UIColor colorWithRed:234.0/255.0 green:246.0/255.0
-                                     blue:251.0/255.0 alpha:1]; // APEX Ice
+    UIColor *tint = [UIColor colorWithRed:0.961 green:0.941
+                                     blue:1.000 alpha:1]; // V3 #F5F0FF
     UIColor *closeTint = [UIColor colorWithRed:1 green:71.0/255.0
                                           blue:87.0/255.0 alpha:1]; // APEX danger #FF4757
     ABBarButton *appsBtn = ABMakeBarButton(@"hm_apps", OMCTr(@"Đổi app", @"Change app"),
@@ -1209,7 +1201,7 @@ static UIImage *ABApexGraphiteSkinImage(void) {
     bar.layer.shadowRadius = 14;
     bar.layer.shadowOffset = CGSizeMake(0, 6);
     UIVisualEffectView *blur = [[UIVisualEffectView alloc]
-        initWithEffect:[UIBlurEffect effectWithStyle:11]];   // style name INFERRED
+        initWithEffect:[UIBlurEffect effectWithStyle:16]];   // V3 BL-05: style name INFERRED (twin toi cua 11)
     blur.frame = bar.bounds;
     UIImageView *mesh = [[UIImageView alloc] initWithImage:ABApexGraphiteSkinImage()]; // APEX M3-0: bo mesh cu
     mesh.frame = blur.contentView.bounds;
@@ -1220,7 +1212,7 @@ static UIImage *ABApexGraphiteSkinImage(void) {
     blur.layer.cornerRadius = 22;
     blur.layer.cornerCurve = kCACornerCurveContinuous;
     blur.layer.borderWidth = 1;
-    blur.layer.borderColor = [UIColor colorWithRed:53.0/255.0 green:81.0/255.0 blue:95.0/255.0 alpha:0.85].CGColor; // APEX stroke
+    blur.layer.borderColor = [UIColor colorWithRed:0.859 green:0.725 blue:1.000 alpha:0.85].CGColor; // V3 #DBB9FF
     blur.clipsToBounds = YES;
     blur.userInteractionEnabled = NO;
     [bar addSubview:blur];
@@ -1232,7 +1224,7 @@ static UIImage *ABApexGraphiteSkinImage(void) {
             x += 48;
         } else {
             UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(x + 3, 11, 1, 30)];
-            separator.backgroundColor = [UIColor colorWithRed:234.0/255.0 green:246.0/255.0 blue:251.0/255.0 alpha:0.35];
+            separator.backgroundColor = [UIColor colorWithRed:0.961 green:0.941 blue:1.000 alpha:0.35]; // V3 #F5F0FF
             separator.userInteractionEnabled = NO;
             [bar addSubview:separator];
             x += 7;
@@ -1341,19 +1333,25 @@ static UIImage *ABApexGraphiteSkinImage(void) {
 - (void)setupHandleForPane:(ABPane *)pane {
     UIView *handleHit = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 44, 24)];
     UIView *handle = [[UIView alloc] initWithFrame:CGRectMake(5, 6, 34, 12)];
-    handle.backgroundColor = [UIColor colorWithWhite:1 alpha:0.35];
+    handle.backgroundColor = [UIColor colorWithRed:0.106 green:0.067 blue:0.220 alpha:1]; // V3 #1B1138
     handle.layer.cornerRadius = 6;
     handle.layer.borderWidth = 0.5;
-    handle.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.55].CGColor;
+    handle.layer.borderColor = [UIColor colorWithRed:0.533 green:0.384 blue:0.741 alpha:1].CGColor; // V3 #8862BD
     handle.userInteractionEnabled = NO;
-    for (CGFloat dotX = 9; dotX <= 23; dotX += 7) {
-        UIView *dot = [[UIView alloc] initWithFrame:CGRectMake(dotX, 4, 4, 4)];
-        dot.backgroundColor = [[UIColor colorWithRed:16.0/255.0 green:24.0/255.0
-                                                blue:32.0/255.0 alpha:1]
-                               colorWithAlphaComponent:0.85]; // APEX graphite dots
-        dot.layer.cornerRadius = 2;
-        [handle addSubview:dot];
-    }
+    // V3 BL-06e: mot vach sang tim thay 3 cham. BAT BUOC dang layer —
+    // ABApplyAccent son lai backgroundColor moi UIView con, layer thi khong.
+    CAGradientLayer *handleLine = [CAGradientLayer layer];
+    handleLine.name = @"v3HandleLine";
+    handleLine.frame = CGRectMake(6.9, 4.8, 20.1, 2.4);
+    handleLine.cornerRadius = 1.2;
+    handleLine.colors = @[
+        (id)[UIColor colorWithRed:0.882 green:0.737 blue:1.000 alpha:1].CGColor,
+        (id)[UIColor colorWithRed:0.604 green:0.345 blue:0.941 alpha:1].CGColor,
+        (id)[UIColor colorWithRed:0.475 green:0.278 blue:0.890 alpha:1].CGColor]; // V3 #E1BCFF -> #9A58F0 -> #7947E3
+    handleLine.locations = @[@0.0, @0.45, @1.0];
+    handleLine.startPoint = CGPointMake(0, 0.5);
+    handleLine.endPoint = CGPointMake(1, 0.5);
+    [handle.layer addSublayer:handleLine];
     [handleHit addSubview:handle];
     [handleHit addGestureRecognizer:[[UITapGestureRecognizer alloc]
         initWithTarget:self action:@selector(handleTapped:)]];
@@ -1624,17 +1622,17 @@ static void AHHostRestoreView(UIView *view) {
             dotView.backgroundColor = [UIColor clearColor];
             dotView.layer.cornerRadius = 7;
             UIVisualEffectView *blur = [[UIVisualEffectView alloc]
-                initWithEffect:[UIBlurEffect effectWithStyle:11]];   // INFERRED name
+                initWithEffect:[UIBlurEffect effectWithStyle:16]];   // V3: dark twin of style 11 (INFERRED name)
             blur.frame = dotView.bounds;
             blur.autoresizingMask = UIViewAutoresizingFlexibleWidth |
                                     UIViewAutoresizingFlexibleHeight;   // raw 0x12
-            blur.contentView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.35];
+            blur.contentView.backgroundColor = [UIColor colorWithRed:0.106 green:0.067 blue:0.220 alpha:0.35]; // V3 dark glass #1B1138
             blur.layer.cornerRadius = 7;
             blur.clipsToBounds = YES;
             blur.userInteractionEnabled = NO;
             [dotView addSubview:blur];
             dotView.layer.borderWidth = 1.5;
-            dotView.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.95].CGColor;
+            dotView.layer.borderColor = [UIColor colorWithRed:0.859 green:0.725 blue:1.000 alpha:0.95].CGColor; // V3 lavender rim
             dotView.layer.shadowColor = [UIColor colorWithRed:110.0/255.0 green:100.0/255.0
                                                          blue:200.0/255.0 alpha:1].CGColor;
             dotView.layer.shadowOpacity = 0.45f;   // float @0x2B390
