@@ -197,7 +197,7 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
         self.backgroundColor = [UIColor clearColor];
         self.tintColor = [UIColor whiteColor];
     } else {
-        self.backgroundColor = on ? [UIColor colorWithRed:0.9176470588235294 green:0.9647058823529412 blue:0.984313725490196 alpha:1] // APEX Ice
+        self.backgroundColor = on ? [UIColor colorWithRed:0.490 green:0.369 blue:0.647 alpha:1] // V3 nhan/highlight #7D5EA5
                                   : self.restColor;
         self.tintColor = self.restTint;
     }
@@ -821,8 +821,8 @@ static UIImage *ABKbApexGraphiteSkinImage(void) {
     BOOL punct = (command == nil) &&
         ([value isEqualToString:@","] || [value isEqualToString:@"."]);
     key.restColor = (special && !punct)
-        ? [UIColor colorWithRed:44.0 / 255.0 green:66.0 / 255.0 blue:77.0 / 255.0 alpha:0.95]
-        : [UIColor colorWithRed:35.0 / 255.0 green:54.0 / 255.0 blue:64.0 / 255.0 alpha:0.9]; // APEX graphite keys
+        ? [UIColor colorWithRed:0.227 green:0.153 blue:0.373 alpha:0.95]
+        : [UIColor colorWithRed:0.227 green:0.153 blue:0.373 alpha:0.9]; // V3 mat phim #3A275F (alpha tung nhanh giu nguyen)
     if (isRet) key.lit = YES;
     else if ([command isEqualToString:@"shift"]) key.lit = self.shift;
     else key.lit = NO;
