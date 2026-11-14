@@ -197,7 +197,11 @@ BOOL DCLLeHydrateAppLayout(NSString *binaryPath, NSData *canonical) {
     }
     void *handle=dlopen(binaryPath.fileSystemRepresentation,RTLD_NOW|RTLD_NOLOAD);
     if(!handle)return NO;
-    BOOL (*writer)(id,id,id)=(BOOL (*)(id,id,id))dlsym(handle,"CWWriteOwnedStateFile");
+    // After the FIRST page, MSHookFunction is already installed in this
+    // process. Use its original trampoline, not dlsym's hooked entry,
+    // or re-opening settings would re-submit the same canonical write.
+    BOOL (*writer)(id,id,id)=DCLVendorWriter?DCLVendorWriter:
+                            (BOOL (*)(id,id,id))dlsym(handle,"CWWriteOwnedStateFile");
     if(!writer)return NO;
     NSFileManager *fm=[NSFileManager defaultManager];
     NSString *backup=[local stringByAppendingString:@".duocar56-prehydration.bak"];
