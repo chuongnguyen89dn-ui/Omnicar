@@ -143,48 +143,49 @@ static void SCPDrawSymbolIcon(NSString *name, UIBezierPath *stroke, UIBezierPath
         [stroke addLineToPoint:CGPointMake(8.5, 19)];   // shared tail
     } else if ([name hasPrefix:@"hm_"]) {
         stroke.lineWidth = 1.5;
+        // APEX V2: hm_* geometry below follows the GPT SVG assets
+        // (24x24 grid, per-icon stroke widths); names/cache unchanged.
         NSString *base = [name substringFromIndex:3];
         if ([base isEqualToString:@"apps"]) {
-            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(4, 4, 7, 7) cornerRadius:2.2]];
-            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(13, 4, 7, 7) cornerRadius:2.2]];
-            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(4, 13, 7, 7) cornerRadius:2.2]];
-            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(13, 13, 7, 7) cornerRadius:2.2]];
-        } else if ([base isEqualToString:@"full"]) {
-            // Rounded-rect outline (4,4,16,16) r=3.5 drawn as 4 corner arcs.
-            [stroke moveToPoint:CGPointMake(4, 9.5)];
-            [stroke addLineToPoint:CGPointMake(4, 7.5)];
-            [stroke addArcWithCenter:CGPointMake(7.5, 7.5) radius:3.5
-                          startAngle:M_PI endAngle:-M_PI_2 clockwise:YES];
-            [stroke addLineToPoint:CGPointMake(9.5, 4)];
-            [stroke moveToPoint:CGPointMake(14.5, 4)];
-            [stroke addLineToPoint:CGPointMake(16.5, 4)];
-            [stroke addArcWithCenter:CGPointMake(16.5, 7.5) radius:3.5
-                          startAngle:-M_PI_2 endAngle:0 clockwise:YES];
-            [stroke addLineToPoint:CGPointMake(20, 9.5)];
-            [stroke moveToPoint:CGPointMake(20, 14.5)];
-            [stroke addLineToPoint:CGPointMake(20, 16.5)];
-            [stroke addArcWithCenter:CGPointMake(16.5, 16.5) radius:3.5
-                          startAngle:0 endAngle:M_PI_2 clockwise:YES];
-            [stroke addLineToPoint:CGPointMake(14.5, 20)];
-            [stroke moveToPoint:CGPointMake(9.5, 20)];
-            [stroke addLineToPoint:CGPointMake(7.5, 20)];
-            [stroke addArcWithCenter:CGPointMake(7.5, 16.5) radius:3.5
-                          startAngle:M_PI_2 endAngle:M_PI clockwise:YES];
-            [stroke addLineToPoint:CGPointMake(4, 14.5)];   // shared tail
+            stroke.lineWidth = 1.7;
+            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 2, 8, 8) cornerRadius:1]];
+            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(14, 2, 8, 8) cornerRadius:1]];
+            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 14, 8, 8) cornerRadius:1]];
+            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(14, 14, 8, 8) cornerRadius:1]];
+$1            // APEX: four corner brackets (GPT hm_full).
+            stroke.lineWidth = 2.2;
+            [stroke moveToPoint:CGPointMake(9, 3)];
+            [stroke addLineToPoint:CGPointMake(3, 3)];
+            [stroke addLineToPoint:CGPointMake(3, 9)];
+            [stroke moveToPoint:CGPointMake(15, 3)];
+            [stroke addLineToPoint:CGPointMake(21, 3)];
+            [stroke addLineToPoint:CGPointMake(21, 9)];
+            [stroke moveToPoint:CGPointMake(3, 15)];
+            [stroke addLineToPoint:CGPointMake(3, 21)];
+            [stroke addLineToPoint:CGPointMake(9, 21)];
+            [stroke moveToPoint:CGPointMake(21, 15)];
+            [stroke addLineToPoint:CGPointMake(21, 21)];
+            [stroke addLineToPoint:CGPointMake(15, 21)];
         } else if ([base isEqualToString:@"split"]) {
-            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(3.5, 4.5, 7.5, 15) cornerRadius:2.5]];
-            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(13, 4.5, 7.5, 15) cornerRadius:2.5]];
+            stroke.lineWidth = 1.8;
+            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 3, 20, 18) cornerRadius:3]];
+            [stroke moveToPoint:CGPointMake(12, 3)];
+            [stroke addLineToPoint:CGPointMake(12, 21)];
         } else if ([base isEqualToString:@"float"]) {
-            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(3.5, 4.5, 17, 15) cornerRadius:3]];
-            [fill appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(11.5, 11.5, 6.5, 5.5) cornerRadius:1.6]];
+            stroke.lineWidth = 1.8;
+            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 5, 20, 15) cornerRadius:3]];
+            [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(11, 11, 10, 9) cornerRadius:2]];
         } else if ([base isEqualToString:@"min"]) {
-            [stroke moveToPoint:CGPointMake(5.5, 12)];
-            [stroke addLineToPoint:CGPointMake(18.5, 12)];   // shared tail
+            stroke.lineWidth = 2.0;
+            [stroke appendPath:[UIBezierPath bezierPathWithRect:CGRectMake(4, 5, 16, 14)]];
+            [stroke moveToPoint:CGPointMake(8, 15)];
+            [stroke addLineToPoint:CGPointMake(16, 15)];
         } else if ([base isEqualToString:@"close"]) {
-            [stroke moveToPoint:CGPointMake(6.5, 6.5)];
-            [stroke addLineToPoint:CGPointMake(17.5, 17.5)];
-            [stroke moveToPoint:CGPointMake(17.5, 6.5)];
-            [stroke addLineToPoint:CGPointMake(6.5, 17.5)];   // shared tail
+            stroke.lineWidth = 2.4;
+            [stroke moveToPoint:CGPointMake(5, 5)];
+            [stroke addLineToPoint:CGPointMake(19, 19)];
+            [stroke moveToPoint:CGPointMake(19, 5)];
+            [stroke addLineToPoint:CGPointMake(5, 19)];
         }
     }
     // Unknown name: no drawing — an empty template image.

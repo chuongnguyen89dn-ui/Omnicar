@@ -448,46 +448,48 @@ static void ABSetBarButtonContent(UIButton *button, NSString *name, NSString *ti
                 [fill appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(5.6, 6.6, 4.6, 10.8) cornerRadius:1.4]];
             } else if ([name hasPrefix:@"hm_"]) {                // @0x16D20
                 path.lineWidth = 1.5;
+                // APEX V2: hm_* geometry follows the GPT SVG assets
+                // (24x24 grid, per-icon stroke widths); names/cache unchanged.
                 if ([name isEqualToString:@"hm_apps"]) {         // @0x16D40
-                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(4, 4, 7, 7) cornerRadius:2.2]];
-                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(13, 4, 7, 7) cornerRadius:2.2]];
-                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(4, 13, 7, 7) cornerRadius:2.2]];
-                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(13, 13, 7, 7) cornerRadius:2.2]];
-                } else if ([name isEqualToString:@"hm_full"]) {  // @0x16E48
-                    [path moveToPoint:CGPointMake(4, 9.5)];
-                    [path addLineToPoint:CGPointMake(4, 7.5)];
-                    [path addArcWithCenter:CGPointMake(7.5, 7.5) radius:3.5
-                                startAngle:M_PI endAngle:-M_PI_2 clockwise:YES];
-                    [path addLineToPoint:CGPointMake(9.5, 4)];
-                    [path moveToPoint:CGPointMake(14.5, 4)];
-                    [path addLineToPoint:CGPointMake(16.5, 4)];
-                    [path addArcWithCenter:CGPointMake(16.5, 7.5) radius:3.5
-                                startAngle:-M_PI_2 endAngle:0 clockwise:YES];
-                    [path addLineToPoint:CGPointMake(20, 9.5)];
-                    [path moveToPoint:CGPointMake(20, 14.5)];
-                    [path addLineToPoint:CGPointMake(20, 16.5)];
-                    [path addArcWithCenter:CGPointMake(16.5, 16.5) radius:3.5
-                                startAngle:0 endAngle:M_PI_2 clockwise:YES];
-                    [path addLineToPoint:CGPointMake(14.5, 20)];
-                    [path moveToPoint:CGPointMake(9.5, 20)];
-                    [path addLineToPoint:CGPointMake(7.5, 20)];
-                    [path addArcWithCenter:CGPointMake(7.5, 16.5) radius:3.5
-                                startAngle:M_PI_2 endAngle:M_PI clockwise:YES];
-                    [path addLineToPoint:CGPointMake(4, 14.5)];  // tail @0x16B7C
+                    path.lineWidth = 1.7;
+                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 2, 8, 8) cornerRadius:1]];
+                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(14, 2, 8, 8) cornerRadius:1]];
+                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 14, 8, 8) cornerRadius:1]];
+                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(14, 14, 8, 8) cornerRadius:1]];
+$1                    // APEX: four corner brackets (GPT hm_full).
+                    path.lineWidth = 2.2;
+                    [path moveToPoint:CGPointMake(9, 3)];
+                    [path addLineToPoint:CGPointMake(3, 3)];
+                    [path addLineToPoint:CGPointMake(3, 9)];
+                    [path moveToPoint:CGPointMake(15, 3)];
+                    [path addLineToPoint:CGPointMake(21, 3)];
+                    [path addLineToPoint:CGPointMake(21, 9)];
+                    [path moveToPoint:CGPointMake(3, 15)];
+                    [path addLineToPoint:CGPointMake(3, 21)];
+                    [path addLineToPoint:CGPointMake(9, 21)];
+                    [path moveToPoint:CGPointMake(21, 15)];
+                    [path addLineToPoint:CGPointMake(21, 21)];
+                    [path addLineToPoint:CGPointMake(15, 21)];
                 } else if ([name isEqualToString:@"hm_split"]) { // @0x16FB8
-                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(3.5, 4.5, 7.5, 15) cornerRadius:2.5]];
-                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(13, 4.5, 7.5, 15) cornerRadius:2.5]];
+                    path.lineWidth = 1.8;
+                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 3, 20, 18) cornerRadius:3]];
+                    [path moveToPoint:CGPointMake(12, 3)];
+                    [path addLineToPoint:CGPointMake(12, 21)];
                 } else if ([name isEqualToString:@"hm_float"]) { // @0x17040
-                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(3.5, 4.5, 17, 15) cornerRadius:3]];
-                    [fill appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(11.5, 11.5, 6.5, 5.5) cornerRadius:1.6]];
+                    path.lineWidth = 1.8;
+                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 5, 20, 15) cornerRadius:3]];
+                    [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(11, 11, 10, 9) cornerRadius:2]];
                 } else if ([name isEqualToString:@"hm_min"]) {   // @0x170CC
-                    [path moveToPoint:CGPointMake(5.5, 12)];
-                    [path addLineToPoint:CGPointMake(18.5, 12)]; // tail @0x16B7C
+                    path.lineWidth = 2.0;
+                    [path appendPath:[UIBezierPath bezierPathWithRect:CGRectMake(4, 5, 16, 14)]];
+                    [path moveToPoint:CGPointMake(8, 15)];
+                    [path addLineToPoint:CGPointMake(16, 15)];
                 } else if ([name isEqualToString:@"hm_close"]) { // @0x17100
-                    [path moveToPoint:CGPointMake(6.5, 6.5)];
-                    [path addLineToPoint:CGPointMake(17.5, 17.5)];
-                    [path moveToPoint:CGPointMake(17.5, 6.5)];
-                    [path addLineToPoint:CGPointMake(6.5, 17.5)]; // tail @0x16B7C
+                    path.lineWidth = 2.4;
+                    [path moveToPoint:CGPointMake(5, 5)];
+                    [path addLineToPoint:CGPointMake(19, 19)];
+                    [path moveToPoint:CGPointMake(19, 5)];
+                    [path addLineToPoint:CGPointMake(5, 19)];
                 }
             }
             [path stroke];                                       // @0x16B90
