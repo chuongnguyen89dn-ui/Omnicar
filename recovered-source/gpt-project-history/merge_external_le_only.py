@@ -62,7 +62,23 @@ def no_vendor(path):
 def patch_control(control,version,installed_bytes):
     old=control.read_text().splitlines()
     result=[]
+    in_old_speed_description=False
     for line in old:
+        # Old OmniCar control advertised a built-in 9-style traffic renderer;
+        # HL58 ships NONE of that. Preserve other feature descriptions.
+        if line==" SPEED BUBBLE":
+            in_old_speed_description=True
+            result.extend([
+                " EXTERNAL LE SPEED BUBBLE (OPTIONAL)",
+                "  - Lề 0.2.4 is installed independently; no vendor code shipped",
+                "  - DuoCar offers GPS +/-10 and show/hide switch only",
+            ])
+            continue
+        if in_old_speed_description:
+            if line==" .":
+                in_old_speed_description=False
+                result.append(line)
+            continue
         name,separator,val=line.partition(":")
         if separator and not line[0].isspace() and name in (
              "Version","Installed-Size","Conflicts","Replaces","Depends"):
