@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+
+## 2026-11-14 — DC58 FAT thành công: tháo toàn bộ Lề gốc khỏi DuoCar, giữ GPS±10 và ON/OFF optional
+- **DEB cuối** \`DC58.deb 1.0.4-hl58\`, build run **43553319919 SUCCESS**, artifact **14096254418**, SHA256 \`7b22f302fba395ce858112d378dacb6b217f7dbc04d21595bd3920374735ce56\`, **1,257,484 bytes**. Đã kiểm **trực tiếp**: 297 file, 8 binary FAT/16 signed slices, KHÔNG có 9 Lề dylibs/LePrefs/font/vendor, KHÔNG còn \`Conflicts\`/\`Replaces\`/\`Depends\` với \`dev.bechou.le\`. Ứng dụng + shim DuoCar 2 chức năng chỉ giữ GPS ±10 và công tắc bong bóng; không can thiệp drag/windowLevel. **Cài độc lập 2 gói hợp lệ về manifest, nhưng 2 chức năng nối với Lề riêng CHƯA DEVICE PASS**. Cài DC58 thay DC57 trước, rồi Lề gốc riêng, respring; giữ JSON Waze người dùng. Workflow restored manual-only. [HL58 checkpoint](HL58_EXTERNAL_LE_OPTIONAL_DETACH_20261114.md).
+
+
 ## 2026-11-14 — HL58: tách Lề gốc khỏi DuoCar, chỉ giữ GPS ±10 + bật/tắt (Lề cài riêng)
 - Nguyen yêu cầu hoàn nguyên Lề embedded vì hosted overlay vẫn lỗi. Source: xoá 9 vendor Le dylibs, LePrefs và fonts khỏi quy trình merge; bỏ Conflicts/Replaces `dev.bechou.le`, app chỉ còn hai điều khiển có ACK, optional extension chỉ can thiệp số speedText và mask/unmask bubble Lề, không chạm pan/windowLevel/scene, iOS bundle vẫn có thể cài không cần vendor. Package `dev.bechou.le 0.2.4` theo scan main không xung đột tên gói DuoCar; tương thích metadata ≠ đã test runtime. Target `DC58.deb` `1.0.4-hl58` (tăng version qua DC57). No build yet at this checkpoint. [Hồ sơ HL58](HL58_EXTERNAL_LE_OPTIONAL_DETACH_20261114.md).
 
