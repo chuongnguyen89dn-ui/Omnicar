@@ -1,4 +1,4 @@
-name: "DC59CL - signed fast arm64-only Lề layer test"
+name: "DC60CL - 37C alert signed arm64-only test"
 # HL58 strict UIKit -Werror unused receiver variable removed
 # HL58 DATA-manifest comparison now excludes DEBIAN/control staging metadata
 # HL58 synthetic fixture root corrected before first actual compilation
@@ -17,7 +17,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 55
     steps:
-      - name: Checkout HL58 source
+      - name: Checkout HL60 source
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -37,6 +37,12 @@ jobs:
             recovered-source/gpt-project-history/tests/test_hl55_thermal_alarm.c \
             -lm -o /tmp/dc58-thermal
           /tmp/dc58-thermal
+          grep -Fq 'duocarThermalTest37Enabled' recovered-source/project/OmniCarApp/OMCNativeSettings.m
+          grep -Fq '[hl60-thermal]' recovered-source/project/OmniCarSplitScreen/SCPDeviceVitalsHUD.m
+          grep -Fq '[hl60-thermal]' recovered-source/project/OmniCarSplitScreen/SCPFullscreenVitalsBubble.m
+          cmp recovered-source/project/OmniCarSplitScreen/SCPFullscreenVitalsBubble.m recovered-source/src/SplitScreenA/SCPFullscreenVitalsBubble.m
+          cmp recovered-source/project/OmniCarSplitScreen/SCPDeviceVitalsHUD.m recovered-source/src/SplitScreenA/SCPDeviceVitalsHUD.m
+          cmp recovered-source/project/OmniCarApp/OMCNativeSettings.m recovered-source/src/App/OMCNativeSettings.m
 
       - name: Restore Theos iPhoneOS16.5 SDK cache
         uses: actions/cache@v4
@@ -64,7 +70,7 @@ jobs:
           brew list dpkg >/dev/null 2>&1 || brew install dpkg
           command -v ldid
           command -v dpkg-deb
-          dpkg --compare-versions 1.0.4-hl59cl1 gt 1.0.4-hl58
+          dpkg --compare-versions 1.0.4-hl60cl1 gt 1.0.4-hl59cl1
           command -v lipo
 
       - name: Reject vendor payload in synthetic DuoCar packages
@@ -99,7 +105,7 @@ jobs:
           export THEOS="$HOME/theos"
           cd recovered-source/project
           make clean ARCHS=arm64
-          make package FINALPACKAGE=1 ARCHS=arm64 2>&1 | tee /tmp/dc59-base.log
+          make package FINALPACKAGE=1 ARCHS=arm64 2>&1 | tee /tmp/dc60-base.log
           test -s packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb
 
       - name: Compile signed optional 2-function Lề companion ARM64
@@ -112,10 +118,10 @@ jobs:
           export THEOS="$HOME/theos"
           cd recovered-source/project/OmniCarLeExtension
           make clean ARCHS=arm64
-          make package FINALPACKAGE=1 ARCHS=arm64 2>&1 | tee /tmp/dc59-companion.log
+          make package FINALPACKAGE=1 ARCHS=arm64 2>&1 | tee /tmp/dc60-companion.log
           test -s packages/com.chuong.duocar.leextension_0.2.0_iphoneos-arm64.deb
 
-      - name: Package ONE DC59CL without Le vendor, fonts, bundle or conflicts
+      - name: Package ONE DC60CL without Le vendor, fonts, bundle or conflicts
         shell: bash
         run: |
           set -euo pipefail
@@ -123,21 +129,21 @@ jobs:
           python3 recovered-source/gpt-project-history/merge_external_le_only.py \
             --duocar recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb \
             --extension recovered-source/project/OmniCarLeExtension/packages/com.chuong.duocar.leextension_0.2.0_iphoneos-arm64.deb \
-            --output dist/DC59CL.deb --version 1.0.4-hl59cl1
+            --output dist/DC60CL.deb --version 1.0.4-hl60cl1
 
       - name: Verify FINAL signed ARM64 without ANY bundled Le content
         shell: bash
         run: |
           set -euo pipefail
-          python3 recovered-source/gpt-project-history/verify_hl59_arm64_deb.py dist/DC59CL.deb
-          dpkg-deb -f dist/DC59CL.deb
-          shasum -a 256 dist/DC59CL.deb
+          python3 recovered-source/gpt-project-history/verify_hl60_arm64_deb.py dist/DC60CL.deb
+          dpkg-deb -f dist/DC60CL.deb
+          shasum -a 256 dist/DC60CL.deb
 
-      - name: Upload ONE direct DC59CL.deb
+      - name: Upload ONE direct DC60CL.deb
         uses: actions/upload-artifact@v4
         with:
-          name: DC59CL-arm64
-          path: dist/DC59CL.deb
+          name: DC60CL-arm64
+          path: dist/DC60CL.deb
           if-no-files-found: error
           retention-days: 7
 
@@ -145,10 +151,10 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: DC59CL-build-diagnostics
+          name: DC60CL-build-diagnostics
           path: |
-            dist/DC59CL.deb
-            /tmp/dc59-base.log
-            /tmp/dc59-companion.log
+            dist/DC60CL.deb
+            /tmp/dc60-base.log
+            /tmp/dc60-companion.log
           if-no-files-found: ignore
           retention-days: 3

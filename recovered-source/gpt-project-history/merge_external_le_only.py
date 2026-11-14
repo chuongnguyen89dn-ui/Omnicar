@@ -103,7 +103,7 @@ def patch_control(control,version,installed_bytes):
             assert "dev.bechou.le" not in line
 
 def merge(base,extension,output,version):
-    assert version in ("1.0.4-hl58", "1.0.4-hl59cl1"),version
+    assert version in ("1.0.4-hl58", "1.0.4-hl59cl1", "1.0.4-hl60cl1"),version
     assert output!=base and output!=extension and not output.exists()
     for deb in (base,extension):
         assert deb.is_file() and deb.stat().st_size>100
