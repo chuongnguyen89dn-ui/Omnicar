@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL54 SOURCE: slider GPS -10 đến +10 km/h, bước 1
+- Nguyen chốt thay nút tăng/giảm bằng thanh kéo toàn ngang, mốc -10 / 0 / +10 và số có dấu khi kéo; chỉ gửi lệnh khi thả / VoiceOver điều chỉnh. Đã sửa và lưu project/src của UI, bridge key 27 raw 0..20, core bù GPS ±10 (không sửa biển giới hạn), Settings row, test và source gates; giá trị prefs cũ có dấu không đổi nghĩa. Host fixture mapping 2032 cases PASS; chưa build iOS/CI/DEB/device test. Không thay LePrefs gốc, pinch, menu, Dock, keyboard. [Checkpoint HL54](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
+
+
 ## 2026-11-14 — HL54 GPS ±10: slider đã ghi source, QA/DEB chưa build
 - Slider **−10…0…+10 km/h**, 21 mức 1 km/h, giá trị động khi kéo, gửi ACK khi thả tay/VoiceOver; key27 raw 0..20 ↔ signed −10..+10, vẫn giữ cấu hình cũ, không sửa biển giới hạn. Các source+mirror commit từ \`c64b024c\` tới \`789e572d\`, bổ sung gates tới \`859d84f2\`. **SOURCE COMMITTED, chưa iOS build/DEB/device pass**. [Checkpoint HL54](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
 
