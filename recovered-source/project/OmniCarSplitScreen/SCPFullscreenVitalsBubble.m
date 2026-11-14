@@ -1,12 +1,10 @@
-// Fullscreen-only CarPlay clock/battery/thermal bubble.
-// HL31 drag, edge snap and persistent position + HL33 dedicated pass-through
-// CarPlay UIRootSceneWindow. No voice/microphone module is compiled or reused.
-// Unlike the old voice bubble: NO idle timer, NO dim/hide while fullscreen.
-// Fullscreen ownership remains exclusively in SCPFullscreenController.
+// HL57: passive single-row clock/battery/heat at the TOP-LEFT of CarPlay
+// fullscreen. NO bubble background or gestures. Keep the historical class
+// name because SCPFullscreenController owns this existing lifecycle.
+// The two-sample 39C whole-display warning stays independent.
 #import "SCPFullscreenVitalsBubble.h"
 #import "SCPFullscreenController.h"
 #import "SCPCarSplit.h"
-#import "SCPVitalsPlacement.h"
 #import "SCPThermalAlarm.h" // [hl55-thermal] 39C two-sample gate
 #import "OMCDeviceVitals.h"
 #import "SCPCommon.h"
@@ -16,24 +14,12 @@
 #import <objc/message.h>
 #import <math.h>
 
-static char DCFVHitTargetAssociation;
-static NSString *const DCFVEdgeKey = @"DuoCar.fullscreenVitalsBubble.left";
-static NSString *const DCFVYKey = @"DuoCar.fullscreenVitalsBubble.normalizedY";
-static NSString *const DCFVXKey = @"DuoCar.fullscreenVitalsBubble.normalizedX";
-static NSString *const DCFVDockedKey = @"DuoCar.fullscreenVitalsBubble.docked";
-static const CGFloat DCFVMargin = 3.0;
-static const CGFloat DCFVSnapThreshold = 38.0;
-
-// HL33's working design: pass ONLY bubble/descendant taps into this window.
-// All other touches pass to the original app/Dock/pinch/picker hierarchy.
+// [hl57-status] No touch target ever; the existing CarPlay UIWindow
+// lets fullscreen pinch, native picker, apps and Dock receive every touch.
 static UIView *DCFVPassHitTest(UIWindow *window, SEL cmd,
                                CGPoint point, UIEvent *event) {
-    struct objc_super sup = {window, class_getSuperclass(object_getClass(window))};
-    UIView *hit = ((UIView *(*)(struct objc_super *, SEL, CGPoint, UIEvent *))
-                   objc_msgSendSuper)(&sup, cmd, point, event);
-    UIView *bubble = objc_getAssociatedObject(window, &DCFVHitTargetAssociation);
-    return (bubble && (hit == bubble ||
-            (hit && [hit isDescendantOfView:bubble]))) ? hit : nil;
+    (void)window;(void)cmd;(void)point;(void)event;
+    return nil;
 }
 
 // An ordinary UIWindow may bind to the iPhone instead of the CarPlay display.
@@ -88,9 +74,10 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
     // Hosted TikTok ~1060, picker tray ~1065 in the measured baseline.
     window.windowLevel = UIWindowLevelStatusBar + 64.0;
     window.backgroundColor = UIColor.clearColor;
-    window.hidden = NO; // never become key, never grab outside-bubble taps
+    window.userInteractionEnabled = NO;
+    window.hidden = NO; // never key, completely touch-through
     OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-        @"[fs-vitals] overlay ready class=%@ level=%.1f screen=%@ pass=only-bubble",
+        @"[hl57-status] overlay ready class=%@ level=%.1f screen=%@ pass=all",
         NSStringFromClass(window.class),(double)window.windowLevel,screen]);
     return window;
 }
@@ -99,22 +86,13 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
 @property(nonatomic,weak) UIView *parent;
 @property(nonatomic,weak) UIWindow *sourceWindow;
 @property(nonatomic,strong) UIWindow *overlayWindow;
-@property(nonatomic,strong) UIView *pill;
+@property(nonatomic,strong) UIView *statusView;
 @property(nonatomic,strong) UILabel *timeLabel;
 @property(nonatomic,strong) UILabel *metricsLabel;
-@property(nonatomic,strong) UIPanGestureRecognizer *pan;
 @property(nonatomic,strong) NSTimer *timer;
 @property(nonatomic,strong) NSDateFormatter *clockFormatter;
 @property(nonatomic,strong) NSDictionary<NSString *, id> *lastSample;
 @property(nonatomic) NSTimeInterval lastSampleTime;
-@property(nonatomic) SCPVitalsRect dragBounds;
-@property(nonatomic) SCPVitalsSafeInsets dragSafe;
-@property(nonatomic) BOOL leftEdge;
-@property(nonatomic) BOOL edgeDocked;
-@property(nonatomic) CGFloat normalizedX;
-@property(nonatomic) CGFloat normalizedY;
-@property(nonatomic) BOOL positionSaved;
-@property(nonatomic) BOOL dragging;
 @property(nonatomic) BOOL noRoomLogged;
 @property(nonatomic,strong) UIView *thermalCurtain;
 @property(nonatomic) NSTimeInterval thermalCurtainUntil;
@@ -131,18 +109,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
 }
 - (instancetype)init {
     if ((self = [super init])) {
-        NSUserDefaults *store = NSUserDefaults.standardUserDefaults;
-        self.positionSaved = ([store objectForKey:DCFVEdgeKey] &&
-                              [store objectForKey:DCFVYKey]);
-        self.leftEdge = self.positionSaved ? [store boolForKey:DCFVEdgeKey] : NO;
-        // Existing HL33 saved only side and Y: migrate without moving away from edge.
-        self.edgeDocked = [store objectForKey:DCFVDockedKey]
-            ? [store boolForKey:DCFVDockedKey] : YES;
-        CGFloat oldX = [store objectForKey:DCFVXKey]
-            ? [store doubleForKey:DCFVXKey] : (self.leftEdge?0.0:1.0);
-        CGFloat oldY = self.positionSaved ? [store doubleForKey:DCFVYKey] : 0.0;
-        self.normalizedX = isfinite(oldX) ? fmax(0.0,fmin(1.0,oldX)) : 1.0;
-        self.normalizedY = isfinite(oldY) ? fmax(0.0,fmin(1.0,oldY)) : 0.0;
+        // Preserve but never consult old normalized drag preferences.
         _thermalAlarm=(SCPThermalAlarmState){.consecutiveHot=0,.armed=1,.lastSampleTime=0};
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(systemClockChanged:)
@@ -161,7 +128,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         return;
     }
     self.clockFormatter = nil;
-    if (self.pill) [self tick];
+    if (self.statusView) [self tick];
 }
 - (NSDateFormatter *)systemClockFormatter {
     if (!self.clockFormatter) {
@@ -179,21 +146,16 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         dispatch_async(dispatch_get_main_queue(), ^{ [self stop]; });
         return;
     }
-    if (self.pill || self.overlayWindow)
-        OMCLogWrite(@"SplitScreen",@"[fs-vitals] bubble detached");
+    if (self.statusView || self.overlayWindow)
+        OMCLogWrite(@"SplitScreen",@"[hl57-status] detached");
     [self.timer invalidate];
     self.timer = nil;
     [self.thermalCurtain removeFromSuperview];
     self.thermalCurtain=nil;
     self.thermalCurtainUntil=0;
     self.thermalAlarm=(SCPThermalAlarmState){.armed=1};
-    if (self.pan && self.pill) [self.pill removeGestureRecognizer:self.pan];
-    self.pan = nil;
-    if (self.overlayWindow)
-        objc_setAssociatedObject(self.overlayWindow,&DCFVHitTargetAssociation,
-                                 nil,OBJC_ASSOCIATION_ASSIGN);
-    [self.pill removeFromSuperview];
-    self.pill = nil;
+    [self.statusView removeFromSuperview];
+    self.statusView = nil;
     self.timeLabel = nil;
     self.metricsLabel = nil;
     self.overlayWindow.hidden = YES;
@@ -202,7 +164,6 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
     self.parent = nil;
     self.lastSample = nil;
     self.lastSampleTime = 0;
-    self.dragging = NO;
 }
 - (BOOL)fullscreenValidForParent:(UIView *)parent {
     SCPCarSplit *split = [SCPCarSplit shared];
@@ -218,7 +179,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
 // a temporary curtain. hitTest: remains pass-through outside the pill,
 // even while a high-temperature message is visible.
 - (void)updateThermalWarningWithSample:(NSDictionary *)sample now:(NSTimeInterval)now {
-    if (!self.overlayWindow || !self.pill) return;
+    if (!self.overlayWindow || !self.statusView) return;
     id candidate=sample[@"temperatureCelsius"];
     BOOL isBattery=[sample[@"temperatureKind"] isEqualToString:@"battery"];
     BOOL good=isBattery && [candidate isKindOfClass:NSNumber.class];
@@ -264,27 +225,26 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
             self.thermalCurtainUntil=0;
         } else {
             [self.overlayWindow bringSubviewToFront:self.thermalCurtain];
-            [self.overlayWindow bringSubviewToFront:self.pill];
+            [self.overlayWindow bringSubviewToFront:self.statusView];
         }
     }
 }
-// [hl56-clock-tight] No fixed 74pt clock column; size to actual
-// short-format time for locale, then begin battery at the same x boundary.
-- (void)layoutCompactTimeBattery {
-    if(!self.pill || !self.timeLabel || !self.metricsLabel)return;
-    CGSize bounds=self.pill.bounds.size;
-    NSString *value=self.timeLabel.text.length?self.timeLabel.text:
+// [hl57-status] Match Dock's small Semibold typography + shadow.
+- (void)layoutStatusLine {
+    if(!self.statusView || !self.timeLabel || !self.metricsLabel)return;
+    CGFloat width=self.statusView.bounds.size.width;
+    NSString *time=self.timeLabel.text.length?self.timeLabel.text:
         [[self systemClockFormatter] stringFromDate:[NSDate date]];
-    NSDictionary *attrs=@{NSFontAttributeName:self.timeLabel.font};
-    CGFloat ideal=ceil([value sizeWithAttributes:attrs].width)+1.0;
-    CGFloat timeWidth=MAX(26.0,MIN(ideal,floor(bounds.width*0.46)));
-    self.timeLabel.frame=CGRectMake(6.0,0.0,timeWidth,bounds.height);
-    CGFloat pinLeft=CGRectGetMaxX(self.timeLabel.frame);
-    self.metricsLabel.frame=CGRectMake(pinLeft,0.0,
-                     MAX(1.0,bounds.width-pinLeft-6.0),bounds.height);
+    CGFloat measured=ceil([time sizeWithAttributes:
+        @{NSFontAttributeName:self.timeLabel.font}].width);
+    CGFloat clockWidth=MAX(26.0,MIN(measured,floor(width*0.48)));
+    self.timeLabel.frame=CGRectMake(0,0,clockWidth,self.statusView.bounds.size.height);
+    CGFloat batteryX=CGRectGetMaxX(self.timeLabel.frame)+4.0;
+    self.metricsLabel.frame=CGRectMake(batteryX,0,
+        MAX(1.0,width-batteryX),self.statusView.bounds.size.height);
 }
 - (void)tick {
-    if (!self.pill || ![self fullscreenValidForParent:self.parent]) {
+    if (!self.statusView || ![self fullscreenValidForParent:self.parent]) {
         [self stop];
         return;
     }
@@ -294,14 +254,14 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         self.overlayWindow.screen != self.sourceWindow.screen ||
         self.overlayWindow.hidden) {
         [self showForConfirmedFullscreenInParent:self.parent];
-        if (!self.pill || !self.overlayWindow || self.overlayWindow.hidden)
+        if (!self.statusView || !self.overlayWindow || self.overlayWindow.hidden)
             return;
     }
     NSTimeInterval now = [NSDate date].timeIntervalSince1970;
     if(self.thermalCurtain && now>=self.thermalCurtainUntil) {
         [self.thermalCurtain removeFromSuperview];self.thermalCurtain=nil;
     }
-    self.pill.alpha = 1.0; // NO idle-dim/AutoHide lease; fullscreen-only gate
+    self.statusView.alpha = 1.0; // NO idle-dim/AutoHide lease; fullscreen-only gate
     self.timeLabel.text = [[self systemClockFormatter] stringFromDate:[NSDate date]];
     if (!self.lastSample || now - self.lastSampleTime >= 12.0 ||
         now < self.lastSampleTime) {
@@ -320,8 +280,8 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
             : OMCDeviceVitalsThermalDescription(self.lastSample[@"thermalState"]);
         self.metricsLabel.text = [NSString stringWithFormat:@"🔋%@ 🌡%@",bat,heat];
         [self updateThermalWarningWithSample:self.lastSample now:now];
-        self.pill.accessibilityLabel = [NSString stringWithFormat:
-            @"Giờ %@, pin %@, nhiệt %@. Nguồn nhiệt: %@. Kéo để di chuyển.",
+        self.statusView.accessibilityLabel = [NSString stringWithFormat:
+            @"Giờ %@, pin %@, nhiệt %@. Nguồn nhiệt: %@.",
             self.timeLabel.text ?: @"--",bat,heat,
             self.lastSample[@"temperatureSource"] ?: @"không rõ"];
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
@@ -332,232 +292,110 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
             self.lastSample[@"temperatureSource"] ?: @"unknown",
             self.lastSample[@"thermalState"] ?: @"unknown"]);
     }
-    [self layoutCompactTimeBattery];
+    [self layoutStatusLine];
 }
-// The free-area owner is the overlay's CarPlay window, NOT split.container.
-// Its bounds cover native and hosted apps even while they occupy the host.
-- (BOOL)updateDragGeometryForOverlay:(UIWindow *)overlay
-                          hostWindow:(UIWindow *)host
-                           frameSize:(CGSize *)sizeOut {
-    if (!host || overlay.screen != host.screen) return NO;
-    CGRect mapped = [overlay convertRect:host.bounds fromWindow:host];
-    CGRect bounds = CGRectIntersection(mapped,overlay.bounds);
-    if (CGRectIsNull(bounds) || CGRectIsInfinite(bounds) ||
-        CGRectIsEmpty(bounds) ||
-        !isfinite(bounds.origin.x) || !isfinite(bounds.origin.y) ||
-        !isfinite(bounds.size.width) || !isfinite(bounds.size.height))
+// CarPlay safe-area coordinate space. A fixed status, not a draggable
+// object. The overlay is display-specific; never bind to iPhone UIWindow.
+- (BOOL)statusFrameForOverlay:(UIWindow *)overlay
+                  hostWindow:(UIWindow *)host
+                       frame:(CGRect *)outFrame {
+    if(!outFrame||!overlay||!host||!host.screen||overlay.screen!=host.screen)
         return NO;
-    UIEdgeInsets h = host.safeAreaInsets;
-    UIEdgeInsets o = overlay.safeAreaInsets;
-    SCPVitalsSafeInsets safe = {MAX(0,MAX(h.top,o.top)),
-                                MAX(0,MAX(h.right,o.right)),
-                                MAX(0,MAX(h.bottom,o.bottom)),
-                                MAX(0,MAX(h.left,o.left))};
-    SCPVitalsRect r = {bounds.origin.x,bounds.origin.y,
-                       bounds.size.width,bounds.size.height};
-    SCPVitalsLayoutResult initial = SCPVitalsFullscreenBubblePlace(
-        r,safe.top,safe.right,1);
-    if (!initial.valid) return NO;
-    // Do not reject a physically usable window just because its LEFT safe
-    // inset was not represented by the older top-right C placement API.
-    double usableWidth = r.w - safe.left - safe.right - 2.0*DCFVMargin;
-    // [hl56-clock-tight] shorter body; time-to-pin is measured at runtime.
-    double width = fmin(180.0,usableWidth);
-    if (!isfinite(width) || width < 148.0) return NO;
-    SCPVitalsPoint fit = SCPVitalsBubbleEdgeCenter(
-        r,safe,width,initial.frame.h,DCFVMargin,NO,0.0);
-    if (!isfinite(fit.x) || !isfinite(fit.y)) return NO;
-    self.dragBounds = r;
-    self.dragSafe = safe;
-    if (sizeOut) *sizeOut = CGSizeMake(width,initial.frame.h);
+    CGRect mapped=[overlay convertRect:host.bounds fromWindow:host];
+    CGRect bounds=CGRectIntersection(mapped,overlay.bounds);
+    if(CGRectIsNull(bounds)||CGRectIsInfinite(bounds)||CGRectIsEmpty(bounds)||
+       !isfinite(bounds.origin.x)||!isfinite(bounds.origin.y)||
+       !isfinite(bounds.size.width)||!isfinite(bounds.size.height))return NO;
+    UIEdgeInsets a=host.safeAreaInsets,b=overlay.safeAreaInsets;
+    CGFloat left=MAX(0.0,MAX(a.left,b.left))+6.0;
+    CGFloat top=MAX(0.0,MAX(a.top,b.top))+3.0;
+    CGFloat right=MAX(0.0,MAX(a.right,b.right))+4.0;
+    CGFloat bottom=MAX(0.0,MAX(a.bottom,b.bottom))+3.0;
+    CGFloat width=MIN(190.0,bounds.size.width-left-right);
+    CGFloat height=MIN(23.0,bounds.size.height-top-bottom);
+    if(!isfinite(width)||!isfinite(height)||width<115.0||height<17.0)
+        return NO;
+    *outFrame=CGRectMake(CGRectGetMinX(bounds)+left,
+                         CGRectGetMinY(bounds)+top,width,height);
     return YES;
 }
-- (CGPoint)boundedCenter:(CGPoint)point {
-    if (!self.pill) return point;
-    SCPVitalsPoint bounded = SCPVitalsBubbleBoundCenter(
-        self.dragBounds,self.dragSafe,
-        self.pill.bounds.size.width,self.pill.bounds.size.height,
-        DCFVMargin,(SCPVitalsPoint){point.x,point.y});
-    return (isfinite(bounded.x) && isfinite(bounded.y))
-        ? CGPointMake(bounded.x,bounded.y) : self.pill.center;
-}
-- (CGPoint)storedBubbleCenter {
-    SCPVitalsBubbleDockPosition state = {
-        self.normalizedX,self.normalizedY,self.edgeDocked,self.leftEdge
-    };
-    SCPVitalsPoint point;
-    if (SCPVitalsBubbleRestoreDockPosition(self.dragBounds,self.dragSafe,
-            self.pill.bounds.size.width,self.pill.bounds.size.height,
-            DCFVMargin,state,&point))
-        return CGPointMake(point.x,point.y);
-    return self.pill.center;
-}
-- (void)handlePan:(UIPanGestureRecognizer *)gesture {
-    if (!self.overlayWindow || !self.pill ||
-        ![self fullscreenValidForParent:self.parent]) return;
-    switch (gesture.state) {
-        case UIGestureRecognizerStateBegan:
-            self.dragging = YES;
-            [self.pill.layer removeAllAnimations];
-            OMCLogWrite(@"SplitScreen",@"[fs-vitals] drag begin");
-            break;
-        case UIGestureRecognizerStateChanged: {
-            CGPoint translation = [gesture translationInView:self.overlayWindow];
-            self.pill.center = [self boundedCenter:CGPointMake(
-                self.pill.center.x+translation.x,
-                self.pill.center.y+translation.y)];
-            [gesture setTranslation:CGPointZero inView:self.overlayWindow];
-            break;
-        }
-        case UIGestureRecognizerStateEnded: {
-            self.dragging = NO;
-            SCPVitalsBubbleDockPosition state;
-            SCPVitalsPoint target;
-            if (!SCPVitalsBubbleSelectDockPosition(self.dragBounds,self.dragSafe,
-                    self.pill.bounds.size.width,self.pill.bounds.size.height,
-                    DCFVMargin,DCFVSnapThreshold,
-                    (SCPVitalsPoint){self.pill.center.x,self.pill.center.y},
-                    &state,&target)) {
-                OMCLogWrite(@"SplitScreen",@"[fs-vitals] drag release geometry-invalid");
-                break;
-            }
-            self.edgeDocked = state.docked;
-            self.leftEdge = state.leftEdge;
-            self.normalizedX = (CGFloat)state.normalizedX;
-            self.normalizedY = (CGFloat)state.normalizedY;
-            self.positionSaved = YES;
-            NSUserDefaults *store = NSUserDefaults.standardUserDefaults;
-            [store setBool:self.leftEdge forKey:DCFVEdgeKey];
-            [store setBool:self.edgeDocked forKey:DCFVDockedKey];
-            [store setDouble:self.normalizedX forKey:DCFVXKey];
-            [store setDouble:self.normalizedY forKey:DCFVYKey];
-            CGPoint destination = CGPointMake(target.x,target.y);
-            if (self.edgeDocked) {
-                [UIView animateWithDuration:0.28 delay:0
-                    usingSpringWithDamping:0.82 initialSpringVelocity:0
-                    options:UIViewAnimationOptionBeginFromCurrentState
-                    animations:^{ self.pill.center=destination; }
-                    completion:nil];
-            } else {
-                self.pill.center=destination; // leave it precisely where dropped
-            }
-            OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-                @"[fs-vitals] drag %@ edge=%@ x=%.3f y=%.3f center=%@",
-                self.edgeDocked?@"snap":@"free",
-                self.leftEdge?@"left":@"right",
-                (double)self.normalizedX,(double)self.normalizedY,
-                NSStringFromCGPoint(destination)]);
-            break;
-        }
-        case UIGestureRecognizerStateCancelled:
-        case UIGestureRecognizerStateFailed:
-            self.dragging=NO;
-            self.pill.center=[self storedBubbleCenter]; // don't save cancelled drag
-            OMCLogWrite(@"SplitScreen",@"[fs-vitals] drag cancelled");
-            break;
-        default: break;
-    }
-}
 - (void)showForConfirmedFullscreenInParent:(UIView *)parent {
-    if (![NSThread isMainThread]) return;
-    if (![self fullscreenValidForParent:parent]) {
-        [self stop];
-        return;
+    if(![NSThread isMainThread])return;
+    if(![self fullscreenValidForParent:parent]){[self stop];return;}
+    UIWindow *host=parent.window;
+    if(self.overlayWindow &&
+       (self.sourceWindow!=host || self.overlayWindow.screen!=host.screen))
+        [self stop]; // old CarPlay display ended
+    if(!self.overlayWindow) {
+        self.overlayWindow=DCFVCreateCarPlayWindow(parent);
+        if(!self.overlayWindow)return;
+        self.sourceWindow=host;
     }
-    UIWindow *host = parent.window;
-    if (self.overlayWindow &&
-        (self.sourceWindow != host || self.overlayWindow.screen != host.screen)) {
-        [self stop]; // disconnect/reconnect, no stale window or stale hit target
-    }
-    if (!self.overlayWindow) {
-        self.overlayWindow = DCFVCreateCarPlayWindow(parent);
-        if (!self.overlayWindow) return;
-        self.sourceWindow = host;
-    }
-    CGSize size = CGSizeZero;
-    if (![self updateDragGeometryForOverlay:self.overlayWindow
-                                 hostWindow:host frameSize:&size]) {
-        if (!self.noRoomLogged) {
+    CGRect frame=CGRectNull;
+    if(![self statusFrameForOverlay:self.overlayWindow
+                        hostWindow:host frame:&frame]) {
+        if(!self.noRoomLogged)
             OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-                @"[fs-vitals] no-room overlay=%@ host=%@",
+                @"[hl57-status] NO_SAFE_TOP_LEFT overlay=%@ host=%@",
                 NSStringFromCGRect(self.overlayWindow.bounds),
                 NSStringFromCGRect(host.bounds)]);
-            self.noRoomLogged = YES;
-        }
-        [self stop];
-        return;
+        self.noRoomLogged=YES;
+        [self stop];return;
     }
-    self.noRoomLogged = NO;
-    BOOL created = (self.pill == nil);
-    if (created) {
-        UIView *pill = [[UIView alloc] initWithFrame:
-            CGRectMake(0,0,size.width,size.height)];
-        pill.backgroundColor = [UIColor colorWithWhite:0.07 alpha:0.96];
-        pill.layer.cornerRadius = 19.0;
-        pill.layer.borderWidth = 0.5;
-        pill.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.22].CGColor;
-        pill.clipsToBounds = YES;
-        pill.userInteractionEnabled = YES; // pan ONLY, unlike old non-touch HUD
-        pill.alpha = 1.0;
-        pill.isAccessibilityElement = YES;
-        pill.accessibilityTraits = UIAccessibilityTraitAdjustable;
-        UILabel *clock = [[UILabel alloc] initWithFrame:CGRectZero];
-        clock.font = [UIFont monospacedDigitSystemFontOfSize:13.0
-                                                    weight:UIFontWeightSemibold];
-        clock.textColor = UIColor.whiteColor;
-        clock.adjustsFontSizeToFitWidth = YES;
-        clock.minimumScaleFactor = 0.67;
-        clock.textAlignment = NSTextAlignmentRight;
-        UILabel *metrics = [[UILabel alloc] initWithFrame:CGRectZero];
-        metrics.font = [UIFont systemFontOfSize:10.0 weight:UIFontWeightMedium];
-        metrics.textColor = UIColor.whiteColor;
-        metrics.adjustsFontSizeToFitWidth = YES;
-        metrics.minimumScaleFactor = 0.62;
-        metrics.textAlignment = NSTextAlignmentLeft;
-        [pill addSubview:clock];
-        [pill addSubview:metrics];
-        UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]
-                                       initWithTarget:self action:@selector(handlePan:)];
-        pan.maximumNumberOfTouches = 1;
-        [pill addGestureRecognizer:pan];
-        [self.overlayWindow addSubview:pill];
-        self.pill = pill;
-        self.timeLabel = clock;
-        self.metricsLabel = metrics;
-        self.pan = pan;
-        self.parent = parent;
-        objc_setAssociatedObject(self.overlayWindow,&DCFVHitTargetAssociation,
-                                 pill,OBJC_ASSOCIATION_ASSIGN);
-        if (self.positionSaved) self.pill.center = [self storedBubbleCenter];
-        else {
-            // First install matches the previous top-right fullscreen HUD.
-            SCPVitalsPoint point = SCPVitalsBubbleEdgeCenter(
-                self.dragBounds,self.dragSafe,size.width,size.height,
-                DCFVMargin,NO,0.0);
-            self.pill.center = CGPointMake(point.x,point.y);
-            self.leftEdge = NO;
-            self.edgeDocked = YES;
-            self.normalizedX = 1.0;
-            self.normalizedY = 0.0;
-        }
-        self.timer = [NSTimer timerWithTimeInterval:1.0
+    self.noRoomLogged=NO;
+    BOOL created=(self.statusView==nil);
+    if(created) {
+        UIView *status=[[UIView alloc]initWithFrame:frame];
+        status.backgroundColor=UIColor.clearColor;
+        status.opaque=NO;
+        status.layer.cornerRadius=0;
+        status.layer.borderWidth=0;
+        status.clipsToBounds=NO;
+        status.userInteractionEnabled=NO;
+        status.isAccessibilityElement=YES;
+        status.accessibilityTraits=UIAccessibilityTraitStaticText;
+        UILabel *clock=[[UILabel alloc]initWithFrame:CGRectZero];
+        clock.font=[UIFont systemFontOfSize:10.0 weight:UIFontWeightSemibold];
+        clock.textColor=UIColor.whiteColor;
+        clock.textAlignment=NSTextAlignmentLeft;
+        clock.backgroundColor=UIColor.clearColor;
+        clock.adjustsFontSizeToFitWidth=YES;
+        clock.minimumScaleFactor=0.72;
+        clock.shadowColor=[UIColor colorWithWhite:0 alpha:0.50];
+        clock.shadowOffset=CGSizeMake(0,0.5);
+        clock.userInteractionEnabled=NO;
+        UILabel *metrics=[[UILabel alloc]initWithFrame:CGRectZero];
+        metrics.font=[UIFont systemFontOfSize:10.0 weight:UIFontWeightSemibold];
+        metrics.textColor=UIColor.whiteColor;
+        metrics.textAlignment=NSTextAlignmentLeft;
+        metrics.backgroundColor=UIColor.clearColor;
+        metrics.adjustsFontSizeToFitWidth=YES;
+        metrics.minimumScaleFactor=0.65;
+        metrics.shadowColor=[UIColor colorWithWhite:0 alpha:0.50];
+        metrics.shadowOffset=CGSizeMake(0,0.5);
+        metrics.userInteractionEnabled=NO;
+        [status addSubview:clock];
+        [status addSubview:metrics];
+        [self.overlayWindow addSubview:status];
+        self.statusView=status;
+        self.timeLabel=clock;
+        self.metricsLabel=metrics;
+        self.parent=parent;
+        self.timer=[NSTimer timerWithTimeInterval:1.0
             target:self selector:@selector(tick) userInfo:nil repeats:YES];
         [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-            @"[fs-vitals] bubble attached frame=%@ window=%@ level=%.1f pass=only-bubble dim=disabled",
-            NSStringFromCGRect(self.pill.frame),
-            NSStringFromClass(self.overlayWindow.class),
-            (double)self.overlayWindow.windowLevel]);
+            @"[hl57-status] TOP-LEFT attached frame=%@ background=NONE pass=all",
+            NSStringFromCGRect(status.frame)]);
     } else {
-        self.parent = parent;
-        self.pill.bounds = CGRectMake(0,0,size.width,size.height);
-        if (self.dragging) self.pill.center = [self boundedCenter:self.pill.center];
-        else self.pill.center = [self storedBubbleCenter];
-        [self.overlayWindow bringSubviewToFront:self.pill];
+        self.parent=parent;
+        self.statusView.frame=frame;
+        [self.overlayWindow bringSubviewToFront:self.statusView];
     }
-    self.overlayWindow.hidden = NO;
-    self.pill.alpha = 1.0;
-    [self layoutCompactTimeBattery];
-    if (created) [self tick];
+    self.overlayWindow.userInteractionEnabled=NO;
+    self.overlayWindow.hidden=NO;
+    self.statusView.alpha=1.0;
+    [self layoutStatusLine];
+    if(created)[self tick];
 }
 @end
