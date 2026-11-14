@@ -1,5 +1,11 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+
+## 2026-11-14 — HL54: gỡ toàn bộ \`km/h\` Lề; bong bóng giờ cặp mép + di chuyển tự do
+- Theo lệnh Nguyen, đã **commit source** để hậu xử lý toàn bộ Lề 0.2.4 FAT: quét 10 Mach-O cả arm64/arm64e, thay chữ \`km/h\` ở các chuỗi UTF-8/UTF-16LE (bao gồm LeBubble, Maps, relay, source, LePrefs), không sửa số liệu giao thông, ký lại 6 dylib + LePrefs có thay chữ; độc lập kiểm final DEB không còn literal unit. Trên **DuoCar53 đã build** còn 33 occurrence/arch (LeBubble hậu tố ngắn đã bị patch trước); thử dry-run trên bản sao đạt 33/33 per arch. Vendor LePrefs nay được phép khác byte **chỉ ở chữ**, không còn tuyên bố toàn bộ binary vendor identical.
+- Bong bóng fullscreen giờ–pin–nhiệt trên CarPlay **nguồn đã sửa**: gần mép trái/phải thì cặp, thả ở giữa giữ X/Y, lưu normalized position + dock flag; migration vị trí cũ, không tạo window/gesture mới, giữ Dock HUD ở split. Test fixture C chạy \`HL54_CLOCK_DOCK_GEOMETRY_PASS cases=30014\`; test source thực được thêm trong repo để chạy khi checkout. Workflow \`build-hl54-le-units-clock-dock-fat.yml\` **chỉ chuẩn bị manual, KHÔNG dispatch**; chưa build/ký DuoCar54, chưa nghiệm thu xe. [Hồ sơ, điểm rollback và kiểm chứng](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
+
+
 ## 2026-11-14 — HL54 SOURCE: slider GPS -10 đến +10 km/h, bước 1
 - Nguyen chốt thay nút tăng/giảm bằng thanh kéo toàn ngang, mốc -10 / 0 / +10 và số có dấu khi kéo; chỉ gửi lệnh khi thả / VoiceOver điều chỉnh. Đã sửa và lưu project/src của UI, bridge key 27 raw 0..20, core bù GPS ±10 (không sửa biển giới hạn), Settings row, test và source gates; giá trị prefs cũ có dấu không đổi nghĩa. Host fixture mapping 2032 cases PASS; chưa build iOS/CI/DEB/device test. Không thay LePrefs gốc, pinch, menu, Dock, keyboard. [Checkpoint HL54](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
 
