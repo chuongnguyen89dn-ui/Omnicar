@@ -11,11 +11,21 @@
 static NSMutableData *DCLPending=nil;
 static uint16_t DCLNonce=0,DCLNextSeq=0;
 static NSUInteger DCLExpected=0;
+// [hl56-canonical-read] Read-only bounded snapshot owned by SpringBoard.
+static NSMutableData *DCLReadSnapshot=nil;
+static uint16_t DCLReadNonce=0,DCLReadNext=0;
+static NSUInteger DCLReadOffset=0;
+static NSTimeInterval DCLReadStarted=0;
+static int DCLReadInfo=-1,DCLReadWord=-1,DCLReadCRC=-1;
 static NSTimeInterval DCLStarted=0;
 static const char *const DCLVendorDirectory=
     "/var/mobile/Library/Preferences/dev.bechou.le.bubble";
 static void DCLReset(void) {
     DCLPending=nil;DCLNonce=0;DCLNextSeq=0;DCLExpected=0;DCLStarted=0;
+}
+static void DCLResetRead(void) {
+    DCLReadSnapshot=nil;DCLReadNonce=0;DCLReadNext=0;DCLReadOffset=0;
+    DCLReadStarted=0;
 }
 static BOOL DCLJSONAccept(NSData *data) {
     if(data.length<2||data.length>DCL_LE_RAW_LIMIT)return NO;
@@ -38,11 +48,98 @@ static void DCLReply(int ack,uint8_t op,uint16_t seq,
                                     ((uint32_t)nonce<<16)|status));
     notify_post(DCL_LE_RAW_ACK);
 }
+// A complete, exact canonical JSON is transferred 4 bytes at a time;
+// the client verifies nonce, sequence, length, JSON and CRC before mirroring
+// it into its OWN sandbox. Never return default "vietmap-live" as a read.
+static void DCLHandleCanonicalRead(uint8_t op,uint16_t seq,
+                                   uint32_t word,int ack) {
+    NSTimeInterval now=[NSDate timeIntervalSinceReferenceDate];
+    if(DCLReadSnapshot && now-DCLReadStarted>16.0) {
+        NSLog(@"[hl56-config-source] read snapshot expired");
+        DCLResetRead();
+    }
+    if(op==DCL_LE_READ_BEGIN) {
+        uint16_t nonce=(uint16_t)word;
+        uint16_t result=DCL_LE_OK;
+        if(DCLPending || DCLReadSnapshot)result=DCL_LE_BUSY;
+        else if(seq!=1 || nonce==0 || DCLReadInfo<0 ||
+                DCLReadWord<0 || DCLReadCRC<0)result=DCL_LE_SEQUENCE;
+        else {
+            NSMutableData *data=[NSMutableData dataWithLength:DCL_LE_RAW_LIMIT];
+            size_t actual=0;int stage=0,err=0;
+            int ok=DCLLeReadState(DCLVendorDirectory,"layout-v1.json",
+                                  data.mutableBytes,data.length,&actual,
+                                  &stage,&err);
+            if(!ok) {
+                result=(err==EPERM||err==EACCES)?DCL_LE_OWNER:DCL_LE_IO;
+                NSLog(@"[hl56-config-source] canonical READ FAIL stage=%d errno=%d uid=%d",
+                      stage,err,geteuid());
+            } else {
+                [data setLength:actual];
+                if(!DCLJSONAccept(data))result=DCL_LE_JSON;
+                else {
+                    DCLReadSnapshot=data;
+                    DCLReadNonce=nonce;DCLReadNext=2;DCLReadOffset=0;
+                    DCLReadStarted=now;
+                    uint64_t info=((uint64_t)nonce<<16)|(uint16_t)actual;
+                    if(notify_set_state(DCLReadInfo,info)!=NOTIFY_STATUS_OK) {
+                        result=DCL_LE_IO;DCLResetRead();
+                    } else {
+                        NSDictionary *json=[NSJSONSerialization JSONObjectWithData:data
+                                                        options:0 error:nil];
+                        NSLog(@"[hl56-config-source] canonical READ READY bytes=%lu source=%@ uid=%d",
+                              (unsigned long)actual,json[@"source"],geteuid());
+                    }
+                }
+            }
+        }
+        DCLReply(ack,op,seq,nonce,result);return;
+    }
+    uint16_t nonce=(uint16_t)(word>>16);
+    uint16_t result=DCL_LE_OK;
+    if(!DCLReadSnapshot || nonce!=DCLReadNonce) {
+        DCLReply(ack,op,seq,nonce,DCL_LE_SEQUENCE);return;
+    }
+    if(op==DCL_LE_READ_DATA) {
+        if(seq!=DCLReadNext || (uint16_t)word!=(uint16_t)(DCLReadOffset/4) ||
+           DCLReadOffset>=DCLReadSnapshot.length) {
+            DCLReply(ack,op,seq,nonce,DCL_LE_SEQUENCE);return;
+        }
+        NSUInteger remain=DCLReadSnapshot.length-DCLReadOffset;
+        size_t count=MIN((NSUInteger)4,remain);
+        uint32_t packet=DCLLeWord((const uint8_t *)DCLReadSnapshot.bytes+
+                                 DCLReadOffset,count);
+        if(notify_set_state(DCLReadWord,packet)!=NOTIFY_STATUS_OK)
+            result=DCL_LE_IO;
+        else {DCLReadOffset+=count;DCLReadNext++;}
+        DCLReply(ack,op,seq,nonce,result);return;
+    }
+    if(op==DCL_LE_READ_END) {
+        if(seq!=DCLReadNext || DCLReadOffset!=DCLReadSnapshot.length)
+            result=DCL_LE_SEQUENCE;
+        else {
+            uint32_t checksum=DCLLeCRC32(DCLReadSnapshot.bytes,DCLReadSnapshot.length);
+            if(notify_set_state(DCLReadCRC,checksum)!=NOTIFY_STATUS_OK)
+                result=DCL_LE_IO;
+            else NSLog(@"[hl56-config-source] canonical READ DELIVERED bytes=%lu CRC32=%08x",
+                       (unsigned long)DCLReadSnapshot.length,checksum);
+        }
+        DCLResetRead();
+        DCLReply(ack,op,seq,nonce,result);
+        return;
+    }
+    DCLReply(ack,op,seq,nonce,DCL_LE_SEQUENCE);
+}
 static void DCLHandleRaw(uint64_t frame,int ack) {
     if(DCLLeMagic(frame)!=DCL_LE_MAGIC_REQ)return;
     uint8_t op=DCLLeOp(frame);
     uint16_t seq=DCLLeSeq(frame);
     uint32_t word=DCLLePayload(frame);
+    if(op==DCL_LE_READ_BEGIN || op==DCL_LE_READ_DATA ||
+       op==DCL_LE_READ_END) {
+        DCLHandleCanonicalRead(op,seq,word,ack);
+        return;
+    }
     if(DCLPending && [NSDate timeIntervalSinceReferenceDate]-DCLStarted>8.0){
         NSLog(@"[hl54-store-sb] expired transaction bytes=%lu",
               (unsigned long)DCLPending.length);
@@ -51,7 +148,7 @@ static void DCLHandleRaw(uint64_t frame,int ack) {
     if(op==DCL_LE_BEGIN) {
         uint16_t length=(uint16_t)(word>>16),incoming=(uint16_t)word;
         uint16_t status=DCL_LE_OK;
-        if(DCLPending)status=DCL_LE_BUSY;
+        if(DCLPending || DCLReadSnapshot)status=DCL_LE_BUSY;
         else if(seq!=1 || incoming==0 || length<2 || length>DCL_LE_RAW_LIMIT)
             status=DCL_LE_SIZE;
         else {
@@ -123,13 +220,16 @@ void DCLLeOriginalStoreStart(void) {
     dispatch_once(&once,^{
         static int receive=-1,ack=-1;
         if(notify_register_check(DCL_LE_RAW_ACK,&ack)!=NOTIFY_STATUS_OK)ack=-1;
+        if(notify_register_check(DCL_LE_RAW_INFO,&DCLReadInfo)!=NOTIFY_STATUS_OK)DCLReadInfo=-1;
+        if(notify_register_check(DCL_LE_RAW_WORD,&DCLReadWord)!=NOTIFY_STATUS_OK)DCLReadWord=-1;
+        if(notify_register_check(DCL_LE_RAW_CRC,&DCLReadCRC)!=NOTIFY_STATUS_OK)DCLReadCRC=-1;
         int result=notify_register_dispatch(DCL_LE_RAW_REQ,&receive,
             dispatch_get_main_queue(),^(int token){
                 uint64_t command=0;
                 if(notify_get_state(token,&command)==NOTIFY_STATUS_OK)
                     DCLHandleRaw(command,ack);
             });
-        NSLog(@"[hl54-store-sb] registered=%d ack=%d euid=%d pid=%d",
-              result,ack,geteuid(),getpid());
+        NSLog(@"[hl54-store-sb] registered=%d ack=%d euid=%d pid=%d read=%d/%d/%d",
+              result,ack,geteuid(),getpid(),DCLReadInfo,DCLReadWord,DCLReadCRC);
     });
 }
