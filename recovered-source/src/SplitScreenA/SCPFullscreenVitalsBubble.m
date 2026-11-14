@@ -18,7 +18,10 @@
 static char DCFVHitTargetAssociation;
 static NSString *const DCFVEdgeKey = @"DuoCar.fullscreenVitalsBubble.left";
 static NSString *const DCFVYKey = @"DuoCar.fullscreenVitalsBubble.normalizedY";
-static const CGFloat DCFVMargin = 9.0;
+static NSString *const DCFVXKey = @"DuoCar.fullscreenVitalsBubble.normalizedX";
+static NSString *const DCFVDockedKey = @"DuoCar.fullscreenVitalsBubble.docked";
+static const CGFloat DCFVMargin = 3.0;
+static const CGFloat DCFVSnapThreshold = 38.0;
 
 // HL33's working design: pass ONLY bubble/descendant taps into this window.
 // All other touches pass to the original app/Dock/pinch/picker hierarchy.
@@ -106,6 +109,8 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
 @property(nonatomic) SCPVitalsRect dragBounds;
 @property(nonatomic) SCPVitalsSafeInsets dragSafe;
 @property(nonatomic) BOOL leftEdge;
+@property(nonatomic) BOOL edgeDocked;
+@property(nonatomic) CGFloat normalizedX;
 @property(nonatomic) CGFloat normalizedY;
 @property(nonatomic) BOOL positionSaved;
 @property(nonatomic) BOOL dragging;
@@ -126,7 +131,13 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         self.positionSaved = ([store objectForKey:DCFVEdgeKey] &&
                               [store objectForKey:DCFVYKey]);
         self.leftEdge = self.positionSaved ? [store boolForKey:DCFVEdgeKey] : NO;
+        // Existing HL33 saved only side and Y: migrate without moving away from edge.
+        self.edgeDocked = [store objectForKey:DCFVDockedKey]
+            ? [store boolForKey:DCFVDockedKey] : YES;
+        CGFloat oldX = [store objectForKey:DCFVXKey]
+            ? [store doubleForKey:DCFVXKey] : (self.leftEdge?0.0:1.0);
         CGFloat oldY = self.positionSaved ? [store doubleForKey:DCFVYKey] : 0.0;
+        self.normalizedX = isfinite(oldX) ? fmax(0.0,fmin(1.0,oldX)) : 1.0;
         self.normalizedY = isfinite(oldY) ? fmax(0.0,fmin(1.0,oldY)) : 0.0;
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(systemClockChanged:)
@@ -285,13 +296,16 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
     return (isfinite(bounded.x) && isfinite(bounded.y))
         ? CGPointMake(bounded.x,bounded.y) : self.pill.center;
 }
-- (CGPoint)storedEdgeCenter {
-    SCPVitalsPoint point = SCPVitalsBubbleEdgeCenter(
-        self.dragBounds,self.dragSafe,
-        self.pill.bounds.size.width,self.pill.bounds.size.height,
-        DCFVMargin,self.leftEdge,self.normalizedY);
-    return (isfinite(point.x) && isfinite(point.y))
-        ? CGPointMake(point.x,point.y) : self.pill.center;
+- (CGPoint)storedBubbleCenter {
+    SCPVitalsBubbleDockPosition state = {
+        self.normalizedX,self.normalizedY,self.edgeDocked,self.leftEdge
+    };
+    SCPVitalsPoint point;
+    if (SCPVitalsBubbleRestoreDockPosition(self.dragBounds,self.dragSafe,
+            self.pill.bounds.size.width,self.pill.bounds.size.height,
+            DCFVMargin,state,&point))
+        return CGPointMake(point.x,point.y);
+    return self.pill.center;
 }
 - (void)handlePan:(UIPanGestureRecognizer *)gesture {
     if (!self.overlayWindow || !self.pill ||
@@ -310,32 +324,52 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
             [gesture setTranslation:CGPointZero inView:self.overlayWindow];
             break;
         }
-        case UIGestureRecognizerStateEnded:
-        case UIGestureRecognizerStateCancelled:
-        case UIGestureRecognizerStateFailed: {
+        case UIGestureRecognizerStateEnded: {
             self.dragging = NO;
-            self.leftEdge = SCPVitalsBubbleNearestLeft(self.dragBounds,
-                                                        self.pill.center.x);
-            double y = SCPVitalsBubbleRelativeY(self.dragBounds,self.dragSafe,
-                 self.pill.bounds.size.width,self.pill.bounds.size.height,
-                 DCFVMargin,self.pill.center.y);
-            if (isfinite(y)) self.normalizedY = (CGFloat)y;
+            SCPVitalsBubbleDockPosition state;
+            SCPVitalsPoint target;
+            if (!SCPVitalsBubbleSelectDockPosition(self.dragBounds,self.dragSafe,
+                    self.pill.bounds.size.width,self.pill.bounds.size.height,
+                    DCFVMargin,DCFVSnapThreshold,
+                    (SCPVitalsPoint){self.pill.center.x,self.pill.center.y},
+                    &state,&target)) {
+                OMCLogWrite(@"SplitScreen",@"[fs-vitals] drag release geometry-invalid");
+                break;
+            }
+            self.edgeDocked = state.docked;
+            self.leftEdge = state.leftEdge;
+            self.normalizedX = (CGFloat)state.normalizedX;
+            self.normalizedY = (CGFloat)state.normalizedY;
             self.positionSaved = YES;
             NSUserDefaults *store = NSUserDefaults.standardUserDefaults;
             [store setBool:self.leftEdge forKey:DCFVEdgeKey];
+            [store setBool:self.edgeDocked forKey:DCFVDockedKey];
+            [store setDouble:self.normalizedX forKey:DCFVXKey];
             [store setDouble:self.normalizedY forKey:DCFVYKey];
-            CGPoint target = [self storedEdgeCenter];
-            [UIView animateWithDuration:0.32 delay:0
-                usingSpringWithDamping:0.82 initialSpringVelocity:0
-                options:UIViewAnimationOptionBeginFromCurrentState
-                animations:^{ self.pill.center = target; }
-                completion:nil];
+            CGPoint destination = CGPointMake(target.x,target.y);
+            if (self.edgeDocked) {
+                [UIView animateWithDuration:0.28 delay:0
+                    usingSpringWithDamping:0.82 initialSpringVelocity:0
+                    options:UIViewAnimationOptionBeginFromCurrentState
+                    animations:^{ self.pill.center=destination; }
+                    completion:nil];
+            } else {
+                self.pill.center=destination; // leave it precisely where dropped
+            }
             OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-                @"[fs-vitals] drag snap edge=%@ normalizedY=%.3f center=%@",
+                @"[fs-vitals] drag %@ edge=%@ x=%.3f y=%.3f center=%@",
+                self.edgeDocked?@"snap":@"free",
                 self.leftEdge?@"left":@"right",
-                (double)self.normalizedY,NSStringFromCGPoint(target)]);
+                (double)self.normalizedX,(double)self.normalizedY,
+                NSStringFromCGPoint(destination)]);
             break;
         }
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateFailed:
+            self.dragging=NO;
+            self.pill.center=[self storedBubbleCenter]; // don't save cancelled drag
+            OMCLogWrite(@"SplitScreen",@"[fs-vitals] drag cancelled");
+            break;
         default: break;
     }
 }
@@ -409,7 +443,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         self.parent = parent;
         objc_setAssociatedObject(self.overlayWindow,&DCFVHitTargetAssociation,
                                  pill,OBJC_ASSOCIATION_ASSIGN);
-        if (self.positionSaved) self.pill.center = [self storedEdgeCenter];
+        if (self.positionSaved) self.pill.center = [self storedBubbleCenter];
         else {
             // First install matches the previous top-right fullscreen HUD.
             SCPVitalsPoint point = SCPVitalsBubbleEdgeCenter(
@@ -417,6 +451,8 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
                 DCFVMargin,NO,0.0);
             self.pill.center = CGPointMake(point.x,point.y);
             self.leftEdge = NO;
+            self.edgeDocked = YES;
+            self.normalizedX = 1.0;
             self.normalizedY = 0.0;
         }
         self.timer = [NSTimer timerWithTimeInterval:1.0
@@ -431,7 +467,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         self.parent = parent;
         self.pill.bounds = CGRectMake(0,0,size.width,size.height);
         if (self.dragging) self.pill.center = [self boundedCenter:self.pill.center];
-        else self.pill.center = [self storedEdgeCenter];
+        else self.pill.center = [self storedBubbleCenter];
         [self.overlayWindow bringSubviewToFront:self.pill];
     }
     self.overlayWindow.hidden = NO;
