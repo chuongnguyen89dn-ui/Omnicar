@@ -22,6 +22,12 @@ static __weak id DCLOverlayOwner=nil,DCLCastOwner=nil;
 static char DCLHiddenKey,DCLInteractiveKey,DCLMaskKey;
 static int DCLLastOffsetLogged=999;
 
+static void (*DCLOriginalCastShowAt)(id,SEL,CGRect,double)=NULL;
+static void (*DCLOriginalLauncherRaise)(id,SEL)=NULL;
+static void (*DCLOriginalHostFront)(id,SEL,BOOL,id)=NULL;
+static BOOL DCLCastShowInstalled=NO,DCLLauncherHookInstalled=NO,DCLHostFrontInstalled=NO;
+
+
 static id DCLPref(NSString *name) {
     CFStringRef domain=(__bridge CFStringRef)DCLDomain;
     CFPreferencesAppSynchronize(domain);
@@ -71,6 +77,93 @@ static UIView *DCLVendorBubble(id owner) {
     id view=((id(*)(id,SEL))objc_msgSend)(owner,selector);
     return [view isKindOfClass:UIView.class]?(UIView *)view:nil;
 }
+
+// HL59: Lề owns its window/position/gestures. This shim only ensures that
+// the already-visible original bubble is above DuoCar's visible chrome.
+// Only compare windows in the SAME process and SAME UIScreen. Do not
+// elevate against keyboards, alerts, or unrelated applications.
+static id DCLShared(NSString *name) {
+    Class cls=NSClassFromString(name);
+    if(!cls || ![cls respondsToSelector:@selector(shared)])return nil;
+    return ((id(*)(id,SEL))objc_msgSend)(cls,@selector(shared));
+}
+static UIWindow *DCLPeerWindow(UIWindow *vendor,BOOL car) {
+    if(!vendor || !vendor.screen)return nil;
+    UIWindow *peer=nil;
+    if(car) {
+        id split=DCLShared(@"SCPCarSplit");
+        if(split && [split respondsToSelector:@selector(tabParent)]) {
+            id parent=((id(*)(id,SEL))objc_msgSend)(split,@selector(tabParent));
+            UIWindow *candidate=[parent isKindOfClass:UIView.class]
+                ? ((UIView *)parent).window:nil;
+            if(candidate && candidate!=vendor &&
+               candidate.screen==vendor.screen &&
+               !candidate.hidden && candidate.alpha>0.01)peer=candidate;
+        }
+        // Dock/Home may be separate native Dashboard windows from tabParent.
+        for(UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+            if(![scene isKindOfClass:UIWindowScene.class])continue;
+            UIWindowScene *ws=(UIWindowScene *)scene;
+            if(ws.screen!=vendor.screen)continue;
+            for(UIWindow *w in ws.windows) {
+                if(w==vendor || w.hidden || w.alpha<=0.01)continue;
+                NSString *name=NSStringFromClass(w.class);
+                BOOL chrome=[name rangeOfString:@"DBDashboard"].location!=NSNotFound ||
+                    [name rangeOfString:@"DBDock"].location!=NSNotFound;
+                if(chrome && (!peer || w.windowLevel>peer.windowLevel))peer=w;
+            }
+        }
+    } else {
+        id host=DCLShared(@"ABHost");
+        if(host && [host respondsToSelector:@selector(window)]) {
+            id item=((id(*)(id,SEL))objc_msgSend)(host,@selector(window));
+            if([item isKindOfClass:UIWindow.class]) {
+                UIWindow *candidate=item;
+                if(candidate!=vendor && candidate.screen==vendor.screen &&
+                   !candidate.hidden && candidate.alpha>0.01)peer=candidate;
+            }
+        }
+    }
+    return peer;
+}
+static void DCLRaiseOriginalBubble(id owner,NSString *reason) {
+    if(!owner || !DCLMasterEnabled())return;
+    UIView *bubble=DCLVendorBubble(owner);
+    UIWindow *vendor=bubble.window;
+    if(!vendor || vendor.hidden || bubble.hidden)return;
+    BOOL car=[NSBundle.mainBundle.bundleIdentifier
+                  isEqualToString:@"com.apple.CarPlayApp"];
+    UIWindow *peer=DCLPeerWindow(vendor,car);
+    if(!peer) {
+        static CFAbsoluteTime lastBlind=0;
+        CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+        if(now-lastBlind>=5.0) {
+            lastBlind=now;
+            NSLog(@"[hl59-layer] BLIND proc=%@ event=%@ vendor=%@ scene=%@",
+                  NSBundle.mainBundle.bundleIdentifier,reason,
+                  NSStringFromClass(vendor.class),vendor.windowScene);
+        }
+        return;
+    }
+    double prior=vendor.windowLevel;
+    double wanted=peer.windowLevel+2.0;
+    if(!isfinite(prior)||!isfinite(wanted)||
+       wanted>=UIWindowLevelAlert-1.0)return;
+    if(prior+0.01<wanted)vendor.windowLevel=wanted;
+    static CFAbsoluteTime lastTrace=0;
+    CFAbsoluteTime now=CFAbsoluteTimeGetCurrent();
+    if(prior+0.01<wanted || now-lastTrace>=5.0) {
+        lastTrace=now;
+        NSLog(@"[hl59-layer] proc=%@ event=%@ bubble=%@ "
+              "old=%.2f now=%.2f peer=%@ level=%.2f sameScene=%d",
+              NSBundle.mainBundle.bundleIdentifier,reason,
+              NSStringFromClass(vendor.class),prior,
+              (double)vendor.windowLevel,NSStringFromClass(peer.class),
+              (double)peer.windowLevel,
+              (int)(vendor.windowScene==peer.windowScene));
+    }
+}
+
 static void DCLApplyVisibility(id owner) {
     UIView *bubble=DCLVendorBubble(owner);
     if(!bubble)return; // class not loaded or vendor not installed
@@ -120,12 +213,30 @@ static void DCLOverlayPlace(id owner,SEL sel) {
     if(DCLOriginalOverlayPlace)DCLOriginalOverlayPlace(owner,sel);
     DCLOverlayOwner=owner;
     DCLApplyVisibility(owner);
+    DCLRaiseOriginalBubble(owner,@"native-place");
 }
 static void DCLCastPlace(id owner,SEL sel,CGRect rect) {
     if(DCLOriginalCastPlace)DCLOriginalCastPlace(owner,sel,rect);
     DCLCastOwner=owner;
     DCLApplyVisibility(owner);
+    DCLRaiseOriginalBubble(owner,@"cast-place");
 }
+
+// Reorder after the original controller performs the only native placement.
+static void DCLCastShowAt(id owner,SEL sel,CGRect rect,double level) {
+    DCLCastOwner=owner;
+    if(DCLOriginalCastShowAt)DCLOriginalCastShowAt(owner,sel,rect,level);
+    DCLRaiseOriginalBubble(owner,@"cast-show");
+}
+static void DCLLauncherRaise(id split,SEL sel) {
+    if(DCLOriginalLauncherRaise)DCLOriginalLauncherRaise(split,sel);
+    DCLRaiseOriginalBubble(DCLOverlayOwner,@"logo-raise");
+}
+static void DCLHostFront(id host,SEL sel,BOOL front,id bundle) {
+    if(DCLOriginalHostFront)DCLOriginalHostFront(host,sel,front,bundle);
+    if(front)DCLRaiseOriginalBubble(DCLCastOwner,@"hosted-front");
+}
+
 static BOOL DCLInstall(Class cls,SEL selector,IMP replacement,IMP *original,
                        BOOL instance,unsigned args) {
     if(!cls||!original||*original)return *original!=NULL;
@@ -139,6 +250,18 @@ static BOOL DCLInstall(Class cls,SEL selector,IMP replacement,IMP *original,
     if(instance && selector==@selector(place:)) {
         const char *type=method_getTypeEncoding(method);
         if(!type||!strstr(type,"{CGRect="))return NO;
+    }
+    if(instance && selector==@selector(showAt:level:)) {
+        char rect[128]={0},num[16]={0};
+        method_getArgumentType(method,2,rect,sizeof(rect));
+        method_getArgumentType(method,3,num,sizeof(num));
+        if(!strstr(rect,"{CGRect=") || num[0]!='d')return NO;
+    }
+    if(instance && selector==@selector(setFront:forApp:)) {
+        char active[16]={0},app[16]={0};
+        method_getArgumentType(method,2,active,sizeof(active));
+        method_getArgumentType(method,3,app,sizeof(app));
+        if((active[0]!='B' && active[0]!='c') || app[0]!='@')return NO;
     }
     Class target=instance?cls:object_getClass(cls);
     IMP prev=method_getImplementation(method);
@@ -155,6 +278,19 @@ static BOOL DCLInstall(Class cls,SEL selector,IMP replacement,IMP *original,
     return YES;
 }
 static void DCLInstallExternalLeHooks(void) {
+    NSString *proc=NSBundle.mainBundle.bundleIdentifier;
+    if([proc isEqualToString:@"com.apple.CarPlayApp"] && !DCLLauncherHookInstalled)
+        DCLLauncherHookInstalled=DCLInstall(NSClassFromString(@"SCPCarSplit"),
+            @selector(raiseLauncher),(IMP)DCLLauncherRaise,
+            (IMP *)&DCLOriginalLauncherRaise,YES,2);
+    if([proc isEqualToString:@"com.apple.springboard"] && !DCLHostFrontInstalled)
+        DCLHostFrontInstalled=DCLInstall(NSClassFromString(@"ABHost"),
+            @selector(setFront:forApp:),(IMP)DCLHostFront,
+            (IMP *)&DCLOriginalHostFront,YES,4);
+    if([proc isEqualToString:@"com.apple.springboard"] && !DCLCastShowInstalled)
+        DCLCastShowInstalled=DCLInstall(NSClassFromString(@"CWCastBubbleController"),
+            @selector(showAt:level:),(IMP)DCLCastShowAt,
+            (IMP *)&DCLOriginalCastShowAt,YES,4);
     if(!DCLContentInstalled)
         DCLContentInstalled=DCLInstall(NSClassFromString(@"CWTrafficBubbleContent"),
             @selector(contentWithSnapshot:),(IMP)DCLCorrectSpeed,
@@ -185,13 +321,17 @@ __attribute__((constructor)) static void DCLLeBootstrap(void) {
             (void)token;
             DCLApplyVisibility(DCLOverlayOwner);
             DCLApplyVisibility(DCLCastOwner);
+            DCLRaiseOriginalBubble(DCLOverlayOwner,@"master");
+            DCLRaiseOriginalBubble(DCLCastOwner,@"master");
         });
         static NSUInteger tries=0;
         NSTimer *timer=[NSTimer timerWithTimeInterval:1.0 repeats:YES
                block:^(NSTimer *t) {
             DCLInstallExternalLeHooks();
             if((DCLContentInstalled&&
-               (DCLOverlayInstalled||DCLCastInstalled))||++tries>=180) {
+               (DCLOverlayInstalled||DCLCastInstalled) &&
+               (springboard ? (DCLHostFrontInstalled && DCLCastShowInstalled)
+                            : DCLLauncherHookInstalled))||++tries>=180) {
                 if(!DCLContentInstalled)
                     NSLog(@"[hl58-external-le] vendor class not loaded/installed: GPS inactive");
                 [t invalidate];
