@@ -1,0 +1,1298 @@
+KIỂM KÊ UI/UX TOÀN DIỆN DUOCAR — MỐC DC58 (1.0.4-hl58)
+Ngày kiểm kê: 14/11/2026
+Repository: chuongnguyen89dn-ui/Omnicar
+Thực thi theo: DUOCAR_UI_AUDIT_YEU_CAU_20261114.txt (cùng thư mục gpt-project-history/)
+Phạm vi: CHỈ QUÉT VÀ LƯU BÁO CÁO. Không sửa source, không build DEB, không chạy CI,
+không chạy binary/script trích xuất. Phương pháp: đội điều tra chỉ-đọc 4 tuyến độc lập
+(cây project/ DC58; cây src/ gốc 1.0.3 + delta nhánh; tài liệu hồ sơ đã quét; mảng cắt
+ngang tài nguyên/kênh/đường trình bày) + điều phối đối chiếu chéo và đo lại các điểm
+mâu thuẫn trực tiếp trên source.
+
+Quy ước nhãn bằng chứng trong toàn văn:
+- [ĐÃ ĐO] = có file/dòng cụ thể trong source tại mốc đối chiếu, đã đọc trực tiếp.
+- [TỪ HỒ SƠ CŨ — CHƯA ĐỐI CHIẾU] = lấy từ tài liệu quét trước, chưa khớp lại với
+  source tại mốc này.
+- [CHƯA XÁC MINH] = không đủ bằng chứng trong đợt này; liệt kê lại ở Mục 6.
+Quy ước nhãn can thiệp thiết kế:
+- [ĐƯỢC SỬA THIẾT KẾ] / [SỬA CÓ ĐIỀU KIỆN — ràng buộc] / [CẤM CAN THIỆP — cơ chế
+  phụ thuộc] / [KHÔNG ÁP DỤNG Ở DC58] (thành phần có trong cây nhưng không biên
+  dịch/không vào gói DC58).
+
+====================================================================
+MỤC 0 — MỐC VÀ PHẠM VI + CĂN CỨ XÁC ĐỊNH CÂY NGUỒN
+====================================================================
+
+0.1 Mốc DC58 CÓ THẬT nhưng KHÔNG nằm trên nhánh main.
+- Trên main (HEAD 63f7692f8fbf25e41670629726e60a515b803f86): grep toàn cây không có
+  chuỗi DC58/hl58/1.0.4-hl*; lịch sử GPT trong recovered-source/gpt-project-history/
+  trên main dừng ở khoảng HL47. [ĐÃ ĐO]
+- DC58 nằm trên nhánh feature/duocar-hl54-le-original-integrity-20261114 (tên nhánh
+  dừng ở hl54 nhưng công việc chạy tiếp qua HL55–HL58 trên cùng nhánh), tip
+  630e50c568a188e115311ff7f76012b43bd26afd "docs(hl58): verified vendor-free DC58
+  exact FAT output and restore manual CI". [ĐÃ ĐO qua git log/ls-tree của nhánh]
+- Hồ sơ mốc: recovered-source/gpt-project-history/HL58_EXTERNAL_LE_OPTIONAL_DETACH_20261114.md
+  (bản nhánh) + mục DC58 ở đầu README.md của gpt-project-history bản nhánh. [ĐÃ ĐO]
+
+0.2 Thông số gói DC58 (theo hồ sơ HL58 + README nhánh, kiểm độc lập được ghi trong hồ sơ):
+- Package: com.chuong.duocar — Version: 1.0.4-hl58 — Architecture: iphoneos-arm64.
+- CI GitHub Actions run 43553319919: SUCCESS; artifact 14096254418; DEB 1.257.484 byte;
+  SHA-256 7b22f302fba395ce858112d378dacb6b217f7dbc04d21595bd3920374735ce56.
+- Kiểm độc lập trong hồ sơ: 297 file, 8 Mach-O FAT / 16 slice đã ký, KHÔNG còn file
+  vendor Lề (đã tháo 9 dylib Le + LePrefs + font), không còn dev.bechou.le trong
+  Conflicts/Replaces/Depends.
+- Build commit ghi trong hồ sơ HL58 là bbc2ac6… — KHÁC tip 630e50c (630e50c là commit
+  tài liệu sau build). Phạm vi lệch code giữa hai commit: [CHƯA XÁC MINH] (Mục 6).
+- Trạng thái thiết bị: DEVICE PENDING — hai chức năng nối sang Lề cài riêng (GPS ±10
+  và ON/OFF bong bóng) CHƯA test trên xe tại DC58. [Theo hồ sơ HL58]
+
+0.3 Cây nguồn DuoCar hiện hành — kết luận và căn cứ.
+KẾT LUẬN: cây nguồn đang chạy của DuoCar tại DC58 là cây trên NHÁNH
+feature/duocar-hl54-le-original-integrity-20261114 @630e50c, gồm cả hai cây con:
+- recovered-source/project/ = cây BUILD (cây này đóng ra DC58 qua workflow
+  .github/workflows/build-hl58-external-le-fat.yml).
+- recovered-source/src/ = cây khôi phục OmniCar 1.0.3 gốc CỘNG các phần DuoCar viết
+  thêm/port sang (LeExtension/, LeTraffic/, OmniCarPinchCommon/, OMCNativeSettings…).
+  Delta src/ giữa main và nhánh: 79 file khác (43 thêm, 36 sửa, 0 xóa;
+  +11.267/−1.040 dòng). [ĐÃ ĐO bằng git diff --name-status/--stat]
+CĂN CỨ:
+(a) Workflow build-hl58 chạy trên chính cây project/ của nhánh: verify_hl58_external_source.py
+    + verify_duocar_vitals_static.py + verify_hl43_shared_telex.py +
+    test_hl53_pinch_direction.sh, rebrand bằng rebrand_duocar_hl47.py, strip
+    SpeedBubble bằng strip_speedbubble_assets.py, đóng gói companion LeExtension,
+    rồi merge_external_le_only.py --version 1.0.4-hl58 cho ra DC58.deb. [ĐÃ ĐO]
+(b) Mã nguồn nhánh chứa mốc HL tới 58 thật: log [hl58-external-le] tại
+    project/OmniCarLeExtension/DCLLeExtension.m:84/114 và DCLLeConfigBridge.m:77/100;
+    domain com.chuong.duocar; Package companion com.chuong.duocar.leextension 0.2.0
+    tại project/OmniCarLeExtension/control:1. [ĐÃ ĐO]
+(c) Hồ sơ HL58 trong chính repo mô tả đúng các thành phần mới của cây này
+    (LeExtension vendor-free, vitals, native settings HL26, Telex HL43, pinch HL53).
+
+0.4 Cảnh báo đọc cây (rất quan trọng cho GPT thiết kế):
+- Nguyên trạng trên đĩa, cây project/ CHƯA mang định danh DC58: project/control ghi
+  Package com.anlai.omnicar, Version 1.0.3-hl21restored; hai Info.plist (app + Prefs)
+  đều CFBundleShortVersionString 1.0.3. Định danh com.chuong.duocar / 1.0.4-hl58 CHỈ
+  sinh ra trong CI (rebrand + merge --version). Chuỗi "1.0.4" trong project/ chỉ là
+  tài liệu tham chiếu DuoNavi 1.0.4, không phải version DuoCar. [ĐÃ ĐO]
+- packages/ trong project/ chỉ có 10 DEB cũ com.anlai.omnicar_1.0.3* — KHÔNG có
+  DC58.deb (DC58 đóng ở CI). [ĐÃ ĐO]
+- Cây chứa nhiều bề mặt KHÔNG vào DC58 (SpeedBubble runtime, toàn bộ Voice,
+  LeTraffic, DCVoice*, SPP*Views của Prefs). Đọc cây mà không đọc Makefile/workflow
+  sẽ kiểm kê thừa — trạng thái biên dịch của từng thành phần ghi rõ ở Mục 2.
+
+0.5 Hai domain pref song song tại DC58:
+- com.anlai.omnicar — domain gốc, toàn bộ lõi dùng (OMCCommon.h:36; OMCNativeSettings
+  kOMCNativeDomain tại OMCNativeSettings.m:14). Không có NSUserDefaults suite riêng.
+- com.chuong.duocar — domain MỚI cho cụm Lề/traffic (key leTraffic*, leBubble*;
+  kênh le024.*, traffic.*, prefschanged riêng).
+Tổng kênh liên tiến trình có tên: 80 (57 nền com.anlai.omnicar + 9 mới omnicar +
+11 mới duocar + 3 kênh vendor dev.bechou.le.*). Pref key: 53 key chứng minh từ binary
+gốc (PREFS_MAP) + ~35 key mới-DC58. Chi tiết: Phụ lục A/B cuối báo cáo.
+
+====================================================================
+MỤC 1 — BẢN ĐỒ TỔNG THỂ: MÀN HÌNH → THÀNH PHẦN
+====================================================================
+
+Tiến trình và bề mặt (mức cửa sổ từ thấp tới cao):
+[Điện thoại — app DuoCar (OmniCarApp)]
+  App mở → OMCNativeSettings (UITabBarController 3 tab: Ứng dụng / Chia màn /
+  Cài đặt; mở vào tab Cài đặt) — ĐƯỜNG CÀI ĐẶT HIỆN HÀNH tại DC58.
+  + Trang Startup (OMCNativeStartupPage), trang Lề ngoài (DCLLeStandaloneControls —
+  chỉ 2 điều khiển), trang chi tiết pin/nhiệt (OMCVitalsPage).
+  (Prefs bundle trong Settings.app vẫn còn trong cây và Resources của nó là dữ liệu
+  sống cho app, nhưng KHÔNG còn là đường cài đặt hiện hành — xem 2.9.)
+
+[Xe — tiến trình CarPlayApp/DashBoard (OmniCarSplitScreen + hooks)]
+  Lưới Home xe: hook +[DashBoard _newApplicationLibrary] + declaration tổng hợp
+  → app đã chọn hiện trên lưới xe KHÔNG cần bật trong Cài đặt iPhone → CarPlay.
+  Màn chia (split): SCPCarSplit + container SCPCarSplitView; mỗi ô (pane) chứa
+  hoặc scene NATIVE (app có CarPlay UI thật) hoặc TOKEN hosted (SCPHostedAppVC).
+  Mỗi ô có: handle pill ba chấm → thanh lệnh 5 nút (Đổi app / Toàn màn / Cửa sổ
+  nổi / Chạy nền / Tắt app), divider + knob + menu tỉ lệ, picker chọn app (sheet
+  + tray window), panel bố cục, loader, toast, cover ô trống.
+  Logo/controls ẩn–hiện: homeButton (nút logo) + AutoHide (mờ dần) + BridgeWake
+  (cổng gọi lại bằng chạm đầu bị nuốt).
+  Fullscreen: SCPFullscreenController/Adapter; khi fullscreen có HUD trạng thái
+  cố định góc trái (giờ–pin–nhiệt, không nhận chạm).
+  Dock xe: SCPDeviceVitalsHUD gắn panel chỉ số vào Dock native thật (không có
+  Dock thì không hiện, không fallback); cảnh báo nhiệt bằng cửa sổ riêng.
+  Màn khởi động: SSSplashWindow (mức Alert+1000) + SSStartupView theo style.
+
+[Điện thoại — SpringBoard (OmniCarAppBridge phía host + Core)]
+  Cửa sổ host ABHost (UIRootSceneWindow trên màn hình xe, mức StatusBar+60,
+  xuyên chạm khi trượt) chứa các ABPane của app hosted: ABBoxView (scene),
+  ABShieldView (khiên nuốt chạm), ABKnobView, handle, thanh lệnh hosted.
+  Bàn phím hosted: ABKeyboard tự vẽ hiện trong cửa sổ xe.
+
+[Trong app được host (OmniCarAppBridge phía in-app)]
+  Hook -[UIApplication sendEvent:] = cổng nuốt chạm đầu/gọi logo + relay pinch
+  HL53; bàn phím: hosted dùng phím vẽ ABKeyboard (cờ ABDrawnKb=YES), app CarPlay
+  gốc dùng đường native nativekb.*.v1 (ABNativeDrawnTA).
+
+[Bong bóng Lề — thuộc gói Lề cài riêng dev.bechou.le 0.2.4, KHÔNG thuộc DuoCar]
+  DuoCar chỉ còn shim DCLLeExtension (gói companion com.chuong.duocar.leextension
+  0.2.0, merge vào DC58): sửa số tốc độ GPS hiển thị (offset −10..+10) và
+  che/hiện bong bóng hãng qua 2 điều khiển trong app. Bong bóng traffic tự vẽ của
+  DuoCar (DCLTrafficOverlay) CHƯA tích hợp vào DC58.
+
+Thứ tự mức cửa sổ (windowLevel) đã đo: cửa sổ host ABHost StatusBar+60 <
+badge vitals fullscreen +64.0 < cửa sổ cảnh báo nhiệt +64.5 < tray picker /
+cảnh báo quá tốc gốc +65 (và overlay traffic chưa tích hợp cũng +65) <
+splash khởi động Alert+1000.
+
+====================================================================
+MỤC 2 — KIỂM KÊ CHI TIẾT THEO NHÓM
+====================================================================
+Số dòng lấy theo cây NHÁNH DC58 @630e50c. Đường dẫn dạng repo. "Trong DC58?"
+xác định theo _FILES của Makefile + workflow build-hl58 (đọc text).
+
+--------------------------------------------------------------------
+2.1 HOST SCENE PHÍA XUÂNBOARD — OmniCarAppBridge phía host [Trong DC58: CÓ]
+--------------------------------------------------------------------
+File chính (project/OmniCarAppBridge/): ABHost.h 150 dòng; ABHostBMethods.m 1.937;
+ABHostGeometry.m 986; ABHostLaunch.m 352; ABChannels.m 725; ABChannelNames.m 54;
+ABChromeViews.h/.m 33/207; ABPane.m 63; ABYTZoom.m 693.
+
+- ABHost / ABPane — chủ sở hữu chrome hosted.
+  ABPane khai báo project/OmniCarAppBridge/ABHost.h:29 (thuộc tính box/handle/
+  handleHit/bar/popButton/soloButton/shield/sceneBox/frame/appViewController/
+  sceneMonitor, dòng 30–46); ABHost tại ABHost.h:56 (window dòng 58, panes,
+  knobViews, carAppArea dòng 57–62).
+  Method: -ensureWindow (ABHostBMethods.m:1076 — tạo UIRootSceneWindow trên
+  CADisplay xe, windowLevel = StatusBar+60, subclass xuyên chạm bằng
+  class_addMethod); -carWindow :1131; -dropWindowIfEmpty :1127;
+  -setupLiveAppViewForPane: :1744 (tạo FBScene thật: SBAppViewController +
+  SBDeviceApplicationSceneEntity + SBApplicationSceneUpdateTransaction +
+  FBSceneMonitor); -layoutPane: :839 (áp frame ÷ zoom); -setFrame:forApp:live:
+  :678; -zoom :594 (đọc pref appBridgeZoom, kẹp 0,6–1,0).
+  Đường đi: SplitScreen phát NSDistributed com.anlai.omnicar/appbridge.open →
+  ABHost mở pane, gắn scene view vào box. Chỉ dành cho app HOSTED.
+  [CẤM CAN THIỆP — windowLevel/hitTest subclass/sceneBox là hợp đồng host scene
+  và đường chạm hosted]
+
+- ABBoxView (ABChromeViews.h:12, .m:47): -setHole: .m:51, -applyHole :68,
+  -pointInside: :97. ABHost gọi qua -setHole:forApp: (ABHostBMethods.m:923),
+  -setPassInsets:forApp: (:933).
+  [CẤM CAN THIỆP hole/passInsets/pointInside — ranh giới chạm chrome↔scene;
+  riêng viền/nền hộp: ĐƯỢC SỬA THIẾT KẾ]
+- ABShieldView (ABChromeViews.h:20, .m:113): touchesBegan .m:119 — nuốt chạm,
+  không chuyển tiếp. Bật qua -setShieldAll: (ABHostBMethods.m:940) /
+  -setShield:forPane: (:951); kênh appbridge.shield. [CẤM CAN THIỆP]
+- ABKnobView (ABChromeViews.h:23, .m:128): -relay:touches: chuyển tọa độ qua
+  kênh appbridge.knobtouch; ABHost -setKnobs: :1579, -raiseKnobs :1547,
+  -setKnobsFade: :1507, -applyFade:forPane: :1467.
+  [Vẽ chấm knob: ĐƯỢC SỬA THIẾT KẾ; relay tọa độ/fade: SỬA CÓ ĐIỀU KIỆN — giữ
+  phase + lastSent]
+- ABBarButton (ABChromeViews.h:30, .m:169): -pointInside: .m:175 (vùng chạm =
+  bounds co vào), -setHighlighted: :191. [SỬA CÓ ĐIỀU KIỆN — hit rect là số đo]
+
+- Thanh lệnh (bar) của ô hosted — ABHostBMethods.m: -buildBarForPane: :1158,
+  -layoutBarForPane: :1228, -setBarVisible:pop:dim:single:forApp: :1252,
+  -hideBarForPane: :1290. Năm nút theo thứ tự, nút 48pt, bar cao 52pt, nền
+  UIVisualEffectView blur + lưới logo OMCLogoMeshImage(0):
+  hm_apps "Đổi app" → barReplace: ; hm_full "Toàn màn" → barFull: (soloButton);
+  hm_float "Cửa sổ nổi" → barPop: (popButton; pop==2 đổi thành hm_split "Chia
+  màn"); hm_min "Chạy nền" → barBackground: ; [vạch phân cách] ; hm_close
+  "Tắt app" (đỏ) → barClose:.
+  Hành động ra: ABHostLaunch.m -postBarAction:from: (khoảng :335–354) phát
+  NSDistributed com.anlai.omnicar/appbridge.baraction {replace|full|pop|bg|
+  close}; phía split nhận và thực thi. Kích hoạt: gõ handle của ô.
+  [Icon/nhãn/màu/nền blur: ĐƯỢC SỬA THIẾT KẾ; guard hiện/ẩn + kích thước bar:
+  SỬA CÓ ĐIỀU KIỆN; kênh + tên action: CẤM CAN THIỆP]
+
+- Handle hosted — ABHostBMethods.m: -setupHandleForPane: :1317 (vùng chạm
+  44×24, pill vẽ 34×12 ba chấm), -setHandleVisible:forPane: :1350,
+  -handlePanned: :986, -handleTapped: :1011, -outsideTouched :973,
+  -setHandleOffset:forApp: :1554. Kênh appbridge.handledrag / .handletap.
+  [Vẽ pill: ĐƯỢC SỬA THIẾT KẾ; vùng chạm: SỬA CÓ ĐIỀU KIỆN — vùng chạm lớn hơn
+  hình vẽ là có chủ đích]
+
+- Bảng kênh AppBridge (ABChannelNames.m, 54 dòng): NSDistributed
+  com.anlai.omnicar/appbridge.{orientation,key,open,frame,shield,close,
+  closeall,knobs,state,knobtouch,handledrag,handletap,baraction,bardismiss,
+  kbsync}; Darwin appbridge.keyboard, appbridge.apporient; BridgeWake v1:
+  bridgewake.v1.{state,query,wake,ack,act}; lease YouTube: appbridge.ytlease /
+  .ytleaseack (ABYTZoom.m 693 dòng — lease orientation/zoom cho YouTube hosted).
+  [CẤM CAN THIỆP toàn bảng kênh]
+
+--------------------------------------------------------------------
+2.2 PHÍA IN-APP + BÀN PHÍM — OmniCarAppBridge phía app [Trong DC58: CÓ]
+--------------------------------------------------------------------
+File (project/OmniCarAppBridge/): ABInApp.m 3.425 dòng; ABKeyboard.m 848;
+ABTelex.m 203; ABNativeDrawnTA.m 561 (MỚI so với gốc); ABKeyboardTraits104.m
+508 (MỚI).
+
+- Cổng chạm in-app: hook -[UIApplication sendEvent:] tại ABInApp.m:2039.
+  Cơ chế: controls đang ẩn → chạm đầu tiên bị NUỐT, phát đúng 1 tín hiệu wake
+  qua bridgewake.v1.wake; chuỗi chạm đã nuốt giữ nuốt hết chuỗi; fail-open với
+  cửa sổ lạ. Đây là nửa in-app của cổng gọi logo.
+  [CẤM CAN THIỆP — cổng gọi logo + trọng tài nuốt chạm]
+- Relay pinch HL53 trong ABInApp.m:1588–1791 + ABPinchGestureRecognizer
+  (interface khoảng :1656; -touchesBegan: :1681; -abEvaluatePairWithPhase:
+  :1757; -touchesMoved: :1781): chỉ relay MỘT lệnh có hướng sau khi cặp ngón
+  thật sự di chuyển; loại 3 ngón (:1739). Hợp đồng hướng dùng chung:
+  project/OmniCarPinchCommon/DCPinchDirection.h (~41 dòng): xòe tỉ lệ ≥1,10 =
+  DCPinchOut (phóng/fullscreen); chụm ≤0,90 = DCPinchIn (thu/split); không kết
+  luận nếu delta <12pt, drift > 0,6·delta+10, hoặc khoảng cách đầu <26pt.
+  Quy tắc này do Nguyen chốt ở HL53 (trước đó pinch là toggle hai chạm).
+  [CẤM CAN THIỆP — ngưỡng/hợp đồng hướng; đổi phải có đo xe mới]
+
+- Bàn phím HOSTED (đường hiện hành cho app hosted tại DC58): ABKeyboard /
+  ABKey tự vẽ. Cờ quyết định: ABInApp.m:549
+  static const BOOL ABDrawnKb = YES; // [hl40-original-keyboard] hosted app
+  uses original drawn keyboard; native CarPlay unchanged.
+  ABKeyboard.m: ABKey interface :33–58, impl :153 (-paint: :175,
+  -setHighlighted: :210, -layoutSubviews :228); ABKeyboard impl :244:
+  -send:del:text: :254 (đóng gói → kênh appbridge.key), -showForApp:
+  keyboardType:returnType: :284, -hideForApp: :332, -typeCharacter: :366,
+  -keyTapped: :401, -hideTapped :445, -langTapped :452 (ghi pref
+  appBridgeKeyboardLang), -updatePreview :463, -buildPanel :487,
+  -layoutPanelIn: :571 (panel cao = min(container × 0,78; 280)), -rebuildKeys
+  :595 (hàng phím dạng chuỗi + trọng số bề ngang: space 4,2; shift/del 1,5;
+  mode 1,4; lang 1,1), -layoutKeys :670.
+  Đường đi: responder trong app hosted bị gắn inputView rỗng cỡ 0 (dập phím hệ
+  thống) → trạng thái đóng gói qua Darwin appbridge.keyboard → host hiện panel
+  ABKeyboard trong cửa sổ xe → gõ → appbridge.key → phát lại vào responder
+  (ABInApp.m khoảng :2932+, phân phối theo từng app :2974).
+  [Hình thức phím/panel: ĐƯỢC SỬA THIẾT KẾ; bố cục hàng/phím + value/command
+  từng phím: SỬA CÓ ĐIỀU KIỆN; inputView rỗng + kênh keyboard/key: CẤM CAN THIỆP]
+  LƯU Ý LỆCH LỆNH CŨ: lệnh Nguyen 09/11/2026 "bỏ phím vẽ, về phím gốc" từng là
+  trạng thái ở HL32–HL36 (ABDrawnKb=NO). Tại DC58 source cho thấy phím vẽ ĐÃ
+  QUAY LẠI cho hosted từ HL40 theo lệnh riêng từng vòng; trạng thái xe của
+  đường phím này tại DC58: [CHƯA XÁC MINH] (hồ sơ: HL41 device fail, HL43
+  device pending — Mục 6).
+
+- Engine Telex tại DC58: ABTelex.m CHỈ CÒN 203 dòng (gốc 380 dòng), đầu file
+  ghi [hl43-shared-telex] — engine tiếng Việt DÙNG CHUNG cho cả hosted và
+  native, thay engine phục dựng của binary gốc vốn có 8 điểm lệch chuẩn
+  [D1]–[D8] đã ghi hồ sơ (chứng minh bằng ảnh xe "quảng" → "quaảg" và mô
+  phỏng chạy lại engine gốc). ABTelexApply tại ABTelex.m:89; bảng nguyên âm
+  12 họ × 6 thanh tại :12–20. Chỉ áp khi cờ vietnamese bật (pref
+  appBridgeKeyboardLang) và trên "từ hiện tại" ≤11 ký tự.
+  [SỬA CÓ ĐIỀU KIỆN — engine HL43 đã kiểm bằng verify_hl43_shared_telex.py
+  trong CI của HL58; sửa tiếp phải giữ kiểm chứng từ vựng đó]
+
+- Bàn phím NATIVE cho app CarPlay gốc: ABNativeDrawnTA.m (561 dòng, MỚI, CÓ
+  biên dịch). Tên file gây nhầm: nội dung là đường NATIVE. Kênh NSDistributed
+  (hằng tại :16–18): com.anlai.omnicar/nativekb.focus.v1, .command.v1,
+  .ack.v1. Cơ chế: chỉ áp cho responder thuộc scene CarPlay thật (hàm
+  DC40CarScene; ứng viên hosted bị loại khi ABForcedOrientation ≥ 1); pre-arm
+  inputView trước khi UIKit nhận first-responder (khoảng :81–110, HL41);
+  mirror resign (HL42, :74/:284+); hủy phiên qua nút Cancel thật của
+  UISearchBar sở hữu (HL43, DC43OwningSearchBar :120–222); poll dự phòng
+  NSTimer (DC40ClientScanTimer :25); hook become/resignFirstResponder của
+  UITextField/UITextView tại :380–386.
+  [CẤM CAN THIỆP — file này chỉ quyết định focus/phiên/hủy; hình thức bàn phím
+  hệ thống do iOS vẽ, không thuộc file này]
+- ABKeyboardTraits104.m (508 dòng, MỚI): hook traits/chiều rộng keyplane theo
+  bằng chứng DuoNavi 1.0.4 (đầu file ghi rõ nguồn nghiên cứu chỉ-đọc, không
+  phải code hãng); Makefile ghi "retained for ABI compatibility but input is
+  managed by ABNativeDrawnTA.m" — có biên dịch, vai trò traits phụ trợ.
+  [CẤM CAN THIỆP — traits quyết định kích thước keyplane; sửa khi chưa đo lại
+  là lặp lỗi lệch 1 revision của HL36]
+
+--------------------------------------------------------------------
+2.3 UI XE PHÍA CARPLAY — OmniCarSplitScreen [Trong DC58: CÓ, trừ Voice]
+--------------------------------------------------------------------
+Số dòng DC58 (project/OmniCarSplitScreen/): SCPCarSplit.m 3.810; +Picker.m
+2.019; +BridgeWake.m 1.542; SCPTouchProbe.m 1.269; SCPHooks.m 890;
+SCPHomeLauncher.m 722; +Layout.m 699; SCPFullscreenController.m 676;
++Panel.m 560; +Divider.m 554; SCPHomeApply.m 543; +Chrome.m 529;
++RatioMenu.m 503; +AutoHide.m 490; SCPPinchController.m 674; +Zoom.m 473;
+SCPAppIcons.m 423; SCPCarApps.m 408; SCPShared.m 338; +Drag.m 231;
+SCPHomeVisibility.m 209; +Relayout.m 186; SCPHomeHooks.m 166; SCPPrefs.m 165;
+SCPHomeWallView.m 156; SCPCarDividerView.m 154; SCPHomeSettings.m 131;
+SCPCTouchWatch.m 74; SCPCButton.m 48; SCPCarSplitView.m 40; SCPCarTabView.m 16.
+
+- Lõi SCPCarSplit (SCPCarSplit.h:28 : NSObject <UIScrollViewDelegate>):
+  thuộc tính container (SCPCarSplitView), slots, fractions, dividers,
+  pickerSheet, pickerShield, tray, trayWindow, ratioMenu, ratioKnob,
+  homeButton (UIButton, .h:86), soloCover, trayCover, popupShield, floatPane,
+  dragGhost, zoomedSlot.
+  Method lõi (SCPCarSplit.m): +shared :89; -activateWithCount: :160;
+  -carScreenAppeared :223; -ensureContainer :366; -openApp:slot: :605;
+  -adoptViewController: :1115 / -adopt:slot: :1154 (nhận VC native vào ô);
+  -detachVC:background: :1246; nhóm host-bridge (-hostApp:inPane:,
+  -hostedApp:state:, -hostSolo:, -sendHostFrameForPane:live:,
+  -hostFrameInfo:pane:live:handle:, -holeForPane:, -hostBarInfoForPane:,
+  -hostPassInsetsForPane:) nằm khoảng :1946–2290 ở bản main, ở DC58 dịch
+  xuống theo độ dài file [số dòng chính xác từng method nhóm này ở DC58:
+  CHƯA ĐO LẠI — Mục 6].
+  Pref đọc: splitScreenEnabled, splitScreenLastLeft/Right,
+  splitScreenSplitRatio, splitScreenSplitDirection, splitScreenPaneOrientation,
+  splitScreenAutoLaunch, splitScreenPinnedApp, splitScreenCarPlayApps,
+  splitScreenRecentLayouts, họ splitScreenFavorite* (qua SCPPrefs.m).
+  [CẤM CAN THIỆP — hooks DashBoard/scene + adopt/detach + host-bridge frame
+  là cơ chế giữ scene sống và một-chủ-ghi hình học]
+
+- Hooks DashBoard (SCPHooks.m 890 dòng): +_newApplicationLibrary (hook :87,
+  lắp :699) — cổng đưa app đã chọn vào lưới xe KHÔNG cần bật Cài đặt CarPlay
+  gốc; DBApplicationInfo -_loadFromProxy: :110/:701; DBDashboardHomeViewController
+  init/viewDidLayout/Appear/Disappear :129–148/:707–714; DBDashboard
+  sceneFrameForAppInfo: :204/:807; safeAreaInsetsForAppInfo: :227/:809;
+  _handleHomeEvent: :247/:811; _launchAppWithInfo:forURL: :274/:815;
+  RootVC present/dismissBaseViewController :298/:365/:819–822;
+  SceneVC backgroundScene (NUỐT :428/:829) + deactivateScene (NUỐT :441/:831)
+  + sceneManagerDidDestroyScene :455/:833; FBSDisplayLayoutPublisher
+  addElement :532/:843 (dự phòng). Hooks lưới/icon qua SCPHomeHooks.m:52–157.
+  [CẤM CAN THIỆP toàn bộ]
+
+- "Menu 3 chấm" của ô split = HANDLE pill ba chấm: +Chrome.m -setupBarForPane:
+  :161 dựng handle pill 34×12, ba chấm tại x=9/17/25; recognizer tap/double-tap/
+  pan → handleTapped:/handleDoubleTapped:/handlePanned:. KHÔNG tồn tại nút
+  ba chấm độc lập nào khác trong cây. [ĐÃ ĐO]
+  Thanh lệnh ô split (+Chrome.m 529 dòng): factory SCPBarButton 48×40, chip
+  40×40; 5 nút cùng bộ icon hm_* như bar hosted: hm_apps Đổi app → paneChoose:;
+  hm_full Toàn màn → paneSolo:; hm_float Cửa sổ nổi → panePopOut:; hm_min Chạy
+  nền → paneBackground:; [phân cách]; hm_close Tắt app (đỏ) → paneClose:. Bar
+  cao 52pt. Method: -layoutBarForPane:, -setBarVisible:forPane:, -anyBarVisible,
+  -hideBarsForTouchOn:, -panelOpen, -popupOpen, -closePopups,
+  -updatePopupShield, -shieldExemptRects/-shieldExemptPoint:/-refreshShieldHoles
+  (khiên popup + lỗ miễn trừ). Helpers thị giác: SCPApplyMeshBackdrop (lưới logo
+  lên UIVisualEffectView), SCPStyleChip, SCPColorSecondary.
+  Đồng bộ hai phía: app native → split là chủ bar; app hosted → ABHost là chủ,
+  split nhận qua hostBarInfoForPane:.
+  [Icon/nhãn/màu/chip/lưới nền: ĐƯỢC SỬA THIẾT KẾ; vị trí handle + exempt
+  rects: SỬA CÓ ĐIỀU KIỆN; cơ chế nuốt của popup shield: CẤM CAN THIỆP]
+
+- Divider + knob + menu tỉ lệ: SCPCarDividerView (: UIView, .h:14, .m:109;
+  -pointInside: .m:114 mở rộng vùng chạm; touches .m:128/137/146).
+  +Divider.m: -beginResize :56, -endResize :63, -dividerPanned: :82,
+  -dividerPan: :112, -mainStackDividerPan: :221, -saveRatio :324 (ghi pref
+  splitScreenSplitRatio/splitScreenPairRatios), -ratioPresets :343,
+  -dividerDoubleTapped: :366, -dividerTapped: :389, -ratioPresetTapped: :415,
+  -remoteKnobTouch: :453 (nhận knobtouch từ hosted).
+  +RatioMenu.m: -showRatioMenuForDivider: :361 (menu chọn tỉ lệ preset khi gõ
+  divider; -hideRatioMenu [dòng DC58 CHƯA ĐO LẠI]).
+  +Layout.m: -frameForSlot: :128, -dividerFrameAt: :280, -appAreaInParent:
+  :409, -rebuildDividers :527, -newDividerAt: :545, -layoutKnobOf: :591,
+  -flashFocusOnPane: :670.
+  SCPCButton (: UIButton, -pointInside: .m:17 mở rộng chạm đối xứng);
+  SCPCarSplitView (-hitTest: .m:15); SCPCarTabView (-pointInside: .m:11);
+  SCPCTouchWatch (-hitTest: .m:18 — khiên báo cáo chạm của popup shield).
+  [Vẽ knob/divider: ĐƯỢC SỬA THIẾT KẾ; frame + pointInside mở rộng: SỬA CÓ
+  ĐIỀU KIỆN — hit-rect là số đã đo trên xe; saveRatio + pref key: CẤM CAN THIỆP]
+
+- Picker chọn app + tray + loader + toast (+Picker.m 2.019 dòng):
+  -addCoverToPane: :268 / -removeCoverFromPane: :326 (cover ô trống);
+  -showPickerForSlot: :344; -removePickerFromPane: :524;
+  -showPickersForEmptySlots :541; -pickerPaneTapped: :547;
+  -refreshPickerSheet :622; -buildPickerSheetForPane: :662 (sheet UIView bo
+  góc 24 + mặt UIVisualEffectView SCPKnobFaceView); -markPickerPanes :1162;
+  -removePickerSheet :1170; -pickerMapForPane:height: :1293 (ô bản đồ thu nhỏ
+  trong sheet); -pickerMapTapped: :1361; -layoutPickerDotsForPage: :1371
+  (chấm trang); -pickerAppTapped: :1415; -pickerCancel: :1447;
+  -trayWindowForParent: :1505 (UIWindow tray riêng + subclass xuyên chạm);
+  -hideTrayWindowIfIdle :1592; -restartTrayTimer :1608; -collapseAppTray
+  :1622; -refreshAppTab :1670; -showPickerForFocusedPane :1677;
+  -loaderCancelTapped: :1691; -showLoaderInPane:bundle: :1722;
+  -removeLoaderFromPane:animated: :1832; -toast: :1866/:1875;
+  -showBackgroundToastFor:slot: :1926; -showTipSoon :2000.
+  Nguồn app cho lưới: SCPCarApps.m (408 dòng — app CarPlay + app đã chọn) +
+  SCPAppIcons.m (423 dòng — icon qua _applicationIconImageForBundleIdentifier:).
+  Kích hoạt: chạm ô trống / nút Đổi app / showPickerForFocusedPane. Ghi: bundle
+  chọn → openApp/hostApp; pref splitScreenShowFavorites, splitScreenShowRecent.
+  Cơ chế mặt sheet: khi sheet đè lên ô hosted đang sống, mặt sheet phải TRONG
+  SUỐT (pref splitScreenPickerSheetClearFaceOff trên bản cũ; trên nhánh DC58
+  họ key này đã thay bằng 9 key duocarHL46–HL51 — xem Phụ lục B). Đây chính là
+  "vật che picker = effect sheet ~61%/ô" đã kết án ở các vòng HL: log xe HL47
+  (PID 7658) chứng minh picker ô hosted giữ nền đục alpha 1 phủ toàn ô; chuỗi
+  vá HL48–HL50 fail; HL51 tìm thấy hostFrameForPane: trả frame 0×0 khi picker
+  mở, Nguyen xác nhận menu hết đen ở DuoCar51 (đạt phạm vi hẹp).
+  [TỪ HỒ SƠ CŨ — phần log/kết luận HL47–HL51; cơ chế sheet trong source: ĐÃ ĐO]
+  [Bố cục lưới/icon/nhãn trong sheet: ĐƯỢC SỬA THIẾT KẾ; kích thước sheet
+  (sheetW = cols×62+20, +150 cột bản đồ) + mức cửa sổ tray: SỬA CÓ ĐIỀU KIỆN;
+  mặt-trong-suốt-khi-đè-hosted + hitTest xuyên chạm của tray: CẤM CAN THIỆP]
+
+- Panel bố cục (+Panel.m 560 dòng): -paneChoose: :156,
+  -showLayoutPanelForApp: :179, -panelSections: :471, -panelChoiceTapped:
+  :524 / -panelChoiceTappedUnsafe: :538. Panel chọn bố cục (2 ô / 3 ô /
+  1 lớn + 2, yêu thích). Pref splitScreenFavorite*; layout id qua
+  -layoutChosenID: (SCPCarSplit.m).
+  [Hình thức panel: ĐƯỢC SỬA THIẾT KẾ; tập lựa chọn + layout id: CẤM CAN
+  THIỆP — layout id 2/3/13/31 là hợp đồng cả với lệnh khác]
+
+- Logo/controls ẩn–hiện phía split:
+  * homeButton (nút logo): tạo qua SCPLauncherButton tại SCPCarSplit.m:
+    3255/3264 (target homeButtonTapped), -homeButtonTapped :3348. Khối
+    dock-gate quanh :2957–3260 [số dòng DC58 từng dòng: CHƯA ĐO LẠI].
+  * AutoHide (+AutoHide.m 490 dòng, .h 152): -ahPaintCurrentSet :106 (mờ dần
+    handle/divider/knob/homeButton; khi mờ homeButton.userInteractionEnabled
+    = NO tại :128 — bản sửa HL6 để logo mờ không ăn chạm);
+    -ahRestoreAllPainted :135 (trả YES :140); -ahArmTimer :150;
+    -ahFadeBlockedReason :163; -ahTimerFired: :199; -ahRevealBody: :230;
+    -ahInstall :275; -ahNoteActivity: :286; -ahNoteActWithKbActive: :302;
+    -ahRevealWithReason: :337; -ahFaded :374; -ahReloadConfig :378 (đọc pref
+    bridgewake.autoHide tại src/SplitScreenA/SCPCarSplit+AutoHide.m:384
+    [ĐÃ ĐO trên cây src nhánh]); -ahSessionStarted :400;
+    -ahApplyCurrentStateToView: :474.
+  * BridgeWake phía split (chủ trạng thái) (+BridgeWake.m 1.542 dòng):
+    -bwEmitStateForPane: :390; -bwEmitAllHostedStates :433;
+    -bwApplyAssignmentForSlot:bundle: :448; tổng hợp/phát kb :541–589;
+    -bwHandleKbStateNote: :589; -bwHandlePinchNote: :666; renew :785/:805;
+    -bwPopupForPane: :839; -bwPinchAllowedForPane: :847; -bwRecomputeForPane:
+    :895; xử lý gói query/wake/act/ack :1134/:1170/:1289/:1345 (phát ack qua
+    bridgewake.v1.ack tại :1228/:1371); -bwInstallOwner :1389; -pinchMode
+    :1472; -pinchDispositionForPane: :1499 (trọng tài cuối).
+  [CẤM CAN THIỆP — cặp AutoHide↔BridgeWake + sendEvent in-app là CỔNG GỌI
+  LOGO: chạm đầu khi ẩn chỉ hiện logo/controls và bị nuốt; sửa thời gian mờ/
+  alpha thuần thị giác phải giữ nguyên cổng userInteractionEnabled và thứ tự
+  hiện lại]
+
+- Pinch phía host: SCPPinchRecognizer (: UIGestureRecognizer, .h:79, impl
+  .m:102; touchesBegan :179, touchesMoved :229, kết luận hướng qua
+  DCPinchDirection HL53) + SCPPinchController (.h:95, impl .m:387;
+  attachIfNeeded :407, syncArming :434, allowlist theo bundle+hosted
+  :478–518, scpRecognizerDidCross: :583). Điểm bám: SCPTouchProbe.m (1.269
+  dòng) hook -[UIApplication sendEvent:] THỤ ĐỘNG trong CarPlayApp (lắp tại
+  :1246; đầu file ghi rõ không delay/alter/drop chạm, chỉ quan sát + nuôi
+  pinch host).
+  [CẤM CAN THIỆP — pinch theo hướng HL53; không khôi phục trọng tài cũ]
+
+- Fullscreen: SCPFullscreenController.m (676 dòng; +shared :98,
+  fsInstallIfNeeded :116, fsCommittedState :171, fsChromeSweepAndHide :217,
+  fsChromeSetHidden: :238, fsAssertHomeButtonHidden :260 — ép homeButton ẩn
+  khi fullscreen, nghi phạm đã ghi nhận khi logo native không gọi lại được;
+  fsRequestExpand :323, fsExpand :329, fsRollbackWithProvenance: :426,
+  restore :445–543, fsSessionDidEnd :565, fsDidLayout :590 — số dòng theo
+  bản main, file DC58 dài hơn 48 dòng nên vị trí có thể dịch vài dòng
+  [CHƯA ĐO LẠI từng dòng DC58 cho file này]). SCPFullscreenAdapter.m (59
+  dòng) — cầu giữa pinch/BridgeWake và controller.
+  [CẤM CAN THIỆP — máy trạng thái expand/restore/rollback;
+  fsAssertHomeButtonHidden chạm trực tiếp khả năng gọi lại logo]
+
+- Home/Dock phía xe: SCPHomeLauncher.m (722 dòng — hợp nhất khai báo CarPlay
+  tổng hợp vào Info của app được chọn để app hiện trên lưới xe không cần bật
+  Cài đặt gốc; file tăng 396→722 dòng so với main, +326/−0 thuần thêm, gồm cả
+  phần vitals/dock mới [danh sách hàm mới cụ thể: CHƯA XÁC MINH]);
+  SCPHomeApply.m (543 — áp lưới icon/thứ tự); SCPHomeVisibility.m (209);
+  SCPHomeSettings.m (131); SCPHomeWallView.m (156 : UIView — hình nền home
+  xe). Pref: homeScreenHiddenApps, homeScreenShownApps, homeScreenGridCols/
+  Rows, homeScreenIconSize, homeScreenShowNames, homeScreenBlur,
+  homeScreenDim, homeScreenWallpaper, homeScreenWallpaperStyle,
+  homeScreenCarApps.
+  [Hình nền/mờ/nhạt home: ĐƯỢC SỬA THIẾT KẾ; lưới cột/hàng/kích thước icon:
+  SỬA CÓ ĐIỀU KIỆN — phải khớp hooks lưới của SCPHomeHooks; declaration tổng
+  hợp: CẤM CAN THIỆP]
+
+- SCPHostedAppVC (: UIViewController, file 36 dòng) — VC bao scene hosted
+  trong ô split; SCPNoopLayoutAssertion cùng file.
+  [CẤM CAN THIỆP — layout assertion là phần giữ scene]
+
+- VITALS trên xe (MỚI ở DC58, CÓ biên dịch):
+  * SCPDeviceVitalsHUD (.m 477 dòng, impl :26): thuộc tính host, panel
+    (UIView), label (UILabel), thermalWarningWindow (UIWindow).
+    -showForParent: :382 — tìm Dock native thật qua SCPVitalsNativeDockView
+    (:200); không có Dock thì ghi log "[hl50-dock] MISSING native Dock
+    UIView; no fallback to app/root UIWindow" (:395) và KHÔNG hiện. Panel
+    chèn gần Dock theo SCPVitalsPlacement (SCPVitalsPlacement.c 219 dòng —
+    hàm tính ô Dock thuần). Bài học HL47: bản cũ fail vì toán vị trí (rail
+    thật 45pt < mức đòi 51pt, log [vitals] rail-no-room, 0 lần gắn được);
+    HL52 chuyển badge xuống dưới cụm 3 icon, nền trong suốt.
+    [TỪ HỒ SƠ CŨ — HL47/HL52; cơ chế Dock trong source: ĐÃ ĐO]
+    Cảnh báo nhiệt: -showThermalWarningInParent:temperature: :46 —
+    UIRootSceneWindow riêng mức StatusBar+64.5 (:86) + rèm UIView + UILabel;
+    cổng nhiệt SCPThermalAlarm.h (nóng ≥39°C qua 2 mẫu liên tiếp mới báo, hạ
+    ≤37,5°C thì tái vũ trang; mẫu hợp lệ 15–65°C). Dữ liệu: OMCDeviceVitals
+    (OMCCommon/OMCDeviceVitals.m 137 dòng) — pin/nhiệt độ/trạng thái nhiệt.
+  * SCPFullscreenVitalsBubble (.m 400 dòng, impl :102): cửa sổ phủ riêng
+    (DCFVCreateCarPlayWindow :27 trên màn hình xe), mức StatusBar+64.0 (:75),
+    statusView + timeLabel + metricsLabel (giờ + pin/nhiệt), thermalCurtain.
+    KHÔNG nhận chạm: hitTest xuyên qua (DCFVPassHitTest :19, ghi chú "No
+    touch target ever"). Method: systemClockChanged: :124,
+    layoutStatusLine :232, tick :245, statusFrameForOverlay:hostWindow: :298,
+    showForConfirmedFullscreenInParent: :321. Chỉ hiện khi fullscreen đã xác
+    nhận (gọi từ SCPFullscreenController). Theo hồ sơ HL57: thay bong bóng
+    kéo được cũ bằng hàng trạng thái CỐ ĐỊNH góc trái trên cùng (giờ–pin–
+    nhiệt, cách nhau 4pt, không nền) — đã build vào DC57 và giữ ở DC58.
+    Pref: duocarFullscreenVitalsEnabled (mặc định YES; ghi tại
+    OMCNativeSettings.m:469, đọc tại SCPFullscreenVitalsBubble.m:175).
+  [Nhãn/chữ/màu của cả hai: ĐƯỢC SỬA THIẾT KẾ; vị trí ô Dock + mức cửa sổ +
+  xuyên chạm: SỬA CÓ ĐIỀU KIỆN — placement là thuật toán đo Dock, mức
+  64/64.5 nằm trên cửa sổ ABHost (60) và dưới overlay traffic (65); cơ chế
+  "không Dock thì không hiện" + logic cảnh báo nhiệt: CẤM CAN THIỆP]
+
+- VOICE trên xe (CÓ FILE — KHÔNG biên dịch ở DC58): SCPVoiceBubbleView
+  (.m 266 dòng — bong bóng mic kéo thả: initWithBoundaryBounds: :28,
+  layoutCore :81, placeStoredPosition :110, persistPosition :126,
+  snapToNearestEdgeAnimated: :139, handlePan: :158, handleTap: :177,
+  wakeBubble :199, dimBubble :208, setVoiceState:animated: :217);
+  SCPVoiceBridge.m (157 dòng; category SCPCarSplit (DCVoiceButton),
+  -dcVoiceRequest: :147; pref voiceAssistantEnabled; kênh voice.action/.ack,
+  voice.capture.state); SCPVoiceNative.m (323); SCPVoiceSpringAgent.m (663;
+  SCPVoiceSpringSession STT/TTS phía SpringBoard).
+  Bằng chứng loại khỏi build: comment [hl36-voice-off] trong Makefile của
+  OmniCarSplitScreen + _FILES không chứa SCPVoice*.
+  [KHÔNG ÁP DỤNG Ở DC58 — không có bong bóng giọng nói, không có nút voice
+  trong DC58; mọi thiết kế voice phải chờ quyết định bật lại]
+
+--------------------------------------------------------------------
+2.4 BONG BÓNG TỐC ĐỘ GỐC — OmniCarSpeedBubble [Trong DC58: KHÔNG]
+--------------------------------------------------------------------
+Makefile gốc DC58 loại OmniCarSpeedBubble khỏi SUBPROJECTS (comment
+[le024-migration] tại project/Makefile:15–18: "Old OmniCarSpeedBubble runtime
+intentionally excluded. Historical source remains … for forensic rollback
+only"); workflow HL58 còn chạy strip_speedbubble_assets.py. Toàn bộ mục này
+là bề mặt LỊCH SỬ, không có trong DEB DC58. Số dòng (giữ nguyên như main):
+SPPBubble.m 1.417; SPPBubbleView.m 1.465; SPPViews.m 215; SPPWindowFactory.m
+231; SPPDisplayBoot.m 376; SPPOverspeed.m 414; SPPPrefs.m 217; SBPublish.m
+155; SBScan.m 340; SBScanHelpers.m 661; SBSourceHooks.m 228; SBFlutter.m 257;
+SPPSpeedGPS.m 159; SPPWarningSound.m 363.
+- SPPBubble (: NSObject, interface .m:94, impl :145): window/card/menu/
+  menuShield; cử chỉ -tapped: :833, -panned: :878, -pinched: :899 (pinch đổi
+  cỡ bong bóng), -longPressed: :927 → -showMenu :1026 (menu bong bóng);
+  -renderBubble :597; -runDemo :781; -resetLayout :809.
+- SPPBubbleView (: UIView, interface .m:49, impl :87): 9 style hiển thị;
+  SPPGlassView/SPPIconView/SPPSignView trong SPPViews.m (impl :34/:129/:175).
+- Cửa sổ: SPPWindowFactory.m — SPPMakeCarWindow (UIRootSceneWindow trên màn
+  xe) + SPPMakeWindowPassThrough (hitTest xuyên khi trượt). SPPOverspeed:
+  cửa sổ cảnh báo vượt tốc mức StatusBar+65 + SPPWarningSound.
+- Nguồn dữ liệu: hook Vietmap Live/GOFA/Waze/Wyn phía app nguồn, phát Darwin
+  speedbubble.speed (số đóng gói 64-bit), SPPSpeedGPS phát location. Pref họ
+  speedBubble* (SPPPrefs.m).
+[KHÔNG ÁP DỤNG cho DC58 — bề mặt thay thế hiện hành là bong bóng Lề ngoài
+(2.8) + DCLTraffic chưa tích hợp (2.7). Nếu khôi phục SpeedBubble: vẽ bong
+bóng ĐƯỢC SỬA THIẾT KẾ; cửa sổ xuyên chạm CẤM CAN THIỆP]
+
+--------------------------------------------------------------------
+2.5 MÀN KHỞI ĐỘNG — OmniCarStartupScreen [Trong DC58: CÓ]
+--------------------------------------------------------------------
+Số dòng (giữ nguyên như main): SSSplash.m 458; SSStartupScreen.m 924;
+SSStartupView.m 1.149; SSStartupViewBuilders.m 1.229; SSStartupViewScenesB.m
+699; SSStartupScreen.h 282.
+- SSSplashWindow (: UIWindow, .h:91, impl SSSplash.m:22); SSSplash
+  (: NSObject, .h:184, impl SSSplash.m:38): window, imageView, startView
+  (SSStartupView), displayLink, framesDir/frameCount/fps. Method:
+  -initWithScreen:scene: (SSSplash.m:40), -start :185, -tick :216,
+  -decodeMore :248, -startCountdown :268, -tapped: :290 (gõ để bỏ qua — pref
+  startupScreenTapToSkip), -dismiss :294/-dismissBecause: :298, -tearDown
+  :314, -refreshWeather :351. Mức cửa sổ Alert+1000 (gán khoảng SSSplash.m:175).
+- SSStartupView (: UIView, .h:100; impl SSStartupView.m:155 + Builders :328 +
+  ScenesB :269): style, image, logoEffect, name, weather, carName, tempo,
+  occasion, hud, batteryPercent, duration; -clearContent/-reload/-playIntro
+  (.h:174–176). Dispatch style trong ss_buildScene (SSStartupView.m:683):
+  Sky/Engine/Welcome/Particles/HUD/Briefing/Liquid/Festive. Phụ: SSCanvasView,
+  SSFade, SSGauge (đồng hồ tốc độ vẽ CAShapeLayer/CAGradientLayer + nhãn số),
+  SSLinkTarget, SSLocationOnce (vị trí 1 lần cho thời tiết).
+- Đường đi: CarPlay kết nối → SSStartupScreen.m kiểm startupScreenEnabled +
+  OMCFeatureEnabled("startupScreen") + crash guard → SSSplash tạo cửa sổ trên
+  màn xe; giải mã frames video (pref startupScreenVideoName,
+  startupScreenDuration, startupScreenPlayFull, startupScreenScaleMode) hoặc
+  dựng SSStartupView theo startupScreenStyle + startupScreenLogoEffect +
+  startupScreenCarName/GreetingName; âm thanh startupScreenSound/SoundFile/
+  SoundVolume/SoundSkipCall; thời tiết qua Darwin startupscreen.weather.
+  request (SSSplash.m:413/:427) → .ready (SSStartupScreen.m:720); dịp đặc
+  biệt startupScreenOccasions/Birthday/OccasionLog/RandomSet/Tempo.
+  Cùng class SSStartupView được dùng lại làm bản xem trước ở trang Startup
+  trong app (2.6) và Prefs (2.9).
+  [Toàn bộ cảnh/trang trí SSStartupView (màu, chữ, hiệu ứng logo, bố cục
+  greeting/thời tiết/HUD): ĐƯỢC SỬA THIẾT KẾ; cửa sổ SSSplashWindow + vòng
+  đời start/countdown/tearDown + kênh thời tiết: SỬA CÓ ĐIỀU KIỆN — giữ thứ
+  tự dismiss/tearDown và lý do kết thúc; crash guard/rescue: CẤM CAN THIỆP]
+
+--------------------------------------------------------------------
+2.6 APP DUOCAR TRÊN IPHONE — OmniCarApp [Trong DC58: CÓ]
+ĐƯỜNG CÀI ĐẶT HIỆN HÀNH của DuoCar tại DC58 nằm ở đây (không phải Prefs).
+--------------------------------------------------------------------
+Số dòng DC58: OMCAppDelegate.m 52; main.m 12; OMCNativeSettings.m 1.265
+(MỚI); OMCNativeStartup.m 676 (MỚI); OMCLePrefsHost.m 253 (MỚI);
+OMCDeviceVitalsController.m 117 (MỚI); DCVoiceSession.m 392 +
+DCVoiceCommand.m 120 (KHÔNG build); DCLLeOriginalStoreClient.m 278;
+DCLLeStoreWire.h 41.
+Makefile app: _FILES = main.m, OMCAppDelegate.m, OMCNativeSettings.m,
+OMCLePrefsHost.m, OMCNativeStartup.m, OMCDeviceVitalsController.m,
+../OMCCommon/OMCDeviceVitals.m; RESOURCE_FILES = toàn bộ
+OmniCarPrefs/Resources trừ Info.plist của Prefs — tức app NẠP schema/strings/
+icon từ Resources của Prefs.
+
+- OMCAppDelegate (52 dòng): didFinishLaunching tạo UIWindow trên màn chính,
+  -openSettings đặt rootViewController = OMCNativeSettingsRootController()
+  (comment HL26: "iPhone configuration is a native UIKit app, not a
+  Settings.app preference page"; cấm gọi prefs:root/PSListController).
+  application:openURL: — scheme omnicar → NSDistributed
+  com.anlai.omnicar/url {url} → tự suspend sau 0,3s.
+  [CẤM CAN THIỆP — root controller + chuyển tiếp URL là hợp đồng Siri/Shortcuts]
+  KHÁC HẲN GỐC: ở OmniCar 1.0.3 app chỉ hiện nhãn hướng dẫn + nút "Mở Cài đặt".
+
+- OMCNativeSettings (1.265 dòng) — UITabBarController 3 tab:
+  OMCNativeSettingsRootController() tại :1247: tab 0 "Ứng dụng/Apps" (icon
+  square.grid.2x2.fill) → OMCNativeAppsPage; tab 1 "Chia màn/Split"
+  (rectangle.split.2x1) → OMCNativeSimplePage(kind=1); tab 2 "Cài đặt/
+  Settings" (gearshape.fill) → OMCNativeSimplePage(kind=0);
+  selectedIndex=2 (mở vào tab Cài đặt).
+  * OMCNativeAppsPage (: UITableViewController <UISearchResultsUpdating>,
+    interface :176, impl :193): danh sách app đã cài + tìm kiếm
+    (updateSearchResultsForSearchController: :343); chọn app cho
+    AppBridge/Home (isHomeProtected: :375, didSelect :381). Ghi pref
+    appBridgeApps, homeScreenCarApps… qua OMCNativeSetPref.
+  * OMCNativeSimplePage (: UITableViewController <UIImagePicker,
+    UINavigationController, UIDocumentPicker>, interface :185, impl :423):
+    kind 0=general, 1=split, 2=Home, 3=Bubble, 4=profiles (:186);
+    -makeSections :433 (kind 0 tại :434, kind 1 tại :477, kind 2 tại :499,
+    kind 3 tại :515); master card + -omcMasterChanged: :593 (công tắc tổng —
+    pref enabled); -omcChanged: :663 (công tắc từng key); -omcSliderDone:
+    :669 (thanh trượt); -chooseValueFor: :684; -editTextFor: :714;
+    -editFavorite: :729; -chooseLanguage :769 (pref language);
+    -confirmRescue :797; -confirmRespring :827 (phát respring.request, chỉ
+    báo thành công khi có respring.ack — :855/:872/:881); chọn ảnh/video nền
+    Home từ Photos/Files :1015/:1026 (delegate :1032/:1042);
+    homeWallpaperOptions :1054; resetHome :1075. Hàng họ leTraffic* hiển thị
+    qua OMCLeOptionDisplay (ánh xạ tại :143–153: nguồn vietmap-live/gofa/waze;
+    kiểu halo/classic; bố cục…).
+  * Section Device trong tab Cài đặt: 2 công tắc vitals (từ HL47), trong đó
+    duocarFullscreenVitalsEnabled ghi tại :469.
+  Hợp đồng dữ liệu (đầu file :14–36): domain com.anlai.omnicar, ghi qua
+  CFPreferences + notify com.anlai.omnicar/prefschanged — CÙNG key/notify với
+  Prefs bundle và chủ CarPlay. Chuỗi dịch: gộp mọi bảng .strings của
+  Resources Prefs (OMCNativeLocalized, 10 bảng).
+  [Bố cục tab/nhóm/hàng, chữ, icon tab: ĐƯỢC SỬA THIẾT KẾ; ánh xạ hàng→pref
+  key + kiểu control + giá trị mặc định: SỬA CÓ ĐIỀU KIỆN — đổi key/default
+  là đổi hành vi runtime, phải đối chiếu nơi đọc key ở module đích; hàm ghi
+  pref OMCNativeSetPref + notify: CẤM CAN THIỆP]
+
+- OMCNativeStartupPage (: UITableViewController, OMCNativeStartup.m 676
+  dòng; interface :66, impl :77): trang Startup trong app — header cao 200pt
+  (ảnh logo + nhãn + gallery style; viewDidLoad :86, refreshGallery :108,
+  styleSelected: :145), -rebuild :150, công tắc :236, trượt :242,
+  editString: :256, pickSegment: :272, pickVideo :291, editBirthday :305,
+  randomToggle: :332, chọn nguồn Files/Photos :362/:370, copyVideo: :415,
+  extractFrames: :436/:454 (trích frames video cho SSSplash), previewVideo
+  :536, deleteVideo :554, saveLogo: :566/deleteLogo :587, âm thanh
+  :594/:613/:625, previewOccasion :638; factory OMCNativeStartupController()
+  :674. Ghi cùng họ pref startupScreen* như 2.5.
+  [Nhãn như OMCNativeSettings: thiết kế ĐƯỢC SỬA; key/default CÓ ĐIỀU KIỆN]
+
+- OMCLePrefsHost (253 dòng) — trang điều khiển Lề NGOÀI trong app:
+  DCLLeStandaloneControls (: UITableViewController, interface :20, impl :30)
+  — CHỈ 2 chức năng của Lề 0.2.4 cài riêng: (1) thanh trượt GPS offset
+  −10..+10 km/h, bước 1, mốc 0 ở giữa (slider tại OMCLePrefsHost.m:130:
+  minimumValue=-10, maximumValue=10), chỉ gửi khi thả tay/VoiceOver, chờ ACK,
+  chỉ cộng vào tốc độ GPS đang chạy, KHÔNG sửa biển giới hạn; (2) công tắc
+  ON/OFF bong bóng Lề (leBubbleMasterEnabled). Hàng đợi lệnh có ACK:
+  -enqueueKey:raw: :164, -masterChanged: :174, -gpsChanged: :177/
+  -gpsEnded: :185, -nextRequest :188, -failWithMessage: :212, -didReceive:
+  :220. Giao thức: Darwin com.chuong.duocar/le024.cfg → chủ SpringBoard
+  (LeConfigBridge, 2.8) trả le024.ack. Kiểm tra khả dụng bằng
+  OMCLeOriginalPreferencesAvailable() (tồn tại LeBubble.dylib trong
+  DynamicLibraries). Đầu file ghi rõ HL58: không nạp LePrefs gốc, không mạo
+  danh settings của hãng, không vẽ bong bóng.
+  GHI CHÚ ĐỐI CHIẾU: một ghi chú điều tra ban đầu ghi kẹp offset −5..+5 —
+  ĐÃ ĐO LẠI trực tiếp: cả slider app (:130) và phía extension
+  (DCLLeExtension.m:35, MAX(-10,MIN(10,n))) đều là −10..+10. Lấy −10..+10.
+  [Hình thức trang: ĐƯỢC SỬA THIẾT KẾ; giao thức cfg/ack + timeout: CẤM
+  CAN THIỆP]
+  Theo hồ sơ: công tắc ON/OFF này từng được Nguyen xác nhận đạt trên DC55,
+  nhưng đường nối MỚI qua shim ở DC58 chưa device pass. [TỪ HỒ SƠ CŨ]
+
+- OMCVitalsPage (OMCDeviceVitalsController.m 117 dòng; interface :5, impl
+  :13): 4 nhãn battery/temperature/thermal/source (:6–9), -updateVitals :83,
+  factory :115. Dữ liệu từ OMCDeviceVitals.
+  [ĐƯỢC SỬA THIẾT KẾ toàn bộ trang — trang thông tin thuần]
+
+- Voice phía app (KHÔNG build ở DC58): DCVoiceViewController
+  (DCVoiceSession.m, interface :22/impl :39; viewDidLoad :87,
+  toggleListening :175, startAuthorized :205, handleTranscript: :327) +
+  DCVoiceCommand.m (120 dòng). Makefile app ghi [hl36-voice-off] và _FILES
+  không chứa chúng, không link Speech. [KHÔNG ÁP DỤNG Ở DC58]
+
+- DCLLeOriginalStoreClient (278 dòng) + DCLLeStoreWire.h (41): client phía
+  app cho kho dữ liệu Lề gốc qua kênh raw le024.raw.v1… — không có UI riêng.
+  [CẤM CAN THIỆP giao thức]
+
+--------------------------------------------------------------------
+2.7 BONG BÓNG TRAFFIC TỰ VẼ — OmniCarLeTraffic [Trong DC58: KHÔNG]
+--------------------------------------------------------------------
+Makefile của module tự ghi: "Not yet listed in the aggregate
+project/Makefile: source providers, lanes, signs, Google Maps card and
+controller integration must pass their checks before any package build."
+Filter: chỉ com.apple.CarPlayApp.
+- DCLTrafficOverlay (: NSObject, .h:8; .m 427 dòng, impl :88): window,
+  hostWindow, card (UIView 220×85 tại -buildCard :209), speedLabel,
+  limitLabel, sourceLabel, limitSign. -start :96; -findCarPlayHost :161
+  (tìm UIWindowScene CarPlay — cấm bám cửa sổ iPhone); -attachToHost: :181
+  (tạo UIWindow cùng scene, mức = StatusBar+65 rồi tự nâng trên các cửa sổ
+  hiện hữu dưới Alert+64 — :197–199); -panned: :285 (kéo thẻ, vị trí lưu
+  pref domain com.chuong.duocar); -render :322; -update :381. Xuyên chạm:
+  DCLWindowHitTest (:41) + DCLMakePassThrough (:50) — chỉ vùng thẻ nhận chạm.
+  Đầu .h ghi: "Stage 2: speed+limit UI; pipeline biển/làn đầy đủ của Le chưa
+  có" — tức bản tự vẽ này mới có tốc độ + giới hạn, CHƯA có biển báo/làn
+  như Lề gốc.
+- DCLTrafficSampler (.m 142 dòng): lấy mẫu tốc độ/giới hạn từ kênh
+  com.chuong.duocar/traffic.speed / .limit và kênh vendor
+  dev.bechou.le.gmaps.speed / .limit (hạn tươi 5,0s), callback main queue.
+- DCLTrafficCore.c (119 dòng): tính thuần (đọc/giới hạn/quá tốc, kẹp/snap vị
+  trí) — không UI.
+[KHÔNG ÁP DỤNG cho DC58 — khi tích hợp: vẽ thẻ/biển ĐƯỢC SỬA THIẾT KẾ; mức
+65 + xuyên chạm + bám scene xe SỬA CÓ ĐIỀU KIỆN (thứ tự phủ: 65 > nhiệt 64.5
+> vitals 64.0 > host 60)]
+
+--------------------------------------------------------------------
+2.8 CẦU TƯƠNG THÍCH LỀ NGOÀI — OmniCarLeExtension [Trong DC58: CÓ]
+Gói companion com.chuong.duocar.leextension 0.2.0, CI build riêng rồi merge
+vào DC58. _FILES của Makefile extension: chỉ DCLLeExtension.m +
+DCLLeConfigBridge.m. (DCLLeOriginalStoreServer.m 244 dòng và
+DCLLeStateWriter.c 176 dòng có trên đĩa nhưng KHÔNG nằm trong _FILES đã đọc
+— chúng vào gói bằng đường nào: [CHƯA XÁC MINH], Mục 6; hồ sơ HL58 nói
+extension đóng gói chỉ gồm dylib + plist.)
+--------------------------------------------------------------------
+- DCLLeExtension.m (206 dòng): shim chạy trong tiến trình Lề gốc (Filter
+  CarPlayApp + SpringBoard, DCLLeExtension.plist 325 byte): (1) sửa số tốc
+  độ GPS đang chạy trong nội dung bong bóng hãng theo offset (chạm vào
+  speedText của content hãng, :90–94; log [hl58-external-le] GPS offset=
+  :114; kẹp −10..+10 tại :35); (2) cổng hiện/ẩn bong bóng hãng:
+  DCLVendorBubble (:68), DCLMaskView (:43), nghe Darwin
+  com.chuong.duocar/le024.visibility (notify_register_dispatch :183). Nó
+  KHÔNG vẽ UI nào của DuoCar — nó che/sửa UI của hãng. Đọc domain
+  com.chuong.duocar (:16), key leTrafficGpsOffsetKph, leBubbleMasterEnabled.
+  Phía hãng bị chạm tới theo tên class/selector đã đo (theo hồ sơ HL58:
+  +contentWithSnapshot: sửa text; -place/-place: định vị).
+- DCLLeConfigBridge.m (103 dòng): phía SpringBoard — nhận
+  com.chuong.duocar/le024.cfg (:12), ghi pref domain com.chuong.duocar, phát
+  com.chuong.duocar/prefschanged (:61) + trả ack le024.ack (:13) + visibility
+  (:14).
+[CẤM CAN THIỆP — toàn bộ module là hợp đồng với binary hãng theo tên
+class/selector đã đo; đổi là mất cầu, và đây là phần "vendor-free" đã kiểm
+chứng của DC58]
+
+--------------------------------------------------------------------
+2.9 PREFS BUNDLE TRONG SETTINGS.APP — OmniCarPrefs
+[Trong aggregate gốc: CÓ; đường hiện hành thực tế: ĐÃ BỊ THAY BỞI 2.6]
+--------------------------------------------------------------------
+Số dòng DC58: OMCRootListController.m 383; OMCAppBridgeAppsController.m
+1.153; OMCSpeedBubbleController.m 985; OMCStartupScreenController.m 1.329;
+OMCSplitScreenController.m 632; OMCSplitScreenAppPickerController.m 227;
+OMCOnboardingController.m 312; OMCWhatsNewController.m 218;
+OMCCarProfilesController.m 171; OMCFeatureListController.m 114;
+OMCCardPage.m 246; OMCCells.m 96; OMCHeaderCard.m 120; OMCHSPreview.m 299;
+OMCSplitPreview.m 112; OMCSSStyleTileCell.m 130; OMCCommon.m (Prefs) 1.212.
+KHÁC MAIN: Makefile Prefs ở DC58 KHÔNG còn SPPBubbleView/SPPGlassView/
+SPPIconView/SPPSignView/SPPSoundDelegate trong _FILES (chỉ còn nhóm SS* +
+controllers) — các file vẫn trên đĩa. Việc SPPBubbleView được các controller
+tham chiếu ra sao sau khi rời _FILES: [CHƯA XÁC MINH]. Prefs bundle có còn
+trong payload DC58 sau CI strip hay không: [CHƯA XÁC MINH].
+
+- OMCRootListController (: PSListController, .h:9, impl .m:26): specifiers
+  từ Resources/Root.plist (15 mục tĩnh: nhóm rescue + nút RESCUE_RESTORE;
+  nhóm conflicts + dòng tĩnh; nhóm APPS + link Apps → OMCAppBridgeAppsController
+  + link Home Screen → OMCHomeScreenController; nhóm features — nơi chèn
+  feature rows; link Profiles → OMCCarProfilesController; nhóm SUPPORT +
+  nút hiện lại hướng dẫn + What's New; nhóm DEV + nút SEND_LOG) +
+  insertFeatureSpecifiers .m:68 (chèn 3 Feature*.plist); header card
+  OMCHeaderCard (: UIView, .h:7/impl .m:10 — thẻ tên/version/trạng thái +
+  công tắc tổng tại .m:77); masterToggled: .m:279 (pref enabled);
+  languageButton .m:219/setLanguage: :244 (pref language, 14 locale:
+  vi en es pt-BR de fr it ru zh-Hans ja ko ar th id); sendLog .m:341;
+  rescueRestore; cổng onboarding/whatsnew.
+- OMCFeatureListController (: PSListController, .h:6, impl .m:11): khung
+  trang feature từ Feature*.plist (PSSwitchCell key = <feature>Enabled,
+  defaults com.anlai.omnicar, PostNotification prefschanged).
+- OMCCardPage (: PSViewController, .h:9, impl .m:13): khung thẻ dùng chung —
+  storeValue:forKey: .m:59 (ghi CFPref + sync + notify_post prefschanged
+  :64); switchForKey: :114; segmentForKey: :129; sliderForKey: :151
+  (omcSliderMoved :172/Done :184); toast: :191.
+- OMCAppBridgeAppsController (: PSViewController <UITableView>, .h:14, impl
+  .m:118, 5 section): chọn app cho AppBridge/Home; ghi appBridgeApps + notify
+  (.m:37/:433). OMCHomeScreenController là con của nó (.h:8, .m:6 —
+  layoutPage = YES).
+- OMCSplitScreenController (: OMCCardPage, .h:9, impl .m:88, 7 section):
+  editor yêu thích (chip UIButton .m:77–83; pickAppForKey .m:82 →
+  OMCSplitScreenAppPickerController : PSViewController, .h:10/impl .m:72,
+  3 section); copyURL .m:85 (sinh omnicar:// cho Shortcuts); xem trước
+  OMCSplitPreview (: UIView, .h:7, impl .m:35, drawRect :48).
+- OMCSpeedBubbleController (: OMCCardPage, .h:14, impl .m:188): trang bong
+  bóng (tile kiểu qua OMCSSStyleTileCell : UICollectionViewCell; demo qua
+  Darwin speedbubble.demo .m:970, speedbubble.resetlayout .m:976). Vì
+  runtime SpeedBubble đã loại (2.4), trang này là bề mặt chết trong DC58;
+  đường hiện hành kind=3 của OMCNativeSimplePage dùng dữ liệu riêng.
+- OMCStartupScreenController (: OMCFeatureListController <UICollectionView,
+  UIImagePicker, UIDocumentPicker>, .h:18, impl .m:159): gallery style
+  UICollectionView (datasource .m:552–587), xem trước SSStartupView bản Prefs
+  (1.460 dòng), ghi họ startupScreen* + CFNotification Darwin (.m:38).
+  FeatureStartupScreen.plist: 44 mục tĩnh (switch startupScreenEnabled;
+  Video: startupScreenVideoName + add/preview/delete; Display: segment
+  startupScreenScaleMode, switch startupScreenPlayFull/Sound; Logo: segment
+  startupScreenLogoEffect fade/zoom/glow + choose/delete logo; Greeting:
+  text startupScreenGreetingName; Car name: text startupScreenCarName;
+  Tempo: segment startupScreenTempo; Random: 9 nút style; Duration: slider
+  startupScreenDuration 1–30 mặc định 5 + switch startupScreenTapToSkip;
+  Sound: file + slider startupScreenSoundVolume 0–100 + switch
+  startupScreenSoundSkipCall; Occasions: switch startupScreenOccasions +
+  birthday UIDatePicker + preview).
+- OMCCarProfilesController (: PSViewController, .h:11, impl .m:24): hồ sơ
+  theo xe — pref carProfiles, carProfilesEnabled, carProfileCurrent; 14 key
+  theo-xe (splitScreenLastLeft/Right, SplitRatio, SplitDirection,
+  PaneOrientation, AutoLaunch, PinnedApp, speedBubbleSizeCar,
+  speedBubbleLook, startupScreenVideoName/Style/CarName/Tempo,
+  appBridgeZoom).
+- OMCOnboardingController (: UIViewController <UIScrollViewDelegate>, .h:8,
+  impl .m:15): trang chào welcome/split/speed/tips (.m:114/:130/:135/:168),
+  UIPageControl dots .m:298, speedBubbleToggled: .m:321.
+  OMCWhatsNewController (: UIViewController, .h:8, impl .m:44; nội dung từ
+  WhatsNew.plist — chỉ có mục 1.0.0).
+- Cells/preview phụ: OMCFeatureStatusCell/OMCAppBridgeAppsLinkCell/
+  OMCSplitScreenAppLinkCell (: PSTableCell, OMCCells.h:9/:14/:20, impl
+  .m:15/:39/:69); OMCHSPreview (: UIView, .h:8, impl .m:146 — vẽ lưới home
+  xem trước).
+- Styling chung (OMCCommon.h bản Prefs): OMCStyleTable (:106), OMCStyleCell
+  (:107), OMCStyleGlassCard (:108), OMCAccentColor (:112 — light 0x7B6CF6 /
+  dark 0xA89BFF), OMCBackgroundColor, OMCCardColor, OMCLogoMeshImage
+  (:207–208).
+- Resources: Root.plist, FeatureSpeedBubble.plist, FeatureSplitScreen.plist,
+  FeatureStartupScreen.plist, WhatsNew.plist, Info.plist (principal class
+  OMCRootListController), icon.png/logo.png/PackageIcon.png + bộ @2x/@3x,
+  14 thư mục .lproj. layout/Library/PreferenceLoader/Preferences/
+  OmniCarPrefs.plist (entry PSLinkCell → OMCRootListController, label
+  "OmniCar").
+[Code controller Prefs: ĐƯỢC SỬA THIẾT KẾ nhưng ưu tiên thấp/không hiện
+hành — mọi sửa thiết kế cài đặt nên làm ở 2.6; RIÊNG Resources (plist schema
++ .strings + icon) vẫn là dữ liệu sống mà app in-app nạp: SỬA CÓ ĐIỀU KIỆN —
+sửa schema/key trong Feature*.plist/Root.plist là sửa hợp đồng pref của cả
+hai đường]
+
+--------------------------------------------------------------------
+2.10 CÁC MODULE KHÔNG CÓ UI RIÊNG
+--------------------------------------------------------------------
+- OmniCarCore.c (526 dòng, tweak SpringBoard): pref/expiry/rescue/perf; phát
+  prefschanged (:123). Chứa kiểm tra hạn dùng trustedTime/expiry.
+  [CẤM CAN THIỆP]
+- OMCCommon.c (1.685 dòng) + OMCCommon.h (194): lõi dùng chung biên dịch tĩnh
+  vào mọi binary — OMCEnabled/OMCExpired, OMCLoadStrings/L/Tr, OMCProfileKeys,
+  OMCDeviceVitals.h/.m (MỚI, 137 dòng — sampler pin/nhiệt, có biên dịch),
+  OMCLogoMeshImage (.h:188) — ảnh lưới logo vẽ bằng code, là thành phần
+  "logo" dạng ảnh duy nhất trong lõi (khác homeButton vốn là nút).
+  [CẤM CAN THIỆP, trừ OMCLogoMeshImage: SỬA CÓ ĐIỀU KIỆN — mesh này xuất
+  hiện ở bar hosted, bar split, sheet picker và bong bóng; đổi mesh = đổi
+  nhận diện ở nhiều nơi cùng lúc, phải kiểm từng nơi]
+- OmniCarCarProbe.m (1.671 dòng, .h 144): probe/thu thập thông tin xe +
+  rescue (phát rescue/prefschanged .m:706–707, car.connected :1420, lite
+  :1104). Grep UIView/UILabel/UIButton/UIWindow: KHÔNG có tạo UI [kết luận
+  từ grep, chưa đọc thủ công toàn bộ file — Mục 6]. [CẤM CAN THIỆP cơ chế]
+- OmniCarPinchCommon/DCPinchDirection.h: xem 2.2. [CẤM CAN THIỆP ngưỡng]
+
+--------------------------------------------------------------------
+2.11 TÀI NGUYÊN GIAO DIỆN (toàn cây, nhánh DC58 so với main)
+--------------------------------------------------------------------
+Tổng 171 file tài nguyên trên nhánh (main: 169): PNG 15 (toàn bộ ở project/,
+src/ có 0), *.strings 139, *.plist 17 (src/ 1, project/ 16); storyboard/xib/
+jpg/pdf: 0 ở cả hai bản — TOÀN BỘ giao diện dựng bằng code + plist + strings.
+- Chỉ có trên nhánh: project/OmniCarLeExtension/DCLLeExtension.plist (325
+  byte, filter CarPlayApp+SpringBoard) và project/OmniCarLeTraffic/
+  DCLTraffic.plist (307 byte, filter CarPlayApp). Không hạng mục nào chỉ có
+  trên main mà nhánh mất.
+- Đổi nội dung: src/App/Info.plist + project/OmniCarApp/Resources/Info.plist
+  (897 → 1.964 byte, thêm NSPhotoLibraryUsageDescription +
+  NSPhotoLibraryAddUsageDescription — phục vụ chọn ảnh nền Home từ Photos).
+- PNG/strings khớp main 100% theo kích thước. Bộ .lproj: 14 locale; riêng
+  vi.lproj THIẾU Car.strings (9/10 bảng) — và theo ghi chú ở 2.9, vi còn
+  thiếu AppBridge.strings so với en [hai ghi chú đếm khác nhau theo phạm vi
+  cây — giữ cả hai, đối chiếu khi cần dịch].
+- Toàn bộ phần mới của DC58 là CODE, không có asset mới (trừ 2 plist filter).
+[Icon app/Prefs + ảnh trong Resources: ĐƯỢC SỬA THIẾT KẾ — lưu ý icon gói
+được rebrand ở CI; .strings: SỬA CÓ ĐIỀU KIỆN — key chuỗi là hợp đồng với
+OMCTr/OMCNativeLocalized; plist filter của dylib: CẤM CAN THIỆP — quyết
+định tiến trình nạp]
+
+====================================================================
+MỤC 3 — ĐỐI CHIẾU OMNICAR GỐC (src/ 1.0.3, main) vs DUOCAR HIỆN HÀNH (nhánh DC58)
+====================================================================
+Mốc gốc: cây recovered-source/src/ trên main — bản khôi phục của OmniCar
+1.0.3, khoảng 60 định danh UI ổn định (đếm theo class + vai trò; SplitScreen
+A/B/C là 3 phần của CÙNG một dylib OmniCarSplitScreen, AppBridgeA/B là 2 nửa
+của CÙNG một dylib OmniCarAppBridge). CẢNH BÁO: chính file nguồn ghi chú một
+số phần trong cây src/ là PORT/THÊM về sau, KHÔNG phải gốc 1.0.3 — điển hình
+BridgeWake (ABChannelNames.m ghi "a NEW namespace added by the wake port;
+these names do not exist in the original binary") và appbridge.kbsync
+([ytz4-hb]). Khi đối chiếu phải trừ các phần này khỏi "gốc".
+
+3.1 GIỮ NGUYÊN (cơ chế + bề mặt còn nguyên vai trò ở DC58):
+- ABHost/ABPane/ABBoxView/ABShieldView/ABKnobView/ABBarButton + cửa sổ host
+  mức StatusBar+60 + kênh appbridge.* (14 kênh NSDistributed gốc + 2 Darwin).
+- SCPCarSplit + 8 category gốc (Chrome/Picker/Panel/RatioMenu/Divider/Drag/
+  Layout/Zoom) + các view SCPCarSplitView/SCPCarDividerView/SCPCButton/
+  SCPCTouchWatch/SCPCarTabView/SCPHomeWallView; hooks DashBoard gồm
+  _newApplicationLibrary và declaration tổng hợp (SCPAppIcons.m:157 bản src).
+- ABKeyboard/ABKey tự vẽ + cấu trúc hàng phím/trọng số của gốc.
+- StartupScreen: SSSplashWindow/SSSplash/SSStartupView + Builders/ScenesB +
+  SSGauge/SSFade/SSCanvasView/SSLocationOnce — số dòng giữ nguyên ở DC58.
+- OMCLogoMeshImage (OMCCommon) — logo lưới vẽ bằng code.
+- Prefs bundle: toàn bộ controller/cell/preview của gốc còn trong cây
+  (nhưng đổi vai trò — xem 3.3).
+- CarProbe: 0 UI ở cả hai bản.
+
+3.2 THÊM MỚI ở DuoCar/DC58 (không có trong gốc 1.0.3):
+- In-app settings NATIVE (OMCNativeSettings 3 tab + OMCNativeStartup +
+  OMCVitalsPage) — gốc chỉ có app nhãn + nút mở Settings.
+- Cụm Lề: LeExtension (shim + config bridge + store server/writer) — MỚI,
+  thuộc DC58; LeTraffic (overlay/sampler/core) — MỚI nhưng chưa tích hợp.
+- Vitals: OMCDeviceVitals + SCPDeviceVitalsHUD (panel Dock + cảnh báo nhiệt)
+  + SCPFullscreenVitalsBubble (HUD fullscreen) + SCPThermalAlarm +
+  SCPVitalsPlacement.
+- Pinch theo HƯỚNG HL53: OmniCarPinchCommon/DCPinchDirection.h + relay một
+  lệnh có hướng (gốc: pinch/zoom là cơ chế khác — double-tap + nút; bản port
+  BridgeWake/AutoHide trong cây src/ cũng không phải gốc).
+- Bàn phím native: ABNativeDrawnTA + kênh nativekb.*.v1; ABKeyboardTraits104.
+- Kênh mới: voice.* (4 — nhưng voice không biên dịch), nativekb.*.v1 (3),
+  respring.request/ack (2), cụm com.chuong.duocar (le024.visibility/.cfg/.ack/
+  .raw.v1/.raw.ack.v1/.raw.info.v1/.raw.word.v1/.raw.crc.v1, prefschanged,
+  traffic.speed/.limit).
+- Pref mới: họ leTraffic*/leBubble* (domain com.chuong.duocar),
+  duocarFullscreenVitalsEnabled, duocarVitalsEnabled, 9 key duocarHL46–HL51
+  cho picker, voice* (3), bridgewake.hostedPinchFallback.
+- SCPHomeLauncher phình 396 → 722 dòng (+326/−0).
+- 2 plist filter Le + quyền Photos trong Info.plist (phục vụ nền Home).
+- Rebrand (theo hồ sơ DUOCAR_REBRAND_SILEO_20261111.md): com.anlai.omnicar →
+  com.chuong.duocar, scheme duocar://, OMC→DCR ở tầng đóng gói, 6 dylib
+  DuoCar*.dylib, icon Play không chữ; Sileo public pass ở HL21.
+  [TỪ HỒ SƠ CŨ — cơ chế rebrand nằm ở script CI, xem 0.4]
+
+3.3 ĐÃ ĐỔI:
+- App companion: nhãn + nút mở Settings (gốc) → trung tâm cài đặt native
+  (OMCAppDelegate 90 dòng ở main → 52 dòng ở nhánh, root = NativeSettings).
+- Vai trò Prefs bundle: đường cài đặt DUY NHẤT (gốc) → đường phụ/tài nguyên
+  (DC58): app nạp Resources của Prefs; SPP*Views rời _FILES Prefs.
+- Bàn phím: gốc chỉ có phím vẽ cho hosted; DC58: hosted vẫn phím vẽ
+  (ABDrawnKb=YES, quay lại từ HL40 sau giai đoạn native-locked HL32–HL36) +
+  thêm đường native nativekb cho app CarPlay gốc + Telex viết lại HL43 dùng
+  chung (203 dòng thay 380 dòng của engine phục dựng lệch chuẩn).
+- Picker/menu: thêm chuỗi hành vi HL46–HL51 (9 key duocarHL*) thay key cũ
+  splitScreenPickerSheetClearFaceOff (key cũ KHÔNG còn trên nhánh).
+- SCPCarSplit+BridgeWake: +52/−37 dòng so với main; ABInApp 2.940 → 3.425
+  dòng; +Picker 1.760 → 2.019; SCPCarSplit.m 3.701 → 3.810.
+- Bong bóng tốc độ: SPP* gốc (trong gói) → THÁO khỏi gói; thay bằng bong
+  bóng của gói Lề cài riêng + shim (xem 3.4).
+
+3.4 ĐÃ BỎ (khỏi gói DC58; source còn trên đĩa dạng lịch sử/forensic):
+- SpeedBubble runtime: loại khỏi SUBPROJECTS + strip asset ở CI.
+- Voice toàn bộ (xe + app + SpringBoard agent): loại khỏi build từ HL36
+  ([hl36-voice-off] trong Makefile).
+- Lề EMBEDDED (9 dylib vendor + LePrefs + font): tháo ở DC58 theo lệnh
+  Nguyen sau test DC57; LePrefs nhúng và trang 30 hàng bị xóa, trang Lề
+  trong app rút còn đúng 2 điều khiển; OMCLeOriginalPreferencesController chỉ
+  còn alias tương thích. [Theo hồ sơ HL58]
+- Key splitScreenPickerSheetClearFaceOff: biến mất trên nhánh.
+
+====================================================================
+MỤC 4 — PHÂN LOẠI CAN THIỆP THIẾT KẾ
+====================================================================
+Mỗi dòng là một bề mặt/thành phần. Đếm cuối mục.
+
+[ĐƯỢC SỬA THIẾT KẾ] — tự do thay hình thức, không chạm cơ chế:
+D1. Thanh lệnh split + hosted: bộ icon hm_*, nhãn nút, màu, nền blur/lưới logo.
+D2. Handle pill ba chấm (split + hosted): hình pill, chấm, màu, độ bo.
+D3. Picker sheet: bố cục lưới app, icon, nhãn, chấm trang, loader/toast dạng hình.
+D4. Divider + knob: hình vẽ, màu, kích thước hình (không đổi frame chạm).
+D5. In-app settings (OMCNativeSettings): bố cục 3 tab, nhóm, hàng, chữ, icon tab.
+D6. Trang Startup trong app: header, gallery style, bố cục mục.
+D7. Trang điều khiển Lề trong app (DCLLeStandaloneControls): hình thức trang.
+D8. Trang vitals trong app (OMCVitalsPage): toàn bộ trang thông tin.
+D9. Màn khởi động: toàn bộ cảnh SSStartupView (màu, chữ, hiệu ứng logo, bố
+    cục greeting/thời tiết/HUD, style mới nếu thêm qua cùng dispatch).
+D10. Vitals trên xe (HUD Dock + bubble fullscreen): chữ, màu, nội dung dòng
+    trạng thái.
+D11. Home xe: hình nền, độ mờ (blur), độ tối (dim), hiển thị tên icon.
+D12. Icon app/Prefs + ảnh PNG trong Resources.
+D13. Bàn phím hosted (ABKeyboard): hình thức phím/panel, màu, bo góc, nhãn phụ.
+D14. Code controller Prefs bundle: hình thức (ưu tiên thấp — không hiện hành).
+
+[SỬA CÓ ĐIỀU KIỆN — ràng buộc ghi kèm]:
+C1. Handle (split + hosted): VÙNG CHẠM — vùng chạm lớn hơn hình vẽ là có chủ
+    đích (44×24 so với pill 34×12); đổi phải giữ tối thiểu vùng chạm đã đo.
+C2. Thanh lệnh: guard hiện/ẩn trong setBarVisible + kích thước bar/nút —
+    đổi kích thước phải kiểm cả hai phía (split chủ/host chủ).
+C3. Picker: kích thước sheet (sheetW = cols×62+20, +150 cột bản đồ) và mức
+    cửa sổ tray — đổi ảnh hưởng vùng phủ và thứ tự cửa sổ.
+C4. Divider/knob: frame, pointInside mở rộng, relay knob (giữ phase +
+    lastSent) — hit-rect là số đo xe.
+C5. In-app settings: ánh xạ hàng → pref key, kiểu control, giá trị mặc
+    định — đổi là đổi hành vi runtime; phải đối chiếu nơi đọc key ở module
+    đích trước khi đổi.
+C6. Resources của Prefs (Root.plist, Feature*.plist, .strings): schema/key
+    là hợp đồng pref của CẢ hai đường cài đặt; key chuỗi dịch là hợp đồng
+    với OMCTr/OMCNativeLocalized.
+C7. OMCLogoMeshImage: xuất hiện ở bar hosted, bar split, sheet picker và
+    bong bóng — đổi mesh là đổi nhận diện nhiều nơi cùng lúc, phải kiểm
+    từng nơi.
+C8. Màn khởi động: cửa sổ SSSplashWindow + vòng đời start/countdown/
+    tearDown — giữ nguyên thứ tự dismiss/tearDown và lý do kết thúc.
+C9. Vitals trên xe: vị trí ô Dock (thuật toán SCPVitalsPlacement), mức cửa
+    sổ 64.0/64.5, tính xuyên chạm — nằm trong thang mức cửa sổ đã đo.
+C10. Home xe: số cột/hàng lưới, kích thước icon — phải khớp hooks lưới của
+    SCPHomeHooks.
+C11. Bàn phím hosted: bố cục hàng/phím, value/command từng phím, layout
+    panel; engine Telex HL43 — sửa phải giữ kiểm chứng từ vựng
+    verify_hl43_shared_telex.py.
+C12. AutoHide: thời gian mờ/alpha thuần thị giác — PHẢI giữ cổng
+    userInteractionEnabled khi mờ và thứ tự hiện lại (xem F1).
+
+[CẤM CAN THIỆP — cơ chế chức năng phụ thuộc]:
+F1. CỔNG GỌI LOGO trọn gói: hook sendEvent in-app (nuốt chạm đầu + phát
+    wake) ↔ BridgeWake chủ trạng thái phía split (query/wake/act/ack) ↔
+    AutoHide (mờ + cổng chạm của homeButton) ↔ fsAssertHomeButtonHidden.
+    Đụng một mắt là hỏng khả năng gọi lại logo/controls.
+F2. TRỌNG TÀI NUỐT CHẠM: cổng sendEvent, ABShieldView, popup shield +
+    exempt rects phía split, SCPCTouchWatch.
+F3. HỢP ĐỒNG SCENE/GEOMETRY: hooks DashBoard (presentBaseViewController,
+    sceneFrameForAppInfo, nuốt background/deactivate, sceneManagerDidDestroyScene),
+    adopt/detach VC, host-bridge frame (XE là chủ ghi khung DUY NHẤT),
+    ABHost (ensureWindow, mức +60, subclass xuyên chạm, sceneBox, hole/
+    passInsets), ABSceneSettingsApply (foreground=YES/backgrounded=NO),
+    hook nuốt FBScene updateSettings giữ scene hosted sống,
+    SCPHostedAppVC + SCPNoopLayoutAssertion.
+F4. ĐƯA APP LÊN LƯỚI XE: hook _newApplicationLibrary + tiêm declaration
+    CarPlay tổng hợp (SCPAppIcons/SCPHomeLauncher) — cơ chế "không cần bật
+    Cài đặt iPhone → CarPlay".
+F5. TOÀN BỘ KÊNH liên tiến trình và tên của chúng: appbridge.*,
+    bridgewake.v1.*, splitscreen.*, nativekb.*.v1, le024.*, traffic.*,
+    startupscreen.*, speedbubble.* (lịch sử), url, prefschanged hai domain;
+    kèm tên action của thanh lệnh (replace/full/pop/bg/close).
+F6. PINCH: ngưỡng + hợp đồng hướng DCPinchDirection.h, SCPPinchController/
+    Recognizer, relay in-app HL53, SCPTouchProbe (thụ động tuyệt đối).
+F7. FULLSCREEN: SCPFullscreenController/Adapter — máy trạng thái
+    expand/restore/rollback + fsChromeSweepAndHide.
+F8. BÀN PHÍM — phần cơ chế: inputView rỗng + kênh appbridge.keyboard/
+    appbridge.key (hosted); ABNativeDrawnTA + ABKeyboardTraits104 (native).
+F9. CẦU LỀ: DCLLeExtension + DCLLeConfigBridge + giao thức cfg/ack + kho
+    raw (le024.raw.*) — hợp đồng theo tên class/selector của binary hãng.
+F10. HÀM GHI PREF + THÔNG BÁO: OMCNativeSetPref, OMCCardPage storeValue,
+    -saveRatio và mọi pref key đã liệt kê (đổi key = mất đồng bộ giữa các
+    tiến trình).
+F11. OMCAppDelegate: root controller + chuyển tiếp omnicar:// qua kênh url.
+F12. LÕI: OmniCarCore (expiry/trustedTime/rescue), OMCCommon (trừ mesh —
+    xem C7), CarProbe, plist filter quyết định tiến trình nạp của từng dylib.
+F13. PANEL BỐ CỤC: tập lựa chọn + layout id (2/3/13/31) — hợp đồng dùng
+    chung giữa các đường ra lệnh.
+F14. VITALS — phần logic: cơ chế "không có Dock native thì không hiện,
+    không fallback" và cổng nhiệt SCPThermalAlarm (ngưỡng/mẫu/tái vũ trang).
+
+[KHÔNG ÁP DỤNG Ở DC58 — có trong cây, không vào gói/hiện hành]:
+N1. SpeedBubble runtime gốc (toàn bộ SPP*) — forensic.
+N2. Voice (SCPVoice*/DCVoice*) — đã loại khỏi build từ HL36.
+N3. LeTraffic overlay tự vẽ (DCLTraffic*) — chưa tích hợp.
+
+TỔNG ĐẾM MỤC 4: ĐƯỢC SỬA THIẾT KẾ: 14 bề mặt (D1–D14). SỬA CÓ ĐIỀU KIỆN:
+12 (C1–C12). CẤM CAN THIỆP: 14 (F1–F14). KHÔNG ÁP DỤNG Ở DC58: 3 (N1–N3).
+
+====================================================================
+MỤC 5 — BẢN ĐỒ CHO GPT THIẾT KẾ (cây màn hình → thành phần → ràng buộc → mức tự do)
+====================================================================
+Đọc cùng Mục 2 (chi tiết file/dòng) và Mục 4 (phân loại). Mức tự do:
+CAO = D (được sửa), TRUNG = C (có điều kiện), KHÔNG = F (cấm), N/A = không
+áp dụng ở DC58.
+
+MÀN XE (CarPlayApp/DashBoard)
+├─ Lưới Home xe
+│  ├─ Declaration + _newApplicationLibrary ............ F4 — KHÔNG
+│  ├─ Lưới icon (cột/hàng/cỡ) .......................... C10 — TRUNG
+│  └─ Hình nền / mờ / tối / tên icon ................... D11 — CAO
+├─ Màn chia (split)
+│  ├─ Container + adopt/detach + hình học .............. F3 — KHÔNG
+│  ├─ Ô native (scene gốc) ............................. F3/F5 — KHÔNG
+│  ├─ Ô hosted (token + host-bridge frame) ............. F3/F5 — KHÔNG
+│  ├─ Handle ba chấm → thanh lệnh 5 nút ................ D2/D1 — CAO
+│  │   (vùng chạm handle C1, guard/kích thước bar C2 — TRUNG)
+│  ├─ Divider + knob + menu tỉ lệ ...................... D4 — CAO
+│  │   (frame/hit C4 — TRUNG; saveRatio F10 — KHÔNG)
+│  ├─ Picker chọn app (sheet + tray) ................... D3 — CAO
+│  │   (cỡ sheet/mức tray C3 — TRUNG; mặt trong suốt khi
+│  │    đè hosted + hitTest tray F2/F3 — KHÔNG)
+│  ├─ Panel bố cục ..................................... hình thức CAO;
+│  │                                                    layout id F13 — KHÔNG
+│  ├─ Logo homeButton + AutoHide + BridgeWake .......... F1 — KHÔNG
+│  │   (thời gian mờ/alpha C12 — TRUNG, giữ cổng chạm)
+│  ├─ Pinch theo hướng ................................. F6 — KHÔNG
+│  └─ Fullscreen + HUD giờ–pin–nhiệt ................... máy trạng thái
+│       F7 — KHÔNG; nội dung HUD D10 — CAO; mức/vị trí C9 — TRUNG
+├─ Dock xe: panel vitals ............................... D10 — CAO (chữ/màu);
+│                                                        vị trí C9 — TRUNG;
+│                                                        logic Dock F14 — KHÔNG
+├─ Cảnh báo nhiệt (cửa sổ +64.5) ........................ chữ/màu CAO;
+│                                                        logic F14 — KHÔNG
+├─ Màn khởi động (splash + SSStartupView) .............. D9 — CAO;
+│                                                        vòng đời C8 — TRUNG;
+│                                                        crash guard — KHÔNG
+└─ Bong bóng tốc độ: KHÔNG còn của DuoCar — thuộc gói Lề
+   cài riêng; DuoCar chỉ có 2 điều khiển trong app (2.6/2.8)
+
+MÀN XE — PHÍA HOST (SpringBoard, cửa sổ ABHost +60)
+├─ Cửa sổ/scene/hole/shield ............................ F3/F2 — KHÔNG
+├─ Thanh lệnh hosted (cùng bộ hm_* với split) .......... D1 — CAO (như trên)
+├─ Handle hosted ....................................... D2/C1
+├─ Knob hosted ......................................... vẽ D4; relay C4
+└─ Bàn phím hosted ABKeyboard .......................... D13 — CAO;
+                                                         bố cục C11 — TRUNG;
+                                                         kênh/inputView F8 — KHÔNG
+
+TRONG APP ĐƯỢC HOST / APP CARPLAY GỐC (in-app)
+├─ Cổng sendEvent (nuốt chạm/gọi logo) ................. F1/F2 — KHÔNG
+├─ Relay pinch ......................................... F6 — KHÔNG
+└─ Bàn phím native (nativekb) .......................... F8 — KHÔNG
+    (hình thức phím do iOS vẽ — không có bề mặt thiết kế ở đây)
+
+ĐIỆN THOẠI — APP DUOCAR
+├─ 3 tab cài đặt (Apps/Split/Settings) ................. D5 — CAO;
+│                                                        ánh xạ key C5 — TRUNG;
+│                                                        hàm ghi F10 — KHÔNG
+├─ Trang Startup ....................................... D6 — CAO; key C5
+├─ Trang Lề ngoài (2 điều khiển) ....................... D7 — CAO;
+│                                                        giao thức F9 — KHÔNG
+├─ Trang vitals ........................................ D8 — CAO
+└─ Root app + omnicar:// ............................... F11 — KHÔNG
+
+TÀI NGUYÊN DÙNG CHUNG
+├─ OMCLogoMeshImage .................................... C7 — TRUNG
+├─ Icon/ảnh Resources .................................. D12 — CAO
+├─ .strings / plist schema ............................. C6 — TRUNG
+└─ Plist filter dylib .................................. F12 — KHÔNG
+
+NGUYÊN TẮC THIẾT KẾ RÚT RA TỪ KIỂM KÊ (cho GPT):
+1. Mọi bề mặt CAO đều là VẼ BẰNG CODE (không storyboard/xib/asset ảnh trừ
+   icon và ảnh nền người dùng) — thiết kế mới phải dịch được thành tham số
+   vẽ: màu, bo góc, kích thước, khoảng cách, font, hiệu ứng kính/mờ.
+2. Hai thanh lệnh (split và hosted) dùng CHUNG một bộ icon hm_* + nhãn +
+   thứ tự 5 nút — thiết kế một lần, áp hai nơi; không tách hai hệ riêng.
+3. Thang mức cửa sổ cố định: host 60 < vitals fullscreen 64.0 < cảnh báo
+   nhiệt 64.5 < tray/overlay 65 < splash Alert+1000 — thiết kế lớp phủ mới
+   phải xin chỗ trong thang này, không tự đặt mức.
+4. "Menu 3 chấm" không tồn tại độc lập — nó là HANDLE pill của từng ô; mọi
+   thiết kế menu phải bắt đầu từ handle + thanh lệnh của ô.
+5. Bề mặt cài đặt người dùng thật sự thấy là APP (3 tab), không phải trang
+   trong Settings.app — ưu tiên thiết kế ở app; Prefs bundle chỉ còn vai
+   trò dữ liệu (Resources) + đường phụ.
+
+====================================================================
+MỤC 6 — PHẦN CHƯA THỂ XÁC MINH
+====================================================================
+U1. File TXT yêu cầu gốc: Nguyen nói "theo file TXT đính kèm" nhưng không
+    có file đính kèm nào tới nơi; đợt kiểm kê này thực thi theo
+    DUOCAR_UI_AUDIT_YEU_CAU_20261114.txt do Muse lập lại đúng nội dung
+    lệnh miệng theo chỉ đạo của Nguyen (xem đầu báo cáo).
+U2. Trạng thái THIẾT BỊ của DC58: DEVICE PENDING — hai chức năng nối Lề
+    cài riêng (GPS ±10, ON/OFF bong bóng qua shim) chưa test xe; trạng
+    thái xe tổng thể của DC58 chưa có kết luận.
+U3. Trạng thái xe của các đường BÀN PHÍM tại DC58: source đã rõ (hosted =
+    phím vẽ ABDrawnKb=YES từ HL40; native = nativekb.*.v1), nhưng theo hồ
+    sơ: HL41 device fail, HL43 device pending — chưa có kết luận xe cho
+    DC58. Lệnh cũ "phím native-locked" (09/11/2026) và trạng thái source
+    hiện hành KHÔNG khớp nhau; cần Nguyen/GPT xác nhận chủ trương hiện tại.
+U4. Lệch code giữa build commit bbc2ac6… (đóng DC58) và tip nhánh 630e50c
+    (tài liệu sau build): chưa diff — các số dòng trong báo cáo này lấy ở
+    tip 630e50c.
+U5. Số dòng chính xác tại DC58 của: nhóm method host-bridge và khối
+    dock-gate trong SCPCarSplit.m (cây project); paneSize:forBundle: và
+    hostFrameInfo: trong SCPCarSplit.m (cây src nhánh);
+    -hideRatioMenu (SCPCarSplit+RatioMenu.m); tray hitTest và khối
+    sheet-clear-face trong +Picker.m; từng method của
+    SCPFullscreenController.m (file DC58 dài hơn bản main 48 dòng).
+U6. Prefs bundle có còn trong payload DC58 sau CI strip hay không;
+    SPPBubbleView được OMCSpeedBubbleController/OMCStartupScreenController
+    tham chiếu ra sao sau khi rời _FILES của Prefs.
+U7. DCLLeOriginalStoreServer.m và DCLLeStateWriter.c vào gói companion
+    bằng đường nào (không nằm trong _FILES của Makefile extension đã đọc).
+U8. Người nghe của com.chuong.duocar/prefschanged; điểm đọc phía xe của 4
+    key leTrafficSource/leTrafficMapsStyle/leTrafficMapsPhoneLayout/
+    leTrafficMapsOverspeedMode; điểm ghi của pref duocarVitalsEnabled.
+U9. Danh sách hàm mới cụ thể trong 326 dòng thêm của SCPHomeLauncher.m
+    (chỉ có numstat + đọc lướt; chưa diff-read từng hàm) và nội dung các
+    hunk sửa nhỏ ở SplitScreenB (+Chrome/+Divider/+Panel/+Picker,
+    +RatioMenu +1 dòng, handoff/+Layout_A-owned +49).
+U10. Mâu thuẫn hồ sơ cũ về mặc định vitals: checkpoint đầu ghi mặc định
+    OFF, HL47 ghi khác; source nhánh hiện hành cho
+    duocarFullscreenVitalsEnabled mặc định YES (đọc tại
+    SCPFullscreenVitalsBubble.m:175) — báo cáo lấy theo SOURCE; mặc định
+    của duocarVitalsEnabled (cho HUD Dock) chưa chốt được (liên quan U8).
+U11. Mâu thuẫn hồ sơ về picker gốc: UI_INVENTORY cũ ghi sheet trong suốt,
+    HL44 ghi đục — cơ chế hiện hành đã ghi ở 2.3 theo source + log HL47,
+    nhưng trạng thái picker trên các bản DC53–DC58 chưa có kết luận thiết
+    bị mới sau vá HL51.
+U12. Kênh com.anlai.omnicar/speed: chưa xác minh được người nghe trong
+    source (IPC_MAP của binary gốc cũng xếp "unproven").
+U13. CarProbe "không có UI": kết luận từ grep (không thấy tạo
+    UIView/UILabel/UIButton/UIWindow trong 1.671 dòng) — chưa đọc thủ
+    công toàn bộ file, không loại trừ UI dựng qua đường gián tiếp.
+U14. Đếm bảng .strings của vi.lproj: hai tuyến đếm cho kết quả khác nhau
+    theo phạm vi (thiếu Car.strings theo đếm cây tài nguyên; thiếu cả
+    AppBridge.strings theo đếm Resources Prefs) — chưa hợp nhất một con
+    số duy nhất.
+U15. Các DEB DC55/DC57 theo hồ sơ là gói vớt từ run CI có kết luận
+    "failure" chỉ vì verifier marker cũ — khi trích dẫn KHÔNG được rút
+    gọn thành "CI PASS" cho hai mốc này (DC58 thì CI SUCCESS thật, đã ghi
+    ở Mục 0).
+U16. Ranh giới gốc/port trong SCPCarSplit+BridgeWake.m (1.542–1.527
+    dòng tùy cây) chưa tách hết từng method — phần nào là gốc 1.0.3,
+    phần nào là port BridgeWake về sau.
+U17. Số dòng trong báo cáo lấy từ cây KHÔI PHỤC (recovered-source) — là
+    bản viết lại từ phân tích binary, không phải source gốc của tác giả;
+    nhãn [VERIFIED]/[INFERRED] trong file được tôn trọng khi trích nhưng
+    đợt này không kiểm chứng lại bằng binary (đúng lệnh: không chạy
+    binary/script trích xuất).
+
+====================================================================
+PHỤ LỤC A — KÊNH LIÊN TIẾN TRÌNH PHỤC VỤ UI (tóm tắt; mốc dòng theo nhánh)
+====================================================================
+Tổng 80 tên kênh có tên. Ba transport: Darwin notify (payload đóng gói
+uint64 state), NSDistributedNotificationCenter (NSDictionary),
+CFNotificationCenter Darwin (prefschanged/audio/weather).
+- Nền (57, giữ nguyên từ gốc): appbridge.* (open/frame/shield/close/
+  closeall/knobs/state/orientation/key/kbsync/handletap/handledrag/
+  baraction/bardismiss/knobtouch — NSDistributed; keyboard/apporient —
+  Darwin), appbridge.ytlease/.ytleaseack, bridgewake.v1.{state,query,wake,
+  ack,act} (Darwin) + bridgewake.v1.kbstate/.pinch (NSDistributed),
+  splitscreen.{native,ack,ready,kill}, prefschanged (cả hai domain — xem
+  dưới), car.connected, car.busy, lite, location, speedbubble.{speed,
+  source,demo,opencar,resetlayout}, speed, startupscreen.weather.{request,
+  ready}, startupscreen.audio.{play,stop}, startupscreen.style, url, log,
+  rescue, cleanram.now.
+  Định nghĩa hằng: src/AppBridgeB/ABChannelNames.m:24–48;
+  src/SplitScreenA/SCPShared.m:12–30. Nghe phía host: ABHostGeometry.m:
+  267–295 (cây src); phía app hosted: ABInApp.m:2492–2513; phía CarPlayApp:
+  SCPHooks.m:851–863 + :794; phía SpringBoard: SCPSpringBoardHooks.m:158–164.
+- MỚI omnicar (+9): voice.{action,ack,capture.request,capture.state} (4 —
+  voice không biên dịch ở DC58), nativekb.{focus,command,ack}.v1 (3),
+  respring.{request,ack} (2 — app phát request tại OMCNativeSettings.m:872,
+  SpringBoard nghe tại SCPSpringBoardHooks.m:207, ack :177, app nghe ack
+  :855).
+- MỚI duocar (+11): com.chuong.duocar/le024.{visibility,cfg,ack,raw.v1,
+  raw.ack.v1,raw.info.v1,raw.word.v1,raw.crc.v1} (8), com.chuong.duocar/
+  prefschanged (1), com.chuong.duocar/traffic.{speed,limit} (2 — cho
+  LeTraffic chưa tích hợp).
+- Vendor (+3): dev.bechou.le.gmaps.{speed,limit},
+  dev.bechou.le.bubble.layout-changed (DCLLeOriginalStoreServer.m:218 phát).
+- KHÔNG có kênh riêng: pinch (dùng lại bridgewake.v1.pinch + recognizer
+  trong tiến trình + DCPinchDirection), thermal (logic thuần
+  SCPThermalAlarm.h), vitals (đọc tại chỗ qua OMCDeviceVitals, điều khiển
+  bằng pref).
+
+====================================================================
+PHỤ LỤC B — PREF KEY MỚI Ở DC58 (domain com.anlai.omnicar trừ khi ghi khác)
+====================================================================
+- duocarFullscreenVitalsEnabled (mặc định YES): ghi OMCNativeSettings.m:469;
+  đọc SCPFullscreenVitalsBubble.m:175.
+- duocarVitalsEnabled: đọc bởi cụm vitals [điểm ghi: CHƯA XÁC MINH — U8].
+- 9 key picker HL46–HL51: duocarHL46NativeCoverOff,
+  duocarHL46NativePickerClear, duocarHL48HostedPickerClear,
+  duocarHL49HostedSameWindowPicker, duocarHL49LiveUnderSheet,
+  duocarHL49OccupiedPickerClear, duocarHL50PreserveHostedSceneOnMenu,
+  duocarHL51KeepHostedImageDuringPicker, duocarHL51RestoreOriginalMenuWindow
+  (thay key cũ splitScreenPickerSheetClearFaceOff — đã biến mất trên nhánh).
+- bridgewake.hostedPinchFallback; hl8.unifiedDiag; fullscreenDiagExpand;
+  cleanRamOnConnect; voiceAssistantEnabled, voiceAssistantLanguage,
+  voiceAppleOnlineEnabled (voice không biên dịch).
+- Domain com.chuong.duocar: leBubbleMasterEnabled (ghi/đọc-kiểm chứng tại
+  DCLLeConfigBridge.m:59/:87–90; đọc DCLLeExtension.m:38);
+  leBubbleMasterMirror (ghi DCLLeOriginalStoreServer.m:212; khôi phục tại
+  DCLLeConfigBridge.m:88); leTrafficGpsOffsetKph (kẹp −10..+10; ghi qua
+  cfg; đọc DCLLeExtension.m:32, DCLTrafficSampler.m:43); họ leTraffic*
+  cho overlay chưa tích hợp: leTrafficEnabled (@YES),
+  leTrafficPresentation (@"maps-home"), leTrafficArrangement (@"corner"),
+  leTrafficScalePercent (@100), leTrafficBackground (@"asphalt"),
+  leTrafficBackgroundOpacityPercent (@85), leTrafficFreeDrag (@YES),
+  leTrafficModuleSpeed/ModuleLimit/ModuleSource (@YES),
+  leTrafficOverspeedBlink (@YES), leTrafficPositionX/Y (ghi sau kéo thả
+  DCLTrafficOverlay.m:311–312), leTrafficSource/MapsStyle/MapsPhoneLayout/
+  MapsOverspeedMode (ghi phía app OMCNativeSettings.m:143–153 [điểm đọc
+  phía xe: CHƯA XÁC MINH — U8]).
+
+— HẾT BÁO CÁO —
+Tổng hợp: đội điều tra 4 tuyến chỉ-đọc + điều phối đối chiếu chéo, trên
+nhánh feature/duocar-hl54-le-original-integrity-20261114 @630e50c (mốc
+DC58) và main @63f7692 (mốc gốc). Không sửa source, không build, không CI,
+không push trong đợt kiểm kê này.
