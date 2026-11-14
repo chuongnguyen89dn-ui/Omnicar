@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL54 GPS ±10: slider đã ghi source, QA/DEB chưa build
+- Slider **−10…0…+10 km/h**, 21 mức 1 km/h, giá trị động khi kéo, gửi ACK khi thả tay/VoiceOver; key27 raw 0..20 ↔ signed −10..+10, vẫn giữ cấu hình cũ, không sửa biển giới hạn. Các source+mirror commit từ \`c64b024c\` tới \`789e572d\`, bổ sung gates tới \`859d84f2\`. **SOURCE COMMITTED, chưa iOS build/DEB/device pass**. [Checkpoint HL54](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
+
+
 ## 2026-11-14 — HL54 bổ sung: giữ cặp mép + kéo X/Y tự do; cần master ON/OFF Lề thật
 - Nguyen yêu cầu **hai chế độ đồng thời**: kéo giữa màn đứng yên, đưa sát mép thì cặp mép như Lề gốc; hiện `freePan` END ghi đè vị trí `-panned:` gốc và `margin=6` ngăn flush mép. Đồng thời phải có **công tắc ON/OFF bong bóng Lề hoạt động**, không chỉ bật/tắt hình giả: `bubbleEnabled` có trong `layout-v1.json` và bridge extras nhưng UI gốc chưa lưu được, cần owner broker + kiểm đường live visibility vendor. Không sửa `traffic-bubble-state-v1.json` khi chưa chứng minh ý nghĩa, không đụng pinch/menu/Dock/keyboard. **DESIGN/BINARY AUDIT; CHƯA SỬA SOURCE/CHƯA BUILD/CHƯA DEVICE PASS**. [Chi tiết HL54](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
 
