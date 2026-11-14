@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — DUOCAR V3 P0: BẢNG PHỦ 100% (Muse nộp, chờ GPT thiết kế V3)
+- Theo chỉ đạo V3 của Nguyen (#6876443778) và giao việc GPT (#6876562736): Muse nộp [APEX_V3_P0_BANG_PHU_20261114.md](APEX_V3_P0_BANG_PHU_20261114.md) — 112 dòng kiểm kê A–E có bằng chứng file:method:dòng, trả lời thẳng vì sao APEX1 vẫn giống OmniCar (7 nguyên nhân từ source), kiểm độc lập DEB APEX1, bảng phân biệt native/hosted (chốt nguyên nhân glyph hosted đen: AlwaysOriginal + UIImageView con vs AlwaysTemplate), vision gate (phần lớn UNKNOWN trung thực), backlog BL-01..BL-12 và danh sách identifier tuyệt đối giữ K1–K12. APEX1 giữ làm reference/rollback, nhãn VISUAL FAIL.
+
 ## 2026-11-14 — APEX: SOURCE GATE PASS (GPT) + M4 COMPILE PASS, Nguyen lệnh xuất DEB thử nghiệm
 - GPT chốt **SOURCE GATE PASS** (comment 6875888201, đối chiếu độc lập 16/16 + 4 cặp SHA). Muse khôi phục toolchain theo duyệt trực tiếp của Nguyen và compile-check `make` trên HEAD `3107d0e`: **exit 0, 0 lỗi**, 7/7 subproject linking (chi tiết + hash tại comment 6875967464). Nguyen lệnh xuất một DEB thử nghiệm APEX — xem checkpoint TASK1+TASK2, bổ sung 3.
 
