@@ -126,6 +126,12 @@ for item in (bw,bw_src):
     assert "bwHostedPinchFallback = fallback ? [fallback boolValue] : YES;" in item
     assert "duocarHL51RestoreHL8HostPinch" not in item
 assert "SCPHostPinchObserve" in host
+# HL54 does not touch the fullscreen controller/engine; its bubble has a
+# new optional near-edge snap mode with persistent free X/Y.
+clock=(project/"OmniCarSplitScreen/SCPFullscreenVitalsBubble.m").read_text()
+assert "SCPVitalsBubbleSelectDockPosition" in clock
+assert "SCPVitalsBubbleRestoreDockPosition" in clock
+assert "DCFVDockedKey" in clock and "DCFVXKey" in clock
 assert "BWPinchMode" in ab
 assert "SCPFullscreenAdapter" in (project/"OmniCarSplitScreen/SCPPinchController.m").read_text()
 assert (root/"gpt-project-history/tests/test_hl53_pinch_direction.c").is_file()
@@ -253,7 +259,7 @@ assert "legacy-host.deb" in merge_fixture and "authentic LePrefs.bundle loader" 
 protected={
  "SCPPinchController.m":"a5e94145bb8fc56abc37140faac06ece7933b7d76bf46bb0eaa75c9e04e63d18",
  "SCPFullscreenController.m":"62a0703aefd8f41c416bc684ebcfd8dd2ce72f239cea5dcb212fa5dea1fc3932",
- "SCPFullscreenVitalsBubble.m":"0e45da1e5307717eb108464855d1690f21e109b78340d0e0757b79e69d038ff7",
+ # HL54 clock-bubble free+edge snap intentionally changed; geometry gate below.
  "SCPCarSplit+Relayout.m":"831391349790159f91a3e19387c8b412da3b017585f39ba86465117c43274bc0",
 }
 for file,expected in protected.items():
