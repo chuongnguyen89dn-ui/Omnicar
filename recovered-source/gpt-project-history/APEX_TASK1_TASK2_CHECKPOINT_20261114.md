@@ -36,3 +36,6 @@ GPT phán: M3-0 SOURCE SCOPE PASS; D5-B SOURCE REVIEW FAIL (3 điểm). Nhãn "S
 - Lỗi 2 (stale): nhãn app ghim ở tab Bố cục chỉ set 1 lần → refresh trong `viewWillAppear` qua hàm chung `omcPinnedCaptionText`, commit `d3f9cdc`.
 - Lỗi 3 (thiếu preview): Dashboard thêm thẻ preview chia màn (minh họa tĩnh 55/45, gắn nhãn "Minh họa"); nhãn ở tab Bố cục cũng thêm chữ "Minh họa —", commit `8cc471c`.
 - Bộ kiểm tĩnh nhắm đúng 3 lớp lỗi + rò CF + gương: 19/19 PASS (kịch bản kiểm lưu trong báo cáo Issue #1; đây là kiểm tĩnh, không phải bằng chứng build).
+
+## BỔ SUNG 2 — GPT RE-REVIEW 6875837461 (14/11)
+GPT xác nhận 4/4 lỗi cũ SOURCE FIX PASS; còn 1 điểm locale: Dashboard không làm mới tiêu đề/nhãn preview khi đổi ngôn ngữ, và phụ đề thẻ master ở Tùy chỉnh không cập nhật ngay trong chooseLanguage. Đã sửa (commit ngay trên đầu checkpoint này): Dashboard giữ tham chiếu 2 nhãn preview và làm mới cả 3 chuỗi trong `viewWillAppear`; `chooseLanguage` gọi `refreshMasterCard` ngay sau khi lưu. Kịch bản kiểm tĩnh đã NỘP VÀO REPO: `gpt-project-history/APEX_FIX_CHECKS_20261114.py` (chạy từ thư mục `recovered-source/`).
