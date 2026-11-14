@@ -1665,8 +1665,10 @@ static void AHHostRestoreView(UIView *view) {
             accent = [CAGradientLayer layer];
             accent.name = @"omcAccent";
             accent.colors = @[
-                (id)[UIColor colorWithRed:121.0/255.0 green:237.0/255.0 blue:244.0/255.0 alpha:1].CGColor,
-                (id)[UIColor colorWithRed:33.0/255.0 green:143.0/255.0 blue:170.0/255.0 alpha:1].CGColor]; // APEX #79EDF4 -> #218FAA
+                (id)[UIColor colorWithRed:0.882 green:0.737 blue:1.000 alpha:1].CGColor,
+                (id)[UIColor colorWithRed:0.604 green:0.345 blue:0.941 alpha:1].CGColor,
+                (id)[UIColor colorWithRed:0.475 green:0.278 blue:0.890 alpha:1].CGColor]; // V3 #E1BCFF -> #9A58F0 -> #7947E3
+            accent.locations = @[@0.0, @0.45, @1.0];
             accent.startPoint = CGPointMake(0, 0);
             accent.endPoint = CGPointMake(1, 1);
             accent.frame = knob.dot.bounds;
