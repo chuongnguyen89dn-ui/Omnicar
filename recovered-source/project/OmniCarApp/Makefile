@@ -11,7 +11,7 @@ include $(THEOS)/makefiles/common.mk
 # [hl36-voice-off] Standalone assistant sources are preserved as historical
 # material only. Do NOT compile DCVoiceSession / DCVoiceCommand or link Speech.
 APPLICATION_NAME = OmniCar
-OmniCar_FILES = main.m OMCAppDelegate.m OMCNativeSettings.m OMCLePrefsHost.m OMCNativeStartup.m OMCDeviceVitalsController.m ../OMCCommon/OMCDeviceVitals.m
+OmniCar_FILES = main.m OMCAppDelegate.m OMCNativeSettings.m OMCLePrefsHost.m DCLLeOriginalStoreClient.m OMCNativeStartup.m OMCDeviceVitalsController.m ../OMCCommon/OMCDeviceVitals.m
 OmniCar_FRAMEWORKS = UIKit AVFoundation AVKit CoreMedia CoreImage CoreVideo ImageIO CoreGraphics QuartzCore UniformTypeIdentifiers
 # Reuse the original real Root/Feature schemas and translations. Never copy Prefs Info.plist
 # over the application's APPL Info.plist (historical HL16 regression).

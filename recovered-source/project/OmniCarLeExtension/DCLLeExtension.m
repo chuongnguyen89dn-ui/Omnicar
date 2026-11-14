@@ -15,6 +15,7 @@
 #import <string.h>
 #import "../OmniCarLeTraffic/DCLTrafficCore.h"
 #import "DCLLeConfigBridge.h"
+#import "DCLLeOriginalStoreServer.h"
 
 static NSString *const DCLDomain=@"com.chuong.duocar";
 static id (*originalContent)(id,SEL,id);
@@ -421,7 +422,10 @@ __attribute__((constructor)) static void DCLLeBootstrap(void) {
     BOOL springboard=[bundle isEqualToString:@"com.apple.springboard"];
     if(!car&&!springboard)return;
     dispatch_async(dispatch_get_main_queue(),^{
-        if(springboard)DCLLeConfigStartBridge();
+        if(springboard) {
+            DCLLeConfigStartBridge();
+            DCLLeOriginalStoreStart();
+        }
         loadStored();
         install();
         static int leNotify=-1;

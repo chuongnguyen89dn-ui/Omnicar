@@ -6,7 +6,7 @@ TARGET = iphone:clang:16.5:15.0
 THEOS_PACKAGE_SCHEME = rootless
 include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = DCLLeExtension
-DCLLeExtension_FILES = DCLLeExtension.m DCLLeConfigBridge.m ../OmniCarLeTraffic/DCLTrafficCore.c
+DCLLeExtension_FILES = DCLLeExtension.m DCLLeConfigBridge.m DCLLeOriginalStoreServer.m DCLLeStateWriter.c ../OmniCarLeTraffic/DCLTrafficCore.c
 DCLLeExtension_FRAMEWORKS = Foundation UIKit CoreFoundation QuartzCore CoreGraphics
 DCLLeExtension_CFLAGS = -fobjc-arc -I../OmniCarLeTraffic -Wno-error=arc-performSelector-leaks
 include $(THEOS_MAKE_PATH)/tweak.mk

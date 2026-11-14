@@ -3,6 +3,7 @@
 // Every row here uses an ACKed 64-bit request to the mobile SpringBoard
 // receiver in DCLLeConfigBridge; never show a fake "saved" success.
 #import "OMCLePrefsHost.h"
+#import "DCLLeOriginalStoreClient.h" // [hl55-vendor-save] preserve authentic UI
 #import <UIKit/UIKit.h>
 #import <notify.h>
 #import <math.h>
@@ -515,6 +516,9 @@ UIViewController *OMCLeOriginalPreferencesController(void) {
                 NSLog(@"[hl52-le-original] LOAD FAILED path=%@ error=%@",path,error);
                 continue;
             }
+            BOOL broker=DCLLeInstallOriginalStoreHook(binary);
+            NSLog(@"[hl55-vendor-save] authentic LePrefs writer bridge=%@",
+                  broker?@"READY":@"UNAVAILABLE: vendor save still not proven");
             Class cls=bundle.principalClass;
             if (!cls) cls=NSClassFromString(@"CWTrafficBubblePrefsController");
             if (!cls || ![cls isSubclassOfClass:UIViewController.class]) {
