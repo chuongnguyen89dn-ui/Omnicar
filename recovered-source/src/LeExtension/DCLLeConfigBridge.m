@@ -232,6 +232,13 @@ static id DCLValue(NSUInteger key,BOOL write,id value,NSError **error) {
     NSData *before=[NSData dataWithContentsOfFile:DCLHome];
     NSDictionary *loaded=before?[NSJSONSerialization JSONObjectWithData:before
                                          options:0 error:nil]:nil;
+    if(!write && (![loaded isKindOfClass:NSDictionary.class] || !before.length)) {
+        if(error)*error=[NSError errorWithDomain:@"DCLLeCanonical" code:56
+                                    userInfo:@{NSLocalizedDescriptionKey:@"Missing canonical Lề JSON"}];
+        NSLog(@"[hl56-config-source] canonical READ MISSING key=%lu no VietMap fallback",
+              (unsigned long)key);
+        return nil;
+    }
     NSMutableDictionary *doc=[loaded isKindOfClass:NSDictionary.class]
                                   ?[loaded mutableCopy]:[NSMutableDictionary dictionary];
     NSMutableDictionary *bubble=[doc[@"bubble"] isKindOfClass:NSDictionary.class]

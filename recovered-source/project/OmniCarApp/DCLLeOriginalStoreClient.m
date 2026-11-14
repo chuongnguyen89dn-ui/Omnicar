@@ -114,6 +114,8 @@ BOOL DCLLeFetchCanonicalLayout(NSData **result) {
     if(!result)return NO;
     int req=-1,ack=-1,info=-1,word=-1,crcToken=-1;
     BOOL ok=NO;
+    __strong NSMutableData *bytes=nil;
+    __strong NSDictionary *layout=nil;
     const char *names[]={DCL_LE_RAW_REQ,DCL_LE_RAW_ACK,DCL_LE_RAW_INFO,
                          DCL_LE_RAW_WORD,DCL_LE_RAW_CRC};
     int *tokens[]={&req,&ack,&info,&word,&crcToken};
@@ -135,7 +137,7 @@ BOOL DCLLeFetchCanonicalLayout(NSData **result) {
        (uint16_t)(infoWord>>16)!=nonce)goto finish;
     NSUInteger length=(uint16_t)infoWord;
     if(length<2 || length>DCL_LE_RAW_LIMIT)goto finish;
-    NSMutableData *bytes=[NSMutableData dataWithLength:length];
+    bytes=[NSMutableData dataWithLength:length];
     for(NSUInteger offset=0;offset<length;offset+=4) {
         seq++;
         if(!DCLWaitReply(req,ack,DCL_LE_READ_DATA,seq,nonce,
@@ -160,7 +162,7 @@ BOOL DCLLeFetchCanonicalLayout(NSData **result) {
         NSLog(@"[hl56-config-source] canonical CRC mismatch");
         goto finish;
     }
-    NSDictionary *layout=[NSJSONSerialization JSONObjectWithData:bytes
+    layout=[NSJSONSerialization JSONObjectWithData:bytes
                                              options:0 error:nil];
     if(![layout isKindOfClass:NSDictionary.class] || !layout.count)goto finish;
     *result=bytes;ok=YES;

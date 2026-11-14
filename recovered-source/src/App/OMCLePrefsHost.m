@@ -108,6 +108,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
 @property(nonatomic,strong) UILabel *message;
 @property(nonatomic) BOOL extrasOnly; // [hl52] never present vendor facsimile as original
 @property(nonatomic) NSInteger gpsPendingRaw; // -1 if not awaiting ACK
+@property(nonatomic,strong) NSMutableSet<NSNumber *> *confirmed; // avoid stale default UI
 @end
 
 @implementation DCLLeConfigPage
@@ -115,6 +116,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
     if((self=[super initWithStyle:UITableViewStyleInsetGrouped])) {
         _values=[NSMutableDictionary dictionary];_queue=[NSMutableArray array];
         _sendToken=-1;_ackToken=-1;_gpsPendingRaw=-1;
+        _confirmed=[NSMutableSet set];
         for(NSUInteger n=0;n<DCLCount;n++)_values[@(n)]=@(DCLLeRows[n].def);
     }
     return self;
@@ -145,7 +147,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
         return;
     }
     if(self.extrasOnly) {
-        for(NSNumber *key in @[@4,@27,@28])
+        for(NSNumber *key in @[@0,@4,@27,@28])
             [self.queue addObject:@{@"key":key,@"read":@YES,@"value":@0}];
     } else {
         for(NSUInteger n=0;n<DCLCount;n++)
@@ -159,7 +161,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
     if(self.ackToken>=0)notify_cancel(self.ackToken);
 }
 - (NSArray<NSArray<NSNumber *> *> *)groups {
-    if(self.extrasOnly) return @[@[@4],@[@27,@28]];
+    if(self.extrasOnly) return @[@[@0],@[@4],@[@27,@28]];
     return @[
      @[@0,@1,@2,@3],
      @[@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@29,@28],
@@ -167,7 +169,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
      @[@27]];
 }
 - (NSArray<NSString *> *)titles {
-    if(self.extrasOnly) return @[@"Hiển thị bong bóng Lề", @"Hiệu chỉnh GPS / kéo bong bóng"];
+    if(self.extrasOnly) return @[@"Nguồn dữ liệu thực của Lề", @"Hiển thị bong bóng Lề", @"Hiệu chỉnh GPS / kéo bong bóng"];
     return @[@"Nguồn dữ liệu", @"Bong bóng nổi và cảnh báo",
              @"Thẻ trong Google Maps", @"Tốc độ thực xe đang chạy"];
 }
@@ -182,7 +184,9 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
 }
 - (NSString *)tableView:(UITableView *)table titleForFooterInSection:(NSInteger)section {
     (void)table;
-    if(self.extrasOnly)return section==0?@"Công tắc tổng của bong bóng Lề gốc. Tắt sẽ ẩn vùng hiển thị và vùng chạm; bật sẽ phục hồi. Mọi thay đổi phải được SpringBoard xác nhận.":@"GPS −10…+10 km/h chỉ bù tốc độ đang chạy, không đổi biển giới hạn. Kéo tự do và cặp mép dùng cùng bong bóng Lề.";
+    if(self.extrasOnly)return section==0?@"Đọc trực tiếp nguồn từ cấu hình Lề do SpringBoard quản lý. Không dùng mặc định VietMap khi chưa đọc được dữ liệu.":
+    (section==1?@"Công tắc tổng Lề gốc, đã được xác nhận hoạt động trên DC55.":
+     @"GPS −10…+10 km/h chỉ bù tốc độ đang chạy, không đổi biển giới hạn.");
     if(section==3)return @"Chỉ cộng/trừ vào số GPS đang chạy, không đổi biển giới hạn. 0 là không hiệu chỉnh.";
     if(section==1)return @"Lề giữ cơ chế biển báo, làn đường, cảnh báo và nguồn hiện có. Kéo bong bóng tới mọi vị trí an toàn.";
     return nil;
@@ -222,7 +226,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
     slider.value=(float)offset;
     slider.continuous=YES; // live preview only; commit after finger release
     slider.minimumTrackTintColor=UIColor.systemBlueColor;
-    slider.enabled=!self.bridgeFailed;
+    slider.enabled=!self.bridgeFailed && [self.confirmed containsObject:@27];
     slider.accessibilityLabel=@"Hiệu chỉnh tốc độ GPS";
     slider.accessibilityValue=DCLGPSOffsetText(raw);
     [slider addTarget:self action:@selector(gpsSliderChanged:)
@@ -266,6 +270,13 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
     cell.textLabel.font=[UIFont systemFontOfSize:14];
     cell.detailTextLabel.font=[UIFont monospacedDigitSystemFontOfSize:13 weight:UIFontWeightMedium];
     NSString *kind=[NSString stringWithUTF8String:row->kind];
+    BOOL confirmed=[self.confirmed containsObject:@(key)] && !self.bridgeFailed;
+    if(!confirmed) {
+        cell.detailTextLabel.text=self.bridgeFailed?@"KHÔNG ĐỌC ĐƯỢC":@"Đang đọc…";
+        cell.userInteractionEnabled=NO;
+        cell.textLabel.textColor=UIColor.secondaryLabelColor;
+        return cell;
+    }
     if([kind isEqualToString:@"bool"]) {
         UISwitch *sw=[UISwitch new];sw.on=value!=0;sw.tag=key;
         [sw addTarget:self action:@selector(toggled:) forControlEvents:UIControlEventValueChanged];
@@ -291,7 +302,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
     return cell;
 }
 - (void)enqueueKey:(int)key value:(int)value {
-    if(self.bridgeFailed)return;
+    if(self.bridgeFailed || ![self.confirmed containsObject:@(key)])return;
     [self.queue addObject:@{@"key":@(key),@"value":@(value),@"read":@NO}];
     [self nextRequest];
 }
@@ -333,6 +344,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
 - (void)tableView:(UITableView *)table didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [table deselectRowAtIndexPath:indexPath animated:YES];
     int key=self.groups[(NSUInteger)indexPath.section][(NSUInteger)indexPath.row].intValue;
+    if(![self.confirmed containsObject:@(key)] || self.bridgeFailed)return;
     const DCLLeRow *row=&DCLLeRows[key];
     NSString *kind=[NSString stringWithUTF8String:row->kind];
     if([kind isEqualToString:@"choice"]) {
@@ -462,6 +474,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
         if(!hasNewer)self.gpsPendingRaw=-1;
     }
     if(ok) {
+        [self.confirmed addObject:@(key)];
         self.values[@(key)]=@(raw);
         if(!self.queue.count)self.message.text=@"Đã đọc / xác nhận Lề qua SpringBoard";
         [self.tableView reloadData];
@@ -469,10 +482,17 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
               (unsigned long)key,raw);
         [self nextRequest];
     } else {
-        if(key==27 && !query)[self.tableView reloadData];
-        if(!query)[self showFailure:@"Lề chưa ghi được cấu hình; lựa chọn cũ được giữ."];
-        self.message.text=@"Không lưu được Lề; kiểm tra cấu hình quyền SpringBoard.";
-        [self nextRequest];
+        if(query) {
+            self.bridgeFailed=YES;
+            [self.queue removeAllObjects];
+            self.message.text=@"Không đọc được dữ liệu Lề đang chạy. Không dùng giá trị mặc định để ghi đè.";
+        } else {
+            if(key==27)[self.tableView reloadData];
+            [self showFailure:@"Lề chưa ghi được cấu hình; lựa chọn cũ được giữ."];
+            self.message.text=@"Không lưu được Lề; kiểm tra cấu hình quyền SpringBoard.";
+        }
+        [self.tableView reloadData];
+        if(!self.bridgeFailed)[self nextRequest];
     }
 }
 @end
@@ -486,6 +506,103 @@ static NSArray<NSString *> *DCLLeOriginalBundlePaths(void) {
     return @[@"/var/jb/Library/PreferenceBundles/LePrefs.bundle",
              @"/Library/PreferenceBundles/LePrefs.bundle"];
 }
+// [hl56-canonical-UI] The vendor's original reader uses NSHomeDirectory.
+// In a sandboxed app that means a DIFFERENT layout-v1.json than the running
+// SpringBoard Lề overlay. Never instantiate LePrefs on stale/default state.
+@interface DCLLeVerifiedVendorHost : UIViewController
+@property(nonatomic,copy) NSString *binary;
+@property(nonatomic,strong) NSBundle *bundle;
+@property(nonatomic,assign) Class originalClass;
+@property(nonatomic,strong) UILabel *status;
+@property(nonatomic,strong) UIButton *safeFallback;
+@property(nonatomic,strong) UIViewController *vendorPage;
+@end
+@implementation DCLLeVerifiedVendorHost
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.title=@"Lề • Đồng bộ cấu hình";
+    self.view.backgroundColor=UIColor.systemGroupedBackgroundColor;
+    UILabel *message=[UILabel new];
+    self.status=message;
+    message.text=@"Đang đối chiếu cấu hình đang dùng với SpringBoard…";
+    message.textColor=UIColor.secondaryLabelColor;
+    message.textAlignment=NSTextAlignmentCenter;
+    message.numberOfLines=0;
+    message.translatesAutoresizingMaskIntoConstraints=NO;
+    [self.view addSubview:message];
+    UIButton *fallback=[UIButton buttonWithType:UIButtonTypeSystem];
+    [fallback setTitle:@"Mở cài đặt Lề qua SpringBoard" forState:UIControlStateNormal];
+    [fallback addTarget:self action:@selector(openSafeSettings)
+       forControlEvents:UIControlEventTouchUpInside];
+    fallback.translatesAutoresizingMaskIntoConstraints=NO;
+    fallback.hidden=YES;
+    self.safeFallback=fallback;
+    [self.view addSubview:fallback];
+    [NSLayoutConstraint activateConstraints:@[
+        [message.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:24],
+        [message.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-24],
+        [message.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor constant:-30],
+        [fallback.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [fallback.topAnchor constraintEqualToAnchor:message.bottomAnchor constant:16]
+    ]];
+    __weak typeof(self) weakSelf=self;
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED,0),^{
+        NSData *snapshot=nil;
+        BOOL confirmed=DCLLeFetchCanonicalLayout(&snapshot);
+        dispatch_async(dispatch_get_main_queue(),^{
+            DCLLeVerifiedVendorHost *page=weakSelf;
+            if(!page)return;
+            if(!confirmed) {
+                [page failedCanonical:@"Không đọc được cấu hình Lề đang chạy. Không hiển thị VietMap mặc định để tránh ghi đè Waze."];
+                return;
+            }
+            if(!DCLLeHydrateAppLayout(page.binary,snapshot)) {
+                [page failedCanonical:@"Không đồng bộ được cài đặt Lề vào miền đọc của app. Cấu hình hệ thống vẫn giữ nguyên."];
+                return;
+            }
+            BOOL hooked=DCLLeInstallOriginalStoreHook(page.binary);
+            if(!hooked) {
+                [page failedCanonical:@"Không kết nối được hàm ghi Lề gốc. Không cho phép lưu cấu hình qua giao diện chưa đồng bộ."];
+                return;
+            }
+            UIViewController *vendor=nil;
+            @try {vendor=[[page.originalClass alloc]init];}
+            @catch(NSException *e) {
+                NSLog(@"[hl56-config-source] original UI exception %@ %@",e.name,e.reason);
+            }
+            if(![vendor isKindOfClass:UIViewController.class]){
+                [page failedCanonical:@"Lề nguyên bản không khởi tạo được trang cài đặt."];
+                return;
+            }
+            page.vendorPage=vendor;
+            [page addChildViewController:vendor];
+            vendor.view.translatesAutoresizingMaskIntoConstraints=NO;
+            [page.view addSubview:vendor.view];
+            [NSLayoutConstraint activateConstraints:@[
+               [vendor.view.leadingAnchor constraintEqualToAnchor:page.view.leadingAnchor],
+               [vendor.view.trailingAnchor constraintEqualToAnchor:page.view.trailingAnchor],
+               [vendor.view.topAnchor constraintEqualToAnchor:page.view.topAnchor],
+               [vendor.view.bottomAnchor constraintEqualToAnchor:page.view.bottomAnchor]
+            ]];
+            [vendor didMoveToParentViewController:page];
+            page.title=vendor.title?:@"Lề 0.2.4";
+            NSLog(@"[hl56-config-source] ORIGINAL UI READY after canonical read+mirror + writer hook");
+        });
+    });
+}
+- (void)failedCanonical:(NSString *)message {
+    self.status.text=message;
+    self.status.textColor=UIColor.systemRedColor;
+    self.safeFallback.hidden=NO;
+    NSLog(@"[hl56-config-source] BLOCK ORIGINAL UI: %@",message);
+}
+- (void)openSafeSettings {
+    DCLLeConfigPage *page=[DCLLeConfigPage new];
+    page.extrasOnly=YES;
+    [self.navigationController pushViewController:page animated:YES];
+}
+@end
+
 BOOL OMCLeOriginalPreferencesAvailable(void) {
     for (NSString *path in DCLLeOriginalBundlePaths()) {
         NSString *binary=[path stringByAppendingPathComponent:@"LePrefs"];
@@ -516,20 +633,19 @@ UIViewController *OMCLeOriginalPreferencesController(void) {
                 NSLog(@"[hl52-le-original] LOAD FAILED path=%@ error=%@",path,error);
                 continue;
             }
-            BOOL broker=DCLLeInstallOriginalStoreHook(binary);
-            NSLog(@"[hl55-vendor-save] authentic LePrefs writer bridge=%@",
-                  broker?@"READY":@"UNAVAILABLE: vendor save still not proven");
+            // The hook must be installed only AFTER the canonical data is
+            // fetched and the app-owned read cache has been hydrated.
             Class cls=bundle.principalClass;
             if (!cls) cls=NSClassFromString(@"CWTrafficBubblePrefsController");
             if (!cls || ![cls isSubclassOfClass:UIViewController.class]) {
                 NSLog(@"[hl52-le-original] BAD PRINCIPAL class=%@",cls);
                 continue;
             }
-            UIViewController *page=[[cls alloc] init];
-            if (![page isKindOfClass:UIViewController.class])continue;
-            NSLog(@"[hl52-le-original] ORIGINAL LOADED bundle=%@ class=%@",
+            DCLLeVerifiedVendorHost *loading=[DCLLeVerifiedVendorHost new];
+            loading.binary=binary;loading.bundle=bundle;loading.originalClass=cls;
+            NSLog(@"[hl52-le-original] ORIGINAL LOADED bundle=%@ class=%@ pending canonical verification",
                   bundle.bundleIdentifier,NSStringFromClass(cls));
-            return page; // Actual vendor controller, not a DuoCar facsimile
+            return loading;
         } @catch(NSException *exception) {
             NSLog(@"[hl52-le-original] EXCEPTION %@: %@",
                   exception.name,exception.reason);
