@@ -92,7 +92,10 @@ assert "@\"duocarFullscreenVitalsEnabled\",@YES" in settings
 assert '@"duocarVitalsEnabled",@NO' not in settings
 assert "SCPVitalsFullscreenBubblePlace" in layout
 assert "SCPFullscreenVitalsBubble.m" in make_split
-assert "SCPDeviceVitalsHUD.m" not in make_split
+# HL54 must preserve the existing Dock vitals module while the fullscreen
+# clock bubble remains a separately gated owner. Source absence from
+# SCPCarSplit.m is checked above; a compiled Dock module is not a duplicate.
+assert "SCPDeviceVitalsHUD.m" in make_split
 assert "SCPVitalsPlacement.c" in make_split
 assert "OMCDeviceVitals.m" in make_split and "OMCDeviceVitals.m" in make_app
 assert "OMCDeviceVitalsController.m" in make_app
