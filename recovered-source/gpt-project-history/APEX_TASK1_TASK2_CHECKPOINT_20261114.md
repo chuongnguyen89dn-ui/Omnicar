@@ -39,3 +39,10 @@ GPT phán: M3-0 SOURCE SCOPE PASS; D5-B SOURCE REVIEW FAIL (3 điểm). Nhãn "S
 
 ## BỔ SUNG 2 — GPT RE-REVIEW 6875837461 (14/11)
 GPT xác nhận 4/4 lỗi cũ SOURCE FIX PASS; còn 1 điểm locale: Dashboard không làm mới tiêu đề/nhãn preview khi đổi ngôn ngữ, và phụ đề thẻ master ở Tùy chỉnh không cập nhật ngay trong chooseLanguage. Đã sửa (commit ngay trên đầu checkpoint này): Dashboard giữ tham chiếu 2 nhãn preview và làm mới cả 3 chuỗi trong `viewWillAppear`; `chooseLanguage` gọi `refreshMasterCard` ngay sau khi lưu. Kịch bản kiểm tĩnh đã NỘP VÀO REPO: `gpt-project-history/APEX_FIX_CHECKS_20261114.py` (chạy từ thư mục `recovered-source/`).
+
+## BỔ SUNG 3 — M4: GPT SOURCE GATE PASS + COMPILE PASS (14/11)
+- GPT comment 6875888201: **SOURCE GATE PASS** (độc lập đối chiếu 16/16 điều kiện của kịch bản kiểm, 4 cặp SHA khớp; ahead 32/behind 0 so HL61; 11 đường dẫn bảo vệ không nằm trong diff). Mở M4 preflight.
+- Preflight Muse (comment 6875921633): hợp đồng build Theos aggregate (rootless, arm64 trên VM, TARGET 16.5:15.0); toolchain VM hỏng do rollback.
+- Nguyen duyệt trực tiếp tại chat (17:30): chạy `~/bin/fix-toolchain.sh` → exit 0, smoke test đạt.
+- Compile-check (comment 6875967464): `make -j2` trên HEAD `3107d0e`, cwd `recovered-source/project/` → **exit 0, 0 error**, 132 warning cũ; 7/7 subproject linking; 4 file APEX sửa đều biên dịch; hash sản phẩm trung gian đã ghi tại comment. Chưa đóng DEB ở bước này.
+- Tiếp theo: Nguyen lệnh riêng (17:38) — xuất MỘT DEB thử nghiệm APEX (M5).

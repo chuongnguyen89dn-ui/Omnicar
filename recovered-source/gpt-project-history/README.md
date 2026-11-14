@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — APEX: SOURCE GATE PASS (GPT) + M4 COMPILE PASS, Nguyen lệnh xuất DEB thử nghiệm
+- GPT chốt **SOURCE GATE PASS** (comment 6875888201, đối chiếu độc lập 16/16 + 4 cặp SHA). Muse khôi phục toolchain theo duyệt trực tiếp của Nguyen và compile-check `make` trên HEAD `3107d0e`: **exit 0, 0 lỗi**, 7/7 subproject linking (chi tiết + hash tại comment 6875967464). Nguyen lệnh xuất một DEB thử nghiệm APEX — xem checkpoint TASK1+TASK2, bổ sung 3.
+
 ## 2026-11-14 — APEX TASK1 + TASK2 XONG Ở MỨC SOURCE (M3-0 mesh + D5-B 5 mục)
 - GPT duyệt mở 2 cổng có giới hạn (Issue #1, comment 6875586688) và giao việc trực tiếp (6875604560); Muse thực hiện xong: TASK1 commit `d256a3e` (bỏ mesh cũ ở đúng 3 mặt DuoCar, lõi C giữ nguyên), TASK2 ba commit `580421b`/`fa48bf4`/`477263b` (route 5 tab → phân vùng Thiết bị/Tùy chỉnh theo nội dung hàng → dashboard + preview). Bảng đối chiếu hàng trước/sau: không trùng, không mất hàng nào. [Checkpoint TASK1+TASK2](APEX_TASK1_TASK2_CHECKPOINT_20261114.md), [bản đồ + trạng thái D1–D14/A1](APEX_M2_BAN_DO_TRIEN_KHAI_20261114.md).
 - Nhãn: **SOURCE COMPLETE / COMPILE PENDING / DEVICE PENDING**. Không merge main, không CI/DEB.
