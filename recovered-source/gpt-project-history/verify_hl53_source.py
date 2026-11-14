@@ -205,7 +205,7 @@ assert '[self enqueueKey:27 value:raw];' in app
 for p,expected in {
     "OmniCarSplitScreen/SCPCarSplit+Picker.m":"54bb81ed63cedb36bc5a06931fcb998cba4eb761",
     "OmniCarSplitScreen/SCPCarSplit.m":"6cf2fdd20eaac3680eac685b5f9d3b415efc4723",
-    "OmniCarLeExtension/DCLLeConfigBridge.m":"1826eaeb845038c25755cbe377514b095f313931",
+    "OmniCarLeExtension/DCLLeConfigBridge.m":"9b94a6c882c2df10cda27d0ad719792abf52f5ea",
 }.items():
     assert git_blob_sha(project/p)==expected,("HL51 regression in",p)
 # Latest user geometry preference: show ONLY text/icons without any grey

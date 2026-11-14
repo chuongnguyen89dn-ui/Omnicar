@@ -1,5 +1,8 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL56: DC55 test xe FAIL; truy nguyên Waze/VietMap, kéo lần đầu và Lề dưới hosted
+- Nguyen xác nhận **Lề master ON/OFF đạt**, nhưng menu Lề hiện VietMap dù CarPlay vẫn lấy Waze; bubble bị che dưới hosted, lần kết nối đầu không kéo/cặp mép được. Soát LePrefs arm64 thực: original đọc qua `NSHomeDirectory()` của DuoCar iPhone app, khác JSON canon của SpringBoard → stale/default; DC55 chỉ broker GHI. Mã HL56 đã thêm canonical READ CRC+nonce owner, hydrate LePrefs trước mở UI, chặn mặc định VietMap và bảo vệ Waze; bỏ ép windowLevel, tái gọi vendor -place khi hosted window thay, reset pan khi lần đầu attach lỗi, giữ master ON/OFF. Source commits `0dd7d660` → `36b96c52`; **CHƯA CI/build/DEVICE PASS**. [Biên bản HL56](HL56_DC55_DEVICE_REGRESSIONS_SOURCE_ROOT_CAUSE_20261114.md).
+
 
 ## 2026-11-14 — DC55 integrated FAT DEB: artifact verified; CI final stale marker corrected
 - One signed \`DC55.deb\` \`1.0.3-le0248\`, SHA256 \`ef61abb1608a0334fefcd112a81eb06d351c9fd306473268f85aa1c590d9b775\`, 2,374,124 bytes, build source \`adad8a3dd1387f9bd8c19ea7276b224ad58bb4a0\`, run \`43539194236\`, artifact \`14091340439\` (\`DC55-failed-binary\` archived because legacy verifier still checked HL52 END). App/ext FAT compiled+signed, merged+signed vendor and patch PASS; independent **actual artifact replay** verified 18 signed FAT executables, 10 vendor FAT clean of \`km/h\`, broker/master/window/thermal/zoom/menu/Dock markers, byte-identical vendor assets vs DC54. Updated outdated validator and restored manual-only CI without rebuilding. **NOT DEVICE PROVEN**. [Full checkpoint](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).

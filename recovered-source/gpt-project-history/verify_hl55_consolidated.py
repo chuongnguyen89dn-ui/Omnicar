@@ -53,11 +53,35 @@ assert hashlib.sha256(fs).hexdigest()=="62a0703aefd8f41c416bc684ebcfd8dd2ce72f23
 assert "DCLLeOriginalStoreClient.m" in appMake
 assert "DCLLeOriginalStoreServer.m" in extMake
 assert "DCLLeStateWriter.c" in extMake
-assert "DCLLeInstallOriginalStoreHook(binary)" in app
+assert "DCLLeInstallOriginalStoreHook(page.binary)" in app
 assert "bundle.principalClass" in app
 assert "DCLLeOriginalStoreStart();" in ext
-assert 'if(self.extrasOnly) return @[@[@4],@[@27,@28]];' in app
-assert 'for(NSNumber *key in @[@4,@27,@28])' in app
+assert "UIWindowDidBecomeVisibleNotification" in ext
+assert "UIWindowDidBecomeKeyNotification" in ext
+assert "DCLLePeerWindowChanged" in ext
+assert "originalOverlayPlace(current,@selector(place))" in ext
+assert "if(!confirmed) {" in app
+assert "DCLLeFetchCanonicalLayout(&snapshot)" in app
+assert "DCLLeHydrateAppLayout(page.binary,snapshot)" in app
+assert app.index("DCLLeFetchCanonicalLayout(&snapshot)") < app.index("vendor=[[page.originalClass alloc]init]")
+assert "BLOCK ORIGINAL UI" in app and "Không đọc được cấu hình Lề đang chạy" in app
+assert "canonical READ MISSING" in bridge
+assert "DCLLeReadState(DCLVendorDirectory" in server
+assert "DCLLeStoreSerialQueue(void)" in server
+assert "DCLLeStoreSerialQueue()" in bridge
+assert "DCL_LE_READ_BEGIN" in server and "DCL_LE_READ_DATA" in server
+assert "DCLLeCRC32(DCLReadSnapshot.bytes" in server
+assert "DCLLeFetchCanonicalLayout(NSData **result)" in client
+assert "DCLLeCRC32(bytes.bytes,length)" in client
+assert "DCLLeHydrateAppLayout" in client
+assert "DCLVendorWriter?DCLVendorWriter" in client
+assert "DCLLeReadState(" in writer
+assert "DCLCheckOwner(&st,1)" in writer
+assert "NSHomeDirectory()" in client
+assert "LePrefs" in app
+
+assert 'if(self.extrasOnly) return @[@[@0],@[@4],@[@27,@28]];' in app
+assert 'for(NSNumber *key in @[@0,@4,@27,@28])' in app
 assert '[self enqueueKey:(int)sender.tag value:sender.on?1:0]' in app
 assert 'if(self.extrasOnly && key==27)return [self gpsSliderCell];' in app
 assert 'slider.minimumValue=-10.0f;' in app
