@@ -282,12 +282,12 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         if (!self.pill || !self.overlayWindow || self.overlayWindow.hidden)
             return;
     }
+    NSTimeInterval now = [NSDate date].timeIntervalSince1970;
     if(self.thermalCurtain && now>=self.thermalCurtainUntil) {
         [self.thermalCurtain removeFromSuperview];self.thermalCurtain=nil;
     }
     self.pill.alpha = 1.0; // NO idle-dim/AutoHide lease; fullscreen-only gate
     self.timeLabel.text = [[self systemClockFormatter] stringFromDate:[NSDate date]];
-    NSTimeInterval now = [NSDate date].timeIntervalSince1970;
     if (!self.lastSample || now - self.lastSampleTime >= 12.0 ||
         now < self.lastSampleTime) {
         self.lastSample = OMCDeviceVitalsSample();
