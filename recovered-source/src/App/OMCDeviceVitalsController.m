@@ -1,6 +1,7 @@
 // DuoCar standalone iPhone settings page; shares the on-car sampler.
 #import "OMCDeviceVitalsController.h"
 #import "OMCDeviceVitals.h"
+#import "OMCApexStyle.h"
 
 @interface OMCVitalsPage : UIViewController
 @property(nonatomic,strong) UILabel *battery;
@@ -15,7 +16,7 @@
 - (UILabel *)lineWithSize:(CGFloat)size strong:(BOOL)strong {
     UILabel *label = [UILabel new];
     label.font = strong ? [UIFont boldSystemFontOfSize:size] : [UIFont systemFontOfSize:size];
-    label.textColor = UIColor.labelColor;
+    label.textColor = OMCApexTextPrimary();
     label.numberOfLines = 0;
     label.textAlignment = NSTextAlignmentNatural;
     label.adjustsFontForContentSizeCategory = YES;
@@ -25,7 +26,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"Pin và nhiệt độ";
-    self.view.backgroundColor = UIColor.systemGroupedBackgroundColor;
+    self.view.backgroundColor = OMCApexSurfaceRoot();
     UIStackView *stack = [UIStackView new];
     stack.axis = UILayoutConstraintAxisVertical;
     stack.spacing = 20;
@@ -36,7 +37,7 @@
     self.temperature = [self lineWithSize:22 strong:YES];
     self.thermal = [self lineWithSize:17 strong:NO];
     self.source = [self lineWithSize:14 strong:NO];
-    self.source.textColor = UIColor.secondaryLabelColor;
+    self.source.textColor = OMCApexTextSecondary();
     [stack addArrangedSubview:self.battery];
     [stack addArrangedSubview:self.temperature];
     [stack addArrangedSubview:self.thermal];
@@ -51,6 +52,7 @@
 
     UIButton *refresh = [UIButton buttonWithType:UIButtonTypeSystem];
     [refresh setTitle:@"Làm mới" forState:UIControlStateNormal];
+    [refresh setTitleColor:OMCApexAccent() forState:UIControlStateNormal];
     [refresh addTarget:self action:@selector(updateVitals) forControlEvents:UIControlEventTouchUpInside];
     refresh.titleLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
     refresh.translatesAutoresizingMaskIntoConstraints = NO;

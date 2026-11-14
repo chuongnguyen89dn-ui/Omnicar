@@ -3,6 +3,7 @@
 // impersonate its settings, draw a traffic bubble, or reset vendor JSON.
 // All writes are ACKed by our SpringBoard owner (not vendor-owned state).
 #import "OMCLePrefsHost.h"
+#import "OMCApexStyle.h"
 #import <UIKit/UIKit.h>
 #import <notify.h>
 #import <stdint.h>
@@ -40,12 +41,12 @@ BOOL OMCLeOriginalPreferencesAvailable(void) {
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title=@"DuoCar • Lề cài riêng";
-    self.tableView.backgroundColor=UIColor.systemGroupedBackgroundColor;
+    self.tableView.backgroundColor=OMCApexSurfaceRoot();
     UILabel *message=[[UILabel alloc]initWithFrame:CGRectMake(0,0,330,68)];
     message.font=[UIFont systemFontOfSize:12];
     message.textAlignment=NSTextAlignmentCenter;
     message.numberOfLines=3;
-    message.textColor=UIColor.secondaryLabelColor;
+    message.textColor=OMCApexTextSecondary();
     message.text=OMCLeOriginalPreferencesAvailable()?
         @"Đã phát hiện Lề riêng. Đang đọc hai công tắc DuoCar…":
         @"Chưa phát hiện Lề riêng. Có thể lưu lựa chọn trước; hiệu lực khi Lề được cài và nạp lại.";
@@ -91,6 +92,16 @@ BOOL OMCLeOriginalPreferencesAvailable(void) {
       @"Chỉ ẩn/hiện bong bóng của Lề cài riêng. Không can thiệp nguồn VietMap/Waze, bố cục, kéo hay cặp mép của Lề.":
       @"Thanh trượt −10 đến +10, bước 1. Chỉ cộng vào số tốc độ đang chạy; biển giới hạn tốc độ giữ nguyên. Cần Lề riêng 0.2.4 và nạp lại SpringBoard/CarPlay để có hiệu lực.";
 }
+- (void)tableView:(UITableView *)table willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
+    (void)table;(void)section;
+    if([view isKindOfClass:UITableViewHeaderFooterView.class])
+        ((UITableViewHeaderFooterView *)view).textLabel.textColor=OMCApexTextSecondary();
+}
+- (void)tableView:(UITableView *)table willDisplayFooterView:(UIView *)view forSection:(NSInteger)section {
+    (void)table;(void)section;
+    if([view isKindOfClass:UITableViewHeaderFooterView.class])
+        ((UITableViewHeaderFooterView *)view).textLabel.textColor=OMCApexTextSecondary();
+}
 - (CGFloat)tableView:(UITableView *)table heightForRowAtIndexPath:(NSIndexPath *)index {
     (void)table;return index.section==1?112.0:52.0;
 }
@@ -101,9 +112,12 @@ BOOL OMCLeOriginalPreferencesAvailable(void) {
     UITableViewCell *cell=[[UITableViewCell alloc]initWithStyle:
         UITableViewCellStyleDefault reuseIdentifier:nil];
     cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    cell.backgroundColor=OMCApexSurface1();
     if(index.section==0) {
         cell.textLabel.text=@"Hiển thị bong bóng";
+        cell.textLabel.textColor=OMCApexTextPrimary();
         UISwitch *sw=[UISwitch new];
+        sw.onTintColor=OMCApexTeal();
         sw.on=[self.values[@4] boolValue];
         sw.enabled=ready;
         sw.accessibilityLabel=@"Bật/tắt bong bóng Lề cài riêng";
@@ -114,6 +128,7 @@ BOOL OMCLeOriginalPreferencesAvailable(void) {
     }
     UILabel *label=[UILabel new];
     label.text=@"Hiệu chỉnh GPS";
+    label.textColor=OMCApexTextPrimary();
     label.font=[UIFont preferredFontForTextStyle:UIFontTextStyleSubheadline];
     UILabel *value=[UILabel new];
     int raw=[self.values[@27] intValue];
@@ -121,12 +136,14 @@ BOOL OMCLeOriginalPreferencesAvailable(void) {
     value.tag=5827;
     value.font=[UIFont monospacedDigitSystemFontOfSize:15
                                            weight:UIFontWeightSemibold];
-    value.textColor=UIColor.systemBlueColor;
+    value.textColor=OMCApexAccent();
     UIStackView *title=[[UIStackView alloc]
                         initWithArrangedSubviews:@[label,value]];
     title.axis=UILayoutConstraintAxisHorizontal;
     title.distribution=UIStackViewDistributionEqualSpacing;
     UISlider *slider=[UISlider new];
+    slider.minimumTrackTintColor=OMCApexTeal();
+    slider.maximumTrackTintColor=OMCApexSurface3();
     slider.minimumValue=-10;slider.maximumValue=10;
     slider.value=raw-10;slider.enabled=ready;
     slider.accessibilityLabel=@"Bù tốc độ GPS đang chạy";
@@ -143,7 +160,7 @@ BOOL OMCLeOriginalPreferencesAvailable(void) {
     for(UILabel *l in @[left,zero,right]) {
         l.font=[UIFont monospacedDigitSystemFontOfSize:11
                                                 weight:UIFontWeightRegular];
-        l.textColor=UIColor.secondaryLabelColor;
+        l.textColor=OMCApexTextSecondary();
     }
     UIStackView *marks=[[UIStackView alloc]
            initWithArrangedSubviews:@[left,zero,right]];
