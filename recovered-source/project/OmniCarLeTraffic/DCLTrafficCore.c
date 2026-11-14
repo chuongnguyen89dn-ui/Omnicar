@@ -6,8 +6,8 @@ static double clamped(double n, double a, double b) {
     return fmin(b, fmax(a, n));
 }
 int DCLTrafficClampGpsOffset(int requested) {
-    if (requested < -5) return -5;
-    if (requested > 5) return 5;
+    if (requested < -10) return -10;
+    if (requested > 10) return 10;
     return requested;
 }
 
