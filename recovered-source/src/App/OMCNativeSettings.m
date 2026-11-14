@@ -1,6 +1,7 @@
 // HL26: UIKit-owned iPhone settings. Do not instantiate Settings.app Preferences controllers.
 // All values use the same domain/key/notify contract as OmniCarPrefs and the CarPlay owner.
 #import "OMCNativeSettings.h"
+#import "OMCApexStyle.h"
 #import "OMCLePrefsHost.h" // [le024] actual vendor UI, no disconnected mirror
 #import "OMCDeviceVitalsController.h" // [duocar-vitals] standalone detail page
 #import <CoreFoundation/CoreFoundation.h>
@@ -269,6 +270,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.tableView.backgroundColor=OMCApexSurfaceRoot();
+    self.tableView.tintColor=OMCApexAccent();
     self.tableView.keyboardDismissMode=UIScrollViewKeyboardDismissModeOnDrag;
     UISearchController *search=[[UISearchController alloc] initWithSearchResultsController:nil];
     search.searchResultsUpdater=self;
@@ -363,15 +366,18 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     UITableViewCell *cell=[tableView dequeueReusableCellWithIdentifier:@"app"];
     if (!cell) cell=[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"app"];
     NSDictionary *a=self.visible[p.row];
+    cell.backgroundColor=OMCApexSurface1();
+    cell.tintColor=OMCApexAccent();
+    cell.detailTextLabel.textColor=OMCApexTextSecondary();
     cell.textLabel.text=a[@"name"];
     cell.detailTextLabel.text=a[@"id"];
     cell.accessoryType=[self.chosen containsObject:a[@"id"]]
         ?UITableViewCellAccessoryCheckmark:UITableViewCellAccessoryNone;
     if (self.homeMode && [self isHomeProtected:a[@"id"]]) {
-        cell.textLabel.textColor=UIColor.secondaryLabelColor;
+        cell.textLabel.textColor=OMCApexTextSecondary();
         cell.selectionStyle=UITableViewCellSelectionStyleNone;
     } else {
-        cell.textLabel.textColor=UIColor.labelColor;
+        cell.textLabel.textColor=OMCApexTextPrimary();
         cell.selectionStyle=UITableViewCellSelectionStyleDefault;
     }
     return cell;
@@ -543,6 +549,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.tableView.backgroundColor=OMCApexSurfaceRoot();
     if (self.kind!=0)return;
     // Original Prefs uses a 118pt header card with master switch, plus
     // independent language and Respring actions in the navigation bar.
@@ -552,23 +559,27 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     UIView *card=[[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0,8,
         CGRectGetWidth(header.bounds),120),16,0)];
     card.autoresizingMask=UIViewAutoresizingFlexibleWidth;
-    card.backgroundColor=UIColor.secondarySystemGroupedBackgroundColor;
+    card.backgroundColor=OMCApexSurface1();
     card.layer.cornerRadius=15;
+    card.layer.borderWidth=1;
+    card.layer.borderColor=OMCApexStroke().CGColor;
     card.clipsToBounds=YES;
     UILabel *title=[[UILabel alloc] initWithFrame:CGRectMake(18,15,
         CGRectGetWidth(card.bounds)-105,36)];
     title.autoresizingMask=UIViewAutoresizingFlexibleWidth;
     title.text=@"DuoCar";
+    title.textColor=OMCApexTextPrimary();
     title.font=[UIFont systemFontOfSize:26 weight:UIFontWeightBold];
     [card addSubview:title];
     UILabel *subtitle=[[UILabel alloc] initWithFrame:CGRectMake(18,58,
         CGRectGetWidth(card.bounds)-36,45)];
     subtitle.autoresizingMask=UIViewAutoresizingFlexibleWidth;
     subtitle.font=[UIFont preferredFontForTextStyle:UIFontTextStyleSubheadline];
-    subtitle.textColor=UIColor.secondaryLabelColor;
+    subtitle.textColor=OMCApexTextSecondary();
     subtitle.numberOfLines=2;
     [card addSubview:subtitle];self.masterStatus=subtitle;
     UISwitch *sw=[UISwitch new];
+    sw.onTintColor=OMCApexTeal();
     CGRect fr=sw.frame;fr.origin=CGPointMake(CGRectGetWidth(card.bounds)-fr.size.width-15,18);
     sw.frame=fr;sw.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin;
     [sw addTarget:self action:@selector(omcMasterChanged:)
@@ -626,17 +637,22 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     NSDictionary *r=[self rowAt:p];
     NSString *type=r[@"type"],*key=r[@"key"];
     UITableViewCell *cell=[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:nil];
+    cell.backgroundColor=OMCApexSurface1();
+    cell.tintColor=OMCApexAccent();
     cell.textLabel.text=OMCRowName(r);
+    cell.textLabel.textColor=OMCApexTextPrimary();
     cell.textLabel.numberOfLines=2;
     cell.detailTextLabel.font=[UIFont systemFontOfSize:13];
+    cell.detailTextLabel.textColor=OMCApexTextSecondary();
     cell.accessoryType=UITableViewCellAccessoryDisclosureIndicator;
     if ([type isEqualToString:@"switch"]) {
-        UISwitch *sw=[UISwitch new];sw.on=[OMCNativePref(key,r[@"default"]?:@NO) boolValue];
+        UISwitch *sw=[UISwitch new];sw.onTintColor=OMCApexTeal();sw.on=[OMCNativePref(key,r[@"default"]?:@NO) boolValue];
         objc_setAssociatedObject(sw,@selector(omcChanged:),key,OBJC_ASSOCIATION_COPY_NONATOMIC);
         [sw addTarget:self action:@selector(omcChanged:) forControlEvents:UIControlEventValueChanged];
         cell.accessoryView=sw;cell.accessoryType=UITableViewCellAccessoryNone;
     } else if ([type isEqualToString:@"slider"]) {
         UISlider *slider=[[UISlider alloc] initWithFrame:CGRectMake(0,0,150,44)];
+        slider.minimumTrackTintColor=OMCApexTeal();slider.maximumTrackTintColor=OMCApexSurface3();
         slider.minimumValue=[r[@"min"] floatValue];slider.maximumValue=[r[@"max"] floatValue];
         slider.value=[OMCNativePref(key,r[@"default"]?:@0) floatValue];
         slider.accessibilityLabel=OMCRowName(r);
@@ -665,6 +681,16 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         }
     }
     return cell;
+}
+- (void)tableView:(UITableView *)t willDisplayHeaderView:(UIView *)view forSection:(NSInteger)s {
+    (void)t;(void)s;
+    if([view isKindOfClass:UITableViewHeaderFooterView.class])
+        ((UITableViewHeaderFooterView *)view).textLabel.textColor=OMCApexTextSecondary();
+}
+- (void)tableView:(UITableView *)t willDisplayFooterView:(UIView *)view forSection:(NSInteger)s {
+    (void)t;(void)s;
+    if([view isKindOfClass:UITableViewHeaderFooterView.class])
+        ((UITableViewHeaderFooterView *)view).textLabel.textColor=OMCApexTextSecondary();
 }
 - (void)omcChanged:(UISwitch *)s {
     NSString *key=objc_getAssociatedObject(s,@selector(omcChanged:));
@@ -1265,6 +1291,9 @@ UIViewController *OMCNativeSettingsRootController(void) {
     c.tabBarItem=[[UITabBarItem alloc] initWithTitle:OMCText(@"Cài đặt",@"Settings")
                                               image:[UIImage systemImageNamed:@"gearshape.fill"] tag:2];
     root.viewControllers=@[a,b,c];
+    root.tabBar.tintColor=OMCApexAccent();
+    root.tabBar.unselectedItemTintColor=OMCApexTextSecondary();
+    root.tabBar.backgroundColor=OMCApexSurfaceDeep();
     root.selectedIndex=2;
     NSLog(@"[hl26-settings] gate=uikit-tab-ready tabs=3 domain=%@",kOMCNativeDomain);
     return root;
