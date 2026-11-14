@@ -2,6 +2,11 @@ name: "DuoCar54 - Lề clean units + clock edge/free + GPS ±10 FAT"
 permissions:
   contents: read
 on:
+  push:
+    branches:
+      - feature/duocar-hl54-le-original-integrity-20261114
+    paths:
+      - .github/workflows/build-hl54-le-units-clock-dock-fat.yml
   workflow_dispatch:
 
 
@@ -10,7 +15,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 70
     steps:
-      - name: Checkout exact HL54 source (workflow_dispatch only)
+      - name: Checkout exact HL54 source (single controlled build)
         uses: actions/checkout@v4
         with:
           persist-credentials: false
