@@ -1,6 +1,6 @@
 // HL58: standalone Lề is NOT bundled. Two optional DuoCar settings ONLY.
 // Cross-process SpringBoard owner of DuoCar's GPS offset and Lề visibility
-// gate, with ACK/readback. Never touch Lề's source/layout-v1.json,
+// gate, with ACK/readback. Never touch Lề's canonical vendor JSON,
 // Waze/VietMap preferences, renderer, position, notification owner or assets.
 #import <Foundation/Foundation.h>
 #import <CoreFoundation/CoreFoundation.h>
