@@ -510,16 +510,14 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(@"APPS",@"homeapps",nil,nil,nil),
             OMCRow(OMCText(@"Khôi phục bố cục Home",@"Reset Home layout"),@"resethome",nil,nil,nil)])
     ];
-    // [hl52-le-original] The primary entry invokes LePrefs.bundle's own
-    // signed root UI; extra DuoCar-only switches remain a separate page.
-    if (self.kind==3) return @[
-        OMCSection(OMCText(@"Lề 0.2.4", @"Lề 0.2.4"), @[
-            OMCRow(OMCText(@"Cài đặt Lề (giao diện gốc)",
-                           @"Original Lề settings"),
-                   @"leOriginal", nil, nil, nil),
-            OMCRow(OMCText(@"Tùy chỉnh thêm: GPS ±10, kéo tự do",
-                           @"DuoCar extras: GPS ±10, free drag"),
-                   @"leCompat", nil, nil, nil)
+    // HL58: ONLY the DuoCar optional GPS +/-10 and visibility master.
+    // Never expose an embedded or copied original Lề preferences UI.
+    if(self.kind==3) return @[
+        OMCSection(OMCText(@"Lề cài riêng (tùy chọn)",
+                           @"Separately installed Lề (optional)"),@[
+           OMCRow(OMCText(@"Hiệu chỉnh GPS và bật/tắt bong bóng",
+                           @"GPS calibration and bubble visibility"),
+                  @"leCompat",nil,nil,nil)
         ])
     ];
     id raw=OMCNativePref(@"carProfiles",@{});
@@ -651,7 +649,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         NSString *featureKey=nil;
         if([type isEqualToString:@"startup"])featureKey=@"startupScreenEnabled";
         else if([type isEqualToString:@"bubble"]) {
-            cell.detailTextLabel.text=OMCLeOriginalPreferencesAvailable()?@"Lề 0.2.4":OMCText(@"Chưa nạp Lề", @"Le unavailable");
+            cell.detailTextLabel.text=OMCLeOriginalPreferencesAvailable()?
+                @"Lề riêng đã cài":@"Lề riêng chưa cài";
         }
         else if([type isEqualToString:@"split"])featureKey=@"splitScreenEnabled";
         if(featureKey.length) {
@@ -1114,12 +1113,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         [self.navigationController pushViewController:OMCNativeStartupController() animated:YES];return;
     }
     if ([type isEqualToString:@"bubble"]) {
-        // [hl52-le-original] Open LePrefs 0.2.4 original root on first tap;
-        // do not route users through DuoCar's handwritten table.
-        [self.navigationController pushViewController:OMCLeOriginalPreferencesController() animated:YES];return;
-    }
-    if ([type isEqualToString:@"leOriginal"]) {
-        [self.navigationController pushViewController:OMCLeOriginalPreferencesController() animated:YES];return;
+        [self.navigationController pushViewController:OMCLeCompatiblePreferencesController() animated:YES];return;
     }
     if ([type isEqualToString:@"leCompat"]) {
         [self.navigationController pushViewController:OMCLeCompatiblePreferencesController() animated:YES];return;
