@@ -1405,7 +1405,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     else if ([action isEqualToString:@"layout"]) next=[[OMCNativeSimplePage alloc] initWithKind:1];
     else if ([action isEqualToString:@"device"]) next=[[OMCNativeSimplePage alloc] initWithKind:5];
     else if ([action isEqualToString:@"customize"]) next=[[OMCNativeSimplePage alloc] initWithKind:6];
-    else if ([action isEqualToString:@"startup"]) next=[[OMCNativeSimplePage alloc] initWithKind:2];
+    else if ([action isEqualToString:@"startup"]) next=OMCNativeStartupController(); // GPT review: kind 2 la Home, dung factory Startup san co
     else if ([action isEqualToString:@"le"]) next=OMCLeCompatiblePreferencesController();
     else if ([action isEqualToString:@"vitals"]) next=OMCDeviceVitalsController();
     if (next) [self.navigationController pushViewController:next animated:YES];
