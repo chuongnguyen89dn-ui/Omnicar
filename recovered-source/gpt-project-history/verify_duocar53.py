@@ -83,9 +83,12 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
     for sub,data in extended.items():
         assert has_marker(data,"[le024-ext]")
         assert has_marker(data,"[le024-config]")
+        for extra in ("[hl55-le-window]","[hl55-le-master]",
+                      "[hl54-store-sb]"):
+            assert has_marker(data,extra),(sub,"Lề master/store/overlay absent",extra)
         assert has_marker(data,"repaired malformed modules"),"vendor schema repair missing"
         # Markers in BOTH signed slices; not a CarPlay runtime claim.
-        for expected in ("[hl52-free-xy] BEGIN","[hl52-free-xy] END",
+        for expected in ("[hl52-free-xy] BEGIN","[hl55-le-edge] END",
                          "[hl52-free-xy] BLIND","[hl52-free-xy] BAD GEOMETRY"):
             assert has_marker(data,expected),(sub,"native drag missing",expected)
 
@@ -117,6 +120,8 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
         assert has_marker(data,"[fs1]"),"fullscreen engine binary missing"
         assert has_marker(data,"[pinch2]"),"pinch recognizer binary missing"
         assert has_marker(data,"[fs-vitals]"),"working fullscreen vitals bubble missing"
+        assert has_marker(data,"[hl55-thermal]"),"red 39C alert missing"
+        assert has_marker(data,"CẢNH BÁO NHIỆT ĐỘ"),"thermal warning text missing"
         assert has_marker(data,"[hl50-menu]"),"scene-preserve path absent"
         assert has_marker(data,"[hl51-menu] sheetHost="),"restored original menu owner missing"
         # HL53 deliberately changes the old pair-toggle path. Pinch OUT
@@ -131,6 +136,10 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
     # gates BOTH require its actual signed vendor class loader.
     assert has_marker(app.read_bytes(),"[hl52-le-original] ORIGINAL LOADED"),"real Lề root not linked"
     assert has_marker(app.read_bytes(),"CWTrafficBubblePrefsController"),"vendor principal missing"
+    for sub,content in verify_fat(app).items():
+        for extra in ("[hl54-store]","[hl55-vendor-save]",
+                      "Hiển thị bong bóng Lề","Hiệu chỉnh tốc độ GPS"):
+            assert has_marker(content,extra),(sub,"Lề master/vendor-save/GPS missing",extra)
     assert has_marker(app.read_bytes(),"DuoCar • Tùy chỉnh Lề"),"extras page absent"
     pref=jb/"Library/PreferenceBundles/DuoCarPrefs.bundle/DuoCarPrefs"
     verify_fat(pref)

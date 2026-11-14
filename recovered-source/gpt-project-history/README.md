@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+
+## 2026-11-14 — DC55 integrated FAT DEB: artifact verified; CI final stale marker corrected
+- One signed \`DC55.deb\` \`1.0.3-le0248\`, SHA256 \`ef61abb1608a0334fefcd112a81eb06d351c9fd306473268f85aa1c590d9b775\`, 2,374,124 bytes, build source \`adad8a3dd1387f9bd8c19ea7276b224ad58bb4a0\`, run \`43539194236\`, artifact \`14091340439\` (\`DC55-failed-binary\` archived because legacy verifier still checked HL52 END). App/ext FAT compiled+signed, merged+signed vendor and patch PASS; independent **actual artifact replay** verified 18 signed FAT executables, 10 vendor FAT clean of \`km/h\`, broker/master/window/thermal/zoom/menu/Dock markers, byte-identical vendor assets vs DC54. Updated outdated validator and restored manual-only CI without rebuilding. **NOT DEVICE PROVEN**. [Full checkpoint](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
+
+
 ## 2026-11-14 — HL55 đang tích hợp đủ lỗi trước khi một DEB
 - Nguyen yêu cầu **không build dở dang**. Đã lưu source cho snap/free Lề, visibility switch thật, original LePrefs owner-broker, window probe/layer cho YouTube, thu ngắn bubble giờ–pin–nhiệt và cảnh báo pin ~39°C toàn màn ở split/fullscreen. Commits \`e0462c88\` → \`d41c2b16\` trên nhánh HL54. **CHƯA build/ký DEB mới, CHƯA device pass**. Nguồn Lề chỉ có evidence cảnh báo đỏ **vượt tốc**, không chứng minh bản gốc có cảnh báo 39°C; logic 39°C của DuoCar riêng. Cổng còn: source gates, host C tests, broker/ABI, one DEB final, device test. [Checkpoint chính](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
 
