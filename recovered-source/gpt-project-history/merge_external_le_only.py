@@ -145,9 +145,13 @@ def merge(base,extension,output,version):
         sh("dpkg-deb","--build","--root-owner-group",baseFolder,output)
         sh("dpkg-deb","-x",output,checkFolder)
         actual=files(checkFolder)
-        assert set(actual)==set(original)|EXPECTED_EXTENSION,(
-            "Output has missing or unexpected paths",
-            sorted(set(actual)^ (set(original)|EXPECTED_EXTENSION)))
+        # dpkg-deb -e put DEBIAN/control under the staging root, while
+        # dpkg-deb -x extracts DATA only. Control is verified separately.
+        original_data={path for path in original if not path.startswith("DEBIAN/")}
+        expected=original_data|EXPECTED_EXTENSION
+        assert set(actual)==expected,(
+            "Output has missing or unexpected DATA paths",
+            sorted(set(actual)^expected))
         assert all(no_vendor(x) for x in actual),(
             "VENDOR_PAYLOAD_LEAKED",[x for x in actual if not no_vendor(x)])
         for name in EXPECTED_EXTENSION:
