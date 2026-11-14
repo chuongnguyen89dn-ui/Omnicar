@@ -1,3 +1,7 @@
+## 2026-11-14 — G1 VÒNG TRÒN 5 LỆNH THẬT → giao Muse triển khai G2 có giới hạn
+- **[Spec+handoff R0–R5](APEX_V3_P4_G1_RADIAL_5_ACTIONS_MUSE_20261114.md)**: 5 sector đúng 5 action gốc, action-first→thẻ Ô1/Ô2→handler, popup/vòng không là ảnh giả; fullscreen ẩn logo/dock + pinch-in restore, source/guards/10 ca QA và các blocker đã khai báo.
+- **[Bản vẽ vòng + chọn ô](APEX_V3_P4_G1_RADIAL_WHEEL_20261114.svg)** và **[5 luồng chức năng](APEX_V3_P4_G1_RADIAL_5_FLOWS_20261114.svg)**: vector review source, không phải runtime/device screenshot; logo D dùng asset gốc không vẽ lại. Muse nhận việc trên Issue #1; không CI/DEB/merge/publish trước các cổng thực tế.
+
 ## 2026-11-14 — V3 Purple Horizon master ZIP upload verified
 - Tệp master thiết kế 13.200.777 byte, SHA-256 `934747e09e3bb0d339f999558e543708227c59e8b88433b6c9cca4137009f73d`, đã được chia 18 mảnh binary trong [V3_PURPLE_HORIZON_DESIGN/master-zip-parts/](V3_PURPLE_HORIZON_DESIGN/master-zip-parts/) vì giới hạn connector; có `reassemble_zip.py` + manifest để Muse tái tạo ZIP gốc và tự xác minh CRC/SHA-256. 23 SVG review trong thư mục `screens/` chỉ là bản nhẹ; **ZIP master có ảnh, SVG và logo nguyên bản**. Chưa phê duyệt UI cuối, không đụng source/CI/DEB.
 
