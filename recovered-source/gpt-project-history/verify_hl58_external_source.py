@@ -51,8 +51,11 @@ for marker in ("leBubbleMasterEnabled","leTrafficGpsOffsetKph",
                "key==4||key==27","DCLWriteAndVerify",
                "com.chuong.duocar/le024.visibility"):
     assert marker in bridge,marker
+# Read-only migration of the previously confirmed master switch from
+# DC55/DC57 is allowed. Never write/own old vendor JSON.
+assert 'DCLRead(@"leBubbleMasterMirror")' in bridge
 for forbidden in ("layout-v1.json","dev.bechou.le.bubble.layout-changed",
-                  "leBubbleMasterMirror","CWWriteOwnedStateFile",
+                  "CWWriteOwnedStateFile",
                   "DCLLeReadState","DCLLeOriginalStoreStart"):
     assert forbidden not in bridge,("vendor data modification",forbidden)
 for marker in ("OMCLeCompatiblePreferencesController",
