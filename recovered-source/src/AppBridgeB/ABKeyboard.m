@@ -463,12 +463,12 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
 - (void)updatePreview {
     if (self.typed.length) {
         self.preview.text = self.typed;
-        self.preview.textColor = [UIColor colorWithRed:0.16 green:0.24 blue:0.0625 alpha:1.0];
+        self.preview.textColor = [UIColor colorWithRed:0.961 green:0.941 blue:1.000 alpha:1.0]; // V3 #F5F0FF
     } else {
         self.preview.text = self.vietnamese
             ? OMCTr(@"Gõ tiếng Việt kiểu Telex", @"Vietnamese (Telex)")
             : OMCTr(@"Gõ để nhập vào app", @"Type into the app");
-        self.preview.textColor = [UIColor colorWithRed:0.16 green:0.24 blue:0.0625 alpha:0.6];
+        self.preview.textColor = [UIColor colorWithRed:0.780 green:0.722 blue:0.894 alpha:0.6]; // V3 #C7B8E4
     }
 }
 
@@ -496,8 +496,8 @@ static UIImage *ABKbApexGraphiteSkinImage(void) {
             CGContextRef c = ctx.CGContext;
             CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
             CGGradientRef g = CGGradientCreateWithColors(cs,
-                (CFArrayRef)@[(id)[UIColor colorWithRed:0.0392156862745098 green:0.07058823529411765 blue:0.09411764705882353 alpha:1].CGColor,
-                              (id)[UIColor colorWithRed:0.13725490196078433 green:0.21176470588235294 blue:0.25098039215686274 alpha:1].CGColor],
+                (CFArrayRef)@[(id)[UIColor colorWithRed:0.063 green:0.035 blue:0.137 alpha:1].CGColor,
+                              (id)[UIColor colorWithRed:0.106 green:0.067 blue:0.220 alpha:1].CGColor],
                 (CGFloat[]){0, 1});
             CGColorSpaceRelease(cs);
             CGContextDrawLinearGradient(c, g, CGPointMake(0, 0), CGPointMake(64, 64), 0);
@@ -517,7 +517,7 @@ static UIImage *ABKbApexGraphiteSkinImage(void) {
     panel.autoresizingMask = 0;
 
     UIVisualEffectView *glass = [[UIVisualEffectView alloc]
-        initWithEffect:[UIBlurEffect effectWithStyle:11]]; // SystemUltraThinMaterialLight
+        initWithEffect:[UIBlurEffect effectWithStyle:16]]; // V3: SystemUltraThinMaterialDark
     glass.contentView.backgroundColor = [UIColor clearColor];
     UIImageView *mesh = [[UIImageView alloc] initWithImage:ABKbApexGraphiteSkinImage()]; // APEX M3-0: bo mesh cu
     mesh.frame = glass.contentView.bounds;
@@ -527,7 +527,7 @@ static UIImage *ABKbApexGraphiteSkinImage(void) {
     glass.layer.cornerRadius = 20;
     glass.layer.cornerCurve = kCACornerCurveContinuous;
     glass.layer.borderWidth = 1;
-    glass.layer.borderColor = [UIColor colorWithRed:53.0 / 255.0 green:81.0 / 255.0 blue:95.0 / 255.0 alpha:0.85].CGColor; // APEX stroke
+    glass.layer.borderColor = [UIColor colorWithRed:0.859 green:0.725 blue:1.000 alpha:0.85].CGColor; // V3 lavender rim #DBB9FF
     glass.clipsToBounds = YES;
     glass.userInteractionEnabled = NO;
     [panel addSubview:glass];
@@ -639,8 +639,8 @@ static UIImage *ABKbApexGraphiteSkinImage(void) {
                     UILabel *hint = [UILabel new];
                     hint.text = hintText;
                     hint.font = [UIFont systemFontOfSize:8];
-                    hint.textColor = [UIColor colorWithRed:74.0 / 255.0 green:79.0 / 255.0
-                                                      blue:128.0 / 255.0 alpha:0.55]; // alpha at 0x2B2D0
+                    hint.textColor = [UIColor colorWithRed:0.780 green:0.722
+                                                      blue:0.894 alpha:0.55]; // V3 #C7B8E4; alpha at 0x2B2D0
                     hint.textAlignment = NSTextAlignmentCenter; // 1
                     hint.userInteractionEnabled = NO;
                     [key addSubview:hint];
