@@ -881,6 +881,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
                     self.title=(self.kind==6)?OMCText(@"Tùy chỉnh",@"Customize"):OMCText(@"Cài đặt",@"Settings");
                     self.sections=[self makeSections];
                     [self.tableView reloadData];
+                    [self refreshMasterCard]; // GPT re-review: phu de the master cap nhat ngay khi doi ngon ngu
                 }
             }]];
     }
@@ -1343,6 +1344,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 // APEX D5-B: trang tong quan (tab Bang dieu khien). Chi dieu huong toi cac
 // controller san co va hien trang thai doc tu pref; khong ghi pref, khong key moi.
 @interface OMCNativeDashboardPage : UITableViewController
+@property(nonatomic,strong) UILabel *previewTitleLabel;
+@property(nonatomic,strong) UILabel *previewChipLabel;
 @end
 @implementation OMCNativeDashboardPage
 - (instancetype)init {
@@ -1368,6 +1371,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     t.font=[UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
     t.textColor=OMCApexTextPrimary();
     [card addSubview:t];
+    self.previewTitleLabel=t;
     UILabel *chip=[[UILabel alloc] initWithFrame:CGRectMake(CGRectGetWidth(card.bounds)-86,10,72,16)];
     chip.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin;
     chip.text=OMCText(@"Minh họa",@"Illustration");
@@ -1375,6 +1379,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     chip.textColor=OMCApexAccent();
     chip.textAlignment=NSTextAlignmentRight;
     [card addSubview:chip];
+    self.previewChipLabel=chip;
     CGFloat innerW=CGRectGetWidth(card.bounds)-28-6;
     UIView *left=[[UIView alloc] initWithFrame:CGRectMake(14,34,innerW*0.55,54)];
     left.backgroundColor=OMCApexSurface2();
@@ -1396,6 +1401,10 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    // GPT re-review 6875837461: lam moi chu theo ngon ngu hien tai moi lan quay lai tab
+    self.title=OMCText(@"Bảng điều khiển",@"Dashboard");
+    self.previewTitleLabel.text=OMCText(@"Xem trước chia màn",@"Split preview");
+    self.previewChipLabel.text=OMCText(@"Minh họa",@"Illustration");
     [self.tableView reloadData];
 }
 - (NSArray *)dashSections {
