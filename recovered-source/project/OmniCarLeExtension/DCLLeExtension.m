@@ -303,8 +303,8 @@ static void DCLLeWindowState(id owner,const char *stage) {
     UIWindow *window=DCLLeWindowForView(move);
     if(!window || !window.screen)return;
     BOOL compact=DCLLeCompactVendorWindow(window);
-    if(compact && window.windowLevel<UIWindowLevelStatusBar+62.0)
-        window.windowLevel=UIWindowLevelStatusBar+62.0;
+    if(compact && window.windowLevel<UIWindowLevelStatusBar+64.0)
+        window.windowLevel=UIWindowLevelStatusBar+64.0;
     BOOL on=DCLLeVendorEnabled();
     if(!on) {
         if(DCLHiddenByDuoCar!=window) {

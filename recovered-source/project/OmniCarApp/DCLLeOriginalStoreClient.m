@@ -31,7 +31,7 @@ static BOOL DCLWaitReply(int req,int ack,uint8_t op,uint16_t seq,uint16_t nonce,
             *status=(uint16_t)DCLLePayload(frame);
             return *status==DCL_LE_OK;
         }
-        usleep(2000);
+        usleep(600); // bounded IPC polling: avoid 4KB+ UI stalls
     }
     return NO;
 }
@@ -49,7 +49,7 @@ static BOOL DCLBrokerWrite(NSData *data) {
     const uint8_t *bytes=data.bytes;
     uint16_t nonce=(uint16_t)(arc4random_uniform(65535)+1);
     uint16_t status=0,seq=1;
-    double deadline=DCLNow()+8.0;
+    double deadline=DCLNow()+12.0; // vendor JSON up to 16 KiB
     uint8_t failedOp=DCL_LE_BEGIN;
     BOOL ok=DCLWaitReply(req,ack,DCL_LE_BEGIN,seq,nonce,
                   ((uint32_t)len<<16)|nonce,deadline,&status);

@@ -83,7 +83,7 @@ static UIView *SCPRedAlertHitTest(UIWindow *window,SEL cmd,CGPoint point,UIEvent
         objc_registerClassPair(pass);
     }
     object_setClass(win,pass);
-    win.windowLevel=UIWindowLevelStatusBar+62.0;
+    win.windowLevel=UIWindowLevelStatusBar+64.5;
     win.backgroundColor=UIColor.clearColor;
     UIView *curtain=[[UIView alloc] initWithFrame:win.bounds];
     curtain.backgroundColor=[UIColor colorWithRed:0.87 green:0.03 blue:0.07 alpha:0.87];
