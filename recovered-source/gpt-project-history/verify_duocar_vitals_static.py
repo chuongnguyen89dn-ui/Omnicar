@@ -69,9 +69,14 @@ assert "DCFVPassHitTest" in bubble and "isDescendantOfView:bubble" in bubble
 assert "UIRootSceneWindow" in bubble and "initWithDisplayConfiguration:" in bubble
 assert "window.windowLevel = UIWindowLevelStatusBar + 64.0" in bubble
 assert "SCPVitalsBubbleBoundCenter" in bubble and "SCPVitalsBubbleEdgeCenter" in bubble
-assert "SCPVitalsBubbleRelativeY" in bubble and "SCPVitalsBubbleNearestLeft" in bubble
+assert "SCPVitalsBubbleSelectDockPosition" in bubble and "SCPVitalsBubbleRestoreDockPosition" in bubble
 assert "UIPanGestureRecognizer" in bubble and "pan.maximumNumberOfTouches = 1" in bubble
-assert "drag snap edge=" in bubble and "DCFVEdgeKey" in bubble and "DCFVYKey" in bubble
+assert "[fs-vitals] drag %@ edge=" in bubble
+assert "DCFVEdgeKey" in bubble and "DCFVYKey" in bubble
+assert "DCFVDockedKey" in bubble and "DCFVXKey" in bubble
+assert 'self.edgeDocked?@"snap":@"free"' in bubble
+assert "self.pill.center=[self storedBubbleCenter];" in bubble
+assert "static const CGFloat DCFVMargin = 3.0;" in bubble
 assert "self.pill.alpha = 1.0" in bubble
 assert "self.overlayWindow.hidden = YES" in bubble and "sourceWindow != host" in bubble
 assert "idleTimer" not in bubble and "dimBubble" not in bubble
