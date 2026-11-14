@@ -30,9 +30,9 @@
     // disassembly: #B7A6FF / #8FD3FF / #9DF2D8 — APEX V2 retune below to the
     // titanium/graphite family of the GPT design pack).
     _gradient = [CAGradientLayer layer];
-    _gradient.colors = @[(__bridge id)OMCColorFromHex(@"#344C59").CGColor,
-                         (__bridge id)OMCColorFromHex(@"#1B2A34").CGColor,
-                         (__bridge id)OMCColorFromHex(@"#0A1218").CGColor];
+    _gradient.colors = @[(__bridge id)OMCColorFromHex(@"#28194D").CGColor,
+                         (__bridge id)OMCColorFromHex(@"#1B1138").CGColor,
+                         (__bridge id)OMCColorFromHex(@"#100923").CGColor];
     _gradient.startPoint = CGPointMake(0, 0);
     _gradient.endPoint = CGPointMake(1, 1);
     [_clip.layer addSublayer:_gradient];
@@ -53,19 +53,19 @@
 
     _nameLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     _nameLabel.text = @"DuoCar";
-    _nameLabel.textColor = OMCColorFromHex(@"#EAF6FB");
+    _nameLabel.textColor = OMCColorFromHex(@"#F5F0FF");
     _nameLabel.font = [UIFont systemFontOfSize:22 weight:UIFontWeightBold];
     [_clip addSubview:_nameLabel];
 
     _versionLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     _versionLabel.text = [[bundle infoDictionary] objectForKey:@"CFBundleShortVersionString"] ?: @"1.0.3";
     _versionLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightMedium];
-    _versionLabel.textColor = OMCColorFromHex(@"#93AAB8");
+    _versionLabel.textColor = OMCColorFromHex(@"#C7B8E4");
     [_clip addSubview:_versionLabel];
 
     _taglineLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     _taglineLabel.font = [UIFont systemFontOfSize:13];
-    _taglineLabel.textColor = OMCColorFromHex(@"#93AAB8");
+    _taglineLabel.textColor = OMCColorFromHex(@"#C7B8E4");
     [_clip addSubview:_taglineLabel];
 
     _dot = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 8, 8)];
@@ -73,7 +73,7 @@
     [_clip addSubview:_dot];
 
     _statusLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    _statusLabel.textColor = OMCColorFromHex(@"#EAF6FB");
+    _statusLabel.textColor = OMCColorFromHex(@"#F5F0FF");
     _statusLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
     [_clip addSubview:_statusLabel];
 
@@ -89,7 +89,7 @@
     self.taglineLabel.text = tagline;
     self.statusLabel.text = status;
     [self.toggle setOn:enabled];
-    self.dot.backgroundColor = enabled ? OMCColorFromHex(@"#2EA6BB") : [UIColor tertiaryLabelColor];
+    self.dot.backgroundColor = enabled ? OMCColorFromHex(@"#A16EFF") : [UIColor tertiaryLabelColor];
     self.card.layer.shadowOpacity = enabled ? 0.22f : 0.10f;
     [self setNeedsLayout];
 }

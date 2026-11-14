@@ -284,10 +284,10 @@ static UIColor *OMCDynamicColor(unsigned int lightRGB, unsigned int darkRGB) {
 // unchanged — only colour constants in the style functions below differ.
 
 // _OMCAccentColor 0x17e8c [VERIFIED constants]
-UIColor *OMCAccentColor(void) { return OMCDynamicColor(0x0F7E9E, 0x61D9F2); }
+UIColor *OMCAccentColor(void) { return OMCDynamicColor(0x0F7E9E, 0xA16EFF); }
 
 // _OMCBackgroundColor 0x17fe4 [VERIFIED constants]
-UIColor *OMCBackgroundColor(void) { return OMCDynamicColor(0xE8F0F4, 0x101820); }
+UIColor *OMCBackgroundColor(void) { return OMCDynamicColor(0xE8F0F4, 0x070416); }
 
 // _OMCCardColor 0x17ff8 [VERIFIED: colorWithDynamicProvider with a global
 // block at 0x748a0; its two captured colours are baked into that block and
@@ -295,14 +295,14 @@ UIColor *OMCBackgroundColor(void) { return OMCDynamicColor(0xE8F0F4, 0x101820); 
 UIColor *OMCCardColor(void) {
     return [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *traits) {
         return traits.userInterfaceStyle == UIUserInterfaceStyleDark
-                   ? OMCColorFromHex(@"#1B2A34")
+                   ? OMCColorFromHex(@"#100923")
                    : [UIColor systemBackgroundColor];
     }];
 }
 
 // _OMCSwitchColor 0x17fd8 [VERIFIED: 12-byte tail-call — adrp/ldr classref
 // UIColor (slot 0x8e910), b objc stub systemGreenColor @0x5d800]
-UIColor *OMCSwitchColor(void) { return OMCColorFromHex(@"#2EA6BB"); }
+UIColor *OMCSwitchColor(void) { return OMCColorFromHex(@"#A16EFF"); }
 #pragma mark - Rescue
 
 // _OMCRescueFeatures 0x78e8 [VERIFIED]
@@ -407,7 +407,7 @@ void OMCStyleTable(UITableView *table) {
 void OMCStyleCell(UITableViewCell *cell) {
     cell.backgroundColor = [UIColor colorWithDynamicProvider:^UIColor *(UITraitCollection *t) {
         return t.userInterfaceStyle == UIUserInterfaceStyleDark
-                   ? OMCColorFromHex(@"#1B2A34")
+                   ? OMCColorFromHex(@"#100923")
                    : [UIColor colorWithWhite:1.0 alpha:0.65];
     }];
     cell.textLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightRegular];
@@ -417,8 +417,8 @@ void OMCStyleCell(UITableViewCell *cell) {
         destructive = [[spec propertyForKey:@"isDestructive"] boolValue];
     }
     cell.textLabel.textColor = destructive ? OMCColorFromHex(@"#FF4757")
-                                           : OMCDynamicColor(0x14242E, 0xEAF6FB);
-    cell.detailTextLabel.textColor = OMCDynamicColor(0x51626E, 0x93AAB8);
+                                           : OMCDynamicColor(0x14242E, 0xF5F0FF);
+    cell.detailTextLabel.textColor = OMCDynamicColor(0x51626E, 0xC7B8E4);
 }
 
 // _OMCStyleGlassCard 0x18a70 [VERIFIED call graph: translucent background,
@@ -431,7 +431,7 @@ void OMCStyleGlassCard(UIView *view) {
     }];
     view.layer.borderWidth = 0.5;
     view.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:1.0].CGColor;
-    view.layer.shadowColor = [UIColor colorWithRed:0.18 green:0.65 blue:0.73 alpha:1.0].CGColor;
+    view.layer.shadowColor = [UIColor colorWithRed:0.631 green:0.431 blue:1.000 alpha:1.0].CGColor;
     view.layer.shadowOpacity = 0.18f;
     view.layer.shadowRadius = 14;
     view.layer.shadowOffset = CGSizeMake(0, 6);
@@ -447,7 +447,7 @@ void OMCStyleHeaderFooter(UIView *view) {
     if ([view isKindOfClass:[UITableViewHeaderFooterView class]]) {
         UITableViewHeaderFooterView *hf = (UITableViewHeaderFooterView *)view;
         hf.textLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
-        hf.textLabel.textColor = OMCDynamicColor(0x51626E, 0x93AAB8);
+        hf.textLabel.textColor = OMCDynamicColor(0x51626E, 0xC7B8E4);
         hf.detailTextLabel.font = [UIFont systemFontOfSize:13];
         hf.detailTextLabel.textColor = OMCDynamicColor(0x7A8B96, 0x5F7684);
     }
@@ -528,18 +528,18 @@ UIImage *OMCLogoMeshImage(void) {
         [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(120, 120) format:format];
     return [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
         CGContextRef c = ctx.CGContext;
-        [[UIColor colorWithRed:0.063 green:0.094 blue:0.125 alpha:1] setFill];
+        [[UIColor colorWithRed:0.027 green:0.016 blue:0.086 alpha:1] setFill];
         CGContextFillRect(c, CGRectMake(0, 0, 120, 120));
         CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
         NSArray *blobs = @[
-            @[@0.38f, @0.85f, @0.95f, @0.55f, @30.0f, @20.0f],
-            @[@0.18f, @0.65f, @0.73f, @0.45f, @90.0f, @40.0f],
-            @[@0.35f, @0.90f, @0.75f, @0.40f, @60.0f, @95.0f],
+            @[@0.631f, @0.431f, @1.0f, @0.55f, @30.0f, @20.0f],
+            @[@0.631f, @0.431f, @1.0f, @0.45f, @90.0f, @40.0f],
+            @[@0.859f, @0.725f, @1.0f, @0.40f, @60.0f, @95.0f],
         ];
         for (NSArray *blob in blobs) {
             CGFloat components[] = {[blob[0] floatValue], [blob[1] floatValue],
                                     [blob[2] floatValue], [blob[3] floatValue],
-                                    0.063f, 0.094f, 0.125f, 0.0f};
+                                    0.027f, 0.016f, 0.086f, 0.0f};
             CGGradientRef g = CGGradientCreateWithColorComponents(space, components, NULL, 2);
             CGPoint center = CGPointMake([blob[4] floatValue], [blob[5] floatValue]);
             CGContextDrawRadialGradient(c, g, center, 0, center, 70, 0);
