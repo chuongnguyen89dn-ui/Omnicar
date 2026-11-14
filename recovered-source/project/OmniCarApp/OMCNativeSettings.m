@@ -437,11 +437,14 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         NSArray *keys=@[@"", @"SPLITSCREEN",@"HOME_SCREEN",@"SPEEDBUBBLE",@"PROFILES"];
         NSInteger selected=MAX(0,MIN(kind,4));
         self.title=selected==0?@"DuoCar":OMCNativeLocalized(keys[selected]);
+        // APEX D5-B: kind 5 = Thiet bi, kind 6 = Tuy chinh (phan vung cua kind 0)
+        if (kind==5) self.title=OMCText(@"Thiết bị",@"Device");
+        else if (kind==6) self.title=OMCText(@"Tùy chỉnh",@"Customize");
     }
     return self;
 }
 - (NSArray<NSDictionary *> *)makeSections {
-    if (self.kind==0) {
+    if (self.kind==0 || self.kind==5 || self.kind==6) {
         NSMutableArray *sections=[NSMutableArray array];
         NSArray *pending=OMCNativePendingRescue();
         if (pending.count) {
@@ -618,7 +621,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     NSArray *keys=@[@"", @"SPLITSCREEN",@"HOME_SCREEN",@"SPEEDBUBBLE",@"PROFILES"];
-    self.title=self.kind==0?@"DuoCar":
+    if (self.kind==5) self.title=OMCText(@"Thiết bị",@"Device");
+    else if (self.kind==6) self.title=OMCText(@"Tùy chỉnh",@"Customize");
+    else self.title=self.kind==0?@"DuoCar":
         OMCNativeLocalized(keys[MAX(0,MIN(self.kind,4))]);
     self.sections=[self makeSections];
     [self.tableView reloadData];
@@ -810,11 +815,12 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         [a addAction:[UIAlertAction actionWithTitle:names[i] style:UIAlertActionStyleDefault
             handler:^(UIAlertAction *action){
                 if (OMCNativeSetPref(@"language",code)) {
-                    NSArray *tabs=@[OMCNativeLocalized(@"APPS"),OMCNativeLocalized(@"SPLITSCREEN"),
-                                    OMCText(@"Cài đặt",@"Settings")];
+                    NSArray *tabs=@[OMCText(@"Bảng điều khiển",@"Dashboard"),OMCText(@"Bố cục",@"Layout"),
+                                    OMCNativeLocalized(@"APPS"),OMCText(@"Thiết bị",@"Device"),
+                                    OMCText(@"Tùy chỉnh",@"Customize")];
                     for(NSUInteger n=0;n<self.tabBarController.tabBar.items.count && n<tabs.count;n++)
                         self.tabBarController.tabBar.items[n].title=tabs[n];
-                    self.title=OMCText(@"Cài đặt",@"Settings");
+                    self.title=(self.kind==6)?OMCText(@"Tùy chỉnh",@"Customize"):OMCText(@"Cài đặt",@"Settings");
                     self.sections=[self makeSections];
                     [self.tableView reloadData];
                 }
@@ -1276,25 +1282,50 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 }
 @end
 
+// APEX D5-B: trang tong quan (tab Bang dieu khien). Chi dieu huong toi cac
+// controller san co va hien trang thai doc tu pref; khong ghi pref, khong key moi.
+@interface OMCNativeDashboardPage : UITableViewController
+@end
+@implementation OMCNativeDashboardPage
+- (instancetype)init {
+    if ((self=[super initWithStyle:UITableViewStyleInsetGrouped])) {
+        self.title=OMCText(@"Bảng điều khiển",@"Dashboard");
+    }
+    return self;
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.tableView.backgroundColor=OMCApexSurfaceRoot();
+}
+@end
+
 UIViewController *OMCNativeSettingsRootController(void) {
     UITabBarController *root=[UITabBarController new];
-    OMCNativeAppsPage *apps=[OMCNativeAppsPage new];
+    OMCNativeDashboardPage *dash=[OMCNativeDashboardPage new];
     OMCNativeSimplePage *split=[[OMCNativeSimplePage alloc] initWithKind:1];
-    OMCNativeSimplePage *settings=[[OMCNativeSimplePage alloc] initWithKind:0];
-    UINavigationController *a=[[UINavigationController alloc] initWithRootViewController:apps];
+    OMCNativeAppsPage *apps=[OMCNativeAppsPage new];
+    OMCNativeSimplePage *device=[[OMCNativeSimplePage alloc] initWithKind:5];
+    OMCNativeSimplePage *custom=[[OMCNativeSimplePage alloc] initWithKind:6];
+    UINavigationController *a=[[UINavigationController alloc] initWithRootViewController:dash];
     UINavigationController *b=[[UINavigationController alloc] initWithRootViewController:split];
-    UINavigationController *c=[[UINavigationController alloc] initWithRootViewController:settings];
-    a.tabBarItem=[[UITabBarItem alloc] initWithTitle:OMCText(@"Ứng dụng",@"Apps")
-                                              image:[UIImage systemImageNamed:@"square.grid.2x2.fill"] tag:0];
-    b.tabBarItem=[[UITabBarItem alloc] initWithTitle:OMCText(@"Chia màn",@"Split")
+    UINavigationController *c=[[UINavigationController alloc] initWithRootViewController:apps];
+    UINavigationController *d=[[UINavigationController alloc] initWithRootViewController:device];
+    UINavigationController *e=[[UINavigationController alloc] initWithRootViewController:custom];
+    a.tabBarItem=[[UITabBarItem alloc] initWithTitle:OMCText(@"Bảng điều khiển",@"Dashboard")
+                                              image:[UIImage systemImageNamed:@"gauge"] tag:0];
+    b.tabBarItem=[[UITabBarItem alloc] initWithTitle:OMCText(@"Bố cục",@"Layout")
                                               image:[UIImage systemImageNamed:@"rectangle.split.2x1"] tag:1];
-    c.tabBarItem=[[UITabBarItem alloc] initWithTitle:OMCText(@"Cài đặt",@"Settings")
-                                              image:[UIImage systemImageNamed:@"gearshape.fill"] tag:2];
-    root.viewControllers=@[a,b,c];
+    c.tabBarItem=[[UITabBarItem alloc] initWithTitle:OMCText(@"Ứng dụng",@"Apps")
+                                              image:[UIImage systemImageNamed:@"square.grid.2x2.fill"] tag:2];
+    d.tabBarItem=[[UITabBarItem alloc] initWithTitle:OMCText(@"Thiết bị",@"Device")
+                                              image:[UIImage systemImageNamed:@"iphone"] tag:3];
+    e.tabBarItem=[[UITabBarItem alloc] initWithTitle:OMCText(@"Tùy chỉnh",@"Customize")
+                                              image:[UIImage systemImageNamed:@"gearshape.fill"] tag:4];
+    root.viewControllers=@[a,b,c,d,e];
     root.tabBar.tintColor=OMCApexAccent();
     root.tabBar.unselectedItemTintColor=OMCApexTextSecondary();
     root.tabBar.backgroundColor=OMCApexSurfaceDeep();
-    root.selectedIndex=2;
-    NSLog(@"[hl26-settings] gate=uikit-tab-ready tabs=3 domain=%@",kOMCNativeDomain);
+    root.selectedIndex=0;
+    NSLog(@"[hl26-settings] gate=uikit-tab-ready tabs=5 domain=%@",kOMCNativeDomain);
     return root;
 }
