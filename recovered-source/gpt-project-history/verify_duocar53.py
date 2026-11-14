@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Final one-file DuoCar53 FAT binary audit. Must run on the actual
+"""Final one-file DuoCar HL54 FAT binary audit. Must run on the actual
 artifact after resigning LeBubble; never count a prior CI's log as proof.
 """
 from pathlib import Path
@@ -10,7 +10,8 @@ import subprocess
 import sys
 import tempfile
 
-assert len(sys.argv)==3,"usage: verify_duocar53.py dist/DuoCar53.deb LeOriginal0.2.4.deb"
+assert len(sys.argv) in (3,4),"usage: verify_duocar53.py final.deb LeOriginal0.2.4.deb [expected-version]"
+expected_version=sys.argv[3] if len(sys.argv)==4 else "1.0.3-le0247"
 le_original=Path(sys.argv[2]).resolve()
 assert le_original.is_file()
 deb=Path(sys.argv[1]).resolve()
@@ -18,7 +19,7 @@ assert deb.is_file() and deb.stat().st_size>1_500_000,deb
 def run(*args):return subprocess.check_output(args,text=True).strip()
 assert [run("dpkg-deb","-f",str(deb),key) for key in
         ("Package","Version","Architecture")] == [
-    "com.chuong.duocar","1.0.3-le0246","iphoneos-arm64"]
+    "com.chuong.duocar",expected_version,"iphoneos-arm64"]
 assert "dev.bechou.le" in run("dpkg-deb","-f",str(deb),"Conflicts")
 assert "firmware (<< 27.0)" in run("dpkg-deb","-f",str(deb),"Depends")
 first=["DuoCarCore","DuoCarAppBridge","DuoCarCarProbe",
@@ -66,10 +67,18 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
     for name in first+vendor:
         verify_fat(libs/(name+".dylib"))
         assert (libs/(name+".plist")).is_file(),name
-    bubble=verify_fat(libs/"LeBubble.dylib")
-    for sub,data in bubble.items():
-        assert b"km/h\x00" not in data,("LeBubble GPS unit still present",sub)
-        assert b"    \x00" in data,("LeBubble GPS unit patch missing",sub)
+    # HL54 removes ALL unit text from the Lề vendor, including UTF-16
+    # localized/traffic/accessibility strings in every FAT slice.
+    no_unit_names=vendor+["LePrefs"]
+    for name in no_unit_names:
+        binary=(jb/"Library/PreferenceBundles/LePrefs.bundle/LePrefs"
+                if name=="LePrefs" else libs/(name+".dylib"))
+        slices=verify_fat(binary)
+        for sub,data in slices.items():
+            assert b"km/h" not in data,(name,hex(sub),"ASCII unit remains")
+            assert "km/h".encode("utf-16le") not in data,(
+                name,hex(sub),"UTF-16LE unit remains")
+    print("HL54_LE_ALL_KMH_ABSENT_IN_SIGNED_FAT",len(no_unit_names))
     extended=verify_fat(libs/"DCLLeExtension.dylib")
     for sub,data in extended.items():
         assert has_marker(data,"[le024-ext]")
@@ -140,19 +149,23 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
     pristine.mkdir()
     subprocess.run(["dpkg-deb","-x",str(le_original),str(pristine)],check=True)
     original_libs=pristine/"var/jb/Library/MobileSubstrate/DynamicLibraries"
+    # Only the precisely whitelisted vendor binaries have changed; other
+    # original Lề files/filters are byte identical to the verified package.
+    modified={"LeBubble","LeGoogleMaps","LeGoogleRelay",
+              "LeGoogleSource","LeGofaSource","LeWazeSource"}
     for name in vendor:
         for suffix in (".plist",".dylib"):
-            if name=="LeBubble" and suffix==".dylib":continue
+            if suffix==".dylib" and name in modified:continue
             assert (libs/(name+suffix)).read_bytes()==(original_libs/(name+suffix)).read_bytes(),(
                 "unexpected original vendor change",name,suffix)
-    assert prefs.read_bytes()==(
-        pristine/"var/jb/Library/PreferenceBundles/LePrefs.bundle/LePrefs").read_bytes()
-    print("HL53_VENDOR_ORIGINAL_IDENTICAL: 8 vendor dylibs, 9 filters, LePrefs")
+    original_prefs=(pristine/"var/jb/Library/PreferenceBundles/LePrefs.bundle/LePrefs").read_bytes()
+    assert prefs.read_bytes()!=original_prefs,"LePrefs km/h still unpatched"
+    print("HL54_VENDOR_NON_UNIT_ASSETS_IDENTICAL: 3 vendor dylibs, 9 filters")
 
     for name in vendor:
         path=libs/(name+".plist")
         assert "Filter" in plistlib.loads(path.read_bytes())
     assert not (jb/"Library/PreferenceLoader/Preferences/Le.plist").exists()
 sha=hashlib.sha256(deb.read_bytes()).hexdigest()
-print("DUOCAR53_FINAL_FAT_PASS",sha,"bytes",deb.stat().st_size,
-      "HL52 menu/transparent Dock/original LePrefs/Le drag preserved; 360-degree motion-based pinch in FAT arm64+arm64e; DEVICE PENDING")
+print("HL54_NO_UNIT_FINAL_FAT_PASS",sha,"bytes",deb.stat().st_size,
+      "HL54: all vendor km/h absent, clock snap+free; original Lề UI class retained, 360-degree pinch preserved; DEVICE PENDING")
