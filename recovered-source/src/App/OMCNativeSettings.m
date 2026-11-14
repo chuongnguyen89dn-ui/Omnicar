@@ -579,6 +579,31 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView.backgroundColor=OMCApexSurfaceRoot();
+    if (self.kind==1 && !self.tableView.tableHeaderView) {
+        // APEX D5-B: preview ti le minh hoa (55/45) + app ghim doc tu pref that.
+        CGFloat W=CGRectGetWidth(self.tableView.bounds);
+        UIView *pv=[[UIView alloc] initWithFrame:CGRectMake(0,0,W,88)];
+        pv.autoresizingMask=UIViewAutoresizingFlexibleWidth;
+        CGFloat innerW=W-32-6;
+        UIView *left=[[UIView alloc] initWithFrame:CGRectMake(16,10,innerW*0.55,44)];
+        left.backgroundColor=OMCApexSurface2();
+        left.layer.cornerRadius=8; left.layer.borderWidth=1;
+        left.layer.borderColor=OMCApexStroke().CGColor;
+        [pv addSubview:left];
+        UIView *right=[[UIView alloc] initWithFrame:CGRectMake(22+innerW*0.55,10,innerW*0.45,44)];
+        right.backgroundColor=OMCApexSurface1();
+        right.layer.cornerRadius=8; right.layer.borderWidth=1;
+        right.layer.borderColor=OMCApexStroke().CGColor;
+        [pv addSubview:right];
+        UILabel *cap=[[UILabel alloc] initWithFrame:CGRectMake(16,62,W-32,18)];
+        cap.font=[UIFont systemFontOfSize:12];
+        cap.textColor=OMCApexTextSecondary();
+        NSString *pinned=OMCNativePref(@"splitScreenPinnedApp",@"");
+        cap.text=pinned.length?[NSString stringWithFormat:OMCText(@"App ghim: %@",@"Pinned app: %@"),pinned]
+                             :OMCText(@"Chưa ghim app — chọn ở mục Ghim app bên dưới",@"No pinned app yet — pick one below");
+        [pv addSubview:cap];
+        self.tableView.tableHeaderView=pv;
+    }
     if (self.kind!=0 && self.kind!=6)return; // APEX D5-B: the master o tab Tuy chinh
     // Original Prefs uses a 118pt header card with master switch, plus
     // independent language and Respring actions in the navigation bar.
@@ -1322,6 +1347,68 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView.backgroundColor=OMCApexSurfaceRoot();
+}
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self.tableView reloadData];
+}
+- (NSArray *)dashSections {
+    return @[
+        OMCSection(OMCText(@"Trạng thái",@"Status"),@[
+            @{@"label":@"DuoCar",@"key":@"enabled",@"default":@YES},
+            @{@"label":OMCText(@"Pin, nhiệt trên Dock",@"Battery & heat on Dock"),@"key":@"duocarVitalsEnabled",@"default":@YES},
+            @{@"label":OMCText(@"Bong bóng toàn màn hình",@"Fullscreen bubble"),@"key":@"duocarFullscreenVitalsEnabled",@"default":@YES},
+            @{@"label":OMCText(@"Giả lập nhiệt 37°C",@"37°C warning simulation"),@"key":@"duocarThermalTest37Enabled",@"default":@NO}]),
+        OMCSection(OMCText(@"Đi nhanh",@"Shortcuts"),@[
+            @{@"label":OMCText(@"Ứng dụng",@"Apps"),@"action":@"apps"},
+            @{@"label":OMCText(@"Bố cục chia màn",@"Split layout"),@"action":@"layout"},
+            @{@"label":OMCText(@"Thiết bị",@"Device"),@"action":@"device"},
+            @{@"label":OMCText(@"Tùy chỉnh",@"Customize"),@"action":@"customize"},
+            @{@"label":OMCText(@"Màn hình khởi động",@"Startup screen"),@"action":@"startup"},
+            @{@"label":OMCText(@"Tùy chỉnh riêng cho Lề",@"DuoCar extras for Lề"),@"action":@"le"},
+            @{@"label":OMCText(@"Pin và nhiệt độ",@"Battery & temperature"),@"action":@"vitals"}])
+    ];
+}
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)t { return [self dashSections].count; }
+- (NSInteger)tableView:(UITableView *)t numberOfRowsInSection:(NSInteger)s {
+    return [[self dashSections][s][@"rows"] count];
+}
+- (NSString *)tableView:(UITableView *)t titleForHeaderInSection:(NSInteger)s {
+    return [self dashSections][s][@"header"];
+}
+- (UITableViewCell *)tableView:(UITableView *)t cellForRowAtIndexPath:(NSIndexPath *)p {
+    UITableViewCell *cell=[t dequeueReusableCellWithIdentifier:@"dash"];
+    if (!cell) cell=[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"dash"];
+    NSDictionary *row=[self dashSections][p.section][@"rows"][p.row];
+    cell.backgroundColor=OMCApexSurface1();
+    cell.textLabel.text=row[@"label"];
+    cell.textLabel.textColor=OMCApexTextPrimary();
+    cell.detailTextLabel.textColor=OMCApexTextSecondary();
+    if (row[@"key"]) {
+        BOOL on=[OMCNativePref(row[@"key"],row[@"default"]) boolValue];
+        cell.detailTextLabel.text=on?OMCText(@"Bật",@"On"):OMCText(@"Tắt",@"Off");
+        cell.accessoryType=UITableViewCellAccessoryNone;
+        cell.selectionStyle=UITableViewCellSelectionStyleNone;
+    } else {
+        cell.detailTextLabel.text=nil;
+        cell.accessoryType=UITableViewCellAccessoryDisclosureIndicator;
+        cell.selectionStyle=UITableViewCellSelectionStyleDefault;
+    }
+    return cell;
+}
+- (void)tableView:(UITableView *)t didSelectRowAtIndexPath:(NSIndexPath *)p {
+    [t deselectRowAtIndexPath:p animated:YES];
+    NSDictionary *row=[self dashSections][p.section][@"rows"][p.row];
+    NSString *action=row[@"action"];
+    UIViewController *next=nil;
+    if ([action isEqualToString:@"apps"]) next=[OMCNativeAppsPage new];
+    else if ([action isEqualToString:@"layout"]) next=[[OMCNativeSimplePage alloc] initWithKind:1];
+    else if ([action isEqualToString:@"device"]) next=[[OMCNativeSimplePage alloc] initWithKind:5];
+    else if ([action isEqualToString:@"customize"]) next=[[OMCNativeSimplePage alloc] initWithKind:6];
+    else if ([action isEqualToString:@"startup"]) next=[[OMCNativeSimplePage alloc] initWithKind:2];
+    else if ([action isEqualToString:@"le"]) next=OMCLeCompatiblePreferencesController();
+    else if ([action isEqualToString:@"vitals"]) next=OMCDeviceVitalsController();
+    if (next) [self.navigationController pushViewController:next animated:YES];
 }
 @end
 
