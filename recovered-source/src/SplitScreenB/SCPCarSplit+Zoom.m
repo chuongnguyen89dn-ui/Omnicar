@@ -12,6 +12,7 @@
 #import "SCPCarSplit.h"
 #import "SCPCarPane.h"
 #import "SCPCommon.h" // [phase2; backported to src in phase 3] OMC* declarations used in this TU
+#import "SCPCarSplit+Radial.h" // [G2-radial] wheel presenter + feature flag
 #import "SCPSmallClasses.h" // [phase2; backported to src in phase 3] SCPHostedAppVC interface used in this TU
 
 extern void SCPDispatchAfter(double delaySeconds, void (^block)(void)); // 0x12efc (A, SCPShared)
@@ -59,12 +60,18 @@ extern void SCPDispatchAfter(double delaySeconds, void (^block)(void)); // 0x12e
     }
 }
 
-// Pane handle tap: toggle that pane's chrome bar.
+// Pane handle tap: [G2-radial] with the radial feature on, a single
+// tap toggles the radial wheel for that pane; feature off keeps the
+// original chrome-bar toggle. Double-tap zoom / pan are untouched.
 - (void)handleTapped:(UITapGestureRecognizer *)gr {                      // 0x253e4
     @try {
         SCPCarPane *pane = [self paneForView:gr.view];
-        if (pane != nil)
-            [self setBarVisible:pane.bar.isHidden forPane:pane];
+        if (pane != nil) {
+            if (SCPRadialEnabled())  // [G2-radial]
+                [self scpRadialToggleForPane:pane];
+            else
+                [self setBarVisible:pane.bar.isHidden forPane:pane];
+        }
     } @catch (id exception) {
         OMCLogWrite(@"SplitScreen",
             [NSString stringWithFormat:@"CarSplit: loi cham thanh ••• %@", exception]);

@@ -18,6 +18,7 @@
 #import "SCPCarPane.h"
 #import "SCPCTouchWatch.h"
 #import "SCPCarSplit+BridgeWake.h" // [wake1] bwRecomputeForPane: call points (design §1.3)
+#import "SCPCarSplit+Radial.h" // [G2-radial] closePopups/popupOpen own the wheel too
 #import "SCPCarSplit+AutoHide.h" // [autohide] fade re-apply at layoutBarForPane: (design-autohide §5.1)
 
 // Shared helpers implemented elsewhere:
@@ -395,7 +396,10 @@ extern BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner);
 }
 
 - (BOOL)popupOpen {
-    return [self panelOpen] || [self anyBarVisible];
+    // [G2-radial] the wheel is a popup too: FS expand refusal and the
+    // shield bookkeeping must see it; scpRadialDismiss never calls back
+    // into closePopups, so there is no recursion.
+    return [self panelOpen] || [self anyBarVisible] || [self scpRadialIsPresented];
 }
 
 - (void)closePopups {                                                    // 0x267e4 (approx.)
@@ -418,6 +422,7 @@ extern BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner);
     [self collapseAppTray];
     [self hideRatioMenu];
     [self removePickerSheet];
+    [self scpRadialDismiss]; // [G2-radial] one-popup ownership
     [self hideBarsForTouchOn:nil];
 }
 

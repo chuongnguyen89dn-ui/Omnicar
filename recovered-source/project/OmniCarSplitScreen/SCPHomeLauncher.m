@@ -14,6 +14,7 @@
 #import "SCPPrefs.h"
 #import "SCPCarSplit.h"
 #import "SCPCarSplit+AutoHide.h"
+#import "SCPCarSplit+Radial.h" // [G2-radial] wheel presenter + feature flag
 #import <objc/message.h>
 #import <objc/runtime.h>
 #import <QuartzCore/QuartzCore.h>
@@ -490,13 +491,24 @@ BOOL SCPHomeLauncherConsumeLaunch(NSString *bid, NSString *source) {
         @try {
             SCPCarSplit *split = [SCPCarSplit shared];
             [split ahNoteActivity:AHSourceHome];
-            // Exact same panel and same split owner as the dock.
+            // [G2-radial] Radial feature on + a live split with at
+            // least one pane: the DuoCar icon opens the radial wheel
+            // on this same split owner. Otherwise the exact same
+            // panel and same split owner as the dock.
             // showLayoutPanelForApp: already collapses a prior tray.
-            [split showLayoutPanelForApp:
-                split.active ? nil : [split fullscreenAppBundle]];
+            BOOL radial = SCPRadialEnabled() && split.active &&
+                          split.allPanes.count > 0;
+            if (radial) {
+                [split scpRadialPresentFromPane:nil];
+            } else {
+                [split showLayoutPanelForApp:
+                    split.active ? nil : [split fullscreenAppBundle]];
+            }
             HLog(@"tap", [NSString stringWithFormat:
-                @"source=%@ status=routed-existing-panel active=%d",
-                trigger, split.active]);
+                @"source=%@ status=%@ active=%d",
+                trigger, radial ? @"routed-radial-wheel"
+                                : @"routed-existing-panel",
+                split.active]);
         } @catch (NSException *e) {
             HLog(@"tap", [NSString stringWithFormat:
                 @"source=%@ status=exception name=%@", trigger, e.name]);
