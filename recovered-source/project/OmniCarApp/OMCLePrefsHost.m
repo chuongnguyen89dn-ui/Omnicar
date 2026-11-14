@@ -145,7 +145,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
         return;
     }
     if(self.extrasOnly) {
-        for(NSNumber *key in @[@27,@28])
+        for(NSNumber *key in @[@4,@27,@28])
             [self.queue addObject:@{@"key":key,@"read":@YES,@"value":@0}];
     } else {
         for(NSUInteger n=0;n<DCLCount;n++)
@@ -159,7 +159,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
     if(self.ackToken>=0)notify_cancel(self.ackToken);
 }
 - (NSArray<NSArray<NSNumber *> *> *)groups {
-    if(self.extrasOnly) return @[@[@27,@28]];
+    if(self.extrasOnly) return @[@[@4],@[@27,@28]];
     return @[
      @[@0,@1,@2,@3],
      @[@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@29,@28],
@@ -167,7 +167,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
      @[@27]];
 }
 - (NSArray<NSString *> *)titles {
-    if(self.extrasOnly) return @[@"Tùy chỉnh DuoCar (không thuộc Lề gốc)"];
+    if(self.extrasOnly) return @[@"Hiển thị bong bóng Lề", @"Hiệu chỉnh GPS / kéo bong bóng"];
     return @[@"Nguồn dữ liệu", @"Bong bóng nổi và cảnh báo",
              @"Thẻ trong Google Maps", @"Tốc độ thực xe đang chạy"];
 }
@@ -182,7 +182,7 @@ static NSString *DCLDescription(const DCLLeRow *row,int raw) {
 }
 - (NSString *)tableView:(UITableView *)table titleForFooterInSection:(NSInteger)section {
     (void)table;
-    if(self.extrasOnly)return @"GPS −10…+10 km/h chỉ bù tốc độ đang chạy, không thay đổi biển giới hạn. Chọn 0 là không bù. Đây là tùy chỉnh bổ sung của DuoCar.";
+    if(self.extrasOnly)return section==0?@"Công tắc tổng của bong bóng Lề gốc. Tắt sẽ ẩn vùng hiển thị và vùng chạm; bật sẽ phục hồi. Mọi thay đổi phải được SpringBoard xác nhận.":@"GPS −10…+10 km/h chỉ bù tốc độ đang chạy, không đổi biển giới hạn. Kéo tự do và cặp mép dùng cùng bong bóng Lề.";
     if(section==3)return @"Chỉ cộng/trừ vào số GPS đang chạy, không đổi biển giới hạn. 0 là không hiệu chỉnh.";
     if(section==1)return @"Lề giữ cơ chế biển báo, làn đường, cảnh báo và nguồn hiện có. Kéo bong bóng tới mọi vị trí an toàn.";
     return nil;
