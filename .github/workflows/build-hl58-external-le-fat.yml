@@ -1,0 +1,143 @@
+name: "DC58 — DuoCar only + optional external Lề GPS/visibility FAT"
+permissions:
+  contents: read
+on:
+  workflow_dispatch:
+
+jobs:
+  signed-fat:
+    runs-on: macos-15
+    timeout-minutes: 70
+    steps:
+      - name: Checkout HL58 source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Prebuild source and touch/zoom/keyboard contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/verify_hl58_external_source.py
+          python3 recovered-source/gpt-project-history/verify_duocar_vitals_static.py
+          python3 recovered-source/gpt-project-history/verify_hl43_shared_telex.py
+          sh recovered-source/gpt-project-history/test_hl53_pinch_direction.sh
+          sh recovered-source/gpt-project-history/test_le_traffic_core.sh
+          clang -std=c11 -Wall -Wextra -Werror -pedantic \
+            recovered-source/gpt-project-history/tests/test_hl55_thermal_alarm.c \
+            -lm -o /tmp/dc58-thermal
+          /tmp/dc58-thermal
+
+      - name: Restore Theos iPhoneOS16.5 SDK cache
+        uses: actions/cache@v4
+        id: cache-theos
+        with:
+          path: ~/theos
+          key: hl36-theos-ios16-5-${{ runner.os }}-${{ runner.arch }}-v1
+
+      - name: Install Theos and iPhoneOS SDK if absent
+        if: steps.cache-theos.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$HOME/theos-sdks"
+          git -C "$HOME/theos-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$HOME/theos/sdks"
+          cp -R "$HOME/theos-sdks/iPhoneOS16.5.sdk" "$HOME/theos/sdks/"
+
+      - name: Install ldid/dpkg signing tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew list ldid >/dev/null 2>&1 || brew install ldid
+          brew list dpkg >/dev/null 2>&1 || brew install dpkg
+          command -v ldid
+          command -v dpkg-deb
+          command -v lipo
+
+      - name: Reject vendor payload in synthetic DuoCar packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/tests/test_hl58_vendor_free_merge.py
+
+      - name: Normalize disposable macOS linker option
+        shell: bash
+        run: |
+          set -euo pipefail
+          find recovered-source/project -type f -name Makefile -print0 |
+            xargs -0 grep -l -- '-fuse-ld=lld' | while IFS= read -r file; do
+              sed -i '' 's/-fuse-ld=lld//g' "$file"
+            done
+
+      - name: Rebrand DuoCar source, strip SpeedBubble legacy
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/rebrand_duocar_hl47.py
+          python3 recovered-source/gpt-project-history/strip_speedbubble_assets.py recovered-source/project
+
+      - name: Compile signed DuoCar base FAT (no original Lề)
+        shell: bash
+        env:
+          ARCHS: "arm64 arm64e"
+          THEOS_PACKAGE_SCHEME: rootless
+        run: |
+          set -euo pipefail
+          export THEOS="$HOME/theos"
+          cd recovered-source/project
+          make clean ARCHS="arm64 arm64e"
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/dc58-base.log
+          test -s packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb
+
+      - name: Compile signed optional 2-function Lề companion FAT
+        shell: bash
+        env:
+          ARCHS: "arm64 arm64e"
+          THEOS_PACKAGE_SCHEME: rootless
+        run: |
+          set -euo pipefail
+          export THEOS="$HOME/theos"
+          cd recovered-source/project/OmniCarLeExtension
+          make clean ARCHS="arm64 arm64e"
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/dc58-companion.log
+          test -s packages/com.chuong.duocar.leextension_0.2.0_iphoneos-arm64.deb
+
+      - name: Package ONE DC58 without Le vendor, fonts, bundle or conflicts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          python3 recovered-source/gpt-project-history/merge_external_le_only.py \
+            --duocar recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb \
+            --extension recovered-source/project/OmniCarLeExtension/packages/com.chuong.duocar.leextension_0.2.0_iphoneos-arm64.deb \
+            --output dist/DC58.deb --version 1.0.4-hl58
+
+      - name: Verify FINAL signed FAT without ANY bundled Le content
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/verify_hl58_external_deb.py dist/DC58.deb
+          dpkg-deb -f dist/DC58.deb
+          shasum -a 256 dist/DC58.deb
+
+      - name: Upload ONE direct DC58.deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: DC58
+          path: dist/DC58.deb
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Preserve rejected binary and logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DC58-rejected
+          path: |
+            dist/DC58.deb
+            /tmp/dc58-base.log
+            /tmp/dc58-companion.log
+          if-no-files-found: ignore
+          retention-days: 3
