@@ -8,6 +8,15 @@
 #import <errno.h>
 #import <unistd.h>
 
+dispatch_queue_t DCLLeStoreSerialQueue(void) {
+    static dispatch_queue_t queue=nil;
+    static dispatch_once_t once;
+    dispatch_once(&once,^{
+        queue=dispatch_queue_create("com.chuong.duocar.le024.store-serial",
+                                    DISPATCH_QUEUE_SERIAL);
+    });
+    return queue;
+}
 static NSMutableData *DCLPending=nil;
 static uint16_t DCLNonce=0,DCLNextSeq=0;
 static NSUInteger DCLExpected=0;
@@ -224,7 +233,7 @@ void DCLLeOriginalStoreStart(void) {
         if(notify_register_check(DCL_LE_RAW_WORD,&DCLReadWord)!=NOTIFY_STATUS_OK)DCLReadWord=-1;
         if(notify_register_check(DCL_LE_RAW_CRC,&DCLReadCRC)!=NOTIFY_STATUS_OK)DCLReadCRC=-1;
         int result=notify_register_dispatch(DCL_LE_RAW_REQ,&receive,
-            dispatch_get_main_queue(),^(int token){
+            DCLLeStoreSerialQueue(),^(int token){
                 uint64_t command=0;
                 if(notify_get_state(token,&command)==NOTIFY_STATUS_OK)
                     DCLHandleRaw(command,ack);

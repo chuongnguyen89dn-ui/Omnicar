@@ -7,6 +7,7 @@
 #import <notify.h>
 #import <math.h>
 #import <stdint.h>
+#import "DCLLeOriginalStoreServer.h" // same canonical owner-serial queue
 
 static const char *DCLReq="com.chuong.duocar/le024.cfg";
 static const char *DCLAck="com.chuong.duocar/le024.ack";
@@ -325,7 +326,7 @@ void DCLLeConfigStartBridge(void) {
     dispatch_once(&once,^{
         static int receive=-1,ack=-1;
         if(notify_register_check(DCLAck,&ack)!=NOTIFY_STATUS_OK)ack=-1;
-        int result=notify_register_dispatch(DCLReq,&receive,dispatch_get_main_queue(),
+        int result=notify_register_dispatch(DCLReq,&receive,DCLLeStoreSerialQueue(),
              ^(int token) {
                uint64_t state=0;
                if(notify_get_state(token,&state)==NOTIFY_STATUS_OK)DCLHandle(state,ack);
