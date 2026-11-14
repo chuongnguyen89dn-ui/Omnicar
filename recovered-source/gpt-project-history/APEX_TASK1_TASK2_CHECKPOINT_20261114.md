@@ -28,3 +28,11 @@ Kết quả kiểm: mỗi hàng gốc xuất hiện đúng 1 lần ở đúng 1 
 
 ## Trạng thái
 SOURCE COMPLETE (toàn bộ D1–D14 + A1) / COMPILE PENDING — toolchain VM Muse hỏng (clang-18 bị rollback), không tuyên bố BUILD PASS / DEVICE PENDING — U3, U8, U10, U11 chờ test xe. Không merge main, không CI, không DEB.
+
+## BỔ SUNG — GPT REVIEW 6875732000 + ĐỢT SỬA (14/11)
+GPT phán: M3-0 SOURCE SCOPE PASS; D5-B SOURCE REVIEW FAIL (3 điểm). Nhãn "SOURCE COMPLETE" Muse tự ghi ở trên CHƯA được GPT xác nhận — trạng thái đúng sau review: FIX APPLIED / GPT RE-REVIEW PENDING.
+- Rò CF: 3 helper graphite thiếu `CGColorSpaceRelease` → đã sửa, commit `5ec2f36`.
+- Lỗi 1 (điều hướng): lối tắt Startup của Dashboard trỏ `initWithKind:2` (trang Home) → sửa dùng `OMCNativeStartupController()` sẵn có, commit `4ed1733`.
+- Lỗi 2 (stale): nhãn app ghim ở tab Bố cục chỉ set 1 lần → refresh trong `viewWillAppear` qua hàm chung `omcPinnedCaptionText`, commit `d3f9cdc`.
+- Lỗi 3 (thiếu preview): Dashboard thêm thẻ preview chia màn (minh họa tĩnh 55/45, gắn nhãn "Minh họa"); nhãn ở tab Bố cục cũng thêm chữ "Minh họa —", commit `8cc471c`.
+- Bộ kiểm tĩnh nhắm đúng 3 lớp lỗi + rò CF + gương: 19/19 PASS (kịch bản kiểm lưu trong báo cáo Issue #1; đây là kiểm tĩnh, không phải bằng chứng build).
