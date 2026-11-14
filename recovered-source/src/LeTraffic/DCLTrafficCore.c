@@ -98,3 +98,22 @@ int DCLTrafficRestoreCenter(DCLTrafficRect r, DCLTrafficInsets s,
                              minY + clamped(normalized.y,0,1) * (maxY-minY)};
     return 1;
 }
+
+int DCLTrafficSnapWhenNearEdge(DCLTrafficRect screen, DCLTrafficInsets safe,
+    double bubbleWidth, double bubbleHeight, double margin, double threshold,
+    DCLTrafficPoint dropped, DCLTrafficPoint *target, int *snapped) {
+    if(!target || !snapped || !isfinite(threshold) || threshold<0)return 0;
+    double minX,maxX,minY,maxY;
+    if(!bounds(screen,safe,bubbleWidth,bubbleHeight,margin,
+               &minX,&maxX,&minY,&maxY))return 0;
+    DCLTrafficPoint pos;
+    if(!DCLTrafficClampCenter(screen,safe,bubbleWidth,bubbleHeight,margin,
+        dropped,&pos))return 0;
+    double span=maxX-minX;
+    double near=fmin(threshold,span*0.24);
+    double left=pos.x-minX,right=maxX-pos.x;
+    *snapped=left<=near||right<=near;
+    if(*snapped)pos.x=left<=right?minX:maxX;
+    *target=pos;
+    return 1;
+}

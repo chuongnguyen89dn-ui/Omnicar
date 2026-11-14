@@ -33,6 +33,11 @@ int DCLTrafficClampCenter(DCLTrafficRect screen, DCLTrafficInsets safe,
 int DCLTrafficNormalizeCenter(DCLTrafficRect screen, DCLTrafficInsets safe,
     double bubbleWidth, double bubbleHeight, double margin,
     DCLTrafficPoint center, DCLTrafficPoint *normalized);
+// HL55 snap only if dropped close to the LEFT/RIGHT usable edge.
+// Keeps absolute Y within the same hit-testing surface as Lề itself.
+int DCLTrafficSnapWhenNearEdge(DCLTrafficRect screen, DCLTrafficInsets safe,
+    double bubbleWidth, double bubbleHeight, double margin, double threshold,
+    DCLTrafficPoint dropped, DCLTrafficPoint *target, int *snapped);
 int DCLTrafficRestoreCenter(DCLTrafficRect screen, DCLTrafficInsets safe,
     double bubbleWidth, double bubbleHeight, double margin,
     DCLTrafficPoint normalized, DCLTrafficPoint *result);

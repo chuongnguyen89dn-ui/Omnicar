@@ -51,6 +51,21 @@ int main(void) {
         assert(DCLTrafficRestoreCenter(rect,insets,112,52,6,rel,&back));
         assert(fabs(p.x-back.x)<1e-8 && fabs(p.y-back.y)<1e-8);checks+=3;
     }
+    // [hl55-le-edge] both modes: free in middle, snap at physical safe side.
+    DCLTrafficPoint snappedCenter;
+    int snap=0;
+    DCLTrafficInsets noInset={0,0,0,0};
+    assert(DCLTrafficSnapWhenNearEdge(rect,noInset,112,52,0,32,
+         (DCLTrafficPoint){317,200},&snappedCenter,&snap));
+    assert(!snap && fabs(snappedCenter.x-317)<1e-9);++checks;
+    assert(DCLTrafficSnapWhenNearEdge(rect,noInset,112,52,0,32,
+         (DCLTrafficPoint){58,220},&snappedCenter,&snap));
+    assert(snap && fabs(snappedCenter.x-56)<1e-9);++checks;
+    assert(DCLTrafficSnapWhenNearEdge(rect,noInset,112,52,0,32,
+         (DCLTrafficPoint){581,140},&snappedCenter,&snap));
+    assert(snap && fabs(snappedCenter.x-584)<1e-9);++checks;
+    assert(!DCLTrafficSnapWhenNearEdge(rect,noInset,112,52,0,-10,
+         (DCLTrafficPoint){58,140},&snappedCenter,&snap));++checks;
     assert(DCLTrafficRestoreCenter(rect,insets,112,52,6,(DCLTrafficPoint){0.5,0.5},&p));
     assert(p.x > 200 && p.x < 450);++checks; // must NOT snap to an edge
     assert(!DCLTrafficClampCenter((DCLTrafficRect){0,0,20,20},insets,112,52,6,(DCLTrafficPoint){0,0},&p));++checks;
