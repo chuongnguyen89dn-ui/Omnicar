@@ -13,6 +13,8 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 #import <math.h>
+#import <notify.h>
+#import <CoreFoundation/CoreFoundation.h>
 
 // [hl57-status] No touch target ever; the existing CarPlay UIWindow
 // lets fullscreen pinch, native picker, apps and Dock receive every touch.
@@ -95,7 +97,6 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
 @property(nonatomic) NSTimeInterval lastSampleTime;
 @property(nonatomic) BOOL noRoomLogged;
 @property(nonatomic,strong) UIView *thermalCurtain;
-@property(nonatomic) NSTimeInterval thermalCurtainUntil;
 @property(nonatomic) SCPThermalAlarmState thermalAlarm;
 @end
 
@@ -110,7 +111,25 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
 - (instancetype)init {
     if ((self = [super init])) {
         // Preserve but never consult old normalized drag preferences.
-        _thermalAlarm=(SCPThermalAlarmState){.consecutiveHot=0,.armed=1,.lastSampleTime=0};
+        _thermalAlarm=(SCPThermalAlarmState){0};
+        static int thermalTestToken=-1;
+        __weak typeof(self) weakSelf=self;
+        notify_register_dispatch("com.anlai.omnicar/thermaltest37.changed",
+            &thermalTestToken,dispatch_get_main_queue(),^(int token) {
+                (void)token;
+                CFPreferencesAppSynchronize(CFSTR("com.anlai.omnicar"));
+                SCPFullscreenVitalsBubble *owner=weakSelf;
+                if(!owner)return;
+                owner.lastSampleTime=0; // immediate sensor update on toggle
+                if(owner.statusView) {
+                    [owner tick];
+                } else {
+                    SCPCarSplit *split=[SCPCarSplit shared];
+                    if(split.active && [[SCPFullscreenController shared] fsCommittedState]
+                       ==SCPFullscreenStateExpanded)
+                        [owner showForConfirmedFullscreenInParent:split.container.superview];
+                }
+            });
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(systemClockChanged:)
                       name:NSSystemTimeZoneDidChangeNotification object:nil];
@@ -152,8 +171,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
     self.timer = nil;
     [self.thermalCurtain removeFromSuperview];
     self.thermalCurtain=nil;
-    self.thermalCurtainUntil=0;
-    self.thermalAlarm=(SCPThermalAlarmState){.armed=1};
+    self.thermalAlarm=(SCPThermalAlarmState){0};
     [self.statusView removeFromSuperview];
     self.statusView = nil;
     self.timeLabel = nil;
@@ -172,61 +190,71 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         split.container.superview == parent &&
         [[SCPFullscreenController shared] fsCommittedState] ==
             SCPFullscreenStateExpanded &&
-        [OMCPref(@"duocarFullscreenVitalsEnabled",@YES) boolValue];
+        ([OMCPref(@"duocarFullscreenVitalsEnabled",@YES) boolValue] ||
+         [OMCPref(@"duocarThermalTest37Enabled",@NO) boolValue]);
 }
 // [hl57-status] Preserve the original full-screen 39C warning visuals.
 // Neither the full-screen curtain nor the top-left status intercepts touches;
 // the same passive CarPlay window always returns nil in hitTest:.
+// HL60: persistent warning at raw 37C+, or during explicitly labelled test.
+// Original CarPlay overlay remains pass-through for all taps and gestures.
 - (void)updateThermalWarningWithSample:(NSDictionary *)sample now:(NSTimeInterval)now {
-    if (!self.overlayWindow || !self.statusView) return;
-    id candidate=sample[@"temperatureCelsius"];
-    BOOL isBattery=[sample[@"temperatureKind"] isEqualToString:@"battery"];
-    BOOL good=isBattery && [candidate isKindOfClass:NSNumber.class];
-    double degrees=good?[candidate doubleValue]:NAN;
-    if (SCPThermalAlarmStep(&_thermalAlarm,degrees,good,now)) {
-        if (!self.thermalCurtain) {
-            UIView *curtain=[[UIView alloc] initWithFrame:self.overlayWindow.bounds];
-            curtain.autoresizingMask=UIViewAutoresizingFlexibleWidth|
-                                    UIViewAutoresizingFlexibleHeight;
-            curtain.backgroundColor=[UIColor colorWithRed:0.84 green:0.03
-                                                      blue:0.08 alpha:0.87];
-            curtain.userInteractionEnabled=NO;
-            curtain.accessibilityElementsHidden=YES;
-            UILabel *message=[[UILabel alloc] initWithFrame:
-                 CGRectInset(curtain.bounds,24.0,20.0)];
-            message.autoresizingMask=UIViewAutoresizingFlexibleWidth|
-                                     UIViewAutoresizingFlexibleHeight;
-            message.font=[UIFont boldSystemFontOfSize:26.0];
-            message.textColor=UIColor.whiteColor;
-            message.numberOfLines=0;
-            message.textAlignment=NSTextAlignmentCenter;
-            message.adjustsFontSizeToFitWidth=YES;
-            message.minimumScaleFactor=0.70;
-            message.tag=3955;
-            message.userInteractionEnabled=NO;
-            [curtain addSubview:message];
-            [self.overlayWindow addSubview:curtain];
-            self.thermalCurtain=curtain;
-        }
-        UILabel *label=(UILabel *)[self.thermalCurtain viewWithTag:3955];
-        label.text=[NSString stringWithFormat:
-            @"⚠️ CẢNH BÁO NHIỆT ĐỘ\nPIN IPHONE ~%.1f°C\nNhiệt độ cao — kiểm tra thiết bị",
-            degrees];
-        self.thermalCurtainUntil=now+5.0; // bounded, no blocking controls
+    if(!self.overlayWindow || !self.statusView)return;
+    NSNumber *temp=[sample[@"temperatureCelsius"] isKindOfClass:NSNumber.class]
+        ?sample[@"temperatureCelsius"]:nil;
+    BOOL simulated=[OMCPref(@"duocarThermalTest37Enabled",@NO) boolValue];
+    BOOL before=_thermalAlarm.active,wasSimulated=_thermalAlarm.simulated;
+    BOOL active=SCPThermalAlarmStep(&_thermalAlarm,
+        temp?temp.doubleValue:NAN,temp!=nil,simulated,now);
+    if(before!=active || wasSimulated!=simulated)
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-            @"[hl55-thermal] red warning triggered source=battery temp=%.2f threshold=39.0 duration=5",degrees]);
-    }
-    if (self.thermalCurtain) {
-        self.thermalCurtain.frame=self.overlayWindow.bounds;
-        if(now>=self.thermalCurtainUntil) {
+            @"[hl60-thermal] fullscreen active=%d simulated=%d raw=%@ source=%@",
+            active,simulated,temp?:@"unavailable",
+            sample[@"temperatureSource"]?:@"unknown"]);
+    if(!active) {
+        if(self.thermalCurtain) {
             [self.thermalCurtain removeFromSuperview];
             self.thermalCurtain=nil;
-            self.thermalCurtainUntil=0;
-        } else {
-            [self.overlayWindow bringSubviewToFront:self.thermalCurtain];
-            [self.overlayWindow bringSubviewToFront:self.statusView];
+            OMCLogWrite(@"SplitScreen",@"[hl60-thermal] fullscreen HIDE");
         }
+        return;
     }
+    if(!self.thermalCurtain) {
+        UIView *curtain=[[UIView alloc]initWithFrame:self.overlayWindow.bounds];
+        curtain.autoresizingMask=UIViewAutoresizingFlexibleWidth|
+                                UIViewAutoresizingFlexibleHeight;
+        curtain.backgroundColor=[UIColor colorWithRed:0.84 green:0.03
+                                              blue:0.08 alpha:0.87];
+        curtain.userInteractionEnabled=NO;
+        curtain.accessibilityElementsHidden=YES;
+        UILabel *message=[[UILabel alloc]initWithFrame:
+            CGRectInset(curtain.bounds,24.0,20.0)];
+        message.autoresizingMask=UIViewAutoresizingFlexibleWidth|
+                                  UIViewAutoresizingFlexibleHeight;
+        message.font=[UIFont boldSystemFontOfSize:26.0];
+        message.textColor=UIColor.whiteColor;
+        message.numberOfLines=0;
+        message.textAlignment=NSTextAlignmentCenter;
+        message.adjustsFontSizeToFitWidth=YES;
+        message.minimumScaleFactor=0.70;
+        message.tag=3955;
+        message.userInteractionEnabled=NO;
+        [curtain addSubview:message];
+        [self.overlayWindow addSubview:curtain];
+        self.thermalCurtain=curtain;
+        OMCLogWrite(@"SplitScreen",@"[hl60-thermal] fullscreen SHOW persistent pass-through");
+    }
+    NSString *kind=sample[@"temperatureKind"];
+    NSString *caption=simulated?@"GIẢ LẬP — KHÔNG PHẢI NHIỆT THẬT":
+        [kind isEqualToString:@"battery"]?@"NHIỆT PIN (THAM KHẢO)":
+                                          @"CẢM BIẾN (THAM KHẢO)";
+    UILabel *label=(UILabel *)[self.thermalCurtain viewWithTag:3955];
+    label.text=[NSString stringWithFormat:
+        @"⚠️ CẢNH BÁO NHIỆT ĐỘ\n%@ ~%.1f°C\nNgưỡng 37°C",
+        caption,simulated?37.0:temp.doubleValue];
+    self.thermalCurtain.frame=self.overlayWindow.bounds;
+    [self.overlayWindow bringSubviewToFront:self.thermalCurtain];
+    [self.overlayWindow bringSubviewToFront:self.statusView];
 }
 // [hl57-status] Match Dock's small Semibold typography + shadow.
 - (void)layoutStatusLine {
@@ -257,12 +285,9 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
             return;
     }
     NSTimeInterval now = [NSDate date].timeIntervalSince1970;
-    if(self.thermalCurtain && now>=self.thermalCurtainUntil) {
-        [self.thermalCurtain removeFromSuperview];self.thermalCurtain=nil;
-    }
     self.statusView.alpha = 1.0; // NO idle-dim/AutoHide lease; fullscreen-only gate
     self.timeLabel.text = [[self systemClockFormatter] stringFromDate:[NSDate date]];
-    if (!self.lastSample || now - self.lastSampleTime >= 12.0 ||
+    if (!self.lastSample || now - self.lastSampleTime >= 3.0 ||
         now < self.lastSampleTime) {
         self.lastSample = OMCDeviceVitalsSample();
         self.lastSampleTime = now;
@@ -278,7 +303,6 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
             ? [NSString stringWithFormat:@"%.0f°",temperature.doubleValue]
             : OMCDeviceVitalsThermalDescription(self.lastSample[@"thermalState"]);
         self.metricsLabel.text = [NSString stringWithFormat:@"🔋%@ 🌡%@",bat,heat];
-        [self updateThermalWarningWithSample:self.lastSample now:now];
         self.statusView.accessibilityLabel = [NSString stringWithFormat:
             @"Giờ %@, pin %@, nhiệt %@. Nguồn nhiệt: %@.",
             self.timeLabel.text ?: @"--",bat,heat,
@@ -291,6 +315,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
             self.lastSample[@"temperatureSource"] ?: @"unknown",
             self.lastSample[@"thermalState"] ?: @"unknown"]);
     }
+    [self updateThermalWarningWithSample:self.lastSample ?: @{} now:now];
     [self layoutStatusLine];
 }
 // CarPlay safe-area coordinate space. A fixed status, not a draggable

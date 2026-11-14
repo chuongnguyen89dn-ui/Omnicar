@@ -10,6 +10,8 @@
 #import <math.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
+#import <notify.h>
+#import <CoreFoundation/CoreFoundation.h>
 
 @interface SCPDeviceVitalsHUD ()
 @property(nonatomic,weak) UIView *host;
@@ -21,6 +23,9 @@
 @property(nonatomic) BOOL noSpaceLogged;
 @property(nonatomic) SCPThermalAlarmState thermalGate;
 @property(nonatomic,strong) UIWindow *thermalWarningWindow;
+@property(nonatomic,weak) UIView *thermalParent;
+@property(nonatomic,weak) UIWindow *thermalSourceWindow;
+@property(nonatomic,strong) NSTimer *thermalTimer;
 @end
 
 @implementation SCPDeviceVitalsHUD
@@ -36,17 +41,46 @@
 // root window and PASS-THROUGH hit-test. The fullscreen branch uses the
 // existing clock bubble window and its own 39C alert instead.
 - (instancetype)init {
-    if((self=[super init]))_thermalGate=(SCPThermalAlarmState){.armed=1};
+    if((self=[super init])) {
+        _thermalGate=(SCPThermalAlarmState){0};
+        static int thermalTestToken=-1;
+        __weak typeof(self) weakSelf=self;
+        notify_register_dispatch("com.anlai.omnicar/thermaltest37.changed",
+            &thermalTestToken,dispatch_get_main_queue(),^(int token) {
+                (void)token;
+                CFPreferencesAppSynchronize(CFSTR("com.anlai.omnicar"));
+                [weakSelf checkThermalNow];
+            });
+    }
     return self;
 }
 static UIView *SCPRedAlertHitTest(UIWindow *window,SEL cmd,CGPoint point,UIEvent *event) {
     (void)window;(void)cmd;(void)point;(void)event;
     return nil; // cannot intercept app, picker, Dock or emergency controls
 }
-- (void)showThermalWarningInParent:(UIView *)parent temperature:(double)degrees {
+- (void)hideThermalWarning {
+    if(self.thermalWarningWindow)
+        OMCLogWrite(@"SplitScreen",@"[hl60-thermal] split HIDE");
+    self.thermalWarningWindow.hidden=YES;
+    self.thermalWarningWindow=nil;
+}
+- (void)showThermalWarningInParent:(UIView *)parent temperature:(double)degrees
+                        simulated:(BOOL)simulated source:(NSString *)source {
     UIWindow *host=parent.window;
     UIScreen *screen=host.screen;
-    if(!screen || !isfinite(degrees) || self.thermalWarningWindow)return;
+    if(!screen || !isfinite(degrees))return;
+    if(self.thermalWarningWindow && self.thermalWarningWindow.screen!=screen)
+        [self hideThermalWarning];
+    NSString *caption=simulated?@"GIẢ LẬP — KHÔNG PHẢI NHIỆT THẬT":
+        [source isEqualToString:@"battery"]?@"NHIỆT PIN (THAM KHẢO)":
+                                          @"CẢM BIẾN (THAM KHẢO)";
+    NSString *message=[NSString stringWithFormat:
+        @"⚠️ CẢNH BÁO NHIỆT ĐỘ\n%@ ~%.1f°C\nNgưỡng 37°C",caption,degrees];
+    if(self.thermalWarningWindow) {
+        UILabel *current=(UILabel *)[self.thermalWarningWindow viewWithTag:3717];
+        current.text=message;
+        return;
+    }
     id config=nil;
     SEL displaySel=NSSelectorFromString(@"displayConfiguration");
     if([screen respondsToSelector:displaySel])
@@ -85,6 +119,7 @@ static UIView *SCPRedAlertHitTest(UIWindow *window,SEL cmd,CGPoint point,UIEvent
     object_setClass(win,pass);
     win.windowLevel=UIWindowLevelStatusBar+64.5;
     win.backgroundColor=UIColor.clearColor;
+    win.userInteractionEnabled=NO;
     UIView *curtain=[[UIView alloc] initWithFrame:win.bounds];
     curtain.backgroundColor=[UIColor colorWithRed:0.87 green:0.03 blue:0.07 alpha:0.87];
     curtain.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
@@ -98,20 +133,55 @@ static UIView *SCPRedAlertHitTest(UIWindow *window,SEL cmd,CGPoint point,UIEvent
     text.minimumScaleFactor=0.7;
     text.userInteractionEnabled=NO;
     text.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-    text.text=[NSString stringWithFormat:
-       @"⚠️ CẢNH BÁO NHIỆT ĐỘ\nPIN IPHONE ~%.1f°C\nNhiệt độ cao — kiểm tra thiết bị",
-       degrees];
+    text.tag=3717;
+    text.text=message;
     [curtain addSubview:text];[win addSubview:curtain];
     self.thermalWarningWindow=win;win.hidden=NO;
     OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
-       @"[hl55-thermal] SPLIT red warning battery=%.2f 39C 5s passthrough",degrees]);
-    __weak typeof(self) weakSelf=self;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(5*NSEC_PER_SEC)),
-        dispatch_get_main_queue(),^{
-            SCPDeviceVitalsHUD *owner=weakSelf;
-            owner.thermalWarningWindow.hidden=YES;
-            owner.thermalWarningWindow=nil;
-        });
+       @"[hl60-thermal] split SHOW persistent 37C pass-through %.2f",degrees]);
+}
+
+- (void)checkThermalNow {
+    UIView *parent=self.thermalParent;
+    if(!parent || !parent.window || parent.window!=self.thermalSourceWindow ||
+       parent.hidden || parent.window.hidden || parent.alpha<=0.01 ||
+       [[SCPFullscreenController shared] fsCommittedState]==SCPFullscreenStateExpanded) {
+        [self hideThermalWarning];
+        return;
+    }
+    NSDictionary *sample=OMCDeviceVitalsSample();
+    NSNumber *temp=[sample[@"temperatureCelsius"] isKindOfClass:NSNumber.class]
+        ?sample[@"temperatureCelsius"]:nil;
+    BOOL simulated=[OMCPref(@"duocarThermalTest37Enabled",@NO) boolValue];
+    BOOL before=_thermalGate.active,wasSimulated=_thermalGate.simulated;
+    BOOL active=SCPThermalAlarmStep(&_thermalGate,
+           temp?temp.doubleValue:NAN,temp!=nil,simulated,
+           NSDate.date.timeIntervalSince1970);
+    if(before!=active || wasSimulated!=simulated)
+        OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+            @"[hl60-thermal] split active=%d simulated=%d raw=%@ source=%@",
+            active,simulated,temp?:@"unavailable",
+            sample[@"temperatureSource"]?:@"unknown"]);
+    if(active)
+        [self showThermalWarningInParent:parent
+            temperature:simulated?37.0:temp.doubleValue
+            simulated:simulated source:sample[@"temperatureKind"]];
+    else
+        [self hideThermalWarning];
+}
+- (void)startThermalForParent:(UIView *)parent {
+    if(self.thermalParent!=parent || self.thermalSourceWindow!=parent.window) {
+        [self hideThermalWarning];
+        self.thermalParent=parent;
+        self.thermalSourceWindow=parent.window;
+        self.thermalGate=(SCPThermalAlarmState){0};
+    }
+    if(!self.thermalTimer) {
+        [self checkThermalNow];
+        self.thermalTimer=[NSTimer timerWithTimeInterval:3.0
+            target:self selector:@selector(checkThermalNow) userInfo:nil repeats:YES];
+        [[NSRunLoop mainRunLoop]addTimer:self.thermalTimer forMode:NSRunLoopCommonModes];
+    }
 }
 
 // Untrusted UIKit geometry is converted only after validating that both
@@ -122,37 +192,33 @@ static BOOL SCPVitalsFiniteRect(CGRect r) {
         isfinite(r.size.width) && isfinite(r.size.height);
 }
 
+- (void)stopDockOnly {
+    if(self.panel)OMCLogWrite(@"SplitScreen",@"[vitals] car HUD detached");
+    [self.timer invalidate];self.timer=nil;
+    [self.panel removeFromSuperview];
+    self.panel=nil;self.label=nil;self.host=nil;
+}
 - (void)stop {
-    if (![NSThread isMainThread]) {
-        dispatch_async(dispatch_get_main_queue(), ^{ [self stop]; });
+    if(![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(),^{ [self stop]; });
         return;
     }
-    self.thermalWarningWindow.hidden=YES;
-    self.thermalWarningWindow=nil;
-    if (self.panel) OMCLogWrite(@"SplitScreen", @"[vitals] car HUD detached");
-    [self.timer invalidate];
-    self.timer = nil;
-    [self.panel removeFromSuperview];
-    self.panel = nil;
-    self.label = nil;
-    self.host = nil;
+    [self.thermalTimer invalidate];self.thermalTimer=nil;
+    self.thermalParent=nil;self.thermalSourceWindow=nil;
+    self.thermalGate=(SCPThermalAlarmState){0};
+    [self hideThermalWarning];
+    [self stopDockOnly];
 }
 
 - (void)refresh {
-    if (!self.panel || !self.panel.window) { [self stop]; return; }
-    if (![OMCPref(@"duocarVitalsEnabled", @YES) boolValue]) { [self stop]; return; }
+    if (!self.panel || !self.panel.window) { [self stopDockOnly]; return; }
+    if (![OMCPref(@"duocarVitalsEnabled", @YES) boolValue]) { [self stopDockOnly]; return; }
 
     NSDictionary *sample = OMCDeviceVitalsSample();
     NSNumber *battery = [sample[@"batteryPercent"] isKindOfClass:NSNumber.class]
         ? sample[@"batteryPercent"] : nil;
     NSNumber *temp = [sample[@"temperatureCelsius"] isKindOfClass:NSNumber.class]
         ? sample[@"temperatureCelsius"] : nil;
-    BOOL batterySource=[sample[@"temperatureKind"] isEqualToString:@"battery"];
-    BOOL validForAlarm=batterySource && temp!=nil;
-    if(SCPThermalAlarmStep(&_thermalGate,
-            validForAlarm?temp.doubleValue:NAN,validForAlarm,
-            NSDate.date.timeIntervalSince1970))
-        [self showThermalWarningInParent:self.host temperature:temp.doubleValue];
     NSString *batteryText = battery
         ? [NSString stringWithFormat:@"%ld%%", (long)battery.integerValue] : @"—";
     NSString *heatText = temp
@@ -386,14 +452,17 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
        launcherFrame:(CGRect)launcher {
     if (![NSThread isMainThread]) return;
     if(!parent || !parent.window ||
-       ![OMCPref(@"duocarVitalsEnabled",@YES) boolValue] ||
        [[SCPFullscreenController shared] fsCommittedState]==SCPFullscreenStateExpanded) {
         [self stop];return;
+    }
+    [self startThermalForParent:parent];
+    if(![OMCPref(@"duocarVitalsEnabled",@YES) boolValue]) {
+        [self stopDockOnly];return;
     }
     UIView *dock=SCPVitalsNativeDockView(parent);
     if(!dock) {
         OMCLogWrite(@"SplitScreen",@"[hl50-dock] MISSING native Dock UIView; no fallback to app/root UIWindow");
-        [self stop];return;
+        [self stopDockOnly];return;
     }
     CGRect observed=SCPVitalsConvert(dock,parent,dock.bounds);
     // The native Dock VC is not always the tight Dock view. A full-screen
@@ -407,7 +476,7 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
             @"[hl50-dock] dock-view-mismatch observed=%@ measured=%@; REFUSE fallback",
             NSStringFromCGRect(observed),NSStringFromCGRect(dockFrame)]);
-        [self stop];return;
+        [self stopDockOnly];return;
     }
     BOOL horizontal=NO,compact=NO;
     NSUInteger blocked=0;
@@ -423,11 +492,11 @@ static CGRect SCPVitalsDockSlot(UIView *dock,UIView *ignore,UIView *parent,
            NSStringFromCGRect(launcher),(unsigned long)blocked,
            (int)dock.clipsToBounds,NSStringFromClass(dock.superview.class)]);
         self.noSpaceLogged=YES;
-        [self stop];return;
+        [self stopDockOnly];return;
     }
     self.noSpaceLogged=NO;
     if(!self.panel || self.panel.superview!=nativeHost) {
-        [self stop];
+        [self stopDockOnly];
         UIView *panel=[[UIView alloc]initWithFrame:frame];
         // [hl52-dock] Native status text directly on Dock: no blurred,
         // grey, translucent or opaque container behind clock/pin/heat.

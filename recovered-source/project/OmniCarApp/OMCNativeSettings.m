@@ -30,7 +30,11 @@ BOOL OMCNativeSetPref(NSString *key, id value) {
     CFPreferencesSetAppValue((__bridge CFStringRef)key, (__bridge CFPropertyListRef)value,
                              (__bridge CFStringRef)kOMCNativeDomain);
     BOOL synced=CFPreferencesAppSynchronize((__bridge CFStringRef)kOMCNativeDomain);
-    if (synced) notify_post(kOMCNativeChanged);
+    if (synced) {
+        notify_post(kOMCNativeChanged);
+        if([key isEqualToString:@"duocarThermalTest37Enabled"])
+            notify_post("com.anlai.omnicar/thermaltest37.changed");
+    }
     NSLog(@"[hl26-settings] pref-write key=%@ sync=%d type=%@",
           key, synced, value?NSStringFromClass([value class]):@"removed");
     return synced;
@@ -466,7 +470,9 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
              OMCRow(OMCText(@"Hiện pin, nhiệt trên Dock CarPlay",@"Show battery and heat on CarPlay Dock"),
                     @"switch",@"duocarVitalsEnabled",@YES,nil),
              OMCRow(OMCText(@"Bong bóng giờ, pin, nhiệt khi toàn màn hình",@"Fullscreen time, battery & heat bubble"),
-                    @"switch",@"duocarFullscreenVitalsEnabled",@YES,nil)])];
+                    @"switch",@"duocarFullscreenVitalsEnabled",@YES,nil),
+             OMCRow(OMCText(@"Giả lập cảnh báo nhiệt 37°C",@"Simulate 37°C temperature warning"),
+                    @"switch",@"duocarThermalTest37Enabled",@NO,nil)])];
         [sections addObject:OMCSection(OMCNativeLocalized(@"SUPPORT_GROUP"),@[
             OMCRow(@"ONB_SHOW_AGAIN",@"guide",nil,nil,nil),
             OMCRow(@"WN_ROW",@"whatsnew",nil,nil,nil)])];
