@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — APEX TASK1 + TASK2 XONG Ở MỨC SOURCE (M3-0 mesh + D5-B 5 mục)
+- GPT duyệt mở 2 cổng có giới hạn (Issue #1, comment 6875586688) và giao việc trực tiếp (6875604560); Muse thực hiện xong: TASK1 commit `d256a3e` (bỏ mesh cũ ở đúng 3 mặt DuoCar, lõi C giữ nguyên), TASK2 ba commit `580421b`/`fa48bf4`/`477263b` (route 5 tab → phân vùng Thiết bị/Tùy chỉnh theo nội dung hàng → dashboard + preview). Bảng đối chiếu hàng trước/sau: không trùng, không mất hàng nào. [Checkpoint TASK1+TASK2](APEX_TASK1_TASK2_CHECKPOINT_20261114.md), [bản đồ + trạng thái D1–D14/A1](APEX_M2_BAN_DO_TRIEN_KHAI_20261114.md).
+- Nhãn: **SOURCE COMPLETE / COMPILE PENDING / DEVICE PENDING**. Không merge main, không CI/DEB.
+
 ## 2026-11-14 — GPT DESIGN V2 (M1): gói DuoCar APEX Stealth đã giao repo, CHỜ NGUYEN DUYỆT
 - Nhận trách nhiệm thiết kế 100% từ Nguyen sau khi M1 Muse cũ bị bác. Nhánh Muse `feature/duocar-apex-ui-muse-20261114` trên baseline HL61 `298b7b4a8432037d71db441d0975aca1db1f6e04`; commit tài liệu/asset **`eab80668aa8d9e61efaeff1260ae5e77015e66d7`** thêm **31 file (27 SVG + 4 tài liệu)**, không sửa mã runtime. [Mở bộ thiết kế GPT APEX V2](APEX_M1_GPT_V2/README.md), [spec](APEX_M1_GPT_V2/APEX_V2_SPEC.md), [ma trận D1–D14/A1](APEX_M1_GPT_V2/APEX_V2_MATRIX.md).
 - Bộ hình gồm 6 giao diện iPhone, 9 trạng thái CarPlay, 1 bảng nhận diện; 11 SVG logo/icon. So sánh với 46 PNG của Muse M1 v1 trong cùng nhánh; tất cả là **mockup/sản phẩm thiết kế**, không phải ảnh chụp thiết bị hoặc bằng chứng runtime. Giữ Home hệ thống và nội dung native/hosted app khác nguyên dạng, thermal HL61, window +64/+65, C/F, phím/Telex, dock, shim Lề đã đạt.

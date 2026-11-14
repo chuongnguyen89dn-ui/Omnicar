@@ -105,3 +105,25 @@
 ## 6. Thứ tự thực hiện
 
 M2-1 → M2-2 → M2-3 → M2-4 → M2-5A → M2-6 → (M3-0 chờ duyệt) → M3-1 (kiểm chứng) → M3-2 → M3-3 → M3-4 → M3-5 → M3-7 → M3-8 (sau U3). Mỗi lô 1 commit riêng trên nhánh APEX, tổng duyệt diff đối chiếu F/C trước khi đẩy. Không CI, không DEB, không PR — M5 chỉ khi Nguyen lệnh.
+
+## 7. TRẠNG THÁI SAU TASK1 + TASK2 (2026-11-14, HEAD `477263b`)
+
+| Mục | Trạng thái source |
+|---|---|
+| D1 chrome split | XONG (M3-3a/b) + mesh thay ở TASK1 |
+| D2 thanh AppBridge/hosted | XONG (M3-3) + mesh thay ở TASK1 |
+| D3 picker | XONG (M3-5) + mặt sheet qua helper mesh mới (TASK1) |
+| D4 knob/divider | XONG (M3-4) |
+| D5 cài đặt iPhone | XONG — 3 tab cũ (M2-4A) → **5 mục** (TASK2: route `580421b`, phân vùng `fa48bf4`, dashboard/preview `477263b`) |
+| D6 trang Startup iPhone | XONG (M2-3) |
+| D7 trang Lề | XONG (M2-2) |
+| D8 trang vitals iPhone | XONG (M2-2) |
+| D9 startup trên xe | XONG (M3-7) |
+| D10 vitals trên xe | XONG (M3-2) |
+| D11 icon Home xe | XONG qua D12 (0 hunk code) |
+| D12 asset nhận diện | XONG (M2-1) |
+| D13 bàn phím vẽ | XONG (M3-8) — GPT SOURCE SCOPE PASS 6875586688; panel mesh thay ở TASK1 |
+| D14 prefs bundle | XONG (M2-5) |
+| A1 viền nhiệt HL61 | KIỂM CHỨNG khớp SPEC — 0 hunk |
+
+**Nhãn toàn cục: SOURCE COMPLETE / COMPILE PENDING (toolchain VM của Muse hỏng) / DEVICE PENDING (U3, U8, U10, U11).**
