@@ -456,7 +456,8 @@ static void ABSetBarButtonContent(UIButton *button, NSString *name, NSString *ti
                     [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(14, 2, 8, 8) cornerRadius:1]];
                     [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 14, 8, 8) cornerRadius:1]];
                     [path appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(14, 14, 8, 8) cornerRadius:1]];
-$1                    // APEX: four corner brackets (GPT hm_full).
+                } else if ([name isEqualToString:@"hm_full"]) {  // @0x16E48
+                    // APEX: four corner brackets (GPT hm_full).
                     path.lineWidth = 2.2;
                     [path moveToPoint:CGPointMake(9, 3)];
                     [path addLineToPoint:CGPointMake(3, 3)];

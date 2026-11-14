@@ -152,7 +152,8 @@ static void SCPDrawSymbolIcon(NSString *name, UIBezierPath *stroke, UIBezierPath
             [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(14, 2, 8, 8) cornerRadius:1]];
             [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(2, 14, 8, 8) cornerRadius:1]];
             [stroke appendPath:[UIBezierPath bezierPathWithRoundedRect:CGRectMake(14, 14, 8, 8) cornerRadius:1]];
-$1            // APEX: four corner brackets (GPT hm_full).
+        } else if ([base isEqualToString:@"full"]) {
+            // APEX: four corner brackets (GPT hm_full).
             stroke.lineWidth = 2.2;
             [stroke moveToPoint:CGPointMake(9, 3)];
             [stroke addLineToPoint:CGPointMake(3, 3)];
