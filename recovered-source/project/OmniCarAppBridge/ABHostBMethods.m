@@ -1167,10 +1167,12 @@ static UIImage *ABApexGraphiteSkinImage(void) {
         UIGraphicsImageRenderer *r = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(64, 64)];
         img = [r imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
             CGContextRef c = ctx.CGContext;
-            CGGradientRef g = CGGradientCreateWithColors(CGColorSpaceCreateDeviceRGB(),
+            CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
+            CGGradientRef g = CGGradientCreateWithColors(cs,
                 (CFArrayRef)@[(id)[UIColor colorWithRed:0.0392156862745098 green:0.07058823529411765 blue:0.09411764705882353 alpha:1].CGColor,
                               (id)[UIColor colorWithRed:0.13725490196078433 green:0.21176470588235294 blue:0.25098039215686274 alpha:1].CGColor],
                 (CGFloat[]){0, 1});
+            CGColorSpaceRelease(cs);
             CGContextDrawLinearGradient(c, g, CGPointMake(0, 0), CGPointMake(64, 64), 0);
             CGGradientRelease(g);
         }];
