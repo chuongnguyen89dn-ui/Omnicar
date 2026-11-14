@@ -1,12 +1,12 @@
-# Experimentally extend an unmodified Le 0.2.4 installed inside a
-# single personal-use DuoCar package. Produces signed extension DEB
-# to be consumed by merge_le024_personal_deb.py, not a shipping tweak alone.
+# HL58 optional standalone Lề companion. This package contains ONLY
+# DuoCar's GPS speedText adjustment and Lề visual ON/OFF gate.
+# Original Lề runtime is NEVER included; no vendor library is copied.
 ARCHS = arm64 arm64e
 TARGET = iphone:clang:16.5:15.0
 THEOS_PACKAGE_SCHEME = rootless
 include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = DCLLeExtension
-DCLLeExtension_FILES = DCLLeExtension.m DCLLeConfigBridge.m DCLLeOriginalStoreServer.m DCLLeStateWriter.c ../OmniCarLeTraffic/DCLTrafficCore.c
-DCLLeExtension_FRAMEWORKS = Foundation UIKit CoreFoundation QuartzCore CoreGraphics
-DCLLeExtension_CFLAGS = -fobjc-arc -I../OmniCarLeTraffic -Wno-error=arc-performSelector-leaks
+DCLLeExtension_FILES = DCLLeExtension.m DCLLeConfigBridge.m
+DCLLeExtension_FRAMEWORKS = Foundation UIKit CoreFoundation
+DCLLeExtension_CFLAGS = -fobjc-arc -Wno-error=arc-performSelector-leaks
 include $(THEOS_MAKE_PATH)/tweak.mk

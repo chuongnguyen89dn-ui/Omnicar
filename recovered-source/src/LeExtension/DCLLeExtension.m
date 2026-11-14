@@ -1,9 +1,8 @@
-// DuoCar personal Lề extension. The original Le 0.2.4 renderer, data
-// collectors, limit, signs, lanes, Maps card and supervisor remain intact.
-// Verified Mach-O methods used here: CWTrafficBubbleContent
-// +contentWithSnapshot:, CWTrafficOverlayController -place/-panned:,
-// CWCastBubbleController -place:/-panned:, both bubble/window accessors.
-// This module does not alter posted speed limits or the vendor relay.
+// HL58: standalone Lề 0.2.4 OPTIONAL companion, NOT bundled in DuoCar.
+// This is a DuoCar-only compatibility shim with EXACTLY two functions:
+// (1) correct moving GPS speedText by DuoCar offset [-10,+10],
+// (2) mask/unmask the original Lề bubble on DuoCar master ON/OFF.
+// Never touch vendor pan, snap, layout, scene, windowLevel, source or limit.
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <CoreFoundation/CoreFoundation.h>
@@ -11,548 +10,196 @@
 #import <objc/message.h>
 #import <notify.h>
 #import <math.h>
-#import <stdlib.h>
-#import <string.h>
-#import "../OmniCarLeTraffic/DCLTrafficCore.h"
 #import "DCLLeConfigBridge.h"
-#import "DCLLeOriginalStoreServer.h"
 
 static NSString *const DCLDomain=@"com.chuong.duocar";
-static id (*originalContent)(id,SEL,id);
-static void (*originalOverlayPlace)(id,SEL);
-// Original arm64 selector type: v48@0:8{CGRect={CGPoint=dd}{CGSize=dd}}16
-static void (*originalCastPlace)(id,SEL,CGRect);
-static void (*originalOverlayPan)(id,SEL,id);
-static void (*originalCastPan)(id,SEL,id);
-static BOOL installedContent=NO, installedOverlay=NO, installedCast=NO;
-static BOOL dragging=NO, applying=NO, hasStored=NO;
-static DCLTrafficPoint stored={0.5,0.5};
-static __weak UIView *dragTarget;
-static __weak id dragOwner;
-// [hl55-le] The original pan recognizer remains the ONLY recognizer.
-static DCLTrafficPoint beforeDrag={0.5,0.5};
-static BOOL beforeDragSaved=NO;
-static __weak id DCLLastOverlayOwner;
-static __weak id DCLLastCastOwner;
-static CGRect DCLLastCastRect;
-static __weak UIWindow *DCLHiddenByDuoCar;
-static BOOL DCLBeforeHidden=NO,DCLBeforeInteractive=YES;
-static NSTimeInterval DCLLastWindowProbe=0;
+static id (*DCLOriginalContent)(id,SEL,id)=NULL;
+static void (*DCLOriginalOverlayPlace)(id,SEL)=NULL;
+static void (*DCLOriginalCastPlace)(id,SEL,CGRect)=NULL;
+static BOOL DCLContentInstalled=NO,DCLOverlayInstalled=NO,DCLCastInstalled=NO;
+static __weak id DCLOverlayOwner=nil,DCLCastOwner=nil;
+static char DCLHiddenKey,DCLInteractiveKey,DCLMaskKey;
+static int DCLLastOffsetLogged=999;
 
-static id pref(NSString *key) {
+static id DCLPref(NSString *name) {
     CFStringRef domain=(__bridge CFStringRef)DCLDomain;
     CFPreferencesAppSynchronize(domain);
     return CFBridgingRelease(CFPreferencesCopyAppValue(
-                     (__bridge CFStringRef)key,domain));
+        (__bridge CFStringRef)name,domain));
 }
-static BOOL enabledDrag(void) {
-    id v=pref(@"leTrafficFreeDrag");
-    return v?[v boolValue]:YES;
+static int DCLGPSOffset(void) {
+    id number=DCLPref(@"leTrafficGpsOffsetKph");
+    NSInteger n=[number respondsToSelector:@selector(integerValue)]
+        ?[number integerValue]:0;
+    return (int)MAX(-10,MIN(10,n));
 }
-static int gpsOffset(void) {
-    id n=pref(@"leTrafficGpsOffsetKph");
-    return DCLTrafficClampGpsOffset([n respondsToSelector:@selector(integerValue)]
-        ?(int)[n integerValue]:0);
+static BOOL DCLMasterEnabled(void) {
+    id value=DCLPref(@"leBubbleMasterEnabled");
+    // DuoCar is an optional visibility gate, not Lề's own enable switch.
+    // Default YES means unmodified native Lề behavior if no DuoCar choice.
+    return value?[value boolValue]:YES;
 }
-static void loadStored(void) {
-    id x=pref(@"leTrafficPositionX"),y=pref(@"leTrafficPositionY");
-    if([x isKindOfClass:NSNumber.class]&&[y isKindOfClass:NSNumber.class]&&
-       isfinite([x doubleValue])&&isfinite([y doubleValue])) {
-        stored=(DCLTrafficPoint){fmax(0,fmin(1,[x doubleValue])),
-                                 fmax(0,fmin(1,[y doubleValue]))};
-        hasStored=YES;
-    }
-}
-static void saveStored(DCLTrafficPoint p) {
-    if(!isfinite(p.x)||!isfinite(p.y))return;
-    stored=p;hasStored=YES;
-    CFStringRef domain=(__bridge CFStringRef)DCLDomain;
-    CFPreferencesSetAppValue(CFSTR("leTrafficPositionX"),(__bridge CFPropertyListRef)@(p.x),domain);
-    CFPreferencesSetAppValue(CFSTR("leTrafficPositionY"),(__bridge CFPropertyListRef)@(p.y),domain);
-    BOOL ok=CFPreferencesAppSynchronize(domain);
-    NSLog(@"[le024-ext] saveXY %.3f %.3f success=%d",p.x,p.y,ok);
-}
-static UIView *bubble(id owner) {
-    SEL sel=@selector(bubble);
-    if(!owner || ![owner respondsToSelector:sel])return nil;
-    id v=((id(*)(id,SEL))objc_msgSend)(owner,sel);
-    return [v isKindOfClass:UIView.class]?(UIView *)v:nil;
-}
-// [hl52-free-xy] Lề owns a real CWTrafficWindow (verified from original
-// LeBubble 0.2.4 Mach-O); it can be BUBBLE-SIZED. DuoCar51 incorrectly
-// required window.bounds >= 200x150 and normalized positions against that
-// small window. Always use the actual CarPlay UIScreen coordinate space.
-static UIWindow *DCLLeWindowForView(UIView *v) {
-    if([v isKindOfClass:UIWindow.class])return (UIWindow *)v;
-    return v.window;
-}
-static BOOL DCLLeCompactVendorWindow(UIWindow *w) {
-    if(!w || !w.screen)return NO;
-    CGRect screen=w.screen.bounds,frame=w.frame;
-    return [NSStringFromClass(w.class) isEqualToString:@"CWTrafficWindow"] &&
-           CGRectGetWidth(frame)>20 && CGRectGetHeight(frame)>20 &&
-           CGRectGetWidth(frame)<CGRectGetWidth(screen)*0.85 &&
-           CGRectGetHeight(frame)<CGRectGetHeight(screen)*0.85;
-}
-// Move the real hit-test owner. For a small CWTrafficWindow, moving only the
-// bubble subview made its visible pixels depart from the touch region;
-// move that SAME vendor window instead, preserving its level/recognizer.
-// Full-screen windows must NEVER be relocated. For those, move only the
-// vendor's compact hit container (if present), else original bubble view.
-static UIView *DCLLeMoveSurface(id owner) {
-    UIView *v=bubble(owner);
-    UIWindow *w=v.window;
-    if(!v || !w || !w.screen)return nil;
-    if(DCLLeCompactVendorWindow(w))return w;
-    UIView *hit=v.superview;
-    CGSize screen=w.screen.bounds.size;
-    if(hit && [NSStringFromClass(hit.class) isEqualToString:@"CWTrafficHitView"] &&
-       hit.bounds.size.width>20 && hit.bounds.size.height>20 &&
-       hit.bounds.size.width<screen.width*0.85 &&
-       hit.bounds.size.height<screen.height*0.85)
-        return hit;
-    return v;
-}
-static BOOL DCLLeScreenGeometry(UIView *surface,DCLTrafficRect *r,
-                                DCLTrafficInsets *safe) {
-    UIWindow *w=DCLLeWindowForView(surface);
-    if(!w || !w.screen || !r || !safe)return NO;
-    CGRect b=w.screen.bounds;
-    if(!isfinite(b.origin.x)||!isfinite(b.origin.y)||
-       !isfinite(b.size.width)||!isfinite(b.size.height)||
-       b.size.width<200||b.size.height<150)return NO;
-    UIEdgeInsets insets=DCLLeCompactVendorWindow(w)
-        ?UIEdgeInsetsZero:w.safeAreaInsets;
-    *r=(DCLTrafficRect){b.origin.x,b.origin.y,b.size.width,b.size.height};
-    *safe=(DCLTrafficInsets){fmax(0,insets.top),fmax(0,insets.right),
-                             fmax(0,insets.bottom),fmax(0,insets.left)};
-    return YES;
-}
-static BOOL DCLLeScreenCenter(UIView *surface,CGPoint *center) {
-    if(!surface||!center)return NO;
-    UIWindow *w=DCLLeWindowForView(surface);
-    if(!w || !w.screen)return NO;
-    if(surface==w) {
-        *center=CGPointMake(CGRectGetMidX(w.frame),CGRectGetMidY(w.frame));
-    } else if(surface.superview) {
-        *center=[surface.superview convertPoint:surface.center
-                           toCoordinateSpace:w.screen.coordinateSpace];
-    } else return NO;
-    return isfinite(center->x)&&isfinite(center->y);
-}
-static BOOL DCLLeSetScreenCenter(UIView *surface,CGPoint c) {
-    UIWindow *w=DCLLeWindowForView(surface);
-    if(!w || !w.screen || !isfinite(c.x)||!isfinite(c.y))return NO;
-    CGPoint old;
-    if(!DCLLeScreenCenter(surface,&old))return NO;
-    if(hypot(c.x-old.x,c.y-old.y)<0.5)return YES;
-    applying=YES;
-    if(surface==w) {
-        // Reposition the existing compact native window, not the whole
-        // CarPlay scene. UIKit hit-testing stays attached to Lề's window.
-        CGRect frame=w.frame;
-        frame.origin.x=c.x-CGRectGetWidth(frame)*0.5;
-        frame.origin.y=c.y-CGRectGetHeight(frame)*0.5;
-        w.frame=frame;
-    } else if(surface.superview) {
-        surface.center=[surface.superview convertPoint:c
-                          fromCoordinateSpace:w.screen.coordinateSpace];
-    }
-    applying=NO;
-    return YES;
-}
-static BOOL DCLLeNormalizedSurface(UIView *surface,DCLTrafficPoint *out) {
-    DCLTrafficRect r;DCLTrafficInsets safe;CGPoint c;
-    if(!out||!DCLLeScreenGeometry(surface,&r,&safe)||
-       !DCLLeScreenCenter(surface,&c))return NO;
-    return DCLTrafficNormalizeCenter(r,safe,
-              surface.bounds.size.width,surface.bounds.size.height,0.0,
-              (DCLTrafficPoint){c.x,c.y},out);
-}
-static void applyCenter(id owner,DCLTrafficPoint normalized) {
-    if(applying)return;
-    UIView *surface=DCLLeMoveSurface(owner);
-    DCLTrafficRect rect;DCLTrafficInsets safe;
-    if(!surface||!DCLLeScreenGeometry(surface,&rect,&safe))return;
-    DCLTrafficPoint center;
-    if(!DCLTrafficRestoreCenter(rect,safe,surface.bounds.size.width,
-           surface.bounds.size.height,0.0,normalized,&center))return;
-    DCLLeSetScreenCenter(surface,CGPointMake(center.x,center.y));
-}
-static void enforce(id owner) {
-    if(!enabledDrag()||!hasStored)return;
-    if(dragging && dragOwner==owner)return;
-    applyCenter(owner,stored);
-}
-// Retain Lề's original recognizer and call its original -panned: once.
-// Offset and drag persistence are in SCREEN coordinates and refer to
-// the SAME native hit surface for the whole gesture.
-static char DCLDragDeltaKey;
-// [hl56-firstconnect] Always unwind a terminal gesture, even if the
-// original native window detached before Ended/Cancelled arrives.
-static void DCLLeClearPanState(id owner,const char *reason) {
-    if(owner && dragOwner && dragOwner!=owner)return;
-    dragging=NO;dragOwner=nil;dragTarget=nil;
-    if(owner)objc_setAssociatedObject(owner,&DCLDragDeltaKey,nil,
-                                      OBJC_ASSOCIATION_ASSIGN);
-    NSLog(@"[hl56-le-pan] reset=%s owner=%@",reason,
-          owner?NSStringFromClass([owner class]):@"(nil)");
-}
-static void freePan(id owner,UIPanGestureRecognizer *gesture) {
-    if(![gesture isKindOfClass:UIPanGestureRecognizer.class])return;
-    UIGestureRecognizerState state=gesture.state;
-    BOOL terminal=state==UIGestureRecognizerStateEnded ||
-                  state==UIGestureRecognizerStateCancelled ||
-                  state==UIGestureRecognizerStateFailed;
-    if(!enabledDrag()) {
-        if(terminal)DCLLeClearPanState(owner,"disabled-terminal");
-        return;
-    }
-    UIView *surface=DCLLeMoveSurface(owner);
-    UIWindow *w=DCLLeWindowForView(surface);
-    if(!surface || !w || !w.screen || !gesture.view ||
-       !gesture.view.window || gesture.view.window.screen!=w.screen) {
-        NSLog(@"[hl52-free-xy] BLIND owner=%@ surface=%@ touch=%@ state=%ld",
-              NSStringFromClass([owner class]),surface,gesture.view,(long)state);
-        if(terminal) {
-            if(state==UIGestureRecognizerStateEnded && dragOwner==owner &&
-               hasStored)saveStored(stored);
-            DCLLeClearPanState(owner,"detached-terminal");
+static void DCLMaskView(UIView *view,BOOL enabled) {
+    if(!view)return;
+    NSNumber *masked=objc_getAssociatedObject(view,&DCLMaskKey);
+    if(!enabled) {
+        if(!masked.boolValue) {
+            objc_setAssociatedObject(view,&DCLHiddenKey,@(view.hidden),
+                                     OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(view,&DCLInteractiveKey,
+                                     @(view.userInteractionEnabled),
+                                     OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(view,&DCLMaskKey,@YES,
+                                     OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         }
-        return;
-    }
-    DCLTrafficRect rect;DCLTrafficInsets safe;CGPoint current;
-    if(!DCLLeScreenGeometry(surface,&rect,&safe)||
-       !DCLLeScreenCenter(surface,&current)) {
-        NSLog(@"[hl52-free-xy] BAD GEOMETRY surface=%@ window=%@ screen=%@ state=%ld",
-             NSStringFromClass(surface.class),NSStringFromCGRect(w.bounds),
-             NSStringFromCGRect(w.screen.bounds),(long)state);
-        if(terminal)DCLLeClearPanState(owner,"invalid-geometry-terminal");
-        return;
-    }
-    CGPoint touch=[gesture.view convertPoint:
-       [gesture locationInView:gesture.view]
-       toCoordinateSpace:w.screen.coordinateSpace];
-    if(!isfinite(touch.x)||!isfinite(touch.y)) {
-        if(terminal)DCLLeClearPanState(owner,"invalid-touch-terminal");
-        return;
-    }
-    // First CarPlay connect can attach its real CWTrafficWindow AFTER Began.
-    BOOL lateBegin=state==UIGestureRecognizerStateChanged && dragOwner!=owner;
-    if(state==UIGestureRecognizerStateBegan || lateBegin) {
-        dragging=YES;dragOwner=owner;dragTarget=surface;
-        beforeDrag=stored;beforeDragSaved=hasStored;
-        objc_setAssociatedObject(owner,&DCLDragDeltaKey,
-            [NSValue valueWithCGPoint:CGPointMake(current.x-touch.x,
-                                                  current.y-touch.y)],
-            OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        NSLog(@"[hl52-free-xy] BEGIN owner=%@ mover=%@ screen=%@ nativeWindow=%@ bubble=%@ late=%d",
-              NSStringFromClass([owner class]),NSStringFromClass(surface.class),
-              NSStringFromCGRect(w.screen.bounds),NSStringFromCGRect(w.frame),
-              NSStringFromCGRect(bubble(owner).frame),lateBegin);
-    }
-    if(state==UIGestureRecognizerStateChanged && !lateBegin) {
-        if(dragOwner!=owner)return;
-        if(dragTarget!=surface) {
-            dragTarget=surface;
-            objc_setAssociatedObject(owner,&DCLDragDeltaKey,
-               [NSValue valueWithCGPoint:CGPointMake(current.x-touch.x,current.y-touch.y)],
-               OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-            NSLog(@"[hl56-le-pan] hit-surface-rebound=%@",NSStringFromClass(surface.class));
-        }
-        NSValue *value=objc_getAssociatedObject(owner,&DCLDragDeltaKey);
-        if(![value isKindOfClass:NSValue.class])return;
-        CGPoint delta=value.CGPointValue;
-        DCLTrafficPoint bounded;
-        if(DCLTrafficClampCenter(rect,safe,surface.bounds.size.width,
-            surface.bounds.size.height,0.0,
-            (DCLTrafficPoint){touch.x+delta.x,touch.y+delta.y},&bounded)) {
-            if(DCLLeSetScreenCenter(surface,CGPointMake(bounded.x,bounded.y))) {
-                DCLTrafficPoint normal;
-                if(DCLLeNormalizedSurface(surface,&normal)){
-                    stored=normal;hasStored=YES;
-                }
-            }
-        }
-    }
-    if(state==UIGestureRecognizerStateEnded) {
-        if(dragOwner==owner && hasStored) {
-            // The original -panned: may have already snapped to a corner.
-            // Select from the final FREE coordinate, not its overwritten view.
-            DCLTrafficPoint position={0},target={0};
-            int snapped=0;
-            BOOL ok=DCLTrafficRestoreCenter(rect,safe,surface.bounds.size.width,
-                        surface.bounds.size.height,0.0,stored,&position) &&
-                 DCLTrafficSnapWhenNearEdge(rect,safe,surface.bounds.size.width,
-                        surface.bounds.size.height,0.0,32.0,
-                        position,&target,&snapped);
-            DCLTrafficPoint normalized={0};
-            if(ok && DCLTrafficNormalizeCenter(rect,safe,surface.bounds.size.width,
-                    surface.bounds.size.height,0.0,target,&normalized)) {
-                applyCenter(owner,normalized);
-                saveStored(normalized);
-                NSLog(@"[hl55-le-edge] END snap=%d x=%.3f y=%.3f mover=%@ screen=%@",
-                      snapped,normalized.x,normalized.y,
-                      NSStringFromClass(surface.class),NSStringFromCGRect(w.screen.bounds));
-            } else {
-                NSLog(@"[hl55-le-edge] INVALID END geometry; no save");
-            }
-        }
-        DCLLeClearPanState(owner,"ended");
-    } else if(state==UIGestureRecognizerStateCancelled ||
-              state==UIGestureRecognizerStateFailed) {
-        if(dragOwner==owner) {
-            stored=beforeDrag;hasStored=beforeDragSaved;
-            if(hasStored)applyCenter(owner,stored);
-        }
-        DCLLeClearPanState(owner,"cancelled");
-        NSLog(@"[hl55-le-edge] CANCEL no persisted state change");
+        view.userInteractionEnabled=NO;
+        view.hidden=YES;
+    } else if(masked.boolValue) {
+        NSNumber *oldHidden=objc_getAssociatedObject(view,&DCLHiddenKey);
+        NSNumber *oldInteractive=objc_getAssociatedObject(view,&DCLInteractiveKey);
+        if(oldHidden)view.hidden=oldHidden.boolValue;
+        if(oldInteractive)view.userInteractionEnabled=oldInteractive.boolValue;
+        objc_setAssociatedObject(view,&DCLMaskKey,nil,OBJC_ASSOCIATION_ASSIGN);
+        objc_setAssociatedObject(view,&DCLHiddenKey,nil,OBJC_ASSOCIATION_ASSIGN);
+        objc_setAssociatedObject(view,&DCLInteractiveKey,nil,OBJC_ASSOCIATION_ASSIGN);
     }
 }
-static void newOverlayPan(id o,SEL sel,UIPanGestureRecognizer *g) {
-    // Always call the original vendor implementation exactly once.
-    if(originalOverlayPan)originalOverlayPan(o,sel,g);
-    freePan(o,g);
+static UIView *DCLVendorBubble(id owner) {
+    SEL selector=@selector(bubble);
+    if(!owner || ![owner respondsToSelector:selector])return nil;
+    id view=((id(*)(id,SEL))objc_msgSend)(owner,selector);
+    return [view isKindOfClass:UIView.class]?(UIView *)view:nil;
 }
-static void newCastPan(id o,SEL sel,UIPanGestureRecognizer *g) {
-    if(originalCastPan)originalCastPan(o,sel,g);
-    freePan(o,g);
+static void DCLApplyVisibility(id owner) {
+    UIView *bubble=DCLVendorBubble(owner);
+    if(!bubble)return; // class not loaded or vendor not installed
+    BOOL enabled=DCLMasterEnabled();
+    DCLMaskView(bubble,enabled);
+    // Only Lề's OWN compact CWTrafficWindow may be hidden.
+    // Never hide UIWindow/scene of a hosted/native CarPlay application.
+    UIWindow *window=bubble.window;
+    if([NSStringFromClass(window.class) isEqualToString:@"CWTrafficWindow"])
+        DCLMaskView(window,enabled);
+    NSLog(@"[hl58-external-le] enabled=%d owner=%@ view=%@ vendorWindow=%@",
+          enabled,NSStringFromClass([owner class]),
+          NSStringFromClass(bubble.class),NSStringFromClass(window.class));
 }
-// [hl55-le-window] Probe the real Lề-owned native window and host levels.
-// We deliberately avoid relocating CarPlayApp scenes and app containers.
-// The target level is below the measured picker tray (~1065), above hosted
-// TikTok/YouTube (~1060) only for compact original CWTrafficWindow.
-static BOOL DCLLeVendorEnabled(void) {
-    NSData *data=[NSData dataWithContentsOfFile:
-       @"/var/mobile/Library/Preferences/dev.bechou.le.bubble/layout-v1.json"];
-    NSDictionary *doc=[data isKindOfClass:NSData.class]
-        ?[NSJSONSerialization JSONObjectWithData:data options:0 error:nil]:nil;
-    id flag=[doc isKindOfClass:NSDictionary.class]?doc[@"bubbleEnabled"]:nil;
-    if([flag isKindOfClass:NSNumber.class])return [flag boolValue];
-    id mirror=pref(@"leBubbleMasterMirror");
-    return [mirror isKindOfClass:NSNumber.class]?[mirror boolValue]:YES;
-}
-static void DCLLeWindowState(id owner,const char *stage) {
-    UIView *move=DCLLeMoveSurface(owner);
-    UIWindow *window=DCLLeWindowForView(move);
-    if(!window || !window.screen)return;
-    BOOL compact=DCLLeCompactVendorWindow(window);
-    // [hl56-zowner] Keep Lề's original dynamic native window level.
-    // Fixed HL55 statusbar level cannot order scenes across hosted surfaces.
-    BOOL on=DCLLeVendorEnabled();
-    if(!on) {
-        if(DCLHiddenByDuoCar!=window) {
-            DCLHiddenByDuoCar=window;
-            DCLBeforeHidden=window.hidden;
-            DCLBeforeInteractive=window.userInteractionEnabled;
-        }
-        window.userInteractionEnabled=NO;
-        window.hidden=YES; // no invisible hit target
-    } else if(DCLHiddenByDuoCar==window) {
-        window.userInteractionEnabled=DCLBeforeInteractive;
-        window.hidden=DCLBeforeHidden;
-        DCLHiddenByDuoCar=nil;
+static id DCLCorrectSpeed(id cls,SEL sel,id snapshot) {
+    id content=DCLOriginalContent?DCLOriginalContent(cls,sel,snapshot):nil;
+    if(!content || ![content respondsToSelector:@selector(speedText)] ||
+       ![content respondsToSelector:@selector(setSpeedText:)])return content;
+    int offset=DCLGPSOffset();
+    if(offset==0)return content;
+    id raw=((id(*)(id,SEL))objc_msgSend)(content,@selector(speedText));
+    if(![raw isKindOfClass:NSString.class])return content;
+    // The separately installed UNPATCHED LeBubble.dylib may render either
+    // "63" or "63 km/h". DC57 had stripped vendor km/h, so its former hook
+    // could not handle the original independent package!
+    NSString *string=(NSString *)raw;
+    NSScanner *scanner=[NSScanner scannerWithString:string];
+    scanner.charactersToBeSkipped=nil; // do not rewrite arbitrary text
+    NSInteger n=0;
+    if(![scanner scanInteger:&n] || n<0 || n>400)return content;
+    NSString *tail=[string substringFromIndex:scanner.scanLocation];
+    NSString *trim=[tail stringByTrimmingCharactersInSet:
+                        NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if(trim.length && ![[trim lowercaseString] isEqualToString:@"km/h"])
+        return content; // no speed-limit text, no invented provider payload
+    NSInteger corrected=MAX(0,MIN(400,n+offset));
+    NSString *next=[NSString stringWithFormat:@"%ld%@",(long)corrected,tail];
+    ((void(*)(id,SEL,id))objc_msgSend)(content,@selector(setSpeedText:),next);
+    if(offset!=DCLLastOffsetLogged) {
+        DCLLastOffsetLogged=offset;
+        NSLog(@"[hl58-external-le] GPS offset=%d (moving speed only) original=%@ corrected=%@",
+              offset,string,next);
     }
-    NSTimeInterval now=NSDate.date.timeIntervalSince1970;
-    if(now-DCLLastWindowProbe>=8.0) {
-        DCLLastWindowProbe=now;
-        NSLog(@"[hl55-le-window] stage=%s enabled=%d owner=%@ moving=%@ class=%@ frame=%@ level=%.0f screen=%@ hidden=%d hit=%d compact=%d",
-            stage,on,NSStringFromClass([owner class]),
-            NSStringFromClass(move.class),NSStringFromClass(window.class),
-            NSStringFromCGRect(window.frame),(double)window.windowLevel,
-            NSStringFromCGRect(window.screen.bounds),window.hidden,
-            window.userInteractionEnabled,compact);
-    }
+    return content;
 }
-// Only retry add-on state; do not invoke original -place twice.
-static void DCLLeDeferredAttach(id owner,const char *stage,unsigned attempt) {
-    __weak id weak=owner;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.14*NSEC_PER_SEC)),
-        dispatch_get_main_queue(),^{
-        id o=weak;
-        if(!o)return;
-        if(DCLLeMoveSurface(o)) {
-            enforce(o);DCLLeWindowState(o,stage);return;
-        }
-        if(attempt<8)DCLLeDeferredAttach(o,stage,attempt+1);
-        else NSLog(@"[hl56-firstconnect] BLIND after attach retries stage=%s",stage);
-    });
+static void DCLOverlayPlace(id owner,SEL sel) {
+    if(DCLOriginalOverlayPlace)DCLOriginalOverlayPlace(owner,sel);
+    DCLOverlayOwner=owner;
+    DCLApplyVisibility(owner);
 }
-static void newOverlayPlace(id o,SEL sel) {
-    DCLLastOverlayOwner=o;
-    if(originalOverlayPlace)originalOverlayPlace(o,sel);
-    enforce(o);DCLLeWindowState(o,"overlay");
-    if(!DCLLeMoveSurface(o))DCLLeDeferredAttach(o,"overlay-ready",0);
+static void DCLCastPlace(id owner,SEL sel,CGRect rect) {
+    if(DCLOriginalCastPlace)DCLOriginalCastPlace(owner,sel,rect);
+    DCLCastOwner=owner;
+    DCLApplyVisibility(owner);
 }
-static void newCastPlace(id o,SEL sel,CGRect frame) {
-    DCLLastCastOwner=o;DCLLastCastRect=frame;
-    if(originalCastPlace)originalCastPlace(o,sel,frame);
-    enforce(o);DCLLeWindowState(o,"cast");
-    if(!DCLLeMoveSurface(o))DCLLeDeferredAttach(o,"cast-ready",0);
-}
-// [hl56-hosted-layer] LeBubble 0.2.4 itself enumerates native UIWindow
-// levels in -place. Recalculate through THAT vendor entry point when a
-// new peer window is shown/key. Do not invent a second window/renderer or
-// freeze windowLevel at a constant (HL55 regression).
-static BOOL DCLLePeerRefreshPending=NO;
-static NSTimeInterval DCLLePeerLastRequest=0;
-static void DCLLePeerWindowChanged(NSNotification *notice) {
-    if(![NSThread isMainThread])return;
-    UIWindow *peer=[notice.object isKindOfClass:UIWindow.class]
-                   ?(UIWindow *)notice.object:nil;
-    id owner=DCLLastOverlayOwner;
-    if(!peer || !owner || !originalOverlayPlace || dragging ||
-       peer.hidden || peer.alpha<=0.01)return;
-    UIView *surface=DCLLeMoveSurface(owner);
-    UIWindow *ours=DCLLeWindowForView(surface);
-    if(!ours || !ours.screen || !peer.screen || peer==ours ||
-       peer.screen!=ours.screen ||
-       [NSStringFromClass(peer.class) isEqualToString:@"CWTrafficWindow"])
-        return;
-    CGRect peerScreen=[peer convertRect:peer.bounds
-                 toCoordinateSpace:peer.screen.coordinateSpace];
-    if(CGRectIsNull(peerScreen) || CGRectIsEmpty(peerScreen) ||
-       !CGRectIntersectsRect(peerScreen,ours.frame))return;
-    // Status/selector/menu panels remain above Lề by design.
-    if(peer.windowLevel>UIWindowLevelStatusBar+50)return;
-    NSTimeInterval now=NSDate.date.timeIntervalSince1970;
-    if(DCLLePeerRefreshPending || now-DCLLePeerLastRequest<0.42)return;
-    DCLLePeerRefreshPending=YES;DCLLePeerLastRequest=now;
-    __weak id weakOwner=owner;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.20*NSEC_PER_SEC)),
-       dispatch_get_main_queue(),^{
-        DCLLePeerRefreshPending=NO;
-        id current=weakOwner;
-        if(!current || current!=DCLLastOverlayOwner || dragging)return;
-        UIWindow *window=DCLLeWindowForView(DCLLeMoveSurface(current));
-        CGFloat before=window.windowLevel;
-        if(originalOverlayPlace)originalOverlayPlace(current,@selector(place));
-        enforce(current);DCLLeWindowState(current,"peer-visible");
-        UIWindow *afterWindow=DCLLeWindowForView(DCLLeMoveSurface(current));
-        NSLog(@"[hl56-hosted-layer] peer=%@ peerLevel=%.2f ours=%.2f->%.2f sameScreen=%d",
-            NSStringFromClass(peer.class),(double)peer.windowLevel,
-            (double)before,(double)afterWindow.windowLevel,
-            (int)(peer.screen==afterWindow.screen));
-    });
-}
-static void DCLLeObservePeerWindows(void) {
-    NSNotificationCenter *center=[NSNotificationCenter defaultCenter];
-    for(NSString *name in @[UIWindowDidBecomeVisibleNotification,
-                             UIWindowDidBecomeKeyNotification]){
-        [center addObserverForName:name object:nil queue:[NSOperationQueue mainQueue]
-                       usingBlock:^(NSNotification *note){
-                           DCLLePeerWindowChanged(note);
-                       }];
-    }
-}
-static id newContent(id cls,SEL sel,id snapshot) {
-    id object=originalContent?originalContent(cls,sel,snapshot):nil;
-    if(!object||![object respondsToSelector:@selector(speedText)]||
-       ![object respondsToSelector:@selector(setSpeedText:)])return object;
-    id value=((id(*)(id,SEL))objc_msgSend)(object,@selector(speedText));
-    if(![value isKindOfClass:NSString.class])return object;
-    NSScanner *scanner=[NSScanner scannerWithString:value];
-    NSInteger current=0;
-    if(![scanner scanInteger:&current] || !scanner.isAtEnd ||
-       current<0 || current>400)return object;
-    NSInteger adjusted=MAX(0,MIN(400,current+gpsOffset()));
-    ((void(*)(id,SEL,id))objc_msgSend)(object,@selector(setSpeedText:),
-            [NSString stringWithFormat:@"%ld",(long)adjusted]);
-    return object;
-}
-static BOOL installOne(Class cls,SEL selector,IMP newIMP,IMP *old,
-                        BOOL instance,unsigned args) {
-    if(!cls||!old||*old)return *old!=NULL;
-    Method m=instance?class_getInstanceMethod(cls,selector):
-                       class_getClassMethod(cls,selector);
-    if(!m||method_getNumberOfArguments(m)!=args)return NO;
+static BOOL DCLInstall(Class cls,SEL selector,IMP replacement,IMP *original,
+                       BOOL instance,unsigned args) {
+    if(!cls||!original||*original)return *original!=NULL;
+    Method method=instance?class_getInstanceMethod(cls,selector):
+                           class_getClassMethod(cls,selector);
+    if(!method || method_getNumberOfArguments(method)!=args)return NO;
+    char result[16]={0};
+    method_getReturnType(method,result,sizeof(result));
+    if(result[0]!=(instance?'v':'@'))return NO;
+    // -place: is genuinely (CGRect), not an Objective-C object argument.
     if(instance && selector==@selector(place:)) {
-        // Verified vendor LeBubble Mach-O: CGRect, NOT an id object.
-        const char *encoding=method_getTypeEncoding(m);
-        if(!encoding || !strstr(encoding,"{CGRect=")) {
-            NSLog(@"[le024-ext] place: ABI mismatch (%s)",encoding?: "null");
-            return NO;
-        }
+        const char *type=method_getTypeEncoding(method);
+        if(!type||!strstr(type,"{CGRect="))return NO;
     }
-    char ret[16]={0};
-    method_getReturnType(m,ret,sizeof(ret));
-    if(instance ? ret[0]!='v' : ret[0]!='@')return NO;
     Class target=instance?cls:object_getClass(cls);
-    IMP previous=method_getImplementation(m);
-    if(!previous||previous==newIMP)return NO;
-    if(class_addMethod(target,selector,newIMP,method_getTypeEncoding(m))) {
-        *old=previous;return YES;
+    IMP prev=method_getImplementation(method);
+    if(!prev||prev==replacement)return NO;
+    if(class_addMethod(target,selector,replacement,method_getTypeEncoding(method))) {
+        *original=prev;return YES;
     }
-    IMP replaced=method_setImplementation(m,newIMP);
-    if(replaced!=previous) {
-        if(replaced)method_setImplementation(m,replaced);
+    IMP replaced=method_setImplementation(method,replacement);
+    if(replaced!=prev) {
+        if(replaced)method_setImplementation(method,replaced);
         return NO;
     }
-    *old=previous;return YES;
+    *original=prev;
+    return YES;
 }
-static void install(void) {
-    if(!installedContent) {
-        Class content=NSClassFromString(@"CWTrafficBubbleContent");
-        installedContent=installOne(content,@selector(contentWithSnapshot:),
-             (IMP)newContent,(IMP *)&originalContent,NO,3);
-        if(installedContent) NSLog(@"[le024-ext] factory hooked");
-    }
-    if(!installedOverlay) {
-        Class cls=NSClassFromString(@"CWTrafficOverlayController");
-        BOOL ok=cls && [cls instancesRespondToSelector:@selector(bubble)];
-        ok = ok && installOne(cls,@selector(place),
-              (IMP)newOverlayPlace,(IMP *)&originalOverlayPlace,YES,2);
-        // The native controller already has the working pan recognizer.
-        // Override its FINAL snap-to-corner handler instead of adding
-        // a second competing pan onto CWTrafficBubbleView.
-        ok = ok && installOne(cls,@selector(panned:),
-              (IMP)newOverlayPan,(IMP *)&originalOverlayPan,YES,3);
-        installedOverlay=ok;
-        if(ok)NSLog(@"[le024-ext] overlay place/panned installed");
-    }
-    if(!installedCast) {
-        Class cls=NSClassFromString(@"CWCastBubbleController");
-        BOOL ok=cls && [cls instancesRespondToSelector:@selector(bubble)];
-        ok=ok && installOne(cls,@selector(place:),
-             (IMP)newCastPlace,(IMP *)&originalCastPlace,YES,3);
-        ok=ok && installOne(cls,@selector(panned:),
-             (IMP)newCastPan,(IMP *)&originalCastPan,YES,3);
-        installedCast=ok;
-        if(ok)NSLog(@"[le024-ext] cast place/panned installed");
-    }
+static void DCLInstallExternalLeHooks(void) {
+    if(!DCLContentInstalled)
+        DCLContentInstalled=DCLInstall(NSClassFromString(@"CWTrafficBubbleContent"),
+            @selector(contentWithSnapshot:),(IMP)DCLCorrectSpeed,
+            (IMP *)&DCLOriginalContent,NO,3);
+    if(!DCLOverlayInstalled)
+        DCLOverlayInstalled=DCLInstall(NSClassFromString(@"CWTrafficOverlayController"),
+            @selector(place),(IMP)DCLOverlayPlace,
+            (IMP *)&DCLOriginalOverlayPlace,YES,2);
+    if(!DCLCastInstalled)
+        DCLCastInstalled=DCLInstall(NSClassFromString(@"CWCastBubbleController"),
+            @selector(place:),(IMP)DCLCastPlace,
+            (IMP *)&DCLOriginalCastPlace,YES,3);
 }
 __attribute__((constructor)) static void DCLLeBootstrap(void) {
     NSString *bundle=NSBundle.mainBundle.bundleIdentifier;
-    BOOL car=[bundle isEqualToString:@"com.apple.CarPlayApp"];
     BOOL springboard=[bundle isEqualToString:@"com.apple.springboard"];
-    if(!car&&!springboard)return;
+    BOOL car=[bundle isEqualToString:@"com.apple.CarPlayApp"];
+    if(!springboard&&!car)return;
     dispatch_async(dispatch_get_main_queue(),^{
-        if(springboard) {
-            DCLLeConfigStartBridge();
-            DCLLeOriginalStoreStart();
-        }
-        loadStored();
-        install();
-        if(car)DCLLeObservePeerWindows();
-        static int leNotify=-1;
-        notify_register_dispatch("dev.bechou.le.bubble.layout-changed",
-             &leNotify,dispatch_get_main_queue(),^(int token) {
-             (void)token;
-             if(DCLLastOverlayOwner)
-                 newOverlayPlace(DCLLastOverlayOwner,@selector(place));
-             if(DCLLastCastOwner)
-                 newCastPlace(DCLLastCastOwner,@selector(place:),DCLLastCastRect);
+        if(springboard)DCLLeConfigStartBridge();
+        // The original vendor package has its OWN injection filters and
+        // classes. They may load after this OPTIONAL DuoCar extension.
+        // Never dlopen / substitute vendor Mach-O or create a renderer.
+        DCLInstallExternalLeHooks();
+        static int changes=-1;
+        notify_register_dispatch("com.chuong.duocar/le024.visibility",&changes,
+             dispatch_get_main_queue(),^(int token) {
+            (void)token;
+            DCLApplyVisibility(DCLOverlayOwner);
+            DCLApplyVisibility(DCLCastOwner);
         });
-        __block NSUInteger tries=0;
-        NSTimer *timer=[NSTimer timerWithTimeInterval:1 repeats:YES
-         block:^(NSTimer *t) {
-            install();
-            BOOL done=installedContent && (car?installedOverlay:installedCast);
-            if(done||++tries>=120){
-                if(!done)NSLog(@"[le024-ext] BLIND: class/selector not installed");
+        static NSUInteger tries=0;
+        NSTimer *timer=[NSTimer timerWithTimeInterval:1.0 repeats:YES
+               block:^(NSTimer *t) {
+            DCLInstallExternalLeHooks();
+            if((DCLContentInstalled&&
+               (DCLOverlayInstalled||DCLCastInstalled))||++tries>=180) {
+                if(!DCLContentInstalled)
+                    NSLog(@"[hl58-external-le] vendor class not loaded/installed: GPS inactive");
                 [t invalidate];
             }
-         }];
-        [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+        }];
+        [[NSRunLoop mainRunLoop]addTimer:timer forMode:NSRunLoopCommonModes];
+        [[NSNotificationCenter defaultCenter]addObserverForName:NSBundleDidLoadNotification
+          object:nil queue:NSOperationQueue.mainQueue usingBlock:^(NSNotification *n){
+            (void)n;DCLInstallExternalLeHooks();
+        }];
     });
 }
