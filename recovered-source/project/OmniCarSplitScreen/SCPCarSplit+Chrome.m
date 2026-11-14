@@ -51,7 +51,7 @@ void SCPApplyMeshBackdrop(UIVisualEffectView *effectView) {
 
 // @0x2b380 — the secondary text colour: navy at 55% alpha.
 UIColor *SCPColorSecondary(void) {
-    return [[UIColor colorWithRed:0.2901960784313726
+    return [[UIColor colorWithRed:0.5764705882352941
                             green:0.6666666666666666
                              blue:0.7215686274509804
                             alpha:1.0] colorWithAlphaComponent:0.85];

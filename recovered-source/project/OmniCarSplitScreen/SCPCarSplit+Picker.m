@@ -66,10 +66,10 @@ static void SCPApplyAccent(UIView *view, BOOL on) {
         grad = [CAGradientLayer layer];
         grad.name = @"omcAccent";
         grad.colors = @[
-            (id)[UIColor colorWithRed:0.6078431372549019 green:0.5294117647058824
-                                 blue:0.9725490196078431 alpha:1.0].CGColor,
-            (id)[UIColor colorWithRed:0.36470588235294116 green:0.7058823529411765
-                                 blue:0.9647058823529412 alpha:1.0].CGColor];
+            (id)[UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824
+                                 blue:0.9568627450980392 alpha:1.0].CGColor,
+            (id)[UIColor colorWithRed:0.12941176470588237 green:0.5607843137254902
+                                 blue:0.6666666666666666 alpha:1.0].CGColor]; // APEX #79EDF4 -> #218FAA
         grad.startPoint = CGPointZero;
         grad.endPoint = CGPointMake(1, 1);
         [view.layer insertSublayer:grad atIndex:0];
@@ -476,10 +476,10 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // Dump @0x3163c-0x31690: border colour is the lavender accent
     // colorWithRed:0.6078431372549019 green:0.5294117647058824
     // blue:0.9725490196078431 alpha:1.0 — NOT white at 0.55.
-    picker.layer.borderColor = [UIColor colorWithRed:0.6078431372549019
-                                               green:0.5294117647058824
-                                                blue:0.9725490196078431
-                                               alpha:1.0].CGColor;
+    picker.layer.borderColor = [UIColor colorWithRed:0.3803921568627451
+                                               green:0.8509803921568627
+                                                blue:0.9490196078431372
+                                               alpha:1.0].CGColor; // APEX accent #61D9F2
     UILabel *label = [[UILabel alloc] initWithFrame:picker.bounds];
     label.text = @"+";   // VERIFIED: cfstring @0x7c720 == "+"
     // Dump @0x316d4-0x31704: text colour is
@@ -749,10 +749,7 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     sheet.layer.opaque = NO;
     sheet.layer.cornerRadius = 24;
     sheet.layer.cornerCurve = kCACornerCurveContinuous;
-    sheet.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
-                                              green:0.39215686274509803
-                                               blue:0.7843137254901961
-                                              alpha:1.0].CGColor;
+    sheet.layer.shadowColor = [UIColor blackColor].CGColor;
     sheet.layer.shadowOpacity = 0.3f;
     sheet.layer.shadowRadius = 24;
     sheet.layer.shadowOffset = CGSizeMake(0, 8);
@@ -937,10 +934,10 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
             UIImageView *badge = [[UIImageView alloc] initWithImage:
                 SCPSymbolImage(@"check", 10.0)];
             badge.tintColor = UIColor.whiteColor;
-            badge.backgroundColor = [UIColor colorWithRed:0.6078431372549019
-                                                    green:0.5294117647058824
-                                                     blue:0.9725490196078431
-                                                    alpha:1.0];
+            badge.backgroundColor = [UIColor colorWithRed:0.3803921568627451
+                                                    green:0.8509803921568627
+                                                     blue:0.9490196078431372
+                                                    alpha:1.0]; // APEX accent #61D9F2
             badge.frame = CGRectMake(CGRectGetMaxX(iconView.frame) - 10,
                                      CGRectGetMinY(iconView.frame) - 4, 14, 14);
             badge.contentMode = UIViewContentModeScaleAspectFit;
@@ -1382,11 +1379,11 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
         double width = (i == page) ? 16.0 : 6.0;
         dot.frame = CGRectMake(x, y, width, 6);
         dot.backgroundColor = (i == page)
-            ? [UIColor colorWithRed:0.6078431372549019 green:0.5294117647058824
-                               blue:0.9725490196078431 alpha:1.0]
-            : [[UIColor colorWithRed:0.2901960784313726 green:0.30980392156862746
-                                 blue:0.5019607843137255 alpha:1.0]
-                  colorWithAlphaComponent:0.2];
+            ? [UIColor colorWithRed:0.3803921568627451 green:0.8509803921568627
+                               blue:0.9490196078431372 alpha:1.0]
+            : [[UIColor colorWithRed:0.9176470588235294 green:0.9647058823529412
+                                 blue:0.984313725490196 alpha:1.0]
+                  colorWithAlphaComponent:0.25]; // APEX: trang hien tai cyan, con lai Ice mo
         x += width + 6.0;
     }
 }
@@ -1757,10 +1754,10 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
     ring.path = [UIBezierPath bezierPathWithArcCenter:CGPointMake(10, 10)
         radius:8 startAngle:-M_PI_2 endAngle:M_PI clockwise:YES].CGPath;
     ring.fillColor = nil;
-    ring.strokeColor = [UIColor colorWithRed:0.6078431372549019
-                                       green:0.5294117647058824
-                                        blue:0.9725490196078431
-                                       alpha:1.0].CGColor;
+    ring.strokeColor = [UIColor colorWithRed:0.3803921568627451
+                                       green:0.8509803921568627
+                                        blue:0.9490196078431372
+                                       alpha:1.0].CGColor; // APEX accent #61D9F2
     ring.lineWidth = 2;
     ring.lineCap = kCALineCapRound;
     [ringView.layer addSublayer:ring];
