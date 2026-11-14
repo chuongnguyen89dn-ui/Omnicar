@@ -1,0 +1,67 @@
+DUOCAR V3 - PURPLE HORIZON / REVIEW KIT (2026-11-14)
+STATUS: DESIGN VISUAL REVIEW ONLY. NOT SOURCE COMPLETE. NOT BUILD. NOT DEVICE PASS.
+
+BASIS
+Repo: chuongnguyen89dn-ui/Omnicar
+Branch: feature/duocar-apex-ui-muse-20261114
+Source head read: 8c57ae8ea1aa896ade81caf2f4e8df510e655ab8
+Real build tree: recovered-source/project (7 aggregate subprojects).
+Mirror: recovered-source/src (may drift; review hunk per file).
+Muse P0: recovered-source/gpt-project-history/APEX_V3_P0_BANG_PHU_20261114.md,
+112 surface/state/asset rows. Earlier audit: DUOCAR_UI_FULL_AUDIT_20261114.txt,
+D1-D14/C1-C12/F1-F14, old DC58 baseline for research only.
+
+MASTER VISUAL REFERENCES
+User-supplied purple night-road photo: dark indigo mountains and route horizon,
+thin violet/lavender rim light, smoked glass, white-silver text, restrained blue route.
+Original purple italic D mark from DuoCar concept history (NOT image of car,
+infinity symbol, or white/cyan V2 double-lane D). Design-preview-only
+thumbnail in assets/logo_D_purple_reference_preview.webp. This is a small lossy
+preview; original PNG remains in conversation ZIP until full asset import is
+possible. DO NOT upsample this thumbnail and ship it as final app icon.
+No part of a third-party app screen is to be re-skinned.
+
+PALETTE (proposal, to be approved)
+#070416 root; #100923 deep; #1B1138 dark glass; #28194D raised glass;
+#A16EFF selected violet; #DBB9FF lavender rim; #F5F0FF text primary;
+#C7B8E4 secondary; #669CFF map-only illustrative routing.
+Thermal red #FF0610 is protected and outside skin palette.
+
+VISUALS
+23 lightweight source SVGs under screens/. These are recreated/optimized
+for repository preview and concept review. They are NOT byte-for-byte same
+as the original 23 PNG+23 SVG master board in the 13 MB conversation ZIP.
+Do not represent these 23 preview SVGs as pixel-perfect source artwork,
+compiled resources, screens of live apps, or device screenshots.
+1-13 are 1280x720 CarPlay visual design screens.
+14-23 are 390x844 iPhone visual design screens.
+The handover spec and order are in MUSE_HANDOFF.txt.
+
+IMPLEMENTATION GUARDS / SOURCE-BASED ROOT CAUSES
+- Native handle 34x12 has three dots, tap+double-tap+pan.
+- Hosted handle visual 34x12 in 44x24 hitbox, tap+pan, no double-tap.
+  Replace LOOK only with one violet luminous line.
+- Both bars 52pt with five action buttons; never change selectors/action order.
+- ABSetBarButtonContent black pixels + UIImageRenderingModeAlwaysOriginal and
+  UIImageView child tag 7302 cause hosted icons to ignore tint.
+- SCPKnobFaceView uses light blur style 11/Lite white .92 across five native
+  surfaces; hosted AppBridge bar has own blur.
+- Picker HL51/HL49/default scene/hit/window behavior is protected.
+- Fullscreen time+battery+temp must be one top-left nonblocking row without bg.
+- Thermal warning is translucent pulsing red outer edge and text ONLY
+  "LÀM MÁT THIẾT BỊ CỦA BẠN". Gate 37 degrees remains unchanged.
+- Keyboard drawn style only: keep geometry, Telex, key commands; residual
+  colors in ABKeyboard -updatePreview and hint need source audit.
+- 5 root iPhone tabs already exist in current OMCNativeSettings.
+- 99/139 Prefs strings files still have visible OmniCar in values; preserve keys.
+- Vendor Lề external. DuoCar only retains GPS +-10 and bubble toggle.
+- App icon/metadata must correspond to installed DuoCar package and actual
+  CarPlay injected declaration, and remain subject to device verification.
+- Preserve all K1-K12 identifiers/paths, C1-C12 source UI coupling, F1-F14
+  runtime/scene/IPC/input/thermal/gesture contracts.
+- NO CI, NO DEB, NO MERGE/PUBLISH, no source changes in this review kit.
+
+NEXT
+Nguyen reviews visuals and approves or requests revisions.
+Muse may preflight map 23 screens to P0 and propose separate file/method/hunk
+plan, but MUST NOT start P2 implementation until Nguyen approves final art.

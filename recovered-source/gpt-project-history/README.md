@@ -1,3 +1,6 @@
+## 2026-11-14 — V3 Purple Horizon review kit (GPT, 23 SVG screens)
+- Review-only handoff: [V3_PURPLE_HORIZON_DESIGN/README.md](V3_PURPLE_HORIZON_DESIGN/README.md), [SPEC](V3_PURPLE_HORIZON_DESIGN/SPEC_V3_DESIGN.txt), [MUSE map](V3_PURPLE_HORIZON_DESIGN/MUSE_HANDOFF.txt). Current repo assets: 23 lightweight SVGs + **lossy logo-D reference thumbnail**; original master PNG/ZIP remain in conversation and have not been transferred byte-for-byte. Nguyen visual approval **pending**; Muse preflight/source-hunk mapping only; no P2, CI, DEB or merge.
+
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
 ## 2026-11-14 — DUOCAR V3 P0: BẢNG PHỦ 100% (Muse nộp, chờ GPT thiết kế V3)
