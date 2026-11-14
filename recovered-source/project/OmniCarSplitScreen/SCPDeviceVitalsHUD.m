@@ -223,12 +223,14 @@ static BOOL SCPVitalsFiniteRect(CGRect r) {
         sample[@"thermalState"], sample[@"temperatureUnitsVerified"]]);
     if (temp) {
         self.label.textColor = [kind isEqualToString:@"battery"]
-            ? UIColor.whiteColor : [UIColor colorWithRed:1 green:0.91 blue:0.65 alpha:1];
+            ? [UIColor colorWithRed:0.918 green:0.965 blue:0.984 alpha:1]
+            : [UIColor colorWithRed:0.957 green:0.718 blue:0.373 alpha:1]; // APEX Ice / Amber #F4B75F
     } else {
         NSString *state = sample[@"thermalState"];
         self.label.textColor =
             ([state isEqualToString:@"serious"] || [state isEqualToString:@"critical"])
-            ? [UIColor colorWithRed:1 green:0.71 blue:0.55 alpha:1] : UIColor.whiteColor;
+            ? [UIColor colorWithRed:1.0 green:0.278 blue:0.341 alpha:1]
+            : [UIColor colorWithRed:0.918 green:0.965 blue:0.984 alpha:1]; // APEX danger #FF4757 / Ice
     }
 }
 

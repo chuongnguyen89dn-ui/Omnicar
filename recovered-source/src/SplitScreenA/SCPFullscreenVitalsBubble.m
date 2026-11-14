@@ -354,7 +354,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         status.accessibilityTraits=UIAccessibilityTraitStaticText;
         UILabel *clock=[[UILabel alloc]initWithFrame:CGRectZero];
         clock.font=[UIFont systemFontOfSize:10.0 weight:UIFontWeightSemibold];
-        clock.textColor=UIColor.whiteColor;
+        clock.textColor=[UIColor colorWithRed:0.918 green:0.965 blue:0.984 alpha:1]; // APEX Ice #EAF6FB
         clock.textAlignment=NSTextAlignmentLeft;
         clock.backgroundColor=UIColor.clearColor;
         clock.adjustsFontSizeToFitWidth=YES;
@@ -364,7 +364,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         clock.userInteractionEnabled=NO;
         UILabel *metrics=[[UILabel alloc]initWithFrame:CGRectZero];
         metrics.font=[UIFont systemFontOfSize:10.0 weight:UIFontWeightSemibold];
-        metrics.textColor=UIColor.whiteColor;
+        metrics.textColor=[UIColor colorWithRed:0.918 green:0.965 blue:0.984 alpha:1]; // APEX Ice #EAF6FB
         metrics.textAlignment=NSTextAlignmentLeft;
         metrics.backgroundColor=UIColor.clearColor;
         metrics.adjustsFontSizeToFitWidth=YES;
