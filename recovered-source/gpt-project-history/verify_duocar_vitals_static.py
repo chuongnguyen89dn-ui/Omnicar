@@ -34,7 +34,10 @@ for p,q in PAIRS:
 split=(PROJECT/"OmniCarSplitScreen/SCPCarSplit.m").read_text()
 src_split=(SRC/"SplitScreenA/SCPCarSplit.m").read_text()
 for s in (split,src_split):
-    assert "SCPDeviceVitalsHUD" not in s, "Non-fullscreen Dock HUD still attached"
+    # HL54 must preserve the HL47 Dock badge in split mode; only the
+    # fullscreen clock bubble is gated by SCPFullscreenController.
+    assert "[[SCPDeviceVitalsHUD shared] showForParent:parent" in s
+    assert "[[SCPDeviceVitalsHUD shared] stop]" in s
     assert "SCPVitalsLiveDockFrame" not in s
     assert "SCPVitalsLauncherFrame" not in s
     assert "SCPFullscreenVitalsBubble" not in s, "split path must not own fullscreen bubble"
