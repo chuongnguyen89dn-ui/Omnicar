@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 
-root=Path(__file__).resolve().parents[1]
+root=Path(__file__).resolve().parents[2] # tests/ -> gpt-project-history/ -> recovered-source/
 script=root/"gpt-project-history/merge_external_le_only.py"
 spec=importlib.util.spec_from_file_location("hl58merge",script)
 mod=importlib.util.module_from_spec(spec)
