@@ -260,9 +260,9 @@ UIButton *SCPWrapRatioChip(UIImage *image, id target, SEL action) {
     SCPCButton *button = [SCPCButton buttonWithType:0];
     button.bounds = CGRectMake(0, 0, 34, 34);
     button.layer.cornerRadius = 17;
-    button.tintColor = [UIColor colorWithRed:0.2901960784313726
-                                       green:0.30980392156862746
-                                        blue:0.5019607843137255 alpha:1.0];
+    button.tintColor = [UIColor colorWithRed:0.961
+                                       green:0.941
+                                        blue:1.000 alpha:1.0]; // V3 text #F5F0FF
     [button setImage:image forState:UIControlStateNormal];
     [button addTarget:target action:action
         forControlEvents:UIControlEventTouchUpInside];
@@ -289,10 +289,10 @@ void SCPMarkRatioChipSelected(UIView *view) {
         ring.type = kCAGradientLayerConic;
         ring.startPoint = CGPointMake(0.5, 0.5);
         ring.endPoint = CGPointMake(0, 1);
-        UIColor *c1 = [UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824 blue:0.9568627450980392 alpha:1.0];
-        UIColor *c2 = [UIColor colorWithRed:0.3803921568627451 green:0.8509803921568627 blue:0.9490196078431372 alpha:1.0];
-        UIColor *c3 = [UIColor colorWithRed:0.1803921568627451 green:0.6509803921568628 blue:0.7333333333333333 alpha:1.0];
-        UIColor *c4 = [UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824 blue:0.9568627450980392 alpha:1.0]; // APEX conic: cyan -> ice cyan -> teal -> cyan
+        UIColor *c1 = [UIColor colorWithRed:0.631 green:0.431 blue:1.000 alpha:1.0];
+        UIColor *c2 = [UIColor colorWithRed:0.859 green:0.725 blue:1.000 alpha:1.0];
+        UIColor *c3 = [UIColor colorWithRed:0.631 green:0.431 blue:1.000 alpha:1.0];
+        UIColor *c4 = [UIColor colorWithRed:0.859 green:0.725 blue:1.000 alpha:1.0]; // V3 conic: violet #A16EFF -> lavender #DBB9FF -> violet -> lavender
         ring.colors = @[(id)c1.CGColor, (id)c2.CGColor, (id)c3.CGColor,
                         (id)c4.CGColor, (id)c1.CGColor];
         CAShapeLayer *mask = [CAShapeLayer layer];
@@ -310,9 +310,9 @@ void SCPMarkRatioChipSelected(UIView *view) {
             cornerRadius:MAX(view.layer.cornerRadius - 1, 0)].CGPath;
     [CATransaction commit];
     view.layer.borderWidth = 0;
-    view.layer.shadowColor = [UIColor colorWithRed:0.18
-                                             green:0.65
-                                              blue:0.73
+    view.layer.shadowColor = [UIColor colorWithRed:0.631
+                                             green:0.431
+                                              blue:1.000
                                              alpha:1.0].CGColor; // APEX teal
     view.layer.shadowOpacity = 0.3f;
     view.layer.shadowRadius = 8;
@@ -404,7 +404,8 @@ void SCPPrepareRatioMenu(UIView *view) {
             cursor += 36.0;
         } else {
             UIView *sep = [[UIView alloc] init];
-            sep.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.95];
+            sep.backgroundColor = [UIColor colorWithRed:0.859 green:0.725
+                                                   blue:1.000 alpha:0.95]; // V3 lavender rim #DBB9FF
             sep.userInteractionEnabled = NO;
             sep.frame = CGRectMake(cursor - 1.0 + 4.5, 12.0, 1.0, 18.0);
             [menu addSubview:sep];

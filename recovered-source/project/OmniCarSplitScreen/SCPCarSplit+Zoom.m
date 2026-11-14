@@ -106,7 +106,7 @@ extern void SCPDispatchAfter(double delaySeconds, void (^block)(void)); // 0x12e
     pane.slot = 9;
     pane.view.layer.borderWidth = 1.0;
     pane.view.layer.borderColor =
-        [UIColor colorWithWhite:1.0 alpha:0.85].CGColor;
+        [UIColor colorWithRed:0.859 green:0.725 blue:1.000 alpha:0.85].CGColor; // V3 lavender rim
     [self.container addSubview:pane.view];
     self.floatPane = pane;
     self.floatLarge = NO;

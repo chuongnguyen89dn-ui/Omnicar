@@ -298,10 +298,10 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     if (pane.cover != nil || pane.vc == nil) return;
     UIView *cover = [[UIView alloc] initWithFrame:pane.view.bounds];
     cover.autoresizingMask = 0x12;
-    cover.backgroundColor = [UIColor colorWithRed:0.9333333333333333
-                                            green:0.9411764705882353
-                                             blue:0.9843137254901961
-                                            alpha:1.0];
+    cover.backgroundColor = [UIColor colorWithRed:0.063
+                                            green:0.035
+                                             blue:0.137
+                                            alpha:1.0]; // V3 deep #100923
     cover.userInteractionEnabled = NO;
     UIImageView *icon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 52, 52)];
     icon.image = SCPAppIconForBundle(pane.bundleID);
@@ -367,10 +367,10 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // origin and displaced the picker inside the pane.
     CGRect slotFrame = [self frameForSlot:slot];
     picker.frame = CGRectMake(0, 0, slotFrame.size.width, slotFrame.size.height);
-    picker.backgroundColor = [UIColor colorWithRed:0.9333333333333333
-                                               green:0.9411764705882353
-                                                blue:0.984313725490196
-                                               alpha:1.0]; // original @0x315ec..0x31624
+    picker.backgroundColor = [UIColor colorWithRed:0.063
+                                               green:0.035
+                                                blue:0.137
+                                               alpha:1.0]; // V3 deep #100923 (original @0x315ec..0x31624)
     // [hl46-audit2] Cover removal is controlled by CoverOff, regardless
     // of whether the picker face is opaque. Both A/B toggles must work
     // independently, including a stale cover during a pane transition.
@@ -476,9 +476,9 @@ static BOOL SCPIsBridgedPhoneApp(NSString *bundleID) {
     // Dump @0x3163c-0x31690: border colour is the lavender accent
     // colorWithRed:0.6078431372549019 green:0.5294117647058824
     // blue:0.9725490196078431 alpha:1.0 — NOT white at 0.55.
-    picker.layer.borderColor = [UIColor colorWithRed:0.3803921568627451
-                                               green:0.8509803921568627
-                                                blue:0.9490196078431372
+    picker.layer.borderColor = [UIColor colorWithRed:0.631
+                                               green:0.431
+                                                blue:1.000
                                                alpha:1.0].CGColor; // APEX accent #61D9F2
     UILabel *label = [[UILabel alloc] initWithFrame:picker.bounds];
     label.text = @"+";   // VERIFIED: cfstring @0x7c720 == "+"
@@ -787,7 +787,8 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     if (hl49LiveUnderSheet) {
         // A slightly translucent face keeps menu controls readable without
         // the compositing blur/mesh masking the live app's image.
-        effectView.backgroundColor = [UIColor colorWithWhite:1 alpha:0.32];
+        effectView.backgroundColor = [UIColor colorWithRed:0.063 green:0.035
+                                                      blue:0.137 alpha:0.32]; // V3 deep #100923 (HL49 no-blur face)
         effectView.contentView.backgroundColor = UIColor.clearColor;
         OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
             @"[hl49-sheet] NO-BLUR slot=%d bundle=%@ vc=%@ host=%@ win=%@ level=%.1f",
@@ -817,9 +818,9 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     [contentView addSubview:sideColumn];
     CAGradientLayer *grad = [CAGradientLayer layer];
     grad.frame = CGRectMake(0, 10, 1, sheetH - 20);
-    UIColor *navy = [UIColor colorWithRed:0.2901960784313726
-                                    green:0.30980392156862746
-                                     blue:0.5019607843137255 alpha:1.0];
+    UIColor *navy = [UIColor colorWithRed:0.859
+                                    green:0.725
+                                     blue:1.000 alpha:1.0]; // V3 lavender rim #DBB9FF (ten bien giu nguyen; chi dung cho gradient)
     grad.colors = @[(id)[navy colorWithAlphaComponent:0].CGColor,
                     (id)[navy colorWithAlphaComponent:0.32].CGColor,
                     (id)[navy colorWithAlphaComponent:0.32].CGColor,
@@ -836,11 +837,13 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     UIView *wrapper = [[UIView alloc] initWithFrame:CGRectMake(
         (150.0 - mapW) * 0.5,
         MAX((sheetH - 68.0 - headerH) * 0.5, 0) + 54.0, mapW, scale + 10.0)];
-    wrapper.backgroundColor = [UIColor colorWithWhite:1 alpha:0.35];
+    wrapper.backgroundColor = [UIColor colorWithRed:0.106 green:0.067
+                                               blue:0.220 alpha:1.0]; // V3 dark glass #1B1138
     wrapper.layer.cornerRadius = 12;
     wrapper.layer.cornerCurve = kCACornerCurveContinuous;
     wrapper.layer.borderWidth = 1;
-    wrapper.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.7].CGColor;
+    wrapper.layer.borderColor = [UIColor colorWithRed:0.859 green:0.725
+                                                 blue:1.000 alpha:0.7].CGColor; // V3 lavender rim #DBB9FF
     [sideColumn addSubview:wrapper];
     if (map != nil) {
         map.frame = CGRectMake(5, 5, map.bounds.size.width, scale);
@@ -851,7 +854,8 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
         8, CGRectGetMaxY(wrapper.frame) + 8, 134, titleH)];
     titleLabel.text = title;
     titleLabel.font = titleFont;
-    titleLabel.textColor = navy;
+    titleLabel.textColor = [UIColor colorWithRed:0.961 green:0.941
+                                            blue:1.000 alpha:1.0]; // V3 text #F5F0FF
     titleLabel.numberOfLines = 2;
     titleLabel.textAlignment = NSTextAlignmentCenter;
     [sideColumn addSubview:titleLabel];
@@ -918,10 +922,10 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
         iconView.userInteractionEnabled = NO;
         UIView *shadowView = [[UIView alloc] initWithFrame:iconView.frame];
         shadowView.userInteractionEnabled = NO;
-        shadowView.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
-                                                       green:0.39215686274509803
-                                                        blue:0.7843137254901961
-                                                       alpha:1.0].CGColor;
+        shadowView.layer.shadowColor = [UIColor colorWithRed:0.631
+                                                       green:0.431
+                                                        blue:1.000
+                                                       alpha:1.0].CGColor; // V3 violet #A16EFF
         shadowView.layer.shadowOpacity = 0.25f;
         shadowView.layer.shadowRadius = 5;
         shadowView.layer.shadowOffset = CGSizeMake(0, 4);
@@ -934,9 +938,9 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
             UIImageView *badge = [[UIImageView alloc] initWithImage:
                 SCPSymbolImage(@"check", 10.0)];
             badge.tintColor = UIColor.whiteColor;
-            badge.backgroundColor = [UIColor colorWithRed:0.3803921568627451
-                                                    green:0.8509803921568627
-                                                     blue:0.9490196078431372
+            badge.backgroundColor = [UIColor colorWithRed:0.631
+                                                    green:0.431
+                                                     blue:1.000
                                                     alpha:1.0]; // APEX accent #61D9F2
             badge.frame = CGRectMake(CGRectGetMaxX(iconView.frame) - 10,
                                      CGRectGetMinY(iconView.frame) - 4, 14, 14);
@@ -1321,11 +1325,12 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
             button.backgroundColor = UIColor.clearColor;
             SCPApplyAccent(button, YES);
         } else {
-            button.backgroundColor = [UIColor colorWithWhite:1
-                alpha:(p.picker != nil) ? 0.6 : 0.45];
+            button.backgroundColor = [UIColor colorWithRed:0.157 green:0.098
+                blue:0.302 alpha:(p.picker != nil) ? 0.6 : 0.45]; // V3 raised #28194D
             button.layer.borderWidth = 1.5;
             button.layer.borderColor =
-                [UIColor colorWithWhite:1 alpha:0.8].CGColor;
+                [UIColor colorWithRed:0.859 green:0.725
+                                    blue:1.000 alpha:0.8].CGColor; // V3 lavender rim #DBB9FF
         }
         if (bundleID != nil) {
             double iconSize = MIN(floor(MIN(rect.size.width, rect.size.height) * 0.7), 22);
@@ -1340,7 +1345,8 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
             UILabel *plus = [[UILabel alloc] initWithFrame:button.bounds];
             plus.text = @"+";
             plus.textAlignment = NSTextAlignmentCenter;
-            plus.textColor = (p == pane) ? UIColor.whiteColor : SCPColorSecondary();
+            plus.textColor = (p == pane) ? [UIColor colorWithRed:0.961 green:0.941
+                                                            blue:1.000 alpha:1.0] : SCPColorSecondary(); // V3 text #F5F0FF / secondary qua helper
             plus.font = [UIFont systemFontOfSize:
                 MIN(floor(MIN(rect.size.width, rect.size.height) * 0.8), 22)
                 weight:(p == pane) ? UIFontWeightBold : UIFontWeightRegular];
@@ -1379,11 +1385,11 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
         double width = (i == page) ? 16.0 : 6.0;
         dot.frame = CGRectMake(x, y, width, 6);
         dot.backgroundColor = (i == page)
-            ? [UIColor colorWithRed:0.3803921568627451 green:0.8509803921568627
-                               blue:0.9490196078431372 alpha:1.0]
-            : [[UIColor colorWithRed:0.9176470588235294 green:0.9647058823529412
-                                 blue:0.984313725490196 alpha:1.0]
-                  colorWithAlphaComponent:0.25]; // APEX: trang hien tai cyan, con lai Ice mo
+            ? [UIColor colorWithRed:0.631 green:0.431
+                               blue:1.000 alpha:1.0]
+            : [[UIColor colorWithRed:0.780 green:0.722
+                                 blue:0.894 alpha:1.0]
+                  colorWithAlphaComponent:0.25]; // V3: trang hien tai violet #A16EFF, con lai #C7B8E4 mo
         x += width + 6.0;
     }
 }
@@ -1721,9 +1727,9 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
     [self removeLoaderFromPane:pane animated:NO];
     UIView *loader = [[UIView alloc] initWithFrame:pane.view.bounds];
     loader.autoresizingMask = 0x12;
-    loader.backgroundColor = [UIColor colorWithRed:0.9333333333333333
-                                             green:0.9411764705882353
-                                              blue:0.984313725490196
+    loader.backgroundColor = [UIColor colorWithRed:0.063
+                                             green:0.035
+                                              blue:0.137
                                              alpha:1.0];
     loader.userInteractionEnabled = NO;   // set twice in the binary (NO, then YES)
     loader.accessibilityIdentifier = bundle;
@@ -1754,9 +1760,9 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
     ring.path = [UIBezierPath bezierPathWithArcCenter:CGPointMake(10, 10)
         radius:8 startAngle:-M_PI_2 endAngle:M_PI clockwise:YES].CGPath;
     ring.fillColor = nil;
-    ring.strokeColor = [UIColor colorWithRed:0.3803921568627451
-                                       green:0.8509803921568627
-                                        blue:0.9490196078431372
+    ring.strokeColor = [UIColor colorWithRed:0.631
+                                       green:0.431
+                                        blue:1.000
                                        alpha:1.0].CGColor; // APEX accent #61D9F2
     ring.lineWidth = 2;
     ring.lineCap = kCALineCapRound;
@@ -1874,9 +1880,9 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
     if (host == nil || text.length == 0) return;
     UILabel *label = [[UILabel alloc] init];
     label.text = text;
-    label.textColor = [UIColor colorWithRed:0.2901960784313726
-                                      green:0.30980392156862746
-                                       blue:0.5019607843137255 alpha:1.0];
+    label.textColor = [UIColor colorWithRed:0.961
+                                      green:0.941
+                                       blue:1.000 alpha:1.0]; // V3 text #F5F0FF
     label.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
     label.textAlignment = NSTextAlignmentCenter;
     label.numberOfLines = 2;
@@ -1886,7 +1892,8 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
     double height = MAX(fitted.height + 18, 38);
     label.bounds = CGRectMake(0, 0, width, height);
     SCPStyleDragGhost(label, 19.0);
-    label.backgroundColor = [UIColor colorWithWhite:1 alpha:0.94];
+    label.backgroundColor = [UIColor colorWithRed:0.157 green:0.098
+                                             blue:0.302 alpha:0.94]; // V3 raised #28194D
     double cx = CGRectGetMidX(host.bounds);
     double cy = host.bounds.size.height - 50;
     if (self.bridgedPane != nil && self.active && self.container != nil) {
@@ -1938,9 +1945,9 @@ static UIView *SCPCPassHitTest(UIView *self, SEL _cmd, CGPoint point,
     label.text = [NSString stringWithFormat:
         OMCTr(@"%@ đang chạy nền", @"%@ is running in the background"),
         [self displayNameFor:name]];
-    label.textColor = [UIColor colorWithRed:0.2901960784313726
-                                      green:0.30980392156862746
-                                       blue:0.5019607843137255 alpha:1.0];
+    label.textColor = [UIColor colorWithRed:0.961
+                                      green:0.941
+                                       blue:1.000 alpha:1.0];
     label.font = [UIFont systemFontOfSize:13 weight:UIFontWeightMedium];
     [label sizeToFit];
     double labelW = MIN(label.bounds.size.width,

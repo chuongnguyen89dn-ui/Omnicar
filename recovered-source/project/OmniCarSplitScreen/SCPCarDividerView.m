@@ -100,10 +100,11 @@ UIVisualEffectView *SCPKnobFaceView(void) // [phase2; backported to src in phase
 {
     if (OMCLiteActive()) {
         UIVisualEffectView *view = [[UIVisualEffectView alloc] initWithEffect:nil];
-        view.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.92];
+        view.backgroundColor = [UIColor colorWithRed:0.106 green:0.067
+                                                blue:0.220 alpha:0.92]; // V3 dark glass #1B1138
         return view;
     }
-    return [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:11]];
+    return [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:16]]; // V3: dark twin of style 11
 }
 
 @implementation SCPCarDividerView

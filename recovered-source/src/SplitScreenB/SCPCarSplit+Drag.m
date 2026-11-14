@@ -21,14 +21,14 @@ extern UIImage *SCPAppIconForBundle(NSString *bundleID);
 // @0x271e4 — frosted white ghost styling (toast labels, icon buttons,
 // drag ghost): white 0.9 background, hairline border, soft shadow.
 void SCPStyleDragGhost(UIView *view, double radius) {
-    view.backgroundColor = [UIColor colorWithWhite:1 alpha:0.9];
+    view.backgroundColor = [UIColor colorWithRed:0.157 green:0.098 blue:0.302 alpha:0.9]; // V3 raised #28194D
     view.layer.cornerRadius = radius;
     view.layer.cornerCurve = kCACornerCurveContinuous;
     view.layer.borderWidth = 0.5;
-    view.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.85].CGColor;
-    view.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
-                                             green:0.39215686274509803
-                                              blue:0.7843137254901961
+    view.layer.borderColor = [UIColor colorWithRed:0.859 green:0.725 blue:1.000 alpha:0.85].CGColor; // V3 lavender rim
+    view.layer.shadowColor = [UIColor colorWithRed:0.631
+                                             green:0.431
+                                              blue:1.000
                                              alpha:1.0].CGColor;
     view.layer.shadowOpacity = 0.25f;
     view.layer.shadowRadius = 10;
@@ -43,8 +43,8 @@ void SCPStyleGhostIcon(UIImageView *imageView) {
     imageView.clipsToBounds = YES;
     imageView.backgroundColor = imageView.image != nil
         ? UIColor.clearColor
-        : [UIColor colorWithRed:0.9333333333333333 green:0.9411764705882353
-                           blue:0.984313725490196 alpha:1.0];
+        : [UIColor colorWithRed:0.106 green:0.067
+                           blue:0.220 alpha:1.0]; // V3 dark glass #1B1138
 }
 
 @implementation SCPCarSplit (Drag)

@@ -47,9 +47,9 @@ static UIImage *SCPApexGraphiteSkinImage(void) {
             CGContextRef c = ctx.CGContext;
             CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
             CGGradientRef g = CGGradientCreateWithColors(cs,
-                (CFArrayRef)@[(id)[UIColor colorWithRed:0.0392156862745098 green:0.07058823529411765 blue:0.09411764705882353 alpha:1].CGColor,
-                              (id)[UIColor colorWithRed:0.13725490196078433 green:0.21176470588235294 blue:0.25098039215686274 alpha:1].CGColor],
-                (CGFloat[]){0, 1});
+                (CFArrayRef)@[(id)[UIColor colorWithRed:0.063 green:0.035 blue:0.137 alpha:1].CGColor,
+                              (id)[UIColor colorWithRed:0.106 green:0.067 blue:0.220 alpha:1].CGColor],
+                (CGFloat[]){0, 1}); // V3 mesh: #100923 -> #1B1138
             CGColorSpaceRelease(cs);
             CGContextDrawLinearGradient(c, g, CGPointMake(0, 0), CGPointMake(64, 64), 0);
             CGGradientRelease(g);
@@ -69,26 +69,27 @@ void SCPApplyMeshBackdrop(UIVisualEffectView *effectView) {
     [effectView.contentView insertSubview:mesh atIndex:0];
     effectView.layer.borderWidth = 1;
     effectView.layer.borderColor =
-        [UIColor colorWithRed:0.20784313725490197 green:0.3176470588235294
-                         blue:0.37254901960784315 alpha:0.85].CGColor; // APEX stroke
+        [UIColor colorWithRed:0.859 green:0.725
+                         blue:1.000 alpha:0.85].CGColor; // V3 lavender rim #DBB9FF
 }
 
-// @0x2b380 — the secondary text colour: navy at 55% alpha.
+// @0x2b380 — the secondary text colour: V3 secondary lavender
+// (#C7B8E4) at 85% alpha.
 UIColor *SCPColorSecondary(void) {
-    return [[UIColor colorWithRed:0.5764705882352941
-                            green:0.6666666666666666
-                             blue:0.7215686274509804
+    return [[UIColor colorWithRed:0.780
+                            green:0.722
+                             blue:0.894
                             alpha:1.0] colorWithAlphaComponent:0.85];
 }
 
 // @0x35f70 — small-chip styling (cancel/exit chips): translucent white,
 // hairline border, faint shadow.
 void SCPStyleChip(UIView *view, double radius) {
-    view.backgroundColor = [UIColor colorWithRed:0.106 green:0.165 blue:0.204 alpha:0.55]; // APEX surface.1
+    view.backgroundColor = [UIColor colorWithRed:0.157 green:0.098 blue:0.302 alpha:0.55]; // V3 raised #28194D
     view.layer.cornerRadius = radius;
     view.layer.cornerCurve = kCACornerCurveContinuous;
     view.layer.borderWidth = 1;
-    view.layer.borderColor = [UIColor colorWithRed:0.208 green:0.318 blue:0.373 alpha:0.9].CGColor; // APEX stroke
+    view.layer.borderColor = [UIColor colorWithRed:0.859 green:0.725 blue:1.000 alpha:0.9].CGColor; // V3 lavender rim #DBB9FF
     view.layer.shadowColor = [UIColor blackColor].CGColor;
     view.layer.shadowOpacity = 0.12f;
     view.layer.shadowRadius = 3;
@@ -108,44 +109,14 @@ static void SCPSetBarButtonContent(UIButton *button, NSString *iconName, NSStrin
 // same name (the module has one @0x293a0 in the binary; dedupe at
 // integration, as with Picker's copy).
 static void SCPApplyAccent(UIView *view, BOOL on) {
-    CALayer *found = nil;
-    for (CALayer *sub in view.layer.sublayers)
-        if ([sub.name isEqualToString:@"omcAccent"]) { found = sub; break; }
-    if (!on) {
-        [found removeFromSuperlayer];
-        view.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
-                                                 green:0.39215686274509803
-                                                  blue:0.7843137254901961
-                                                 alpha:1.0].CGColor;
-        view.layer.shadowOpacity = 0;
-        return;
-    }
-    CAGradientLayer *grad = (CAGradientLayer *)found;
-    if (grad == nil) {
-        grad = [CAGradientLayer layer];
-        grad.name = @"omcAccent";
-        grad.colors = @[
-            (id)[UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824
-                                 blue:0.9568627450980392 alpha:1.0].CGColor,
-            (id)[UIColor colorWithRed:0.12941176470588237 green:0.5607843137254902
-                                 blue:0.6666666666666666 alpha:1.0].CGColor]; // APEX #79EDF4 -> #218FAA
-        grad.startPoint = CGPointZero;
-        grad.endPoint = CGPointMake(1, 1);
-        [view.layer insertSublayer:grad atIndex:0];
-    }
-    [CATransaction begin];
-    [CATransaction setDisableActions:YES];
-    grad.frame = view.bounds;
-    grad.cornerRadius = view.layer.cornerRadius;
-    grad.cornerCurve = kCACornerCurveContinuous;
-    [CATransaction commit];
-    view.layer.shadowColor = [UIColor colorWithRed:0.18
-                                             green:0.65
-                                                  blue:0.73
-                                                 alpha:1.0].CGColor; // APEX teal glow
-    view.layer.shadowOpacity = 0.45f;
-    view.layer.shadowRadius = 9;
-    view.layer.shadowOffset = CGSizeMake(0, 4);
+    // V3 Purple Horizon (BL-06c): the handle's look no longer changes with
+    // bar state — SVG 13 draws all three handle states identically — so the
+    // old cyan-teal accent gradient / teal glow / off-state shadow are
+    // removed. The function and its two call sites in setBarVisible:forPane:
+    // are kept intact on purpose: only the visuals are neutralized, the
+    // wake/AutoHide call flow around them is untouched.
+    (void)view;
+    (void)on;
 }
 
 // @0x23710 — bar button factory: a 48x40 button carrying a 40x40 styled
@@ -181,24 +152,30 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
 // separator before close, and the 52 pt bar sized by the row width.
 - (void)setupBarForPane:(SCPCarPane *)pane {                              // 0x22adc
     UIView *handle = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 34, 12)];
-    handle.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.35];
+    handle.backgroundColor = [UIColor colorWithRed:0.106
+                                             green:0.067
+                                              blue:0.220 alpha:1.0]; // V3 dark glass #1B1138
     handle.layer.cornerRadius = 6;
     handle.layer.cornerCurve = kCACornerCurveContinuous;
     handle.layer.borderWidth = 0.5;
-    handle.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.55].CGColor;
+    handle.layer.borderColor = [UIColor colorWithRed:0.533 green:0.384
+                                                blue:0.741 alpha:1.0].CGColor; // V3 #8862BD
 
-    for (NSInteger dx = -8; dx < 16; dx += 8) {
-        UIView *dot = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 4, 4)];
-        dot.center = CGPointMake(dx + 17, 6);
-        dot.backgroundColor = [[UIColor colorWithRed:0.06274509803921569
-                                               green:0.09411764705882353
-                                                blue:0.12549019607843137
-                                               alpha:1.0]
-            colorWithAlphaComponent:0.85]; // APEX graphite dots
-        dot.layer.cornerRadius = 2;
-        dot.userInteractionEnabled = NO;
-        [handle addSubview:dot];
-    }
+    // V3 (BL-06b): the three dots are replaced by ONE luminous violet line
+    // (a layer, not a subview, so it adds no hit-test surface and fades
+    // with the handle under AutoHide).
+    CAGradientLayer *handleLine = [CAGradientLayer layer];
+    handleLine.name = @"v3HandleLine";
+    handleLine.frame = CGRectMake(6.9, 4.8, 20.1, 2.4);
+    handleLine.cornerRadius = 1.2;
+    handleLine.colors = @[
+        (id)[UIColor colorWithRed:0.882 green:0.737 blue:1.000 alpha:1.0].CGColor,
+        (id)[UIColor colorWithRed:0.604 green:0.345 blue:0.941 alpha:1.0].CGColor,
+        (id)[UIColor colorWithRed:0.475 green:0.278 blue:0.890 alpha:1.0].CGColor];
+    handleLine.locations = @[@0.0, @0.45, @1.0];
+    handleLine.startPoint = CGPointMake(0, 0.5);
+    handleLine.endPoint = CGPointMake(1, 0.5);
+    [handle.layer addSublayer:handleLine];
 
     UITapGestureRecognizer *tap =
         [[UITapGestureRecognizer alloc] initWithTarget:self
@@ -219,9 +196,9 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
     pane.handle = handle;
     [pane.view addSubview:handle];
 
-    UIColor *navy = [UIColor colorWithRed:0.9176470588235294
-                                    green:0.9647058823529412
-                                     blue:0.984313725490196 alpha:1.0]; // APEX Ice (ten bien giu nguyen)
+    UIColor *navy = [UIColor colorWithRed:0.961
+                                    green:0.941
+                                     blue:1.000 alpha:1.0]; // V3 text #F5F0FF (ten bien giu nguyen)
     UIColor *red = [UIColor colorWithRed:1.0 green:0.2784313725490196
                                     blue:0.3411764705882353 alpha:1.0]; // APEX danger #FF4757
     UIButton *choose = SCPBarButton(@"hm_apps", OMCTr(@"Đổi app", @"Change app"),

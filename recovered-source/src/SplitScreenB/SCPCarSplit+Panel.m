@@ -233,10 +233,10 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
     UIView *panel = [[UIView alloc] initWithFrame:frame];
     panel.layer.cornerRadius = 24;
     panel.layer.cornerCurve = kCACornerCurveContinuous;
-    panel.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
-                                              green:0.39215686274509803
-                                               blue:0.7843137254901961
-                                              alpha:1.0].CGColor;
+    panel.layer.shadowColor = [UIColor colorWithRed:0.631
+                                              green:0.431
+                                               blue:1.000
+                                              alpha:1.0].CGColor; // V3 violet #A16EFF
     panel.layer.shadowOpacity = 0.3f;
     panel.layer.shadowRadius = 24;
     panel.layer.shadowOffset = CGSizeMake(0, 8);
@@ -289,7 +289,8 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
             button.backgroundColor = UIColor.clearColor;
             button.layer.borderWidth = 1;
             button.layer.borderColor =
-                [UIColor colorWithWhite:1 alpha:0.75].CGColor;
+                [UIColor colorWithRed:0.859 green:0.725
+                                 blue:1.000 alpha:0.75].CGColor; // V3 lavender rim #DBB9FF
             BOOL selected = (s == 0 && layoutID == currentLayoutID);
             if (selected) SCPMarkRatioChipSelected(button);
 
@@ -297,9 +298,10 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
             double glyphW = 0, glyphH = 0;
             NSArray<NSValue *> *rects =
                 SCPLayoutGlyphRects(layoutID, vertical, &glyphW, &glyphH);
-            UIColor *fill = [UIColor colorWithWhite:1
-                alpha:selected ? 0.75 : 0.45];
-            UIColor *border = [UIColor colorWithWhite:1 alpha:0.95];
+            UIColor *fill = [UIColor colorWithRed:0.961 green:0.941
+                blue:1.000 alpha:selected ? 0.75 : 0.45]; // V3 text #F5F0FF
+            UIColor *border = [UIColor colorWithRed:0.961 green:0.941
+                blue:1.000 alpha:0.95]; // V3 text #F5F0FF
             UIImage *glyph = SCPRenderLayoutGlyph(
                 CGSizeMake(glyphW, glyphH), rects, apps,
                 fill, border, SCPColorSecondary());
@@ -329,9 +331,9 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
                 bezierPathWithRoundedRect:CGRectInset(placeholder.bounds, 0.5, 0.5)
                              cornerRadius:6].CGPath;
             dash.fillColor = nil;
-            dash.strokeColor = [[UIColor colorWithRed:0.2901960784313726
-                                                green:0.30980392156862746
-                                                 blue:0.5019607843137255
+            dash.strokeColor = [[UIColor colorWithRed:0.859
+                                                green:0.725
+                                                 blue:1.000
                                                 alpha:1.0]
                 colorWithAlphaComponent:0.25].CGColor;
             dash.lineWidth = 1;
@@ -403,9 +405,9 @@ static UIImage *SCPRenderLayoutGlyph(CGSize size, NSArray<NSValue *> *rects,
         if (!self.active && self.soloHostedBundle != nil) {
             [self.trayCover removeFromSuperview];
             UIView *cover = [[UIView alloc] initWithFrame:area];
-            cover.backgroundColor = [UIColor colorWithRed:0.9333333333333333
-                                                    green:0.9411764705882353
-                                                     blue:0.984313725490196
+            cover.backgroundColor = [UIColor colorWithRed:0.063
+                                                    green:0.035
+                                                     blue:0.137
                                                     alpha:1.0];
             cover.userInteractionEnabled = NO;
             UIImageView *icon = [[UIImageView alloc]
