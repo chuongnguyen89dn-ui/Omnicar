@@ -763,12 +763,23 @@ BOOL SCPHL49SameWindowPicker(SCPCarSplit *owner) {
     // the picker gestures/Choose/Cancel subviews below and is A/B reversible.
     // [hl51-menu] Restore the original picker face, not the HL49
     // translucent no-blur experiment which exposed the logo below.
-    BOOL hl51OriginalHostedFace = (pane.vc &&
-        SCPVCIsHosted(pane.vc) &&
-        [OMCPref(@"duocarHL51RestoreOriginalMenuWindow", @YES) boolValue]);
-    BOOL hl49LiveUnderSheet = (!hl51OriginalHostedFace && pane != nil &&
+    // [hl57-native-sheet] The HL51 original mesh/blur was restored for
+    // hosted only, leaving native menus on HL49's alpha-0.32 no-blur
+    // face. That exposed the native scene placeholder/logo through the
+    // menu. Occupied native and hosted now use the SAME original sheet
+    // face by default; the existing pref remains an explicit rollback.
+    BOOL hl57OriginalOccupiedFace = (pane.vc != nil ||
+        pane.bundleID.length > 0) &&
+        [OMCPref(@"duocarHL51RestoreOriginalMenuWindow", @YES) boolValue];
+    BOOL hl49LiveUnderSheet = (!hl57OriginalOccupiedFace && pane != nil &&
         (pane.vc != nil || pane.bundleID.length>0) &&
         [OMCPref(@"duocarHL49LiveUnderSheet",@YES) boolValue]);
+    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+        @"[hl57-native-menu] slot=%d mode=%@ sheet=%@ bundle=%@",
+        pane.slot,
+        pane.vc ? (SCPVCIsHosted(pane.vc)?@"HOSTED":@"NATIVE") : @"EMPTY",
+        hl49LiveUnderSheet?@"HL49-NO-BLUR":@"ORIGINAL-MESH",
+        pane.bundleID?:@"(none)"]);
     UIVisualEffectView *effectView = hl49LiveUnderSheet
         ? [[UIVisualEffectView alloc] initWithEffect:nil]
         : SCPKnobFaceView();
