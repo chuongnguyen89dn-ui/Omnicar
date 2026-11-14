@@ -54,8 +54,8 @@ void SCPSetKnobActive(UIView *knob, BOOL active)
         accent = [CAGradientLayer layer];
         accent.name = @"omcAccent";
         accent.colors = @[
-            (id)[UIColor colorWithRed:155.0 / 255.0 green:135.0 / 255.0 blue:248.0 / 255.0 alpha:1.0].CGColor,
-            (id)[UIColor colorWithRed:93.0 / 255.0 green:180.0 / 255.0 blue:246.0 / 255.0 alpha:1.0].CGColor,
+            (id)[UIColor colorWithRed:121.0 / 255.0 green:237.0 / 255.0 blue:244.0 / 255.0 alpha:1.0].CGColor,
+            (id)[UIColor colorWithRed:33.0 / 255.0 green:143.0 / 255.0 blue:170.0 / 255.0 alpha:1.0].CGColor, // APEX #79EDF4 -> #218FAA
         ];
         accent.startPoint = CGPointMake(0.0, 0.0); // CGPointZero global in the binary
         accent.endPoint = CGPointMake(1.0, 1.0);
@@ -78,10 +78,10 @@ void SCPSetKnobActive(UIView *knob, BOOL active)
                                 : CGAffineTransformIdentity;
         accent.opacity = active ? 1.0 : 0.0;
         dot.backgroundColor = (active ? [UIColor whiteColor]
-                               : [UIColor colorWithRed:74.0 / 255.0 green:79.0 / 255.0 blue:128.0 / 255.0 alpha:1.0]).CGColor;
+                               : [UIColor colorWithRed:16.0 / 255.0 green:24.0 / 255.0 blue:32.0 / 255.0 alpha:1.0]).CGColor; // APEX graphite dot
         knob.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:(active ? 1.0 : 0.95)].CGColor;
-        knob.layer.shadowColor = (active ? [UIColor colorWithRed:110.0 / 255.0 green:120.0 / 255.0 blue:1.0 alpha:1.0]
-                                  : [UIColor colorWithRed:110.0 / 255.0 green:100.0 / 255.0 blue:200.0 / 255.0 alpha:1.0]).CGColor;
+        knob.layer.shadowColor = (active ? [UIColor colorWithRed:46.0 / 255.0 green:166.0 / 255.0 blue:187.0 / 255.0 alpha:1.0]
+                                  : [UIColor blackColor]).CGColor; // APEX teal glow / black
         knob.layer.shadowOpacity = active ? 0.5 : 0.0;
         knob.layer.shadowRadius = active ? 7.0 : 3.0;
     } completion:^(BOOL finished) {

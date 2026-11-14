@@ -602,21 +602,18 @@ NS_ASSUME_NONNULL_END
         face.autoresizingMask = 0x12;       // flexible width | height
         if ([face isKindOfClass:UIVisualEffectView.class])
             ((UIVisualEffectView *)face).contentView.backgroundColor =
-                [UIColor colorWithWhite:1.0 alpha:0.35];
+                [UIColor colorWithRed:0.106 green:0.165 blue:0.204 alpha:0.35]; // APEX surface.1 tint
         face.layer.cornerRadius = 7;
         face.layer.cornerCurve = kCACornerCurveContinuous;
         face.layer.borderWidth = 0.5;
-        face.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.85].CGColor;
+        face.layer.borderColor = [UIColor colorWithRed:0.208 green:0.318 blue:0.373 alpha:0.85].CGColor; // APEX stroke
         face.clipsToBounds = YES;
         face.userInteractionEnabled = NO;
         [knob insertSubview:face atIndex:0];
 
         knob.layer.borderWidth = 1.5;
-        knob.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.95].CGColor;
-        knob.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
-                                                 green:0.39215686274509803
-                                                  blue:0.7843137254901961
-                                                 alpha:1.0].CGColor;
+        knob.layer.borderColor = [UIColor colorWithRed:0.918 green:0.965 blue:0.984 alpha:0.95].CGColor; // APEX Ice
+        knob.layer.shadowColor = [UIColor blackColor].CGColor;
         knob.layer.shadowOpacity = 0.0f;
         knob.layer.shadowRadius = 3.0;
         knob.layer.shadowOffset = CGSizeMake(0, 1);
@@ -625,10 +622,10 @@ NS_ASSUME_NONNULL_END
         dot.name = @"omcDot";
         dot.frame = CGRectMake(5, 5, 4, 4);
         dot.cornerRadius = 2;
-        dot.backgroundColor = [UIColor colorWithRed:0.2901960784313726
-                                              green:0.30980392156862746
-                                               blue:0.5019607843137255
-                                              alpha:1.0].CGColor;
+        dot.backgroundColor = [UIColor colorWithRed:0.06274509803921569
+                                              green:0.09411764705882353
+                                               blue:0.12549019607843137
+                                              alpha:1.0].CGColor; // APEX graphite
         [knob.layer addSublayer:dot];
     }
 
@@ -670,10 +667,10 @@ NS_ASSUME_NONNULL_END
 - (void)flashFocusOnPane:(SCPCarPane *)pane {                            // 0x13314
     if (pane.view == nil) return;
     if (self.dragGhost != nil) return;
-    UIColor *accent = [UIColor colorWithRed:0.6078431372549019
-                                      green:0.5294117647058824
-                                       blue:0.9725490196078431
-                                      alpha:1.0];
+    UIColor *accent = [UIColor colorWithRed:0.3803921568627451
+                                      green:0.8509803921568627
+                                       blue:0.9490196078431372
+                                      alpha:1.0]; // APEX accent #61D9F2
     pane.view.layer.borderColor = accent.CGColor;
     pane.view.layer.borderWidth = 2.5;
     __weak SCPCarPane *weakPane = pane;

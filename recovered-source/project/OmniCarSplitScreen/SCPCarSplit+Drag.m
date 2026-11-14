@@ -104,10 +104,10 @@ void SCPStyleGhostIcon(UIImageView *imageView) {
     SCPStyleDragGhost(ghost, 16.0);                                     // @0x271e4
     ghost.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.92];
     ghost.layer.borderColor =
-        [UIColor colorWithRed:0.6078431372549019
-                        green:0.5294117647058824
-                         blue:0.9725490196078431
-                        alpha:1.0].CGColor;
+        [UIColor colorWithRed:0.3803921568627451
+                        green:0.8509803921568627
+                         blue:0.9490196078431372
+                        alpha:1.0].CGColor; // APEX accent #61D9F2
     ghost.layer.borderWidth = 1.5;
     ghost.userInteractionEnabled = NO;
 
@@ -163,10 +163,10 @@ void SCPStyleGhostIcon(UIImageView *imageView) {
         if (p.slot == target) {
             p.view.layer.borderWidth = 3.0;
             p.view.layer.borderColor =
-                [UIColor colorWithRed:0.6078431372549019
-                                green:0.5294117647058824
-                                 blue:0.9725490196078431
-                                alpha:1.0].CGColor;
+                [UIColor colorWithRed:0.3803921568627451
+                                green:0.8509803921568627
+                                 blue:0.9490196078431372
+                                alpha:1.0].CGColor; // APEX accent #61D9F2
         } else {
             p.view.layer.borderWidth = 0;                                // INFERRED
         }
