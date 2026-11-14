@@ -135,8 +135,13 @@ assert "thermalWarningWindow" in dock
 assert "return nil; // cannot intercept app" in dock
 assert "DCFVPassHitTest" in clock
 assert '@"⚠️ CẢNH BÁO NHIỆT ĐỘ' in clock and '@"⚠️ CẢNH BÁO NHIỆT ĐỘ' in dock
-assert 'width = fmin(208.0,usableWidth)' in clock
-assert 'timeWidth = MIN(74.0' in clock
+assert 'width = fmin(180.0,usableWidth)' in clock
+assert 'width < 148.0' in clock
+assert 'timeWidth = MIN(74.0' not in clock
+assert 'layoutCompactTimeBattery' in clock
+assert 'clock.textAlignment = NSTextAlignmentRight;' in clock
+assert 'metrics.textAlignment = NSTextAlignmentLeft;' in clock
+assert 'CGFloat pinLeft=CGRectGetMaxX(self.timeLabel.frame);' in clock
 assert '@"🔋%@ 🌡%@"' in clock
 assert "SCPFullscreenStateExpanded" in clock
 assert 'temperatureUnitsVerified": @NO' in (project/"OMCCommon/OMCDeviceVitals.m").read_text()

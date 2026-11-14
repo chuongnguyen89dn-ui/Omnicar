@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL56: corrected clock-to-pin visible spacing
+- Found fixed 74pt clock slot in DC55 despite reducing bubble to 208pt. HL56 source narrows it to 180pt and measures actual local-time text, aligns time right / battery left with adjacent frames. Scoped change only to fullscreen clock view + test; **NOT BUILT / NOT device-proven**. [Checkpoint](HL56_DC55_DEVICE_REGRESSIONS_SOURCE_ROOT_CAUSE_20261114.md).
+
+
 ## 2026-11-14 — HL56: DC55 test xe FAIL; truy nguyên Waze/VietMap, kéo lần đầu và Lề dưới hosted
 - Nguyen xác nhận **Lề master ON/OFF đạt**, nhưng menu Lề hiện VietMap dù CarPlay vẫn lấy Waze; bubble bị che dưới hosted, lần kết nối đầu không kéo/cặp mép được. Soát LePrefs arm64 thực: original đọc qua `NSHomeDirectory()` của DuoCar iPhone app, khác JSON canon của SpringBoard → stale/default; DC55 chỉ broker GHI. Mã HL56 đã thêm canonical READ CRC+nonce owner, hydrate LePrefs trước mở UI, chặn mặc định VietMap và bảo vệ Waze; bỏ ép windowLevel, tái gọi vendor -place khi hosted window thay, reset pan khi lần đầu attach lỗi, giữ master ON/OFF. Source commits `0dd7d660` → `36b96c52`; **CHƯA CI/build/DEVICE PASS**. [Biên bản HL56](HL56_DC55_DEVICE_REGRESSIONS_SOURCE_ROOT_CAUSE_20261114.md).
 

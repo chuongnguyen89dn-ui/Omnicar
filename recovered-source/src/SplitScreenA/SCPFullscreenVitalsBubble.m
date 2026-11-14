@@ -268,6 +268,21 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         }
     }
 }
+// [hl56-clock-tight] No fixed 74pt clock column; size to actual
+// short-format time for locale, then begin battery at the same x boundary.
+- (void)layoutCompactTimeBattery {
+    if(!self.pill || !self.timeLabel || !self.metricsLabel)return;
+    CGSize bounds=self.pill.bounds.size;
+    NSString *value=self.timeLabel.text.length?self.timeLabel.text:
+        [[self systemClockFormatter] stringFromDate:[NSDate date]];
+    NSDictionary *attrs=@{NSFontAttributeName:self.timeLabel.font};
+    CGFloat ideal=ceil([value sizeWithAttributes:attrs].width)+1.0;
+    CGFloat timeWidth=MAX(26.0,MIN(ideal,floor(bounds.width*0.46)));
+    self.timeLabel.frame=CGRectMake(6.0,0.0,timeWidth,bounds.height);
+    CGFloat pinLeft=CGRectGetMaxX(self.timeLabel.frame);
+    self.metricsLabel.frame=CGRectMake(pinLeft,0.0,
+                     MAX(1.0,bounds.width-pinLeft-6.0),bounds.height);
+}
 - (void)tick {
     if (!self.pill || ![self fullscreenValidForParent:self.parent]) {
         [self stop];
@@ -317,6 +332,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
             self.lastSample[@"temperatureSource"] ?: @"unknown",
             self.lastSample[@"thermalState"] ?: @"unknown"]);
     }
+    [self layoutCompactTimeBattery];
 }
 // The free-area owner is the overlay's CarPlay window, NOT split.container.
 // Its bounds cover native and hosted apps even while they occupy the host.
@@ -345,9 +361,9 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
     // Do not reject a physically usable window just because its LEFT safe
     // inset was not represented by the older top-right C placement API.
     double usableWidth = r.w - safe.left - safe.right - 2.0*DCFVMargin;
-    // [hl55-clock] compact: no dead space between time and battery.
-    double width = fmin(208.0,usableWidth);
-    if (!isfinite(width) || width < 198.0) return NO;
+    // [hl56-clock-tight] shorter body; time-to-pin is measured at runtime.
+    double width = fmin(180.0,usableWidth);
+    if (!isfinite(width) || width < 148.0) return NO;
     SCPVitalsPoint fit = SCPVitalsBubbleEdgeCenter(
         r,safe,width,initial.frame.h,DCFVMargin,NO,0.0);
     if (!isfinite(fit.x) || !isfinite(fit.y)) return NO;
@@ -491,13 +507,13 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
         clock.textColor = UIColor.whiteColor;
         clock.adjustsFontSizeToFitWidth = YES;
         clock.minimumScaleFactor = 0.67;
-        clock.textAlignment = NSTextAlignmentCenter;
+        clock.textAlignment = NSTextAlignmentRight;
         UILabel *metrics = [[UILabel alloc] initWithFrame:CGRectZero];
         metrics.font = [UIFont systemFontOfSize:10.0 weight:UIFontWeightMedium];
         metrics.textColor = UIColor.whiteColor;
         metrics.adjustsFontSizeToFitWidth = YES;
         metrics.minimumScaleFactor = 0.62;
-        metrics.textAlignment = NSTextAlignmentCenter;
+        metrics.textAlignment = NSTextAlignmentLeft;
         [pill addSubview:clock];
         [pill addSubview:metrics];
         UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]
@@ -541,11 +557,7 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
     }
     self.overlayWindow.hidden = NO;
     self.pill.alpha = 1.0;
-    CGFloat timeWidth = MIN(74.0,floor(size.width*0.36));
-    self.timeLabel.frame = CGRectMake(8.0,0.0,timeWidth,size.height);
-    self.metricsLabel.frame = CGRectMake(8.0+timeWidth,0.0,
-                                           MAX(1.0,size.width-timeWidth-12.0),
-                                           size.height);
+    [self layoutCompactTimeBattery];
     if (created) [self tick];
 }
 @end
