@@ -53,7 +53,7 @@ static id DCLDecode(NSUInteger key, NSUInteger raw) {
     if(DCLIsScale(key)) return raw>=50&&raw<=200?@((double)raw/100.0):nil;
     if(DCLIsPercent(key)) return raw<=100?@((double)raw/100.0):nil;
     if(key==13) return raw<=31?@(raw):nil;
-    if(key==27) return raw<=10?@((NSInteger)raw-5):nil;
+    if(key==27) return raw<=20?@((NSInteger)raw-10):nil;
     if(key==29) return raw<120?@(raw):nil;
     return nil;
 }
@@ -66,7 +66,7 @@ static NSUInteger DCLEncode(NSUInteger key,id obj) {
     if(DCLIsScale(key))return (NSUInteger)MAX(50,MIN(200,lround([obj doubleValue]*100)));
     if(DCLIsPercent(key))return (NSUInteger)MAX(0,MIN(100,lround([obj doubleValue]*100)));
     if(key==13)return [obj unsignedIntegerValue]&31;
-    if(key==27)return (NSUInteger)MAX(0,MIN(10,[obj integerValue]+5));
+    if(key==27)return (NSUInteger)MAX(0,MIN(20,[obj integerValue]+10));
     if(key==29)return (NSUInteger)MAX(0,MIN(119,[obj integerValue]));
     return 0;
 }
