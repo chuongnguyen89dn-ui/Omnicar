@@ -4,10 +4,12 @@
 #import "OMCDeviceVitals.h"
 #import "SCPShared.h"
 #import "SCPVitalsPlacement.h"
+#import "SCPThermalAlarm.h" // [hl55] 39C threshold + hysteresis
 #import "SCPFullscreenController.h" // [hl47] hide dock HUD in fullscreen
 #import <CoreGraphics/CoreGraphics.h>
 #import <math.h>
 #import <objc/message.h>
+#import <objc/runtime.h>
 
 @interface SCPDeviceVitalsHUD ()
 @property(nonatomic,weak) UIView *host;
@@ -17,6 +19,8 @@
 @property(nonatomic) BOOL horizontal;
 @property(nonatomic) BOOL compactBattery;
 @property(nonatomic) BOOL noSpaceLogged;
+@property(nonatomic) SCPThermalAlarmState thermalGate;
+@property(nonatomic,strong) UIWindow *thermalWarningWindow;
 @end
 
 @implementation SCPDeviceVitalsHUD
@@ -26,6 +30,88 @@
     static dispatch_once_t once;
     dispatch_once(&once, ^{ instance = [SCPDeviceVitalsHUD new]; });
     return instance;
+}
+
+// [hl55-thermal] Independent split-mode alert uses a CarPlay display
+// root window and PASS-THROUGH hit-test. The fullscreen branch uses the
+// existing clock bubble window and its own 39C alert instead.
+- (instancetype)init {
+    if((self=[super init]))_thermalGate=(SCPThermalAlarmState){.armed=1};
+    return self;
+}
+static UIView *SCPRedAlertHitTest(UIWindow *window,SEL cmd,CGPoint point,UIEvent *event) {
+    (void)window;(void)cmd;(void)point;(void)event;
+    return nil; // cannot intercept app, picker, Dock or emergency controls
+}
+- (void)showThermalWarningInParent:(UIView *)parent temperature:(double)degrees {
+    UIWindow *host=parent.window;
+    UIScreen *screen=host.screen;
+    if(!screen || !isfinite(degrees) || self.thermalWarningWindow)return;
+    id config=nil;
+    SEL displaySel=NSSelectorFromString(@"displayConfiguration");
+    if([screen respondsToSelector:displaySel])
+        config=((id (*)(id,SEL))objc_msgSend)(screen,displaySel);
+    if(!config) {
+        SEL sel=NSSelectorFromString(@"_display");
+        id display=[screen respondsToSelector:sel]
+            ? ((id (*)(id,SEL))objc_msgSend)(screen,sel):nil;
+        Class c=objc_getClass("FBSDisplayConfiguration");
+        SEL init=NSSelectorFromString(@"initWithCADisplay:isMainDisplay:");
+        id fresh=c?[c alloc]:nil;
+        if(display && [fresh respondsToSelector:init])
+            config=((id (*)(id,SEL,id,BOOL))objc_msgSend)(fresh,init,display,NO);
+    }
+    Class root=objc_getClass("UIRootSceneWindow");
+    SEL sel=NSSelectorFromString(@"initWithDisplayConfiguration:");
+    id candidate=root?[root alloc]:nil;
+    UIWindow *win=(config && [candidate respondsToSelector:sel])
+        ? ((id (*)(id,SEL,id))objc_msgSend)(candidate,sel,config):nil;
+    if(![win isKindOfClass:UIWindow.class]){
+        OMCLogWrite(@"SplitScreen",@"[hl55-thermal] split alert window unavailable");
+        return;
+    }
+    Class existing=object_getClass(win);
+    Class pass=objc_getClass("SCPThermalPassThroughWindow");
+    if(!pass) {
+        pass=objc_allocateClassPair(existing,"SCPThermalPassThroughWindow",0);
+        Method original=class_getInstanceMethod(existing,@selector(hitTest:withEvent:));
+        if(!pass || !original || !class_addMethod(pass,@selector(hitTest:withEvent:),
+                 (IMP)SCPRedAlertHitTest,method_getTypeEncoding(original))){
+            OMCLogWrite(@"SplitScreen",@"[hl55-thermal] pass-through ABI unavailable");
+            return;
+        }
+        objc_registerClassPair(pass);
+    }
+    object_setClass(win,pass);
+    win.windowLevel=UIWindowLevelStatusBar+62.0;
+    win.backgroundColor=UIColor.clearColor;
+    UIView *curtain=[[UIView alloc] initWithFrame:win.bounds];
+    curtain.backgroundColor=[UIColor colorWithRed:0.87 green:0.03 blue:0.07 alpha:0.87];
+    curtain.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    curtain.userInteractionEnabled=NO;
+    UILabel *text=[[UILabel alloc] initWithFrame:CGRectInset(curtain.bounds,20,16)];
+    text.font=[UIFont boldSystemFontOfSize:26];
+    text.textColor=UIColor.whiteColor;
+    text.textAlignment=NSTextAlignmentCenter;
+    text.numberOfLines=0;
+    text.adjustsFontSizeToFitWidth=YES;
+    text.minimumScaleFactor=0.7;
+    text.userInteractionEnabled=NO;
+    text.autoresizingMask=UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    text.text=[NSString stringWithFormat:
+       @"⚠️ CẢNH BÁO NHIỆT ĐỘ\nPIN IPHONE ~%.1f°C\nNhiệt độ cao — kiểm tra thiết bị",
+       degrees];
+    [curtain addSubview:text];[win addSubview:curtain];
+    self.thermalWarningWindow=win;win.hidden=NO;
+    OMCLogWrite(@"SplitScreen",[NSString stringWithFormat:
+       @"[hl55-thermal] SPLIT red warning battery=%.2f 39C 5s passthrough",degrees]);
+    __weak typeof(self) weakSelf=self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(5*NSEC_PER_SEC)),
+        dispatch_get_main_queue(),^{
+            SCPDeviceVitalsHUD *owner=weakSelf;
+            owner.thermalWarningWindow.hidden=YES;
+            owner.thermalWarningWindow=nil;
+        });
 }
 
 // Untrusted UIKit geometry is converted only after validating that both
@@ -41,6 +127,8 @@ static BOOL SCPVitalsFiniteRect(CGRect r) {
         dispatch_async(dispatch_get_main_queue(), ^{ [self stop]; });
         return;
     }
+    self.thermalWarningWindow.hidden=YES;
+    self.thermalWarningWindow=nil;
     if (self.panel) OMCLogWrite(@"SplitScreen", @"[vitals] car HUD detached");
     [self.timer invalidate];
     self.timer = nil;
@@ -59,6 +147,12 @@ static BOOL SCPVitalsFiniteRect(CGRect r) {
         ? sample[@"batteryPercent"] : nil;
     NSNumber *temp = [sample[@"temperatureCelsius"] isKindOfClass:NSNumber.class]
         ? sample[@"temperatureCelsius"] : nil;
+    BOOL batterySource=[sample[@"temperatureKind"] isEqualToString:@"battery"];
+    BOOL validForAlarm=batterySource && temp!=nil;
+    if(SCPThermalAlarmStep(&_thermalGate,
+            validForAlarm?temp.doubleValue:NAN,validForAlarm,
+            NSDate.date.timeIntervalSince1970))
+        [self showThermalWarningInParent:self.host temperature:temp.doubleValue];
     NSString *batteryText = battery
         ? [NSString stringWithFormat:@"%ld%%", (long)battery.integerValue] : @"—";
     NSString *heatText = temp
