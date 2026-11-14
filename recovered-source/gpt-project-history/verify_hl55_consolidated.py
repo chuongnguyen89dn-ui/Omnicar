@@ -40,6 +40,10 @@ dock=files["OmniCarSplitScreen/SCPDeviceVitalsHUD.m"]
 geometry=files["OmniCarLeTraffic/DCLTrafficCore.c"]
 thermal=files["OmniCarSplitScreen/SCPThermalAlarm.h"]
 client=(project/"OmniCarApp/DCLLeOriginalStoreClient.m").read_text()
+assert (project/"OmniCarApp/DCLLeStoreWire.h").read_bytes()==(project/"OmniCarLeExtension/DCLLeStoreWire.h").read_bytes()
+assert (src/"App/DCLLeStoreWire.h").read_bytes()==(project/"OmniCarApp/DCLLeStoreWire.h").read_bytes()
+assert '#import "DCLLeStoreWire.h"' in client
+assert "../OmniCarLeExtension/DCLLeStoreWire.h" not in client
 appMake=(project/"OmniCarApp/Makefile").read_text()
 extMake=(project/"OmniCarLeExtension/Makefile").read_text()
 fs=(project/"OmniCarSplitScreen/SCPFullscreenController.m").read_bytes()

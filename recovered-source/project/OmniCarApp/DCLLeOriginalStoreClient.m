@@ -1,5 +1,5 @@
 #import "DCLLeOriginalStoreClient.h"
-#import "../OmniCarLeExtension/DCLLeStoreWire.h"
+#import "DCLLeStoreWire.h" // local exact mirror; safe after source rebrand
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <dlfcn.h>
