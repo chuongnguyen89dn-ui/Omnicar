@@ -2732,8 +2732,11 @@ static void SCPStyleSoloIconView(UIImageView *view) {
     self.lastBridgeTapBundle = record;
     self.lastBridgeTapAt = now;
     if (doubleTap) {
+        [self scpRadialDismiss]; // [G2-radial hunk2] a wheel opened by the first tap must not survive the double-tap zoom
         if (pane == self.floatPane) [self toggleFloatSize];
         else [self toggleZoomForPane:pane];
+    } else if (SCPRadialEnabled()) { // [G2-radial hunk2]
+        [self scpRadialToggleForPane:pane];
     } else {
         [self setBarVisible:pane.bar.isHidden forPane:pane];
     }
