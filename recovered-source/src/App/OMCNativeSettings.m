@@ -517,8 +517,8 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(OMCText(@"Cài đặt Lề (giao diện gốc)",
                            @"Original Lề settings"),
                    @"leOriginal", nil, nil, nil),
-            OMCRow(OMCText(@"Tùy chỉnh thêm: GPS ±5, kéo tự do",
-                           @"DuoCar extras: GPS ±5, free drag"),
+            OMCRow(OMCText(@"Tùy chỉnh thêm: GPS ±10, kéo tự do",
+                           @"DuoCar extras: GPS ±10, free drag"),
                    @"leCompat", nil, nil, nil)
         ])
     ];
