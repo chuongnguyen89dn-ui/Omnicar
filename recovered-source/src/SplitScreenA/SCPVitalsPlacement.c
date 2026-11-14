@@ -170,3 +170,50 @@ int SCPVitalsBubbleNearestLeft(SCPVitalsRect bounds, double centerX) {
     return ok(bounds) && isfinite(centerX) &&
            centerX < bounds.x + bounds.w * 0.5;
 }
+
+// [hl54-clock-edge] Snap only NEAR a safe side; center release remains
+// free. The scaled snap radius preserves free area on compact displays.
+int SCPVitalsBubbleSelectDockPosition(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    double snapThreshold, SCPVitalsPoint dropped,
+    SCPVitalsBubbleDockPosition *position, SCPVitalsPoint *target) {
+    double minX,maxX,minY,maxY;
+    if (!position || !target || !isfinite(dropped.x) || !isfinite(dropped.y) ||
+        !isfinite(snapThreshold) || snapThreshold < 0 ||
+        !bubbleRange(bounds,safe,width,height,margin,&minX,&maxX,&minY,&maxY))
+        return 0;
+    SCPVitalsPoint clamped = {bubbleClamp(dropped.x,minX,maxX),
+                              bubbleClamp(dropped.y,minY,maxY)};
+    double span = maxX-minX;
+    double edgeDistance = fmin(snapThreshold,span*0.24);
+    double fromLeft = clamped.x-minX;
+    double fromRight = maxX-clamped.x;
+    int docked = fromLeft<=edgeDistance || fromRight<=edgeDistance;
+    int left = fromLeft<=fromRight;
+    if (docked) clamped.x=left?minX:maxX;
+    *position=(SCPVitalsBubbleDockPosition){
+        span>0?(clamped.x-minX)/span:0.5,
+        maxY>minY?(clamped.y-minY)/(maxY-minY):0.5,
+        docked,left
+    };
+    *target=clamped;
+    return 1;
+}
+int SCPVitalsBubbleRestoreDockPosition(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    SCPVitalsBubbleDockPosition position, SCPVitalsPoint *target) {
+    double minX,maxX,minY,maxY;
+    if (!target || (position.docked!=0 && position.docked!=1) ||
+        (position.leftEdge!=0 && position.leftEdge!=1) ||
+        !isfinite(position.normalizedX) || !isfinite(position.normalizedY) ||
+        position.normalizedX<0 || position.normalizedX>1 ||
+        position.normalizedY<0 || position.normalizedY>1 ||
+        !bubbleRange(bounds,safe,width,height,margin,&minX,&maxX,&minY,&maxY))
+        return 0;
+    *target=(SCPVitalsPoint){
+        position.docked?(position.leftEdge?minX:maxX):
+            minX+position.normalizedX*(maxX-minX),
+        minY+position.normalizedY*(maxY-minY)
+    };
+    return isfinite(target->x) && isfinite(target->y);
+}

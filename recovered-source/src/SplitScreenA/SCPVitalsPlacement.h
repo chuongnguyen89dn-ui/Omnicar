@@ -43,4 +43,18 @@ double SCPVitalsBubbleRelativeY(SCPVitalsRect bounds,
     SCPVitalsSafeInsets safe, double width, double height, double margin,
     double centerY);
 int SCPVitalsBubbleNearestLeft(SCPVitalsRect bounds, double centerX);
+
+// [hl54-clock-edge] Both freely placed and edge-docked positions share the
+// exact same native CarPlay hit surface and bounded screen coordinate space.
+typedef struct {
+    double normalizedX, normalizedY;
+    int docked, leftEdge;
+} SCPVitalsBubbleDockPosition;
+int SCPVitalsBubbleSelectDockPosition(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    double snapThreshold, SCPVitalsPoint dropped,
+    SCPVitalsBubbleDockPosition *position, SCPVitalsPoint *target);
+int SCPVitalsBubbleRestoreDockPosition(SCPVitalsRect bounds,
+    SCPVitalsSafeInsets safe, double width, double height, double margin,
+    SCPVitalsBubbleDockPosition position, SCPVitalsPoint *target);
 #endif
