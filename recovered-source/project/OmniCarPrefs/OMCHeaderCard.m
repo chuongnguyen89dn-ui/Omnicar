@@ -26,12 +26,13 @@
     _clip.clipsToBounds = YES;
     [_card addSubview:_clip];
 
-    // Diagonal brand gradient (hex constants VERIFIED in the disassembly;
-    // same palette family as _OMCIcon: #B7A6FF / #8B7CFF / #8FD3FF / #9DF2D8).
+    // Diagonal brand gradient (original hex constants VERIFIED in the
+    // disassembly: #B7A6FF / #8FD3FF / #9DF2D8 — APEX V2 retune below to the
+    // titanium/graphite family of the GPT design pack).
     _gradient = [CAGradientLayer layer];
-    _gradient.colors = @[(__bridge id)OMCColorFromHex(@"#B7A6FF").CGColor,
-                         (__bridge id)OMCColorFromHex(@"#8FD3FF").CGColor,
-                         (__bridge id)OMCColorFromHex(@"#9DF2D8").CGColor];
+    _gradient.colors = @[(__bridge id)OMCColorFromHex(@"#344C59").CGColor,
+                         (__bridge id)OMCColorFromHex(@"#1B2A34").CGColor,
+                         (__bridge id)OMCColorFromHex(@"#0A1218").CGColor];
     _gradient.startPoint = CGPointMake(0, 0);
     _gradient.endPoint = CGPointMake(1, 1);
     [_clip.layer addSublayer:_gradient];
@@ -52,18 +53,19 @@
 
     _nameLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     _nameLabel.text = @"OmniCar";
+    _nameLabel.textColor = OMCColorFromHex(@"#EAF6FB");
     _nameLabel.font = [UIFont systemFontOfSize:22 weight:UIFontWeightBold];
     [_clip addSubview:_nameLabel];
 
     _versionLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     _versionLabel.text = @"1.0.3";
     _versionLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightMedium];
-    _versionLabel.textColor = [UIColor secondaryLabelColor];
+    _versionLabel.textColor = OMCColorFromHex(@"#93AAB8");
     [_clip addSubview:_versionLabel];
 
     _taglineLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     _taglineLabel.font = [UIFont systemFontOfSize:13];
-    _taglineLabel.textColor = [UIColor secondaryLabelColor];
+    _taglineLabel.textColor = OMCColorFromHex(@"#93AAB8");
     [_clip addSubview:_taglineLabel];
 
     _dot = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 8, 8)];
@@ -71,6 +73,7 @@
     [_clip addSubview:_dot];
 
     _statusLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+    _statusLabel.textColor = OMCColorFromHex(@"#EAF6FB");
     _statusLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
     [_clip addSubview:_statusLabel];
 
@@ -86,7 +89,7 @@
     self.taglineLabel.text = tagline;
     self.statusLabel.text = status;
     [self.toggle setOn:enabled];
-    self.dot.backgroundColor = enabled ? [UIColor systemGreenColor] : [UIColor tertiaryLabelColor];
+    self.dot.backgroundColor = enabled ? OMCColorFromHex(@"#2EA6BB") : [UIColor tertiaryLabelColor];
     self.card.layer.shadowOpacity = enabled ? 0.22f : 0.10f;
     [self setNeedsLayout];
 }
