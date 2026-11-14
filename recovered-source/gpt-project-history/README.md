@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL55 đang tích hợp đủ lỗi trước khi một DEB
+- Nguyen yêu cầu **không build dở dang**. Đã lưu source cho snap/free Lề, visibility switch thật, original LePrefs owner-broker, window probe/layer cho YouTube, thu ngắn bubble giờ–pin–nhiệt và cảnh báo pin ~39°C toàn màn ở split/fullscreen. Commits \`e0462c88\` → \`d41c2b16\` trên nhánh HL54. **CHƯA build/ký DEB mới, CHƯA device pass**. Nguồn Lề chỉ có evidence cảnh báo đỏ **vượt tốc**, không chứng minh bản gốc có cảnh báo 39°C; logic 39°C của DuoCar riêng. Cổng còn: source gates, host C tests, broker/ABI, one DEB final, device test. [Checkpoint chính](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
+
+
 ## 2026-11-14 — HL54: DuoCar54 DEB FAT built, source QA + final 20/20 Mach-O signed/no km/h
 - Build on branch feature/duocar-hl54-le-original-integrity-20261114 commit \`6c0c4d48\`, GitHub Actions run **43534370456** SUCCESS, artifact **14089327077** \`DuoCar54.deb\` v\`1.0.3-le0247\`, **2,360,612 bytes**, SHA256 \`8d4c95b46aed2e45713cc0d4aaa21950285593ac01a4c44586d312ce47956ef7\`. Verified extracted DEB: Lề 10 executables × arm64/arm64e each signed, **NO UTF-8/UTF-16LE km/h**. Clock near-edge/free + GPS ±10 code compiled in CI. Workflow restored manual-only; **NOT device-proven**; Lề save/ON-OFF/YouTube layer/Lề snap remains open. [HL54 checkpoint](HL54_LE_ORIGINAL_SAVE_AND_LAYER_FORENSIC_20261114.md).
 
