@@ -28,6 +28,15 @@ static BOOL dragging=NO, applying=NO, hasStored=NO;
 static DCLTrafficPoint stored={0.5,0.5};
 static __weak UIView *dragTarget;
 static __weak id dragOwner;
+// [hl55-le] The original pan recognizer remains the ONLY recognizer.
+static DCLTrafficPoint beforeDrag={0.5,0.5};
+static BOOL beforeDragSaved=NO;
+static __weak id DCLLastOverlayOwner;
+static __weak id DCLLastCastOwner;
+static CGRect DCLLastCastRect;
+static __weak UIWindow *DCLHiddenByDuoCar;
+static BOOL DCLBeforeHidden=NO,DCLBeforeInteractive=YES;
+static NSTimeInterval DCLLastWindowProbe=0;
 
 static id pref(NSString *key) {
     CFStringRef domain=(__bridge CFStringRef)DCLDomain;
@@ -156,7 +165,7 @@ static BOOL DCLLeNormalizedSurface(UIView *surface,DCLTrafficPoint *out) {
     if(!out||!DCLLeScreenGeometry(surface,&r,&safe)||
        !DCLLeScreenCenter(surface,&c))return NO;
     return DCLTrafficNormalizeCenter(r,safe,
-              surface.bounds.size.width,surface.bounds.size.height,6.0,
+              surface.bounds.size.width,surface.bounds.size.height,0.0,
               (DCLTrafficPoint){c.x,c.y},out);
 }
 static void applyCenter(id owner,DCLTrafficPoint normalized) {
@@ -166,7 +175,7 @@ static void applyCenter(id owner,DCLTrafficPoint normalized) {
     if(!surface||!DCLLeScreenGeometry(surface,&rect,&safe))return;
     DCLTrafficPoint center;
     if(!DCLTrafficRestoreCenter(rect,safe,surface.bounds.size.width,
-           surface.bounds.size.height,6.0,normalized,&center))return;
+           surface.bounds.size.height,0.0,normalized,&center))return;
     DCLLeSetScreenCenter(surface,CGPointMake(center.x,center.y));
 }
 static void enforce(id owner) {
@@ -204,6 +213,7 @@ static void freePan(id owner,UIPanGestureRecognizer *gesture) {
     UIGestureRecognizerState state=gesture.state;
     if(state==UIGestureRecognizerStateBegan) {
         dragging=YES;dragOwner=owner;dragTarget=surface;
+        beforeDrag=stored;beforeDragSaved=hasStored;
         objc_setAssociatedObject(owner,&DCLDragDeltaKey,
             [NSValue valueWithCGPoint:CGPointMake(current.x-touch.x,
                                                   current.y-touch.y)],
@@ -219,7 +229,7 @@ static void freePan(id owner,UIPanGestureRecognizer *gesture) {
         CGPoint delta=value.CGPointValue;
         DCLTrafficPoint bounded;
         if(DCLTrafficClampCenter(rect,safe,surface.bounds.size.width,
-            surface.bounds.size.height,6.0,
+            surface.bounds.size.height,0.0,
             (DCLTrafficPoint){touch.x+delta.x,touch.y+delta.y},&bounded)) {
             if(DCLLeSetScreenCenter(surface,CGPointMake(bounded.x,bounded.y))) {
                 DCLTrafficPoint normal;
@@ -228,22 +238,40 @@ static void freePan(id owner,UIPanGestureRecognizer *gesture) {
                 }
             }
         }
-    } else if(state==UIGestureRecognizerStateEnded ||
-              state==UIGestureRecognizerStateCancelled ||
-              state==UIGestureRecognizerStateFailed) {
-        // Lề may snap in its ORIGINAL end handler; our original was
-        // called before this addon. Restore the last free point after it.
+    } else if(state==UIGestureRecognizerStateEnded) {
         if(dragOwner==owner && hasStored) {
-            applyCenter(owner,stored);
-            saveStored(stored);
-            CGPoint finalPoint=CGPointZero;
-            DCLLeScreenCenter(DCLLeMoveSurface(owner),&finalPoint);
-            NSLog(@"[hl52-free-xy] END owner=%@ center=%@ screen=%@",
-                  NSStringFromClass([owner class]),
-                  NSStringFromCGPoint(finalPoint),NSStringFromCGRect(w.screen.bounds));
+            // The original -panned: may have already snapped to a corner.
+            // Select from the final FREE coordinate, not its overwritten view.
+            DCLTrafficPoint position={0},target={0};
+            int snapped=0;
+            BOOL ok=DCLTrafficRestoreCenter(rect,safe,surface.bounds.size.width,
+                        surface.bounds.size.height,0.0,stored,&position) &&
+                 DCLTrafficSnapWhenNearEdge(rect,safe,surface.bounds.size.width,
+                        surface.bounds.size.height,0.0,32.0,
+                        position,&target,&snapped);
+            DCLTrafficPoint normalized={0};
+            if(ok && DCLTrafficNormalizeCenter(rect,safe,surface.bounds.size.width,
+                    surface.bounds.size.height,0.0,target,&normalized)) {
+                applyCenter(owner,normalized);
+                saveStored(normalized);
+                NSLog(@"[hl55-le-edge] END snap=%d x=%.3f y=%.3f mover=%@ screen=%@",
+                      snapped,normalized.x,normalized.y,
+                      NSStringFromClass(surface.class),NSStringFromCGRect(w.screen.bounds));
+            } else {
+                NSLog(@"[hl55-le-edge] INVALID END geometry; no save");
+            }
         }
         dragging=NO;dragOwner=nil;dragTarget=nil;
         objc_setAssociatedObject(owner,&DCLDragDeltaKey,nil,OBJC_ASSOCIATION_ASSIGN);
+    } else if(state==UIGestureRecognizerStateCancelled ||
+              state==UIGestureRecognizerStateFailed) {
+        if(dragOwner==owner) {
+            stored=beforeDrag;hasStored=beforeDragSaved;
+            if(hasStored)applyCenter(owner,stored);
+        }
+        dragging=NO;dragOwner=nil;dragTarget=nil;
+        objc_setAssociatedObject(owner,&DCLDragDeltaKey,nil,OBJC_ASSOCIATION_ASSIGN);
+        NSLog(@"[hl55-le-edge] CANCEL no persisted state change");
     }
 }
 static void newOverlayPan(id o,SEL sel,UIPanGestureRecognizer *g) {
@@ -255,13 +283,61 @@ static void newCastPan(id o,SEL sel,UIPanGestureRecognizer *g) {
     if(originalCastPan)originalCastPan(o,sel,g);
     freePan(o,g);
 }
+// [hl55-le-window] Probe the real Lề-owned native window and host levels.
+// We deliberately avoid relocating CarPlayApp scenes and app containers.
+// The target level is below the measured picker tray (~1065), above hosted
+// TikTok/YouTube (~1060) only for compact original CWTrafficWindow.
+static BOOL DCLLeVendorEnabled(void) {
+    NSData *data=[NSData dataWithContentsOfFile:
+       @"/var/mobile/Library/Preferences/dev.bechou.le.bubble/layout-v1.json"];
+    NSDictionary *doc=[data isKindOfClass:NSData.class]
+        ?[NSJSONSerialization JSONObjectWithData:data options:0 error:nil]:nil;
+    id flag=[doc isKindOfClass:NSDictionary.class]?doc[@"bubbleEnabled"]:nil;
+    return [flag isKindOfClass:NSNumber.class]?[flag boolValue]:YES;
+}
+static void DCLLeWindowState(id owner,const char *stage) {
+    UIView *move=DCLLeMoveSurface(owner);
+    UIWindow *window=DCLLeWindowForView(move);
+    if(!window || !window.screen)return;
+    BOOL compact=DCLLeCompactVendorWindow(window);
+    if(compact && window.windowLevel<UIWindowLevelStatusBar+62.0)
+        window.windowLevel=UIWindowLevelStatusBar+62.0;
+    BOOL on=DCLLeVendorEnabled();
+    if(!on) {
+        if(DCLHiddenByDuoCar!=window) {
+            DCLHiddenByDuoCar=window;
+            DCLBeforeHidden=window.hidden;
+            DCLBeforeInteractive=window.userInteractionEnabled;
+        }
+        window.userInteractionEnabled=NO;
+        window.hidden=YES; // no invisible hit target
+    } else if(DCLHiddenByDuoCar==window) {
+        window.userInteractionEnabled=DCLBeforeInteractive;
+        window.hidden=DCLBeforeHidden;
+        DCLHiddenByDuoCar=nil;
+    }
+    NSTimeInterval now=NSDate.date.timeIntervalSince1970;
+    if(now-DCLLastWindowProbe>=8.0) {
+        DCLLastWindowProbe=now;
+        NSLog(@"[hl55-le-window] stage=%s enabled=%d owner=%@ moving=%@ class=%@ frame=%@ level=%.0f screen=%@ hidden=%d hit=%d compact=%d",
+            stage,on,NSStringFromClass([owner class]),
+            NSStringFromClass(move.class),NSStringFromClass(window.class),
+            NSStringFromCGRect(window.frame),(double)window.windowLevel,
+            NSStringFromCGRect(window.screen.bounds),window.hidden,
+            window.userInteractionEnabled,compact);
+    }
+}
 static void newOverlayPlace(id o,SEL sel) {
+    DCLLastOverlayOwner=o;
     if(originalOverlayPlace)originalOverlayPlace(o,sel);
     enforce(o);
+    DCLLeWindowState(o,"overlay");
 }
 static void newCastPlace(id o,SEL sel,CGRect frame) {
+    DCLLastCastOwner=o;DCLLastCastRect=frame;
     if(originalCastPlace)originalCastPlace(o,sel,frame);
     enforce(o);
+    DCLLeWindowState(o,"cast");
 }
 static id newContent(id cls,SEL sel,id snapshot) {
     id object=originalContent?originalContent(cls,sel,snapshot):nil;
@@ -348,6 +424,15 @@ __attribute__((constructor)) static void DCLLeBootstrap(void) {
         if(springboard)DCLLeConfigStartBridge();
         loadStored();
         install();
+        static int leNotify=-1;
+        notify_register_dispatch("dev.bechou.le.bubble.layout-changed",
+             &leNotify,dispatch_get_main_queue(),^(int token) {
+             (void)token;
+             if(DCLLastOverlayOwner)
+                 newOverlayPlace(DCLLastOverlayOwner,@selector(place));
+             if(DCLLastCastOwner)
+                 newCastPlace(DCLLastCastOwner,@selector(place:),DCLLastCastRect);
+        });
         __block NSUInteger tries=0;
         NSTimer *timer=[NSTimer timerWithTimeInterval:1 repeats:YES
          block:^(NSTimer *t) {
