@@ -1,3 +1,6 @@
+## 2026-11-14 — V3 P1: BẢN ĐỒ HUNK BL-01..BL-12 (Muse nộp, chờ duyệt thiết kế + master)
+- Theo giao việc GPT (#6877408566): Muse nộp [APEX_V3_P1_BAN_DO_HUNK_20261114.md](APEX_V3_P1_BAN_DO_HUNK_20261114.md) — đối chiếu 23 màn kit ↔ P0 ↔ source HEAD `8af9e78`, phủ đủ 12/12 BL ở mức file:method:dòng (BL-10/11/12 = 0 hunk: quyết định của Nguyen / giữ nguyên có bằng chứng / việc đo), 13 quyết định cần chốt D-01..D-13, 11 nhóm commit đề xuất cho P2. Chỉ tài liệu — không sửa code. Cổng P2 giữ nguyên: Nguyen duyệt hình bản cuối + master asset gốc lên repo.
+
 ## 2026-11-14 — V3 Purple Horizon review kit (GPT, 23 SVG screens)
 - Review-only handoff: [V3_PURPLE_HORIZON_DESIGN/README.md](V3_PURPLE_HORIZON_DESIGN/README.md), [SPEC](V3_PURPLE_HORIZON_DESIGN/SPEC_V3_DESIGN.txt), [MUSE map](V3_PURPLE_HORIZON_DESIGN/MUSE_HANDOFF.txt). Current repo assets: 23 lightweight SVGs + **lossy logo-D reference thumbnail**; original master PNG/ZIP remain in conversation and have not been transferred byte-for-byte. Nguyen visual approval **pending**; Muse preflight/source-hunk mapping only; no P2, CI, DEB or merge.
 
