@@ -1,0 +1,180 @@
+name: "DuoCar54 - Lề clean units + clock edge/free + GPS ±10 FAT"
+permissions:
+  contents: read
+on:
+  workflow_dispatch:
+
+
+jobs:
+  signed-fat:
+    runs-on: macos-15
+    timeout-minutes: 70
+    steps:
+      - name: Checkout exact HL54 source (workflow_dispatch only)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Fetch original Lề 0.2.4 package from main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: le-original
+          persist-credentials: false
+
+      - name: Verify source mirrors and regression gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/verify_hl53_source.py
+          sh recovered-source/gpt-project-history/test_hl53_pinch_direction.sh
+          python3 recovered-source/gpt-project-history/verify_hl43_shared_telex.py
+          sh recovered-source/gpt-project-history/test_le_traffic_core.sh
+
+      - name: HL54 clock edge/free and GPS ±10 source/C regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/verify_duocar_vitals_static.py
+          sh recovered-source/gpt-project-history/run_hl54_gps_tests.sh
+
+      - name: Confirm original OmniCar baseline reference (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s le-original/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb
+          echo "d9297b010cdc08e401439b7332413f79cb1a056a05159a5deb673e218d76d9fd  le-original/com.anlai.omnicar_1.0.3_iphoneos-arm64.deb" | shasum -a 256 -c -
+
+      - name: Verify exact original vendor source DEB
+        shell: bash
+        run: |
+          set -euo pipefail
+          LE=le-original/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb
+          test -s "$LE"
+          echo "98a234f404987d5958bc80a19e0ed62d34ca2b39d4ef6e798bfd3314e2cb4770  $LE" | shasum -a 256 -c -
+
+      - name: Restore iPhoneOS16.5 Theos SDK cache
+        uses: actions/cache@v4
+        id: cache-theos
+        with:
+          path: ~/theos
+          key: hl36-theos-ios16-5-${{ runner.os }}-${{ runner.arch }}-v1
+
+      - name: Install Theos and iPhoneOS SDK when cache is absent
+        if: steps.cache-theos.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$HOME/theos-sdks"
+          git -C "$HOME/theos-sdks" sparse-checkout set iPhoneOS16.5.sdk
+          mkdir -p "$HOME/theos/sdks"
+          cp -R "$HOME/theos-sdks/iPhoneOS16.5.sdk" "$HOME/theos/sdks/"
+
+      - name: Install signing tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew list ldid >/dev/null 2>&1 || brew install ldid
+          brew list dpkg >/dev/null 2>&1 || brew install dpkg
+          command -v ldid
+          command -v dpkg-deb
+          command -v lipo
+          command -v clang
+          command -v python3
+
+      - name: Run synthetic package regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/tests/test_le024_merge.py
+
+      - name: Normalize disposable macOS build options
+        shell: bash
+        run: |
+          set -euo pipefail
+          find recovered-source/project -type f -name Makefile -print0 |
+            xargs -0 grep -l -- '-fuse-ld=lld' | while IFS= read -r file; do
+              sed -i '' 's/-fuse-ld=lld//g' "$file"
+            done
+
+      - name: Rebrand source and REMOVE old SpeedBubble assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/rebrand_duocar_hl47.py
+          python3 recovered-source/gpt-project-history/strip_speedbubble_assets.py recovered-source/project
+
+      - name: Build and sign DuoCar54 with original split/pinch and updated clock/GPS
+        shell: bash
+        env:
+          ARCHS: "arm64 arm64e"
+          THEOS_PACKAGE_SCHEME: rootless
+        run: |
+          set -euo pipefail
+          export THEOS="$HOME/theos"
+          cd recovered-source/project
+          make clean ARCHS="arm64 arm64e"
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/duocar54-base.log
+          test -s packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb
+
+      - name: Build and sign Lề extension plus SpringBoard config bridge FAT
+        shell: bash
+        env:
+          ARCHS: "arm64 arm64e"
+          THEOS_PACKAGE_SCHEME: rootless
+        run: |
+          set -euo pipefail
+          export THEOS="$HOME/theos"
+          cd recovered-source/project/OmniCarLeExtension
+          make clean ARCHS="arm64 arm64e"
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/duocar54-ext.log
+          test -s packages/com.chuong.duocar.leextension_0.1.0_iphoneos-arm64.deb
+
+      - name: Merge signed DuoCar and original Lề 0.2.4 into one personal DEB
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          python3 recovered-source/gpt-project-history/merge_le024_personal_deb.py             --duocar recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb             --le le-original/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb             --extension recovered-source/project/OmniCarLeExtension/packages/com.chuong.duocar.leextension_0.1.0_iphoneos-arm64.deb             --output dist/DuoCar54-prepatch.deb --personal-use --version 1.0.3-le0241
+
+      - name: Strip all Lề km/h ASCII and UTF-16LE strings; re-sign every changed FAT Mach-O
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/patch_le024_speed_unit.py             --input dist/DuoCar54-prepatch.deb --output dist/DuoCar54.deb             --version 1.0.3-le0247
+
+      - name: Verify FINAL signed FAT, all Lề km/h absent, unchanged other vendor files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 recovered-source/gpt-project-history/verify_duocar53.py dist/DuoCar54.deb le-original/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb 1.0.3-le0247
+          dpkg-deb -f dist/DuoCar54.deb
+          shasum -a 256 dist/DuoCar54.deb
+
+      - name: Upload ONE DuoCar54.deb directly
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuoCar54
+          path: dist/DuoCar54.deb
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Preserve rejected final DEB for exact forensic inspection
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuoCar54-failed-binary
+          path: dist/DuoCar54.deb
+          if-no-files-found: ignore
+          retention-days: 3
+
+      - name: Preserve error logs when failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuoCar54-build-errors
+          path: |
+            /tmp/duocar54-base.log
+            /tmp/duocar54-ext.log
+          if-no-files-found: ignore
