@@ -135,16 +135,29 @@ assert "thermalWarningWindow" in dock
 assert "return nil; // cannot intercept app" in dock
 assert "DCFVPassHitTest" in clock
 assert '@"⚠️ CẢNH BÁO NHIỆT ĐỘ' in clock and '@"⚠️ CẢNH BÁO NHIỆT ĐỘ' in dock
-assert 'width = fmin(180.0,usableWidth)' in clock
-assert 'width < 148.0' in clock
-assert 'timeWidth = MIN(74.0' not in clock
-assert 'layoutCompactTimeBattery' in clock
-assert 'clock.textAlignment = NSTextAlignmentRight;' in clock
-assert 'metrics.textAlignment = NSTextAlignmentLeft;' in clock
-assert 'CGFloat pinLeft=CGRectGetMaxX(self.timeLabel.frame);' in clock
+# HL57 user requirement: top-left 1-row status exactly like Dock,
+# with NO bubble, NO backdrop, NO gestures and NO hit target.
+assert "statusFrameForOverlay" in clock and "[hl57-status] TOP-LEFT attached" in clock
+assert "status.backgroundColor=UIColor.clearColor;" in clock
+assert "status.userInteractionEnabled=NO;" in clock
+assert "clock.userInteractionEnabled=NO;" in clock
+assert "metrics.userInteractionEnabled=NO;" in clock
+assert "window.userInteractionEnabled = NO;" in clock
+assert "self.overlayWindow.userInteractionEnabled=NO;" in clock
+assert "CGFloat batteryX=CGRectGetMaxX(self.timeLabel.frame)+4.0;" in clock
+assert "status.layer.cornerRadius=0;" in clock
+assert "clock.font=[UIFont systemFontOfSize:10.0 weight:UIFontWeightSemibold];" in clock
+assert "metrics.font=[UIFont systemFontOfSize:10.0 weight:UIFontWeightSemibold];" in clock
+assert "curtain.userInteractionEnabled=NO;" in clock and "message.userInteractionEnabled=NO;" in clock
+windowHit=clock.split("static UIView *DCFVPassHitTest(",1)[1].split("// An ordinary UIWindow",1)[0]
+assert "return nil;" in windowHit and "objc_msgSendSuper" not in windowHit
+assert "UIPanGestureRecognizer" not in clock and "addGestureRecognizer:" not in clock
+assert "SCPVitalsBubbleSelectDockPosition" not in clock
+assert "SCPVitalsBubbleRestoreDockPosition" not in clock
+assert "DCFVEdgeKey" not in clock and "DCFVDockedKey" not in clock
 assert '@"🔋%@ 🌡%@"' in clock
 assert "SCPFullscreenStateExpanded" in clock
 assert 'temperatureUnitsVerified": @NO' in (project/"OMCCommon/OMCDeviceVitals.m").read_text()
 assert 'gpuTemperatureVerified": @NO' in (project/"OMCCommon/OMCDeviceVitals.m").read_text()
 assert "overspeedBlink" not in thermal and "overspeedExcess" not in thermal
-print("HL55_CONSOLIDATED_SOURCE_GATE_PASS mirrors=%d thermal39/store/bubble-onoff/edge/clock/pinch preserved (DEVICE NOT TESTED)"%len(mirror))
+print("HL55_CONSOLIDATED_SOURCE_GATE_PASS mirrors=%d thermal39/store/Le-edge/clock-static-all-touch-pass/pinch preserved (DEVICE NOT TESTED)"%len(mirror))

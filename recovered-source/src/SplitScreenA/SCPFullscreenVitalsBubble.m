@@ -174,10 +174,9 @@ static UIWindow *DCFVCreateCarPlayWindow(UIView *parent) {
             SCPFullscreenStateExpanded &&
         [OMCPref(@"duocarFullscreenVitalsEnabled",@YES) boolValue];
 }
-// [hl55-thermal] Red full-screen *visual* warning, non-interactive.
-// The same CarPlay UIRootSceneWindow owns both the draggable clock pill and
-// a temporary curtain. hitTest: remains pass-through outside the pill,
-// even while a high-temperature message is visible.
+// [hl57-status] Preserve the original full-screen 39C warning visuals.
+// Neither the full-screen curtain nor the top-left status intercepts touches;
+// the same passive CarPlay window always returns nil in hitTest:.
 - (void)updateThermalWarningWithSample:(NSDictionary *)sample now:(NSTimeInterval)now {
     if (!self.overlayWindow || !self.statusView) return;
     id candidate=sample[@"temperatureCelsius"];

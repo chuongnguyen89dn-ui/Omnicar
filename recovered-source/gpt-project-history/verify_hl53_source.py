@@ -126,12 +126,13 @@ for item in (bw,bw_src):
     assert "bwHostedPinchFallback = fallback ? [fallback boolValue] : YES;" in item
     assert "duocarHL51RestoreHL8HostPinch" not in item
 assert "SCPHostPinchObserve" in host
-# HL54 does not touch the fullscreen controller/engine; its bubble has a
-# new optional near-edge snap mode with persistent free X/Y.
+# HL57 replaces ONLY the fullscreen clock bubble with fixed, passive text.
+# The fullscreen controller/engine remains byte-pinned below.
 clock=(project/"OmniCarSplitScreen/SCPFullscreenVitalsBubble.m").read_text()
-assert "SCPVitalsBubbleSelectDockPosition" in clock
-assert "SCPVitalsBubbleRestoreDockPosition" in clock
-assert "DCFVDockedKey" in clock and "DCFVXKey" in clock
+assert "[hl57-status] TOP-LEFT attached" in clock
+assert "self.overlayWindow.userInteractionEnabled=NO;" in clock
+assert "status.userInteractionEnabled=NO;" in clock
+assert "UIPanGestureRecognizer" not in clock
 assert "BWPinchMode" in ab
 assert "SCPFullscreenAdapter" in (project/"OmniCarSplitScreen/SCPPinchController.m").read_text()
 assert (root/"gpt-project-history/tests/test_hl53_pinch_direction.c").is_file()
@@ -203,7 +204,7 @@ assert '[self enqueueKey:27 value:raw];' in app
 # These guard source only; correct UI pixels and device persistence still
 # require a new signed DEB plus a stopped-car test session.
 for p,expected in {
-    "OmniCarSplitScreen/SCPCarSplit+Picker.m":"54bb81ed63cedb36bc5a06931fcb998cba4eb761",
+    "OmniCarSplitScreen/SCPCarSplit+Picker.m":"96893a250275e576defb3f38751fd8aafafb1685",
     "OmniCarSplitScreen/SCPCarSplit.m":"6cf2fdd20eaac3680eac685b5f9d3b415efc4723",
     "OmniCarLeExtension/DCLLeConfigBridge.m":"9b94a6c882c2df10cda27d0ad719792abf52f5ea",
 }.items():
@@ -229,7 +230,12 @@ assert "[self.navigationController pushViewController:OMCLeOriginalPreferencesCo
 assert '@"leCompat"' in settings
 assert "OMCLeCompatiblePreferencesController()" in settings
 assert '@"Tùy chỉnh riêng DuoCar cho Lề"' in settings
-# No changes to menu, native fullscreen ENGINE, Dock/Le; only pinch transport changed.
+# HL57 restores native menu's original sheet face without changing scene,
+# picker gesture, Cancel/Choose, native fullscreen ENGINE or Dock/Le.
+assert "hl57OriginalOccupiedFace" in picker and "[hl57-native-menu]" in picker
+assert "SCPApplyMeshBackdrop(effectView)" in picker
+assert "hl51OriginalHostedFace" not in picker
+# The pinch transport and native fullscreen ENGINE remain unchanged.
 mk=(project/"OmniCarPrefs/Makefile").read_text()
 for forbidden in ("OMCSpeedBubbleController.m", "SPPBubbleView.m",
                   "SPPGlassView.m","SPPIconView.m","SPPSignView.m"):
@@ -259,7 +265,7 @@ assert "legacy-host.deb" in merge_fixture and "authentic LePrefs.bundle loader" 
 protected={
  "SCPPinchController.m":"a5e94145bb8fc56abc37140faac06ece7933b7d76bf46bb0eaa75c9e04e63d18",
  "SCPFullscreenController.m":"62a0703aefd8f41c416bc684ebcfd8dd2ce72f239cea5dcb212fa5dea1fc3932",
- # HL54 clock-bubble free+edge snap intentionally changed; geometry gate below.
+ # HL57 changes only the passive status view; fullscreen ENGINE stays pinned.
  "SCPCarSplit+Relayout.m":"831391349790159f91a3e19387c8b412da3b017585f39ba86465117c43274bc0",
 }
 for file,expected in protected.items():

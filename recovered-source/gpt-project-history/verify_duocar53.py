@@ -119,7 +119,10 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
         assert has_marker(data,"[hl49-window-ab]")
         assert has_marker(data,"[fs1]"),"fullscreen engine binary missing"
         assert has_marker(data,"[pinch2]"),"pinch recognizer binary missing"
-        assert has_marker(data,"[fs-vitals]"),"working fullscreen vitals bubble missing"
+        assert has_marker(data,"[fs-vitals]"),"vitals sampler marker missing"
+        assert has_marker(data,"[hl57-status]"),"top-left passive fullscreen status missing"
+        assert has_marker(data,"[hl57-native-menu]"),"native menu original sheet face missing"
+        assert has_marker(data,"pass=all"),"fullscreen status touch-pass-through absent"
         assert has_marker(data,"[hl55-thermal]"),"red 39C alert missing"
         assert has_marker(data,"CẢNH BÁO NHIỆT ĐỘ"),"thermal warning text missing"
         assert has_marker(data,"[hl50-menu]"),"scene-preserve path absent"

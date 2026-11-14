@@ -1,5 +1,9 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — HL57: HUD fullscreen không nhận chạm, hàng giờ–pin–nhiệt góc trái; menu native nguyên nền hosted
+- Nguyen thay thế thiết kế bubble tự do bằng status `giờ  🔋pin 🌡nhiệt` **một hàng cố định ở top-left**, chữ kiểu Dock, không nền, 4pt clock→pin; **window hitTest luôn nil**, tất cả UI/thermal con `userInteractionEnabled=NO`, không nhận tap/scroll/pinch; chỉ hiện khi fullscreen. Menu occupied native chuyển về original blur/mesh như hosted thay vì alpha 0.32 của HL49 gây lộ logo. Code commits `0852b159`, `99f72e88` + source gates/checkpoint. **CHƯA build/deb/DEVICE PASS**; giữ nguyên Lề HL56. [Biên bản HL57](HL57_FULLSCREEN_STATIC_STATUS_AND_NATIVE_MENU_20261114.md).
+
+
 ## 2026-11-14 — HL56: corrected clock-to-pin visible spacing
 - Found fixed 74pt clock slot in DC55 despite reducing bubble to 208pt. HL56 source narrows it to 180pt and measures actual local-time text, aligns time right / battery left with adjacent frames. Scoped change only to fullscreen clock view + test; **NOT BUILT / NOT device-proven**. [Checkpoint](HL56_DC55_DEVICE_REGRESSIONS_SOURCE_ROOT_CAUSE_20261114.md).
 
