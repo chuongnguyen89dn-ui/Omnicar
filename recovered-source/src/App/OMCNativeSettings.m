@@ -188,7 +188,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 @end
 
 @interface OMCNativeSimplePage : UITableViewController <UIImagePickerControllerDelegate,UINavigationControllerDelegate,UIDocumentPickerDelegate>
-@property(nonatomic) NSInteger kind; // 0 general, 1 split, 2 Home, 3 Bubble, 4 profiles
+@property(nonatomic) NSInteger kind; // 0 general, 1 split, 2 Home, 3 Bubble, 4 profiles, 5 device (phan cua 0), 6 customize (phan con lai cua 0)
 @property(nonatomic,strong) NSArray<NSDictionary *> *sections;
 @property(nonatomic,strong) UISwitch *masterSwitch;
 @property(nonatomic,strong) UILabel *masterStatus;
@@ -487,6 +487,32 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
             OMCRow(@"WN_ROW",@"whatsnew",nil,nil,nil)])];
         [sections addObject:OMCSection(OMCNativeLocalized(@"DEV_GROUP"),@[
             OMCRow(@"SEND_LOG",@"logs",nil,nil,nil)])];
+        if (self.kind==5 || self.kind==6) {
+            // APEX D5-B phan vung: Thiet bi = section chua khoa nhiet + hang leCompat;
+            // Tuy chinh = phan con lai. Nhan dien theo NOI DUNG hang, khong theo chi so
+            // (Rescue/Conflicts la section co dieu kien, lam lech chi so).
+            NSDictionary *deviceSection=nil; NSDictionary *leRow=nil;
+            for (NSDictionary *sec in sections) {
+                for (NSDictionary *row in sec[@"rows"]) {
+                    if ([row[@"key"] isEqualToString:@"duocarThermalTest37Enabled"]) deviceSection=sec;
+                    if ([row[@"type"] isEqualToString:@"leCompat"]) leRow=row;
+                }
+            }
+            if (self.kind==5) {
+                NSMutableArray *out=[NSMutableArray array];
+                if (deviceSection) [out addObject:deviceSection];
+                if (leRow) [out addObject:OMCSection(OMCText(@"Lề",@"Lề"),@[leRow])];
+                return out;
+            }
+            NSMutableArray *out=[NSMutableArray array];
+            for (NSDictionary *sec in sections) {
+                if (sec==deviceSection) continue;
+                NSMutableArray *rows=[NSMutableArray array];
+                for (NSDictionary *row in sec[@"rows"]) if (row!=leRow) [rows addObject:row];
+                if (rows.count) [out addObject:OMCSection(sec[@"header"],rows)];
+            }
+            return out;
+        }
         return sections;
     }
     if (self.kind==1) {
@@ -553,7 +579,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView.backgroundColor=OMCApexSurfaceRoot();
-    if (self.kind!=0)return;
+    if (self.kind!=0 && self.kind!=6)return; // APEX D5-B: the master o tab Tuy chinh
     // Original Prefs uses a 118pt header card with master switch, plus
     // independent language and Respring actions in the navigation bar.
     UIView *header=[[UIView alloc] initWithFrame:CGRectMake(0,0,
@@ -603,7 +629,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     NSLog(@"[hl27-settings] gate=original-root-cards feature-order=10,20,30");
 }
 - (void)refreshMasterCard {
-    if(self.kind!=0 || !self.masterSwitch)return;
+    if((self.kind!=0 && self.kind!=6) || !self.masterSwitch)return;
     BOOL enabled=[OMCNativePref(@"enabled",@YES) boolValue];
     [self.masterSwitch setOn:enabled animated:NO];
     self.masterStatus.text=[NSString stringWithFormat:@"%@ • %@",
@@ -672,7 +698,7 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     } else if ([type isEqualToString:@"car"]) {
         cell.detailTextLabel.text=[OMCNativePref(@"carProfileCurrent",@"") isEqual:key]
             ?@"✓":@"";
-    } else if (self.kind==0) {
+    } else if (self.kind==0 || self.kind==6) { // APEX D5-B: chi tiet trang thai feature o Tuy chinh
         NSString *featureKey=nil;
         if([type isEqualToString:@"startup"])featureKey=@"startupScreenEnabled";
         else if([type isEqualToString:@"bubble"]) {
