@@ -1,6 +1,7 @@
 // HL26: Startup screen's full 44-item plist is interpreted as UIKit rows.
 // Never instantiate PSListController, PSRootController or PSSpecifier in the iPhone app.
 #import "OMCNativeSettings.h"
+#import "OMCApexStyle.h"
 #import <AVFoundation/AVFoundation.h>
 #import <AVKit/AVKit.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
@@ -85,17 +86,18 @@ static NSArray *OMCStartupRandomSet(void) {
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.tableView.backgroundColor=OMCApexSurfaceRoot();
     UIView *header=[[UIView alloc] initWithFrame:CGRectMake(0,0,320,200)];
     UIImageView *img=[[UIImageView alloc] initWithFrame:CGRectMake(20,10,280,115)];
     img.contentMode=UIViewContentModeScaleAspectFit;
-    img.backgroundColor=[UIColor secondarySystemGroupedBackgroundColor];
+    img.backgroundColor=OMCApexSurface1();
     img.layer.cornerRadius=14;
     img.clipsToBounds=YES;
     img.autoresizingMask=UIViewAutoresizingFlexibleWidth;
     [header addSubview:img];self.previewImage=img;
     UILabel *label=[[UILabel alloc] initWithFrame:CGRectMake(22,10,270,115)];
     label.numberOfLines=3;label.textAlignment=NSTextAlignmentCenter;
-    label.textColor=[UIColor secondaryLabelColor];
+    label.textColor=OMCApexTextSecondary();
     label.font=[UIFont systemFontOfSize:17 weight:UIFontWeightMedium];
     label.autoresizingMask=UIViewAutoresizingFlexibleWidth;
     [header addSubview:label];self.previewLabel=label;
@@ -115,7 +117,10 @@ static NSArray *OMCStartupRandomSet(void) {
         b.titleLabel.font=[UIFont systemFontOfSize:12 weight:i==current?UIFontWeightBold:UIFontWeightRegular];
         [b setTitle:OMCStartupLabel(keys[i]) forState:UIControlStateNormal];
         b.layer.cornerRadius=10;
-        b.backgroundColor=i==current?[UIColor tertiarySystemFillColor]:UIColor.clearColor;
+        b.backgroundColor=i==current?OMCApexSurface2():UIColor.clearColor;
+        [b setTitleColor:i==current?OMCApexAccent():OMCApexTextPrimary() forState:UIControlStateNormal];
+        b.layer.borderWidth=i==current?1.5:0.0;
+        b.layer.borderColor=OMCApexAccent().CGColor;
         [b addTarget:self action:@selector(styleSelected:) forControlEvents:UIControlEventTouchUpInside];
         [self.gallery addSubview:b];
     }
@@ -187,17 +192,27 @@ static NSArray *OMCStartupRandomSet(void) {
 - (NSString *)tableView:(UITableView *)t titleForHeaderInSection:(NSInteger)s {
     return OMCStartupLabel(self.sections[s][@"header"]);
 }
+- (void)tableView:(UITableView *)t willDisplayHeaderView:(UIView *)view forSection:(NSInteger)s {
+    (void)t;(void)s;
+    if([view isKindOfClass:UITableViewHeaderFooterView.class])
+        ((UITableViewHeaderFooterView *)view).textLabel.textColor=OMCApexTextSecondary();
+}
 - (NSDictionary *)rowAt:(NSIndexPath *)p {return self.sections[p.section][@"rows"][p.row];}
 - (UITableViewCell *)tableView:(UITableView *)t cellForRowAtIndexPath:(NSIndexPath *)p {
     NSDictionary *r=[self rowAt:p];NSString *type=r[@"cell"];
     NSString *key=r[@"key"];
     UITableViewCell *cell=[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:nil];
+    cell.backgroundColor=OMCApexSurface1();
+    cell.tintColor=OMCApexAccent();
+    cell.textLabel.textColor=OMCApexTextPrimary();
+    cell.detailTextLabel.textColor=OMCApexTextSecondary();
     NSString *label=r[@"label"];
     if ([r[@"id"] isEqualToString:@"birthday"]) label=@"STARTUPSCREEN_BIRTHDAY";
     cell.textLabel.text=OMCStartupLabel(label?:@"");
     cell.textLabel.numberOfLines=2;cell.detailTextLabel.font=[UIFont systemFontOfSize:12];
     if ([type isEqualToString:@"PSSwitchCell"]) {
         UISwitch *sw=[UISwitch new];
+        sw.onTintColor=OMCApexTeal();
         sw.on=[OMCNativePref(key,r[@"default"]?:@NO) boolValue];
         objc_setAssociatedObject(sw,@selector(switchChanged:),key,OBJC_ASSOCIATION_COPY_NONATOMIC);
         [sw addTarget:self action:@selector(switchChanged:) forControlEvents:UIControlEventValueChanged];
@@ -206,6 +221,8 @@ static NSArray *OMCStartupRandomSet(void) {
         cell.textLabel.text=OMCStartupLabel([key isEqualToString:@"startupScreenDuration"]
             ?@"STARTUPSCREEN_DURATION_GROUP":@"STARTUPSCREEN_VOLUME_GROUP");
         UISlider *slider=[[UISlider alloc] initWithFrame:CGRectMake(170,4,150,34)];
+        slider.minimumTrackTintColor=OMCApexTeal();
+        slider.maximumTrackTintColor=OMCApexSurface3();
         slider.minimumValue=[r[@"min"] floatValue];slider.maximumValue=[r[@"max"] floatValue];
         slider.value=[OMCNativePref(key,r[@"default"]?:@0) floatValue];
         objc_setAssociatedObject(slider,@selector(sliderChanged:),r,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -226,7 +243,7 @@ static NSArray *OMCStartupRandomSet(void) {
             cell.accessoryType=[set containsObject:r[@"ssRandomStyle"]]
                 ?UITableViewCellAccessoryCheckmark:UITableViewCellAccessoryNone;
         } else cell.accessoryType=UITableViewCellAccessoryDisclosureIndicator;
-        if ([r[@"isDestructive"] boolValue])cell.textLabel.textColor=UIColor.systemRedColor;
+        if ([r[@"isDestructive"] boolValue])cell.textLabel.textColor=OMCApexDanger();
     } else if ([r[@"id"] isEqualToString:@"birthday"]) {
         cell.detailTextLabel.text=OMCNativePref(@"startupScreenBirthday",@"");
         cell.accessoryType=UITableViewCellAccessoryDisclosureIndicator;
