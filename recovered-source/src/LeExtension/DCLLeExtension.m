@@ -188,43 +188,78 @@ static void enforce(id owner) {
 // Offset and drag persistence are in SCREEN coordinates and refer to
 // the SAME native hit surface for the whole gesture.
 static char DCLDragDeltaKey;
+// [hl56-firstconnect] Always unwind a terminal gesture, even if the
+// original native window detached before Ended/Cancelled arrives.
+static void DCLLeClearPanState(id owner,const char *reason) {
+    if(owner && dragOwner && dragOwner!=owner)return;
+    dragging=NO;dragOwner=nil;dragTarget=nil;
+    if(owner)objc_setAssociatedObject(owner,&DCLDragDeltaKey,nil,
+                                      OBJC_ASSOCIATION_ASSIGN);
+    NSLog(@"[hl56-le-pan] reset=%s owner=%@",reason,
+          owner?NSStringFromClass([owner class]):@"(nil)");
+}
 static void freePan(id owner,UIPanGestureRecognizer *gesture) {
-    if(!enabledDrag() || ![gesture isKindOfClass:UIPanGestureRecognizer.class])
+    if(![gesture isKindOfClass:UIPanGestureRecognizer.class])return;
+    UIGestureRecognizerState state=gesture.state;
+    BOOL terminal=state==UIGestureRecognizerStateEnded ||
+                  state==UIGestureRecognizerStateCancelled ||
+                  state==UIGestureRecognizerStateFailed;
+    if(!enabledDrag()) {
+        if(terminal)DCLLeClearPanState(owner,"disabled-terminal");
         return;
+    }
     UIView *surface=DCLLeMoveSurface(owner);
     UIWindow *w=DCLLeWindowForView(surface);
     if(!surface || !w || !w.screen || !gesture.view ||
        !gesture.view.window || gesture.view.window.screen!=w.screen) {
-        NSLog(@"[hl52-free-xy] BLIND owner=%@ surface=%@ touch=%@",
-              NSStringFromClass([owner class]),surface,gesture.view);
+        NSLog(@"[hl52-free-xy] BLIND owner=%@ surface=%@ touch=%@ state=%ld",
+              NSStringFromClass([owner class]),surface,gesture.view,(long)state);
+        if(terminal) {
+            if(state==UIGestureRecognizerStateEnded && dragOwner==owner &&
+               hasStored)saveStored(stored);
+            DCLLeClearPanState(owner,"detached-terminal");
+        }
         return;
     }
     DCLTrafficRect rect;DCLTrafficInsets safe;CGPoint current;
     if(!DCLLeScreenGeometry(surface,&rect,&safe)||
        !DCLLeScreenCenter(surface,&current)) {
-        NSLog(@"[hl52-free-xy] BAD GEOMETRY surface=%@ window=%@ screen=%@",
+        NSLog(@"[hl52-free-xy] BAD GEOMETRY surface=%@ window=%@ screen=%@ state=%ld",
              NSStringFromClass(surface.class),NSStringFromCGRect(w.bounds),
-             NSStringFromCGRect(w.screen.bounds));
+             NSStringFromCGRect(w.screen.bounds),(long)state);
+        if(terminal)DCLLeClearPanState(owner,"invalid-geometry-terminal");
         return;
     }
     CGPoint touch=[gesture.view convertPoint:
        [gesture locationInView:gesture.view]
        toCoordinateSpace:w.screen.coordinateSpace];
-    if(!isfinite(touch.x)||!isfinite(touch.y))return;
-    UIGestureRecognizerState state=gesture.state;
-    if(state==UIGestureRecognizerStateBegan) {
+    if(!isfinite(touch.x)||!isfinite(touch.y)) {
+        if(terminal)DCLLeClearPanState(owner,"invalid-touch-terminal");
+        return;
+    }
+    // First CarPlay connect can attach its real CWTrafficWindow AFTER Began.
+    BOOL lateBegin=state==UIGestureRecognizerStateChanged && dragOwner!=owner;
+    if(state==UIGestureRecognizerStateBegan || lateBegin) {
         dragging=YES;dragOwner=owner;dragTarget=surface;
         beforeDrag=stored;beforeDragSaved=hasStored;
         objc_setAssociatedObject(owner,&DCLDragDeltaKey,
             [NSValue valueWithCGPoint:CGPointMake(current.x-touch.x,
                                                   current.y-touch.y)],
             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        NSLog(@"[hl52-free-xy] BEGIN owner=%@ mover=%@ screen=%@ nativeWindow=%@ bubble=%@",
+        NSLog(@"[hl52-free-xy] BEGIN owner=%@ mover=%@ screen=%@ nativeWindow=%@ bubble=%@ late=%d",
               NSStringFromClass([owner class]),NSStringFromClass(surface.class),
               NSStringFromCGRect(w.screen.bounds),NSStringFromCGRect(w.frame),
-              NSStringFromCGRect(bubble(owner).frame));
-    } else if(state==UIGestureRecognizerStateChanged) {
-        if(dragOwner!=owner||dragTarget!=surface)return;
+              NSStringFromCGRect(bubble(owner).frame),lateBegin);
+    }
+    if(state==UIGestureRecognizerStateChanged && !lateBegin) {
+        if(dragOwner!=owner)return;
+        if(dragTarget!=surface) {
+            dragTarget=surface;
+            objc_setAssociatedObject(owner,&DCLDragDeltaKey,
+               [NSValue valueWithCGPoint:CGPointMake(current.x-touch.x,current.y-touch.y)],
+               OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            NSLog(@"[hl56-le-pan] hit-surface-rebound=%@",NSStringFromClass(surface.class));
+        }
         NSValue *value=objc_getAssociatedObject(owner,&DCLDragDeltaKey);
         if(![value isKindOfClass:NSValue.class])return;
         CGPoint delta=value.CGPointValue;
@@ -239,7 +274,8 @@ static void freePan(id owner,UIPanGestureRecognizer *gesture) {
                 }
             }
         }
-    } else if(state==UIGestureRecognizerStateEnded) {
+    }
+    if(state==UIGestureRecognizerStateEnded) {
         if(dragOwner==owner && hasStored) {
             // The original -panned: may have already snapped to a corner.
             // Select from the final FREE coordinate, not its overwritten view.
@@ -262,16 +298,14 @@ static void freePan(id owner,UIPanGestureRecognizer *gesture) {
                 NSLog(@"[hl55-le-edge] INVALID END geometry; no save");
             }
         }
-        dragging=NO;dragOwner=nil;dragTarget=nil;
-        objc_setAssociatedObject(owner,&DCLDragDeltaKey,nil,OBJC_ASSOCIATION_ASSIGN);
+        DCLLeClearPanState(owner,"ended");
     } else if(state==UIGestureRecognizerStateCancelled ||
               state==UIGestureRecognizerStateFailed) {
         if(dragOwner==owner) {
             stored=beforeDrag;hasStored=beforeDragSaved;
             if(hasStored)applyCenter(owner,stored);
         }
-        dragging=NO;dragOwner=nil;dragTarget=nil;
-        objc_setAssociatedObject(owner,&DCLDragDeltaKey,nil,OBJC_ASSOCIATION_ASSIGN);
+        DCLLeClearPanState(owner,"cancelled");
         NSLog(@"[hl55-le-edge] CANCEL no persisted state change");
     }
 }
@@ -303,8 +337,8 @@ static void DCLLeWindowState(id owner,const char *stage) {
     UIWindow *window=DCLLeWindowForView(move);
     if(!window || !window.screen)return;
     BOOL compact=DCLLeCompactVendorWindow(window);
-    if(compact && window.windowLevel<UIWindowLevelStatusBar+64.0)
-        window.windowLevel=UIWindowLevelStatusBar+64.0;
+    // [hl56-zowner] Keep Lề's original dynamic native window level.
+    // Fixed HL55 statusbar level cannot order scenes across hosted surfaces.
     BOOL on=DCLLeVendorEnabled();
     if(!on) {
         if(DCLHiddenByDuoCar!=window) {
@@ -330,17 +364,31 @@ static void DCLLeWindowState(id owner,const char *stage) {
             window.userInteractionEnabled,compact);
     }
 }
+// Only retry add-on state; do not invoke original -place twice.
+static void DCLLeDeferredAttach(id owner,const char *stage,unsigned attempt) {
+    __weak id weak=owner;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.14*NSEC_PER_SEC)),
+        dispatch_get_main_queue(),^{
+        id o=weak;
+        if(!o)return;
+        if(DCLLeMoveSurface(o)) {
+            enforce(o);DCLLeWindowState(o,stage);return;
+        }
+        if(attempt<8)DCLLeDeferredAttach(o,stage,attempt+1);
+        else NSLog(@"[hl56-firstconnect] BLIND after attach retries stage=%s",stage);
+    });
+}
 static void newOverlayPlace(id o,SEL sel) {
     DCLLastOverlayOwner=o;
     if(originalOverlayPlace)originalOverlayPlace(o,sel);
-    enforce(o);
-    DCLLeWindowState(o,"overlay");
+    enforce(o);DCLLeWindowState(o,"overlay");
+    if(!DCLLeMoveSurface(o))DCLLeDeferredAttach(o,"overlay-ready",0);
 }
 static void newCastPlace(id o,SEL sel,CGRect frame) {
     DCLLastCastOwner=o;DCLLastCastRect=frame;
     if(originalCastPlace)originalCastPlace(o,sel,frame);
-    enforce(o);
-    DCLLeWindowState(o,"cast");
+    enforce(o);DCLLeWindowState(o,"cast");
+    if(!DCLLeMoveSurface(o))DCLLeDeferredAttach(o,"cast-ready",0);
 }
 static id newContent(id cls,SEL sel,id snapshot) {
     id object=originalContent?originalContent(cls,sel,snapshot):nil;

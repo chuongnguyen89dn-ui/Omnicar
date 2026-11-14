@@ -86,7 +86,9 @@ assert "DCLTrafficSnapWhenNearEdge" in geometry
 assert "DCLTrafficSnapWhenNearEdge" in ext
 assert "DCLTrafficClampCenter" in ext
 assert "DCLLeCompactVendorWindow(w)" in ext
-assert 'window.windowLevel=UIWindowLevelStatusBar+64.0' in ext
+assert 'window.windowLevel=UIWindowLevelStatusBar+64.0' not in ext
+assert "DCLLeClearPanState" in ext and "detached-terminal" in ext
+assert "DCLLeDeferredAttach" in ext and "hit-surface-rebound" in ext
 assert 'win.windowLevel=UIWindowLevelStatusBar+64.5' in dock
 assert '"leBubbleMasterMirror"' in ext
 assert 'doc[@"bubbleEnabled"]' in ext
