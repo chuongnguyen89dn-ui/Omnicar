@@ -1,5 +1,11 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+## 2026-11-14 — GPT DESIGN V2 (M1): gói DuoCar APEX Stealth đã giao repo, CHỜ NGUYEN DUYỆT
+- Nhận trách nhiệm thiết kế 100% từ Nguyen sau khi M1 Muse cũ bị bác. Nhánh Muse `feature/duocar-apex-ui-muse-20261114` trên baseline HL61 `298b7b4a8432037d71db441d0975aca1db1f6e04`; commit tài liệu/asset **`eab80668aa8d9e61efaeff1260ae5e77015e66d7`** thêm **31 file (27 SVG + 4 tài liệu)**, không sửa mã runtime. [Mở bộ thiết kế GPT APEX V2](APEX_M1_GPT_V2/README.md), [spec](APEX_M1_GPT_V2/APEX_V2_SPEC.md), [ma trận D1–D14/A1](APEX_M1_GPT_V2/APEX_V2_MATRIX.md).
+- Bộ hình gồm 6 giao diện iPhone, 9 trạng thái CarPlay, 1 bảng nhận diện; 11 SVG logo/icon. So sánh với 46 PNG của Muse M1 v1 trong cùng nhánh; tất cả là **mockup/sản phẩm thiết kế**, không phải ảnh chụp thiết bị hoặc bằng chứng runtime. Giữ Home hệ thống và nội dung native/hosted app khác nguyên dạng, thermal HL61, window +64/+65, C/F, phím/Telex, dock, shim Lề đã đạt.
+- **M1 GPT V2 giao để xem và duyệt, chưa được Nguyen duyệt; M2/M3 CHƯA ĐƯỢC PHÉP; không chạy CI/build/DEB/PR.** Muse là người triển khai code chỉ sau khi được duyệt, từng hunk theo ma trận, không tự vẽ lại. Điểm kiểm tiếp: Nguyen duyệt logo/visual/picker/fullscreen/thermal; sau đó Muse nộp mapping method/hunk trước code. Issue #1 là đầu mối cập nhật, không tạo Issue khác.
+
+
 ## 2026-11-14 — HL61 giao diện cảnh báo nhiệt và rà Muse UI
 - Cảnh báo nhiệt chia/fullscreen có **viền đỏ nhấp nháy trong suốt**, chính giữa chỉ hiện **“LÀM MÁT THIẾT BỊ CỦA BẠN”**. Không chữ mô phỏng, không nhiệt độ/nguồn trên cảnh báo; giữ gate 37°C và công tắc thử. Không đụng Lề DC59CL. [Checkpoint](HL58_EXTERNAL_LE_OPTIONAL_DETACH_20261114.md).
 - Đã kiểm báo cáo UI/UX Muse tại nhánh `audit/duocar-ui-full-audit-20261114` commit `94859141`. [Đánh giá GPT](DUOCAR_UI_AUDIT_GPT_REVIEW_20261114.txt): 5 nhóm nội dung có báo cáo, 17 khoảng trống U1–U17, chỉ điều tra DC58, không phải mã UI mới.
