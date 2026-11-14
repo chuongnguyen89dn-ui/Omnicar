@@ -10,6 +10,7 @@
 #import <objc/message.h>
 #import <notify.h>
 #import <math.h>
+#include <string.h> // method encoding CGRect ABI check
 #import "DCLLeConfigBridge.h"
 
 static NSString *const DCLDomain=@"com.chuong.duocar";
