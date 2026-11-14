@@ -113,3 +113,17 @@ with tempfile.TemporaryDirectory(prefix="fs-vitals-") as tmp:
     subprocess.run(args,cwd=ROOT,check=True)
     subprocess.run([str(binary)],cwd=ROOT,check=True)
 print("FS_VITALS_FULLSCREEN_DRAG_GEOMETRY_TEST_PASS")
+
+# HL54: the real clock-bubble geometry is tested independently against
+# the current project C, not a hand-copied approximation.
+clock_test=ROOT/"gpt-project-history/test_hl54_clock_docking.c"
+assert clock_test.is_file()
+with tempfile.TemporaryDirectory(prefix="hl54-clock-docking-") as tmp:
+    binary=Path(tmp)/"hl54-clock"
+    args=[cc,"-std=c11","-Wall","-Wextra","-Werror","-pedantic",
+          "-I"+str(PROJECT/"OmniCarSplitScreen"),
+          str(PROJECT/"OmniCarSplitScreen/SCPVitalsPlacement.c"),
+          str(clock_test),"-lm","-o",str(binary)]
+    subprocess.run(args,cwd=ROOT,check=True)
+    subprocess.run([str(binary)],cwd=ROOT,check=True)
+print("HL54_FULLSCREEN_CLOCK_NEAR_EDGE_FREE_XY_TEST_PASS")
