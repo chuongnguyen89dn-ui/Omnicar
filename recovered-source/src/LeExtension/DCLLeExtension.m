@@ -390,6 +390,61 @@ static void newCastPlace(id o,SEL sel,CGRect frame) {
     enforce(o);DCLLeWindowState(o,"cast");
     if(!DCLLeMoveSurface(o))DCLLeDeferredAttach(o,"cast-ready",0);
 }
+// [hl56-hosted-layer] LeBubble 0.2.4 itself enumerates native UIWindow
+// levels in -place. Recalculate through THAT vendor entry point when a
+// new peer window is shown/key. Do not invent a second window/renderer or
+// freeze windowLevel at a constant (HL55 regression).
+static BOOL DCLLePeerRefreshPending=NO;
+static NSTimeInterval DCLLePeerLastRequest=0;
+static void DCLLePeerWindowChanged(NSNotification *notice) {
+    if(![NSThread isMainThread])return;
+    UIWindow *peer=[notice.object isKindOfClass:UIWindow.class]
+                   ?(UIWindow *)notice.object:nil;
+    id owner=DCLLastOverlayOwner;
+    if(!peer || !owner || !originalOverlayPlace || dragging ||
+       peer.hidden || peer.alpha<=0.01)return;
+    UIView *surface=DCLLeMoveSurface(owner);
+    UIWindow *ours=DCLLeWindowForView(surface);
+    if(!ours || !ours.screen || !peer.screen || peer==ours ||
+       peer.screen!=ours.screen ||
+       [NSStringFromClass(peer.class) isEqualToString:@"CWTrafficWindow"])
+        return;
+    CGRect peerScreen=[peer convertRect:peer.bounds
+                 toCoordinateSpace:peer.screen.coordinateSpace];
+    if(CGRectIsNull(peerScreen) || CGRectIsEmpty(peerScreen) ||
+       !CGRectIntersectsRect(peerScreen,ours.frame))return;
+    // Status/selector/menu panels remain above Lề by design.
+    if(peer.windowLevel>UIWindowLevelStatusBar+50)return;
+    NSTimeInterval now=NSDate.date.timeIntervalSince1970;
+    if(DCLLePeerRefreshPending || now-DCLLePeerLastRequest<0.42)return;
+    DCLLePeerRefreshPending=YES;DCLLePeerLastRequest=now;
+    __weak id weakOwner=owner;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW,(int64_t)(0.20*NSEC_PER_SEC)),
+       dispatch_get_main_queue(),^{
+        DCLLePeerRefreshPending=NO;
+        id current=weakOwner;
+        if(!current || current!=DCLLastOverlayOwner || dragging)return;
+        UIWindow *window=DCLLeWindowForView(DCLLeMoveSurface(current));
+        CGFloat before=window.windowLevel;
+        if(originalOverlayPlace)originalOverlayPlace(current,@selector(place));
+        enforce(current);DCLLeWindowState(current,"peer-visible");
+        UIWindow *afterWindow=DCLLeWindowForView(DCLLeMoveSurface(current));
+        NSLog(@"[hl56-hosted-layer] peer=%@ peerLevel=%.2f ours=%.2f->%.2f sameScreen=%d",
+            NSStringFromClass(peer.class),(double)peer.windowLevel,
+            (double)before,(double)afterWindow.windowLevel,
+            (int)(peer.screen==afterWindow.screen));
+    });
+}
+static void DCLLeObservePeerWindows(void) {
+    NSNotificationCenter *center=[NSNotificationCenter defaultCenter];
+    for(NSString *name in @[UIWindowDidBecomeVisibleNotification,
+                             UIWindowDidBecomeKeyNotification]){
+        [center addObserverForName:name object:nil queue:[NSOperationQueue mainQueue]
+                       usingBlock:^(NSNotification *note){
+                           DCLLePeerWindowChanged(note);
+                       }];
+    }
+}
 static id newContent(id cls,SEL sel,id snapshot) {
     id object=originalContent?originalContent(cls,sel,snapshot):nil;
     if(!object||![object respondsToSelector:@selector(speedText)]||
@@ -478,6 +533,7 @@ __attribute__((constructor)) static void DCLLeBootstrap(void) {
         }
         loadStored();
         install();
+        if(car)DCLLeObservePeerWindows();
         static int leNotify=-1;
         notify_register_dispatch("dev.bechou.le.bubble.layout-changed",
              &leNotify,dispatch_get_main_queue(),^(int token) {
