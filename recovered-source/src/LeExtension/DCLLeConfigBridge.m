@@ -291,6 +291,17 @@ static void DCLHandle(uint64_t raw,int ackToken) {
         notify_post(DCLAck);
     }
     if(ok&&!query) {
+        // A READ-ONLY cross-process fallback for CarPlayApp, which may not
+        // have file access to the mobile-owned vendor JSON. Canonical state
+        // remains layout-v1.json; never use this mirror as a second master.
+        if(key==4 && [after respondsToSelector:@selector(boolValue)]) {
+            CFStringRef domain=(__bridge CFStringRef)DCLDuo;
+            CFPreferencesSetAppValue(CFSTR("leBubbleMasterMirror"),
+                 (__bridge CFPropertyListRef)after,domain);
+            BOOL sync=CFPreferencesAppSynchronize(domain);
+            NSLog(@"[hl55-le-master] mirror canonical key4 enabled=%d sync=%d",
+                  [after boolValue],sync);
+        }
         notify_post("dev.bechou.le.bubble.layout-changed");
         notify_post("dev.bechou.le.gmaps.bubble-configuration");
         notify_post("dev.bechou.le.gmaps.presentation-options");

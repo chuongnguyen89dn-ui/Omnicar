@@ -294,7 +294,9 @@ static BOOL DCLLeVendorEnabled(void) {
     NSDictionary *doc=[data isKindOfClass:NSData.class]
         ?[NSJSONSerialization JSONObjectWithData:data options:0 error:nil]:nil;
     id flag=[doc isKindOfClass:NSDictionary.class]?doc[@"bubbleEnabled"]:nil;
-    return [flag isKindOfClass:NSNumber.class]?[flag boolValue]:YES;
+    if([flag isKindOfClass:NSNumber.class])return [flag boolValue];
+    id mirror=pref(@"leBubbleMasterMirror");
+    return [mirror isKindOfClass:NSNumber.class]?[mirror boolValue]:YES;
 }
 static void DCLLeWindowState(id owner,const char *stage) {
     UIView *move=DCLLeMoveSurface(owner);

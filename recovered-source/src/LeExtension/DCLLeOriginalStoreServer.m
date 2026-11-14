@@ -95,6 +95,20 @@ static void DCLHandleRaw(uint64_t frame,int ack) {
         NSLog(@"[hl54-store-sb] original layout commit=%d bytes=%lu stage=%d errno=%d",
               saved,(unsigned long)DCLPending.length,stage,err);
         if(saved) {
+            // Original LePrefs may update bubbleEnabled in the same layout;
+            // synchronize a fallback view for sandboxed CarPlayApp.
+            NSDictionary *doc=[NSJSONSerialization JSONObjectWithData:DCLPending
+                                            options:0 error:nil];
+            id master=[doc isKindOfClass:NSDictionary.class]
+                      ?doc[@"bubbleEnabled"]:nil;
+            if([master isKindOfClass:NSNumber.class]) {
+                CFStringRef domain=CFSTR("com.chuong.duocar");
+                CFPreferencesSetAppValue(CFSTR("leBubbleMasterMirror"),
+                         (__bridge CFPropertyListRef)master,domain);
+                BOOL mirrored=CFPreferencesAppSynchronize(domain);
+                NSLog(@"[hl55-le-master] original-vendor mirror=%d synced=%d",
+                      [master boolValue],mirrored);
+            }
             notify_post("dev.bechou.le.bubble.layout-changed");
             notify_post("com.chuong.duocar/prefschanged");
         }
