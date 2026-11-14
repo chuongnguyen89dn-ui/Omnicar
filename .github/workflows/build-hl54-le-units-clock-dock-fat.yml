@@ -1,8 +1,13 @@
-name: "DuoCar55 - Lề full fix + compact clock + red 39C FAT"
+name: "DuoCar57 - passive status + native menu + Lề FAT"
 # HL55 prebuild source gate reconciled with actual snap END marker
 permissions:
   contents: read
 on:
+  push:
+    branches:
+      - feature/duocar-hl54-le-original-integrity-20261114
+    paths:
+      - .github/workflows/build-hl54-le-units-clock-dock-fat.yml
   workflow_dispatch:
 
 
@@ -11,7 +16,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 70
     steps:
-      - name: Checkout exact HL55 integrated source (manual build only)
+      - name: Checkout exact HL57 source and regression gates
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -32,14 +37,14 @@ jobs:
           python3 recovered-source/gpt-project-history/verify_hl43_shared_telex.py
           sh recovered-source/gpt-project-history/test_le_traffic_core.sh
 
-      - name: HL54 clock edge/free and GPS ±10 source/C regression
+      - name: HL57 passive HUD touch safety, legacy C geometry and GPS
         shell: bash
         run: |
           set -euo pipefail
           python3 recovered-source/gpt-project-history/verify_duocar_vitals_static.py
           sh recovered-source/gpt-project-history/run_hl54_gps_tests.sh
 
-      - name: HL55 all-missing-fixes source gate, owner writer and 39C tests
+      - name: HL56 Lề store/drag and HL57 HUD safety + 39C host tests
         shell: bash
         run: |
           set -euo pipefail
@@ -118,7 +123,7 @@ jobs:
           python3 recovered-source/gpt-project-history/rebrand_duocar_hl47.py
           python3 recovered-source/gpt-project-history/strip_speedbubble_assets.py recovered-source/project
 
-      - name: Build DuoCar55 complete source once, no source substitution
+      - name: Build full DuoCar57 source once, no source substitution
         shell: bash
         env:
           ARCHS: "arm64 arm64e"
@@ -128,7 +133,7 @@ jobs:
           export THEOS="$HOME/theos"
           cd recovered-source/project
           make clean ARCHS="arm64 arm64e"
-          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/duocar54-base.log
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/duocar57-base.log
           test -s packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb
 
       - name: Build and sign Lề extension plus SpringBoard config bridge FAT
@@ -141,7 +146,7 @@ jobs:
           export THEOS="$HOME/theos"
           cd recovered-source/project/OmniCarLeExtension
           make clean ARCHS="arm64 arm64e"
-          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/duocar54-ext.log
+          make package FINALPACKAGE=1 ARCHS="arm64 arm64e" 2>&1 | tee /tmp/duocar57-ext.log
           test -s packages/com.chuong.duocar.leextension_0.1.0_iphoneos-arm64.deb
 
       - name: Merge DuoCar/Lề/extension into one DEB (no intermediate delivery)
@@ -149,27 +154,27 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          python3 recovered-source/gpt-project-history/merge_le024_personal_deb.py             --duocar recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb             --le le-original/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb             --extension recovered-source/project/OmniCarLeExtension/packages/com.chuong.duocar.leextension_0.1.0_iphoneos-arm64.deb             --output dist/DC55-prepatch.deb --personal-use --version 1.0.3-le0241
+          python3 recovered-source/gpt-project-history/merge_le024_personal_deb.py             --duocar recovered-source/project/packages/com.chuong.duocar_1.0.3-hl47menudockfat1_iphoneos-arm64.deb             --le le-original/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb             --extension recovered-source/project/OmniCarLeExtension/packages/com.chuong.duocar.leextension_0.1.0_iphoneos-arm64.deb             --output dist/DC57-prepatch.deb --personal-use --version 1.0.3-le0241
 
       - name: Remove all Lề km/h and re-sign changed arm64/arm64e original modules
         shell: bash
         run: |
           set -euo pipefail
-          python3 recovered-source/gpt-project-history/patch_le024_speed_unit.py             --input dist/DC55-prepatch.deb --output dist/DC55.deb             --version 1.0.3-le0248
+          python3 recovered-source/gpt-project-history/patch_le024_speed_unit.py             --input dist/DC57-prepatch.deb --output dist/DC57.deb             --version 1.0.3-le0249
 
-      - name: Verify FINAL signed FAT DC55 DEB and zero km/h in Lề
+      - name: Verify FINAL signed FAT DC57 DEB and zero km/h in Lề
         shell: bash
         run: |
           set -euo pipefail
-          python3 recovered-source/gpt-project-history/verify_duocar53.py dist/DC55.deb le-original/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb 1.0.3-le0248
-          dpkg-deb -f dist/DC55.deb
-          shasum -a 256 dist/DC55.deb
+          python3 recovered-source/gpt-project-history/verify_duocar53.py dist/DC57.deb le-original/deb-scans/le-0.2.4/dev.bechou.le_0.2.4_iphoneos-arm64.deb 1.0.3-le0249
+          dpkg-deb -f dist/DC57.deb
+          shasum -a 256 dist/DC57.deb
 
-      - name: Upload ONE short-name DC55.deb directly
+      - name: Upload ONE short-name DC57.deb directly
         uses: actions/upload-artifact@v4
         with:
-          name: DC55
-          path: dist/DC55.deb
+          name: DC57
+          path: dist/DC57.deb
           if-no-files-found: error
           retention-days: 7
 
@@ -177,8 +182,8 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: DC55-failed-binary
-          path: dist/DC55.deb
+          name: DC57-failed-binary
+          path: dist/DC57.deb
           if-no-files-found: ignore
           retention-days: 3
 
@@ -186,8 +191,8 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: DC55-build-errors
+          name: DC57-build-errors
           path: |
-            /tmp/duocar54-base.log
-            /tmp/duocar54-ext.log
+            /tmp/duocar57-base.log
+            /tmp/duocar57-ext.log
           if-no-files-found: ignore
