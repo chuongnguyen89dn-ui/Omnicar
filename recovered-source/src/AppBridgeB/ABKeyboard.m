@@ -484,6 +484,27 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
 // -buildPanel (0x1A200, 2480 B, disasm/m_ABKeyboard_buildPanel.txt) —
 // VERIFIED. Builds the whole panel tree; self.panel is stored LAST
 // (@0x1A9D8), after every subview exists.
+// APEX M3-0 (GPT scope approval 6875586688): skin Graphite/Titanium trung tinh
+// ve bang code, thay artwork mesh logo cu CHI o cac mat DuoCar so huu. Loi dung
+// chung OMCLogoMeshImage/OMCCommon.c giu nguyen; caller ngoai (SPPBubbleView)
+// khong bi anh huong.
+static UIImage *ABKbApexGraphiteSkinImage(void) {
+    static UIImage *img; static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        UIGraphicsImageRenderer *r = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(64, 64)];
+        img = [r imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+            CGContextRef c = ctx.CGContext;
+            CGGradientRef g = CGGradientCreateWithColors(CGColorSpaceCreateDeviceRGB(),
+                (CFArrayRef)@[(id)[UIColor colorWithRed:0.0392156862745098 green:0.07058823529411765 blue:0.09411764705882353 alpha:1].CGColor,
+                              (id)[UIColor colorWithRed:0.13725490196078433 green:0.21176470588235294 blue:0.25098039215686274 alpha:1].CGColor],
+                (CGFloat[]){0, 1});
+            CGContextDrawLinearGradient(c, g, CGPointMake(0, 0), CGPointMake(64, 64), 0);
+            CGGradientRelease(g);
+        }];
+    });
+    return img;
+}
+
 - (void)buildPanel {
     UIView *panel = [UIView new];
     panel.backgroundColor = [UIColor clearColor];
@@ -496,7 +517,7 @@ static NSDictionary<NSString *, NSString *> *ABKeyHintTable(BOOL vietnamese) {
     UIVisualEffectView *glass = [[UIVisualEffectView alloc]
         initWithEffect:[UIBlurEffect effectWithStyle:11]]; // SystemUltraThinMaterialLight
     glass.contentView.backgroundColor = [UIColor clearColor];
-    UIImageView *mesh = [[UIImageView alloc] initWithImage:OMCLogoMeshImage(0)];
+    UIImageView *mesh = [[UIImageView alloc] initWithImage:ABKbApexGraphiteSkinImage()]; // APEX M3-0: bo mesh cu
     mesh.frame = glass.contentView.bounds;
     mesh.contentMode = UIViewContentModeScaleToFill; // 0
     mesh.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight; // 0x12

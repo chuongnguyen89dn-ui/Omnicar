@@ -35,10 +35,31 @@ extern void SCPPrepareRatioMenu(UIView *view);                          // 0x24a
 
 // @0x35d5c — the mesh/logo backdrop applied to a frosted view: the OMC
 // logo mesh image pinned to the content view, hairline border.
+// APEX M3-0 (GPT scope approval 6875586688): skin Graphite/Titanium trung tinh
+// ve bang code, thay artwork mesh logo cu CHI o cac mat DuoCar so huu. Loi dung
+// chung OMCLogoMeshImage/OMCCommon.c giu nguyen; caller ngoai (SPPBubbleView)
+// khong bi anh huong.
+static UIImage *SCPApexGraphiteSkinImage(void) {
+    static UIImage *img; static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        UIGraphicsImageRenderer *r = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(64, 64)];
+        img = [r imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+            CGContextRef c = ctx.CGContext;
+            CGGradientRef g = CGGradientCreateWithColors(CGColorSpaceCreateDeviceRGB(),
+                (CFArrayRef)@[(id)[UIColor colorWithRed:0.0392156862745098 green:0.07058823529411765 blue:0.09411764705882353 alpha:1].CGColor,
+                              (id)[UIColor colorWithRed:0.13725490196078433 green:0.21176470588235294 blue:0.25098039215686274 alpha:1].CGColor],
+                (CGFloat[]){0, 1});
+            CGContextDrawLinearGradient(c, g, CGPointMake(0, 0), CGPointMake(64, 64), 0);
+            CGGradientRelease(g);
+        }];
+    });
+    return img;
+}
+
 void SCPApplyMeshBackdrop(UIVisualEffectView *effectView) {
     effectView.contentView.backgroundColor = UIColor.clearColor;
     UIImageView *mesh = [[UIImageView alloc]
-        initWithImage:OMCLogoMeshImage(0)];
+        initWithImage:SCPApexGraphiteSkinImage()]; // APEX M3-0: bo mesh cu
     mesh.frame = effectView.contentView.bounds;
     mesh.contentMode = UIViewContentModeScaleToFill;
     mesh.autoresizingMask = 0x12;
@@ -46,7 +67,8 @@ void SCPApplyMeshBackdrop(UIVisualEffectView *effectView) {
     [effectView.contentView insertSubview:mesh atIndex:0];
     effectView.layer.borderWidth = 1;
     effectView.layer.borderColor =
-        [UIColor colorWithWhite:1 alpha:0.85].CGColor;
+        [UIColor colorWithRed:0.20784313725490197 green:0.3176470588235294
+                         blue:0.37254901960784315 alpha:0.85].CGColor; // APEX stroke
 }
 
 // @0x2b380 — the secondary text colour: navy at 55% alpha.

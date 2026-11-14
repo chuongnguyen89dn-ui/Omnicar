@@ -1157,6 +1157,27 @@ static id ABSceneOfPane(ABPane *pane) {
 // starts hidden and transparent; setBarVisible: drives it from there.
 // (Declaration fix: objc.json types the return @ — the header's earlier
 // void typing is corrected in ABHost.h, see the closure log section.)
+// APEX M3-0 (GPT scope approval 6875586688): skin Graphite/Titanium trung tinh
+// ve bang code, thay artwork mesh logo cu CHI o cac mat DuoCar so huu. Loi dung
+// chung OMCLogoMeshImage/OMCCommon.c giu nguyen; caller ngoai (SPPBubbleView)
+// khong bi anh huong.
+static UIImage *ABApexGraphiteSkinImage(void) {
+    static UIImage *img; static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        UIGraphicsImageRenderer *r = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(64, 64)];
+        img = [r imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+            CGContextRef c = ctx.CGContext;
+            CGGradientRef g = CGGradientCreateWithColors(CGColorSpaceCreateDeviceRGB(),
+                (CFArrayRef)@[(id)[UIColor colorWithRed:0.0392156862745098 green:0.07058823529411765 blue:0.09411764705882353 alpha:1].CGColor,
+                              (id)[UIColor colorWithRed:0.13725490196078433 green:0.21176470588235294 blue:0.25098039215686274 alpha:1].CGColor],
+                (CGFloat[]){0, 1});
+            CGContextDrawLinearGradient(c, g, CGPointMake(0, 0), CGPointMake(64, 64), 0);
+            CGGradientRelease(g);
+        }];
+    });
+    return img;
+}
+
 - (UIView *)buildBarForPane:(ABPane *)pane {
     UIColor *tint = [UIColor colorWithRed:234.0/255.0 green:246.0/255.0
                                      blue:251.0/255.0 alpha:1]; // APEX Ice
@@ -1188,7 +1209,7 @@ static id ABSceneOfPane(ABPane *pane) {
     UIVisualEffectView *blur = [[UIVisualEffectView alloc]
         initWithEffect:[UIBlurEffect effectWithStyle:11]];   // style name INFERRED
     blur.frame = bar.bounds;
-    UIImageView *mesh = [[UIImageView alloc] initWithImage:OMCLogoMeshImage(0)];
+    UIImageView *mesh = [[UIImageView alloc] initWithImage:ABApexGraphiteSkinImage()]; // APEX M3-0: bo mesh cu
     mesh.frame = blur.contentView.bounds;
     mesh.contentMode = UIViewContentModeScaleToFill;   // raw 0
     mesh.autoresizingMask = UIViewAutoresizingFlexibleWidth |
