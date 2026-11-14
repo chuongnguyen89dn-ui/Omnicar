@@ -188,8 +188,10 @@ assert "notify_set_state(self.sendToken" in app
 assert "didReceive:(uint64_t)packet" in app
 assert "Đã đọc / xác nhận Lề" in app
 assert "leTrafficGpsOffsetKph" not in app or "Hiệu chỉnh tốc độ GPS thực" in app
-assert 'step.minimumValue=[kind isEqualToString:@"offset"]?0' in app
-assert 'step.maximumValue=[kind isEqualToString:@"offset"]?10' in app
+assert 'if(self.extrasOnly && key==27)return [self gpsSliderCell];' in app
+assert 'slider.minimumValue=-10.0f;' in app
+assert 'slider.maximumValue=10.0f;' in app
+assert '[self enqueueKey:27 value:raw];' in app
 
 # HL52 exact scope and no-regression checks against code tested in DuoCar51.
 # These guard source only; correct UI pixels and device persistence still
@@ -197,7 +199,7 @@ assert 'step.maximumValue=[kind isEqualToString:@"offset"]?10' in app
 for p,expected in {
     "OmniCarSplitScreen/SCPCarSplit+Picker.m":"54bb81ed63cedb36bc5a06931fcb998cba4eb761",
     "OmniCarSplitScreen/SCPCarSplit.m":"6cf2fdd20eaac3680eac685b5f9d3b415efc4723",
-    "OmniCarLeExtension/DCLLeConfigBridge.m":"e84572d1f95728e79ac85bc9ffc9f8d57e230fce",
+    "OmniCarLeExtension/DCLLeConfigBridge.m":"ccbcf9228370e1652de4335c273c8a2369324846",
 }.items():
     assert git_blob_sha(project/p)==expected,("HL51 regression in",p)
 # Latest user geometry preference: show ONLY text/icons without any grey
