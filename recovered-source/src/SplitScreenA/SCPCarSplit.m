@@ -27,6 +27,7 @@
 #import "SCPPinchController.h" // [pinch1] integration glue: attach/detach (design-pinch §7, 2 lines max)
 #import "SCPFullscreenController.h" // [fs1] glue: shortened restore when the session ends (design-fullscreen-fs1 §4.6)
 #import "SCPCarSplit+AutoHide.h" // [autohide] fade payload keys + activity feeds + teardown (design-autohide §5.1)
+#import "SCPCarSplit+Radial.h" // [G2-radial] approved hunks 1-2 call sites
 #import "../SplitScreenC/SCPHomeApply.h" // [ytz5] SCPLogInjectedIconState (M5 icon instrument points in closeGoingHome:)
 #import "../SplitScreenC/SCPHomeLauncher.h" // [gpt-home] native Home entry is authoritative
 #import "SCPDeviceVitalsHUD.h" // [hl47] Dock metrics only outside fullscreen
@@ -3386,6 +3387,8 @@ static void SCPFDockGateLog(SCPCarSplit *owner, NSString *event, NSString *gate,
             (int)self.active, app ?: @"none",
             (int)(self.tray != nil), (int)(self.pickerSheet != nil)]);
     if (self.tray) [self collapseAppTray];
+    else if (SCPRadialEnabled() && self.active) // [G2-radial hunk1] logo tap opens the wheel while the split is live; flag off or split inactive keeps the layout panel
+        [self scpRadialPresentFromPane:nil];
     else [self showLayoutPanelForApp:app];
 }
 
