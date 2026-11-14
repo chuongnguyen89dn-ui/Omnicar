@@ -171,7 +171,7 @@ static NSDictionary *OMCSection(NSString *header, NSArray *rows) {
     return @{@"header":header?:@"",@"rows":rows?:@[]};
 }
 static void OMCAlert(UIViewController *owner,NSString *message) {
-    UIAlertController *a=[UIAlertController alertControllerWithTitle:@"OmniCar"
+    UIAlertController *a=[UIAlertController alertControllerWithTitle:@"DuoCar"
         message:message preferredStyle:UIAlertControllerStyleAlert];
     [a addAction:[UIAlertAction actionWithTitle:OMCText(@"Đóng",@"Close")
                                           style:UIAlertActionStyleCancel handler:nil]];
@@ -1290,10 +1290,12 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
         BOOL whatsNew=[type isEqualToString:@"whatsnew"];
         UIViewController *vc=[UIViewController new];
         vc.title=whatsNew?OMCNativeLocalized(@"WN_ROW"):OMCNativeLocalized(@"ONB_SHOW_AGAIN");
-        vc.view.backgroundColor=UIColor.systemBackgroundColor;
+        vc.view.backgroundColor=[UIColor colorWithRed:0.063 green:0.035 blue:0.137 alpha:1.0];
         UITextView *text=[[UITextView alloc] initWithFrame:CGRectZero];
         text.translatesAutoresizingMaskIntoConstraints=NO;
         text.editable=NO;text.selectable=YES;
+        text.backgroundColor=UIColor.clearColor;
+        text.textColor=[UIColor colorWithRed:0.961 green:0.941 blue:1.000 alpha:1.0];
         text.font=[UIFont preferredFontForTextStyle:UIFontTextStyleBody];
         NSMutableArray *paragraphs=[NSMutableArray array];
         if (whatsNew) {

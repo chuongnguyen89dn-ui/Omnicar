@@ -204,7 +204,7 @@
 #pragma mark - Header card / language / master switch
 
 - (void)applyLanguage {
-    self.navigationItem.title = @"OmniCar";
+    self.navigationItem.title = @"DuoCar";
     UIBarButtonItem *respringButton =
         [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"arrow.clockwise"]
                                          style:UIBarButtonItemStylePlain
@@ -331,7 +331,7 @@
 #pragma mark - Actions (Root.plist buttons + header)
 
 - (void)showMessage:(NSString *)message {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"OmniCar"
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"DuoCar"
                                                                    message:message
                                                             preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];

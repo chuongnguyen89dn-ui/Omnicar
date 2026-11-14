@@ -928,7 +928,7 @@ void OMCShareReport(UIViewController *presenter) {
         [NSString stringWithFormat:@"OmniCar-log-%@.txt", [fileStamp stringFromDate:[NSDate date]]]];
     NSError *error = nil;
     if (![report writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"OmniCar"
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"DuoCar"
                                                                        message:L(@"SEND_LOG_FAILED")
                                                                 preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];

@@ -628,7 +628,7 @@ static void SSHSLToRGB(double h, double s, double l, double out[3]) {
     // [INFERRED: exact _ox/_oy pairing of the two label anchor points;
     //  constants 640 / 300 / 390 and sizes are from the dump.]
     NSString *carDisplay = SSTrimmed(self.carName);
-    if (!carDisplay.length) carDisplay = @"OmniCar";
+    if (!carDisplay.length) carDisplay = @"DuoCar";
     UILabel *title = [self ss_label:carDisplay
                                  at:CGPointMake(_ox + u * 640, _oy + u * 300)
                                size:70 weight:UIFontWeightHeavy color:nil

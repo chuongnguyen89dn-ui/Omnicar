@@ -315,7 +315,7 @@ static UIImage *SSFlowerImage(void) {
 // NOTE: the binary calls SSTrimmed(carName) twice (length test, then the
 // value); transcribed as-is.
 static NSArray *SSDefaultHudItems(NSString *carName) {
-    NSString *name = SSTrimmed(carName).length ? SSTrimmed(carName) : @"OmniCar";
+    NSString *name = SSTrimmed(carName).length ? SSTrimmed(carName) : @"DuoCar";
     return @[
         @{ @"text": OMCTr(@"Kết nối CarPlay", @"CarPlay connected"), @"ok": @YES },
         @{ @"text": OMCTr(@"Pin iPhone 82% · đang sạc", @"iPhone battery 82% · charging"), @"ok": @YES },
@@ -572,7 +572,7 @@ static NSArray *SSDefaultHudItems(NSString *carName) {
 
     NSString *text = SSTrimmed(self.name);
     if (text.length == 0) text = SSTrimmed(self.carName);
-    if (text.length == 0) text = @"OmniCar";
+    if (text.length == 0) text = @"DuoCar";
 
     UIFont *font = SSRoundedFont(_k * 180, UIFontWeightHeavy);
     NSDictionary *attrs = @{ NSFontAttributeName: font };
@@ -702,8 +702,8 @@ static NSArray *SSDefaultHudItems(NSString *carName) {
     [hostLayer addSublayer:disc];
     _flash = disc;
 
-    UIColor *percentColor = [UIColor colorWithRed:0.6666666666666666 green:0.9215686274509803
-                                             blue:1 alpha:1];
+    UIColor *percentColor = [UIColor colorWithRed:0.780 green:0.722
+                                             blue:0.894 alpha:1];
     _percentLabel = [self ss_label:@"100%" at:CGPointMake(cx, cy) size:64
                             weight:UIFontWeightHeavy color:percentColor
                               left:NO in:host maxWidth:0];
@@ -723,14 +723,14 @@ static NSArray *SSDefaultHudItems(NSString *carName) {
                                        size:30 weight:UIFontWeightHeavy
                                       color:(notOk ? [UIColor colorWithRed:1 green:0.6666666666666666
                                                                        blue:0.23529411764705882 alpha:1]
-                                                   : [UIColor colorWithRed:0.47058823529411764 green:1
-                                                                       blue:0.6666666666666666 alpha:1])
+                                                   : [UIColor colorWithRed:0.631 green:0.431
+                                                                       blue:1.000 alpha:1])
                                        left:YES in:host maxWidth:0];
             UILabel *label = [self ss_label:text
                                          at:CGPointMake(_ox + 850 * _k, _oy + rowY * _k)
                                        size:30 weight:UIFontWeightMedium
-                                      color:[UIColor colorWithRed:0.8627450980392157 green:0.9411764705882353
-                                                              blue:1 alpha:1]
+                                      color:[UIColor colorWithRed:0.961 green:0.941
+                                                              blue:1.000 alpha:1]
                                        left:YES in:host maxWidth:0];
             [self ss_fade:glyph from:0.5 + 0.38 * i to:0.8 + 0.38 * i alpha:1];
             [self ss_fade:label from:0.5 + 0.38 * i to:0.8 + 0.38 * i alpha:1];
@@ -961,7 +961,7 @@ static NSArray *SSDefaultHudItems(NSString *carName) {
     [logoView.layer addAnimation:breathe forKey:@"ssBreathe"];
 
     // Title: black SSSceneLabel used as the mask of a gradient container.
-    UILabel *title = SSSceneLabel(@"OmniCar");
+    UILabel *title = SSSceneLabel(@"DuoCar");
     title.font = SSRoundedFont(110 * _k, UIFontWeightHeavy);
     title.textColor = [UIColor blackColor];
     CGSize fit = [title sizeThatFits:CGSizeMake(DBL_MAX, DBL_MAX)];

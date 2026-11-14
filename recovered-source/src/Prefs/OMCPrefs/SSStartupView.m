@@ -206,7 +206,7 @@ NSString *SSPrefsTrimmedString(NSString *s) {
 NSArray *SSSampleHudItems(NSString *carName) {
     NSString *trimmed = SSPrefsTrimmedString(carName);
     NSString *displayName = trimmed.length ? SSPrefsTrimmedString(carName)
-                                           : @"OmniCar";
+                                           : @"DuoCar";
     return @[
         @{@"text": OMCTr(@"Kết nối CarPlay", @"CarPlay connected"),
           @"ok": @YES},
@@ -1069,7 +1069,7 @@ NSArray *SSSampleHudItems(NSString *carName) {
     (void)speed; (void)rpm;
     NSString *car = self.carName.length ? [self.carName stringByTrimmingCharactersInSet:
                                            [NSCharacterSet whitespaceAndNewlineCharacterSet]] : @"";
-    if (!car.length) car = @"OmniCar";
+    if (!car.length) car = @"DuoCar";
     UILabel *nameL = [self ss_label:car at:CGPointMake(self.bounds.size.width / 2, self.bounds.size.height * 0.13)
                                size:9 weight:UIFontWeightSemibold color:nil left:NO in:host maxWidth:0];
     [self ss_fade:nameL from:0.2 to:0.8 alpha:1];
@@ -1142,7 +1142,7 @@ NSArray *SSSampleHudItems(NSString *carName) {
     UIView *host = [self ss_host];
     [self ss_addCanvas];
     NSInteger period = SSPeriodForDate(self.date ?: [NSDate date]);
-    NSString *text = self.name.length ? self.name : @"OmniCar";
+    NSString *text = self.name.length ? self.name : @"DuoCar";
     NSString *greet = SSGreetingForPeriod(period, nil);
     UILabel *l = [self ss_label:greet at:CGPointMake(self.bounds.size.width / 2, self.bounds.size.height * 0.16)
                             size:8 weight:UIFontWeightMedium
@@ -1204,7 +1204,7 @@ NSArray *SSSampleHudItems(NSString *carName) {
 
 - (void)ss_buildHud {
     UIView *host = [self ss_host];
-    NSString *car = self.carName.length ? self.carName : @"OmniCar";
+    NSString *car = self.carName.length ? self.carName : @"DuoCar";
     [self ss_label:car at:CGPointMake(self.bounds.size.width * 0.08, self.bounds.size.height * 0.16)
               size:8 weight:UIFontWeightSemibold color:nil left:YES in:host maxWidth:0];
     // Items source [VERIFIED — micro-fix pass, own capstone dump of
@@ -1344,7 +1344,7 @@ NSArray *SSSampleHudItems(NSString *carName) {
         scale.duration = move.duration; scale.autoreverses = YES; scale.repeatCount = HUGE_VALF;
         [blob addAnimation:scale forKey:@"ssLiquidScale"];
     }
-    UILabel *l = [self ss_label:(self.name.length ? self.name : @"OmniCar")
+    UILabel *l = [self ss_label:(self.name.length ? self.name : @"DuoCar")
                              at:CGPointMake(self.bounds.size.width / 2, self.bounds.size.height / 2)
                            size:15 weight:UIFontWeightBold color:nil left:NO in:host maxWidth:0];
     SSFade *f = [self ss_fade:l from:0.3 to:1.1 alpha:1]; f.rise = 5 * _unit;

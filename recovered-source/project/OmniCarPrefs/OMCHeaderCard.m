@@ -52,13 +52,13 @@
     [_clip addSubview:_logo];
 
     _nameLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    _nameLabel.text = @"OmniCar";
+    _nameLabel.text = @"DuoCar";
     _nameLabel.textColor = OMCColorFromHex(@"#EAF6FB");
     _nameLabel.font = [UIFont systemFontOfSize:22 weight:UIFontWeightBold];
     [_clip addSubview:_nameLabel];
 
     _versionLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    _versionLabel.text = @"1.0.3";
+    _versionLabel.text = [[bundle infoDictionary] objectForKey:@"CFBundleShortVersionString"] ?: @"1.0.3";
     _versionLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightMedium];
     _versionLabel.textColor = OMCColorFromHex(@"#93AAB8");
     [_clip addSubview:_versionLabel];

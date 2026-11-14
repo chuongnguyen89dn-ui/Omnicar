@@ -304,7 +304,7 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
             // true: the plist key is startupScreenCarName) and wrote
             // @"footerText".
             if ([sp.identifier isEqualToString:@"carName"])
-                [sp setProperty:SSDiagCarName() ?: @"OmniCar" forKey:@"placeholder"];
+                [sp setProperty:SSDiagCarName() ?: @"DuoCar" forKey:@"placeholder"];
         }
         // [W1] Bracket: after the ssStyles filter loop (remaining count).
         OMCLogWriteSync(@"Prefs", [NSString stringWithFormat:
@@ -900,7 +900,7 @@ static NSDate *SSBirthdayDate(NSString *mmdd) {
     }
     self.extracting = YES;
     UIAlertController *alert = [UIAlertController
-        alertControllerWithTitle:@"OmniCar"
+        alertControllerWithTitle:@"DuoCar"
                          message:[L(@"STARTUPSCREEN_PREPARING") stringByAppendingString:@"…"]
                   preferredStyle:UIAlertControllerStyleAlert];
     [self presentViewController:alert animated:YES completion:nil];

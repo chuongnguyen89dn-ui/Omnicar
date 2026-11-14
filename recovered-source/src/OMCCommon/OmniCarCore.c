@@ -181,13 +181,13 @@ static void OMCRescueAnnounce(void) {
         [names addObject:name];
     }
     NSString *joined = [names componentsJoinedByString:@", "];
-    NSString *title = OMCTr(@"OmniCar: chế độ cứu", @"OmniCar: rescue mode");
+    NSString *title = OMCTr(@"DuoCar: chế độ cứu", @"DuoCar: rescue mode");
     NSString *body = [NSString
         stringWithFormat:
-            OMCTr(@"CarPlay bị sập %d lần liền ngay sau khi cắm, nên OmniCar đã tắt: %@.\n\nVào Cài đặt > OmniCar để bật lại hoặc gửi log cho tác giả.",
+            OMCTr(@"CarPlay bị sập %d lần liền ngay sau khi cắm, nên DuoCar đã tắt: %@.\n\nVào Cài đặt > DuoCar để bật lại hoặc gửi log cho tác giả.",
                   @"CarPlay crashed %d times in a row right after "
-                   "connecting, so OmniCar turned off: %@.\n\nOpen "
-                   "Settings > OmniCar to turn it back on or send the "
+                   "connecting, so DuoCar turned off: %@.\n\nOpen "
+                   "Settings > DuoCar to turn it back on or send the "
                    "log to the developer."),
             2, joined];
     // CFUserNotificationDisplayNotice is resolved dynamically (dlsym on

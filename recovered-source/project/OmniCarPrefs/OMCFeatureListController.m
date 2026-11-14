@@ -104,7 +104,7 @@
 }
 
 - (void)showMessage:(NSString *)message {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"OmniCar"
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"DuoCar"
                                                                    message:message
                                                             preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];

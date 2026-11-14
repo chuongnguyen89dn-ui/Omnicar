@@ -908,7 +908,7 @@ NSInteger SSPeriodForDate(NSDate *date) { // SSPeriodForDate @0xc054 [VERIFIED]
 
 static NSArray *SSSampleHUD(NSString *carName) { // sub_16544 [INFERRED contents from ss_buildHud shape]
     return @[ @{ @"text": OMCTr(@"Đã kết nối CarPlay", @"CarPlay connected"), @"ok": @YES },
-              @{ @"text": carName.length ? carName : @"OmniCar", @"ok": @YES } ];
+              @{ @"text": carName.length ? carName : @"DuoCar", @"ok": @YES } ];
 }
 
 void SSApplySampleData(SSStartupView *view) { // SSApplySampleData @0x1a974 [VERIFIED shape]
