@@ -1,5 +1,10 @@
 # LỊCH SỬ DỰ ÁN GPT — OmniCar mã nguồn
 
+
+## 2026-11-14 — DC57 FAT DEB built, binary independently verified; CI stale HL55 marker
+- One **\`DC57.deb\` v\`1.0.3-le0249\`**, 2,380,020 bytes, SHA256 \`665d567ee05f3a9e18b0dbfc31bd50b00666750069a9a490c0395717a6131c51\`, source commit \`dfd53193\`, run \`43550513176\`, artifact \`14096090713\` archived as \`DC57-failed-binary\`. App/ext build, merge, source tests, vendor re-sign all PASS; CI overall **failure** due legacy \`[hl55-vendor-save]\` verifier, corrected to shipped \`[hl56-config-source]\` without re-build. Exact DEB independently verified 18 FAT binaries, 36 nonempty signatures, 10 Lề vendor Mach-O without \`km/h\`, fixed passive top-left status, native menu sheet markers, owner/LePrefs/zoom/Dock. Manual-only workflow restored. **Device test pending.** [HL57 full checkpoint](HL57_FULLSCREEN_STATIC_STATUS_AND_NATIVE_MENU_20261114.md).
+
+
 ## 2026-11-14 — HL57: HUD fullscreen không nhận chạm, hàng giờ–pin–nhiệt góc trái; menu native nguyên nền hosted
 - Nguyen thay thế thiết kế bubble tự do bằng status `giờ  🔋pin 🌡nhiệt` **một hàng cố định ở top-left**, chữ kiểu Dock, không nền, 4pt clock→pin; **window hitTest luôn nil**, tất cả UI/thermal con `userInteractionEnabled=NO`, không nhận tap/scroll/pinch; chỉ hiện khi fullscreen. Menu occupied native chuyển về original blur/mesh như hosted thay vì alpha 0.32 của HL49 gây lộ logo. Code commits `0852b159`, `99f72e88` + source gates/checkpoint. **CHƯA build/deb/DEVICE PASS**; giữ nguyên Lề HL56. [Biên bản HL57](HL57_FULLSCREEN_STATIC_STATUS_AND_NATIVE_MENU_20261114.md).
 

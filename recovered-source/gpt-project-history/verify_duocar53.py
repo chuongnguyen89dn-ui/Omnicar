@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Final one-file DuoCar HL54 FAT binary audit. Must run on the actual
-artifact after resigning LeBubble; never count a prior CI's log as proof.
+"""Final FAT binary audit (HL57). Validate the actual merged, signed DEB,
+not source-only assertions or the CI build prior to vendor re-signing.
 """
 from pathlib import Path
 import hashlib
@@ -84,7 +84,8 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
         assert has_marker(data,"[le024-ext]")
         assert has_marker(data,"[le024-config]")
         for extra in ("[hl55-le-window]","[hl55-le-master]",
-                      "[hl54-store-sb]"):
+                      "[hl54-store-sb]","[hl56-config-source]",
+                      "[hl56-firstconnect]","[hl56-hosted-layer]"):
             assert has_marker(data,extra),(sub,"Lề master/store/overlay absent",extra)
         assert has_marker(data,"repaired malformed modules"),"vendor schema repair missing"
         # Markers in BOTH signed slices; not a CarPlay runtime claim.
@@ -140,7 +141,7 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
     assert has_marker(app.read_bytes(),"[hl52-le-original] ORIGINAL LOADED"),"real Lề root not linked"
     assert has_marker(app.read_bytes(),"CWTrafficBubblePrefsController"),"vendor principal missing"
     for sub,content in verify_fat(app).items():
-        for extra in ("[hl54-store]","[hl55-vendor-save]",
+        for extra in ("[hl54-store]","[hl56-config-source]",
                       "Hiển thị bong bóng Lề","Hiệu chỉnh tốc độ GPS"):
             assert has_marker(content,extra),(sub,"Lề master/vendor-save/GPS missing",extra)
     assert has_marker(app.read_bytes(),"DuoCar • Tùy chỉnh Lề"),"extras page absent"
@@ -180,4 +181,4 @@ with tempfile.TemporaryDirectory(prefix="duocar53-verify-") as t:
     assert not (jb/"Library/PreferenceLoader/Preferences/Le.plist").exists()
 sha=hashlib.sha256(deb.read_bytes()).hexdigest()
 print("HL54_NO_UNIT_FINAL_FAT_PASS",sha,"bytes",deb.stat().st_size,
-      "HL54: all vendor km/h absent, clock snap+free; original Lề UI class retained, 360-degree pinch preserved; DEVICE PENDING")
+      "HL57: all vendor km/h absent; fixed pass-through fullscreen HUD & native menu; 360-degree pinch preserved; DEVICE PENDING")
