@@ -289,10 +289,10 @@ void SCPMarkRatioChipSelected(UIView *view) {
         ring.type = kCAGradientLayerConic;
         ring.startPoint = CGPointMake(0.5, 0.5);
         ring.endPoint = CGPointMake(0, 1);
-        UIColor *c1 = [UIColor colorWithRed:0.6549019607843137 green:0.5450980392156862 blue:0.9803921568627451 alpha:1.0];
-        UIColor *c2 = [UIColor colorWithRed:0.3764705882352941 green:0.7725490196078432 blue:0.9803921568627451 alpha:1.0];
-        UIColor *c3 = [UIColor colorWithRed:0.3686274509803922 green:0.8666666666666667 blue:0.7137254901960784 alpha:1.0];
-        UIColor *c4 = [UIColor colorWithRed:0.9607843137254902 green:0.6039215686274509 blue:0.7529411764705882 alpha:1.0];
+        UIColor *c1 = [UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824 blue:0.9568627450980392 alpha:1.0];
+        UIColor *c2 = [UIColor colorWithRed:0.3803921568627451 green:0.8509803921568627 blue:0.9490196078431372 alpha:1.0];
+        UIColor *c3 = [UIColor colorWithRed:0.1803921568627451 green:0.6509803921568628 blue:0.7333333333333333 alpha:1.0];
+        UIColor *c4 = [UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824 blue:0.9568627450980392 alpha:1.0]; // APEX conic: cyan -> ice cyan -> teal -> cyan
         ring.colors = @[(id)c1.CGColor, (id)c2.CGColor, (id)c3.CGColor,
                         (id)c4.CGColor, (id)c1.CGColor];
         CAShapeLayer *mask = [CAShapeLayer layer];
@@ -310,10 +310,10 @@ void SCPMarkRatioChipSelected(UIView *view) {
             cornerRadius:MAX(view.layer.cornerRadius - 1, 0)].CGPath;
     [CATransaction commit];
     view.layer.borderWidth = 0;
-    view.layer.shadowColor = [UIColor colorWithRed:0.6078431372549019
-                                             green:0.5294117647058824
-                                              blue:0.9725490196078431
-                                             alpha:1.0].CGColor;
+    view.layer.shadowColor = [UIColor colorWithRed:0.18
+                                             green:0.65
+                                              blue:0.73
+                                             alpha:1.0].CGColor; // APEX teal
     view.layer.shadowOpacity = 0.3f;
     view.layer.shadowRadius = 8;
     view.layer.shadowOffset = CGSizeMake(0, 4);
@@ -324,10 +324,7 @@ void SCPStyleRatioMenu(UIView *view, double radius) {
     view.backgroundColor = UIColor.clearColor;
     view.layer.cornerRadius = radius;
     view.layer.cornerCurve = kCACornerCurveContinuous;
-    view.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
-                                             green:0.39215686274509803
-                                              blue:0.7843137254901961
-                                             alpha:1.0].CGColor;
+    view.layer.shadowColor = [UIColor blackColor].CGColor;
     view.layer.shadowOpacity = 0.3f;
     view.layer.shadowRadius = 14;
     view.layer.shadowOffset = CGSizeMake(0, 6);

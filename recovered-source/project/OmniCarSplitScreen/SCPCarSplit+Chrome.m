@@ -52,23 +52,20 @@ void SCPApplyMeshBackdrop(UIVisualEffectView *effectView) {
 // @0x2b380 — the secondary text colour: navy at 55% alpha.
 UIColor *SCPColorSecondary(void) {
     return [[UIColor colorWithRed:0.2901960784313726
-                            green:0.30980392156862746
-                             blue:0.5019607843137255
-                            alpha:1.0] colorWithAlphaComponent:0.55];
+                            green:0.6666666666666666
+                             blue:0.7215686274509804
+                            alpha:1.0] colorWithAlphaComponent:0.85];
 }
 
 // @0x35f70 — small-chip styling (cancel/exit chips): translucent white,
 // hairline border, faint shadow.
 void SCPStyleChip(UIView *view, double radius) {
-    view.backgroundColor = [UIColor colorWithWhite:1 alpha:0.5];
+    view.backgroundColor = [UIColor colorWithRed:0.106 green:0.165 blue:0.204 alpha:0.55]; // APEX surface.1
     view.layer.cornerRadius = radius;
     view.layer.cornerCurve = kCACornerCurveContinuous;
     view.layer.borderWidth = 1;
-    view.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.9].CGColor;
-    view.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
-                                             green:0.39215686274509803
-                                              blue:0.7843137254901961
-                                             alpha:1.0].CGColor;
+    view.layer.borderColor = [UIColor colorWithRed:0.208 green:0.318 blue:0.373 alpha:0.9].CGColor; // APEX stroke
+    view.layer.shadowColor = [UIColor blackColor].CGColor;
     view.layer.shadowOpacity = 0.12f;
     view.layer.shadowRadius = 3;
     view.layer.shadowOffset = CGSizeMake(0, 2);
@@ -104,10 +101,10 @@ static void SCPApplyAccent(UIView *view, BOOL on) {
         grad = [CAGradientLayer layer];
         grad.name = @"omcAccent";
         grad.colors = @[
-            (id)[UIColor colorWithRed:0.6078431372549019 green:0.5294117647058824
-                                 blue:0.9725490196078431 alpha:1.0].CGColor,
-            (id)[UIColor colorWithRed:0.36470588235294116 green:0.7058823529411765
-                                 blue:0.9647058823529412 alpha:1.0].CGColor];
+            (id)[UIColor colorWithRed:0.4745098039215686 green:0.9294117647058824
+                                 blue:0.9568627450980392 alpha:1.0].CGColor,
+            (id)[UIColor colorWithRed:0.12941176470588237 green:0.5607843137254902
+                                 blue:0.6666666666666666 alpha:1.0].CGColor]; // APEX #79EDF4 -> #218FAA
         grad.startPoint = CGPointZero;
         grad.endPoint = CGPointMake(1, 1);
         [view.layer insertSublayer:grad atIndex:0];
@@ -118,10 +115,10 @@ static void SCPApplyAccent(UIView *view, BOOL on) {
     grad.cornerRadius = view.layer.cornerRadius;
     grad.cornerCurve = kCACornerCurveContinuous;
     [CATransaction commit];
-    view.layer.shadowColor = [UIColor colorWithRed:0.43137254901960786
-                                             green:0.47058823529411764
-                                                  blue:1.0
-                                                 alpha:1.0].CGColor;
+    view.layer.shadowColor = [UIColor colorWithRed:0.18
+                                             green:0.65
+                                                  blue:0.73
+                                                 alpha:1.0].CGColor; // APEX teal glow
     view.layer.shadowOpacity = 0.45f;
     view.layer.shadowRadius = 9;
     view.layer.shadowOffset = CGSizeMake(0, 4);
@@ -169,11 +166,11 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
     for (NSInteger dx = -8; dx < 16; dx += 8) {
         UIView *dot = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 4, 4)];
         dot.center = CGPointMake(dx + 17, 6);
-        dot.backgroundColor = [[UIColor colorWithRed:0.2901960784313726
-                                               green:0.30980392156862746
-                                                blue:0.5019607843137255
+        dot.backgroundColor = [[UIColor colorWithRed:0.06274509803921569
+                                               green:0.09411764705882353
+                                                blue:0.12549019607843137
                                                alpha:1.0]
-            colorWithAlphaComponent:0.85];
+            colorWithAlphaComponent:0.85]; // APEX graphite dots
         dot.layer.cornerRadius = 2;
         dot.userInteractionEnabled = NO;
         [handle addSubview:dot];
@@ -198,11 +195,11 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
     pane.handle = handle;
     [pane.view addSubview:handle];
 
-    UIColor *navy = [UIColor colorWithRed:0.2901960784313726
-                                    green:0.30980392156862746
-                                     blue:0.5019607843137255 alpha:1.0];
-    UIColor *red = [UIColor colorWithRed:1.0 green:0.35294117647058826
-                                    blue:0.37254901960784315 alpha:1.0];
+    UIColor *navy = [UIColor colorWithRed:0.9176470588235294
+                                    green:0.9647058823529412
+                                     blue:0.984313725490196 alpha:1.0]; // APEX Ice (ten bien giu nguyen)
+    UIColor *red = [UIColor colorWithRed:1.0 green:0.2784313725490196
+                                    blue:0.3411764705882353 alpha:1.0]; // APEX danger #FF4757
     UIButton *choose = SCPBarButton(@"hm_apps", OMCTr(@"Đổi app", @"Change app"),
                                     navy, self, @selector(paneChoose:));
     pane.soloButton = SCPBarButton(@"hm_full", OMCTr(@"Toàn màn", @"Full screen"),
@@ -232,7 +229,7 @@ static UIButton *SCPBarButton(NSString *iconName, NSString *label,
         } else {
             UIView *divider = [[UIView alloc]
                 initWithFrame:CGRectMake(x + 3, 11, 1, 30)];
-            divider.backgroundColor = [UIColor colorWithWhite:1 alpha:0.95];
+            divider.backgroundColor = [UIColor colorWithRed:0.9176470588235294 green:0.9647058823529412 blue:0.984313725490196 alpha:0.35];
             divider.layer.cornerRadius = 0.5;
             divider.userInteractionEnabled = NO;
             [bar addSubview:divider];

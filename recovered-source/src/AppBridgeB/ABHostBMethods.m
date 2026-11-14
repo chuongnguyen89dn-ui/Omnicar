@@ -363,8 +363,8 @@ static void ABApplyAccent(UIView *view, BOOL on) {
             accent = [CAGradientLayer layer];
             accent.name = @"omcAccent";
             accent.colors = @[
-                (id)[UIColor colorWithRed:155.0/255.0 green:135.0/255.0 blue:248.0/255.0 alpha:1].CGColor,
-                (id)[UIColor colorWithRed:93.0/255.0 green:180.0/255.0 blue:246.0/255.0 alpha:1].CGColor];
+                (id)[UIColor colorWithRed:121.0/255.0 green:237.0/255.0 blue:244.0/255.0 alpha:1].CGColor,
+                (id)[UIColor colorWithRed:33.0/255.0 green:143.0/255.0 blue:170.0/255.0 alpha:1].CGColor]; // APEX #79EDF4 -> #218FAA
             accent.startPoint = CGPointMake(0, 0);
             accent.endPoint = CGPointMake(1, 1);
             accent.frame = view.bounds;
@@ -378,8 +378,8 @@ static void ABApplyAccent(UIView *view, BOOL on) {
     }
     for (UIView *sub in view.subviews)
         sub.backgroundColor = on ? [UIColor whiteColor]
-            : [[UIColor colorWithRed:74.0/255.0 green:79.0/255.0 blue:128.0/255.0 alpha:1]
-                  colorWithAlphaComponent:0.85];
+            : [[UIColor colorWithRed:16.0/255.0 green:24.0/255.0 blue:32.0/255.0 alpha:1]
+                  colorWithAlphaComponent:0.85]; // APEX graphite dots
 }
 
 // sub_11CD8 @0x11CD8 — VERIFIED: per-name rendered-glyph cache.
@@ -514,12 +514,11 @@ static ABBarButton *ABMakeBarButton(NSString *name, NSString *title, UIColor *ti
     button.tintColor = tint;
     UIView *plate = [[UIView alloc] initWithFrame:CGRectMake(4, 0, 40, 40)];
     plate.userInteractionEnabled = NO;
-    plate.backgroundColor = [UIColor colorWithWhite:1 alpha:0.5];
+    plate.backgroundColor = [UIColor colorWithRed:27.0/255.0 green:42.0/255.0 blue:52.0/255.0 alpha:0.55]; // APEX surface.1
     plate.layer.cornerRadius = 20;
     plate.layer.borderWidth = 1;
-    plate.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.9].CGColor;
-    plate.layer.shadowColor = [UIColor colorWithRed:110.0/255.0 green:100.0/255.0
-                                               blue:200.0/255.0 alpha:1].CGColor;
+    plate.layer.borderColor = [UIColor colorWithRed:53.0/255.0 green:81.0/255.0 blue:95.0/255.0 alpha:0.9].CGColor; // APEX stroke
+    plate.layer.shadowColor = [UIColor blackColor].CGColor;
     plate.layer.shadowOpacity = 0.12f;   // float @0x2B38C
     plate.layer.shadowRadius = 3;
     plate.layer.shadowOffset = CGSizeMake(0, 2);
@@ -1159,10 +1158,10 @@ static id ABSceneOfPane(ABPane *pane) {
 // (Declaration fix: objc.json types the return @ — the header's earlier
 // void typing is corrected in ABHost.h, see the closure log section.)
 - (UIView *)buildBarForPane:(ABPane *)pane {
-    UIColor *tint = [UIColor colorWithRed:74.0/255.0 green:79.0/255.0
-                                     blue:128.0/255.0 alpha:1];
-    UIColor *closeTint = [UIColor colorWithRed:1 green:90.0/255.0
-                                          blue:95.0/255.0 alpha:1];
+    UIColor *tint = [UIColor colorWithRed:234.0/255.0 green:246.0/255.0
+                                     blue:251.0/255.0 alpha:1]; // APEX Ice
+    UIColor *closeTint = [UIColor colorWithRed:1 green:71.0/255.0
+                                          blue:87.0/255.0 alpha:1]; // APEX danger #FF4757
     ABBarButton *appsBtn = ABMakeBarButton(@"hm_apps", OMCTr(@"Đổi app", @"Change app"),
                                            tint, self, @selector(barReplace:));
     ABBarButton *fullBtn = ABMakeBarButton(@"hm_full", OMCTr(@"Toàn màn", @"Full screen"),
@@ -1182,8 +1181,7 @@ static id ABSceneOfPane(ABPane *pane) {
     bar.backgroundColor = [UIColor clearColor];
     bar.layer.cornerRadius = 22;
     bar.layer.cornerCurve = kCACornerCurveContinuous;
-    bar.layer.shadowColor = [UIColor colorWithRed:110.0/255.0 green:100.0/255.0
-                                             blue:200.0/255.0 alpha:1].CGColor;
+    bar.layer.shadowColor = [UIColor blackColor].CGColor;
     bar.layer.shadowOpacity = 0.3f;    // float @0x2B388
     bar.layer.shadowRadius = 14;
     bar.layer.shadowOffset = CGSizeMake(0, 6);
@@ -1199,7 +1197,7 @@ static id ABSceneOfPane(ABPane *pane) {
     blur.layer.cornerRadius = 22;
     blur.layer.cornerCurve = kCACornerCurveContinuous;
     blur.layer.borderWidth = 1;
-    blur.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.85].CGColor;
+    blur.layer.borderColor = [UIColor colorWithRed:53.0/255.0 green:81.0/255.0 blue:95.0/255.0 alpha:0.85].CGColor; // APEX stroke
     blur.clipsToBounds = YES;
     blur.userInteractionEnabled = NO;
     [bar addSubview:blur];
@@ -1211,7 +1209,7 @@ static id ABSceneOfPane(ABPane *pane) {
             x += 48;
         } else {
             UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(x + 3, 11, 1, 30)];
-            separator.backgroundColor = [UIColor colorWithWhite:1 alpha:0.95];
+            separator.backgroundColor = [UIColor colorWithRed:234.0/255.0 green:246.0/255.0 blue:251.0/255.0 alpha:0.35];
             separator.userInteractionEnabled = NO;
             [bar addSubview:separator];
             x += 7;
@@ -1327,9 +1325,9 @@ static id ABSceneOfPane(ABPane *pane) {
     handle.userInteractionEnabled = NO;
     for (CGFloat dotX = 9; dotX <= 23; dotX += 7) {
         UIView *dot = [[UIView alloc] initWithFrame:CGRectMake(dotX, 4, 4, 4)];
-        dot.backgroundColor = [[UIColor colorWithRed:74.0/255.0 green:79.0/255.0
-                                                blue:128.0/255.0 alpha:1]
-                               colorWithAlphaComponent:0.85];
+        dot.backgroundColor = [[UIColor colorWithRed:16.0/255.0 green:24.0/255.0
+                                                blue:32.0/255.0 alpha:1]
+                               colorWithAlphaComponent:0.85]; // APEX graphite dots
         dot.layer.cornerRadius = 2;
         [handle addSubview:dot];
     }
@@ -1646,8 +1644,8 @@ static void AHHostRestoreView(UIView *view) {
             accent = [CAGradientLayer layer];
             accent.name = @"omcAccent";
             accent.colors = @[
-                (id)[UIColor colorWithRed:155.0/255.0 green:135.0/255.0 blue:248.0/255.0 alpha:1].CGColor,
-                (id)[UIColor colorWithRed:93.0/255.0 green:180.0/255.0 blue:246.0/255.0 alpha:1].CGColor];
+                (id)[UIColor colorWithRed:121.0/255.0 green:237.0/255.0 blue:244.0/255.0 alpha:1].CGColor,
+                (id)[UIColor colorWithRed:33.0/255.0 green:143.0/255.0 blue:170.0/255.0 alpha:1].CGColor]; // APEX #79EDF4 -> #218FAA
             accent.startPoint = CGPointMake(0, 0);
             accent.endPoint = CGPointMake(1, 1);
             accent.frame = knob.dot.bounds;
