@@ -160,7 +160,7 @@ assert "DCLLeCompactVendorWindow" in ext and '@"CWTrafficWindow"' in ext
 assert "w.frame=frame;" in ext,"small Le native hit window is not moved"
 assert "fromCoordinateSpace:w.screen.coordinateSpace" in ext,"Le free drag not normalized from screen"
 assert "toCoordinateSpace:w.screen.coordinateSpace" in ext
-assert "[hl52-free-xy] BEGIN" in ext and "[hl52-free-xy] END" in ext
+assert "[hl52-free-xy] BEGIN" in ext and "[hl55-le-edge] END" in ext
 assert "[hl52-free-xy] BAD GEOMETRY" in ext
 assert "gesture.view.window.screen!=w.screen" in ext
 assert "if(originalOverlayPan)originalOverlayPan(o,sel,g);" in ext
