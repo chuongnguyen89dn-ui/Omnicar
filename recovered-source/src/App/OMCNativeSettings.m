@@ -1351,9 +1351,48 @@ static void OMCAlert(UIViewController *owner,NSString *message) {
     }
     return self;
 }
+- (void)omcInstallSplitPreview {
+    // GPT review 6875732000: Dashboard phai co preview chia man nhu iphone-01.
+    // Day la MINH HOA tinh (55/45) bang view cuc bo — khong feed native/hosted,
+    // khong IPC, khong dong bo preset/ratio that.
+    CGFloat W=CGRectGetWidth(self.tableView.bounds);
+    UIView *hv=[[UIView alloc] initWithFrame:CGRectMake(0,0,W,118)];
+    hv.autoresizingMask=UIViewAutoresizingFlexibleWidth;
+    UIView *card=[[UIView alloc] initWithFrame:CGRectInset(CGRectMake(0,8,W,102),16,0)];
+    card.autoresizingMask=UIViewAutoresizingFlexibleWidth;
+    card.backgroundColor=OMCApexSurface1();
+    card.layer.cornerRadius=15; card.layer.borderWidth=1;
+    card.layer.borderColor=OMCApexStroke().CGColor; card.clipsToBounds=YES;
+    UILabel *t=[[UILabel alloc] initWithFrame:CGRectMake(14,10,200,16)];
+    t.text=OMCText(@"Xem trước chia màn",@"Split preview");
+    t.font=[UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
+    t.textColor=OMCApexTextPrimary();
+    [card addSubview:t];
+    UILabel *chip=[[UILabel alloc] initWithFrame:CGRectMake(CGRectGetWidth(card.bounds)-86,10,72,16)];
+    chip.autoresizingMask=UIViewAutoresizingFlexibleLeftMargin;
+    chip.text=OMCText(@"Minh họa",@"Illustration");
+    chip.font=[UIFont systemFontOfSize:11 weight:UIFontWeightSemibold];
+    chip.textColor=OMCApexAccent();
+    chip.textAlignment=NSTextAlignmentRight;
+    [card addSubview:chip];
+    CGFloat innerW=CGRectGetWidth(card.bounds)-28-6;
+    UIView *left=[[UIView alloc] initWithFrame:CGRectMake(14,34,innerW*0.55,54)];
+    left.backgroundColor=OMCApexSurface2();
+    left.layer.cornerRadius=8; left.layer.borderWidth=1;
+    left.layer.borderColor=OMCApexStroke().CGColor;
+    [card addSubview:left];
+    UIView *right=[[UIView alloc] initWithFrame:CGRectMake(20+innerW*0.55,34,innerW*0.45,54)];
+    right.backgroundColor=OMCApexSurface3();
+    right.layer.cornerRadius=8; right.layer.borderWidth=1;
+    right.layer.borderColor=OMCApexStroke().CGColor;
+    [card addSubview:right];
+    [hv addSubview:card];
+    self.tableView.tableHeaderView=hv;
+}
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView.backgroundColor=OMCApexSurfaceRoot();
+    [self omcInstallSplitPreview];
 }
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
