@@ -223,7 +223,6 @@ BOOL OMCLeOriginalPreferencesAvailable(void) {
     NSDictionary *req=self.queue.firstObject;
     NSUInteger key=[req[@"key"] unsignedIntegerValue];
     if(((packet>>16)&0xffff)!=key)return;
-    BOOL query=[req[@"read"] boolValue];
     BOOL ok=(packet&0x8000)==0;
     int raw=(int)(packet&0x3fff);
     self.busy=NO;
